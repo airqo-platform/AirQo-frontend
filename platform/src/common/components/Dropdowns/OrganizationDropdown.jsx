@@ -12,7 +12,7 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 const cleanGroupName = (name) => {
   if (!name) return '';
-  return name.replace(/-/g, ' ').toUpperCase();
+  return name.replace(/[-_]/g, ' ').toUpperCase();
 };
 
 const OrganizationDropdown = () => {
@@ -25,6 +25,7 @@ const OrganizationDropdown = () => {
     title: activeGroupTitle,
     groupList,
     userID,
+    loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
 
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
@@ -37,7 +38,12 @@ const OrganizationDropdown = () => {
 
   // Initialize active group if missing
   useEffect(() => {
-    if (!activeGroupId && activeGroups.length > 0) {
+    if (isFetchingActiveGroup) return;
+    const storedGroup = localStorage.getItem('activeGroup');
+    if (storedGroup) {
+      const defaultGroup = JSON.parse(storedGroup);
+      dispatch(setOrganizationName(defaultGroup.grp_title));
+    } else if (!activeGroupId && activeGroups.length > 0) {
       const defaultGroup = activeGroups[0];
       localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
       dispatch(setOrganizationName(defaultGroup.grp_title));
@@ -111,7 +117,7 @@ const OrganizationDropdown = () => {
               {!isCollapsed && (
                 <div
                   className="text-sm font-medium leading-tight truncate max-w-[200px]"
-                  title={activeGroupTitle}
+                  title={cleanGroupName(activeGroupTitle)}
                 >
                   {cleanGroupName(activeGroupTitle)}
                 </div>
@@ -141,9 +147,11 @@ const OrganizationDropdown = () => {
             </div>
             <div
               className="text-sm font-medium truncate max-w-[150px]"
-              title={group.grp_title}
+              title={cleanGroupName(group.grp_title)}
             >
-              {cleanGroupName(group.grp_title)}
+              {cleanGroupName(group.grp_title).length > 14
+                ? `${cleanGroupName(group.grp_title).substring(0, 15)}...`
+                : cleanGroupName(group.grp_title)}
             </div>
           </div>
           {loading && selectedGroupId === group._id ? (

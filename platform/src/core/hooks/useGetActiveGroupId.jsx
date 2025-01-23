@@ -1,38 +1,60 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useMemo } from 'react';
 
 export function useGetActiveGroup() {
+  const [loading, setLoading] = useState(true);
   const userInfo = useSelector((state) => state?.login?.userInfo);
   const chartData = useSelector((state) => state.chart);
 
-  // Safely parse activeGroup from local storage
-  const activeGroup = useMemo(() => {
+  const activeGroupFromStorage = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('activeGroup'));
+      return JSON.parse(localStorage.getItem('activeGroup') || 'null');
     } catch (error) {
       console.error('Error parsing activeGroup from local storage:', error);
       return null;
     }
   }, []);
 
-  // Ensure userInfo and groups exist
+  useEffect(() => {
+    setLoading(false);
+  }, [userInfo, activeGroupFromStorage]);
+
+  // If no userInfo or groups, return stored or default values
   if (!userInfo || !userInfo.groups || !chartData?.organizationName) {
     return {
-      id: activeGroup?.id || null,
-      title: activeGroup?.grp_title || null,
+      loading,
+      id: activeGroupFromStorage?.id || null,
+      title: activeGroupFromStorage?.grp_title || null,
       userID: userInfo?.id || null,
       groupList: userInfo?.groups || [],
     };
   }
 
-  // Find the group that matches the chartData.organizationName
+  // Prioritize stored group if it exists in user's groups
+  if (activeGroupFromStorage) {
+    const storedGroupInUserGroups = userInfo.groups.find(
+      (group) => group._id === activeGroupFromStorage._id,
+    );
+
+    if (storedGroupInUserGroups) {
+      return {
+        loading,
+        id: storedGroupInUserGroups._id,
+        title: storedGroupInUserGroups.grp_title,
+        userID: userInfo._id,
+        groupList: userInfo.groups,
+      };
+    }
+  }
+
+  // Find group matching chart organization name
   const matchingGroup = userInfo.groups.find(
     (group) => group.grp_title === chartData.organizationName,
   );
 
-  // Return the matching group, activeGroup, or fallback values
   if (matchingGroup) {
     return {
+      loading,
       id: matchingGroup._id,
       title: matchingGroup.grp_title,
       userID: userInfo._id,
@@ -40,20 +62,24 @@ export function useGetActiveGroup() {
     };
   }
 
-  if (activeGroup) {
+  // Fallback to first group if available
+  if (userInfo.groups.length > 0) {
+    const firstGroup = userInfo.groups[0];
     return {
-      id: activeGroup._id,
-      title: activeGroup.grp_title,
+      loading,
+      id: firstGroup._id,
+      title: firstGroup.grp_title,
       userID: userInfo._id,
       groupList: userInfo.groups,
     };
   }
 
-  // Fallback when no matching group or activeGroup is found
+  // Final fallback
   return {
+    loading,
     id: null,
     title: null,
     userID: userInfo._id,
-    groupList: userInfo.groups,
+    groupList: [],
   };
 }
