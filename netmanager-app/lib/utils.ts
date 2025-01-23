@@ -23,14 +23,14 @@ export const transformDataToGeoJson = (
   }[] = [];
   data.map((feature) => {
     if (filter(feature)) {
-      features.push({
+      features.forEach({
         type: "Feature",
         properties: { ...rest, ...feature },
         geometry: {
           type: "Point",
           coordinates: (coordinateGetter && coordinateGetter(feature)) || [
-            feature[longitude],
-            feature[latitude],
+            feature[longitude] || 0,
+            feature[latitude] || 0,
           ],
         },
       });
