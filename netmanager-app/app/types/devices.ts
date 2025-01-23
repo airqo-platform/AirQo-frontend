@@ -83,7 +83,6 @@ interface AQIRanges {
   hazardous: AQIRange;
 }
 
-// Define the structure for the averages
 interface Averages {
   dailyAverage: number;
   percentageDifference: number;
@@ -92,36 +91,6 @@ interface Averages {
     previousWeek: number;
   };
 }
-
-// Define the structure for the site details
-// interface SiteDetails {
-//   _id: string;
-//   formatted_name: string;
-//   location_name: string;
-//   search_name: string;
-//   town: string;
-//   city: string;
-//   region: string;
-//   country: string;
-//   name: string;
-//   approximate_latitude: number;
-//   approximate_longitude: number;
-//   bearing_in_radians: number;
-//   data_provider: string;
-//   description: string;
-//   site_category: {
-//       tags: string[];
-//       area_name: string;
-//       category: string;
-//       highway: string;
-//       landuse: string;
-//       latitude: number;
-//       longitude: number;
-//       natural: string;
-//       search_radius: number;
-//       waterway: string;
-//   };
-// }
 
 export interface Measurement {
   _id: string;
