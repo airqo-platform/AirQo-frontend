@@ -124,7 +124,7 @@ class AirqoMobile extends StatelessWidget {
 
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            theme: isLightTheme ? AppTheme.darkTheme : AppTheme.lightTheme,
+            theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
             // theme: isLightTheme ? ThemeData(
             //     splashColor: Colors.transparent,
             //     highlightColor: Colors.transparent,
@@ -137,7 +137,7 @@ class AirqoMobile extends StatelessWidget {
             //     scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
             //     brightness: Brightness.light),
             title: "AirQo",
-            home: GuestProfilePage(),
+            home: Decider(),
           );
         },
       ),
