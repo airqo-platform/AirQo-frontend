@@ -111,7 +111,7 @@ const OrganizationDropdown = () => {
               {!isCollapsed && (
                 <div
                   className="text-sm font-medium leading-tight truncate max-w-[200px]"
-                  title={activeGroupTitle}
+                  title={cleanGroupName(activeGroupTitle)}
                 >
                   {cleanGroupName(activeGroupTitle)}
                 </div>
