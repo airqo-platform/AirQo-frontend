@@ -38,119 +38,132 @@ class _ProfilePageState extends State<ProfilePage> {
                     SizedBox(width: 16)
                   ],
                 ),
-                body: Column(
-                  children: [
-                    SizedBox(
-                      height: 100,
-                      child: Row(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            child: CircleAvatar(
-                              backgroundColor: Theme.of(context).highlightColor,
-                              child: Center(
-                                child: SvgPicture.asset(
-                                    "assets/icons/user_icon.svg"),
-                              ),
-                              radius: 50,
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                body: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 120,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                "${firstName} ${lastName}",
-                                style: TextStyle(
-                                  color: AppColors.boldHeadlineColor,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).highlightColor,
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                        "assets/icons/user_icon.svg"),
+                                  ),
+                                  radius: 50,
                                 ),
                               ),
-                              Spacer(),
-                              Row(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 32),
-                                    height: 50,
-                                    child: Center(
-                                        child: Text("Edit your profile")),
-                                    //   child: InkWell(
-                                    // onTap: () => Navigator.of(context).push(
-                                    //     MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             EditProfile())),
-                                    // child: Text(
-                                    //   "Edit your profile",
-                                    //   style: TextStyle(
-                                    //     fontWeight: FontWeight.w500,
-                                    //     color: Colors.white,
-                                    //   ),
-                                    // ),
-                                    //)),
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context).highlightColor,
-                                        borderRadius:
-                                            BorderRadius.circular(200)),
+                                  Text(
+                                    "${firstName} ${lastName}",
+                                    style: TextStyle(
+                                      color: AppColors.boldHeadlineColor,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                  SizedBox(width: 8),
-                                  CircleAvatar(
-                                      backgroundColor:
-                                          Theme.of(context).highlightColor,
-                                      radius: 26,
-                                      child: SvgPicture.asset(
-                                          "assets/icons/notification.svg"))
+                                  SizedBox(height: 8),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 32),
+                                          height: 50,
+                                          child: Center(
+                                              child: Text("Edit your profile")),
+                                          //   child: InkWell(
+                                          // onTap: () => Navigator.of(context).push(
+                                          //     MaterialPageRoute(
+                                          //         builder: (context) =>
+                                          //             EditProfile())),
+                                          // child: Text(
+                                          //   "Edit your profile",
+                                          //   style: TextStyle(
+                                          //     fontWeight: FontWeight.w500,
+                                          //     color: Colors.white,
+                                          //   ),
+                                          // ),
+                                          //)),
+                                          decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .highlightColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(200)),
+                                        ),
+                                        SizedBox(width: 8),
+                                        CircleAvatar(
+                                            backgroundColor: Theme.of(context)
+                                                .highlightColor,
+                                            radius: 26,
+                                            child: SvgPicture.asset(
+                                                "assets/icons/notification.svg"))
+                                      ],
+                                    ),
+                                  )
                                 ],
                               )
                             ],
-                          )
-                        ],
+                          ),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 32),
-                    TabBar(
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        labelColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : AppColors.primaryColor,
-                        overlayColor:
-                            WidgetStatePropertyAll(Colors.transparent),
-                        indicatorColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : AppColors.primaryColor,
-                        tabs: [
-                          // Tab(
-                          //     height: 60,
-                          //     icon: TabIcon(
-                          //         image: "assets/profile/exposure.svg",
-                          //         label: "Exposure")),
-                          // Tab(
-                          //     height: 60,
-                          //     icon: TabIcon(
-                          //         image: "assets/profile/places.svg",
-                          //         label: "Places")),
-                          // Tab(
-                          //     height: 60,
-                          //     icon: TabIcon(
-                          //         image: "assets/profile/devices.svg",
-                          //         label: "Devices")),
-                          Tab(
-                              height: 60,
-                              icon: TabIcon(
-                                  image: "assets/profile/settings.svg",
-                                  label: "Settings")),
+                      SizedBox(height: 32),
+                      TabBar(
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          labelColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : AppColors.primaryColor,
+                          overlayColor:
+                              WidgetStatePropertyAll(Colors.transparent),
+                          indicatorColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : AppColors.primaryColor,
+                          tabs: [
+                            // Tab(
+                            //     height: 60,
+                            //     icon: TabIcon(
+                            //         image: "assets/profile/exposure.svg",
+                            //         label: "Exposure")),
+                            // Tab(
+                            //     height: 60,
+                            //     icon: TabIcon(
+                            //         image: "assets/profile/places.svg",
+                            //         label: "Places")),
+                            // Tab(
+                            //     height: 60,
+                            //     icon: TabIcon(
+                            //         image: "assets/profile/devices.svg",
+                            //         label: "Devices")),
+                            Tab(
+                                height: 60,
+                                icon: TabIcon(
+                                    image: "assets/profile/settings.svg",
+                                    label: "Settings")),
+                          ]),
+                      Expanded(
+                        child: TabBarView(children: [
+                          // ExposureWidget(),
+                          // Container(child: Text("devices")),
+                          // DevicesWidget(),
+                          SettingsWidget()
                         ]),
-                    Expanded(
-                      child: TabBarView(children: [
-                        // ExposureWidget(),
-                        // Container(child: Text("devices")),
-                        // DevicesWidget(),
-                        SettingsWidget()
-                      ]),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 )),
           );
         }
