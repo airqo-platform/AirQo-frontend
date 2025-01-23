@@ -1,34 +1,66 @@
 import createAxiosInstance from "./axiosConfig";
 import { DEVICES_MGT_URL } from "../urls";
+import { AxiosError } from "axios";
+import { CreateGrid } from "@/app/types/grids";
 
 const axiosInstance = createAxiosInstance();
 
+interface ErrorResponse {
+  message: string;
+}
+
 export const grids = {
-  getGrids: async (networkId: string) => { 
+  getGridsApi: async (networkId: string) => {
     try {
       const response = await axiosInstance.get(
         `${DEVICES_MGT_URL}/grids/summary?network=${networkId}`
       );
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        error.response?.data?.message || "Failed to fetch sites summary"
+        axiosError.response?.data?.message || "Failed to fetch grids summary"
       );
     }
   },
-
-  getGridsApi: async (networkId: string) => {
+  getGridDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids&network=${networkId}`
+        `${DEVICES_MGT_URL}/grids/${gridId}`
       );
       return response.data;
-    } catch (error: any) {
-      console.error("Error fetching grid summary:", error);
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        error.response?.data?.message || "Failed to fetch grid summary"
+        axiosError.response?.data?.message || "Failed to fetch grid details"
       );
     }
   },
-
+  updateGridDetailsApi: async (gridId: string) => {
+    try {
+      const response = await axiosInstance.put(
+        `${DEVICES_MGT_URL}/grids/${gridId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update grid details"
+      );
+    }
+  },
+  createGridApi: async (data: CreateGrid) => {
+    try {
+      const response = await axiosInstance.post(
+        `${DEVICES_MGT_URL}/grids`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to create grid"
+      );
+    }
+  },
 };
