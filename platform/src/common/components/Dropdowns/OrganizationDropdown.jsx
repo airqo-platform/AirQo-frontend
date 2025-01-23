@@ -12,7 +12,7 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 const cleanGroupName = (name) => {
   if (!name) return '';
-  return name.replace(/-/g, ' ').toUpperCase();
+  return name.replace(/[-_]/g, ' ').toUpperCase();
 };
 
 const OrganizationDropdown = () => {
@@ -141,9 +141,11 @@ const OrganizationDropdown = () => {
             </div>
             <div
               className="text-sm font-medium truncate max-w-[150px]"
-              title={group.grp_title}
+              title={cleanGroupName(group.grp_title)}
             >
-              {cleanGroupName(group.grp_title)}
+              {cleanGroupName(group.grp_title).length > 14
+                ? `${cleanGroupName(group.grp_title).substring(0, 15)}...`
+                : cleanGroupName(group.grp_title)}
             </div>
           </div>
           {loading && selectedGroupId === group._id ? (
