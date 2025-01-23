@@ -125,10 +125,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  Text(
-                    "",
-                    style: TextStyle(color: AppColors.boldHeadlineColor),
-                  )
+                  SizedBox(height: 16),
+                  Center(
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+
+                          builder: (context) => ForgotPasswordPage())),
+                      child: Text("Forgot password?",
+                          style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w500)),
+                    ),
+                  ),
+
                 ],
               ),
             ))
