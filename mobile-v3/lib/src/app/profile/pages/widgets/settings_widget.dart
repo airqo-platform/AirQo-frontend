@@ -1,9 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:package_info/package_info.dart';
 
-class SettingsWidget extends StatelessWidget {
+class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
+
+  @override
+  _SettingsWidgetState createState() => _SettingsWidgetState();
+}
+
+class _SettingsWidgetState extends State<SettingsWidget> {
+  String _appVersion = '';
+  bool _locationEnabled = true;
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _getAppVersion();
+  }
+
+  Future<void> _getAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = '${packageInfo.version}(${packageInfo.buildNumber})';
+    });
+  }
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Implement actual logout logic
+              // e.g., clear user session, revoke tokens
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog() {
+    final TextEditingController passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'WARNING: This action cannot be undone. All your data will be permanently deleted.',
+              style: TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Enter Password to Confirm',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Implement actual account deletion logic
+              // Validate password, call backend deletion endpoint
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +111,14 @@ class SettingsWidget extends StatelessWidget {
 
             // Location Setting
             SettingsTile(
-              switchValue: true,
+              switchValue: _locationEnabled,
               iconPath: "assets/images/shared/location_icon.svg",
               title: "Location",
               onChanged: (value) {
-                print("Location setting: \$value");
+                setState(() {
+                  _locationEnabled = value;
+                });
+                print("Location setting: $value");
               },
               description:
                   "AirQo to use your precise location to locate the Air Quality of your nearest location",
@@ -32,11 +126,14 @@ class SettingsWidget extends StatelessWidget {
 
             // Notifications Setting
             SettingsTile(
-              switchValue: true,
+              switchValue: _notificationsEnabled,
               iconPath: "assets/icons/notification.svg",
               title: "Notifications",
               onChanged: (value) {
-                print("Notifications setting: \$value");
+                setState(() {
+                  _notificationsEnabled = value;
+                });
+                print("Notifications setting: $value");
               },
               description:
                   "AirQo to send you in-app & push notifications & spike alerts.",
@@ -44,18 +141,19 @@ class SettingsWidget extends StatelessWidget {
 
             // Send Feedback
             SettingsTile(
-                iconPath: "assets/images/shared/feedback_icon.svg",
-                title: "Send Feedback",
-                onChanged: (value) {
-                  print("Send Feedback setting: \$value");
-                }),
+              iconPath: "assets/images/shared/feedback_icon.svg",
+              title: "Send Feedback",
+              onChanged: (value) {
+                print("Send Feedback tapped");
+              },
+            ),
 
             // Our Story
             SettingsTile(
               iconPath: "assets/images/shared/airqo_story_icon.svg",
               title: "Our Story",
               onChanged: (value) {
-                print("Our Story setting: \$value");
+                print("Our Story tapped");
               },
             ),
 
@@ -64,7 +162,7 @@ class SettingsWidget extends StatelessWidget {
               iconPath: "assets/images/shared/terms_and_privacy.svg",
               title: "Terms and Privacy Policy",
               onChanged: (value) {
-                print("Terms and Privacy Policy setting: \$value");
+                print("Terms and Privacy Policy tapped");
               },
             ),
 
@@ -79,9 +177,7 @@ class SettingsWidget extends StatelessWidget {
                   ),
                   minimumSize: Size.fromHeight(screenHeight * 0.07),
                 ),
-                onPressed: () {
-                  print("Logout tapped");
-                },
+                onPressed: _showLogoutConfirmation,
                 child: const Text(
                   "Log out",
                   style: TextStyle(
@@ -96,9 +192,7 @@ class SettingsWidget extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3),
               child: InkWell(
-                onTap: () {
-                  print("Delete Account tapped");
-                },
+                onTap: _showDeleteAccountDialog,
                 child: Text(
                   "Delete Account",
                   style: TextStyle(
@@ -121,9 +215,9 @@ class SettingsWidget extends StatelessWidget {
                     height: screenHeight * 0.05,
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  const Text(
-                    "3.40.1(1)",
-                    style: TextStyle(
+                  Text(
+                    _appVersion,
+                    style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
                     ),
