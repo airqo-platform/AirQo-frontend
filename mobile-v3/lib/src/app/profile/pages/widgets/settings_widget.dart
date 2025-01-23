@@ -12,7 +12,7 @@ class SettingsWidget extends StatelessWidget {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -70,10 +70,10 @@ class SettingsWidget extends StatelessWidget {
 
             // Logout Button
             Padding(
-              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -85,7 +85,7 @@ class SettingsWidget extends StatelessWidget {
                 child: const Text(
                   "Log out",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -94,7 +94,7 @@ class SettingsWidget extends StatelessWidget {
 
             // Delete Account Section
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3),
               child: InkWell(
                 onTap: () {
                   print("Delete Account tapped");
@@ -128,7 +128,7 @@ class SettingsWidget extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.005),
+                  SizedBox(height: screenHeight * 0.01),
                   const Text(
                     "A PROJECT BY",
                     style: TextStyle(
@@ -136,11 +136,11 @@ class SettingsWidget extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const Text(
-                    "Makerere University",
-                    style: TextStyle(
+                  Text(
+                    "Makerere University".toUpperCase(),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 20,
                       color: Colors.white,
                     ),
                   ),
