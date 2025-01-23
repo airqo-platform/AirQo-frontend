@@ -13,7 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:airqo/src/app/profile/pages/profile_page.dart';
 
 import '../models/airquality_response.dart';
 
@@ -97,13 +96,13 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               SizedBox(width: 8),
               GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return ProfilePage();
-                    },
-                  ),
-                ),
+                // onTap: () => Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (context) {
+                //       return ProfilePage();
+                //     },
+                //   ),
+                // ),
                 child: BlocBuilder<UserBloc, UserState>(
                   builder: (context, state) {
                     if (state is UserLoaded) {
