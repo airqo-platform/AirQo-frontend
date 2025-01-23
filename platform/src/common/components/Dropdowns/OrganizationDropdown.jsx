@@ -25,6 +25,7 @@ const OrganizationDropdown = () => {
     title: activeGroupTitle,
     groupList,
     userID,
+    loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
 
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
@@ -37,7 +38,12 @@ const OrganizationDropdown = () => {
 
   // Initialize active group if missing
   useEffect(() => {
-    if (!activeGroupId && activeGroups.length > 0) {
+    if (isFetchingActiveGroup) return;
+    const storedGroup = localStorage.getItem('activeGroup');
+    if (storedGroup) {
+      const defaultGroup = JSON.parse(storedGroup);
+      dispatch(setOrganizationName(defaultGroup.grp_title));
+    } else if (!activeGroupId && activeGroups.length > 0) {
       const defaultGroup = activeGroups[0];
       localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
       dispatch(setOrganizationName(defaultGroup.grp_title));
