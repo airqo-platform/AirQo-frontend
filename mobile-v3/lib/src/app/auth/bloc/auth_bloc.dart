@@ -41,6 +41,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             ),
           );
         }
+      } else if (event is UseAsGuest) {
+        emit(GuestUser());
       }
     });
   }

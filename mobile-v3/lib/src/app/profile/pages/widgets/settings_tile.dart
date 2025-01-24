@@ -38,7 +38,9 @@ class SettingsTile extends StatelessWidget {
             subtitle: description != null
                 ? Text(description!,
                     style: TextStyle(
-                        color: AppColors.secondaryHeadlineColor, fontSize: 13))
+                        color: AppColors.secondaryHeadlineColor2,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400))
                 : null,
             leading: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -55,11 +57,11 @@ class SettingsTile extends StatelessWidget {
             title: Text(title,
                 style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.boldHeadlineColor)),
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryHeadlineColor3)),
           ),
           Divider(
-            color: Theme.of(context).highlightColor,
+            color:Theme.of(context).highlightColor,
             indent: 80,
           )
         ],

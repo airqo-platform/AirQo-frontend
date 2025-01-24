@@ -24,3 +24,6 @@ class AuthLoadingError extends AuthState {
 }
 
 enum AuthPurpose { LOGIN, REGISTER }
+
+final class GuestUser extends AuthState {}
+
