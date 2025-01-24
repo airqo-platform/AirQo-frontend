@@ -8,7 +8,6 @@ import { ActivateClientDialog, DeactivateClientDialog } from "./dialogs"
 import { getClientsApi, activateUserClientApi } from "@/core/apis/analytics"
 import { useToast } from "@/components/ui/use-toast"
 import type { Client } from "@/app/types/clients"
-import withPermission from "@/app/pageAccess"
 
 const formatDate = (dateString: string | undefined): string => {
   if (!dateString) return "N/A"
@@ -152,5 +151,5 @@ const ClientManagement = () => {
   )
 }
 
-export default withPermission(ClientManagement, 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES');
+export default ClientManagement;
 
