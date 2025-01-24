@@ -15,7 +15,9 @@ export function useGetActiveGroup() {
     setLoading(true);
 
     const matchingGroup = userInfo?.groups?.find(
-      (group) => group.grp_title.toLowerCase() === chartData?.organizationName,
+      (group) =>
+        group.grp_title.toLowerCase() ===
+        chartData?.organizationName.toLowerCase(),
     );
 
     setActiveGroup(matchingGroup);
