@@ -7,11 +7,12 @@ import { columns } from "./columns"
 import { ActivateClientDialog, DeactivateClientDialog } from "./dialogs"
 import { getClientsApi, activateUserClientApi } from "@/core/apis/analytics"
 import { useToast } from "@/components/ui/use-toast"
+import type { Client } from "@/app/types/clients"
 
 const ClientManagement = () => {
-  const [clients, setClients] = useState<{ _id: string; isActive: boolean }[]>([])
+  const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedClient, setSelectedClient] = useState(null)
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [activateDialogOpen, setActivateDialogOpen] = useState(false)
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
   const { toast } = useToast()
@@ -53,11 +54,22 @@ const ClientManagement = () => {
     } finally {
       setActivateDialogOpen(false)
       setDeactivateDialogOpen(false)
+      setSelectedClient(null)
     }
   }
 
   const activatedClients = clients.filter((client) => client.isActive).length
   const deactivatedClients = clients.filter((client) => !client.isActive).length
+
+  const handleActivateClick = (client: Client) => {
+    setSelectedClient(client)
+    setActivateDialogOpen(true)
+  }
+
+  const handleDeactivateClick = (client: Client) => {
+    setSelectedClient(client)
+    setDeactivateDialogOpen(true)
+  }
 
   return (
     <div className="container mx-auto py-10">
@@ -77,18 +89,25 @@ const ClientManagement = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={clients} />
+      <DataTable
+        columns={columns}
+        data={clients}
+        onActivate={handleActivateClick}
+        onDeactivate={handleDeactivateClick}
+      />
 
       <ActivateClientDialog
         open={activateDialogOpen}
         onOpenChange={setActivateDialogOpen}
-        onConfirm={() => handleActivateDeactivate(selectedClient?._id, true)}
+        onConfirm={() => selectedClient && handleActivateDeactivate(selectedClient._id, true)}
+        clientName={selectedClient?.name}
       />
 
       <DeactivateClientDialog
         open={deactivateDialogOpen}
         onOpenChange={setDeactivateDialogOpen}
-        onConfirm={() => handleActivateDeactivate(selectedClient?._id, false)}
+        onConfirm={() => selectedClient && handleActivateDeactivate(selectedClient._id, false)}
+        clientName={selectedClient?.name}
       />
     </div>
   )

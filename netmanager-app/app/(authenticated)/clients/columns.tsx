@@ -11,8 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import type { Client } from "@/app/types/clients"
 
-export const columns: ColumnDef<Client>[] = [
+interface ColumnProps {
+  onActivate: (client: Client) => void
+  onDeactivate: (client: Client) => void
+}
+
+export const columns = ({ onActivate, onDeactivate }: ColumnProps): ColumnDef<Client>[] => [
   {
     accessorKey: "name",
     header: ({ column }) => {
@@ -29,8 +35,16 @@ export const columns: ColumnDef<Client>[] = [
     header: "Client ID",
   },
   {
-    accessorKey: "ip_address",
-    header: "Client IP",
+    accessorKey: "user.email",
+    header: "User Email",
+  },
+  {
+    accessorKey: "access_token.expires",
+    header: "Token Expiry",
+    cell: ({ row }) => {
+      const expires = new Date(row.getValue("access_token.expires"))
+      return expires.toLocaleDateString()
+    },
   },
   {
     accessorKey: "isActive",
@@ -63,6 +77,9 @@ export const columns: ColumnDef<Client>[] = [
               Copy client ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => (client.isActive ? onDeactivate(client) : onActivate(client))}>
+              {client.isActive ? "Deactivate" : "Activate"}
+            </DropdownMenuItem>
             <DropdownMenuItem>View client details</DropdownMenuItem>
             <DropdownMenuItem>Update client information</DropdownMenuItem>
           </DropdownMenuContent>
