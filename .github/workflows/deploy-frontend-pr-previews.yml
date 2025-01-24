@@ -539,7 +539,7 @@ jobs:
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
           echo "automatic_scaling:" >> app.yaml
-          echo "  cool_down_period: 120s" >> app.yaml
+          echo "  cool_down_period_sec: 120" >> app.yaml
           echo "  min_num_instances: 1" >> app.yaml
           echo "  max_num_instances: 3" >> app.yaml
           echo "  cpu_utilization:" >> app.yaml
@@ -653,7 +653,7 @@ jobs:
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
           echo "automatic_scaling:" >> app.yaml
-          echo "  cool_down_period: 120s" >> app.yaml
+          echo "  cool_down_period_sec: 120" >> app.yaml
           echo "  min_num_instances: 1" >> app.yaml
           echo "  max_num_instances: 3" >> app.yaml
           echo "  cpu_utilization:" >> app.yaml
