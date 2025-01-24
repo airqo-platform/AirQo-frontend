@@ -28,9 +28,9 @@ export function useGetActiveGroup() {
   if (!userInfo || !userInfo.groups || !chartData?.organizationName) {
     return {
       loading,
-      id: activeGroup?.id || null,
+      id: activeGroup?._id || null,
       title: activeGroup?.grp_title || null,
-      userID: userInfo?.id || null,
+      userID: userInfo?._id || null,
       groupList: userInfo?.groups || [],
     };
   }
