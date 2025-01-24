@@ -58,13 +58,16 @@ class AnalyticsCard extends StatelessWidget {
                                     ? measurement.pm25!.value!
                                         .toStringAsFixed(2)
                                     : "-",
-                                style: Theme.of(context).textTheme.titleLarge
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 40,
+                                  color: AppColors.boldHeadlineColor2),
                               ),
                               Text(" μg/m3",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 20,
-                                      color: AppColors.secondaryHeadlineColor))
+                                      color: AppColors.boldHeadlineColor2))
                             ]),
                           ]),
                       SizedBox(
@@ -96,12 +99,12 @@ class AnalyticsCard extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.boldHeadlineColor)),
+                          color: AppColors.secondaryHeadlineColor3)),
                   Text(measurement.healthTips![0].description!,
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.secondaryHeadlineColor))
+                          color: AppColors.secondaryHeadlineColor2))
                 ],
               ),
             ),
