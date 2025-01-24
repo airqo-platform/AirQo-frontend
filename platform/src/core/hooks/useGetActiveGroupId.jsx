@@ -1,39 +1,44 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 export function useGetActiveGroup() {
+  const [activeGroup, setActiveGroup] = useState(null);
   const [loading, setLoading] = useState(true);
   const userInfo = useSelector((state) => state?.login?.userInfo);
   const chartData = useSelector((state) => state.chart);
 
-  const activeGroupFromStorage = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('activeGroup') || 'null');
-    } catch (error) {
-      console.error('Error parsing activeGroup from local storage:', error);
-      return null;
-    }
-  }, []);
-
   useEffect(() => {
     setLoading(false);
-  }, [userInfo, activeGroupFromStorage]);
+  }, [userInfo]);
+
+  useEffect(() => {
+    setLoading(true);
+
+    const matchingGroup = userInfo?.groups?.find(
+      (group) => group.grp_title.toLowerCase() === chartData?.organizationName,
+    );
+
+    setActiveGroup(matchingGroup);
+    setLoading(false);
+  }, [chartData?.organizationName]);
 
   // If no userInfo or groups, return stored or default values
   if (!userInfo || !userInfo.groups || !chartData?.organizationName) {
     return {
       loading,
-      id: activeGroupFromStorage?.id || null,
-      title: activeGroupFromStorage?.grp_title || null,
+      id: activeGroup?.id || null,
+      title: activeGroup?.grp_title || null,
       userID: userInfo?.id || null,
       groupList: userInfo?.groups || [],
     };
   }
 
   // Prioritize stored group if it exists in user's groups
-  if (activeGroupFromStorage) {
+  if (chartData.organizationName) {
     const storedGroupInUserGroups = userInfo.groups.find(
-      (group) => group._id === activeGroupFromStorage._id,
+      (group) =>
+        group.grp_title.toLowerCase() ===
+        chartData.organizationName.toLowerCase(),
     );
 
     if (storedGroupInUserGroups) {
