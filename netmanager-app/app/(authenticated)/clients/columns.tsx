@@ -42,8 +42,19 @@ export const columns = ({ onActivate, onDeactivate }: ColumnProps): ColumnDef<Cl
     accessorKey: "access_token.expires",
     header: "Token Expiry",
     cell: ({ row }) => {
-      const expires = new Date(row.getValue("access_token.expires"))
-      return expires.toLocaleDateString()
+      const accessToken = row.original.access_token
+      if (!accessToken || !accessToken.expires) return "N/A"
+      const expires = new Date(accessToken.expires)
+      if (isNaN(expires.getTime())) return "Invalid Date"
+
+      const now = new Date()
+      const diffTime = expires.getTime() - now.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      if (diffDays < 0) return "Expired"
+      if (diffDays === 0) return "Expires today"
+      if (diffDays === 1) return "Expires tomorrow"
+      return `Expires in ${diffDays} days`
     },
   },
   {
