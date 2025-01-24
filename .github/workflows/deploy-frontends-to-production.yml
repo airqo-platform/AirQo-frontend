@@ -278,7 +278,7 @@ jobs:
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
           echo "automatic_scaling:" >> app.yaml
-          echo "  cool_down_period_sec: 80s" >> app.yaml
+          echo "  cool_down_period_sec: 80" >> app.yaml
           echo "  min_num_instances: 1" >> app.yaml
           echo "  max_num_instances: 10" >> app.yaml
           echo "  cpu_utilization:" >> app.yaml
