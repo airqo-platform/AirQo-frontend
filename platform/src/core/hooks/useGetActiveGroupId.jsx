@@ -8,10 +8,6 @@ export function useGetActiveGroup() {
   const chartData = useSelector((state) => state.chart);
 
   useEffect(() => {
-    setLoading(false);
-  }, [userInfo]);
-
-  useEffect(() => {
     setLoading(true);
 
     const matchingGroup = userInfo?.groups?.find(
