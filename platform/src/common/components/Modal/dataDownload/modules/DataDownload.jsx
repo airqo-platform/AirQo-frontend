@@ -58,6 +58,7 @@ const DataDownload = ({ onClose }) => {
     id: activeGroupId,
     title: groupTitle,
     groupList,
+    loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
@@ -128,12 +129,16 @@ const DataDownload = ({ onClose }) => {
    * Fetch sites summary whenever the selected organization changes.
    */
   useEffect(() => {
+    if (isFetchingActiveGroup) return;
+
     if (formData.organization) {
       dispatch(
-        fetchSitesSummary({ group: formData.organization.name.toLowerCase() }),
+        fetchSitesSummary({
+          group: formData.organization.name.toLowerCase(),
+        }),
       );
     }
-  }, [dispatch, formData.organization]);
+  }, [dispatch, formData.organization, isFetchingActiveGroup]);
 
   /**
    * Clears all selected sites and resets form data.
