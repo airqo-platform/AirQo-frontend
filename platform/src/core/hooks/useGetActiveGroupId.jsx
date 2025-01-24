@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
+const findGroupByOrgName = (groups, orgName) =>
+  groups?.find(
+    (group) => group.grp_title.toLowerCase() === orgName?.toLowerCase(),
+  );
+
 export function useGetActiveGroup() {
   const [activeGroup, setActiveGroup] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -10,10 +15,9 @@ export function useGetActiveGroup() {
   useEffect(() => {
     setLoading(true);
 
-    const matchingGroup = userInfo?.groups?.find(
-      (group) =>
-        group.grp_title.toLowerCase() ===
-        chartData?.organizationName.toLowerCase(),
+    const matchingGroup = findGroupByOrgName(
+      userInfo?.groups,
+      chartData?.organizationName,
     );
 
     setActiveGroup(matchingGroup);
@@ -33,10 +37,9 @@ export function useGetActiveGroup() {
 
   // Prioritize stored group if it exists in user's groups
   if (chartData.organizationName) {
-    const storedGroupInUserGroups = userInfo.groups.find(
-      (group) =>
-        group.grp_title.toLowerCase() ===
-        chartData.organizationName.toLowerCase(),
+    const storedGroupInUserGroups = findGroupByOrgName(
+      userInfo?.groups,
+      chartData?.organizationName,
     );
 
     if (storedGroupInUserGroups) {
@@ -51,8 +54,9 @@ export function useGetActiveGroup() {
   }
 
   // Find group matching chart organization name
-  const matchingGroup = userInfo.groups.find(
-    (group) => group.grp_title === chartData.organizationName,
+  const matchingGroup = findGroupByOrgName(
+    userInfo?.groups,
+    chartData?.organizationName,
   );
 
   if (matchingGroup) {
