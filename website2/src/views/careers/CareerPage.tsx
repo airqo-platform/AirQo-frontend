@@ -81,7 +81,7 @@ const CareerPage: React.FC = () => {
         </div>
       </header>
 
-      <div className={`space-y-16 ${mainConfig.containerClass}`}>
+      <div className={`space-y-16 w-full ${mainConfig.containerClass}`}>
         {/* Categories Section */}
         <section className="px-4 lg:px-8">
           <h2 className="text-3xl font-normal mb-8">Categories</h2>

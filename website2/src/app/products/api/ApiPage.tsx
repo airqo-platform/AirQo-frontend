@@ -5,6 +5,7 @@ import Image from 'next/image';
 import React from 'react';
 
 import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -48,7 +49,9 @@ const ApiPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div
+          className={`${mainConfig.containerClass} grid grid-cols-1 md:grid-cols-2 gap-12 items-center`}
+        >
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
@@ -83,7 +86,7 @@ const ApiPage = () => {
 
       {/* Unlock Air Quality Insights Section */}
       <motion.section
-        className="max-w-5xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8"
+        className={`${mainConfig.containerClass} px-4 grid grid-cols-1 lg:grid-cols-2 gap-8`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -114,7 +117,9 @@ const ApiPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="flex flex-col-reverse max-w-5xl mx-auto lg:flex-row items-center lg:items-start relative">
+        <div
+          className={`flex flex-col-reverse ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
+        >
           {/* Card Section */}
           <motion.div
             className="bg-gray-100 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-8 z-10"
@@ -159,7 +164,9 @@ const ApiPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="flex flex-col max-w-5xl mx-auto lg:flex-row items-center lg:items-start relative">
+        <div
+          className={`flex flex-col ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
+        >
           {/* Image Section */}
           <motion.div
             className="mt-12 lg:mt-0 lg:mr-[300px] w-full"
@@ -206,7 +213,7 @@ const ApiPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div className={`${mainConfig.containerClass} space-y-8`}>
           {/* Description and Button */}
           <motion.div
             className="text-center flex flex-col items-center space-y-6"

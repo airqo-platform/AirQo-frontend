@@ -58,7 +58,7 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
 
   return (
     <div
-      className={`${mainConfig.containerClass} p-8 bg-white border border-gray-200 rounded-lg mt-6`}
+      className={`${mainConfig.containerClass} w-full p-8 bg-white border border-gray-200 rounded-lg mt-6`}
     >
       {/* Back Button */}
       <div className="mb-4">
