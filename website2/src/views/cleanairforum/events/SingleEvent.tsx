@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fi';
 
 import { Accordion, CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { getEventDetails } from '@/services/apiService';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
@@ -67,7 +68,9 @@ const SingleEvent: React.FC<any> = ({ id }) => {
 
         {/* Partner Logos Skeleton */}
         <section className="py-12 bg-gray-100">
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div
+            className={`${mainConfig.containerClass} grid grid-cols-2 md:grid-cols-4 gap-8`}
+          >
             {[...Array(4)].map((_, index) => (
               <div key={index} className="flex items-center justify-center">
                 <div className="w-36 h-24 bg-gray-300 rounded animate-pulse"></div>
@@ -75,49 +78,50 @@ const SingleEvent: React.FC<any> = ({ id }) => {
             ))}
           </div>
         </section>
+        <div className={`${mainConfig.containerClass}`}>
+          {/* Event Details Skeleton */}
+          <section className="px-4 py-8">
+            <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, index) => (
+                <div
+                  key={index}
+                  className="h-4 bg-gray-300 rounded animate-pulse"
+                ></div>
+              ))}
+            </div>
+          </section>
 
-        {/* Event Details Skeleton */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, index) => (
-              <div
-                key={index}
-                className="h-4 bg-gray-300 rounded animate-pulse"
-              ></div>
-            ))}
-          </div>
-        </section>
-
-        {/* Event Program Skeleton */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
-          {[...Array(3)].map((_, index) => (
-            <div key={index} className="mb-4">
-              <div className="h-4 bg-gray-300 rounded w-1/4 mb-2 animate-pulse"></div>
-              <div className="space-y-2">
-                {[...Array(3)].map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="h-4 bg-gray-300 rounded animate-pulse"
-                  ></div>
-                ))}
+          {/* Event Program Skeleton */}
+          <section className="px-4 py-8">
+            <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="mb-4">
+                <div className="h-4 bg-gray-300 rounded w-1/4 mb-2 animate-pulse"></div>
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="h-4 bg-gray-300 rounded animate-pulse"
+                    ></div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </section>
+            ))}
+          </section>
 
-        {/* Inquiry Skeleton */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
-          {[...Array(2)].map((_, index) => (
-            <div key={index} className="mb-4 space-y-2">
-              <div className="h-4 bg-gray-300 rounded w-1/2 animate-pulse"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/3 animate-pulse"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/2 animate-pulse"></div>
-            </div>
-          ))}
-        </section>
+          {/* Inquiry Skeleton */}
+          <section className="px-4 py-8">
+            <div className="h-6 bg-gray-300 rounded w-1/3 mb-6 animate-pulse"></div>
+            {[...Array(2)].map((_, index) => (
+              <div key={index} className="mb-4 space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-1/2 animate-pulse"></div>
+                <div className="h-3 bg-gray-300 rounded w-1/3 animate-pulse"></div>
+                <div className="h-3 bg-gray-300 rounded w-1/2 animate-pulse"></div>
+              </div>
+            ))}
+          </section>
+        </div>
       </div>
     );
   }
@@ -146,7 +150,9 @@ const SingleEvent: React.FC<any> = ({ id }) => {
           }}
         >
           <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="relative z-10 max-w-5xl mx-auto w-full space-y-6 text-start px-4">
+          <div
+            className={`relative z-10 ${mainConfig.containerClass} w-full space-y-6 text-start px-4`}
+          >
             {/* bread crumb */}
 
             <nav className="flex items-start text-sm">
@@ -178,7 +184,9 @@ const SingleEvent: React.FC<any> = ({ id }) => {
       {/* Partner Logos Section */}
       {event?.partner_logos && event?.partner_logos?.length > 0 && (
         <section className="py-12 bg-gray-100">
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div
+            className={`${mainConfig.containerClass} grid grid-cols-2 md:grid-cols-4 gap-8`}
+          >
             {event?.partner_logos?.map((partner: any) => (
               <div
                 key={partner.id}
@@ -198,184 +206,186 @@ const SingleEvent: React.FC<any> = ({ id }) => {
         </section>
       )}
 
-      {/* Event Details Section */}
-      {eventDetailsHtml && (
-        <section className="max-w-5xl mx-auto px-4 lg:px-0 py-8">
-          <h2 className="text-3xl font-semibold mb-6 pb-2">Event Details</h2>
-          <div className="flex justify-between w-full items-center border-b-2 py-4 mb-6">
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex items-center space-x-2">
-                <FiCalendar className="text-gray-500 w-5 h-5" />
-                <p className="text-gray-600">
-                  {event?.start_date && event?.end_date
-                    ? formatDateRange(event?.start_date, event?.end_date)
-                    : 'Date to be announced'}
-                </p>
-              </div>
+      <div className={`${mainConfig.containerClass}`}>
+        {/* Event Details Section */}
+        {eventDetailsHtml && (
+          <section className="px-4 lg:px-0 py-8">
+            <h2 className="text-3xl font-semibold mb-6 pb-2">Event Details</h2>
+            <div className="flex justify-between w-full items-center border-b-2 py-4 mb-6">
+              <div className="flex flex-col gap-4 mb-6">
+                <div className="flex items-center space-x-2">
+                  <FiCalendar className="text-gray-500 w-5 h-5" />
+                  <p className="text-gray-600">
+                    {event?.start_date && event?.end_date
+                      ? formatDateRange(event?.start_date, event?.end_date)
+                      : 'Date to be announced'}
+                  </p>
+                </div>
 
-              <div className="flex items-center space-x-2">
-                <FiClock className="text-gray-500 w-5 h-5" />
-                <p className="text-gray-600">
-                  {event?.start_time && event?.end_time
-                    ? `${format(
-                        parse(event?.start_time, 'HH:mm:ss', new Date()),
-                        'HH:mm',
-                      )} - ${format(
-                        parse(event?.end_time, 'HH:mm:ss', new Date()),
-                        'HH:mm',
-                      )}`
-                    : 'Time to be announced'}
-                </p>
-              </div>
-            </div>
-            {/* Registration Link Section */}
-            {event?.registration_link && (
-              <CustomButton
-                type="button"
-                onClick={() => window.open(event.registration_link)}
-                className="text-white"
-              >
-                Register Now
-              </CustomButton>
-            )}
-          </div>
-          <div
-            className="prose lg:prose-xl"
-            dangerouslySetInnerHTML={{
-              __html: eventDetailsHtml || 'Event details coming soon.',
-            }}
-          ></div>
-        </section>
-      )}
-
-      {/* Event Program Section */}
-      {event.programs && event.programs.length > 0 && (
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
-            Event Schedule
-          </h2>
-          {event.programs.map((program: any) => (
-            <Accordion
-              key={program.id}
-              title={format(new Date(program.date), 'MMMM do, yyyy')}
-            >
-              <div className="p-6 bg-blue-50 rounded-lg shadow-sm space-y-4">
-                {program.sessions && program.sessions.length > 0 ? (
-                  program.sessions.map((session: any) => (
-                    <div
-                      key={session.id}
-                      className="border-b pb-4 last:border-none"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">
-                          {format(
-                            new Date(`1970-01-01T${session.start_time}`),
-                            'h:mm a',
-                          )}{' '}
-                          -{' '}
-                          {format(
-                            new Date(`1970-01-01T${session.end_time}`),
-                            'h:mm a',
-                          )}
-                        </span>
-                        {session.venue && (
-                          <span className="text-sm text-gray-500">
-                            {session.venue}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-semibold mt-2">
-                        {session.session_title}
-                      </h3>
-                      <div className="text-gray-700 mt-1">
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: session.session_details,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No sessions available.</p>
-                )}
-              </div>
-            </Accordion>
-          ))}
-        </section>
-      )}
-
-      {/* Inquiry Section */}
-      {event.inquiries && event.inquiries.length > 0 && (
-        <section className="max-w-5xl mx-auto px-4 py-8 bg-gray-50 rounded-lg shadow">
-          <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
-            For any inquiries and clarifications:
-          </h2>
-          <div className="space-y-6">
-            {event.inquiries.map((inquiry: any) => (
-              <div
-                key={inquiry.id}
-                className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300"
-              >
-                <p className="text-lg font-medium">{inquiry.inquiry}</p>
-                {inquiry.role && (
-                  <p className="text-gray-600">{inquiry.role}</p>
-                )}
-                <a
-                  href={`mailto:${inquiry.email}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  {inquiry.email}
-                </a>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Resources Section */}
-      {event.resources && event.resources.length > 0 && (
-        <section className="max-w-5xl mx-auto px-4 lg:px-0 py-8">
-          <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
-            Access the Event Resources here:
-          </h2>
-          <div className="space-y-4">
-            {event.resources.map((resource: any) => (
-              <div
-                key={resource.id}
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
-              >
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-800">
-                    {resource.title}
-                  </h3>
-                  <div className="flex space-x-4">
-                    {resource.link && (
-                      <a
-                        href={resource.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-blue-600 hover:underline font-medium"
-                      >
-                        <FiExternalLink className="mr-2" /> View Link
-                      </a>
-                    )}
-                    {resource.resource_url && (
-                      <a
-                        href={resource.resource_url}
-                        download
-                        className="inline-flex items-center text-blue-600 hover:underline font-medium"
-                      >
-                        <FiDownload className="mr-2" /> Download
-                      </a>
-                    )}
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <FiClock className="text-gray-500 w-5 h-5" />
+                  <p className="text-gray-600">
+                    {event?.start_time && event?.end_time
+                      ? `${format(
+                          parse(event?.start_time, 'HH:mm:ss', new Date()),
+                          'HH:mm',
+                        )} - ${format(
+                          parse(event?.end_time, 'HH:mm:ss', new Date()),
+                          'HH:mm',
+                        )}`
+                      : 'Time to be announced'}
+                  </p>
                 </div>
               </div>
+              {/* Registration Link Section */}
+              {event?.registration_link && (
+                <CustomButton
+                  type="button"
+                  onClick={() => window.open(event.registration_link)}
+                  className="text-white"
+                >
+                  Register Now
+                </CustomButton>
+              )}
+            </div>
+            <div
+              className="prose lg:prose-xl"
+              dangerouslySetInnerHTML={{
+                __html: eventDetailsHtml || 'Event details coming soon.',
+              }}
+            ></div>
+          </section>
+        )}
+
+        {/* Event Program Section */}
+        {event.programs && event.programs.length > 0 && (
+          <section className="px-4 py-8">
+            <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
+              Event Schedule
+            </h2>
+            {event.programs.map((program: any) => (
+              <Accordion
+                key={program.id}
+                title={format(new Date(program.date), 'MMMM do, yyyy')}
+              >
+                <div className="p-6 bg-blue-50 rounded-lg shadow-sm space-y-4">
+                  {program.sessions && program.sessions.length > 0 ? (
+                    program.sessions.map((session: any) => (
+                      <div
+                        key={session.id}
+                        className="border-b pb-4 last:border-none"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
+                            {format(
+                              new Date(`1970-01-01T${session.start_time}`),
+                              'h:mm a',
+                            )}{' '}
+                            -{' '}
+                            {format(
+                              new Date(`1970-01-01T${session.end_time}`),
+                              'h:mm a',
+                            )}
+                          </span>
+                          {session.venue && (
+                            <span className="text-sm text-gray-500">
+                              {session.venue}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-xl font-semibold mt-2">
+                          {session.session_title}
+                        </h3>
+                        <div className="text-gray-700 mt-1">
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: session.session_details,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">No sessions available.</p>
+                  )}
+                </div>
+              </Accordion>
             ))}
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+
+        {/* Inquiry Section */}
+        {event.inquiries && event.inquiries.length > 0 && (
+          <section className="px-4 py-8 bg-gray-50 rounded-lg shadow">
+            <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
+              For any inquiries and clarifications:
+            </h2>
+            <div className="space-y-6">
+              {event.inquiries.map((inquiry: any) => (
+                <div
+                  key={inquiry.id}
+                  className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300"
+                >
+                  <p className="text-lg font-medium">{inquiry.inquiry}</p>
+                  {inquiry.role && (
+                    <p className="text-gray-600">{inquiry.role}</p>
+                  )}
+                  <a
+                    href={`mailto:${inquiry.email}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {inquiry.email}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Resources Section */}
+        {event.resources && event.resources.length > 0 && (
+          <section className="px-4 lg:px-0 py-8">
+            <h2 className="text-3xl font-semibold mb-6 border-b-2 pb-2">
+              Access the Event Resources here:
+            </h2>
+            <div className="space-y-4">
+              {event.resources.map((resource: any) => (
+                <div
+                  key={resource.id}
+                  className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+                >
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                      {resource.title}
+                    </h3>
+                    <div className="flex space-x-4">
+                      {resource.link && (
+                        <a
+                          href={resource.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-blue-600 hover:underline font-medium"
+                        >
+                          <FiExternalLink className="mr-2" /> View Link
+                        </a>
+                      )}
+                      {resource.resource_url && (
+                        <a
+                          href={resource.resource_url}
+                          download
+                          className="inline-flex items-center text-blue-600 hover:underline font-medium"
+                        >
+                          <FiDownload className="mr-2" /> Download
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 };

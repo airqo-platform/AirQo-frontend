@@ -6,6 +6,7 @@ import Footer from '@/components/layouts/Footer';
 import Navbar from '@/components/layouts/Navbar';
 import NewsLetter from '@/components/layouts/NewsLetter';
 import Loading from '@/components/loading';
+import mainConfig from '@/configs/mainConfigs';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useForumEvents } from '@/hooks/useApiHooks';
 import BannerSection from '@/views/Forum/BannerSection';
@@ -38,7 +39,9 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
         <BannerSection data={eventData} />
 
         {/* Main Content */}
-        <main className="flex-1 pb-8">{children}</main>
+        <main className={`${mainConfig.containerClass} w-full flex-1 pb-8`}>
+          {children}
+        </main>
 
         {/* Newsletter Section */}
         <section className="my-16">

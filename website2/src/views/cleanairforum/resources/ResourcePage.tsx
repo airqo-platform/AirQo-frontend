@@ -11,6 +11,7 @@ import {
   NoData,
   Pagination,
 } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useCleanAirResources } from '@/hooks/useApiHooks';
 import { useResourceFilter } from '@/hooks/useResourceFilter';
 import type { Resource } from '@/types/index';
@@ -54,7 +55,7 @@ const ResourcePage: React.FC = () => {
 
   return (
     <div className="py-8 space-y-16">
-      <section className="max-w-5xl mx-auto w-full">
+      <section className={`${mainConfig.containerClass} w-full`}>
         <div className="py-8 px-4 lg:px-0 flex flex-col items-center space-y-6 md:space-y-8">
           <div className="w-full">
             <Image
@@ -70,7 +71,7 @@ const ResourcePage: React.FC = () => {
       </section>
 
       <section className="px-4 bg-blue-50 lg:px-0 py-16">
-        <div className="max-w-5xl mx-auto w-full space-y-8">
+        <div className={`${mainConfig.containerClass} w-full space-y-8`}>
           <div className="flex flex-col md:flex-row justify-between items-center">
             <h2 className="text-2xl font-semibold mb-4 md:mb-0">
               Resource Center
