@@ -7,7 +7,7 @@ export type Config = {
 const mainConfig: Config = {
   templateName: 'AirQo Website',
   homePageUrl: '/home',
-  containerClass: 'max-w-5xl mx-auto',
+  containerClass: 'max-w-5xl mx-auto w-full',
 };
 
 export default mainConfig;
