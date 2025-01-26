@@ -41,6 +41,11 @@ const AboutPage: React.FC = () => {
     useExternalTeamMembers();
   const { partners } = usePartners();
 
+  // filter out partners whose website_category is airqo
+  const filteredPartners = partners.filter(
+    (partner: any) => partner.website_category !== 'cleanair',
+  );
+
   const dispatch = useDispatch();
 
   /** Helper Function to Render Member Sections **/
@@ -392,7 +397,7 @@ const AboutPage: React.FC = () => {
               </div>
             </div>
             <PaginatedSection
-              logos={partners.map((partner: any) => ({
+              logos={filteredPartners.map((partner: any) => ({
                 id: partner.id,
                 logoUrl: partner.partner_logo_url || '',
               }))}
