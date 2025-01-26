@@ -34,7 +34,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => (
             }
           }}
         >
-          Read action plan →
+          Read more →
         </CustomButton>
       )}
       {resource.resource_file && resource.resource_file_url && (
