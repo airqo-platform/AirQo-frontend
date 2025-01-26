@@ -8,6 +8,8 @@ import {
   FaYoutube,
 } from 'react-icons/fa';
 
+import mainConfig from '@/configs/mainConfigs';
+
 import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
@@ -17,7 +19,7 @@ const Footer = () => {
   return (
     <footer
       id="WebsiteFooter"
-      className="relative py-8 px-4 max-w-5xl mx-auto text-[14px]"
+      className={`relative py-8 px-4 ${mainConfig.containerClass} text-[14px]`}
     >
       <ScrollToTopButton />
       {/* Top Section with Grid */}

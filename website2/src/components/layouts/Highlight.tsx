@@ -2,9 +2,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
+
 const Highlight = () => {
   return (
-    <div className="flex flex-col lg:flex-row items-center justify-center p-8 lg:p-14 bg-[#EBFFF5] dark:bg-[#1F2937] lg:rounded-xl max-w-5xl mx-auto">
+    <div
+      className={`flex flex-col lg:flex-row items-center justify-center p-8 lg:p-14 bg-[#EBFFF5] dark:bg-[#1F2937] lg:rounded-xl ${mainConfig.containerClass}`}
+    >
       {/* Left section: Portrait */}
       <div className="flex justify-center lg:justify-end items-center w-full lg:w-1/2 mb-8 lg:mb-0 lg:mr-12">
         <Image

@@ -2,10 +2,11 @@
 import Image from 'next/image';
 
 import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 
 const RegisterBanner = () => {
   return (
-    <section className="max-w-5xl mx-auto w-full px-2 lg:px-0">
+    <section className={`${mainConfig.containerClass} w-full px-2 lg:px-0`}>
       <div className="flex flex-col lg:flex-row items-center bg-card-custom-gradient py-12 px-12 gap-6 rounded-lg">
         {/* Image Section */}
         <div className="flex-shrink-0">

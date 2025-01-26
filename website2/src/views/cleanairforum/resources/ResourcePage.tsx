@@ -119,6 +119,7 @@ const ResourcePage: React.FC = () => {
               totalPages={totalPages}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
+              scrollToTop={true}
             />
           )}
         </div>

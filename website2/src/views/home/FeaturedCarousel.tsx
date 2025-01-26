@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
+import mainConfig from '@/configs/mainConfigs';
 import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
@@ -26,7 +27,7 @@ const FeaturedCarousel = () => {
   if (isLoading) {
     return (
       <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
           <div className="flex space-x-4 animate-pulse">
             <div className="w-1/2 h-64 bg-gray-300 rounded-lg"></div>
             <div className="w-1/2 space-y-4">
@@ -57,7 +58,7 @@ const FeaturedCarousel = () => {
 
   return (
     <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
         <div className="relative">
           {/* Carousel Track */}
           <div

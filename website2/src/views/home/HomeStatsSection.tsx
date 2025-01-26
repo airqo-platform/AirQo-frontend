@@ -13,6 +13,7 @@ import Records from '@public/assets/svgs/ImpactNumbers/Records.svg';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { useImpactNumbers } from '@/hooks/useApiHooks';
 
 import { CustomButton } from '../../components/ui';
@@ -137,7 +138,7 @@ const HomeStatsSection: React.FC = () => {
 
   return (
     <section className="py-8 px-4 w-full space-y-20 bg-[#ECF2FF]">
-      <div className="max-w-6xl mx-auto space-y-16">
+      <div className={`${mainConfig.containerClass} space-y-16`}>
         {/* Partner Logos Section */}
         <section className="max-w-6xl mx-auto py-12 px-4">
           <div className="text-center space-y-6">

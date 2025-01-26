@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { useAfricanCountries } from '@/hooks/useApiHooks';
 
 const AfricanCities: React.FC = () => {
@@ -49,7 +50,7 @@ const AfricanCities: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 lg:p-0">
+    <div className={`${mainConfig.containerClass} p-4 lg:p-0`}>
       {/* Top Section: Countries List */}
       <div className="flex gap-4 flex-wrap pb-4">
         {africanCountries.map((country: any) => (

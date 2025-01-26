@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import React from 'react';
 
 import MainLayout from '@/components/layouts/MainLayout';
+import mainConfig from '@/configs/mainConfigs';
 import TabSection from '@/views/legal/Tabsection';
 
 export const metadata: Metadata = {
@@ -51,7 +52,9 @@ const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({ children }) => {
   return (
     <MainLayout>
       <TabSection />
-      <main className="legal-page-content">{children}</main>
+      <main className={`${mainConfig.containerClass} legal-page-content`}>
+        {children}
+      </main>
     </MainLayout>
   );
 };

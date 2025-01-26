@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { FiCalendar, FiClock } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useAirQoEvents } from '@/hooks/useApiHooks';
 import EventCardsSection from '@/views/events/EventCardsSection';
 
@@ -51,7 +52,9 @@ const EventPage: React.FC = () => {
       {/* Header Section */}
       {isLoading ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
-          <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center">
+          <div
+            className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
+          >
             <div className="flex-1 mb-8 lg:mb-0">
               <div className="h-6 bg-gray-300 w-1/2 rounded mb-4 animate-pulse"></div>
               <div className="h-4 bg-gray-300 w-3/4 rounded mb-6 animate-pulse"></div>
@@ -68,7 +71,9 @@ const EventPage: React.FC = () => {
         </div>
       ) : isError ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
-          <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 text-center">
+          <div
+            className={`${mainConfig.containerClass} w-full px-4 lg:px-0 text-center`}
+          >
             <h1 className="text-4xl font-bold mb-4">Error Loading Events</h1>
             <p className="text-lg text-gray-600">
               We couldn&apos;t fetch the events at this time. Please try again
@@ -79,7 +84,9 @@ const EventPage: React.FC = () => {
       ) : (
         firstFeaturedEvent && (
           <section className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
-            <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center">
+            <div
+              className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
+            >
               <div className="flex-1 mb-8 lg:mb-0">
                 <h1 className="text-4xl font-bold mb-4">
                   {firstFeaturedEvent.title}
@@ -145,7 +152,9 @@ const EventPage: React.FC = () => {
       )}
 
       {/* Tabs Section */}
-      <section className="max-w-5xl mx-auto w-full px-4 lg:px-0 mb-8">
+      <section
+        className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8`}
+      >
         <div className="flex space-x-8 border-b border-gray-300">
           <button
             onClick={() => handleTabClick('upcoming')}
@@ -172,7 +181,9 @@ const EventPage: React.FC = () => {
 
       {/* Event Cards Section */}
       {isLoading ? (
-        <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 mb-8">
+        <div
+          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8`}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, idx) => (
               <div
