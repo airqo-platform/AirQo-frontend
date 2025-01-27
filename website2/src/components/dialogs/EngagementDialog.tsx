@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import mainConfig from '@/configs/mainConfigs';
 import { useDispatch, useSelector } from '@/hooks';
 import { postContactUs } from '@/services/externalService';
 import { closeModal } from '@/store/slices/modalSlice';
@@ -349,7 +350,9 @@ const EngagementDialog = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] mx-auto p-0 overflow-x-hidden overflow-y-auto md:overflow-hidden">
+      <DialogContent
+        className={`${mainConfig.containerClass} max-h-[90vh] p-0 overflow-x-hidden overflow-y-auto md:overflow-hidden`}
+      >
         <div className="flex flex-col lg:flex-row">
           {/* Left Side - Breadcrumb and Text with Animation */}
           <motion.div

@@ -8,6 +8,7 @@ import React from 'react';
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 
@@ -50,7 +51,7 @@ const CommunitiesPage = () => {
 
       {/* AirQo + Communities -> AirQommunities */}
       <motion.section
-        className="max-w-5xl mx-auto py-16 px-4"
+        className={`${mainConfig.containerClass} py-16 px-4`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -77,7 +78,7 @@ const CommunitiesPage = () => {
         variants={containerVariants}
       >
         <motion.div
-          className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+          className={`${mainConfig.containerClass} grid grid-cols-1 lg:grid-cols-2 gap-8 items-center`}
           variants={itemVariants}
         >
           {/* Text Content */}
@@ -156,7 +157,7 @@ const CommunitiesPage = () => {
         variants={containerVariants}
       >
         <motion.div
-          className="max-w-5xl mx-auto py-12 md:py-16 flex flex-col lg:flex-row  gap-4 items-center"
+          className={`${mainConfig.containerClass} py-12 md:py-16 flex flex-col lg:flex-row  gap-4 items-center`}
           variants={itemVariants}
         >
           {/* Left column with title */}
@@ -213,7 +214,7 @@ const CommunitiesPage = () => {
         variants={containerVariants}
       >
         <motion.div
-          className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+          className={`${mainConfig.containerClass} grid grid-cols-1 lg:grid-cols-2 gap-8 items-center`}
           variants={itemVariants}
         >
           {/* Text Content */}
@@ -313,7 +314,7 @@ const CommunitiesPage = () => {
       >
         <CustomButton
           onClick={() => dispatch(openModal())}
-          className="max-w-5xl mx-auto w-full px-4 rounded-lg text-black py-16 bg-[#FFEA2B]"
+          className={`${mainConfig.containerClass} w-full px-4 rounded-lg text-black py-16 bg-[#FFEA2B]`}
         >
           <div className="text-center">
             <h2 className="text-3xl mb-4">Become an air quality champion.</h2>

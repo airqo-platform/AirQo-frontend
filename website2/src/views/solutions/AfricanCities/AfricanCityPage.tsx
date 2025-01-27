@@ -6,6 +6,7 @@ import React from 'react';
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import AfricanCities from '@/views/solutions/AfricanCities/AfricanCities';
 
 // Define motion variants for different animations
@@ -46,7 +47,7 @@ const AfricanCityPage = () => {
 
       {/* Challenge Statement */}
       <motion.section
-        className="max-w-5xl mx-auto px-4 text-center py-16"
+        className={`${mainConfig.containerClass} px-4 text-center py-16`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -66,7 +67,7 @@ const AfricanCityPage = () => {
 
       {/* Approach Section */}
       <motion.section
-        className="max-w-5xl mx-auto px-4"
+        className={`${mainConfig.containerClass} px-4`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}

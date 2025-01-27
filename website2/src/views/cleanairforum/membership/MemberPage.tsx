@@ -3,13 +3,16 @@
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { usePartners } from '@/hooks/useApiHooks';
 import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
 
 const SkeletonPaginatedSection: React.FC = () => {
   return (
-    <section className="max-w-5xl mx-auto w-full py-8 px-4 lg:px-0 space-y-6 md:space-y-8">
+    <section
+      className={`${mainConfig.containerClass} w-full py-8 px-4 lg:px-0 space-y-6 md:space-y-8`}
+    >
       <div className="animate-pulse space-y-6">
         {/* Title Skeleton */}
         <div className="h-12 bg-gray-200 rounded w-3/4"></div>
