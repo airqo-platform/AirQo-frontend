@@ -287,8 +287,8 @@ jobs:
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "readiness_check:" >> app.yaml
-          echo "  check_interval_sec: 5" >> app.yaml
-          echo "  timeout_sec: 4" >> app.yaml
+          echo "  check_interval_sec: 10" >> app.yaml
+          echo "  timeout_sec: 15" >> app.yaml
           echo "  failure_threshold: 2" >> app.yaml
           echo "  success_threshold: 2" >> app.yaml
           echo "  app_start_timeout_sec: 1800" >> app.yaml
