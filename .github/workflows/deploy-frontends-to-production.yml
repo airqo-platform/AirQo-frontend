@@ -286,6 +286,12 @@ jobs:
           echo "runtime_config:" >> app.yaml
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
+          echo "readiness_check:" >> app.yaml
+          echo "  check_interval_sec: 5" >> app.yaml
+          echo "  timeout_sec: 4" >> app.yaml
+          echo "  failure_threshold: 2" >> app.yaml
+          echo "  success_threshold: 2" >> app.yaml
+          echo "  app_start_timeout_sec: 1800" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
@@ -294,6 +300,11 @@ jobs:
           echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+
+      - name: Temporarily Increase Min Instances
+        run: |
+          echo "========== Setting minimum instances to 2 for deployment =========="
+          gcloud app services update default --min-instances=2 --quiet
 
       - name: Build and Push Docker Image
         run: |
@@ -314,6 +325,11 @@ jobs:
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
+
+      - name: Restore Min Instances
+        run: |
+          echo "========== Restoring minimum instances to 1 after deployment =========="
+          gcloud app services update default --min-instances=1 --quiet
         
       - name: Delete Old Versions
         run: |-
