@@ -12,8 +12,8 @@ const Page = () => {
     return null;
   }
   return (
-    <div className="max-w-5xl mx-auto px-4 lg:px-0 flex flex-col gap-6">
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+    <div className="px-4 lg:px-0 flex flex-col gap-6">
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Split Section - Vaccination */}
       <div>
@@ -30,7 +30,7 @@ const Page = () => {
         </div>
       </div>
 
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Split Section - Vaccination */}
       <div>

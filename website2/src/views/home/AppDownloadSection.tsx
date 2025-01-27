@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import React from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
+
 interface AppDownloadSectionProps {
   title?: string;
   description?: string;
@@ -18,7 +20,9 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
 }) => {
   return (
     <section className="w-full ">
-      <div className="max-w-5xl relative mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div
+        className={`${mainConfig.containerClass} relative px-4 sm:px-6 lg:px-8 py-16 lg:py-24`}
+      >
         <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-24">
           {/* Left Content */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 lg:w-1/2">

@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 
@@ -65,7 +66,9 @@ const HomePlayerSection = () => {
   };
 
   return (
-    <div className="flex flex-col-reverse px-4 lg:flex-row items-center justify-between max-w-5xl mx-auto mt-8 gap-8">
+    <div
+      className={`flex flex-col-reverse px-4 lg:flex-row items-center justify-between ${mainConfig.containerClass} mt-8 gap-8`}
+    >
       {/* Text Section */}
       <div className="lg:w-1/2 w-full flex flex-col justify-center gap-1">
         <h1 className="text-[32px] lg:text-[56px] font-semibold leading-tight">

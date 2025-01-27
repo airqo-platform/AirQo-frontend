@@ -243,7 +243,7 @@ const AirQoDataPage = () => {
     },
   ];
   return (
-    <div className="max-w-5xl mx-auto w-full flex flex-col md:flex-row">
+    <div className="w-full flex flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="w-full md:w-1/4 bg-blue-50 p-4 lg:sticky top-[124px] h-fit">
         <h2 className="text-xl font-semibold mb-4">Table of Contents</h2>
