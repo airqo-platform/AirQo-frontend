@@ -301,11 +301,6 @@ jobs:
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
 
-      - name: Temporarily Increase Min Instances
-        run: |
-          echo "========== Setting minimum instances to 2 for deployment =========="
-          gcloud app services update default --min-instances=2 --quiet
-
       - name: Build and Push Docker Image
         run: |
           cd website2/
@@ -325,12 +320,7 @@ jobs:
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
-
-      - name: Restore Min Instances
-        run: |
-          echo "========== Restoring minimum instances to 1 after deployment =========="
-          gcloud app services update default --min-instances=1 --quiet
-        
+     
       - name: Delete Old Versions
         run: |-
           service="default"
