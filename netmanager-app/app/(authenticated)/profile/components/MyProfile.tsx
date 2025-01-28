@@ -54,7 +54,6 @@ export default function MyProfile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updated profile:", profile);
     setIsEditing(false);
   };
 
