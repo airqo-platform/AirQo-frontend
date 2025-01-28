@@ -1,4 +1,3 @@
-// not-found.tsx
 'use client';
 
 import Image_404 from '@public/assets/svgs/402.svg';
