@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -7,7 +9,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
-  const { highlights, isLoading, isError } = useHighlights();
+  const { highlights, isLoading } = useHighlights();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextSlide = () => {
@@ -42,18 +44,8 @@ const FeaturedCarousel = () => {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-red-500">
-          Failed to load highlights. Please try again later.
-        </p>
-      </div>
-    );
-  }
-
   if (!highlights || highlights.length === 0) {
-    return null; // Do not render if there are no highlights
+    return null;
   }
 
   return (
@@ -74,7 +66,7 @@ const FeaturedCarousel = () => {
                 <div className="md:w-1/2">
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
                     <Image
-                      src={item.image_url}
+                      src={item.image_url || '/placeholder.svg'}
                       alt={item.title}
                       fill
                       className="object-cover w-full h-full transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
