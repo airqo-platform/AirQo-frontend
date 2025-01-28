@@ -7,22 +7,26 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Client } from "@/app/types/clients"
-import { getUserClientsApi } from "@/core/apis/settings"
+import { createClientApi, getUserClientsApi } from "@/core/apis/settings"
 import { useAppSelector } from "@/core/redux/hooks"
 
 export default function ApiTokens() {
   const [clients, setClients] = useState<Client[]>([])
   const [newTokenName, setNewTokenName] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [isCreating, setIsCreating] = useState(false)
   const currentuser = useAppSelector((state) => state.user.userDetails)
 
+  // Fetch clients on component mount or when currentuser changes
   useEffect(() => {
     const fetchClients = async () => {
       try {
         setIsLoading(true)
         const userID = currentuser?._id || ""
         const response = await getUserClientsApi(userID)
-        setClients(response)
+
+        setClients(response.clients)
       } catch (error) {
         console.error("Failed to fetch clients:", error)
       } finally {
@@ -33,10 +37,43 @@ export default function ApiTokens() {
     fetchClients()
   }, [currentuser?._id])
 
-  const handleCreateToken = (e: React.FormEvent) => {
+  const handleCreateToken = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle token creation logic here if needed
-    console.log("Create token feature is not implemented yet.")
+
+    if (!newTokenName.trim()) {
+      setError("Token name is required.")
+      return
+    }
+
+    setError("")
+    setIsCreating(true)
+    try {
+      const userID = currentuser?._id || ""
+      if (!userID) {
+        setError("User is not authenticated.")
+        setIsCreating(false)
+        return
+      }
+
+      const data = {
+        name: newTokenName,
+        user_id: userID,
+      }
+      const response = await createClientApi(data)
+
+      if (response) {
+        const updatedClients = await getUserClientsApi(userID)
+        setClients(updatedClients)
+
+        setNewTokenName("")
+      } else {
+        setError( "Failed to create token.")
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "An error occurred while creating the token.")
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
@@ -60,8 +97,11 @@ export default function ApiTokens() {
               required
             />
           </div>
-          <Button type="submit">Create New Token</Button>
+          <Button type="submit" disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create New Token"}
+          </Button>
         </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
       </form>
       <Table>
         <TableHeader>
@@ -113,4 +153,3 @@ export default function ApiTokens() {
     </div>
   )
 }
-
