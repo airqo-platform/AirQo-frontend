@@ -18,9 +18,6 @@ export default function PasswordEdit() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the new password to your backend
-    console.log("Password change request:", passwords)
-    // Reset form after submission
     setPasswords({ current: "", new: "", confirm: "" })
   }
 
