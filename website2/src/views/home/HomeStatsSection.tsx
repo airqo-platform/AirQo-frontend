@@ -12,7 +12,7 @@ import { Accordion } from './Accordion';
 import { accordionItems, partnerLogos, statItems } from './data';
 
 const HomeStatsSection: React.FC = () => {
-  const { impactNumbers } = useImpactNumbers();
+  const { data: impactNumbers } = useImpactNumbers();
   const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
     'cities',
   );

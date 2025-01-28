@@ -9,7 +9,7 @@ import { usePublications } from '@/hooks/useApiHooks';
 
 const ResourcePage: React.FC = () => {
   const router = useRouter();
-  const { publications, isLoading, isError } = usePublications();
+  const { data: publications, isLoading, isError } = usePublications();
   const searchParams = useSearchParams();
 
   // Tabs mapped to categories from the Publication model

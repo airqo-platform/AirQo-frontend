@@ -12,7 +12,7 @@ import EventCardsSection from '@/views/events/EventCardsSection';
 
 const EventPage: React.FC = () => {
   const router = useRouter();
-  const { airQoEvents, isLoading, isError } = useAirQoEvents();
+  const { data: airQoEvents, isLoading, isError } = useAirQoEvents();
   const [selectedTab, setSelectedTab] = useState('upcoming');
 
   const upcomingEvents = airQoEvents.filter(

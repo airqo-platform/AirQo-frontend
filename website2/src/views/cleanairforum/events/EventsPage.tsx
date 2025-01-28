@@ -46,7 +46,7 @@ const categories = [
 ];
 
 const EventsPage: React.FC = () => {
-  const { cleanAirEvents, isLoading, isError } = useCleanAirEvents();
+  const { data: cleanAirEvents, isLoading, isError } = useCleanAirEvents();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showUpcoming, setShowUpcoming] = useState(true);

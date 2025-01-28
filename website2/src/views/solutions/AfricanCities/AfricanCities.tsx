@@ -5,7 +5,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { useAfricanCountries } from '@/hooks/useApiHooks';
 
 const AfricanCities: React.FC = () => {
-  const { africanCountries, isLoading, isError } = useAfricanCountries();
+  const { data: africanCountries, isLoading, isError } = useAfricanCountries();
   const [selectedCountry, setSelectedCountry] = useState<any | null>(null);
   const [selectedCity, setSelectedCity] = useState<any | null>(null);
 

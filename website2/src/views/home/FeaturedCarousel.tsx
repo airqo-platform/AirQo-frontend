@@ -9,7 +9,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
-  const { highlights, isLoading } = useHighlights();
+  const { data: highlights, isLoading } = useHighlights();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextSlide = () => {

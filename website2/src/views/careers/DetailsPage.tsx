@@ -10,7 +10,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { useCareerDetails } from '@/hooks/useApiHooks';
 
 const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
-  const { careerDetails, isLoading, isError } = useCareerDetails(id);
+  const { data: careerDetails, isLoading, isError } = useCareerDetails(id);
   const router = useRouter();
 
   if (isLoading) {

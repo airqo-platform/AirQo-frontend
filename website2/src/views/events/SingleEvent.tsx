@@ -17,7 +17,7 @@ import { convertDeltaToHtml } from '@/utils/quillUtils';
 
 const SingleEvent: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
-  const { eventDetails, isLoading, isError } = useEventDetails(id);
+  const { data: eventDetails, isLoading, isError } = useEventDetails(id);
 
   // Function to format the date range based on whether the months are the same
   const formatDateRange = (startDate: string, endDate: string) => {
