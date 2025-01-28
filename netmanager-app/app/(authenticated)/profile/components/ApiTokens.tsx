@@ -1,59 +1,42 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-
-interface Token {
-  id: string
-  name: string
-  ipAddress: string
-  status: "Active" | "Inactive"
-  created: string
-  token: string
-  expires: string
-}
+import { Skeleton } from "@/components/ui/skeleton"
+import type { Client } from "@/app/types/clients"
+import { getUserClientsApi } from "@/core/apis/settings"
+import { useAppSelector } from "@/core/redux/hooks"
 
 export default function ApiTokens() {
-  const [tokens, setTokens] = useState<Token[]>([
-    {
-      id: "1",
-      name: "Production API",
-      ipAddress: "192.168.1.1",
-      status: "Active",
-      created: "2023-01-01",
-      token: "abc123xyz789",
-      expires: "2024-01-01",
-    },
-    {
-      id: "2",
-      name: "Development API",
-      ipAddress: "192.168.1.2",
-      status: "Active",
-      created: "2023-02-01",
-      token: "def456uvw890",
-      expires: "2024-02-01",
-    },
-  ])
-
+  const [clients, setClients] = useState<Client[]>([])
   const [newTokenName, setNewTokenName] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const currentuser = useAppSelector((state) => state.user.userDetails)
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setIsLoading(true)
+        const userID = currentuser?._id || ""
+        const response = await getUserClientsApi(userID)
+        setClients(response)
+      } catch (error) {
+        console.error("Failed to fetch clients:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchClients()
+  }, [currentuser?._id])
 
   const handleCreateToken = (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send a request to your backend to create a new token
-    const newToken: Token = {
-      id: String(tokens.length + 1),
-      name: newTokenName,
-      ipAddress: "192.168.1." + (tokens.length + 1),
-      status: "Active",
-      created: new Date().toISOString().split("T")[0],
-      token: Math.random().toString(36).substring(2, 15),
-      expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-    }
-    setTokens([...tokens, newToken])
-    setNewTokenName("")
+    // Handle token creation logic here if needed
+    console.log("Create token feature is not implemented yet.")
   }
 
   return (
@@ -83,7 +66,7 @@ export default function ApiTokens() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Client name</TableHead>
+            <TableHead>Client Name</TableHead>
             <TableHead>IP Address</TableHead>
             <TableHead>Client Status</TableHead>
             <TableHead>Created</TableHead>
@@ -92,16 +75,39 @@ export default function ApiTokens() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tokens.map((token) => (
-            <TableRow key={token.id}>
-              <TableCell>{token.name}</TableCell>
-              <TableCell>{token.ipAddress}</TableCell>
-              <TableCell>{token.status}</TableCell>
-              <TableCell>{token.created}</TableCell>
-              <TableCell>{token.token}</TableCell>
-              <TableCell>{token.expires}</TableCell>
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 3 }).map((_, index) => (
+              <TableRow key={index}>
+                {Array.from({ length: 6 }).map((_, cellIndex) => (
+                  <TableCell key={cellIndex}>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : clients.length > 0 ? (
+            clients.map((client) => (
+              <TableRow key={client._id}>
+                <TableCell>{client.name}</TableCell>
+                <TableCell>{client.ip_addresses.length > 0 ? client.ip_addresses[0] : "N/A"}</TableCell>
+                <TableCell>{client.isActive ? "Active" : "Inactive"}</TableCell>
+                <TableCell>{new Date(client.access_token.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>{client.access_token.token}</TableCell>
+                <TableCell>
+                  {client.access_token.expires
+                    ? new Date(client.access_token.expires).toLocaleDateString()
+                    : "No Expiration"}
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                No clients found.
+              </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </div>
