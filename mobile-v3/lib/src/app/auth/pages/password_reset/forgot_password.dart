@@ -1,6 +1,10 @@
+import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
+import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_event.dart';
+import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_state.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
-import 'package:airqo/src/app/auth/pages/register_page.dart';
+import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/auth/pages/password_reset/reset_link_sent.dart';
+
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
@@ -10,52 +14,50 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class ForgotPasswordPage extends StatefulWidget {
+  const ForgotPasswordPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPage();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _ForgotPasswordPage extends State<ForgotPasswordPage> {
   String? error;
-  late AuthBloc authBloc;
+  late PasswordResetBloc passwordResetBloc;
   late TextEditingController emailController = TextEditingController();
-  late TextEditingController passwordController = TextEditingController();
+
   late GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     emailController = TextEditingController();
-    passwordController = TextEditingController();
-    
+
+
     try {
-      authBloc = context.read<AuthBloc>();
+      passwordResetBloc = context.read<PasswordResetBloc>();
 
     } catch (e) {
-      logError('Failed to initialize AuthBloc: $e');
+      logError('Failed to initialize PasswordResetBloc: $e');
     }
   }
 
   @override
   void dispose() {
     emailController.dispose();
-    passwordController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocListener<PasswordResetBloc, PasswordResetState>(
       listener: (context, state) {
-        if (state is AuthLoaded) {
-          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-            builder: (context) {
-              return NavPage();
-            },
-          ), (_) => false);
-        } else if (state is AuthLoadingError) {
+        if (state is PasswordResetSuccess) {
+          Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (context) => ResetLinkSentPage()));
+        } else if (state is PasswordResetError) {
           setState(() {
             error = state.message.replaceAll("Exception: ", "");
           });
@@ -63,15 +65,24 @@ class _LoginPageState extends State<LoginPage> {
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
           title: Text(
-            "Login",
+            "Forgot Password",
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: AppColors.boldHeadlineColor),
           ),
           centerTitle: true,
+
+
         ),
+
         body: Form(
           key: formKey,
           child: Column(
@@ -83,6 +94,21 @@ class _LoginPageState extends State<LoginPage> {
                   child: SizedBox(
                     child: Column(
                       children: [
+                        Text("Forgot Your Password?",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        ),
+                        SizedBox(
+                          height: 12,
+                        ),
+                        Text("Enter your email address and we will send you a code to reset your password.",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         SizedBox(height: 32),
                         FormFieldWidget(
                             prefixIcon: Container(
@@ -101,26 +127,8 @@ class _LoginPageState extends State<LoginPage> {
                             hintText: "Enter your email",
                             label: "Email*",
                             controller: emailController),
-                        SizedBox(height: 16),
-                        FormFieldWidget(
-                            prefixIcon: Container(
-                              padding: const EdgeInsets.all(13.5),
-                              child: SvgPicture.asset(
-                                "assets/icons/password.svg",
-                                height: 10,
-                              ),
-                            ),
-                            validator: (value) {
+                        SizedBox(height: 18),
 
-                              if (value == null || value.isEmpty) {
-                                return "This field cannot be blank.";
-                              }
-                              return null;
-                            },
-                            hintText: "Enter your password",
-                            label: "Password",
-                            isPassword: true,
-                            controller: passwordController)
                       ],
                     ),
                   ),
@@ -131,25 +139,29 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.only(left: 32.0, top: 8),
                   child: Text(error!, style: TextStyle(color: Colors.red)),
                 ),
-              SizedBox(height: 24),
+              SizedBox(height: 18),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: BlocBuilder<AuthBloc, AuthState>(
+                child: BlocBuilder<PasswordResetBloc, PasswordResetState>(
                   builder: (context, state) {
-                    bool loading = state is AuthLoading;
+                    bool loading = state is PasswordResetLoading;
 
                     return InkWell(
                       onTap: loading
                           ? null
                           : () {
-                              final currentForm = formKey.currentState;
-                              if (currentForm != null &&
-                                  currentForm.validate()) {
-                                authBloc.add(LoginUser(
-                                    emailController.text.trim(),
-                                    passwordController.text.trim()));
-                              }
-                            },
+                        final currentForm = formKey.currentState;
+                        if (currentForm != null &&
+                            currentForm.validate()) {
+                          passwordResetBloc.add(RequestPasswordReset(
+                              emailController.text.trim()
+                          ));
+
+                          emailController.clear();
+
+
+                        }
+                      },
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
@@ -159,51 +171,35 @@ class _LoginPageState extends State<LoginPage> {
                           child: loading
                               ? Spinner()
                               : Text(
-                                  "Login",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                            "Submit",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     );
                   },
                 ),
               ),
-              SizedBox(height: 16),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text("Don't have an account?",
-                    style: TextStyle(
-                        color: AppColors.boldHeadlineColor,
-                        fontWeight: FontWeight.w500)),
-                InkWell(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => CreateAccountScreen())),
-                  child: Text(
-                    " Create Account",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primaryColor),
-                  ),
-                )
-              ]),
-              SizedBox(height: 16),
+              SizedBox(
+                  height: 18
+              ),
 
-              Center(
-                child: InkWell(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ForgotPasswordPage())),
+              InkWell(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => LoginPage())),
+                child: Center(
                   child: Text(
-                    "Forgot password?",
+                    "Login",
                     style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: AppColors.primaryColor),
                   ),
                 ),
-              )
+              ),
             ],
-
           ),
         ),
       ),

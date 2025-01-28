@@ -1,7 +1,6 @@
-import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
-import 'package:airqo/src/app/auth/pages/register_page.dart';
-import 'package:airqo/src/app/shared/pages/nav_page.dart';
+import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_event.dart';
+
+import 'package:airqo/src/app/auth/pages/password_reset/reset_success.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -10,52 +9,58 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+import '../../bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
+import '../../bloc/ForgotPasswordBloc/forgot_password_state.dart';
+
+class PasswordResetPage extends StatefulWidget {
+  final String? token;
+  const PasswordResetPage({super.key, this.token});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<PasswordResetPage> createState() => _PasswordResetPage();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _PasswordResetPage extends State<PasswordResetPage> {
+
   String? error;
-  late AuthBloc authBloc;
-  late TextEditingController emailController = TextEditingController();
+  late PasswordResetBloc passwordResetBloc;
+  late TextEditingController passwordConfirmController = TextEditingController();
   late TextEditingController passwordController = TextEditingController();
+  late TextEditingController resetController= TextEditingController();
   late GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    emailController = TextEditingController();
+    passwordConfirmController = TextEditingController();
     passwordController = TextEditingController();
-    
+    resetController= TextEditingController();
+
     try {
-      authBloc = context.read<AuthBloc>();
+      passwordResetBloc = context.read<PasswordResetBloc>();
 
     } catch (e) {
-      logError('Failed to initialize AuthBloc: $e');
+      logError('Failed to initialize PasswordResetBloc: $e');
     }
   }
 
   @override
   void dispose() {
-    emailController.dispose();
+    passwordConfirmController.dispose();
     passwordController.dispose();
+    resetController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocListener<PasswordResetBloc, PasswordResetState>(
       listener: (context, state) {
-        if (state is AuthLoaded) {
-          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-            builder: (context) {
-              return NavPage();
-            },
-          ), (_) => false);
-        } else if (state is AuthLoadingError) {
+        if (state is PasswordResetSuccess) {
+          Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (context) => ResetSuccessPage()));
+        } else if (state is PasswordResetError) {
           setState(() {
             error = state.message.replaceAll("Exception: ", "");
           });
@@ -64,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            "Login",
+            "Reset Password",
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -88,19 +93,44 @@ class _LoginPageState extends State<LoginPage> {
                             prefixIcon: Container(
                               padding: const EdgeInsets.all(13.5),
                               child: SvgPicture.asset(
-                                "assets/icons/email-icon.svg",
+                                "assets/icons/password.svg",
                                 height: 10,
                               ),
                             ),
                             validator: (value) {
+
                               if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
                               return null;
                             },
-                            hintText: "Enter your email",
-                            label: "Email*",
-                            controller: emailController),
+                            hintText: "Enter your password",
+                            label: "Password",
+                            isPassword: true,
+                            controller: passwordController),
+                        SizedBox(height: 16),
+                        FormFieldWidget(
+                            prefixIcon: Container(
+                              padding: const EdgeInsets.all(13.5),
+                              child: SvgPicture.asset(
+                                "assets/icons/password.svg",
+                                height: 10,
+                              ),
+                            ),
+                            validator: (value) {
+                              if(value != passwordController.text){
+                                return "Passwords do not match";
+                              }
+
+                              if (value == null || value.isEmpty) {
+                                return "This field cannot be blank.";
+                              }
+                              return null;
+                            },
+                            hintText: "Re-enter your new password",
+                            label: "Confirm Password",
+                            isPassword: true,
+                            controller: passwordConfirmController),
                         SizedBox(height: 16),
                         FormFieldWidget(
                             prefixIcon: Container(
@@ -117,10 +147,9 @@ class _LoginPageState extends State<LoginPage> {
                               }
                               return null;
                             },
-                            hintText: "Enter your password",
-                            label: "Password",
-                            isPassword: true,
-                            controller: passwordController)
+                            hintText: "Enter the password reset code",
+                            label: "Password Reset Code",
+                            controller: resetController)
                       ],
                     ),
                   ),
@@ -134,22 +163,30 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: BlocBuilder<AuthBloc, AuthState>(
+                child: BlocBuilder<PasswordResetBloc, PasswordResetState>(
                   builder: (context, state) {
-                    bool loading = state is AuthLoading;
+                    bool loading = state is PasswordResetLoading;
 
                     return InkWell(
                       onTap: loading
                           ? null
                           : () {
-                              final currentForm = formKey.currentState;
-                              if (currentForm != null &&
-                                  currentForm.validate()) {
-                                authBloc.add(LoginUser(
-                                    emailController.text.trim(),
-                                    passwordController.text.trim()));
-                              }
-                            },
+
+
+
+                        final currentForm = formKey.currentState;
+                        if (currentForm != null &&
+                            currentForm.validate()) {
+                          passwordResetBloc.add(UpdatePassword(
+                              confirmPassword: passwordConfirmController.text.trim(),
+                              token: resetController.text.trim(),
+                              password:passwordController.text.trim()));
+
+                        }
+                        resetController.clear();
+                        passwordConfirmController.clear();
+                        passwordController.clear();
+                      },
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
@@ -159,12 +196,12 @@ class _LoginPageState extends State<LoginPage> {
                           child: loading
                               ? Spinner()
                               : Text(
-                                  "Login",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                            "Reset Password",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -172,38 +209,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 16),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text("Don't have an account?",
-                    style: TextStyle(
-                        color: AppColors.boldHeadlineColor,
-                        fontWeight: FontWeight.w500)),
-                InkWell(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => CreateAccountScreen())),
-                  child: Text(
-                    " Create Account",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primaryColor),
-                  ),
-                )
-              ]),
-              SizedBox(height: 16),
 
-              Center(
-                child: InkWell(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ForgotPasswordPage())),
-                  child: Text(
-                    "Forgot password?",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primaryColor),
-                  ),
-                ),
-              )
             ],
-
           ),
         ),
       ),

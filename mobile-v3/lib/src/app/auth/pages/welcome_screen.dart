@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/auth/widgets/breathe_clean.dart';
 import 'package:airqo/src/app/auth/widgets/know_your_air.dart';
@@ -124,19 +125,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  SizedBox(height: 16),
-                  Center(
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
 
-                          builder: (context) => ForgotPasswordPage())),
-                      child: Text("Forgot password?",
-                          style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w500)),
-                    ),
-                  ),
+
 
                 ],
               ),

@@ -10,12 +10,18 @@ abstract class AuthRepository {
   //login function
   Future<void> loginWithEmailAndPassword(String username, String password);
   Future<void> registerWithEmailAndPassword(RegisterInputModel model);
+  Future<String> requestPasswordReset(String email);
+  Future<String> updatePassword({
+    required String token,
+    required String password,
+    required String confirmPassword,
+  });
 }
 
 class AuthImpl extends AuthRepository {
   @override
-  Future<void> loginWithEmailAndPassword(
-      String username, String password) async {
+  Future<void> loginWithEmailAndPassword(String username,
+      String password) async {
     Response loginResponse = await http.post(
         Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
         body: jsonEncode({"userName": username, "password": password}),
@@ -51,4 +57,60 @@ class AuthImpl extends AuthRepository {
       throw Exception(data['errors']['message'] ?? data['message']);
     }
   }
+
+  @override
+  Future<String> requestPasswordReset(String email) async {
+    final response = await http.post(
+      Uri.parse('https://api.airqo.net/api/v2/users/reset-password-request'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': email, // User's email address
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        return data['message'] ?? 'Password reset link sent.';
+      } else {
+        throw Exception(data['message'] ?? 'Failed to send password reset request.');
+      }
+    } else {
+      final error = jsonDecode(response.body)['message'] ?? 'Something went wrong.';
+      throw Exception(error);
+    }
+  }
+
+
+  @override
+  Future<String> updatePassword({
+    required String token,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    final response = await http.post(
+      Uri.parse('https://api.airqo.net/api/v2/users/reset-password/$token'),
+
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'password': password,
+        'confirmPassword': confirmPassword, // Include confirmPassword
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['message'] ?? 'Password reset successful.';
+    } else {
+      final error = jsonDecode(response.body)['message'] ??
+          'Failed to reset password.';
+      throw Exception(error);
+    }
+  }
 }
+
+
