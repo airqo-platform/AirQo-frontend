@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CreateGridForm } from "@/components/grids/create-grid";
+import { useRouter } from "next/navigation";
 
 // Sample data matching the screenshot
 const grids = [
@@ -55,6 +56,7 @@ const grids = [
 ];
 
 export default function GridsPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
@@ -208,7 +210,10 @@ export default function GridsPage() {
             {filteredGrids
               .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
               .map((grid) => (
-                <TableRow key={grid.name}>
+                <TableRow
+                  key={grid.name}
+                  onClick={() => router.push(`/grids/1`)}
+                >
                   <TableCell className="font-medium">{grid.name}</TableCell>
                   <TableCell className="text-right">
                     {grid.numberOfSites}
