@@ -53,7 +53,6 @@ const ClientManagement = () => {
     setLoading(true)
     try {
       const response = await getClientsApi()
-      console.log(response.clients)
       setClients(response.clients)
     } catch (error) {
       toast({
@@ -136,17 +135,6 @@ const ClientManagement = () => {
   const activatedClients = clients.filter((client) => client.isActive).length
   const deactivatedClients = clients.filter((client) => !client.isActive).length
 
-  const nearestExpiringToken = clients
-    .filter((client) => client.access_token && client.access_token.expires)
-    .filter((client) => {
-      const expiryDate = new Date(client.access_token.expires)
-      return expiryDate > new Date()
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.access_token.expires).getTime()
-      const dateB = new Date(b.access_token.expires).getTime()
-      return dateA - dateB
-    })[0]
 
 
   return (

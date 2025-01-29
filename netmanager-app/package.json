@@ -25,7 +25,6 @@
     "@reduxjs/toolkit": "^2.5.0",
     "@tanstack/react-query": "^5.62.11",
     "@tanstack/react-query-devtools": "^5.62.11",
-    "@tanstack/react-table": "^8.20.6",
     "@types/leaflet": "^1.9.15",
     "@types/react-redux": "^7.1.34",
     "apexcharts": "^4.3.0",
