@@ -12,12 +12,12 @@ import { useCareers, useDepartments } from '@/hooks/useApiHooks';
 const CareerPage: React.FC = () => {
   const router = useRouter();
   const {
-    departments,
+    data: departments,
     isLoading: departmentsLoading,
     isError: departmentsError,
   } = useDepartments();
   const {
-    careers,
+    data: careers,
     isLoading: careersLoading,
     isError: careersError,
   } = useCareers();

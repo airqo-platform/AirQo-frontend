@@ -10,7 +10,7 @@ const PartnerDetailsPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
   const { id } = params as { id: string };
-  const { partnerDetails: partner, isLoading, isError } = usePartnerDetails(id);
+  const { data: partner, isLoading, isError } = usePartnerDetails(id);
 
   // Skeleton loader component
   const SkeletonLoader = () => (

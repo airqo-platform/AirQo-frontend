@@ -24,268 +24,127 @@ import {
 
 import { swrOptions } from './swrConfig';
 
-export function usePressArticles() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'pressArticles',
-    getPressArticles,
-    swrOptions,
-  );
+/**
+ * Custom Hook for fetching data using SWR.
+ *
+ * @param key - Unique key for the SWR cache. If `null`, SWR will skip fetching.
+ * @param fetcher - Function to fetch data.
+ * @param initialData - Optional initial data to return while fetching.
+ * @returns An object containing the fetched data, loading state, error state, and mutate function.
+ */
+const useFetch = (
+  key: string | null,
+  fetcher: () => Promise<any>,
+  initialData: any = [],
+) => {
+  const { data, error, mutate } = useSWR(key, fetcher, swrOptions);
+  const isLoading = !data && !error;
+
   return {
-    pressArticles: data || [],
+    data: data ?? initialData,
     isLoading,
     isError: error,
     mutate,
   };
-}
+};
 
-export function useImpactNumbers() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'impactNumbers',
-    getImpactNumbers,
-    swrOptions,
-  );
-  return {
-    impactNumbers: data || {},
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *              PRESS ARTICLES
+ * ------------------------------------- */
+export const usePressArticles = () =>
+  useFetch('pressArticles', getPressArticles, []);
 
-export function useAirQoEvents() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'airQoEvents',
-    getAirQoEvents,
-    swrOptions,
-  );
-  return {
-    airQoEvents: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *            IMPACT NUMBERS
+ * ------------------------------------- */
+export const useImpactNumbers = () =>
+  useFetch('impactNumbers', getImpactNumbers, {});
 
-export function useCleanAirEvents() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'cleanAirEvents',
-    getCleanAirEvents,
-    swrOptions,
-  );
-  return {
-    cleanAirEvents: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *               EVENTS
+ * ------------------------------------- */
+export const useAirQoEvents = () => useFetch('airQoEvents', getAirQoEvents, []);
 
-export function useEventDetails(id: any) {
-  const { data, error, isLoading, mutate } = useSWR(
-    id ? `eventDetails/${id}` : null,
-    () => getEventDetails(id),
-    swrOptions,
-  );
-  return {
-    eventDetails: data,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+export const useCleanAirEvents = () =>
+  useFetch('cleanAirEvents', getCleanAirEvents, []);
 
-export function useHighlights() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'highlights',
-    getHighlights,
-    swrOptions,
-  );
-  return {
-    highlights: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+export const useEventDetails = (id: string | null) =>
+  useFetch(id ? `eventDetails/${id}` : null, () => getEventDetails(id!), null);
 
-export function useCareers() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'careers',
-    getCareers,
-    swrOptions,
-  );
-  return {
-    careers: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *              HIGHLIGHTS
+ * ------------------------------------- */
+export const useHighlights = () => useFetch('highlights', getHighlights, []);
 
-export function useCareerDetails(id: any) {
-  const { data, error, isLoading, mutate } = useSWR(
+/** -------------------------------------
+ *               CAREERS
+ * ------------------------------------- */
+export const useCareers = () => useFetch('careers', getCareers, []);
+
+export const useCareerDetails = (id: string | null) =>
+  useFetch(
     id ? `careerDetails/${id}` : null,
-    () => getCareerDetails(id),
-    swrOptions,
+    () => getCareerDetails(id!),
+    null,
   );
-  return {
-    careerDetails: data,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
 
-export function useDepartments() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'departments',
-    getDepartments,
-    swrOptions,
-  );
-  return {
-    departments: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *             DEPARTMENTS
+ * ------------------------------------- */
+export const useDepartments = () => useFetch('departments', getDepartments, []);
 
-export function usePublications() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'publications',
-    getPublications,
-    swrOptions,
-  );
-  return {
-    publications: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *            PUBLICATIONS
+ * ------------------------------------- */
+export const usePublications = () =>
+  useFetch('publications', getPublications, []);
 
-export function useBoardMembers() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'boardMembers',
-    getBoardMembers,
-    swrOptions,
-  );
-  return {
-    boardMembers: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *           BOARD MEMBERS
+ * ------------------------------------- */
+export const useBoardMembers = () =>
+  useFetch('boardMembers', getBoardMembers, []);
 
-export function useTeamMembers() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'teamMembers',
-    getTeamMembers,
-    swrOptions,
-  );
-  return {
-    teamMembers: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *            TEAM MEMBERS
+ * ------------------------------------- */
+export const useTeamMembers = () => useFetch('teamMembers', getTeamMembers, []);
 
-export function useExternalTeamMembers() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'externalTeamMembers',
-    getExternalTeamMembers,
-    swrOptions,
-  );
-  return {
-    externalTeamMembers: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+export const useExternalTeamMembers = () =>
+  useFetch('externalTeamMembers', getExternalTeamMembers, []);
 
-export function usePartners() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'partners',
-    getPartners,
-    swrOptions,
-  );
-  return {
-    partners: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *               PARTNERS
+ * ------------------------------------- */
+export const usePartners = () => useFetch('partners', getPartners, []);
 
-export function usePartnerDetails(id: any) {
-  const { data, error, isLoading, mutate } = useSWR(
+export const usePartnerDetails = (id: string | null) =>
+  useFetch(
     id ? `partnerDetails/${id}` : null,
-    () => getPartnerDetails(id),
-    swrOptions,
+    () => getPartnerDetails(id!),
+    null,
   );
-  return {
-    partnerDetails: data,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
 
-export function useForumEvents() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'forumEvents',
-    getForumEvents,
-    swrOptions,
-  );
-  return {
-    forumEvents: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *            FORUM EVENTS
+ * ------------------------------------- */
+export const useForumEvents = () => useFetch('forumEvents', getForumEvents, []);
 
-export function useForumEventDetails(id: any) {
-  const { data, error, isLoading, mutate } = useSWR(
+export const useForumEventDetails = (id: string | null) =>
+  useFetch(
     id ? `forumEventDetails/${id}` : null,
-    () => getForumEventDetails(id),
-    swrOptions,
+    () => getForumEventDetails(id!),
+    null,
   );
-  return {
-    forumEventDetails: data,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
 
-export function useCleanAirResources() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'cleanAirResources',
-    getCleanAirResources,
-    swrOptions,
-  );
-  return {
-    cleanAirResources: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *          CLEAN AIR RESOURCES
+ * ------------------------------------- */
+export const useCleanAirResources = () =>
+  useFetch('cleanAirResources', getCleanAirResources, []);
 
-export function useAfricanCountries() {
-  const { data, error, isLoading, mutate } = useSWR(
-    'africanCountries',
-    getAfricanCountries,
-    swrOptions,
-  );
-  return {
-    africanCountries: data || [],
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+/** -------------------------------------
+ *           AFRICAN COUNTRIES
+ * ------------------------------------- */
+export const useAfricanCountries = () =>
+  useFetch('africanCountries', getAfricanCountries, []);

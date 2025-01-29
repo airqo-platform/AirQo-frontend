@@ -17,7 +17,7 @@ type CleanAirLayoutProps = {
 
 const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
   // Using the `useForumEvents` hook
-  const { forumEvents, isLoading } = useForumEvents();
+  const { data: forumEvents, isLoading } = useForumEvents();
 
   // Extract the first event (if available)
   const eventData = forumEvents?.[0] || null;
