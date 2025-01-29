@@ -47,7 +47,6 @@ class _MapScreenState extends State<MapScreen>
     query = query.toLowerCase();
     return measurements.where((measurement) {
       if (measurement.siteDetails != null) {
-        // Search through multiple location fields
         return (measurement.siteDetails!.city?.toLowerCase().contains(query) ??
                 false) ||
             (measurement.siteDetails!.locationName
@@ -183,6 +182,7 @@ class _MapScreenState extends State<MapScreen>
 
   bool isModalFull = false;
 
+  void toggleModal(bool value) {
   void toggleModal(bool value) {
     if (isModalFull != value) {
       setState(() {
