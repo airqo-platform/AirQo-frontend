@@ -5,7 +5,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { useAfricanCountries } from '@/hooks/useApiHooks';
 
 const AfricanCities: React.FC = () => {
-  const { africanCountries, isLoading, isError } = useAfricanCountries();
+  const { data: africanCountries } = useAfricanCountries();
   const [selectedCountry, setSelectedCountry] = useState<any | null>(null);
   const [selectedCity, setSelectedCity] = useState<any | null>(null);
 
@@ -35,19 +35,7 @@ const AfricanCities: React.FC = () => {
     setSelectedCity(city);
   };
 
-  if (isLoading) {
-    return (
-      <div className="text-center py-20">Loading African countries...</div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="text-center py-20 text-red-500">
-        Failed to load data. Please try again later.
-      </div>
-    );
-  }
+  if (!africanCountries) return;
 
   return (
     <div className={`${mainConfig.containerClass} p-4 lg:p-0`}>

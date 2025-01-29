@@ -35,11 +35,11 @@ const SkeletonCard: React.FC = () => (
 /** Main AboutPage Component **/
 
 const AboutPage: React.FC = () => {
-  const { boardMembers, isLoading: loadingBoard } = useBoardMembers();
-  const { teamMembers, isLoading: loadingTeam } = useTeamMembers();
-  const { externalTeamMembers, isLoading: loadingExternalTeam } =
+  const { data: boardMembers, isLoading: loadingBoard } = useBoardMembers();
+  const { data: teamMembers, isLoading: loadingTeam } = useTeamMembers();
+  const { data: externalTeamMembers, isLoading: loadingExternalTeam } =
     useExternalTeamMembers();
-  const { partners } = usePartners();
+  const { data: partners } = usePartners();
 
   // filter out partners whose website_category is airqo
   const filteredPartners = partners.filter(

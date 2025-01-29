@@ -41,7 +41,11 @@ const LoadingSkeleton = ({ itemsPerPage }: { itemsPerPage: number }) => (
 );
 
 const ResourcePage: React.FC = () => {
-  const { cleanAirResources, isLoading, isError } = useCleanAirResources();
+  const {
+    data: cleanAirResources,
+    isLoading,
+    isError,
+  } = useCleanAirResources();
   const itemsPerPage = 3;
 
   const {
