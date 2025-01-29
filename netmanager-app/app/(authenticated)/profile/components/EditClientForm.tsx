@@ -1,43 +1,45 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import DialogWrapper from "@/components/Modal/DialogWrapper"
-import Toast from "@/components/Toast"
-import { addClients, addClientsDetails, performRefresh } from "@/lib/store/services/apiClient"
+import DialogWrapper from "./DialogWrapper"
+import { Toast } from "@/components/ui/toast"
+import { addClients, addClientsDetails, performRefresh } from "@/core/redux/slices/clientsSlice"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Plus } from "lucide-react"
-import { api } from "../utils/api"
-import type { RootState } from "@/lib/store"
+import { users } from "@/core/apis/users"
+import type { RootState } from "@/core/redux/store"
+import { Client } from "@/app/types/clients"
+import { getUserClientsApi, updateClientApi } from "@/core/apis/settings"
 
 interface EditClientFormProps {
   open: boolean
-  closeModal: () => void
-  data: any
+  onClose: () => void;
+  data: Client
 }
 
-const EditClientForm: React.FC<EditClientFormProps> = ({ open, closeModal, data }) => {
+const EditClientForm: React.FC<EditClientFormProps> = ({ open, onClose, data }) => {
   const dispatch = useDispatch()
-  const userInfo = useSelector((state: RootState) => state.user.userInfo)
+  const userInfo = useSelector((state: RootState) => state.user.userDetails)
   const clientID = data?._id
   const [loading, setLoading] = useState(false)
   const [isError, setIsError] = useState({ isError: false, message: "", type: "" })
   const [clientName, setClientName] = useState("")
   const [ipAddresses, setIpAddresses] = useState([""])
 
-  useEffect(() => {
-    handleInitialData()
-  }, [handleInitialData]) // Updated dependency
-
-  const handleInitialData = () => {
-    setClientName(data?.name || "")
+  const handleInitialData = useCallback(() => {
+    setClientName(data?.name || "");
     const ipAddresses = Array.isArray(data?.ip_addresses)
       ? data?.ip_addresses
       : data?.ip_addresses
         ? [data?.ip_addresses]
-        : [""]
-    setIpAddresses(ipAddresses)
-  }
+        : [""];
+    setIpAddresses(ipAddresses);
+  }, [data]);
+  
+  useEffect(() => {
+    handleInitialData();
+  }, [handleInitialData]);
 
   const handleInputValueChange = useCallback((type: string, value: string, index?: number) => {
     if (type === "clientName") {
@@ -83,12 +85,12 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ open, closeModal, data 
         ip_addresses: ipAddresses.filter((ip) => ip.trim() !== ""),
       }
 
-      const response = await api.updateClient(data, clientID)
-      if (response.success !== true) {
+      const response = await updateClientApi(data, clientID)
+      if (!response) {
         throw new Error("Failed to update client")
       }
-      const res = await api.getUserDetailsAccount(userInfo?._id)
-      const resp = await api.getClients(userInfo?._id)
+      const res = await users.getUserDetails(userInfo?._id || "")
+      const resp = await getUserClientsApi(userInfo?._id || "")
       dispatch(addClients(res.users[0].clients))
       dispatch(addClientsDetails(resp.clients))
       dispatch(performRefresh())
@@ -121,7 +123,7 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ open, closeModal, data 
   return (
     <DialogWrapper
       open={open}
-      onClose={closeModal}
+      onClose={onClose}
       handleClick={handleSubmit}
       primaryButtonText="Update"
       loading={loading}

@@ -2,117 +2,128 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import moment from "moment"
 import { useAppDispatch, useAppSelector } from "@/core/redux/hooks"
-import { Toast } from "@/components/ui/toast"
+import { useToast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
-import {  performRefresh } from "@/lib/store/services/apiClient"
+import { performRefresh } from "@/core/redux/slices/clientsSlice"
 import EditClientForm from "./EditClientForm"
+import CreateClientForm from "./CreateClientForm"
 import DialogWrapper from "./DialogWrapper"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Edit, Copy, Info } from "lucide-react"
-import { api } from "../utils/api"tore"
+import { Edit, Copy, Info, Plus } from "lucide-react"
+import { users } from "@/core/apis/users"
+import { getUserClientsApi } from "@/core/apis/settings"
+import type { Client } from "@/app/types/clients"
+import { generateTokenApi, activationRequestApi } from "@/core/apis/settings"
 
 const UserClientsTable: React.FC = () => {
   const dispatch = useAppDispatch()
-  const [isError, setIsError] = useState({ isError: false, message: "", type: "" })
-  const [isActivationRequestError, setIsActivationRequestError] = useState({ isError: false, message: "", type: "" })
+  const { toast } = useToast()
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingToken, setIsLoadingToken] = useState(false)
   const [isLoadingActivationRequest, setIsLoadingActivationRequest] = useState(false)
   const [openEditForm, setOpenEditForm] = useState(false)
-  const [selectedClient, setSelectedClient] = useState(null)
+  const [openCreateForm, setOpenCreateForm] = useState(false)
+  const [selectedClient, setSelectedClient] = useState({} as Client)
   const userInfo = useAppSelector((state) => state.user.userDetails)
-  const clients = useAppSelector((state) => state.sites.clients)
-  const clientsDetails = useAppSelector((state) => state.sites.clientsDetails)
+  const [clients, setClients] = useState<Client[]>([])
+  const [clientsDetails, setClientsDetails] = useState<Client[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 4
 
-  const onPageChange = (newPage: number) => {
-    setCurrentPage(newPage)
+  const fetchClients = async () => {
+    setIsLoading(true)
+    try {
+      const res = await users.getUserDetails(userInfo?._id || "")
+      if (res) {
+        dispatch({ type: "ADD_CLIENTS", payload: res.users[0].clients })
+        setCurrentPage(1)
+      }
+      setClients(res.users[0].clients)
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch user details",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const setErrorState = (message: string, type: string) => {
-    setIsError({
-      isError: true,
-      message,
-      type,
-    })
+  const fetchClientDetails = async () => {
+    setIsLoading(true)
+    try {
+      const response = await getUserClientsApi(userInfo?._id || "")
+      if (response) {
+        dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
+      }
+      setClientsDetails(response)
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch client details",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const res = await api.getUserDetailsAccount(userInfo?._id)
-        if (res.success === true) {
-          dispatch({ type: "ADD_CLIENTS", payload: res.users[0].clients })
-          setCurrentPage(1)
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchData()
-  }, [userInfo?._id, dispatch])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const response = await api.getClients(userInfo?._id)
-        if (response.success === true) {
-          dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response.clients })
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchData()
+    fetchClients()
+    fetchClientDetails()
   }, [userInfo?._id, dispatch])
 
   const hasAccessToken = (clientId: string) => {
     const client =
-      Array.isArray(clientsDetails) && (clientsDetails)
-        ? clientsDetails?.find((client: any) => client._id === clientId)
+      Array.isArray(clientsDetails) && clientsDetails
+        ? clientsDetails?.find((client: Client) => client._id === clientId)
         : undefined
     return client && client.access_token
   }
 
   const getClientToken = (clientID: string) => {
     const client =
-      Array.isArray(clientsDetails) && (clientsDetails)
-        ? clientsDetails?.find((client: any) => client._id === clientID)
+      Array.isArray(clientsDetails) && clientsDetails
+        ? clientsDetails?.find((client: Client) => client._id === clientID)
         : undefined
     return client && client.access_token && client.access_token.token
   }
 
   const getClientTokenExpiryDate = (clientID: string) => {
     const client =
-      Array.isArray(clientsDetails) && (clientsDetails)
-        ? clientsDetails?.find((client: any) => client._id === clientID)
+      Array.isArray(clientsDetails) && clientsDetails
+        ? clientsDetails?.find((client: Client) => client._id === clientID)
         : undefined
     return client && client.access_token && client.access_token.expires
   }
 
-  const handleGenerateToken = async (res: any) => {
+  const handleGenerateToken = async (res: Client) => {
     setIsLoadingToken(true)
     if (!res?.isActive) {
       setShowInfoModal(true)
       setIsLoadingToken(false)
     } else {
       try {
-        const response = await api.generateToken(res)
-        if (response.success === true) {
-          setErrorState("Token generated", "success")
+        const response = await generateTokenApi(res)
+        if (response) {
+          toast({
+            title: "Success",
+            description: "Token generated successfully",
+            variant: "success",
+          })
         }
         dispatch(performRefresh())
       } catch (error: any) {
-        setErrorState(error.message, "error")
+        toast({
+          title: "Error",
+          description: error.message || "Failed to generate token",
+          variant: "destructive",
+        })
       } finally {
         setIsLoadingToken(false)
       }
@@ -120,40 +131,51 @@ const UserClientsTable: React.FC = () => {
   }
 
   const handleActivationRequest = async () => {
-    const setActivationRequestErrorState = (message: string, type: string) => {
-      setIsActivationRequestError({
-        isError: true,
-        message,
-        type,
-      })
-    }
     setIsLoadingActivationRequest(true)
     try {
       const clientID = selectedClient?._id
-      const response = await api.activationRequest(clientID)
-      if (response.success === true) {
+      const response = await activationRequestApi(clientID)
+      if (response) {
         setShowInfoModal(false)
         setTimeout(() => {
-          setActivationRequestErrorState("Activation request sent successfully", "success")
+          toast({
+            title: "Success",
+            description: "Activation request sent successfully",
+            variant: "success",
+          })
         }, 3000)
       }
     } catch (error: any) {
       setShowInfoModal(false)
       setTimeout(() => {
-        setActivationRequestErrorState(error.message, "error")
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send activation request",
+          variant: "destructive",
+        })
       }, 3000)
     } finally {
       setIsLoadingActivationRequest(false)
     }
   }
 
-  const displayIPAddresses = (client: any) => {
+  const displayIPAddresses = (client: Client) => {
     return Array.isArray(client.ip_addresses) ? client.ip_addresses.join(", ") : client.ip_addresses
+  }
+
+  const handleClientCreated = () => {
+    fetchClients()
+    fetchClientDetails()
   }
 
   return (
     <div className="overflow-x-auto">
-      {isError.isError && <Toast type={isError.type} message={isError.message} />}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Clients</h2>
+        <Button onClick={() => setOpenCreateForm(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Create Client
+        </Button>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -176,7 +198,7 @@ const UserClientsTable: React.FC = () => {
           ) : clients?.length > 0 ? (
             clients
               .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-              .map((client: any, index: number) => (
+              .map((client: Client, index: number) => (
                 <TableRow key={index}>
                   <TableCell className="font-medium">{client?.name}</TableCell>
                   <TableCell>{displayIPAddresses(client)}</TableCell>
@@ -189,20 +211,30 @@ const UserClientsTable: React.FC = () => {
                       {client?.isActive ? "Activated" : "Not Activated"}
                     </span>
                   </TableCell>
-                  <TableCell>{moment(client?.createdAt).format("MMM DD, YYYY")}</TableCell>
+                  <TableCell>
+                    {client?.access_token?.createdAt
+                      ? moment(client.access_token.createdAt).format("MMM DD, YYYY")
+                      : "N/A"}
+                  </TableCell>
                   <TableCell>
                     {getClientToken(client._id) ? (
                       <div className="flex items-center">
-                        <span className="mr-2">
-                          {getClientToken(client._id).slice(0, 2)}....
-                          {getClientToken(client._id).slice(-2)}
+                        <span className="mr-2 font-mono">
+                          {getClientToken(client._id).slice(0, 4)}
+                          <span className="mx-1">•••••••</span>
+                          {getClientToken(client._id).slice(-4)}
                         </span>
                         <Button
+                          title="Copy full token"
                           variant="ghost"
                           size="sm"
                           onClick={() => {
                             navigator.clipboard.writeText(getClientToken(client._id))
-                            setErrorState("Token copied to clipboard!", "success")
+                            toast({
+                              title: "Success",
+                              description: "API token copied to clipboard",
+                              variant: "success",
+                            })
                           }}
                         >
                           <Copy className="h-4 w-4" />
@@ -214,13 +246,8 @@ const UserClientsTable: React.FC = () => {
                         size="sm"
                         disabled={isLoadingToken}
                         onClick={() => {
-                          const res = {
-                            name: client.name,
-                            client_id: client._id,
-                            isActive: client.isActive ? client.isActive : false,
-                          }
                           setSelectedClient(client)
-                          handleGenerateToken(res)
+                          handleGenerateToken(client)
                         }}
                       >
                         Generate
@@ -255,10 +282,17 @@ const UserClientsTable: React.FC = () => {
         </TableBody>
       </Table>
       {/* Add your Pagination component here */}
-      {isActivationRequestError.isError && (
-        <Toast type={isActivationRequestError.type} message={isActivationRequestError.message} />
-      )}
-      <EditClientForm open={openEditForm} closeModal={() => setOpenEditForm(false)} data={selectedClient} />
+      <EditClientForm
+        open={openEditForm}
+        onClose={() => setOpenEditForm(false)}
+        data={selectedClient}
+        onClientUpdated={handleClientCreated}
+      />
+      <CreateClientForm
+        open={openCreateForm}
+        onClose={() => setOpenCreateForm(false)}
+        onClientCreated={handleClientCreated}
+      />
       <DialogWrapper
         open={showInfoModal}
         onClose={() => setShowInfoModal(false)}

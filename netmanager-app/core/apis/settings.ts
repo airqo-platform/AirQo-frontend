@@ -35,7 +35,7 @@ export const updateUserPasswordApi = async (
   userId: string,
   tenant: string,
   userData: UserDetails
-): Promise<any> => {
+): Promise<UserDetails> => {
   return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword`, userData, {
       params: { tenant, id: userId },
     })
@@ -46,16 +46,27 @@ export const updateUserPasswordApi = async (
 export const updateClientApi = async (
   data: CreateClientData,
   client_id: string
-): Promise<any> => {
+): Promise<Client> => {
   return await createAxiosInstance()
     .put(`${USERS_MGT_URL}/clients/${client_id}`, data)
     .then((response) => response.data);
 };
 
-export const generateTokenApi = async (data: AccessToken): Promise<any> => {
-  const response = await createAxiosInstance().post(`${USERS_MGT_URL}/token`, data);
+export const generateTokenApi = async (data: Client): Promise<Client> => {
+  const response = await axiosInstance.post(`${USERS_MGT_URL}/token`, data);
   return response.data;
 };
+
+export const getClientsApi = async () => {
+  return axiosInstance.get(`${USERS_MGT_URL}/clients`).then((response) => response.data);
+};
+
+export const activateUserClientApi = async (data: { _id: string; isActive: boolean }) => {
+  return axiosInstance
+    .put(`${USERS_MGT_URL}/clients/activate`, data)
+    .then((response) => response.data);
+};
+
 
 // export const activateUserClientApi = async (data: ActivationData): Promise<any> => {
 //   return await createAxiosInstance()
@@ -63,8 +74,7 @@ export const generateTokenApi = async (data: AccessToken): Promise<any> => {
 //     .then((response) => response.data);
 // };
 
-// export const activationRequestApi = async (clientID: string): Promise<any> => {
-//   return await createAxiosInstance()
-//     .get(`${USERS_MGT_URL}/clients/activate-request/${clientID}`)
-//     .then((response) => response.data);
-// };
+export const activationRequestApi = async (clientID: string): Promise<Client> => {
+  return await axiosInstance.get(`${USERS_MGT_URL}/clients/activate-request/${clientID}`)
+    .then((response) => response.data);
+};
