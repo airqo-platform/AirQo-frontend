@@ -95,7 +95,7 @@ class AnalyticsCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(measurement.siteDetails!.locationName ?? "",
+                  Text(measurement.siteDetails!.name ?? "",
                       style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,

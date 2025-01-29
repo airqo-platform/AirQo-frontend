@@ -56,6 +56,10 @@ class _MapScreenState extends State<MapScreen>
                 false) ||
             (measurement.siteDetails!.name?.toLowerCase().contains(query) ??
                 false) ||
+            (measurement.siteDetails!.searchName?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.formattedName?.toLowerCase().contains(query) ??
+                false) ||
             (measurement.siteDetails!.town?.toLowerCase().contains(query) ??
                 false) ||
             (measurement.siteDetails!.district?.toLowerCase().contains(query) ??
@@ -69,7 +73,6 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       filteredMeasurements = measurements.where((measurement) {
         if (measurement.siteDetails != null) {
-          print(measurement.siteDetails!.country);
           return measurement.siteDetails!.country == country;
         }
         return false;
@@ -1186,7 +1189,7 @@ class _MapScreenState extends State<MapScreen>
                                                                     "Unknown City",
                                                                 subTitle: measurement
                                                                         .siteDetails
-                                                                        ?.locationName ??
+                                                                        ?.name ??
                                                                     "Unknown Location",
                                                               ),
                                                             );
