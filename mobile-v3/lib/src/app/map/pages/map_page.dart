@@ -937,11 +937,11 @@ class _MapScreenState extends State<MapScreen>
                                                                 LocationDisplayWidget(
                                                               title: measurement
                                                                       .siteDetails!
-                                                                      .name ??
+                                                                      .locationName ??
                                                                   "",
                                                               subTitle: measurement
                                                                       .siteDetails!
-                                                                      .locationName ??
+                                                                      .name ??
                                                                   "",
                                                             ),
                                                           );
