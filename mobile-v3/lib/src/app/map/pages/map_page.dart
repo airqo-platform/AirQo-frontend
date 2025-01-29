@@ -47,6 +47,7 @@ class _MapScreenState extends State<MapScreen>
     query = query.toLowerCase();
     return measurements.where((measurement) {
       if (measurement.siteDetails != null) {
+        // Search through multiple location fields
         return (measurement.siteDetails!.city?.toLowerCase().contains(query) ??
                 false) ||
             (measurement.siteDetails!.locationName
@@ -55,9 +56,13 @@ class _MapScreenState extends State<MapScreen>
                 false) ||
             (measurement.siteDetails!.name?.toLowerCase().contains(query) ??
                 false) ||
-            (measurement.siteDetails!.searchName?.toLowerCase().contains(query) ??
+            (measurement.siteDetails!.searchName
+                    ?.toLowerCase()
+                    .contains(query) ??
                 false) ||
-            (measurement.siteDetails!.formattedName?.toLowerCase().contains(query) ??
+            (measurement.siteDetails!.formattedName
+                    ?.toLowerCase()
+                    .contains(query) ??
                 false) ||
             (measurement.siteDetails!.town?.toLowerCase().contains(query) ??
                 false) ||
@@ -182,7 +187,6 @@ class _MapScreenState extends State<MapScreen>
 
   bool isModalFull = false;
 
-  void toggleModal(bool value) {
   void toggleModal(bool value) {
     if (isModalFull != value) {
       setState(() {
@@ -453,53 +457,7 @@ class _MapScreenState extends State<MapScreen>
                                                             color: AppColors
                                                                 .boldHeadlineColor)),
                                                     Row(children: [
-                                                      // Container(
-                                                      //   decoration: BoxDecoration(
-                                                      //       color: AppColors
-                                                      //           .highlightColor,
-                                                      //       borderRadius:
-                                                      //           BorderRadius
-                                                      //               .circular(
-                                                      //                   100)),
-                                                      //   height: 40,
-                                                      //   width: 52,
-                                                      //   child: Center(
-                                                      //     child: Padding(
-                                                      //       padding:
-                                                      //           const EdgeInsets
-                                                      //               .only(
-                                                      //               left: 8.0),
-                                                      //       child: Icon(
-                                                      //         size: 20,
-                                                      //         Icons
-                                                      //             .arrow_back_ios,
-                                                      //         color: AppColors
-                                                      //             .boldHeadlineColor,
-                                                      //       ),
-                                                      //     ),
-                                                      //   ),
-                                                      // ),
                                                       SizedBox(width: 8),
-                                                      // Container(
-                                                      //   decoration: BoxDecoration(
-                                                      //       color: AppColors
-                                                      //           .highlightColor,
-                                                      //       borderRadius:
-                                                      //           BorderRadius
-                                                      //               .circular(
-                                                      //                   100)),
-                                                      //   height: 40,
-                                                      //   width: 52,
-                                                      //   child: Center(
-                                                      //     child: Icon(
-                                                      //       Icons
-                                                      //           .arrow_forward_ios,
-                                                      //       size: 20,
-                                                      //       color: AppColors
-                                                      //           .boldHeadlineColor,
-                                                      //     ),
-                                                      //   ),
-                                                      // )
                                                     ])
                                                   ],
                                                 ),
