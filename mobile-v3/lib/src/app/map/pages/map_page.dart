@@ -40,6 +40,30 @@ class _MapScreenState extends State<MapScreen>
   String currentFilter = "All";
 
   List<Measurement> allMeasurements = [];
+  List<Measurement> localSearchResults = [];
+
+  List<Measurement> searchAirQualityLocations(
+      String query, List<Measurement> measurements) {
+    query = query.toLowerCase();
+    return measurements.where((measurement) {
+      if (measurement.siteDetails != null) {
+        // Search through multiple location fields
+        return (measurement.siteDetails!.city?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.locationName
+                    ?.toLowerCase()
+                    .contains(query) ??
+                false) ||
+            (measurement.siteDetails!.name?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.town?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.district?.toLowerCase().contains(query) ??
+                false);
+      }
+      return false;
+    }).toList();
+  }
 
   void filterByCountry(String country, List<Measurement> measurements) {
     setState(() {
@@ -781,12 +805,23 @@ class _MapScreenState extends State<MapScreen>
                                               controller: searchController,
                                               onChanged: (value) {
                                                 print(value);
-                                                if (value == "") {
+                                                if (value.isEmpty) {
                                                   googlePlacesBloc!
                                                       .add(ResetGooglePlaces());
+                                                  setState(() {
+                                                    // Reset local search results
+                                                    localSearchResults = [];
+                                                  });
+                                                } else {
+                                                  googlePlacesBloc!
+                                                      .add(SearchPlace(value));
+                                                  setState(() {
+                                                    localSearchResults =
+                                                        searchAirQualityLocations(
+                                                            value,
+                                                            allMeasurements);
+                                                  });
                                                 }
-                                                googlePlacesBloc!
-                                                    .add(SearchPlace(value));
                                               },
                                               style: TextStyle(fontSize: 14),
                                               onTap: () => toggleModal(true),
@@ -820,7 +855,11 @@ class _MapScreenState extends State<MapScreen>
                                                               clearGooglePlaces(),
                                                           child: Icon(
                                                             Icons.close,
-                                                            color: Theme.of(context).textTheme.headlineLarge!.color,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .headlineLarge!
+                                                                .color,
                                                           ));
                                                     }
                                                     return SizedBox();
@@ -860,53 +899,138 @@ class _MapScreenState extends State<MapScreen>
                                               );
                                             } else if (placesState
                                                 is SearchLoaded) {
-                                              if (placesState.response
-                                                  .predictions.isEmpty) {
-                                                return Center(
-                                                  child: Text(
-                                                    "No results found",
-                                                    style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: AppColors
-                                                            .boldHeadlineColor),
-                                                  ),
-                                                );
-                                              }
-                                              return ListView.separated(
-                                                  separatorBuilder:
-                                                      (context, index) {
-                                                    return Divider(
-                                                      indent: 50,
-                                                    );
-                                                  },
-                                                  padding:
-                                                      const EdgeInsets.only(),
-                                                  shrinkWrap: true,
-                                                  itemCount: placesState
-                                                      .response
-                                                      .predictions
-                                                      .length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    Prediction prediction =
-                                                        placesState.response
-                                                            .predictions[index];
+                                              return Column(
+                                                children: [
+                                                  // Show local AirQuality matches first
+                                                  if (localSearchResults
+                                                      .isNotEmpty) ...[
+                                                    Text(
+                                                        "Air Quality Monitoring Locations",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                    ListView.separated(
+                                                        shrinkWrap: true,
+                                                        itemCount:
+                                                            localSearchResults
+                                                                .length,
+                                                        separatorBuilder:
+                                                            (context, index) =>
+                                                                Divider(
+                                                                    indent: 50),
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                          Measurement
+                                                              measurement =
+                                                              localSearchResults[
+                                                                  index];
+                                                          return GestureDetector(
+                                                            onTap: () =>
+                                                                viewDetails(
+                                                                    measurement:
+                                                                        measurement),
+                                                            child:
+                                                                LocationDisplayWidget(
+                                                              title: measurement
+                                                                      .siteDetails!
+                                                                      .name ??
+                                                                  "",
+                                                              subTitle: measurement
+                                                                      .siteDetails!
+                                                                      .locationName ??
+                                                                  "",
+                                                            ),
+                                                          );
+                                                        }),
+                                                    Divider(),
+                                                  ],
 
-                                                    return GestureDetector(
-                                                      onTap: () => viewDetails(
-                                                          placeName: prediction
-                                                              .description),
-                                                      child: LocationDisplayWidget(
-                                                          title: prediction
-                                                              .description,
-                                                          subTitle: prediction
-                                                              .structuredFormatting
-                                                              .mainText),
-                                                    );
-                                                  });
+                                                  // Then show Google Places results
+                                                  Text("Other Locations",
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold)),
+                                                  ListView.separated(
+                                                      shrinkWrap: true,
+                                                      itemCount: placesState
+                                                          .response
+                                                          .predictions
+                                                          .length,
+                                                      separatorBuilder:
+                                                          (context, index) =>
+                                                              Divider(
+                                                                  indent: 50),
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                        Prediction prediction =
+                                                            placesState.response
+                                                                    .predictions[
+                                                                index];
+                                                        return GestureDetector(
+                                                          onTap: () => viewDetails(
+                                                              placeName: prediction
+                                                                  .description),
+                                                          child: LocationDisplayWidget(
+                                                              title: prediction
+                                                                  .description,
+                                                              subTitle: prediction
+                                                                  .structuredFormatting
+                                                                  .mainText),
+                                                        );
+                                                      }),
+                                                ],
+                                              );
                                             }
+                                            // } else if (placesState
+                                            //     is SearchLoaded) {
+                                            //   if (placesState.response
+                                            //       .predictions.isEmpty) {
+                                            //     return Center(
+                                            //       child: Text(
+                                            //         "No results found",
+                                            //         style: TextStyle(
+                                            //             fontSize: 18,
+                                            //             fontWeight:
+                                            //                 FontWeight.w500,
+                                            //             color: AppColors
+                                            //                 .boldHeadlineColor),
+                                            //       ),
+                                            //     );
+                                            //   }
+                                            //   return ListView.separated(
+                                            //       separatorBuilder:
+                                            //           (context, index) {
+                                            //         return Divider(
+                                            //           indent: 50,
+                                            //         );
+                                            //       },
+                                            //       padding:
+                                            //           const EdgeInsets.only(),
+                                            //       shrinkWrap: true,
+                                            //       itemCount: placesState
+                                            //           .response
+                                            //           .predictions
+                                            //           .length,
+                                            //       itemBuilder:
+                                            //           (context, index) {
+                                            //         Prediction prediction =
+                                            //             placesState.response
+                                            //                 .predictions[index];
+
+                                            //         return GestureDetector(
+                                            //           onTap: () => viewDetails(
+                                            //               placeName: prediction
+                                            //                   .description),
+                                            //           child: LocationDisplayWidget(
+                                            //               title: prediction
+                                            //                   .description,
+                                            //               subTitle: prediction
+                                            //                   .structuredFormatting
+                                            //                   .mainText),
+                                            //         );
+                                            //       });
+                                            // }
                                             return Expanded(
                                               child: Column(
                                                 crossAxisAlignment:
@@ -1012,90 +1136,64 @@ class _MapScreenState extends State<MapScreen>
 
                                                   Expanded(
                                                     child: Builder(
-                                                        builder: (context) {
-                                                      if (currentFilter ==
-                                                          "All") {
-                                                        return ListView
-                                                            .separated(
-                                                          separatorBuilder:
-                                                              (context, index) {
-                                                            return Divider(
-                                                              indent: 50,
-                                                            );
-                                                          },
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(),
-                                                          shrinkWrap: true,
-                                                          itemCount: 15,
-                                                          itemBuilder:
-                                                              (context, index) {
-                                                            Measurement
-                                                                measurement =
-                                                                allMeasurements[
-                                                                    index];
+                                                      builder: (context) {
+                                                        List<Measurement>
+                                                            measurements =
+                                                            currentFilter ==
+                                                                    "All"
+                                                                ? allMeasurements
+                                                                : filteredMeasurements;
 
-                                                            return GestureDetector(
-                                                                onTap: () =>
-                                                                    viewDetails(
-                                                                        measurement:
-                                                                            measurement),
-                                                                child:
-                                                                    LocationDisplayWidget(
-                                                                  title: measurement
-                                                                          .siteDetails!
-                                                                          .city ??
-                                                                      "",
-                                                                  subTitle: measurement
-                                                                          .siteDetails!
-                                                                          .locationName ??
-                                                                      "",
-                                                                ));
-                                                          },
-                                                        );
-                                                      } else {
+                                                        // If the list is empty, show a message instead of throwing an error
+                                                        if (measurements
+                                                            .isEmpty) {
+                                                          return Center(
+                                                            child: Text(
+                                                                "No measurements available"),
+                                                          );
+                                                        }
+
                                                         return ListView
                                                             .separated(
                                                           separatorBuilder:
-                                                              (context, index) {
-                                                            return Divider(
-                                                              indent: 50,
-                                                            );
-                                                          },
+                                                              (context,
+                                                                      index) =>
+                                                                  const Divider(
+                                                                      indent:
+                                                                          50),
                                                           padding:
-                                                              const EdgeInsets
-                                                                  .only(),
+                                                              EdgeInsets.zero,
                                                           shrinkWrap: true,
                                                           itemCount:
-                                                              filteredMeasurements
+                                                              measurements
                                                                   .length,
                                                           itemBuilder:
                                                               (context, index) {
                                                             Measurement
                                                                 measurement =
-                                                                filteredMeasurements[
+                                                                measurements[
                                                                     index];
-
                                                             return GestureDetector(
-                                                                onTap: () =>
-                                                                    viewDetails(
-                                                                        measurement:
-                                                                            measurement),
-                                                                child:
-                                                                    LocationDisplayWidget(
-                                                                  title: measurement
-                                                                          .siteDetails!
-                                                                          .city ??
-                                                                      "",
-                                                                  subTitle: measurement
-                                                                          .siteDetails!
-                                                                          .locationName ??
-                                                                      "",
-                                                                ));
+                                                              onTap: () =>
+                                                                  viewDetails(
+                                                                      measurement:
+                                                                          measurement),
+                                                              child:
+                                                                  LocationDisplayWidget(
+                                                                title: measurement
+                                                                        .siteDetails
+                                                                        ?.city ??
+                                                                    "Unknown City",
+                                                                subTitle: measurement
+                                                                        .siteDetails
+                                                                        ?.locationName ??
+                                                                    "Unknown Location",
+                                                              ),
+                                                            );
                                                           },
                                                         );
-                                                      }
-                                                    }),
+                                                      },
+                                                    ),
                                                   )
                                                 ],
                                               ),
