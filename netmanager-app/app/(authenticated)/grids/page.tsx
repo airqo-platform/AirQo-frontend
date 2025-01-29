@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Download } from "lucide-react";
+import { Search, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,48 +15,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CreateGridForm } from "@/components/grids/create-grid";
 import { useRouter } from "next/navigation";
-
-// Sample data matching the screenshot
-const grids = [
-  {
-    name: "gambia",
-    numberOfSites: 13,
-    adminLevel: "country",
-    visibility: true,
-    dateCreated: "2024-11-19T20:31:53.731Z",
-  },
-  {
-    name: "rubaga",
-    numberOfSites: 12,
-    adminLevel: "division",
-    visibility: true,
-    dateCreated: "2024-09-13T22:32:30.688Z",
-  },
-  {
-    name: "kampala_central",
-    numberOfSites: 28,
-    adminLevel: "division",
-    visibility: true,
-    dateCreated: "2024-09-13T22:27:49.771Z",
-  },
-  {
-    name: "nakawa",
-    numberOfSites: 18,
-    adminLevel: "division",
-    visibility: true,
-    dateCreated: "2024-09-13T22:13:40.199Z",
-  },
-  {
-    name: "fort_portal",
-    numberOfSites: 9,
-    adminLevel: "city",
-    visibility: true,
-    dateCreated: "2024-04-29T12:54:23.825Z",
-  },
-];
+import { useGrids } from "@/core/hooks/useGrids";
+import { useAppSelector } from "@/core/redux/hooks";
 
 export default function GridsPage() {
   const router = useRouter();
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { grids, isLoading: isGridsLoading } = useGrids(
+    activeNetwork?.net_name ?? ""
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
@@ -64,24 +31,11 @@ export default function GridsPage() {
   const filteredGrids = grids.filter(
     (grid) =>
       grid.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      grid.adminLevel.toLowerCase().includes(searchQuery.toLowerCase())
+      grid.admin_level.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredGrids.length / rowsPerPage);
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-  // Format date to be more readable
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-  };
 
   const renderPaginationNumbers = () => {
     const pageNumbers = [];
@@ -165,6 +119,14 @@ export default function GridsPage() {
     return pageNumbers;
   };
 
+  if (isGridsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -211,20 +173,26 @@ export default function GridsPage() {
               .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
               .map((grid) => (
                 <TableRow
-                  key={grid.name}
-                  onClick={() => router.push(`/grids/1`)}
+                  key={grid._id}
+                  onClick={() => router.push(`/grids/${grid._id}`)}
                 >
                   <TableCell className="font-medium">{grid.name}</TableCell>
                   <TableCell className="text-right">
                     {grid.numberOfSites}
                   </TableCell>
-                  <TableCell>{grid.adminLevel}</TableCell>
+                  <TableCell>{grid.admin_level}</TableCell>
                   <TableCell>
                     <Badge variant={grid.visibility ? "default" : "secondary"}>
                       {grid.visibility ? "Visible" : "Hidden"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatDate(grid.dateCreated)}</TableCell>
+                  <TableCell>
+                    {new Date(grid.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </TableCell>
                 </TableRow>
               ))}
           </TableBody>
