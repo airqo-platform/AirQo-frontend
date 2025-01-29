@@ -1,7 +1,8 @@
 import createAxiosInstance from "./axiosConfig";
 import { AxiosResponse } from "axios";
 import { USERS_MGT_URL} from "@/core/urls";
-import { Client } from "@/app/types/clients";
+import { Client, AccessToken } from "@/app/types/clients";
+import { UserDetails } from "@/app/types/users";
 
 interface CreateClientData {
   name: string;
@@ -29,3 +30,41 @@ export const createClientApi = async (data: CreateClientData): Promise<Client> =
   return await axiosInstance.post<CreateClientData, AxiosResponse<Client>>(`${USERS_MGT_URL}/clients`, data)
     .then((response) => response.data);
 };
+
+export const updateUserPasswordApi = async (
+  userId: string,
+  tenant: string,
+  userData: UserDetails
+): Promise<any> => {
+  return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword`, userData, {
+      params: { tenant, id: userId },
+    })
+    .then((response) => response.data);
+};
+
+
+export const updateClientApi = async (
+  data: CreateClientData,
+  client_id: string
+): Promise<any> => {
+  return await createAxiosInstance()
+    .put(`${USERS_MGT_URL}/clients/${client_id}`, data)
+    .then((response) => response.data);
+};
+
+export const generateTokenApi = async (data: AccessToken): Promise<any> => {
+  const response = await createAxiosInstance().post(`${USERS_MGT_URL}/token`, data);
+  return response.data;
+};
+
+// export const activateUserClientApi = async (data: ActivationData): Promise<any> => {
+//   return await createAxiosInstance()
+//     .post(`${USERS_MGT_URL}/clients/activate/${data._id}`, data)
+//     .then((response) => response.data);
+// };
+
+// export const activationRequestApi = async (clientID: string): Promise<any> => {
+//   return await createAxiosInstance()
+//     .get(`${USERS_MGT_URL}/clients/activate-request/${clientID}`)
+//     .then((response) => response.data);
+// };
