@@ -25,6 +25,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
+import PolygonMap from "./polymap";
+import { useAppSelector } from "@/core/redux/hooks";
+import { useCreateGrid } from "@/core/hooks/useGrids";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AxiosError } from "axios";
+
+interface ErrorResponse {
+  message: string;
+}
 
 const gridFormSchema = z.object({
   name: z.string().min(2, {
@@ -36,12 +45,19 @@ const gridFormSchema = z.object({
   shapefile: z.string().min(2, {
     message: "Shapefile data is required.",
   }),
+  network: z.string().min(2, {
+    message: "Grid name must be at least 2 characters.",
+  }),
 });
 
 type GridFormValues = z.infer<typeof gridFormSchema>;
 
 export function CreateGridForm() {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const polygon = useAppSelector((state) => state.grids.polygon);
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { createGrid, isLoading } = useCreateGrid();
 
   const form = useForm<GridFormValues>({
     resolver: zodResolver(gridFormSchema),
@@ -49,13 +65,30 @@ export function CreateGridForm() {
       name: "",
       administrativeLevel: "",
       shapefile: '{"type":"","coordinates":[]}',
+      network: activeNetwork?.net_name,
     },
   });
 
-  function onSubmit(data: GridFormValues) {
-    console.log(data);
-    setOpen(false);
-  }
+  const onSubmit = async (data: GridFormValues) => {
+    try {
+      if (!polygon) {
+        setError("Shapefile is required");
+        return;
+      }
+      const gridData = {
+        name: data.name,
+        admin_level: data.administrativeLevel,
+        shape: polygon,
+        network: activeNetwork?.net_name || "",
+      };
+
+      await createGrid(gridData);
+
+      setOpen(false);
+    } catch (error: AxiosError<ErrorResponse>) {
+      setError(error.message || "An error occurred while creating the site.");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -114,7 +147,9 @@ export function CreateGridForm() {
                       <Textarea
                         placeholder='{"type":"","coordinates":[]}'
                         className="font-mono"
+                        disabled
                         {...field}
+                        value={JSON.stringify(polygon)}
                       />
                     </FormControl>
                     <FormDescription>
@@ -129,19 +164,21 @@ export function CreateGridForm() {
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
                 <Button type="submit">Submit</Button>
               </div>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
             </form>
           </Form>
-          <div className="h-[400px] bg-muted rounded-md">
-            {/* Map component would go here - using placeholder for now */}
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              Map Component
-            </div>
-          </div>
+          <PolygonMap />
         </div>
       </DialogContent>
     </Dialog>

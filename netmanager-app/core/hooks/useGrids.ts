@@ -96,7 +96,7 @@ export const useCreateGrid = () => {
       await grids.createGridApi(newGrid),
     onSuccess: () => {
       // Invalidate and refetch the grid summary after creating a new grid
-      queryClient.invalidateQueries({ queryKey: ["gridSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["grids"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.error("Failed to create grid:", error.response?.data?.message);
@@ -104,7 +104,7 @@ export const useCreateGrid = () => {
   });
 
   return {
-    createGrid: mutation.mutate,
+    createGrid: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
   };
