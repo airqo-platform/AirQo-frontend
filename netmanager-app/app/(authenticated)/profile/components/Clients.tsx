@@ -120,8 +120,9 @@ const ClientManagement = () => {
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.user.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      (client.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   )
+
 
   const sortedClients = [...filteredClients].sort((a, b) => {
     if (a[sortField] < b[sortField]) return sortOrder === "asc" ? -1 : 1
@@ -207,7 +208,8 @@ const ClientManagement = () => {
                       <div className="font-medium">{client.name}</div>
                       <div className="text-sm text-muted-foreground">{client._id}</div>
                     </TableCell>
-                    <TableCell>{client.user.email}</TableCell>
+                    <TableCell>{client.user && client.user.email ? client.user.email : "N/A"}</TableCell>
+
                     <TableCell>
                       {client.access_token?.expires 
                         ? formatDate(client.access_token.expires) 
