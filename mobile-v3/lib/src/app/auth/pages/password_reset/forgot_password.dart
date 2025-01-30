@@ -76,7 +76,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.boldHeadlineColor),
+                color: AppColors.boldHeadlineColor2),
           ),
           centerTitle: true,
 
@@ -98,6 +98,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
+                          color: AppColors.highlightColor2
                         ),
                         ),
                         SizedBox(
@@ -107,6 +108,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
+                              color: AppColors.highlightColor2
                           ),
                         ),
                         SizedBox(height: 32),

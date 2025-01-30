@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.boldHeadlineColor),
+                color: AppColors.boldHeadlineColor2),
           ),
           centerTitle: true,
         ),

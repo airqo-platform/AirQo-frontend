@@ -57,6 +57,7 @@ dependencies:
   flutter_loggy: ^2.0.3+1
   jwt_decoder: ^2.0.1
   app_links: ^6.3.3
+  pin_code_fields: ^8.0.1
 
 dev_dependencies:
   flutter_test:
