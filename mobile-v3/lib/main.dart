@@ -2,9 +2,6 @@ import 'dart:io';
 
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/password_reset/password_reset.dart';
-import 'package:airqo/src/app/auth/pages/password_reset/reset_link_sent.dart';
-
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
@@ -25,7 +22,7 @@ import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:app_links/app_links.dart';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -132,7 +129,7 @@ class AirqoMobile extends StatelessWidget {
           logDebug('Current theme state: $state');
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            theme: isLightTheme ? AppTheme.darkTheme : AppTheme.lightTheme,
+            theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
             // theme: isLightTheme ? ThemeData(
             //     splashColor: Colors.transparent,
             //     highlightColor: Colors.transparent,
