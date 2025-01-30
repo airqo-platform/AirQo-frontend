@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { subscribeToNewsletter } from '@/services/externalService';
 
 const NewsLetter: React.FC = () => {
@@ -45,7 +46,9 @@ const NewsLetter: React.FC = () => {
 
   return (
     <section className="bg-blue-50 py-28 px-4">
-      <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-center lg:items-start lg:justify-between gap-12">
+      <div
+        className={`${mainConfig.containerClass} flex flex-col lg:flex-row items-center lg:items-start lg:justify-between gap-12`}
+      >
         {/* Header Section */}
         <div className="lg:w-1/2 text-center lg:text-left space-y-4">
           <h2 className="text-2xl md:text-[40px] font-bold text-blue-600">

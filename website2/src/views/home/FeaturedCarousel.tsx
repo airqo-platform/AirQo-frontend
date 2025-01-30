@@ -1,12 +1,15 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
+import mainConfig from '@/configs/mainConfigs';
 import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
-  const { highlights, isLoading, isError } = useHighlights();
+  const { data: highlights, isLoading } = useHighlights();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextSlide = () => {
@@ -26,7 +29,7 @@ const FeaturedCarousel = () => {
   if (isLoading) {
     return (
       <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
           <div className="flex space-x-4 animate-pulse">
             <div className="w-1/2 h-64 bg-gray-300 rounded-lg"></div>
             <div className="w-1/2 space-y-4">
@@ -41,23 +44,13 @@ const FeaturedCarousel = () => {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-red-500">
-          Failed to load highlights. Please try again later.
-        </p>
-      </div>
-    );
-  }
-
   if (!highlights || highlights.length === 0) {
-    return null; // Do not render if there are no highlights
+    return null;
   }
 
   return (
     <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
         <div className="relative">
           {/* Carousel Track */}
           <div
@@ -73,7 +66,7 @@ const FeaturedCarousel = () => {
                 <div className="md:w-1/2">
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
                     <Image
-                      src={item.image_url}
+                      src={item.image_url || '/placeholder.svg'}
                       alt={item.title}
                       fill
                       className="object-cover w-full h-full transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"

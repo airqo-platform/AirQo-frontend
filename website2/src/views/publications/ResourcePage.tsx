@@ -4,11 +4,12 @@ import React, { useMemo, useState } from 'react';
 import { FiDownload } from 'react-icons/fi';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { usePublications } from '@/hooks/useApiHooks';
 
 const ResourcePage: React.FC = () => {
   const router = useRouter();
-  const { publications, isLoading, isError } = usePublications();
+  const { data: publications, isLoading, isError } = usePublications();
   const searchParams = useSearchParams();
 
   // Tabs mapped to categories from the Publication model
@@ -66,7 +67,7 @@ const ResourcePage: React.FC = () => {
     <div className="flex flex-col w-full space-y-16 overflow-hidden">
       {/* Header Section */}
       <section className="bg-[#F2F1F6] pt-16">
-        <div className="max-w-5xl mx-auto px-4 lg:px-8">
+        <div className={`${mainConfig.containerClass} px-4`}>
           <h1 className="text-4xl font-bold mb-4">Resources</h1>
           <p className="text-xl mb-8">
             Discover our latest collection of resources
@@ -97,7 +98,7 @@ const ResourcePage: React.FC = () => {
       </section>
 
       {/* Resources List Section */}
-      <section className="max-w-5xl mx-auto w-full px-4 lg:px-8">
+      <section className={`${mainConfig.containerClass} w-full px-4`}>
         {isLoading ? (
           // Skeleton Loader
           <div className="space-y-6">
@@ -159,6 +160,7 @@ const ResourcePage: React.FC = () => {
           totalPages={totalPages}
           currentPage={currentPage}
           onPageChange={handlePageChange}
+          scrollToTop={true}
         />
       )}
     </div>

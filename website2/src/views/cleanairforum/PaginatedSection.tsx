@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { cn } from '@/lib/utils';
 
 import { Pagination } from '../../components/ui';
@@ -34,7 +35,7 @@ const PaginatedSection: React.FC<PaginatedSectionProps> = ({
 
   return (
     <section className={`${bgColor} py-14`}>
-      <div className="max-w-5xl mx-auto px-4 lg:px-0 w-full">
+      <div className={`${mainConfig.containerClass} px-4 lg:px-0 w-full`}>
         <div className="flex flex-col gap-8 items-center">
           {title && description && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

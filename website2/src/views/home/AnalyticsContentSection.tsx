@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { cn } from '@/lib/utils';
 
 type AnalyticsContentSectionProps = {
@@ -28,7 +29,9 @@ const AnalyticsContentSection: React.FC<AnalyticsContentSectionProps> = ({
 }) => {
   return (
     <section className={cn(backgroundColor, 'pt-16 px-4')}>
-      <div className="max-w-5xl mx-auto flex flex-col items-center gap-4">
+      <div
+        className={`${mainConfig.containerClass} flex flex-col items-center gap-4`}
+      >
         {/* Top Text Section */}
         <div className="flex flex-col lg:flex-row w-full items-start lg:items-center lg:justify-between gap-8 lg:gap-12">
           <div className="lg:w-1/2 w-full space-y-6 text-center lg:text-left">

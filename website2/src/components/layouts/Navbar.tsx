@@ -17,6 +17,7 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
 } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 import TabNavigation from '@/views/cleanairforum/TabNavigation';
@@ -185,9 +186,15 @@ const Navbar: React.FC = () => {
     >
       {!pathname.startsWith('/clean-air-network') && <NotificationBanner />}
       <nav className="w-full bg-white p-4">
-        <div className="flex items-center justify-between max-w-5xl mx-auto">
+        <div
+          className={`flex items-center justify-between ${mainConfig.containerClass}`}
+        >
           {/* Logo Section */}
-          <Link href="/" passHref className="flex items-center">
+          <Link
+            href={`${mainConfig.homePageUrl}`}
+            passHref
+            className="flex items-center"
+          >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
               alt="AirQo"

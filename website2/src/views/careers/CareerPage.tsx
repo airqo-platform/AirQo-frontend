@@ -6,17 +6,18 @@ import React, { useState } from 'react';
 import { FiArrowRight } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useCareers, useDepartments } from '@/hooks/useApiHooks';
 
 const CareerPage: React.FC = () => {
   const router = useRouter();
   const {
-    departments,
+    data: departments,
     isLoading: departmentsLoading,
     isError: departmentsError,
   } = useDepartments();
   const {
-    careers,
+    data: careers,
     isLoading: careersLoading,
     isError: careersError,
   } = useCareers();
@@ -59,10 +60,10 @@ const CareerPage: React.FC = () => {
   const isLoading = departmentsLoading || careersLoading;
 
   return (
-    <div className="flex flex-col w-full space-y-16 bg-[#F2F1F6]">
+    <div className="flex flex-col w-full bg-[#F2F1F6]">
       {/* Header Section */}
       <header
-        className="relative h-[300px] lg:h-[400px] w-full bg-cover bg-center"
+        className="relative h-[300px] lg:h-[400px] mb-16 w-full bg-cover bg-center"
         style={{
           backgroundImage:
             'url("https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png")',
@@ -80,114 +81,122 @@ const CareerPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Categories Section */}
-      <section className="max-w-5xl mx-auto px-4 lg:px-8">
-        <h2 className="text-3xl font-normal mb-8">Categories</h2>
-        <div className="flex flex-wrap gap-4">
-          {isLoading
-            ? [...Array(5)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="w-32 h-10 bg-gray-300 rounded-full animate-pulse"
-                ></div>
-              ))
-            : allDepartments.map((department: any) => (
-                <button
-                  key={department.id}
-                  onClick={() => setSelectedDepartmentId(department.id)}
-                  className={`px-6 py-2 rounded-full transition-colors ${
-                    selectedDepartmentId === department.id
-                      ? 'bg-[#0CE87E] text-black'
-                      : 'bg-[#FFFFFF80] text-gray-600 hover:bg-green-500 hover:text-white'
-                  }`}
-                >
-                  {department.name}
-                </button>
-              ))}
-        </div>
-      </section>
-
-      {/* Loading Skeleton for Job Listings */}
-      {isLoading && (
-        <section className="max-w-5xl mx-auto w-full px-4 lg:px-8 space-y-12">
-          <div className="space-y-4">
-            {[...Array(3)].map((_, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-4 lg:p-6 bg-[#E0E0E0] rounded-lg animate-pulse"
-              >
-                <div className="h-6 bg-gray-300 w-1/3 rounded"></div>
-                <div className="h-6 bg-gray-300 w-1/6 rounded"></div>
-                <div className="h-6 bg-gray-300 w-8 rounded-full"></div>
-              </div>
-            ))}
+      <div className={`space-y-16 w-full ${mainConfig.containerClass}`}>
+        {/* Categories Section */}
+        <section className="px-4 lg:px-8">
+          <h2 className="text-3xl font-normal mb-8">Categories</h2>
+          <div className="flex flex-wrap gap-4">
+            {isLoading
+              ? [...Array(5)].map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="w-32 h-10 bg-gray-300 rounded-full animate-pulse"
+                  ></div>
+                ))
+              : allDepartments.map((department: any) => (
+                  <button
+                    key={department.id}
+                    onClick={() => setSelectedDepartmentId(department.id)}
+                    className={`px-6 py-2 rounded-full transition-colors ${
+                      selectedDepartmentId === department.id
+                        ? 'bg-[#0CE87E] text-black'
+                        : 'bg-[#FFFFFF80] text-gray-600 hover:bg-green-500 hover:text-white'
+                    }`}
+                  >
+                    {department.name}
+                  </button>
+                ))}
           </div>
         </section>
-      )}
 
-      {/* Job Listings Section */}
-      {!isLoading && (
-        <section className="max-w-5xl mx-auto w-full px-4 lg:px-8 space-y-12">
-          {careersError || departmentsError ? (
-            <NoData message="Failed to load careers or departments. Please try again later." />
-          ) : Object.keys(groupedJobsByDepartment || {}).length === 0 ? (
-            <NoData message="No open positions found." />
-          ) : (
-            Object.keys(groupedJobsByDepartment || {}).map((departmentName) => (
-              <div key={departmentName} className="cursor-pointer">
-                <h3 className="text-2xl text-gray-400 font-semibold mb-4">
-                  {departmentName} (
-                  {groupedJobsByDepartment[departmentName].openCount})
-                </h3>
-                <div className="space-y-4">
-                  {groupedJobsByDepartment[departmentName].jobs.map(
-                    (job: any, idx: number) => (
-                      <CustomButton
-                        key={idx}
-                        onClick={() => router.push(`careers/${job.id}`)}
-                        className="flex items-center justify-between p-4 lg:p-6 text-black w-full bg-[#FFFFFF80] rounded-lg shadow-sm hover:shadow-md"
-                      >
-                        <div className="text-left">
-                          <h4 className="text-lg font-semibold">{job.title}</h4>
-                          <p
-                            className={`text-sm ${
-                              isJobOpen(job.closing_date)
-                                ? 'text-green-500'
-                                : 'text-red-500'
-                            }`}
-                          >
-                            {isJobOpen(job.closing_date) ? 'Open' : 'Closed'}
-                          </p>
-                        </div>
-                        <p className="text-gray-500">{job.type}</p>
-                        <span className="text-gray-700 hover:text-black">
-                          <FiArrowRight size={24} />
-                        </span>
-                      </CustomButton>
-                    ),
-                  )}
+        {/* Loading Skeleton for Job Listings */}
+        {isLoading && (
+          <section className="w-full px-4 lg:px-8 space-y-12">
+            <div className="space-y-4">
+              {[...Array(3)].map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-4 lg:p-6 bg-[#E0E0E0] rounded-lg animate-pulse"
+                >
+                  <div className="h-6 bg-gray-300 w-1/3 rounded"></div>
+                  <div className="h-6 bg-gray-300 w-1/6 rounded"></div>
+                  <div className="h-6 bg-gray-300 w-8 rounded-full"></div>
                 </div>
-              </div>
-            ))
-          )}
-        </section>
-      )}
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Contact Section */}
-      <footer className="bg-[#F2F1F6] py-16 text-center">
-        <p className="text-xl mb-4">
-          Don&apos;t see a position that fits you perfectly?
-        </p>
-        <p className="text-lg">
-          Introduce yourself here <br />
-          <a
-            href="mailto:careers@airqo.africa"
-            className="text-blue-600 underline"
-          >
-            careers@airqo.africa
-          </a>
-        </p>
-      </footer>
+        {/* Job Listings Section */}
+        {!isLoading && (
+          <section className="w-full px-4 lg:px-8 space-y-12">
+            {careersError || departmentsError ? (
+              <NoData message="Failed to load careers or departments. Please try again later." />
+            ) : Object.keys(groupedJobsByDepartment || {}).length === 0 ? (
+              <NoData message="No open positions found." />
+            ) : (
+              Object.keys(groupedJobsByDepartment || {}).map(
+                (departmentName) => (
+                  <div key={departmentName} className="cursor-pointer">
+                    <h3 className="text-2xl text-gray-400 font-semibold mb-4">
+                      {departmentName} (
+                      {groupedJobsByDepartment[departmentName].openCount})
+                    </h3>
+                    <div className="space-y-4">
+                      {groupedJobsByDepartment[departmentName].jobs.map(
+                        (job: any, idx: number) => (
+                          <CustomButton
+                            key={idx}
+                            onClick={() => router.push(`careers/${job.id}`)}
+                            className="flex items-center justify-between p-4 lg:p-6 text-black w-full bg-[#FFFFFF80] rounded-lg shadow-sm hover:shadow-md"
+                          >
+                            <div className="text-left">
+                              <h4 className="text-lg font-semibold">
+                                {job.title}
+                              </h4>
+                              <p
+                                className={`text-sm ${
+                                  isJobOpen(job.closing_date)
+                                    ? 'text-green-500'
+                                    : 'text-red-500'
+                                }`}
+                              >
+                                {isJobOpen(job.closing_date)
+                                  ? 'Open'
+                                  : 'Closed'}
+                              </p>
+                            </div>
+                            <p className="text-gray-500">{job.type}</p>
+                            <span className="text-gray-700 hover:text-black">
+                              <FiArrowRight size={24} />
+                            </span>
+                          </CustomButton>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                ),
+              )
+            )}
+          </section>
+        )}
+
+        {/* Contact Section */}
+        <footer className="py-16 text-center">
+          <p className="text-xl mb-4">
+            Don&apos;t see a position that fits you perfectly?
+          </p>
+          <p className="text-lg">
+            Introduce yourself here <br />
+            <a
+              href="mailto:careers@airqo.africa"
+              className="text-blue-600 underline"
+            >
+              careers@airqo.africa
+            </a>
+          </p>
+        </footer>
+      </div>
     </div>
   );
 };

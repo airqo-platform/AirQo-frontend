@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { FiCalendar, FiClock } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { getCleanAirEvents } from '@/services/apiService';
 
 const FeaturedEvent: React.FC = () => {
@@ -44,7 +45,9 @@ const FeaturedEvent: React.FC = () => {
 
   // Loading Skeleton Component
   const LoadingSkeleton = () => (
-    <section className="max-w-5xl mx-auto w-full mt-16 bg-blue-50 rounded-lg shadow-sm p-6 lg:px-8 lg:py-12 flex flex-col lg:flex-row items-center gap-6 animate-pulse">
+    <section
+      className={`${mainConfig.containerClass} w-full mt-16 bg-blue-50 rounded-lg shadow-sm p-6 lg:px-8 lg:py-12 flex flex-col lg:flex-row items-center gap-6 animate-pulse`}
+    >
       {/* Image Skeleton */}
       <div className="w-full lg:w-1/2">
         <div className="relative flex justify-center w-auto lg:w-[416px] lg:h-[518px] items-center">
@@ -65,7 +68,9 @@ const FeaturedEvent: React.FC = () => {
 
   // Error Message Component
   const ErrorMessage = ({ message }: { message: string }) => (
-    <section className="max-w-5xl mx-auto w-full mt-16 bg-blue-50 rounded-lg shadow-sm p-6 lg:px-8 lg:py-12 flex flex-col lg:flex-row items-center gap-6">
+    <section
+      className={`${mainConfig.containerClass} w-full mt-16 bg-blue-50 rounded-lg shadow-sm p-6 lg:px-8 lg:py-12 flex flex-col lg:flex-row items-center gap-6`}
+    >
       <div className="w-full lg:w-1/2 flex justify-center items-center">
         <div className="w-full h-full bg-gray-300 rounded-lg flex items-center justify-center">
           <p className="text-gray-500">{message}</p>

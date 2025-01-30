@@ -5,10 +5,11 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { usePressArticles } from '@/hooks/useApiHooks';
 
 const PressPage: React.FC = () => {
-  const { pressArticles, isLoading, isError } = usePressArticles();
+  const { data: pressArticles, isLoading, isError } = usePressArticles();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 
@@ -43,7 +44,7 @@ const PressPage: React.FC = () => {
     <div className="flex flex-col w-full h-full">
       {/* Header Section */}
       <section className="mb-12 bg-[#F2F1F6] px-4 lg:px-0 py-16">
-        <div className="max-w-5xl mx-auto w-full">
+        <div className={`${mainConfig.containerClass} w-full`}>
           <h1 className="text-4xl font-bold mb-2">In the Press</h1>
           <p className="text-lg text-gray-600">
             Stories about AirQo that we think you&apos;ll love
@@ -52,10 +53,10 @@ const PressPage: React.FC = () => {
       </section>
 
       {/* Articles Section */}
-      <section>
+      <section className={`${mainConfig.containerClass}`}>
         {isLoading ? (
           // Display 4 skeletons when loading
-          <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <ArticleSkeleton />
             <ArticleSkeleton />
             <ArticleSkeleton />
@@ -64,7 +65,7 @@ const PressPage: React.FC = () => {
         ) : isError ? (
           <NoData message="Failed to load articles. Please try again later." />
         ) : displayedArticles.length > 0 ? (
-          <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {displayedArticles.map((article: any) => (
               <div
                 key={article.id}
@@ -109,6 +110,7 @@ const PressPage: React.FC = () => {
           totalPages={totalPages}
           currentPage={currentPage}
           onPageChange={handlePageChange}
+          scrollToTop={true}
         />
       )}
     </div>

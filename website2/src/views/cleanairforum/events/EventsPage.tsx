@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   Pagination,
 } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useCleanAirEvents } from '@/hooks/useApiHooks';
 import EventCard from '@/views/cleanairforum/EventCard';
 import EventSkeleton from '@/views/cleanairforum/EventSkeleton';
@@ -45,7 +46,7 @@ const categories = [
 ];
 
 const EventsPage: React.FC = () => {
-  const { cleanAirEvents, isLoading, isError } = useCleanAirEvents();
+  const { data: cleanAirEvents, isLoading, isError } = useCleanAirEvents();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showUpcoming, setShowUpcoming] = useState(true);
@@ -124,7 +125,7 @@ const EventsPage: React.FC = () => {
   return (
     <div className="py-8 space-y-16">
       {/* Main banner section */}
-      <section className="max-w-5xl mx-auto w-full">
+      <section className={`${mainConfig.containerClass} w-full`}>
         <div className="py-8 px-4 lg:px-0 flex flex-col items-center space-y-6 md:space-y-8">
           <div className="w-full">
             <Image
@@ -151,7 +152,9 @@ const EventsPage: React.FC = () => {
       </section>
 
       <section className="bg-blue-50 py-16">
-        <div className="max-w-5xl mx-auto w-full px-4 lg:px-0 flex flex-col gap-8">
+        <div
+          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col gap-8`}
+        >
           {/* Filter Section */}
           <div className="flex justify-end py-8 items-center">
             <div className="flex space-x-4">

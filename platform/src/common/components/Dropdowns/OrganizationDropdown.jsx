@@ -59,18 +59,12 @@ const OrganizationDropdown = () => {
       setLoading(true);
       setSelectedGroupId(group._id);
       try {
-        const response = await dispatch(
+        await dispatch(
           updateUserPreferences({
             user_id: userID,
             group_id: group._id,
           }),
         );
-        if (response?.payload?.success) {
-          localStorage.setItem('activeGroup', JSON.stringify(group));
-          dispatch(setOrganizationName(group.grp_title));
-        } else {
-          console.warn('Failed to update user preferences');
-        }
       } catch (error) {
         console.error('Error updating user preferences:', error);
       } finally {
@@ -84,10 +78,15 @@ const OrganizationDropdown = () => {
   const handleDropdownSelect = useCallback(
     (group) => {
       if (group?._id !== activeGroupId) {
+        // Immediately update organization name
+        dispatch(setOrganizationName(group.grp_title));
+        localStorage.setItem('activeGroup', JSON.stringify(group));
+
+        // Dispatch preferences update asynchronously
         handleUpdatePreferences(group);
       }
     },
-    [activeGroupId, handleUpdatePreferences],
+    [activeGroupId, handleUpdatePreferences, dispatch],
   );
 
   if (!activeGroupId || groupList.length === 0) {

@@ -55,8 +55,8 @@ const Page = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto flex flex-col px-4 lg:px-0 gap-6">
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+    <div className="flex flex-col px-4 lg:px-0 gap-6">
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       <div className="py-4">
         <div
@@ -68,7 +68,7 @@ const Page = () => {
 
       {/* Keynote Speakers Section */}
       <h2 className="text-2xl font-bold">Keynote Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
         {displayedKeyNoteSpeakers?.map((person: any) => (
           <MemberCard
             key={person.id}
@@ -90,11 +90,11 @@ const Page = () => {
         </div>
       )}
 
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Speakers Section */}
       <h2 className="text-2xl font-bold">Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
         {displayedSpeakers?.map((person: any) => (
           <MemberCard
             key={person.id}

@@ -6,15 +6,16 @@ import React from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useCareerDetails } from '@/hooks/useApiHooks';
 
 const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
-  const { careerDetails, isLoading, isError } = useCareerDetails(id);
+  const { data: careerDetails, isLoading, isError } = useCareerDetails(id);
   const router = useRouter();
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto p-8">
+      <div className={`${mainConfig.containerClass} p-8`}>
         {/* Skeleton for the Header */}
         <div className="mb-8">
           <div className="h-8 bg-gray-300 rounded w-3/4 mb-4 animate-pulse"></div>
@@ -56,7 +57,9 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-8 bg-white border border-gray-200 rounded-lg mt-6">
+    <div
+      className={`${mainConfig.containerClass} w-full p-8 bg-white border border-gray-200 rounded-lg mt-6`}
+    >
       {/* Back Button */}
       <div className="mb-4">
         <CustomButton

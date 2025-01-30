@@ -113,7 +113,7 @@ const Page = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 lg:px-0 py-6 gap-6 flex flex-col">
+    <div className=" px-4 lg:px-0 py-6 gap-6 flex flex-col">
       {/* Buttons for Expand/Collapse All */}
       <div className="flex justify-end space-x-4 mb-4">
         <button
@@ -155,7 +155,7 @@ const Page = () => {
             ),
           )}
 
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
         </div>
       ))}
     </div>

@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
 import { useAfricanCountries } from '@/hooks/useApiHooks';
 
 const AfricanCities: React.FC = () => {
-  const { africanCountries, isLoading, isError } = useAfricanCountries();
+  const { data: africanCountries } = useAfricanCountries();
   const [selectedCountry, setSelectedCountry] = useState<any | null>(null);
   const [selectedCity, setSelectedCity] = useState<any | null>(null);
 
@@ -34,22 +35,10 @@ const AfricanCities: React.FC = () => {
     setSelectedCity(city);
   };
 
-  if (isLoading) {
-    return (
-      <div className="text-center py-20">Loading African countries...</div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="text-center py-20 text-red-500">
-        Failed to load data. Please try again later.
-      </div>
-    );
-  }
+  if (!africanCountries) return;
 
   return (
-    <div className="max-w-5xl mx-auto p-4 lg:p-0">
+    <div className={`${mainConfig.containerClass} p-4 lg:p-0`}>
       {/* Top Section: Countries List */}
       <div className="flex gap-4 flex-wrap pb-4">
         {africanCountries.map((country: any) => (

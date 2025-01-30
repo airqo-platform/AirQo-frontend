@@ -16,6 +16,7 @@ import 'package:airqo/src/app/other/places/repository/google_places_repository.d
 import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/profile/pages/guest_profile%20page.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';

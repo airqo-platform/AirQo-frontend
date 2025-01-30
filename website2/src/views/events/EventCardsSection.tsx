@@ -6,6 +6,7 @@ import React from 'react';
 import { FiCalendar } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 
 const EventCardsSection: React.FC<{
   selectedTab: string;
@@ -35,7 +36,9 @@ const EventCardsSection: React.FC<{
     );
 
   return (
-    <section className="max-w-5xl mx-auto w-full mb-8 px-4 lg:px-0">
+    <section
+      className={`${mainConfig.containerClass} w-full mb-8 px-4 lg:px-0`}
+    >
       {/* If there are no events to display */}
       {eventsToShow.length === 0 ? (
         noEventsMessage

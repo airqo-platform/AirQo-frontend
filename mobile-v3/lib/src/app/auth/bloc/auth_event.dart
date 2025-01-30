@@ -19,3 +19,7 @@ class RegisterUser extends AuthEvent {
 
   const RegisterUser(this.model);
 }
+
+class UseAsGuest extends AuthEvent {
+  const UseAsGuest();
+}
