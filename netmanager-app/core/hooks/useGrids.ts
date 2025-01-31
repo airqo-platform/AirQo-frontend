@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
-import { CreateGrid } from "@/app/types/grids";
+import { CreateGrid, Grid } from "@/app/types/grids";
 import { GridsState, setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
@@ -58,7 +58,7 @@ export const useGridDetails = (gridId: string) => {
   });
 
   return {
-    getGridDetails: mutation.mutate || [],
+    gridDetails: mutation.mutate || [],
     isLoading: mutation.isPending,
     error: mutation.error as Error | null,
   };

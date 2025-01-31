@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ChevronLeft, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,9 +17,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GridSitesTable } from "@/components/grids/grid-sites";
 import { DateRangePicker } from "@/components/grids/date-range-picker";
+import { useGridDetails } from "@/core/hooks/useGrids";
 
 export default function GridDetailsPage() {
   const router = useRouter();
+  const { id } = useParams();
+  const { gridDetails, isLoading, error } = useGridDetails(id.toString());
   const [gridData, setGridData] = useState({
     name: "gambia",
     id: "673cf5b9328bd600130351c4",
@@ -27,6 +30,16 @@ export default function GridDetailsPage() {
     administrativeLevel: "country",
     description: "",
   });
+
+  useEffect(() => {
+    setGridData({
+      ...gridDetails,
+      name: gridDetails.name,
+      visibility: gridDetails.visibility,
+      administrativeLevel: gridDetails.admin_level,
+      description: gridDetails.description,
+    });
+  }, [gridDetails]);
 
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -39,6 +52,14 @@ export default function GridDetailsPage() {
   const handleSave = () => {
     // Save changes
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -66,7 +87,7 @@ export default function GridDetailsPage() {
           <div className="space-y-2">
             <Label htmlFor="gridId">Grid ID *</Label>
             <div className="flex gap-2">
-              <Input id="gridId" value={gridData.id} readOnly />
+              <Input id="gridId" value={gridData._id} readOnly />
               <Button
                 variant="outline"
                 size="icon"
