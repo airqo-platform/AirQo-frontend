@@ -11,33 +11,65 @@ import { getCountries } from "@/utils/countries";
 import { getTimezones } from "@/utils/timezones";
 import { users } from "@/core/apis/users";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useToast } from "@/components/ui/use-toast"
 
+interface Profile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  jobTitle?: string;
+  country?: string;
+  timezone?: string;
+  bio?: string;
+  profilePicture?: string;
+}
 export default function MyProfile() {
   const currentuser = useAppSelector((state) => state.user.userDetails);
-  const [profile, setProfile] = useState<any>(null);
+  const { toast } = useToast()
+
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);  
+  const [error, setError] = useState<string | null>(null);  
   const [isEditing, setIsEditing] = useState(false);
   const [countries, setCountries] = useState<{ value: string; label: string }[]>([]);
   const [timezones, setTimezones] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (currentuser) {
+      if (!currentuser) return;
+  
+      setIsLoading(true);
+      setError(null);
+  
+      try {
         const response = await users.getUserDetails(currentuser._id);
-        const userData = response.users[0]; 
-        setProfile({
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          jobTitle: userData.jobTitle,
-          country: userData.country,
-          timezone: userData.timezone,
-          bio: userData.description,
-          profilePicture: userData.profilePicture,
-        });
+        const userData = response?.users?.[0];
+  
+        if (userData) {
+          setProfile({
+            firstName: userData.firstName || "",
+            lastName: userData.lastName || "",
+            email: userData.email || "",
+            jobTitle: userData.jobTitle || "",
+            country: userData.country || "",
+            timezone: userData.timezone || "",
+            bio: userData.description || "",
+            profilePicture: userData.profilePicture || "",
+          });
+        } else {
+          setError("User data not found");
+        }
+      } catch (error) {
+        setError("Failed to fetch user data");
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
+  
     fetchUserData();
   }, [currentuser]);
+  
 
   useEffect(() => {
     setCountries(getCountries());
@@ -45,11 +77,13 @@ export default function MyProfile() {
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    if (profile) {
+      setProfile({ ...profile, [e.target.name]: e.target.value } as Profile);
+    }
   };
 
   const handleSelectChange = (name: string) => (value: string) => {
-    setProfile({ ...profile, [name]: value });
+    setProfile({ ...profile, [name]: value } as Profile);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,16 +91,67 @@ export default function MyProfile() {
     setIsEditing(false);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "Error",
+        description: "File size should not exceed 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfile({ ...profile, profilePicture: reader.result as string });
-      };
       reader.readAsDataURL(file);
+      reader.onload = async () => {
+        if (!reader.result) return;
+  
+        setProfile((prev) => ({
+          ...prev,
+          profilePicture: reader.result as string, // Temporary preview
+        }));
+  
+        // Upload image to server
+        const formData = new FormData();
+        formData.append("image", file);
+  
+        const response = await fetch("/api/upload-profile-image", {
+          method: "POST",
+          body: formData,
+        });
+  
+        if (!response.ok) throw new Error("Failed to upload image");
+  
+        const data = await response.json();
+        setProfile((prev) => ({
+          ...prev,
+          profilePicture: data.imageUrl, // Update with uploaded URL
+        }));
+  
+        toast({
+          title: "Success",
+          description: "Profile image uploaded successfully",
+        });
+      };
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while uploading the image. Please try again.",
+        variant: "destructive",
+      });
     }
   };
+  
+
+
+
 
   if (!profile) {
     return <div>Loading...</div>;

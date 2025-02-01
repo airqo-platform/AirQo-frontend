@@ -1,7 +1,7 @@
 import createAxiosInstance from "./axiosConfig";
 import { AxiosResponse } from "axios";
 import { USERS_MGT_URL} from "@/core/urls";
-import { Client, AccessToken } from "@/app/types/clients";
+import { Client } from "@/app/types/clients";
 import { UserDetails } from "@/app/types/users";
 
 interface CreateClientData {
