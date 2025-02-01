@@ -2,52 +2,15 @@
 
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-import { getPartnerDetails } from '@/services/apiService';
-
-// Define the types for the partner and description data
-interface PartnerDescription {
-  id: string;
-  description: string;
-}
-
-interface Partner {
-  id: string;
-  partner_name: string;
-  partner_image_url?: string;
-  partner_logo_url?: string;
-  type: string;
-  descriptions: PartnerDescription[];
-}
+import { usePartnerDetails } from '@/hooks/useApiHooks';
 
 const PartnerDetailsPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const { id } = params as { id: string }; // Explicitly typing the params
-
-  const [partner, setPartner] = useState<Partner | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch partner details when component mounts or ID changes
-  useEffect(() => {
-    const fetchPartner = async () => {
-      try {
-        const data = await getPartnerDetails(id);
-        setPartner(data);
-      } catch (err) {
-        console.error('Error fetching partner details:', err);
-        setError('Failed to load partner details.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchPartner();
-    }
-  }, [id]);
+  const { id } = params as { id: string };
+  const { data: partner, isLoading, isError } = usePartnerDetails(id);
 
   // Skeleton loader component
   const SkeletonLoader = () => (
@@ -60,7 +23,7 @@ const PartnerDetailsPage: React.FC = () => {
   );
 
   // Handle loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
         <SkeletonLoader />
@@ -69,10 +32,10 @@ const PartnerDetailsPage: React.FC = () => {
   }
 
   // Handle error state
-  if (error) {
+  if (isError) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-white">
-        <p className="text-red-500 text-xl">{error}</p>
+        <p className="text-red-500 text-xl">Failed to load partner details.</p>
         <button
           onClick={() => router.back()}
           className="mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
@@ -140,7 +103,7 @@ const PartnerDetailsPage: React.FC = () => {
           About {partner.partner_name}
         </h2>
         {partner.descriptions && partner.descriptions.length > 0 ? (
-          partner.descriptions.map((desc) => (
+          partner.descriptions.map((desc: any) => (
             <p key={desc.id} className="text-gray-700 mb-4 leading-relaxed">
               {desc.description}
             </p>

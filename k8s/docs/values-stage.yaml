@@ -22,24 +22,25 @@ resources:
     cpu: 50m
     memory: 100Mi
   requests:
-    cpu: 10m
+    cpu: 1m
     memory: 20Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
-nodeSelector: {}
+nodeSelector: 
+  role: control-plane
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
+      - preference:
           matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - general-purpose
+          - key: role
+            operator: In
+            values:
+            - control-plane
+        weight: 1
 app:
   name: airqo-stage-docs
   label: sta-docs

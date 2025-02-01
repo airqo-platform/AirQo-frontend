@@ -174,6 +174,12 @@ jobs:
           echo "service: default" >> app.yaml
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
+          echo "automatic_scaling:" >> app.yaml
+          echo "  cool_down_period_sec: 120" >> app.yaml
+          echo "  min_num_instances: 1" >> app.yaml
+          echo "  max_num_instances: 10" >> app.yaml
+          echo "  cpu_utilization:" >> app.yaml
+          echo "    target_utilization: 0.8" >> app.yaml
           echo "runtime_config:" >> app.yaml
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
@@ -271,9 +277,21 @@ jobs:
           echo "service: default" >> app.yaml
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
+          echo "automatic_scaling:" >> app.yaml
+          echo "  cool_down_period_sec: 80" >> app.yaml
+          echo "  min_num_instances: 2" >> app.yaml
+          echo "  max_num_instances: 10" >> app.yaml
+          echo "  cpu_utilization:" >> app.yaml
+          echo "    target_utilization: 0.8" >> app.yaml
           echo "runtime_config:" >> app.yaml
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
+          echo "readiness_check:" >> app.yaml
+          echo "  check_interval_sec: 5" >> app.yaml
+          echo "  timeout_sec: 4" >> app.yaml
+          echo "  failure_threshold: 2" >> app.yaml
+          echo "  success_threshold: 2" >> app.yaml
+          echo "  app_start_timeout_sec: 1800" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
@@ -302,7 +320,7 @@ jobs:
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
-        
+     
       - name: Delete Old Versions
         run: |-
           service="default"

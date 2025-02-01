@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import React from 'react';
 
-import AppDownloadSection from '@/components/sections/Home/AppDownloadSection';
+import mainConfig from '@/configs/mainConfigs';
+import AppDownloadSection from '@/views/home/AppDownloadSection';
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -48,7 +49,9 @@ const MobilePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div
+          className={`${mainConfig.containerClass} grid grid-cols-1 md:grid-cols-2 gap-12 items-center`}
+        >
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
@@ -85,7 +88,7 @@ const MobilePage = () => {
 
       {/* Know Your Air Section */}
       <motion.section
-        className="max-w-5xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8"
+        className={`${mainConfig.containerClass} px-4 grid grid-cols-1 lg:grid-cols-2 gap-8`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -115,7 +118,9 @@ const MobilePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="flex flex-col-reverse max-w-5xl mx-auto lg:flex-row items-center lg:items-start relative">
+        <div
+          className={`flex flex-col-reverse ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
+        >
           {/* Card Section */}
           <motion.div
             className="bg-gray-100 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-8 z-10"
@@ -173,7 +178,9 @@ const MobilePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="flex flex-col-reverse max-w-5xl mx-auto lg:flex-row items-center lg:items-start relative">
+        <div
+          className={`flex flex-col-reverse ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
+        >
           {/* Image Section */}
           <motion.div
             className="relative order-2 lg:order-1 mt-12 lg:mt-0 lg:mr-[300px] w-full"
@@ -227,7 +234,9 @@ const MobilePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="max-w-5xl mx-auto flex flex-col-reverse lg:flex-row gap-8 items-center relative">
+        <div
+          className={`${mainConfig.containerClass} flex flex-col-reverse lg:flex-row gap-8 items-center relative`}
+        >
           {/* Card Section (Health Tips Description) */}
           <motion.div
             className="bg-gray-100 p-6 rounded-lg shadow-md w-full lg:w-[40%] z-10 lg:absolute lg:left-0 lg:top-44 sm:w-auto md:w-[630px] md:-top-10"

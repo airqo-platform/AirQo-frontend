@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-platform-frontend
-  tag: stage-067cca88-1733864854
+  tag: stage-5c1351f9-1738307747
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
@@ -13,7 +13,8 @@ service:
   port: 80
 ingress:
   enabled: false
-nodeSelector: {}
+nodeSelector:
+  role: control-plane
 torelations: {}
 resources:
   requests:
@@ -29,20 +30,13 @@ autoscaling:
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
+      - preference:
           matchExpressions:
-            - key: node-type
+            - key: role
               operator: In
               values:
-                - general-purpose
-      - weight: 1
-        preference:
-          matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - high-memory
+                - control-plane
+        weight: 1
 app:
   name: airqo-stage-platform-frontend
   label: airqo-platform

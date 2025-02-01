@@ -1,11 +1,15 @@
 'use client';
 import React from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
+
 import { CustomButton } from '../ui';
 
 const ActionButtons2 = () => {
   return (
-    <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl mx-auto">
+    <div
+      className={`flex flex-col md:flex-row gap-6 w-full ${mainConfig.containerClass}`}
+    >
       {/* Card 1 */}
       <CustomButton
         onClick={() => {

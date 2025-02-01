@@ -176,7 +176,9 @@ const SiteCard = React.memo(
       <button
         className="w-full h-auto"
         onClick={() => onOpenModal('inSights', [], site)}
-        aria-label={`View detailed insights for ${site.name || 'this location'}`}
+        aria-label={`View detailed insights for ${
+          site.name || 'this location'
+        }`}
       >
         <div className="w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl px-6 py-5 h-[220px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
           {/* Header Section */}
@@ -271,7 +273,8 @@ const AQNumberCard = ({ className = '' }) => {
   const { width: windowWidth } = useWindowSize();
   const [loading, setLoading] = useState(true);
 
-  const { id: activeGroupId } = useGetActiveGroup();
+  const { id: activeGroupId, loading: isFetchingActiveGroup } =
+    useGetActiveGroup();
 
   const pollutantType = useSelector((state) => state.chart.pollutionType);
   const preferences = useSelector(
@@ -289,6 +292,7 @@ const AQNumberCard = ({ className = '' }) => {
   );
 
   useEffect(() => {
+    if (isFetchingActiveGroup) return;
     const controller = new AbortController();
 
     const fetchData = async () => {
@@ -326,7 +330,7 @@ const AQNumberCard = ({ className = '' }) => {
     [dispatch],
   );
 
-  if (loading) {
+  if (loading || isFetchingActiveGroup) {
     return (
       <div
         className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}

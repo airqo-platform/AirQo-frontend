@@ -41,9 +41,9 @@ const AccordionItem: React.FC<any> = ({
 
       {isOpen && (
         <div className="mt-4 pt-4">
-          {sessions.map((item: any, index: any) => (
+          {sessions?.map((item: any, index: any) => (
             <div className="flex flex-col gap-4" key={index}>
-              <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+              <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
               <div className="grid grid-cols-12 gap-4 mb-4">
                 <div className="col-span-2 text-sm font-semibold">
                   {formatTime(item.start_time)}
@@ -81,7 +81,7 @@ const Page = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 lg:px-0 flex flex-col gap-6">
+    <div className=" px-4 lg:px-0 flex flex-col gap-6">
       {/* Schedule Section */}
       <div className="py-4">
         <h2 className="text-2xl font-bold">Schedule</h2>
@@ -93,7 +93,7 @@ const Page = () => {
       </div>
 
       {/* Programs Accordion */}
-      {data?.programs.map((program: any) => (
+      {data?.programs?.map((program: any) => (
         <AccordionItem
           key={program.id}
           title={program.title}
@@ -104,7 +104,7 @@ const Page = () => {
         />
       ))}
 
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Registration Section */}
       <div>
@@ -121,7 +121,7 @@ const Page = () => {
         </div>
       </div>
 
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Sponsorship Section */}
       <div>

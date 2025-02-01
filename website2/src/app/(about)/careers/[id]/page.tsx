@@ -1,6 +1,4 @@
-import React from 'react';
-
-import DetailsPage from './DetailsPage';
+import DetailsPage from '@/views/careers/DetailsPage';
 
 const page = ({ params }: { params: any }) => {
   return (

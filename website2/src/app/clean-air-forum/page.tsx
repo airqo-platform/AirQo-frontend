@@ -1,6 +1,6 @@
 import React from 'react';
 
-import AboutPage from './AboutPage';
+import AboutPage from '@/views/Forum/AboutPage';
 
 const page = () => {
   return (

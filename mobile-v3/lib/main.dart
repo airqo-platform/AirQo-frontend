@@ -17,6 +17,7 @@ import 'package:airqo/src/app/other/places/repository/google_places_repository.d
 import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/profile/pages/guest_profile%20page.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
@@ -32,7 +33,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'src/app/shared/repository/hive_repository.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -126,7 +126,6 @@ class AirqoMobile extends StatelessWidget {
         builder: (context, state) {
           bool isLightTheme = state is ThemeLight;
 
-          logDebug('Current theme state: $state');
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
@@ -172,37 +171,14 @@ class _DeciderState extends State<Decider> {
                     body: Center(child: CircularProgressIndicator()),
                   );
                 }
-
-                // Handle errors
-                if (snapshot.hasError) {
-                  logError(
-                      'Error loading authentication state: ${snapshot.error}');
-                  return Scaffold(
-                    body: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Unable to verify authentication status'),
-                          SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => setState(() {}),
-                            child: Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                // Check if token exists and is not null
-                final token = snapshot.data;
-                if (!isValidToken(token)) {
-                  logInfo(
-                      'No authentication token found. Navigating to WelcomeScreen');
-                  return WelcomeScreen();
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (!snapshot.hasData) {
+                    return WelcomeScreen();
+                  } else {
+                    return NavPage();
+                  }
                 } else {
-                  logInfo('Authentication token found. Navigating to NavPage');
-                  return NavPage();
+                  return Scaffold(body: Center(child: Text('An Error occured.')));
                 }
               },
             ),
@@ -227,16 +203,3 @@ class _DeciderState extends State<Decider> {
   }
 }
 
-bool isValidToken(String? token) {
-  if (token == null || token.isEmpty) return false;
-  try {
-    if (JwtDecoder.isExpired(token)) {
-      logInfo('Token has expired');
-      return false;
-    }
-    return true;
-  } catch (e) {
-    logError('Token validation failed', e, StackTrace.current);
-    return false;
-  }
-}

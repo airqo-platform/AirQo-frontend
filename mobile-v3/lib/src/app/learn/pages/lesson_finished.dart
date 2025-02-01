@@ -11,7 +11,7 @@ class LessonFinishedWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("👋🏼 Great Job Jordan!",
+          Text("👋🏼 Great Job !",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           Text(
               "You can invite your friends to learn a thing about Air Pollution",

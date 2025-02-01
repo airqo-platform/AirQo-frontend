@@ -1,10 +1,10 @@
 'use client';
 import React from 'react';
 
-import PaginatedSection from '@/components/sections/CleanAir/PaginatedSection';
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
+import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 
 const Page = () => {
   const data = useForumData();
@@ -45,8 +45,8 @@ const Page = () => {
     }));
 
   return (
-    <div className="max-w-5xl mx-auto px-4 lg:px-0 flex flex-col gap-6">
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+    <div className="px-4 lg:px-0 flex flex-col gap-6">
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Partners Text Section */}
       <div className="py-4">
@@ -71,7 +71,7 @@ const Page = () => {
       {/* Convening Partners Section */}
       {conveningPartners?.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
@@ -92,7 +92,7 @@ const Page = () => {
       {/* Host Partners Section */}
       {hostPartners?.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
@@ -113,7 +113,7 @@ const Page = () => {
       {/* Sponsors Section */}
       {sponsorPartner?.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
@@ -132,7 +132,7 @@ const Page = () => {
       {/* Funding Partners Section */}
       {fundingPartners?.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">

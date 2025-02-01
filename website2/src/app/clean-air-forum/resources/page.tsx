@@ -35,7 +35,7 @@ const AccordionItem = ({ session, isOpen, toggleAccordion }: any) => {
       {/* Accordion Content Section */}
       {isOpen && (
         <div className="mt-4">
-          {session.resource_files.map((file: any) => (
+          {session?.resource_files?.map((file: any) => (
             <div key={file.id} className="mb-4">
               <div className="flex items-start space-x-2 pl-4">
                 {/* Add indentation */}
@@ -113,7 +113,7 @@ const Page = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 lg:px-0 py-6 gap-6 flex flex-col">
+    <div className=" px-4 lg:px-0 py-6 gap-6 flex flex-col">
       {/* Buttons for Expand/Collapse All */}
       <div className="flex justify-end space-x-4 mb-4">
         <button
@@ -130,7 +130,7 @@ const Page = () => {
         </button>
       </div>
 
-      {data.forum_resources.map((resource: any, resourceIndex: number) => (
+      {data?.forum_resources?.map((resource: any, resourceIndex: number) => (
         <div key={resource.id} className="mb-8">
           {/* Section Title (Resource Title) */}
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -138,7 +138,7 @@ const Page = () => {
           </h2>
 
           {/* Accordion Items for Each Session */}
-          {resource.resource_sessions.map(
+          {resource?.resource_sessions?.map(
             (session: any, sessionIndex: number) => (
               <AccordionItem
                 key={session.id}
@@ -155,7 +155,7 @@ const Page = () => {
             ),
           )}
 
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
         </div>
       ))}
     </div>

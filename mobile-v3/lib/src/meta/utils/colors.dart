@@ -8,7 +8,7 @@ class AppColors {
   // static Color highlightColor = Color(0xff2E2F33);
   // static Color boldHeadlineColor = Color(0xff9EA3AA);
   // static Color secondaryHeadlineColor = Color(0xff60646C);
-  //#E2E3E5 #7A7F87 #2E2F33 #1C1D20
+  
   static Color primaryColor = Color(0xff145FFF);
   static Color backgroundColor = Color(0xffF9FAFB);
   static Color highlightColor = Color(0xffF3F6F8);
@@ -19,6 +19,9 @@ class AppColors {
   static Color highlightColor2= Color(0xffE2E3E5);
   static Color secondaryHeadlineColor = Color(0xff6F87A1);
   static Color darkThemeBackground= Color(0xff1C1D20);
+  static Color secondaryHeadlineColor2 = Color(0xff60646C);
+  static Color secondaryHeadlineColor3 = Color(0xff7A7F87);
+
 }
 
 class AppTheme {

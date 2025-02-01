@@ -18,32 +18,32 @@ const Page = () => {
   }
 
   // Filter keynote speakers and speakers
-  const KeyNoteSpeakers = data.persons.filter(
+  const KeyNoteSpeakers = data?.persons?.filter(
     (person: any) =>
       person.category === 'Key Note Speaker' ||
       person.category === 'Committee Member and Key Note Speaker',
   );
 
-  const Speakers = data.persons.filter(
+  const Speakers = data?.persons?.filter(
     (person: any) =>
       person.category === 'Speaker' ||
       person.category === 'Speaker and Committee Member',
   );
 
   // Pagination calculations for keynote speakers
-  const totalKeyNotePages = Math.ceil(KeyNoteSpeakers.length / membersPerPage);
+  const totalKeyNotePages = Math.ceil(KeyNoteSpeakers?.length / membersPerPage);
   const startKeyNoteIdx = (currentKeyNotePage - 1) * membersPerPage;
   const endKeyNoteIdx = startKeyNoteIdx + membersPerPage;
-  const displayedKeyNoteSpeakers = KeyNoteSpeakers.slice(
+  const displayedKeyNoteSpeakers = KeyNoteSpeakers?.slice(
     startKeyNoteIdx,
     endKeyNoteIdx,
   );
 
   // Pagination calculations for speakers
-  const totalSpeakersPages = Math.ceil(Speakers.length / membersPerPage);
+  const totalSpeakersPages = Math.ceil(Speakers?.length / membersPerPage);
   const startSpeakersIdx = (currentSpeakersPage - 1) * membersPerPage;
   const endSpeakersIdx = startSpeakersIdx + membersPerPage;
-  const displayedSpeakers = Speakers.slice(startSpeakersIdx, endSpeakersIdx);
+  const displayedSpeakers = Speakers?.slice(startSpeakersIdx, endSpeakersIdx);
 
   // Handle page changes
   const handleKeyNotePageChange = (newPage: number) => {
@@ -55,8 +55,8 @@ const Page = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto flex flex-col px-4 lg:px-0 gap-6">
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+    <div className="flex flex-col px-4 lg:px-0 gap-6">
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       <div className="py-4">
         <div
@@ -68,8 +68,8 @@ const Page = () => {
 
       {/* Keynote Speakers Section */}
       <h2 className="text-2xl font-bold">Keynote Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
-        {displayedKeyNoteSpeakers.map((person: any) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+        {displayedKeyNoteSpeakers?.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}
@@ -90,12 +90,12 @@ const Page = () => {
         </div>
       )}
 
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Speakers Section */}
       <h2 className="text-2xl font-bold">Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
-        {displayedSpeakers.map((person: any) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+        {displayedSpeakers?.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}

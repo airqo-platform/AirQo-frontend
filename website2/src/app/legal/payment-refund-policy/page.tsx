@@ -1,6 +1,6 @@
 import React from 'react';
 
-import PRP_Page from './PRP_Page';
+import PRP_Page from '@/views/legal/PRP_Page';
 
 const page = () => {
   return (

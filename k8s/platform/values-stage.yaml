@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-next-platform
   pullPolicy: Always
-  tag: stage-80fa5797-1734554874
+  tag: stage-68854d0b-1737695785
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -20,33 +20,27 @@ ingress:
 resources:
   limits:
     cpu: 200m
-    memory: 700Mi
+    memory: 350Mi
   requests:
-    cpu: 100m
-    memory: 250Mi
+    cpu: 20m
+    memory: 150Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-nodeSelector: {}
+nodeSelector:
+  role: control-plane
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
+      - preference:
           matchExpressions:
-            - key: node-type
+            - key: role
               operator: In
               values:
-                - general-purpose
-      - weight: 1
-        preference:
-          matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - high-memory
+                - control-plane
+        weight: 1
 app:
   name: airqo-stage-next-platform
   label: sta-next-platform

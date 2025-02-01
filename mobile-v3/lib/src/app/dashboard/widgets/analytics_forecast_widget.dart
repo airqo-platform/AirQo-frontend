@@ -12,8 +12,7 @@ class AnalyticsForecastWidget extends StatefulWidget {
   const AnalyticsForecastWidget({super.key, required this.siteId});
 
   @override
-  State<AnalyticsForecastWidget> createState() =>
-      _AnalyticsForecastWidgetState();
+  State<AnalyticsForecastWidget> createState() => _AnalyticsForecastWidgetState();
 }
 
 class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
@@ -26,33 +25,69 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
     super.initState();
   }
 
+  double _getResponsiveHeight(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final height = screenHeight * 0.1;
+    return height.clamp(60.0, 100.0);
+  }
+
+  double _getResponsiveIconSize(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final iconSize = screenWidth * 0.04;
+    return iconSize.clamp(20.0, 30.0);
+  }
+
+  double _getResponsiveMargin(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Calculate margin based on screen width
+    return (screenWidth * 0.01).clamp(2.0, 8.0); // Min 2, max 8
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ForecastBloc, ForecastState>(
-      builder: (context, state) {
-        if (state is ForecastLoaded) {
-          return Row(
-              children: state.response.forecasts
-                  .map((e) => ForeCastChip(
-                        active: false,
-                        date: DateFormat.d().format(e.time),
-                        day: DateFormat.E().format(e.time)[0],
-                        imagePath: getForecastAirQualityIcon(e.pm25, state.response.aqiRanges),
-                      ))
-                  .toList());
-        } else if (state is ForecastLoading) {
-          return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(7, (index) {
-                return ShimmerContainer(
-                    height: 47 + 45, borderRadius: 22, width: 40);
-              }));
-        }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return BlocBuilder<ForecastBloc, ForecastState>(
+          builder: (context, state) {
+            if (state is ForecastLoaded) {
+              return Row(
+                children: state.response.forecasts
+                    .map((e) => ForeCastChip(
+                          active: false,
+                          day: DateFormat.E().format(e.time)[0],
+                          imagePath: getForecastAirQualityIcon(
+                              e.pm25, state.response.aqiRanges),
+                          height: _getResponsiveHeight(context),
+                          iconSize: _getResponsiveIconSize(context),
+                          margin: _getResponsiveMargin(context),
+                        ))
+                    .toList(),
+              );
+            } else if (state is ForecastLoading) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(7, (index) {
+                  return ShimmerContainer(
+                    height: _getResponsiveHeight(context),
+                    borderRadius: 22,
+                    width: constraints.maxWidth / 8, // Divide by 8 to leave some spacing
+                  );
+                }),
+              );
+            }
 
-        return Container(
-          child: Center(
-            child: Text(state.toString()),
-          ),
+            return Container(
+              height: _getResponsiveHeight(context),
+              child: Center(
+                child: Text(
+                  state.toString(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: MediaQuery.of(context).size.width * 0.03,
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -63,41 +98,57 @@ class ForeCastChip extends StatelessWidget {
   final bool active;
   final String day;
   final String imagePath;
-  final String date;
-  const ForeCastChip(
-      {super.key,
-      required this.active,
-      required this.imagePath,
-      required this.date,
-      required this.day});
+  final double height;
+  final double iconSize;
+  final double margin;
+
+  const ForeCastChip({
+    super.key,
+    required this.active,
+    required this.imagePath,
+    required this.day,
+    required this.height,
+    required this.iconSize,
+    required this.margin,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final fontSize = (height * 0.2).clamp(12.0, 16.0);
+
     return Expanded(
       child: Container(
-          decoration: BoxDecoration(
-              color: active
-                  ? AppColors.primaryColor
-                  : Theme.of(context).highlightColor,
-              borderRadius: BorderRadius.circular(22)),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          margin: const EdgeInsets.symmetric(horizontal: 5),
-          height: 47 + 45,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(day),
-                Text(date),
-                SizedBox(
-                  child: Center(
-                    child: SvgPicture.asset(
-                      imagePath,
-                      height: 26,
-                      width: 26,
-                    ),
-                  ),
-                ),
-              ])),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.primaryColor
+              : Theme.of(context).highlightColor,
+          borderRadius: BorderRadius.circular(height * 0.25),
+        ),
+        padding: EdgeInsets.symmetric(
+          vertical: height * 0.1,
+        ),
+        margin: EdgeInsets.symmetric(horizontal: margin),
+        height: height,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              day,
+              style: TextStyle(
+                fontSize: fontSize * textScaleFactor,
+                fontWeight: active ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            SizedBox(height: height * 0.05),
+            SvgPicture.asset(
+              imagePath,
+              height: iconSize,
+              width: iconSize,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

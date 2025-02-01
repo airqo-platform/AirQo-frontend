@@ -1,6 +1,4 @@
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
-import 'package:airqo/src/app/profile/pages/widgets/devices_widget.dart';
-import 'package:airqo/src/app/profile/pages/widgets/exposure_widget.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
           String firstName = state.model.users[0].firstName;
           String lastName = state.model.users[0].lastName;
           return DefaultTabController(
-            length: 3,
+            length: 1,
             child: Scaffold(
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
@@ -44,69 +42,78 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     SizedBox(
                       height: 100,
-                      child: Row(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            child: CircleAvatar(
-                              backgroundColor: Theme.of(context).highlightColor,
-                              child: Center(
-                                child: SvgPicture.asset(
-                                    "assets/icons/user_icon.svg"),
-                              ),
-                              radius: 50,
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Row(
                             children: [
-                              Text(
-                                "${firstName} ${lastName}",
-                                style: TextStyle(
-                                  color: AppColors.boldHeadlineColor,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).highlightColor,
+                                  child: Center(
+                                    child: SvgPicture.asset(
+                                        "assets/icons/user_icon.svg"),
+                                  ),
+                                  radius: 50,
                                 ),
                               ),
-                              Spacer(),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 32),
-                                    height: 50,
-                                    child: Center(
-                                        child: Text("Edit your profile")),
-                                    //   child: InkWell(
-                                    // onTap: () => Navigator.of(context).push(
-                                    //     MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             EditProfile())),
-                                    // child: Text(
-                                    //   "Edit your profile",
-                                    //   style: TextStyle(
-                                    //     fontWeight: FontWeight.w500,
-                                    //     color: Colors.white,
-                                    //   ),
-                                    // ),
-                                    //)),
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context).highlightColor,
-                                        borderRadius:
-                                            BorderRadius.circular(200)),
-                                  ),
-                                  SizedBox(width: 8),
-                                  CircleAvatar(
-                                      backgroundColor:
-                                          Theme.of(context).highlightColor,
-                                      radius: 26,
-                                      child: SvgPicture.asset(
-                                          "assets/icons/notification.svg"))
-                                ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${firstName} ${lastName}",
+                                      style: TextStyle(
+                                        color: AppColors.boldHeadlineColor,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 32),
+                                          height: 50,
+                                          child: Center(
+                                              child: Text("Edit your profile")),
+                                          //   child: InkWell(
+                                          // onTap: () => Navigator.of(context).push(
+                                          //     MaterialPageRoute(
+                                          //         builder: (context) =>
+                                          //             EditProfile())),
+                                          // child: Text(
+                                          //   "Edit your profile",
+                                          //   style: TextStyle(
+                                          //     fontWeight: FontWeight.w500,
+                                          //     color: Colors.white,
+                                          //   ),
+                                          // ),
+                                          //)),
+                                          decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .highlightColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(200)),
+                                        ),
+                                        SizedBox(width: 8),
+                                        CircleAvatar(
+                                            backgroundColor:
+                                                Theme.of(context).highlightColor,
+                                            radius: 26,
+                                            child: SvgPicture.asset(
+                                                "assets/icons/notification.svg"))
+                                      ],
+                                    )
+                                  ],
+                                ),
                               )
                             ],
-                          )
-                        ],
+                          );
+                        },
                       ),
                     ),
                     SizedBox(height: 32),
@@ -123,21 +130,21 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ? Colors.white
                                 : AppColors.primaryColor,
                         tabs: [
-                          Tab(
-                              height: 60,
-                              icon: TabIcon(
-                                  image: "assets/profile/exposure.svg",
-                                  label: "Exposure")),
+                          // Tab(
+                          //     height: 60,
+                          //     icon: TabIcon(
+                          //         image: "assets/profile/exposure.svg",
+                          //         label: "Exposure")),
                           // Tab(
                           //     height: 60,
                           //     icon: TabIcon(
                           //         image: "assets/profile/places.svg",
                           //         label: "Places")),
-                          Tab(
-                              height: 60,
-                              icon: TabIcon(
-                                  image: "assets/profile/devices.svg",
-                                  label: "Devices")),
+                          // Tab(
+                          //     height: 60,
+                          //     icon: TabIcon(
+                          //         image: "assets/profile/devices.svg",
+                          //         label: "Devices")),
                           Tab(
                               height: 60,
                               icon: TabIcon(
@@ -146,9 +153,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         ]),
                     Expanded(
                       child: TabBarView(children: [
-                        ExposureWidget(),
+                        // ExposureWidget(),
                         // Container(child: Text("devices")),
-                        DevicesWidget(),
+                        // DevicesWidget(),
                         SettingsWidget()
                       ]),
                     )

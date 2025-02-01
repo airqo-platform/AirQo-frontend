@@ -1,6 +1,6 @@
 import React from 'react';
 
-import EventPage from './EventPage';
+import EventPage from '@/views/events/EventPage';
 
 const page = () => {
   return (

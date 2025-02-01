@@ -24,7 +24,7 @@ const Page: React.FC = () => {
 
   // Calculate the total number of pages
   const totalPages = useMemo(
-    () => Math.ceil(committeeMembers?.length / membersPerPage),
+    () => Math?.ceil(committeeMembers?.length / membersPerPage),
     [committeeMembers?.length],
   );
 
@@ -45,8 +45,8 @@ const Page: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 lg:px-0 gap-6">
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+    <div className="px-4 lg:px-0 gap-6">
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       <div className="py-4">
         <h2 className="text-2xl font-bold">Program Committee</h2>
@@ -58,8 +58,8 @@ const Page: React.FC = () => {
       </div>
 
       {/* Member Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
-        {displayedMembers.map((person: any) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+        {displayedMembers?.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}

@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
@@ -14,6 +15,8 @@ import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
+import '../../profile/pages/guest_profile page.dart';
+import '../../profile/pages/profile_page.dart';
 import '../models/airquality_response.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -27,6 +30,7 @@ class _DashboardPageState extends State<DashboardPage> {
   DashboardBloc? dashboardBloc;
   UserBloc? userBloc;
   ThemeBloc? themeBloc;
+  AuthBloc? authBloc;
 
   List<Measurement> filteredMeasurements = [];
   String currentFilter = "All";
@@ -38,6 +42,12 @@ class _DashboardPageState extends State<DashboardPage> {
     themeBloc = context.read<ThemeBloc>();
 
     userBloc = context.read<UserBloc>()..add(LoadUser());
+
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthInitial || authState is GuestUser) {
+      // Only set guest mode if no user is authenticated
+      context.read<AuthBloc>().add(UseAsGuest());
+    }
     super.initState();
   }
 
@@ -96,33 +106,69 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               SizedBox(width: 8),
               GestureDetector(
-                // onTap: () => Navigator.of(context).push(
-                //   MaterialPageRoute(
-                //     builder: (context) {
-                //       return ProfilePage();
-                //     },
-                //   ),
-                // ),
-                child: BlocBuilder<UserBloc, UserState>(
-                  builder: (context, state) {
-                    if (state is UserLoaded) {
-                      String firstName =
-                          state.model.users[0].firstName[0].toUpperCase();
-                      String lastName =
-                          state.model.users[0].lastName[0].toUpperCase();
-                      return CircleAvatar(
-                        child: Center(child: Text("${firstName}${lastName}")),
-                        radius: 24,
-                        backgroundColor: Theme.of(context).highlightColor,
-                      );
-                    } else if (state is UserLoadingError) {
-                      return Container();
-                    } else {
-                      return ShimmerContainer(
-                          height: 44, borderRadius: 1000, width: 44);
-                    }
-                  },
-                ),
+                onTap: () {
+                  final authState = context.read<AuthBloc>().state;
+                  if (authState is GuestUser) {
+                    
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => GuestProfilePage(),
+                      ),
+                    );
+                  } else {
+                    // Navigate to the regular profile page
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ProfilePage(),
+                      ),
+                    );
+                  }
+                },
+                  child: BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, authState) {
+                      if (authState is GuestUser) {
+                        // Display default avatar for guest users
+                        return Container(
+                          //margin: const EdgeInsets.symmetric(horizontal: 20),
+                          child: CircleAvatar(
+                            backgroundColor: Theme.of(context).highlightColor,
+
+                            child: Center(
+                              child: SvgPicture.asset(
+                                  "assets/icons/user_icon.svg",
+                              height:22,
+                                width: 22,
+                              ),
+                            ),
+                            radius: 24,
+                          ),
+                        );
+                      } else {
+                        return BlocBuilder<UserBloc, UserState>(
+                          builder: (context, userState) {
+                            if (userState is UserLoaded) {
+                              String firstName = userState.model.users[0].firstName[0].toUpperCase();
+                              String lastName = userState.model.users[0].lastName[0].toUpperCase();
+                              return CircleAvatar(
+                                child: Center(child: Text("${firstName}${lastName}")),
+                                radius: 24,
+                                backgroundColor: Theme.of(context).highlightColor,
+                              );
+                            } else if (userState is UserLoadingError) {
+                              return Container(); // Handle error state (optional)
+                            } else {
+                              return ShimmerContainer(
+                                height: 44,
+                                borderRadius: 1000,
+                                width: 44,
+                              );
+                            }
+                          },
+                        );
+                      }
+                    },
+                  )
+
               ),
               SizedBox(width: 8),
             ],
@@ -138,26 +184,44 @@ class _DashboardPageState extends State<DashboardPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 16),
-                      BlocBuilder<UserBloc, UserState>(
-                        builder: (context, state) {
-                          if (state is UserLoaded) {
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, authState) {
+                          if (authState is GuestUser) {
                             return Text(
-                              "Hello ${state.model.users[0].firstName} 👋🏼",
+                              "Hi, Guest 👋🏼",
                               style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.boldHeadlineColor),
-                            );
-                          }
-                          return Text(
-                            "Hello 👋🏼",
-                            style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.boldHeadlineColor),
-                          );
+                                color: AppColors.boldHeadlineColor2,
+                              ),
+                            );
+                          } else {
+                            return BlocBuilder<UserBloc, UserState>(
+                              builder: (context, userState) {
+                                if (userState is UserLoaded) {
+                                  return Text(
+                                    "Hi ${userState.model.users[0].firstName} 👋🏼",
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.boldHeadlineColor,
+                                    ),
+                                  );
+                                }
+                                return Text(
+                                  "Hi,👋🏼",
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.boldHeadlineColor,
+                                  ),
+                                );
+                              },
+                            );
+                          }
                         },
                       ),
+
                       Text(
                         "Today’s Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
                         style: TextStyle(

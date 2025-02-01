@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { GoOrganization } from 'react-icons/go';
 import CustomDropdown from './CustomDropdown';
 import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
 import RadioIcon from '@/icons/SideBar/radioIcon';
@@ -11,7 +12,7 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 const cleanGroupName = (name) => {
   if (!name) return '';
-  return name.replace(/-/g, ' ').toUpperCase();
+  return name.replace(/[-_]/g, ' ').toUpperCase();
 };
 
 const OrganizationDropdown = () => {
@@ -24,10 +25,12 @@ const OrganizationDropdown = () => {
     title: activeGroupTitle,
     groupList,
     userID,
+    loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
+
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
 
-  // Memoize active groups
+  // Filter active groups
   const activeGroups = useMemo(
     () => groupList.filter((group) => group && group.status === 'ACTIVE'),
     [groupList],
@@ -35,7 +38,12 @@ const OrganizationDropdown = () => {
 
   // Initialize active group if missing
   useEffect(() => {
-    if (!activeGroupId && activeGroups.length > 0) {
+    if (isFetchingActiveGroup) return;
+    const storedGroup = localStorage.getItem('activeGroup');
+    if (storedGroup) {
+      const defaultGroup = JSON.parse(storedGroup);
+      dispatch(setOrganizationName(defaultGroup.grp_title));
+    } else if (!activeGroupId && activeGroups.length > 0) {
       const defaultGroup = activeGroups[0];
       localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
       dispatch(setOrganizationName(defaultGroup.grp_title));
@@ -48,24 +56,15 @@ const OrganizationDropdown = () => {
         console.warn('Invalid group data');
         return;
       }
-
       setLoading(true);
       setSelectedGroupId(group._id);
-
       try {
-        const response = await dispatch(
+        await dispatch(
           updateUserPreferences({
             user_id: userID,
             group_id: group._id,
           }),
         );
-
-        if (response?.payload?.success) {
-          localStorage.setItem('activeGroup', JSON.stringify(group));
-          dispatch(setOrganizationName(group.grp_title));
-        } else {
-          console.warn('Failed to update user preferences');
-        }
       } catch (error) {
         console.error('Error updating user preferences:', error);
       } finally {
@@ -79,10 +78,15 @@ const OrganizationDropdown = () => {
   const handleDropdownSelect = useCallback(
     (group) => {
       if (group?._id !== activeGroupId) {
+        // Immediately update organization name
+        dispatch(setOrganizationName(group.grp_title));
+        localStorage.setItem('activeGroup', JSON.stringify(group));
+
+        // Dispatch preferences update asynchronously
         handleUpdatePreferences(group);
       }
     },
-    [activeGroupId, handleUpdatePreferences],
+    [activeGroupId, handleUpdatePreferences, dispatch],
   );
 
   if (!activeGroupId || groupList.length === 0) {
@@ -105,15 +109,14 @@ const OrganizationDropdown = () => {
             }`}
           >
             <div className="flex items-center gap-3">
+              {/* Organization Icon in place of abbreviation */}
               <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
-                <span className="text-slate-500 text-sm font-medium">
-                  {activeGroupTitle.slice(0, 2).toUpperCase()}
-                </span>
+                <GoOrganization className="text-slate-600 text-lg" />
               </div>
               {!isCollapsed && (
                 <div
                   className="text-sm font-medium leading-tight truncate max-w-[200px]"
-                  title={activeGroupTitle}
+                  title={cleanGroupName(activeGroupTitle)}
                 >
                   {cleanGroupName(activeGroupTitle)}
                 </div>
@@ -137,16 +140,17 @@ const OrganizationDropdown = () => {
           }`}
         >
           <div className="flex items-center gap-2">
+            {/* Organization Icon */}
             <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
-              <span className="text-slate-500 text-sm font-medium">
-                {group.grp_title.slice(0, 2).toUpperCase()}
-              </span>
+              <GoOrganization className="text-slate-600 text-lg" />
             </div>
             <div
               className="text-sm font-medium truncate max-w-[150px]"
-              title={group.grp_title}
+              title={cleanGroupName(group.grp_title)}
             >
-              {cleanGroupName(group.grp_title)}
+              {cleanGroupName(group.grp_title).length > 14
+                ? `${cleanGroupName(group.grp_title).substring(0, 15)}...`
+                : cleanGroupName(group.grp_title)}
             </div>
           </div>
           {loading && selectedGroupId === group._id ? (
@@ -154,7 +158,7 @@ const OrganizationDropdown = () => {
           ) : activeGroupId === group._id ? (
             <RadioIcon />
           ) : (
-            <input type="radio" className="border-[#C4C7CB]" />
+            <input type="radio" className="border-[#C4C7CB]" readOnly />
           )}
         </button>
       ))}

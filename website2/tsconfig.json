@@ -25,7 +25,9 @@
       "@/types/*": ["./src/types/*"],
       "@/lib/*": ["./src/lib/*"],
       "@/services/*": ["./src/services/*"],
-      "@/context/*": ["./src/context/*"]
+      "@/context/*": ["./src/context/*"],
+      "@/views/*": ["./src/views/*"],
+      "@/configs/*": ["./src/configs/*"]
     },
     "plugins": [
       {
