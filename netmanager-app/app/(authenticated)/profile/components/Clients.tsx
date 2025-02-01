@@ -66,13 +66,6 @@ const ClientManagement = () => {
     }
   }
 
-  const handleCopyClientId = (clientId: string) => {
-    navigator.clipboard.writeText(clientId)
-    toast({
-      title: "Client ID Copied",
-      description: "The client ID has been copied to your clipboard.",
-    })
-  }
 
   useEffect(() => {
     fetchClients()
