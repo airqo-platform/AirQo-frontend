@@ -12,6 +12,8 @@ import { getTimezones } from "@/utils/timezones";
 import { users } from "@/core/apis/users";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useToast } from "@/components/ui/use-toast"
+import { Loader2 } from "lucide-react";
+import { Toast } from "@/components/ui/toast";
 
 interface Profile {
   firstName: string;
@@ -29,7 +31,8 @@ export default function MyProfile() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);  
-  const [error, setError] = useState<string | null>(null);  
+  const [error, setError] = useState<string | null>(null); 
+  
   const [isEditing, setIsEditing] = useState(false);
   const [countries, setCountries] = useState<{ value: string; label: string }[]>([]);
   const [timezones, setTimezones] = useState<{ value: string; label: string }[]>([]);
@@ -112,12 +115,11 @@ export default function MyProfile() {
       reader.onload = async () => {
         if (!reader.result) return;
   
-        setProfile((prev) => ({
+        setProfile((prev) => prev ? ({
           ...prev,
-          profilePicture: reader.result as string, // Temporary preview
-        }));
-  
-        // Upload image to server
+          profilePicture: reader.result as string,
+        }) : null);
+
         const formData = new FormData();
         formData.append("image", file);
   
@@ -129,10 +131,17 @@ export default function MyProfile() {
         if (!response.ok) throw new Error("Failed to upload image");
   
         const data = await response.json();
-        setProfile((prev) => ({
+        setProfile((prev) => prev ? ({
           ...prev,
-          profilePicture: data.imageUrl, // Update with uploaded URL
-        }));
+          profilePicture: data.imageUrl, 
+          firstName: prev.firstName,
+          lastName: prev.lastName,
+          email: prev.email,
+          jobTitle: prev.jobTitle,
+          country: prev.country,
+          timezone: prev.timezone,
+          bio: prev.bio,
+        }) : null);
   
         toast({
           title: "Success",
@@ -148,10 +157,7 @@ export default function MyProfile() {
       });
     }
   };
-  
-
-
-
+ 
 
   if (!profile) {
     return <div>Loading...</div>;
@@ -159,6 +165,13 @@ export default function MyProfile() {
 
   return (
     <div className="space-y-6">
+      {error && <Toast variant="destructive">{error}</Toast>}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <>
       <h2 className="text-2xl font-bold">Personal Information</h2>
       <p className="text-sm text-gray-500">Update your photo and personal details.</p>
 
@@ -283,6 +296,8 @@ export default function MyProfile() {
         </div>
           <Button type="submit">Save Changes</Button>
       </form>
+      </>
+      )}
     </div>
   );
 }
