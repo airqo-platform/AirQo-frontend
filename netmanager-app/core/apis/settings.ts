@@ -47,8 +47,7 @@ export const updateClientApi = async (
   data: CreateClientData,
   client_id: string
 ): Promise<Client> => {
-  return await createAxiosInstance()
-    .put(`${USERS_MGT_URL}/clients/${client_id}`, data)
+  return await axiosInstance.put(`${USERS_MGT_URL}/clients/${client_id}`, data)
     .then((response) => response.data);
 };
 
@@ -71,3 +70,8 @@ export const activationRequestApi = async (clientID: string): Promise<Client> =>
   return await axiosInstance.get(`${USERS_MGT_URL}/clients/activate-request/${clientID}`)
     .then((response) => response.data);
 };
+
+export const updateUserDetailsApi = async (data: any, userID: string): Promise<UserDetails> => {
+  return await axiosInstance.put(`${USERS_MGT_URL}/${userID}`, data)
+    .then((response) => response.data);
+}
