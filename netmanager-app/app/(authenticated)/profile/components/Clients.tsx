@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ActivateClientDialog, DeactivateClientDialog } from "@/components/clients/dialogs"
-import { getClientsApi, activateUserClientApi } from "@/core/apis/analytics"
+import { getClientsApi } from "@/core/apis/analytics"
+import { activateUserClientApi } from "@/core/apis/settings"
 import { useToast } from "@/components/ui/use-toast"
 import type { Client } from "@/app/types/clients"
 import { Search, ArrowUpDown, Loader2 } from "lucide-react"
@@ -78,8 +79,12 @@ const ClientManagement = () => {
   }, [])
 
   const handleActivateDeactivate = async (clientId: string, activate: boolean) => {
+    const data = {
+      _id: clientId,
+      isActive: activate ? true : false,
+    };
     try {
-      await activateUserClientApi({ _id: clientId, isActive: activate })
+      await activateUserClientApi(data)
       await fetchClients()
       toast({
         title: "Success",

@@ -63,16 +63,9 @@ export const getClientsApi = async () => {
 
 export const activateUserClientApi = async (data: { _id: string; isActive: boolean }) => {
   return axiosInstance
-    .put(`${USERS_MGT_URL}/clients/activate`, data)
+    .post(`${USERS_MGT_URL}/clients/activate/${data._id}`, data)
     .then((response) => response.data);
 };
-
-
-// export const activateUserClientApi = async (data: ActivationData): Promise<any> => {
-//   return await createAxiosInstance()
-//     .post(`${USERS_MGT_URL}/clients/activate/${data._id}`, data)
-//     .then((response) => response.data);
-// };
 
 export const activationRequestApi = async (clientID: string): Promise<Client> => {
   return await axiosInstance.get(`${USERS_MGT_URL}/clients/activate-request/${clientID}`)
