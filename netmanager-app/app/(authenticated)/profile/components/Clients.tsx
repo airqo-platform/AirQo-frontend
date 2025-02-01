@@ -238,9 +238,6 @@ const ClientManagement = () => {
                       >
                         {client.isActive ? "Deactivate" : "Activate"}
                       </Button>
-                      <Button variant="ghost" onClick={() => handleCopyClientId(client._id)}>
-                        Copy ID
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
