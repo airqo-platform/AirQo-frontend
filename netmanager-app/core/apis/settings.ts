@@ -40,7 +40,9 @@ export const updateUserPasswordApi = async (
   userId: string,
   userData: PasswordData
 ): Promise<PasswordData> => {
-  return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword/${userId}`, userData)
+  return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword`, userData, {
+    params: { id: userId },
+  })
     .then((response) => response.data);
 };
 
