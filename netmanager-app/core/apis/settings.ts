@@ -12,6 +12,11 @@ interface CreateClientData {
   user_id: string;
 }
 
+interface PasswordData {
+  password: string;
+  old_password: string;
+}
+
 const axiosInstance = createAxiosInstance();
 
 export const getUserClientsApi = async (userID: string): Promise<Client[]> => {
@@ -33,12 +38,9 @@ export const createClientApi = async (data: CreateClientData): Promise<Client> =
 
 export const updateUserPasswordApi = async (
   userId: string,
-  tenant: string,
-  userData: UserDetails
-): Promise<UserDetails> => {
-  return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword`, userData, {
-      params: { tenant, id: userId },
-    })
+  userData: PasswordData
+): Promise<PasswordData> => {
+  return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword/${userId}`, userData)
     .then((response) => response.data);
 };
 
