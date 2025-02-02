@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
-    
+
     try {
       authBloc = context.read<AuthBloc>();
 
@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.boldHeadlineColor2),
+                color: Theme.of(context).textTheme.headlineLarge?.color),
           ),
           centerTitle: true,
         ),
@@ -175,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text("Don't have an account?",
                     style: TextStyle(
-                        color: AppColors.boldHeadlineColor,
+                        color: Theme.of(context).textTheme.headlineLarge?.color,
                         fontWeight: FontWeight.w500)),
                 InkWell(
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(

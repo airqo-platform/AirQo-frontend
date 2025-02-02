@@ -40,12 +40,18 @@ class AppTheme {
     highlightColor: const Color(0xffF3F6F8),
     textTheme: TextTheme(
       headlineLarge: TextStyle(
-        color: const Color(0xff6F87A1),
+        color: const Color(0xff000000),
         fontWeight: FontWeight.bold,
       ),
       headlineMedium: TextStyle(
-        color: const Color(0xff6F87A1),
+        color: Colors.black,
       ),
+      headlineSmall: TextStyle(
+        color: const Color(0xff000000),
+      ),
+      titleMedium:TextStyle(
+          color: const Color(0xff000000)
+      ) ,
       titleLarge: TextStyle(
           fontSize: 40, fontWeight: FontWeight.w700, color: Colors.black),
     ),
@@ -72,6 +78,12 @@ class AppTheme {
       headlineMedium: TextStyle(
         color: const Color(0xff60646C),
       ),
+      headlineSmall: TextStyle(
+        color: const Color(0xff7A7F87),
+      ),
+      titleMedium:TextStyle(
+        color: const Color(0xffE2E3E5)
+      ) ,
       titleLarge: TextStyle(
           fontSize: 40, fontWeight: FontWeight.w700, color: Colors.white),
     ),

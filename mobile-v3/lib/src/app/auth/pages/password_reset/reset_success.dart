@@ -45,7 +45,8 @@ class ResetSuccessPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                          color: AppColors.highlightColor2
+                        color: Theme.of(context).textTheme.titleMedium?.color
+
                       ),
                     ),
                     SizedBox(
@@ -55,7 +56,7 @@ class ResetSuccessPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                          color: AppColors.highlightColor2
+                          color: Theme.of(context).textTheme.titleMedium?.color
                       ),
                     ),
 
@@ -89,7 +90,7 @@ class ResetSuccessPage extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: 24),
+
 
 
         ],

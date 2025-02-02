@@ -32,8 +32,9 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
           style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.boldHeadlineColor2),
+              color: Theme.of(context).textTheme.headlineLarge?.color),
         ),
+
         centerTitle: true,
       ),
       body: Column(
@@ -49,7 +50,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                      color: AppColors.highlightColor2
+                      color: Theme.of(context).textTheme.titleMedium?.color
                   ),
                 ),
                 SizedBox(height: 20),
@@ -59,7 +60,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                      color: AppColors.highlightColor2
+                      color: Theme.of(context).textTheme.titleMedium?.color
                   ),
                 ),
 
@@ -88,11 +89,11 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
 
                     fieldHeight: 64,
                     fieldWidth: 60,
-                    activeFillColor: AppColors.boldHeadlineColor4,
-                    inactiveFillColor:AppColors.boldHeadlineColor4 ,
-                    selectedFillColor: AppColors.darkThemeBackground,
-                    activeColor: AppColors.boldHeadlineColor4,
-                    inactiveColor: AppColors.boldHeadlineColor4,
+                    activeFillColor: Theme.of(context).highlightColor,
+                    inactiveFillColor:Theme.of(context).highlightColor ,
+                    selectedFillColor: Theme.of(context).appBarTheme.backgroundColor,
+                    activeColor: Theme.of(context).highlightColor,
+                    inactiveColor: Theme.of(context).highlightColor,
                     selectedColor: AppColors.primaryColor,
                     fieldOuterPadding: EdgeInsets.symmetric(horizontal: 4),
 
@@ -133,10 +134,11 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Not seeing the email?',
+                      "Didn't receive the code?",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
+                        color: Theme.of(context).textTheme.headlineLarge?.color
                       ),
                     ),
                     InkWell(

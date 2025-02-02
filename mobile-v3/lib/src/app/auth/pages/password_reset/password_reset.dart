@@ -73,7 +73,8 @@ class _PasswordResetPage extends State<PasswordResetPage> {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.boldHeadlineColor2),
+              color: Theme.of(context).textTheme.headlineLarge?.color
+                ),
           ),
           centerTitle: true,
         ),
@@ -93,6 +94,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
+                            color: Theme.of(context).textTheme.titleMedium?.color
                           ),
                         ),
                         SizedBox(
@@ -102,6 +104,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
+                            color: Theme.of(context).textTheme.titleMedium?.color
                           ),
                         ),
 

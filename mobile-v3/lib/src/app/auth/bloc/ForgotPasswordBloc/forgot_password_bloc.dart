@@ -28,7 +28,7 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
         );
         emit(PasswordResetSuccess(message: message));
       } catch (error) {
-        emit(PasswordResetError(message: 'Failed to update password. \nPlease enter the correct code'));
+        emit(PasswordResetError(message: 'Failed to update password. \nPlease re-check the code you entered'));
       }
     });
   }

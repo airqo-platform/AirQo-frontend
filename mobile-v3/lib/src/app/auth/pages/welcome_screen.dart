@@ -154,7 +154,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             Text(
                               "Continue as guest ",
                               style: TextStyle(
-                                color: AppColors.boldHeadlineColor2,
+                                color: Theme.of(context).textTheme.headlineLarge?.color,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -162,7 +162,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               'assets/icons/chevron-right.svg',
                               height: 16.0,
                               width: 16.0,
-                              color: AppColors.boldHeadlineColor2,
+                              color: Theme.of(context).textTheme.headlineLarge?.color,
                             ),
                           ],
                         ),
