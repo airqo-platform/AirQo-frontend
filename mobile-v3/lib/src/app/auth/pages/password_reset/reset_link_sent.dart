@@ -106,11 +106,28 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                 SizedBox(height: 18),
                 InkWell(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => PasswordResetPage(token: _pinController.text.trim()),
-                      ),
-                    );
+                    final pin = _pinController.text.trim();
+
+
+                    if (RegExp(r'^\d{5}$').hasMatch(pin)) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => PasswordResetPage(token: pin),
+                        ),
+                      );
+                    } else {
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please enter a valid 5-digit number.',
+                          style: TextStyle(
+                            color: Colors.white
+                          ),),
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      );
+                    }
+                    _pinController.clear();
                   },
                   child: Container(
                     height: 56,
