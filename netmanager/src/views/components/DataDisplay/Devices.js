@@ -278,16 +278,14 @@ const CreateDevice = ({ open, setOpen, network }) => {
     long_name: '',
     category: CATEGORIES[0].value,
     network: network.net_name,
-    description: '',
-    serial_number: ''
+    description: ''
   };
 
   const initialErrors = {
     long_name: '',
     category: '',
     network: '',
-    description: '',
-    serial_number: ''
+    description: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -303,13 +301,6 @@ const CreateDevice = ({ open, setOpen, network }) => {
       setErrors({
         ...errors,
         long_name: newValue.trim() === '' ? 'Device name is required' : ''
-      });
-    }
-
-    if (key === 'serial_number') {
-      setErrors({
-        ...errors,
-        serial_number: newValue.trim() === '' ? 'Serial number is required' : ''
       });
     }
   };
@@ -332,18 +323,13 @@ const CreateDevice = ({ open, setOpen, network }) => {
       long_name: '',
       category: CATEGORIES[0].value,
       network: network.net_name,
-      description: '',
-      serial_number: ''
+      description: ''
     });
-    setErrors({ long_name: '', category: '', network: '', description: '', serial_number: '' });
+    setErrors({ long_name: '', category: '', network: '', description: '' });
   };
 
   const isFormValid = () => {
-    return (
-      newDevice.long_name.trim() !== '' &&
-      newDevice.category !== '' &&
-      newDevice.serial_number.trim() !== ''
-    );
+    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
   };
 
   const handleRegisterSubmit = (e) => {
@@ -462,18 +448,6 @@ const CreateDevice = ({ open, setOpen, network }) => {
               style: { width: '100%', height: '40px' }
             }}
             required
-          />
-
-          <TextField
-            margin="dense"
-            label="Serial Number"
-            variant="outlined"
-            value={newDevice.serial_number}
-            onChange={handleDeviceDataChange('serial_number')}
-            fullWidth
-            required
-            error={!!errors.serial_number}
-            helperText={errors.serial_number}
           />
 
           <TextField
