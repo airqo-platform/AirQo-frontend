@@ -107,6 +107,7 @@ const UserClientsTable: React.FC = () => {
     if (!res?.isActive) {
       setShowInfoModal(true)
       setIsLoadingToken(false)
+      return;
     } else {
       try {
         const response = await generateTokenApi(res)
@@ -114,15 +115,14 @@ const UserClientsTable: React.FC = () => {
           toast({
             title: "Success",
             description: "Token generated successfully",
-            variant: "success",
           })
         }
         dispatch(performRefresh())
       } catch (error: any) {
+        const errorMessage = error?.response?.data?.message || error.message || "Failed to generate token";
         toast({
           title: "Error",
-          description: error.message || "Failed to generate token",
-          variant: "destructive",
+          description: errorMessage,
         })
       } finally {
         setIsLoadingToken(false)
@@ -141,7 +141,6 @@ const UserClientsTable: React.FC = () => {
           toast({
             title: "Success",
             description: "Activation request sent successfully",
-            variant: "success",
           })
         }, 3000)
       }
