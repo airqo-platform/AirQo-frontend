@@ -277,15 +277,17 @@ const CreateDevice = ({ open, setOpen, network }) => {
   const newDeviceInitState = {
     long_name: '',
     category: CATEGORIES[0].value,
-    network: network,
-    description: ''
+    network: network.net_name,
+    description: '',
+    serial_number: ''
   };
 
   const initialErrors = {
     long_name: '',
     category: '',
     network: '',
-    description: ''
+    description: '',
+    serial_number: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -301,6 +303,13 @@ const CreateDevice = ({ open, setOpen, network }) => {
       setErrors({
         ...errors,
         long_name: newValue.trim() === '' ? 'Device name is required' : ''
+      });
+    }
+
+    if (key === 'serial_number') {
+      setErrors({
+        ...errors,
+        serial_number: newValue.trim() === '' ? 'Serial number is required' : ''
       });
     }
   };
@@ -322,14 +331,19 @@ const CreateDevice = ({ open, setOpen, network }) => {
     setNewDevice({
       long_name: '',
       category: CATEGORIES[0].value,
-      network: network,
-      description: ''
+      network: network.net_name,
+      description: '',
+      serial_number: ''
     });
-    setErrors({ long_name: '', category: '', network: '', description: '' });
+    setErrors({ long_name: '', category: '', network: '', description: '', serial_number: '' });
   };
 
   const isFormValid = () => {
-    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
+    return (
+      newDevice.long_name.trim() !== '' &&
+      newDevice.category !== '' &&
+      newDevice.serial_number.trim() !== ''
+    );
   };
 
   const handleRegisterSubmit = (e) => {
@@ -350,16 +364,26 @@ const CreateDevice = ({ open, setOpen, network }) => {
         return;
       }
 
+      // Create a copy of newDevice
+      const deviceDataToSend = { ...newDevice };
+
+      // Remove fields with empty values
+      Object.keys(deviceDataToSend).forEach((key) => {
+        if (!deviceDataToSend[key]) {
+          delete deviceDataToSend[key];
+        }
+      });
+
       createAxiosInstance()
-        .post(REGISTER_DEVICE_URI, newDevice, {
+        .post(REGISTER_DEVICE_URI, deviceDataToSend, {
           headers: { 'Content-Type': 'application/json' }
         })
         .then((res) => res.data)
         .then((resData) => {
           handleRegisterClose();
           dispatch(loadStatus(false));
-          if (!isEmpty(network)) {
-            dispatch(loadDevicesData(network));
+          if (!isEmpty(network.net_name)) {
+            dispatch(loadDevicesData(network.net_name));
           }
           dispatch(
             updateMainAlert({
@@ -441,6 +465,18 @@ const CreateDevice = ({ open, setOpen, network }) => {
           />
 
           <TextField
+            margin="dense"
+            label="Serial Number"
+            variant="outlined"
+            value={newDevice.serial_number}
+            onChange={handleDeviceDataChange('serial_number')}
+            fullWidth
+            required
+            error={!!errors.serial_number}
+            helperText={errors.serial_number}
+          />
+
+          <TextField
             fullWidth
             margin="dense"
             label="Network"
@@ -500,7 +536,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
     device_number: '',
     writeKey: '',
     readKey: '',
-    description: ''
+    description: '',
+    serial_number: ''
   };
 
   const initialErrors = {
@@ -510,7 +547,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
     device_number: '',
     writeKey: '',
     readKey: '',
-    description: ''
+    description: '',
+    serial_number: ''
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -527,6 +565,13 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       setErrors({
         ...errors,
         long_name: newValue.trim() === '' ? 'Device name is required' : ''
+      });
+    }
+
+    if (key === 'serial_number') {
+      setErrors({
+        ...errors,
+        serial_number: newValue.trim() === '' ? 'Serial number is required' : ''
       });
     }
   };
@@ -553,7 +598,8 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       device_number: '',
       writeKey: '',
       readKey: '',
-      description: ''
+      description: '',
+      serial_number: ''
     });
     setErrors({
       long_name: '',
@@ -562,12 +608,17 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
       device_number: '',
       writeKey: '',
       readKey: '',
-      description: ''
+      description: '',
+      serial_number: ''
     });
   };
 
   const isFormValid = () => {
-    return newDevice.long_name.trim() !== '' && newDevice.category !== '';
+    return (
+      newDevice.long_name.trim() !== '' &&
+      newDevice.category !== '' &&
+      newDevice.serial_number.trim() !== ''
+    );
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -590,16 +641,12 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
           // Create a copy of newDevice
           const deviceDataToSend = { ...newDevice };
 
-          // Remove device_number, writeKey, and readKey if they're empty
-          if (!deviceDataToSend.device_number) {
-            delete deviceDataToSend.device_number;
-          }
-          if (!deviceDataToSend.writeKey) {
-            delete deviceDataToSend.writeKey;
-          }
-          if (!deviceDataToSend.readKey) {
-            delete deviceDataToSend.readKey;
-          }
+          // Remove fields with empty values
+          Object.keys(deviceDataToSend).forEach((key) => {
+            if (!deviceDataToSend[key]) {
+              delete deviceDataToSend[key];
+            }
+          });
 
           const resData = await softCreateDeviceApi(deviceDataToSend, {
             headers: { 'Content-Type': 'application/json' }
@@ -612,7 +659,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
           dispatch(
             updateMainAlert({
               message: `${resData.message}. ${
-                newDevice.network !== network
+                newDevice.network !== network.net_name
                   ? `Switch to the ${newDevice.network} organisation to see the new device.`
                   : ''
               }`,
@@ -671,6 +718,7 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             error={!!errors.long_name}
             helperText={errors.long_name}
           />
+
           <Select
             fullWidth
             label="Category"
@@ -687,6 +735,19 @@ const SoftCreateDevice = ({ open, setOpen, network }) => {
             }}
             required
           />
+
+          <TextField
+            margin="dense"
+            label="Serial Number"
+            variant="outlined"
+            value={newDevice.serial_number}
+            onChange={handleDeviceDataChange('serial_number')}
+            fullWidth
+            required
+            error={!!errors.serial_number}
+            helperText={errors.serial_number}
+          />
+
           <TextField
             fullWidth
             margin="dense"
