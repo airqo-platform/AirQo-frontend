@@ -5,6 +5,21 @@ import { Divider, NoData } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
 
+// Reusable component for a two-column row with a bold title on the left.
+type SectionRowProps = {
+  title: string;
+  children: React.ReactNode;
+};
+
+const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
+  <div className="py-4 flex flex-col md:flex-row items-start transition duration-150 ease-in-out hover:bg-gray-50 rounded">
+    <div className="md:w-1/3 mb-2 md:mb-0 text-left text-xl font-bold">
+      {title}
+    </div>
+    <div className="md:w-2/3 text-left space-y-4">{children}</div>
+  </div>
+);
+
 const AboutPage = () => {
   const data = useForumData();
 
@@ -12,19 +27,24 @@ const AboutPage = () => {
     return <NoData />;
   }
 
-  // Render the objectives list
-  const renderObjectives = () => (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900">
-        {data?.engagements?.title || 'Objectives'}
-      </h2>
-      <div>
-        {data?.engagements?.objectives?.map((objective: any, index: number) => (
-          <p key={index}>{objective.details || ''}</p>
-        ))}
-      </div>
-    </div>
-  );
+  console.info(data);
+
+  // Objectives Section: Render each objective as a SectionRow
+  const renderObjectives = () => {
+    const objectives = data?.engagement?.objectives || [];
+    return (
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold text-left">Objectives</h2>
+        <div className="divide-y divide-gray-200">
+          {objectives.map((objective: any) => (
+            <SectionRow key={objective.id} title={objective.title}>
+              {objective.details}
+            </SectionRow>
+          ))}
+        </div>
+      </section>
+    );
+  };
 
   return (
     <div className="w-full px-6 lg:px-0 bg-white">
@@ -32,55 +52,43 @@ const AboutPage = () => {
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto space-y-12 py-8">
-        {/* Introduction */}
-        <div
-          dangerouslySetInnerHTML={{
-            __html: renderContent(data.introduction),
-          }}
-        />
+        {/* Introduction Section (kept out of the redesign) */}
+        <section className="space-y-6">
+          <h2 className="text-2xl font-bold text-left">Introduction</h2>
+          <div
+            className="prose"
+            dangerouslySetInnerHTML={{
+              __html: renderContent(data.introduction),
+            }}
+          />
+        </section>
 
         {/* Objectives Section */}
         {renderObjectives()}
 
         <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
 
-        {/* Split Section - Sponsorship Opportunities */}
-        <div>
-          <div className="flex flex-col md:flex-row md:space-x-8">
-            <div className="md:w-1/3 mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Sponsorship Opportunities
-              </h2>
-            </div>
-            <div
-              className="md:w-2/3"
-              dangerouslySetInnerHTML={{
-                __html: renderContent(
-                  data?.sponsorship_opportunities_about || '',
-                ),
-              }}
-            />
-          </div>
-        </div>
+        {/* Sponsorship Opportunities Section */}
+        <SectionRow title="Sponsorship Opportunities">
+          <div
+            dangerouslySetInnerHTML={{
+              __html: renderContent(
+                data?.sponsorship_opportunities_about || '',
+              ),
+            }}
+          />
+        </SectionRow>
 
         <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
 
-        {/* Split Section - Sponsorship Packages */}
-        <div>
-          <div className="flex flex-col md:flex-row md:space-x-8">
-            <div className="md:w-1/3 mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Sponsorship Packages
-              </h2>
-            </div>
-            <div
-              className="md:w-2/3 space-y-4"
-              dangerouslySetInnerHTML={{
-                __html: renderContent(data?.sponsorship_packages || ''),
-              }}
-            />
-          </div>
-        </div>
+        {/* Sponsorship Packages Section */}
+        <SectionRow title="Sponsorship Packages">
+          <div
+            dangerouslySetInnerHTML={{
+              __html: renderContent(data?.sponsorship_packages || ''),
+            }}
+          />
+        </SectionRow>
       </div>
     </div>
   );
