@@ -1,4 +1,4 @@
-import ProfileTabs from "./components/ProfileTabs"
+import ProfileTabs from "@/components/Settings/ProfileTabs"
 
 export default function ProfilePage() {
   return (
