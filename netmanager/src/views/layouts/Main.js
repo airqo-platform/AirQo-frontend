@@ -136,7 +136,12 @@ const Main = (props) => {
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(activeNetwork)) {
+    if (isEmpty(activeNetwork)) {
+      const activeNetworkStorage = localStorage.getItem('activeNetwork');
+      if (activeNetworkStorage) {
+        dispatch(addActiveNetwork(JSON.parse(activeNetworkStorage)));
+      }
+    } else {
       dispatch(addCurrentUserRole(activeNetwork.role));
       localStorage.setItem('currentUserRole', JSON.stringify(activeNetwork.role));
     }
