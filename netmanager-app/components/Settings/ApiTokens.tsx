@@ -10,7 +10,7 @@ import CreateClientForm from "./CreateClientForm"
 import DialogWrapper from "./DialogWrapper"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Edit, Copy, Info, Plus, RefreshCw } from "lucide-react"
+import { Edit, Copy, Info, Plus } from "lucide-react"
 import { users } from "@/core/apis/users"
 import type { Client } from "@/app/types/clients"
 import { settings } from "@/core/apis/settings"
@@ -57,6 +57,7 @@ const UserClientsTable: React.FC = () => {
     setIsLoading(true)
     try {
       const response = await settings.getUserClientsApi(userInfo?._id || "")
+      console.log(response)
       if (response) {
         dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
       }
@@ -90,7 +91,6 @@ const UserClientsTable: React.FC = () => {
     }
     return null
   }
-
   const getClientTokenExpiryDate = (clientID: string) => {
     const client =
       Array.isArray(clientsDetails) && clientsDetails
@@ -213,15 +213,13 @@ const UserClientsTable: React.FC = () => {
                       : "N/A"}
                   </TableCell>
                   <TableCell>
-                  {client?.access_token ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="flex-1">
-                          <span className="font-mono">
-                            {client.access_token?.token}
-                            <span className="mx-1">•••••••</span>
-                            {client.access_token?.token}
-                          </span>
-                        </div>
+                    {client?.access_token  ? (
+                      <div className="flex items-center">
+                        <span className="mr-2 font-mono">
+                          {client.access_token.token.slice(0, 4)}
+                          <span className="mx-1">•••••••</span>
+                          {client.access_token?.token.slice(-4)}
+                        </span>
                         <Button
                           title="Copy full token"
                           variant="ghost"
@@ -240,22 +238,10 @@ const UserClientsTable: React.FC = () => {
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
-                        <Button
-                          title="Generate new token"
-                          variant="ghost"
-                          size="sm"
-                          disabled={isLoadingToken}
-                          onClick={() => {
-                            setSelectedClient(client)
-                            handleGenerateToken(client)
-                          }}
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
                       </div>
                     ) : (
                       <Button
-                        variant="default"
+                        variant={!hasAccessToken(client._id) ? "default" : "secondary"}
                         size="sm"
                         disabled={isLoadingToken}
                         onClick={() => {
@@ -263,7 +249,7 @@ const UserClientsTable: React.FC = () => {
                           handleGenerateToken(client)
                         }}
                       >
-                        Generate Token
+                        Generate
                       </Button>
                     )}
                   </TableCell>
