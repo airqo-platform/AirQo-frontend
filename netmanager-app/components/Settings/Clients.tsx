@@ -1,140 +1,196 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ActivateClientDialog, DeactivateClientDialog } from "@/components/clients/dialogs"
-import { getClientsApi } from "@/core/apis/analytics"
-import { settings } from "@/core/apis/settings"
-import { useToast } from "@/components/ui/use-toast"
-import type { Client } from "@/app/types/clients"
-import { Search, ArrowUpDown, Loader2 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ActivateClientDialog,
+  DeactivateClientDialog,
+} from "@/components/clients/dialogs";
+import { getClientsApi } from "@/core/apis/analytics";
+import { settings } from "@/core/apis/settings";
+import { useToast } from "@/components/ui/use-toast";
+import type { Client } from "@/app/types/clients";
+import { Search, ArrowUpDown, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 
-const ITEMS_PER_PAGE = 8
+const ITEMS_PER_PAGE = 8;
 
 const formatDate = (dateString: string | undefined): string => {
-  if (!dateString) return "N/A"
-  const date = new Date(dateString)
-  if (isNaN(date.getTime())) return "Invalid Date"
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
 
-  const now = new Date()
-  const diffTime = date.getTime() - now.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const now = new Date();
+  const diffTime = date.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 0) return "Expired"
-  if (diffDays === 0) return "Expires today"
-  if (diffDays === 1) return "Expires tomorrow"
-  return `Expires in ${diffDays} days`
-}
-
+  if (diffDays < 0) return "Expired";
+  if (diffDays === 0) return "Expires today";
+  if (diffDays === 1) return "Expires tomorrow";
+  return `Expires in ${diffDays} days`;
+};
 
 const ClientManagement = () => {
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
-  const [activateDialogOpen, setActivateDialogOpen] = useState(false)
-  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [sortField, setSortField] = useState<keyof Client>("name")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-  const { toast } = useToast()
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [activateDialogOpen, setActivateDialogOpen] = useState(false);
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<keyof Client>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const { toast } = useToast();
 
   const fetchClients = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await getClientsApi()
-      setClients(response.clients)
+      const response = await getClientsApi();
+      setClients(response.clients);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to fetch clients",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
 
   useEffect(() => {
-    fetchClients()
-  }, [])
+    fetchClients();
+  }, []);
 
-  const handleActivateDeactivate = async (clientId: string, activate: boolean) => {
+  const handleActivateDeactivate = async (
+    clientId: string,
+    activate: boolean
+  ) => {
     const data = {
       _id: clientId,
       isActive: activate ? true : false,
     };
     try {
-      await settings.activateUserClientApi(data)
-      await fetchClients()
+      await settings.activateUserClientApi(data);
+      await fetchClients();
       toast({
         title: "Success",
-        description: `Client ${activate ? "activated" : "deactivated"} successfully`,
-      })
+        description: `Client ${
+          activate ? "activated" : "deactivated"
+        } successfully`,
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: `Failed to ${activate ? "activate" : "deactivate"} client`,
         variant: "destructive",
-      })
+      });
     } finally {
-      setActivateDialogOpen(false)
-      setDeactivateDialogOpen(false)
-      setSelectedClient(null)
+      setActivateDialogOpen(false);
+      setDeactivateDialogOpen(false);
+      setSelectedClient(null);
     }
-  }
+  };
 
   const handleActivateClick = (client: Client) => {
-    setSelectedClient(client)
-    setActivateDialogOpen(true)
-  }
+    setSelectedClient(client);
+    setActivateDialogOpen(true);
+  };
 
   const handleDeactivateClick = (client: Client) => {
-    setSelectedClient(client)
-    setDeactivateDialogOpen(true)
-  }
+    setSelectedClient(client);
+    setDeactivateDialogOpen(true);
+  };
 
   const handleSort = (field: keyof Client) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortOrder("asc")
+      setSortField(field);
+      setSortOrder("asc");
     }
-  }
+  };
 
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (client.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
-  )
-
+      (client.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ??
+        false)
+  );
 
   const sortedClients = [...filteredClients].sort((a, b) => {
-    if (a[sortField] < b[sortField]) return sortOrder === "asc" ? -1 : 1
-    if (a[sortField] > b[sortField]) return sortOrder === "asc" ? 1 : -1
-    return 0
-  })
+    if (a[sortField] < b[sortField]) return sortOrder === "asc" ? -1 : 1;
+    if (a[sortField] > b[sortField]) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
 
-  const totalPages = Math.ceil(sortedClients.length / ITEMS_PER_PAGE)
-  const paginatedClients = sortedClients.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(sortedClients.length / ITEMS_PER_PAGE);
+  const paginatedClients = sortedClients.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
-  const activatedClients = clients.filter((client) => client.isActive).length
-  const deactivatedClients = clients.filter((client) => !client.isActive).length
+  const activatedClients = clients.filter((client) => client.isActive).length;
+  const deactivatedClients = clients.filter(
+    (client) => !client.isActive
+  ).length;
 
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
 
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
+      }
+    }
+    return pageNumbers;
+  };
 
   return (
     <div className=" py-2">
@@ -158,7 +214,6 @@ const ClientManagement = () => {
               <h2 className="text-md font-semibold">Deactivated Clients</h2>
               <p className="text-lg font-semibold">{deactivatedClients}</p>
             </div>
-
           </div>
 
           <div className="flex items-center gap-2 mb-4">
@@ -179,10 +234,13 @@ const ClientManagement = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleSort("name")}>
-                  Name {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+                  Name{" "}
+                  {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleSort("isActive")}>
-                  Status {sortField === "isActive" && (sortOrder === "asc" ? "↑" : "↓")}
+                  Status{" "}
+                  {sortField === "isActive" &&
+                    (sortOrder === "asc" ? "↑" : "↓")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -204,22 +262,28 @@ const ClientManagement = () => {
                   <TableRow key={client._id}>
                     <TableCell>
                       <div className="font-medium">{client.name}</div>
-                      <div className="text-sm text-muted-foreground">{client._id}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {client._id}
+                      </div>
                     </TableCell>
-                    <TableCell>{client.user && client.user.email ? client.user.email : "N/A"}</TableCell>
+                    <TableCell>
+                      {client.user && client.user.email
+                        ? client.user.email
+                        : "N/A"}
+                    </TableCell>
 
                     <TableCell>
-                      {client.access_token?.expires 
-                        ? formatDate(client.access_token.expires) 
+                      {client.access_token?.expires
+                        ? formatDate(client.access_token.expires)
                         : "N/A"}
                     </TableCell>
                     <TableCell>
                       <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            client.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          client.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
                       >
                         {client.isActive ? "Activated" : "Not Activated"}
                       </span>
@@ -227,7 +291,11 @@ const ClientManagement = () => {
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
-                        onClick={() => (client.isActive ? handleDeactivateClick(client) : handleActivateClick(client))}
+                        onClick={() =>
+                          client.isActive
+                            ? handleDeactivateClick(client)
+                            : handleActivateClick(client)
+                        }
                       >
                         {client.isActive ? "Deactivate" : "Activate"}
                       </Button>
@@ -243,21 +311,43 @@ const ClientManagement = () => {
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page}>
-                      {page}
-                    </PaginationLink>
+
+                {getPageNumbers().map((pageNumber, index) => (
+                  <PaginationItem key={index}>
+                    {pageNumber === "ellipsis" ? (
+                      <PaginationEllipsis />
+                    ) : (
+                      <PaginationLink
+                        onClick={() => setCurrentPage(pageNumber as number)}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    )}
                   </PaginationItem>
                 ))}
+
                 <PaginationItem>
                   <PaginationNext
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -267,21 +357,26 @@ const ClientManagement = () => {
           <ActivateClientDialog
             open={activateDialogOpen}
             onOpenChange={setActivateDialogOpen}
-            onConfirm={() => selectedClient && handleActivateDeactivate(selectedClient._id, true)}
+            onConfirm={() =>
+              selectedClient &&
+              handleActivateDeactivate(selectedClient._id, true)
+            }
             clientName={selectedClient?.name}
           />
 
           <DeactivateClientDialog
             open={deactivateDialogOpen}
             onOpenChange={setDeactivateDialogOpen}
-            onConfirm={() => selectedClient && handleActivateDeactivate(selectedClient._id, false)}
+            onConfirm={() =>
+              selectedClient &&
+              handleActivateDeactivate(selectedClient._id, false)
+            }
             clientName={selectedClient?.name}
           />
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ClientManagement
-
+export default ClientManagement;
