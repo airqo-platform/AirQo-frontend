@@ -268,7 +268,7 @@ const AboutPage: React.FC = () => {
                 pollution challenges.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
-                They provide accurate, hyperlocal, and timely data providing
+                We provide accurate, hyperlocal, and timely data providing
                 evidence of the magnitude and scale of air pollution across the
                 continent.
               </p>
