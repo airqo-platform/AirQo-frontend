@@ -23,15 +23,3 @@ import { UserDetails } from './users';
     user: UserDetails
     access_token: AccessToken
   }
-
-export interface ClientsDetails {
-  _id: string
-    isActive: boolean
-    ip_addresses: string[]
-    name: string
-    client_secret: string
-    user: UserDetails
-    
-}
-  
-  
