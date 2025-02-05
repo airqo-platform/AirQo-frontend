@@ -15,6 +15,7 @@ import { users } from "@/core/apis/users"
 import type { Client } from "@/app/types/clients"
 import { settings } from "@/core/apis/settings"
 
+
 const UserClientsTable: React.FC = () => {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
@@ -56,6 +57,7 @@ const UserClientsTable: React.FC = () => {
     setIsLoading(true)
     try {
       const response = await settings.getUserClientsApi(userInfo?._id || "")
+      console.log(response)
       if (response) {
         dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
       }
@@ -85,12 +87,21 @@ const UserClientsTable: React.FC = () => {
     return client && client.access_token
   }
 
-  const getClientToken = (clientID: string) => {
-    const client =
-      Array.isArray(clientsDetails) && clientsDetails
-        ? clientsDetails?.find((client: Client) => client._id === clientID)
-        : undefined
-    return client && client.access_token && client.access_token.token
+  const getClientToken = async (clientID: string) => {
+    try {
+      const response = await settings.getUserClientsApi(userInfo?._id || "")
+      if (response) { 
+        const client = response.find((client: Client) => client._id === clientID);
+        return client?.access_token?.token;
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch client token",
+        variant: "destructive",
+      });
+    }
   }
 
   const getClientTokenExpiryDate = (clientID: string) => {
@@ -215,24 +226,27 @@ const UserClientsTable: React.FC = () => {
                       : "N/A"}
                   </TableCell>
                   <TableCell>
-                    {getClientToken(client._id) ? (
+                    {hasAccessToken(client._id) ? (
                       <div className="flex items-center">
                         <span className="mr-2 font-mono">
-                          {getClientToken(client._id).slice(0, 4)}
+                          {client.access_token?.token.slice(0, 4)}
                           <span className="mx-1">•••••••</span>
-                          {getClientToken(client._id).slice(-4)}
+                          {client.access_token?.token.slice(-4)}
                         </span>
                         <Button
                           title="Copy full token"
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            navigator.clipboard.writeText(getClientToken(client._id))
-                            toast({
-                              title: "Success",
-                              description: "API token copied to clipboard",
-                              variant: "success",
-                            })
+                          onClick={async () => {
+                            const token = await getClientToken(client._id)
+                            if (token) {
+                              navigator.clipboard.writeText(token)
+                              toast({
+                                title: "Success",
+                                description: "API token copied to clipboard",
+                                variant: "default",
+                              })
+                            }
                           }}
                         >
                           <Copy className="h-4 w-4" />

@@ -56,7 +56,9 @@ export const settings = {
   },
 
   generateTokenApi: async (data: Client): Promise<Client> => {
-    const response = await axiosInstance.post(`${USERS_MGT_URL}/token`, data);
+    const client_id = data._id
+    const formData = { client_id, name: data.name }
+    const response = await axiosInstance.post(`${USERS_MGT_URL}/tokens`, formData);
     return response.data;
   },
 
