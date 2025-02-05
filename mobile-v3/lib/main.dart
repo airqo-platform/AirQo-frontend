@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
+import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
@@ -140,7 +141,7 @@ class AirqoMobile extends StatelessWidget {
             //     scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
             //     brightness: Brightness.light),
             title: "AirQo",
-            home: Decider(),
+            home: ForgotPasswordPage(),
           );
         },
       ),

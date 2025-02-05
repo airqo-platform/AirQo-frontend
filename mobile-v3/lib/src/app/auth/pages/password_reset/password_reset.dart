@@ -54,6 +54,8 @@ class _PasswordResetPage extends State<PasswordResetPage> {
 
   @override
   Widget build(BuildContext context) {
+    final RegExp passwordReg = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#?!$%^&*,.]{6,}$');
+
     return BlocListener<PasswordResetBloc, PasswordResetState>(
       listener: (context, state) {
         if (state is PasswordResetSuccess) {
@@ -110,6 +112,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
 
                         SizedBox(height: 16),
                         FormFieldWidget(
+
                             prefixIcon: Container(
                               padding: const EdgeInsets.all(13.5),
                               child: SvgPicture.asset(
@@ -121,6 +124,10 @@ class _PasswordResetPage extends State<PasswordResetPage> {
 
                               if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
+                              }
+
+                              if(!passwordReg.hasMatch(value)){
+                                return 'Password must be at least 6 characters,\ninclude at least one letter and one number.';
                               }
                               return null;
                             },

@@ -2,12 +2,17 @@ import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_event.dart';
 import 'package:airqo/src/app/auth/pages/password_reset/password_reset.dart';
 
+
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
+import '../../bloc/ForgotPasswordBloc/forgot_password_state.dart';
+
 class ResetLinkSentPage extends StatefulWidget {
+
+
   const ResetLinkSentPage({super.key});
 
   @override
@@ -16,10 +21,27 @@ class ResetLinkSentPage extends StatefulWidget {
 
 class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
   final TextEditingController _pinController = TextEditingController();
+  String? error;
+  bool isLoading=false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<PasswordResetBloc, PasswordResetState>(
+              listener: (context, state) {
+
+                if (state is PasswordResetVerified) {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) => PasswordResetPage(token: _pinController.text.trim())));
+                } else if (state is PasswordResetError) {
+
+                  setState(() {
+                    isLoading=false;
+                    error = state.message.replaceAll("Exception: ", "");
+                  });
+                }
+          },
+    child:  Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
@@ -109,12 +131,14 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                     final pin = _pinController.text.trim();
 
 
-                    if (RegExp(r'^\d{5}$').hasMatch(pin)) {
+                    if (pin.isNotEmpty) {
+                      setState(() => isLoading = true);
+                      context.read<PasswordResetBloc>().add(VerifyResetCodeEvent(pin));
+
                       Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => PasswordResetPage(token: pin),
-                        ),
-                      );
+                          MaterialPageRoute(
+                              builder: (context) => PasswordResetPage(token: _pinController.text.trim())));
+
                     } else {
 
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -127,7 +151,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                         ),
                       );
                     }
-                    _pinController.clear();
+                    //_pinController.clear();
                   },
                   child: Container(
                     height: 56,
@@ -165,9 +189,11 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                           context.read<PasswordResetBloc>().add(
                             RequestPasswordReset(email),
                           );
-                          print("Resend requested for email: $email");
+
                         } else {
-                          print("Email is null or empty. Cannot resend.");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("No email found to resend code.")),
+                          );
                         }
                       },
                       child: Center(
@@ -188,6 +214,8 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
           SizedBox(height: 24),
         ],
       ),
+    )
+
     );
   }
 }

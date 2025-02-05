@@ -28,3 +28,13 @@ class UpdatePassword extends PasswordResetEvent {
   @override
   List<Object?> get props => [confirmPassword, password, token];
 }
+
+class VerifyResetCodeEvent extends PasswordResetEvent {
+  final String pin;
+
+  VerifyResetCodeEvent(this.pin);
+
+  @override
+  List<Object?> get props => [pin];
+}
+

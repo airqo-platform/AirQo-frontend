@@ -35,3 +35,11 @@ class PasswordResetError extends PasswordResetState {
   List<Object?> get props => [email, message]; // Nullable email
 }
 
+class PasswordResetVerified extends PasswordResetState {
+  final String message;
+
+  const PasswordResetVerified({String? email, required this.message}) : super(email: email);
+
+  @override
+  List<Object?> get props => [email, message];
+}
