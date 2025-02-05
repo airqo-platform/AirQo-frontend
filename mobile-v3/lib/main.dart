@@ -141,7 +141,7 @@ class AirqoMobile extends StatelessWidget {
             //     scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
             //     brightness: Brightness.light),
             title: "AirQo",
-            home: ForgotPasswordPage(),
+            home: Decider(),
           );
         },
       ),
