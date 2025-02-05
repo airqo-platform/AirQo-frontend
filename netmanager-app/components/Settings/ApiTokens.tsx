@@ -10,7 +10,7 @@ import CreateClientForm from "./CreateClientForm"
 import DialogWrapper from "./DialogWrapper"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Edit, Copy, Info, Plus } from "lucide-react"
+import { Edit, Copy, Info, Plus, RefreshCw } from "lucide-react"
 import { users } from "@/core/apis/users"
 import type { Client } from "@/app/types/clients"
 import { settings } from "@/core/apis/settings"
@@ -57,7 +57,6 @@ const UserClientsTable: React.FC = () => {
     setIsLoading(true)
     try {
       const response = await settings.getUserClientsApi(userInfo?._id || "")
-      console.log(response)
       if (response) {
         dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
       }
@@ -79,29 +78,17 @@ const UserClientsTable: React.FC = () => {
     fetchClientDetails()
   }, [userInfo?._id, dispatch])
 
-  const hasAccessToken = (clientId: string) => {
-    const client =
-      Array.isArray(clientsDetails) && clientsDetails
-        ? clientsDetails?.find((client: Client) => client._id === clientId)
-        : undefined
-    return client && client.access_token
+  const hasAccessToken = (clientId: string): boolean => {
+    const client = clients.find((client) => client._id === clientId)
+    return client?.access_token?.token ? true : false
   }
 
-  const getClientToken = async (clientID: string) => {
-    try {
-      const response = await settings.getUserClientsApi(userInfo?._id || "")
-      if (response) { 
-        const client = response.find((client: Client) => client._id === clientID);
-        return client?.access_token?.token;
-      }
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch client token",
-        variant: "destructive",
-      });
+  const getClientToken = async (clientId: string): Promise<string | null> => {
+    const client = clients.find((client) => client._id === clientId)
+    if (client?.access_token?.token) {
+      return client.access_token.token
     }
+    return null
   }
 
   const getClientTokenExpiryDate = (clientID: string) => {
@@ -226,13 +213,15 @@ const UserClientsTable: React.FC = () => {
                       : "N/A"}
                   </TableCell>
                   <TableCell>
-                    {hasAccessToken(client._id) ? (
-                      <div className="flex items-center">
-                        <span className="mr-2 font-mono">
-                          {client.access_token?.token.slice(0, 4)}
-                          <span className="mx-1">•••••••</span>
-                          {client.access_token?.token.slice(-4)}
-                        </span>
+                  {client?.access_token ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-1">
+                          <span className="font-mono">
+                            {client.access_token?.token}
+                            <span className="mx-1">•••••••</span>
+                            {client.access_token?.token}
+                          </span>
+                        </div>
                         <Button
                           title="Copy full token"
                           variant="ghost"
@@ -251,10 +240,22 @@ const UserClientsTable: React.FC = () => {
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
+                        <Button
+                          title="Generate new token"
+                          variant="ghost"
+                          size="sm"
+                          disabled={isLoadingToken}
+                          onClick={() => {
+                            setSelectedClient(client)
+                            handleGenerateToken(client)
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
                       </div>
                     ) : (
                       <Button
-                        variant={!hasAccessToken(client._id) ? "default" : "secondary"}
+                        variant="default"
                         size="sm"
                         disabled={isLoadingToken}
                         onClick={() => {
@@ -262,7 +263,7 @@ const UserClientsTable: React.FC = () => {
                           handleGenerateToken(client)
                         }}
                       >
-                        Generate
+                        Generate Token
                       </Button>
                     )}
                   </TableCell>
