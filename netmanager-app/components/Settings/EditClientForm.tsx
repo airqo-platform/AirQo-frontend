@@ -10,7 +10,7 @@ import { X, Plus } from "lucide-react"
 import { users } from "@/core/apis/users"
 import type { RootState } from "@/core/redux/store"
 import { Client } from "@/app/types/clients"
-import { getUserClientsApi, updateClientApi } from "@/core/apis/settings"
+import { settings } from "@/core/apis/settings"
 
 interface EditClientFormProps {
   open: boolean
@@ -85,12 +85,12 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ open, onClose, data }) 
         ip_addresses: ipAddresses.filter((ip) => ip.trim() !== ""),
       }
 
-      const response = await updateClientApi(data, clientID)
+      const response = await settings.updateClientApi(data, clientID)
       if (!response) {
         throw new Error("Failed to update client")
       }
       const res = await users.getUserDetails(userInfo?._id || "")
-      const resp = await getUserClientsApi(userInfo?._id || "")
+      const resp = await settings.getUserClientsApi(userInfo?._id || "")
       dispatch(addClients(res.users[0].clients))
       dispatch(addClientsDetails(resp.clients))
       dispatch(performRefresh())

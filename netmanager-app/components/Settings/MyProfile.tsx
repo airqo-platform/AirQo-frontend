@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { updateUserDetailsApi } from "@/core/apis/settings"
+import { settings } from "@/core/apis/settings"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { getCountries } from "@/utils/countries"
 import { getTimezones } from "@/utils/timezones"
@@ -112,7 +112,7 @@ export default function MyProfile() {
       if (profile && currentUser) {
         const updatedProfile = { ...profile, profilePicture: responseData.secure_url }
         setProfile(updatedProfile)
-        await updateUserDetailsApi({ profilePicture: responseData.secure_url }, currentUser._id)
+        await settings.updateUserDetailsApi({ profilePicture: responseData.secure_url }, currentUser._id)
         dispatch(setUserDetails({ ...currentUser, profilePicture: responseData.secure_url }))
         toast({
           title: "Success",
@@ -135,7 +135,7 @@ export default function MyProfile() {
     try {
       const updatedProfile = { ...profile, profilePicture: "" }
       setProfile(updatedProfile)
-      await updateUserDetailsApi({ profilePicture: "" }, currentUser._id)
+      await settings.updateUserDetailsApi({ profilePicture: "" }, currentUser._id)
       dispatch(setUserDetails({ ...currentUser, profilePicture: "" }))
       toast({
         title: "Success",
@@ -155,7 +155,7 @@ export default function MyProfile() {
 
     setIsLoading(true)
     try {
-      await updateUserDetailsApi(profile, currentUser._id)
+      await settings.updateUserDetailsApi(profile, currentUser._id)
       const res = await users.getUserDetails(currentUser._id)
       const updatedUser = res.users[0]
 

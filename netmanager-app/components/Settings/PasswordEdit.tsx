@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAppSelector } from "@/core/redux/hooks"
-import { updateUserPasswordApi } from "@/core/apis/settings"
+import { settings } from "@/core/apis/settings"
 import { useToast } from "@/components/ui/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Eye, EyeOff } from "lucide-react"
@@ -106,7 +106,7 @@ export default function PasswordEdit() {
 
     try {
       setIsLoading(true)
-      const response = await updateUserPasswordApi(userId, pwdData)
+      const response = await settings.updateUserPasswordApi(userId, pwdData)
 
       if (response) {
         setPasswords({

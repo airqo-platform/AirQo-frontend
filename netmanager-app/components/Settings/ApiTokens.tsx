@@ -12,9 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Edit, Copy, Info, Plus } from "lucide-react"
 import { users } from "@/core/apis/users"
-import { getUserClientsApi } from "@/core/apis/settings"
 import type { Client } from "@/app/types/clients"
-import { generateTokenApi, activationRequestApi } from "@/core/apis/settings"
+import { settings } from "@/core/apis/settings"
 
 const UserClientsTable: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -56,7 +55,7 @@ const UserClientsTable: React.FC = () => {
   const fetchClientDetails = async () => {
     setIsLoading(true)
     try {
-      const response = await getUserClientsApi(userInfo?._id || "")
+      const response = await settings.getUserClientsApi(userInfo?._id || "")
       if (response) {
         dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
       }
@@ -110,7 +109,7 @@ const UserClientsTable: React.FC = () => {
       return;
     } else {
       try {
-        const response = await generateTokenApi(res)
+        const response = await settings.generateTokenApi(res)
         if (response) {
           toast({
             title: "Success",
@@ -134,7 +133,7 @@ const UserClientsTable: React.FC = () => {
     setIsLoadingActivationRequest(true)
     try {
       const clientID = selectedClient?._id
-      const response = await activationRequestApi(clientID)
+      const response = await settings.activationRequestApi(clientID)
       if (response) {
         setShowInfoModal(false)
         setTimeout(() => {

@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
-import { useAppDispatch, useAppSelector } from "@/core/redux/hooks"
+import {  useAppSelector } from "@/core/redux/hooks"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, X } from 'lucide-react'
-import { createClientApi } from "@/core/apis/settings"
-import { Client } from "@/app/types/clients"
+import { settings } from "@/core/apis/settings"
 import { useToast } from "@/components/ui/use-toast"
 
 interface CreateClientFormProps {
@@ -16,7 +15,6 @@ interface CreateClientFormProps {
 }
 
 const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose, onClientCreated }) => {
-  const dispatch = useAppDispatch()
   const { toast } = useToast()
   const userInfo = useAppSelector((state) => state.user.userDetails)
   const [clientName, setClientName] = useState('')
@@ -55,12 +53,11 @@ const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose, onCl
         ip_addresses: ipAddresses.filter((ip) => ip.trim() !== ''),
       }
 
-      const response = await createClientApi(data)
+      const response = await settings.createClientApi(data)
       if (response) {
         toast({
           title: "Success",
           description: "Client created successfully",
-          variant: "success",
         })
         onClientCreated()
         onClose()
