@@ -18,7 +18,7 @@ export default function ProfileTabs() {
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className={`grid w-full ${canManageClients ? "grid-cols-4" : "grid-cols-3"}`}>
         <TabsTrigger value="profile">My Profile</TabsTrigger>
-        <TabsTrigger value="password">Password Edit</TabsTrigger>
+        <TabsTrigger value="password">Reset Password</TabsTrigger>
         <TabsTrigger value="api">API Access Tokens</TabsTrigger>
         {canManageClients && <TabsTrigger value="clients">Clients</TabsTrigger>}
       </TabsList>
