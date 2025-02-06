@@ -49,6 +49,7 @@ const Page: React.FC = () => {
                       e.preventDefault();
                       dispatch(selectEvent(index));
                       router.push('/clean-air-forum');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                     className={`text-blue-600 hover:underline ${
                       selectedEventIndex === index ? 'font-bold' : ''
