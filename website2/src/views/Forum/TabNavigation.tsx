@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
-const TabNavigation = () => {
+const TabNavigation: React.FC = () => {
   const pathname = usePathname();
 
-  // Function to check if the tab is active based on the current pathname
+  // Function to check if the tab is active based on the current pathname.
   const isActiveTab = (path: string) => pathname === path;
 
   return (

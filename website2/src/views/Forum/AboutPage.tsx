@@ -27,8 +27,6 @@ const AboutPage = () => {
     return <NoData />;
   }
 
-  console.info(data);
-
   // Objectives Section: Render each objective as a SectionRow
   const renderObjectives = () => {
     const objectives = data?.engagement?.objectives || [];

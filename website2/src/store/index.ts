@@ -1,12 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import countryReducer from './slices/countrySlice';
+import forum from './slices/forumSlice';
 import modalReducer from './slices/modalSlice';
 
 const store = configureStore({
   reducer: {
     modal: modalReducer,
     country: countryReducer,
+    forum: forum,
   },
 });
 
