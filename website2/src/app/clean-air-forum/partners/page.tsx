@@ -29,6 +29,14 @@ const Page = () => {
       logoUrl: partner.partner_logo_url,
     }));
 
+  // Filter Program Partners
+  const programPartners = data.partners
+    ?.filter((partner: any) => partner.category === 'Program Partner')
+    .map((partner: any) => ({
+      id: partner.id,
+      logoUrl: partner.partner_logo_url,
+    }));
+
   // Filter Funding Partners (if available)
   const fundingPartners = data.partners
     ?.filter((partner: any) => partner.category === 'Funding Partner')
@@ -84,6 +92,27 @@ const Page = () => {
               <PaginatedSection
                 noClick={true}
                 logos={hostPartners}
+                sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/*  */}
+      {programPartners?.length > 0 && (
+        <>
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          <div>
+            <div className="flex flex-col md:flex-row md:space-x-8">
+              <div className="md:w-1/3 mb-4 md:mb-0">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Program Partners and Exhibitors
+                </h2>
+              </div>
+              <PaginatedSection
+                noClick={true}
+                logos={programPartners}
                 sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
               />
             </div>
