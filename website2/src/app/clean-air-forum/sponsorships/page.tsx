@@ -1,4 +1,5 @@
 'use client';
+import DOMPurify from 'dompurify';
 import React from 'react';
 
 import { Divider } from '@/components/ui';
@@ -24,9 +25,12 @@ const Page = () => {
       {/* Sponsorship Opportunities Text Section */}
       <div className="py-4">
         <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
+
         <div
           dangerouslySetInnerHTML={{
-            __html: renderContent(data.sponsorship_opportunities_partners),
+            __html: DOMPurify.sanitize(
+              renderContent(data.sponsorship_opportunities_partners),
+            ),
           }}
         />
       </div>

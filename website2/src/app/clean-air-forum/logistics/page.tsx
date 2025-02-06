@@ -1,4 +1,5 @@
 'use client';
+import DOMPurify from 'dompurify';
 import React from 'react';
 
 import { Divider } from '@/components/ui';
@@ -24,7 +25,9 @@ const Page = () => {
           <div
             className="md:w-2/3 space-y-4"
             dangerouslySetInnerHTML={{
-              __html: renderContent(data.travel_logistics_vaccination_details),
+              __html: DOMPurify.sanitize(
+                renderContent(data.travel_logistics_vaccination_details),
+              ),
             }}
           ></div>
         </div>
@@ -43,7 +46,9 @@ const Page = () => {
           <div
             className="md:w-2/3 space-y-4"
             dangerouslySetInnerHTML={{
-              __html: renderContent(data.travel_logistics_visa_details),
+              __html: DOMPurify.sanitize(
+                renderContent(data.travel_logistics_visa_details),
+              ),
             }}
           ></div>
         </div>

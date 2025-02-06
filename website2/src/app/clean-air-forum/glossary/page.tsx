@@ -1,4 +1,5 @@
 'use client';
+import DOMPurify from 'dompurify';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -78,7 +79,9 @@ const Page: React.FC = () => {
         <div
           className="md:w-2/3 space-y-4"
           dangerouslySetInnerHTML={{
-            __html: renderContent(selectedEvent.glossary_details),
+            __html: DOMPurify.sanitize(
+              renderContent(selectedEvent.glossary_details),
+            ),
           }}
         ></div>
       </div>

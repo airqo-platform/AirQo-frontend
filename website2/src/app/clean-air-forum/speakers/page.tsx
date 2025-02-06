@@ -1,4 +1,5 @@
 'use client';
+import DOMPurify from 'dompurify';
 import React, { useState } from 'react';
 
 import { Divider, MemberCard, Pagination } from '@/components/ui/';
@@ -61,7 +62,9 @@ const Page = () => {
       <div className="py-4">
         <div
           dangerouslySetInnerHTML={{
-            __html: renderContent(data.speakers_text_section),
+            __html: DOMPurify.sanitize(
+              renderContent(data.speakers_text_section),
+            ),
           }}
         />
       </div>

@@ -1,5 +1,6 @@
 'use client';
 import { format } from 'date-fns';
+import DOMPurify from 'dompurify';
 import React, { useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
@@ -87,7 +88,7 @@ const Page = () => {
         <h2 className="text-2xl font-bold">Schedule</h2>
         <div
           dangerouslySetInnerHTML={{
-            __html: renderContent(data?.schedule_details),
+            __html: DOMPurify.sanitize(renderContent(data?.schedule_details)),
           }}
         />
       </div>
@@ -115,7 +116,9 @@ const Page = () => {
           <div
             className="md:w-2/3 space-y-4"
             dangerouslySetInnerHTML={{
-              __html: renderContent(data?.registration_details),
+              __html: DOMPurify.sanitize(
+                renderContent(data?.registration_details),
+              ),
             }}
           />
         </div>
