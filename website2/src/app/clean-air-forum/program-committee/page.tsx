@@ -1,4 +1,5 @@
 'use client';
+import DOMPurify from 'dompurify';
 import React, { useMemo, useState } from 'react';
 
 import { Divider, MemberCard, Pagination } from '@/components/ui/';
@@ -52,7 +53,9 @@ const Page: React.FC = () => {
         <h2 className="text-2xl font-bold">Program Committee</h2>
         <div
           dangerouslySetInnerHTML={{
-            __html: renderContent(data.committee_text_section),
+            __html: DOMPurify.sanitize(
+              renderContent(data.committee_text_section),
+            ),
           }}
         />
       </div>
