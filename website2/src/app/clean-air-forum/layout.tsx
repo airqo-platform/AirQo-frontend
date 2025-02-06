@@ -1,6 +1,6 @@
 'use client';
-
-import React, { ReactNode } from 'react';
+import { useSearchParams } from 'next/navigation';
+import React, { ReactNode, useEffect } from 'react';
 
 import Footer from '@/components/layouts/Footer';
 import Navbar from '@/components/layouts/Navbar';
@@ -8,7 +8,9 @@ import NewsLetter from '@/components/layouts/NewsLetter';
 import Loading from '@/components/loading';
 import mainConfig from '@/configs/mainConfigs';
 import { ForumDataProvider } from '@/context/ForumDataContext';
+import { useDispatch, useSelector } from '@/hooks/reduxHooks';
 import { useForumEvents } from '@/hooks/useApiHooks';
+import { selectEvent, setEvents } from '@/store/slices/forumSlice';
 import BannerSection from '@/views/Forum/BannerSection';
 
 type CleanAirLayoutProps = {
@@ -16,19 +18,60 @@ type CleanAirLayoutProps = {
 };
 
 const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
-  // Using the `useForumEvents` hook
+  // Fetch forum events from the API.
   const { data: forumEvents, isLoading } = useForumEvents();
+  const dispatch = useDispatch();
+  const searchParams = useSearchParams();
 
-  // Extract the first event (if available)
-  const eventData = forumEvents?.[0] || null;
+  // When events are fetched, update the Redux slice.
+  useEffect(() => {
+    if (forumEvents && forumEvents.length > 0) {
+      dispatch(setEvents(forumEvents));
+    }
+  }, [forumEvents, dispatch]);
 
-  // Loading state
+  // Get the slug query parameter.
+  const slug = searchParams.get('slug');
+  const events = useSelector((state) => state.forum.events);
+  const selectedEventIndex = useSelector(
+    (state) => state.forum.selectedEventIndex,
+  );
+
+  // Only run the slug-based selection if a slug is provided.
+  useEffect(() => {
+    if (slug && events.length > 0) {
+      // Normalize the slug by replacing hyphens with spaces and lowercasing.
+      const normalizedSlug = slug.replace(/-/g, ' ').toLowerCase();
+      // Find the event whose title (taking the part before a comma) matches.
+      const index = events.findIndex((event) => {
+        const cleanTitle = event.title
+          .split(',')[0]
+          .trim()
+          .toLowerCase()
+          .replace(/-/g, ' ');
+        return cleanTitle === normalizedSlug;
+      });
+      if (index !== -1 && index !== selectedEventIndex) {
+        dispatch(selectEvent(index));
+      }
+      // If no slug match is found, you may choose to do nothing
+      // rather than resetting to index 0.
+    }
+    // Note: we do not reset the index if slug is missing.
+  }, [slug, events, selectedEventIndex, dispatch]);
+
+  const selectedEvent = events[selectedEventIndex];
+
   if (isLoading) {
     return <Loading />;
   }
 
+  if (!selectedEvent) {
+    return null;
+  }
+
   return (
-    <ForumDataProvider data={eventData}>
+    <ForumDataProvider data={selectedEvent}>
       <div className="min-h-screen w-full flex flex-col">
         {/* Navbar */}
         <header className="sticky top-0 z-50">
@@ -36,7 +79,7 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
         </header>
 
         {/* Banner Section */}
-        <BannerSection data={eventData} />
+        <BannerSection data={selectedEvent} />
 
         {/* Main Content */}
         <main className={`${mainConfig.containerClass} w-full flex-1 pb-8`}>

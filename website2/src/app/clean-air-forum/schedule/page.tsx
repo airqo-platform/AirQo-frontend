@@ -1,5 +1,6 @@
 'use client';
 import { format } from 'date-fns';
+import DOMPurify from 'dompurify';
 import React, { useState } from 'react';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
@@ -81,13 +82,13 @@ const Page = () => {
   }
 
   return (
-    <div className=" px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 lg:px-0 flex flex-col gap-6">
       {/* Schedule Section */}
       <div className="py-4">
         <h2 className="text-2xl font-bold">Schedule</h2>
         <div
           dangerouslySetInnerHTML={{
-            __html: renderContent(data?.schedule_details),
+            __html: DOMPurify.sanitize(renderContent(data?.schedule_details)),
           }}
         />
       </div>
@@ -115,24 +116,9 @@ const Page = () => {
           <div
             className="md:w-2/3 space-y-4"
             dangerouslySetInnerHTML={{
-              __html: renderContent(data?.registration_details),
-            }}
-          />
-        </div>
-      </div>
-
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-
-      {/* Sponsorship Section */}
-      <div>
-        <div className="flex flex-col md:flex-row md:space-x-8">
-          <div className="md:w-1/3 mb-4 md:mb-0">
-            <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
-          </div>
-          <div
-            className="md:w-2/3 space-y-4"
-            dangerouslySetInnerHTML={{
-              __html: renderContent(data?.sponsorship_opportunities_schedule),
+              __html: DOMPurify.sanitize(
+                renderContent(data?.registration_details),
+              ),
             }}
           />
         </div>
