@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { getClientsApi } from "../apis/settings";
+import { settings } from "../apis/settings";
 import { setClients, setError} from "../redux/slices/clientsSlice";
 
 export const useClients = () => {
@@ -9,7 +9,7 @@ export const useClients = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["clients"],
-    queryFn: () => getClientsApi(),
+    queryFn: () => settings.getClientsApi(),
     onSuccess: (data: any) => {
       dispatch(setClients(data));
     },

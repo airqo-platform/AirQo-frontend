@@ -1,12 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { Client } from "@/app/types/clients";
+import { Client, AccessToken } from "@/app/types/clients";
 
 export interface ClientsState {
   clients: Client[];
   isLoading: boolean;
   error: string | null;
   clientsDetails: Client[];
+  access_token: AccessToken[];
   refresh: boolean;
 }
 
@@ -14,6 +15,7 @@ const initialState: ClientsState = {
   clients: [],
   isLoading: false,
   clientsDetails: [],
+  accees_token: [],
   refresh: false,
   error: null,
 };
@@ -31,6 +33,12 @@ const clientSlice = createSlice({
       state.clients = action.payload;
     },
     addClientsDetails: (state, action) => {
+      state.clientsDetails = action.payload;
+    },
+    setAccessToken: (state, action) => {
+      state.access_token = action.payload
+    },
+    setUserClients: (state, action) => {
       state.clientsDetails = action.payload;
     },
     performRefresh: (state) => {
@@ -52,6 +60,7 @@ export const {
   addClients,
   addClientsDetails,
   performRefresh,
+  setUserClients,
   setError,
 } = clientSlice.actions;
 export default clientSlice.reducer;

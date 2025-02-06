@@ -16,7 +16,7 @@ import type { Client } from "@/app/types/clients"
 import { settings } from "@/core/apis/settings"
 
 
-const UserClientsTable: React.FC = () => {
+const UserClientsTable = () => {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -42,7 +42,6 @@ const UserClientsTable: React.FC = () => {
       }
       setClients(res.users[0].clients)
     } catch (error) {
-      console.error(error)
       toast({
         title: "Error",
         description: "Failed to fetch user details",
@@ -57,11 +56,10 @@ const UserClientsTable: React.FC = () => {
     setIsLoading(true)
     try {
       const response = await settings.getUserClientsApi(userInfo?._id || "")
-      console.log(response)
       if (response) {
         dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
       }
-      setClientsDetails(response)
+      setClientsDetails(response.clients)
     } catch (error) {
       console.error(error)
       toast({
@@ -80,16 +78,19 @@ const UserClientsTable: React.FC = () => {
   }, [userInfo?._id, dispatch])
 
   const hasAccessToken = (clientId: string): boolean => {
-    const client = clients.find((client) => client._id === clientId)
+    const client =
+      Array.isArray(clientsDetails) && clientsDetails
+        ? clientsDetails?.find((client: Client) => client._id === clientId)
+        : undefined
     return client?.access_token?.token ? true : false
   }
 
-  const getClientToken = async (clientId: string): Promise<string | null> => {
-    const client = clients.find((client) => client._id === clientId)
-    if (client?.access_token?.token) {
-      return client.access_token.token
-    }
-    return null
+  const getClientToken = (clientID: string) => {
+    const client =
+      Array.isArray(clientsDetails) && clientsDetails
+        ? clientsDetails?.find((client: Client) => client._id === clientID)
+        : undefined
+        return client && client.access_token && client.access_token.token
   }
   const getClientTokenExpiryDate = (clientID: string) => {
     const client =
@@ -97,6 +98,14 @@ const UserClientsTable: React.FC = () => {
         ? clientsDetails?.find((client: Client) => client._id === clientID)
         : undefined
     return client && client.access_token && client.access_token.expires
+  }
+
+  const getClientTokenCreateAt = (clientID: string) => {
+    const client =
+      Array.isArray(clientsDetails) && clientsDetails
+        ? clientsDetails?.find((client: Client) => client._id === clientID)
+        : undefined
+    return client && client.access_token && client.access_token.createdAt
   }
 
   const handleGenerateToken = async (res: Client) => {
@@ -208,17 +217,15 @@ const UserClientsTable: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {client?.access_token?.createdAt
-                      ? moment(client.access_token.createdAt).format("MMM DD, YYYY")
-                      : "N/A"}
+                  {getClientTokenCreateAt(client._id) && moment(getClientTokenCreateAt(client._id)).format("MMM DD, YYYY")}
                   </TableCell>
                   <TableCell>
-                    {client?.access_token  ? (
+                    {hasAccessToken(client._id) ? (
                       <div className="flex items-center">
-                        <span className="mr-2 font-mono">
-                          {client.access_token.token.slice(0, 4)}
+                        <span className="mr-2 text-slate-700 font-mono">
+                          {getClientToken(client._id)?.slice(0, 2)}
                           <span className="mx-1">•••••••</span>
-                          {client.access_token?.token.slice(-4)}
+                          {getClientToken(client._id)?.slice(-2)}
                         </span>
                         <Button
                           title="Copy full token"
@@ -253,6 +260,7 @@ const UserClientsTable: React.FC = () => {
                       </Button>
                     )}
                   </TableCell>
+
                   <TableCell>
                     {getClientTokenExpiryDate(client._id) &&
                       moment(getClientTokenExpiryDate(client._id)).format("MMM DD, YYYY")}
@@ -280,7 +288,6 @@ const UserClientsTable: React.FC = () => {
           )}
         </TableBody>
       </Table>
-      {/* Add your Pagination component here */}
       <EditClientForm
         open={openEditForm}
         onClose={() => setOpenEditForm(false)}
