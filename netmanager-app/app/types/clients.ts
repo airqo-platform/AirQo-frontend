@@ -23,5 +23,3 @@ import { UserDetails } from './users';
     user: UserDetails
     access_token: AccessToken
   }
-  
-  
