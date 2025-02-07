@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
-import { CreateGrid } from "@/app/types/grids";
+import { CreateGrid, Grid } from "@/app/types/grids";
 import { GridsState, setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
@@ -58,7 +58,7 @@ export const useGridDetails = (gridId: string) => {
   });
 
   return {
-    getGridDetails: mutation.mutate || [],
+    gridDetails: mutation.mutate || [],
     isLoading: mutation.isPending,
     error: mutation.error as Error | null,
   };
@@ -96,7 +96,7 @@ export const useCreateGrid = () => {
       await grids.createGridApi(newGrid),
     onSuccess: () => {
       // Invalidate and refetch the grid summary after creating a new grid
-      queryClient.invalidateQueries({ queryKey: ["gridSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["grids"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.error("Failed to create grid:", error.response?.data?.message);
@@ -104,7 +104,7 @@ export const useCreateGrid = () => {
   });
 
   return {
-    createGrid: mutation.mutate,
+    createGrid: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
   };

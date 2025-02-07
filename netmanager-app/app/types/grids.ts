@@ -1,3 +1,4 @@
+import { Position } from "@/core/redux/slices/gridsSlice";
 import { Site } from "./sites";
 
 export interface CreateGrid {
@@ -5,7 +6,7 @@ export interface CreateGrid {
   admin_level: string;
   shape: {
     type: "MultiPolygon" | "Polygon";
-    coordinates: number[][][][];
+    coordinates: Position[][] | Position[][][];
   };
   network: string;
 }
