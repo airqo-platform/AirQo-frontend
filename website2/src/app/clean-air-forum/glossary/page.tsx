@@ -1,17 +1,17 @@
 'use client';
 import DOMPurify from 'dompurify';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { Divider } from '@/components/ui';
-import { useDispatch, useSelector } from '@/hooks/reduxHooks';
-import { selectEvent } from '@/store/slices/forumSlice';
+import { useSelector } from '@/hooks/reduxHooks';
+// import { selectEvent } from '@/store/slices/forumSlice';
 import { renderContent } from '@/utils/quillUtils';
 
 const Page: React.FC = () => {
-  const router = useRouter();
-  const dispatch = useDispatch();
+  // const router = useRouter();
+  // const dispatch = useDispatch();
   // Retrieve forum events and selected event index from Redux.
   const { events, selectedEventIndex } = useSelector((state) => state.forum);
 
@@ -46,11 +46,12 @@ const Page: React.FC = () => {
                 <li key={event.id}>
                   <Link
                     href={href}
+                    target="_blank"
                     onClick={(e) => {
                       e.preventDefault();
-                      dispatch(selectEvent(index));
-                      router.push('/clean-air-forum');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      // dispatch(selectEvent(index));
+                      // Open the event page in a new tab.
+                      window.open(href, '_blank');
                     }}
                     className={`text-blue-600 hover:underline ${
                       selectedEventIndex === index ? 'font-bold' : ''
