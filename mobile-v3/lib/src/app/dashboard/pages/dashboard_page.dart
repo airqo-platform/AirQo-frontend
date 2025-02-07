@@ -192,7 +192,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.boldHeadlineColor2,
+                                color: Theme.of(context).textTheme.headlineLarge?.color,
                               ),
                             );
                           } else {
@@ -204,7 +204,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     style: TextStyle(
                                       fontSize: 28,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.boldHeadlineColor,
+                                      color: Theme.of(context).textTheme.headlineLarge?.color,
                                     ),
                                   );
                                 }
@@ -213,7 +213,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   style: TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.boldHeadlineColor,
+                                    color: Theme.of(context).textTheme.headlineLarge?.color,
                                   ),
                                 );
                               },
@@ -227,7 +227,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xff60646C),
+                          color: Theme.of(context).textTheme.headlineMedium?.color,
                         ),
                       ),
                       SizedBox(height: 4)
