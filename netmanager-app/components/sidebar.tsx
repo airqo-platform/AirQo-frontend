@@ -18,7 +18,6 @@ import {
   Map,
   ChevronDown,
   Check,
-  Hospital,
   PlusCircle,
   MonitorSmartphone,
   LogOut,
@@ -208,21 +207,6 @@ const Sidebar = () => {
                     >
                       <Shield size={18} />
                       <span>Access Control</span>
-                    </Link>
-                  </li>
-                </PermissionGuard>
-                <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
-                  <li>
-                    <Link
-                      href="/clients"
-                      className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                        isActive("/access-control")
-                          ? "bg-accent text-accent-foreground"
-                          : ""
-                      }`}
-                    >
-                      <Hospital size={18} />
-                      <span>Clients</span>
                     </Link>
                   </li>
                 </PermissionGuard>

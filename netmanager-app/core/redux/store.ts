@@ -4,6 +4,7 @@ import sitesReducer from "./slices/sitesSlice";
 import devicesReducer from "./slices/devicesSlice";
 import cohortsReducer from "./slices/cohortsSlice";
 import gridsReducer from "./slices/gridsSlice";
+import clientsRudcer from "./slices/clientsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     devices: devicesReducer,
     grids: gridsReducer,
     cohorts: cohortsReducer,
+    clients: clientsRudcer,
   },
 });
 
