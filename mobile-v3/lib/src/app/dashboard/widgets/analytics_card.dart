@@ -47,7 +47,7 @@ class AnalyticsCard extends StatelessWidget {
                                 Text(
                                   " PM2.5",
                                   style: TextStyle(
-                                    color: Color(0xff7A7F87),
+                                    color: Theme.of(context).textTheme.headlineSmall?.color,
                                   ),
                                 ),
                               ],
@@ -61,13 +61,17 @@ class AnalyticsCard extends StatelessWidget {
                                 style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 40,
-                                  color: AppColors.boldHeadlineColor2),
+                                    color: Theme.of(context).textTheme.headlineLarge?.color
+
+                                ),
                               ),
                               Text(" μg/m3",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 20,
-                                      color: AppColors.boldHeadlineColor2))
+                                      color: Theme.of(context).textTheme.headlineLarge?.color
+                                  )
+                              )
                             ]),
                           ]),
                       SizedBox(
@@ -99,12 +103,16 @@ class AnalyticsCard extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.secondaryHeadlineColor3)),
+                          color: Theme.of(context).textTheme.headlineSmall?.color
+                      )
+                  ),
                   Text(measurement.healthTips![0].description!,
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.secondaryHeadlineColor2))
+                          color: Theme.of(context).textTheme.headlineMedium?.color
+                      )
+                  )
                 ],
               ),
             ),

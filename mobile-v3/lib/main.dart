@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
+import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
@@ -16,12 +18,12 @@ import 'package:airqo/src/app/other/places/repository/google_places_repository.d
 import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
-import 'package:airqo/src/app/profile/pages/guest_profile%20page.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 
 import 'package:airqo/src/meta/utils/colors.dart';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -117,6 +119,8 @@ class AirqoMobile extends StatelessWidget {
         BlocProvider(
           create: (context) => ConnectivityBloc(connectivity),
         ),
+        BlocProvider(create: (context) => PasswordResetBloc(authRepository: authRepository),
+        )
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
