@@ -36,6 +36,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
+import { useClients } from "@/core/hooks/useClients";
+
 const ITEMS_PER_PAGE = 8;
 
 const formatDate = (dateString: string | undefined): string => {
@@ -54,7 +56,7 @@ const formatDate = (dateString: string | undefined): string => {
 };
 
 const ClientManagement = () => {
-  const [clients, setClients] = useState<Client[]>([]);
+  // const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [activateDialogOpen, setActivateDialogOpen] = useState(false);
@@ -64,26 +66,8 @@ const ClientManagement = () => {
   const [sortField, setSortField] = useState<keyof Client>("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
+  const { clients, isLoading, error } = useClients();
 
-  const fetchClients = async () => {
-    setLoading(true);
-    try {
-      const response = await getClientsApi();
-      setClients(response.clients);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch clients",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchClients();
-  }, []);
 
   const handleActivateDeactivate = async (
     clientId: string,
@@ -95,7 +79,6 @@ const ClientManagement = () => {
     };
     try {
       await settings.activateUserClientApi(data);
-      await fetchClients();
       toast({
         title: "Success",
         description: `Client ${
@@ -135,7 +118,7 @@ const ClientManagement = () => {
   };
 
   const filteredClients = clients.filter(
-    (client) =>
+    (client:  Client) =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (client.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ??
         false)
@@ -153,9 +136,9 @@ const ClientManagement = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const activatedClients = clients.filter((client) => client.isActive).length;
+  const activatedClients = clients.filter((client: Client) => client.isActive).length;
   const deactivatedClients = clients.filter(
-    (client) => !client.isActive
+    (client: Client) => !client.isActive
   ).length;
 
   const getPageNumbers = () => {
@@ -194,7 +177,7 @@ const ClientManagement = () => {
 
   return (
     <div className=" py-2">
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
@@ -202,7 +185,6 @@ const ClientManagement = () => {
         <>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Client Management</h1>
-            <Button onClick={fetchClients}>Refresh</Button>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
