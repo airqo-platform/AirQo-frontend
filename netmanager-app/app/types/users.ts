@@ -61,6 +61,7 @@ export interface UserDetails {
   rateLimit: number | null;
   jobTitle?: string | null;
   description?: string | null;
+  timezone?: string | null;
   profilePicture: string | null;
   phoneNumber: string | null;
   updatedAt: string;
@@ -105,6 +106,8 @@ export interface DecodedToken {
   privilege: string;
   country: string | null;
   profilePicture: string | null;
+  description: string | null;
+  timezone: string | null;
   phoneNumber: string | null;
   createdAt: string;
   updatedAt: string;
