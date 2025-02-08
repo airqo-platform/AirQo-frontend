@@ -10,14 +10,11 @@ export const useUserClients = () => {
 
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["clients", userDetails?._id,],
+    queryKey: ["clients", userDetails?._id],
     queryFn: () =>
-      settings.getUserClientsApi(
-        userDetails?._id || ""
-      ),
+      settings.getUserClientsApi(userDetails?._id || ""),
     onSuccess: (data: any) => {
-      dispatch(setUserClients(data.clients));
-
+      dispatch(setUserClients(data));
     },
     onError: (error: Error) => {
       dispatch(setError(error.message));
@@ -25,7 +22,7 @@ export const useUserClients = () => {
   });
 
   return {
-    clients: data || [],
+    clients: data?.clients || [],
     isLoading,
     error: error as Error | null,
   };
