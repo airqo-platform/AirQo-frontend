@@ -20,16 +20,11 @@ interface PasswordData {
 const axiosInstance = createAxiosInstance();
 
 export const settings = {
-  getUserClientsApi: async (userID: string): Promise<Client[]> => {
-    try {
-      const response = await axiosInstance.get<Client[]>(`${USERS_MGT_URL}/clients`, {
+  getUserClientsApi: async (userID: string) => {
+      return await axiosInstance.get(`${USERS_MGT_URL}/clients`, {
         params: { user_id: userID },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      throw error;
-    }
+      })
+      .then((response) => response.data);
   },
 
   createClientApi: async (data: CreateClientData): Promise<Client> => {

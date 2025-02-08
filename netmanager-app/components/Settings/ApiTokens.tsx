@@ -14,96 +14,49 @@ import { Edit, Copy, Info, Plus } from "lucide-react"
 import { users } from "@/core/apis/users"
 import type { Client } from "@/app/types/clients"
 import { settings } from "@/core/apis/settings"
+import { useUserClients } from "@/core/hooks/useUserClients"
 
 
 const UserClientsTable = () => {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const [showInfoModal, setShowInfoModal] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [isLoadingToken, setIsLoadingToken] = useState(false)
   const [isLoadingActivationRequest, setIsLoadingActivationRequest] = useState(false)
   const [openEditForm, setOpenEditForm] = useState(false)
   const [openCreateForm, setOpenCreateForm] = useState(false)
   const [selectedClient, setSelectedClient] = useState({} as Client)
-  const userInfo = useAppSelector((state) => state.user.userDetails)
-  const [clients, setClients] = useState<Client[]>([])
-  const [clientsDetails, setClientsDetails] = useState<Client[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 4
+  const { clients, isLoading, error } = useUserClients();
+  console.log(clients)
 
-  const fetchClients = async () => {
-    setIsLoading(true)
-    try {
-      const res = await users.getUserDetails(userInfo?._id || "")
-      if (res) {
-        dispatch({ type: "ADD_CLIENTS", payload: res.users[0].clients })
-        setCurrentPage(1)
-      }
-      setClients(res.users[0].clients)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch user details",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchClientDetails = async () => {
-    setIsLoading(true)
-    try {
-      const response = await settings.getUserClientsApi(userInfo?._id || "")
-      if (response) {
-        dispatch({ type: "ADD_CLIENTS_DETAILS", payload: response })
-      }
-      setClientsDetails(response.clients)
-    } catch (error) {
-      console.error(error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch client details",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchClients()
-    fetchClientDetails()
-  }, [userInfo?._id, dispatch])
 
   const hasAccessToken = (clientId: string): boolean => {
     const client =
-      Array.isArray(clientsDetails) && clientsDetails
-        ? clientsDetails?.find((client: Client) => client._id === clientId)
+      Array.isArray(clients) && clients
+        ? clients?.find((client: Client) => client._id === clientId)
         : undefined
     return client?.access_token?.token ? true : false
   }
 
   const getClientToken = (clientID: string) => {
     const client =
-      Array.isArray(clientsDetails) && clientsDetails
-        ? clientsDetails?.find((client: Client) => client._id === clientID)
+      Array.isArray(clients) && clients
+        ? clients?.find((client: Client) => client._id === clientID)
         : undefined
         return client && client.access_token && client.access_token.token
   }
   const getClientTokenExpiryDate = (clientID: string) => {
     const client =
-      Array.isArray(clientsDetails) && clientsDetails
-        ? clientsDetails?.find((client: Client) => client._id === clientID)
+      Array.isArray(clients) && clients
+        ? clients?.find((client: Client) => client._id === clientID)
         : undefined
     return client && client.access_token && client.access_token.expires
   }
 
   const getClientTokenCreateAt = (clientID: string) => {
     const client =
-      Array.isArray(clientsDetails) && clientsDetails
-        ? clientsDetails?.find((client: Client) => client._id === clientID)
+      Array.isArray(clients) && clients
+        ? clients?.find((client: Client) => client._id === clientID)
         : undefined
     return client && client.access_token && client.access_token.createdAt
   }
@@ -168,10 +121,6 @@ const UserClientsTable = () => {
     return Array.isArray(client.ip_addresses) ? client.ip_addresses.join(", ") : client.ip_addresses
   }
 
-  const handleClientCreated = () => {
-    fetchClients()
-    fetchClientDetails()
-  }
 
   return (
     <div className="overflow-x-auto">
@@ -202,7 +151,6 @@ const UserClientsTable = () => {
             </TableRow>
           ) : clients?.length > 0 ? (
             clients
-              .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
               .map((client: Client, index: number) => (
                 <TableRow key={index}>
                   <TableCell className="font-medium">{client?.name}</TableCell>
@@ -292,12 +240,10 @@ const UserClientsTable = () => {
         open={openEditForm}
         onClose={() => setOpenEditForm(false)}
         data={selectedClient}
-        onClientUpdated={handleClientCreated}
       />
       <CreateClientForm
         open={openCreateForm}
         onClose={() => setOpenCreateForm(false)}
-        onClientCreated={handleClientCreated}
       />
       <DialogWrapper
         open={showInfoModal}

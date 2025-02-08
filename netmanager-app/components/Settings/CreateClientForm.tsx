@@ -11,10 +11,9 @@ import { useToast } from "@/components/ui/use-toast"
 interface CreateClientFormProps {
   open: boolean
   onClose: () => void
-  onClientCreated: () => void
 }
 
-const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose, onClientCreated }) => {
+const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose }) => {
   const { toast } = useToast()
   const userInfo = useAppSelector((state) => state.user.userDetails)
   const [clientName, setClientName] = useState('')
@@ -59,7 +58,6 @@ const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose, onCl
           title: "Success",
           description: "Client created successfully",
         })
-        onClientCreated()
         onClose()
       }
     } catch (error: any) {
