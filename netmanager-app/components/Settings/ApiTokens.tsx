@@ -69,6 +69,7 @@ const UserClientsTable = () => {
     } else {
       try {
         const response = await settings.generateTokenApi(res)
+        await queryClient.invalidateQueries({ queryKey: ["clients"] });
         if (response) {
           toast({
             title: "Success",

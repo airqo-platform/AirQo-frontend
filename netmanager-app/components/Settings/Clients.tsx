@@ -15,11 +15,11 @@ import {
   ActivateClientDialog,
   DeactivateClientDialog,
 } from "@/components/clients/dialogs";
-import { getClientsApi } from "@/core/apis/analytics";
 import { settings } from "@/core/apis/settings";
 import { useToast } from "@/components/ui/use-toast";
 import type { Client } from "@/app/types/clients";
 import { Search, ArrowUpDown, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,8 +56,6 @@ const formatDate = (dateString: string | undefined): string => {
 };
 
 const ClientManagement = () => {
-  // const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [activateDialogOpen, setActivateDialogOpen] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
@@ -67,6 +65,7 @@ const ClientManagement = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
   const { clients, isLoading, error } = useClients();
+  const queryClient = useQueryClient();
 
 
   const handleActivateDeactivate = async (
@@ -79,6 +78,7 @@ const ClientManagement = () => {
     };
     try {
       await settings.activateUserClientApi(data);
+      await queryClient.invalidateQueries({ queryKey: ["clients"] });
       toast({
         title: "Success",
         description: `Client ${
