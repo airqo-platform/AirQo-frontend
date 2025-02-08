@@ -67,7 +67,6 @@ const ClientManagement = () => {
   const { clients, isLoading, error } = useClients();
   const queryClient = useQueryClient();
 
-
   const handleActivateDeactivate = async (
     clientId: string,
     activate: boolean
