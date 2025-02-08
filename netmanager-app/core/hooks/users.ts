@@ -52,6 +52,8 @@ export const useAuth = () => {
         privilege: decoded.privilege,
         country: decoded.country,
         profilePicture: decoded.profilePicture,
+        description: decoded.description,
+        timezone: decoded.timezone,
         phoneNumber: decoded.phoneNumber,
         createdAt: decoded.createdAt,
         updatedAt: decoded.updatedAt,

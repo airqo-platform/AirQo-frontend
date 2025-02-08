@@ -15,7 +15,7 @@ const initialState: ClientsState = {
   clients: [],
   isLoading: false,
   clientsDetails: [],
-  accees_token: [],
+  access_token: [],
   refresh: false,
   error: null,
 };
