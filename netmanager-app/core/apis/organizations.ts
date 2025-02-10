@@ -1,5 +1,5 @@
 import createAxiosInstance from "./axiosConfig";
-import { DEVICES_MGT_URL } from "../urls";
+import { USERS_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
 import { CreateGrid } from "@/app/types/grids";
 
@@ -10,10 +10,10 @@ interface ErrorResponse {
 }
 
 export const grids = {
-  getGridsApi: async (networkId: string) => {
+  getGroupsApi: async () => {
     try {
       const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids/summary?network=${networkId}`
+        `${USERS_MGT_URL}/groups/summary`
       );
       return response.data;
     } catch (error) {
@@ -23,10 +23,10 @@ export const grids = {
       );
     }
   },
-  getGridDetailsApi: async (gridId: string) => {
+  getGroupDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids/${gridId}`
+        `${USERS_MGT_URL}/grids/${gridId}`
       );
       return response.data;
     } catch (error) {
@@ -36,10 +36,10 @@ export const grids = {
       );
     }
   },
-  updateGridDetailsApi: async (gridId: string) => {
+  updateGroupDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}/grids/${gridId}`
+        `${USERS_MGT_URL}/grids/${gridId}`
       );
       return response.data;
     } catch (error) {
@@ -49,10 +49,10 @@ export const grids = {
       );
     }
   },
-  createGridApi: async (data: CreateGrid) => {
+  createGroupApi: async (data: CreateGrid) => {
     try {
       const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/grids`,
+        `${USERS_MGT_URL}/groups`,
         data
       );
       return response.data;
