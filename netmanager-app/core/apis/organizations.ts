@@ -26,7 +26,7 @@ export const grids = {
   getGroupDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/grids/${gridId}`
+        `${USERS_MGT_URL}/groups/${gridId}`
       );
       return response.data;
     } catch (error) {
@@ -39,7 +39,7 @@ export const grids = {
   updateGroupDetailsApi: async (gridId: string) => {
     try {
       const response = await axiosInstance.put(
-        `${USERS_MGT_URL}/grids/${gridId}`
+        `${USERS_MGT_URL}/groups/${gridId}`
       );
       return response.data;
     } catch (error) {
