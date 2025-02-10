@@ -9,7 +9,7 @@ interface ErrorResponse {
   message: string;
 }
 
-export const grids = {
+export const groups = {
   getGroupsApi: async () => {
     try {
       const response = await axiosInstance.get(
