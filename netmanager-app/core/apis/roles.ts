@@ -1,7 +1,7 @@
 import createAxiosInstance from "./axiosConfig";
 import { USERS_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
-import { Group } from "@/app/types/groups";
+import { Role } from "@/app/types/roles";
 
 const axiosInstance = createAxiosInstance();
 
@@ -9,11 +9,11 @@ interface ErrorResponse {
   message: string;
 }
 
-export const groups = {
-  getGroupsApi: async () => {
+export const roles = {
+  getRolesApi: async () => {
     try {
       const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/groups/summary`
+        `${USERS_MGT_URL}/roles/summary`
       );
       return response.data;
     } catch (error) {
@@ -23,10 +23,10 @@ export const groups = {
       );
     }
   },
-  getGroupDetailsApi: async (gridId: string) => {
+  getRolesDetailsApi: async (roleId: string) => {
     try {
       const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/groups/${gridId}`
+        `${USERS_MGT_URL}/roles/${roleId}`
       );
       return response.data;
     } catch (error) {
@@ -36,10 +36,10 @@ export const groups = {
       );
     }
   },
-  updateGroupDetailsApi: async (gridId: string, data: Group) => {
+  updateRoleDetailsApi: async (roleId: string, data: Role) => {
     try {
       const response = await axiosInstance.put(
-        `${USERS_MGT_URL}/groups/${gridId}`, data
+        `${USERS_MGT_URL}/roles/${roleId}`, data
       );
       return response.data;
     } catch (error) {
@@ -49,10 +49,10 @@ export const groups = {
       );
     }
   },
-  createGroupApi: async (data: Group) => {
+  createRoleApi: async (data: Role) => {
     try {
       const response = await axiosInstance.post(
-        `${USERS_MGT_URL}/groups`,
+        `${USERS_MGT_URL}/roles`,
         data
       );
       return response.data;
