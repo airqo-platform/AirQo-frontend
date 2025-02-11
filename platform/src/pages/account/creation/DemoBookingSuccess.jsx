@@ -21,7 +21,10 @@ const DemoBookingSuccess = () => {
       <div className="mt-12">
         <a
           href="https://www.airqo.net"
+          rel="noopener noreferrer"
+          target="_blank"
           className="inline-block btn bg-blue-900 text-white rounded-none text-sm outline-none border-none hover:bg-blue-950 px-12 py-3"
+          aria-label="Visit AirQo Website (opens in new tab)"
         >
           Visit AirQo Website
         </a>

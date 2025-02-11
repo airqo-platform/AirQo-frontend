@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import AccountPageLayout from '@/components/Account/Layout';
 import Toast from '@/components/Toast';
@@ -32,11 +32,12 @@ const DemoBooking = () => {
   // Loading and toast state
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ visible: false, type: '', message: '' });
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
-  // Basic email validation using regex
+  // Enhanced email validation using a more robust regex pattern
   const validateEmail = (email) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(String(email).toLowerCase());
   };
 
   // Submit handler with basic validation before sending the request
@@ -95,10 +96,8 @@ const DemoBooking = () => {
         setMessage('');
         setTermsAgreed(false);
 
-        // Wait 1 second before redirecting to the success page
-        setTimeout(() => {
-          router.push('/account/creation/DemoBookingSuccess');
-        }, 1000);
+        // Set the submission success state to true
+        setSubmissionSuccess(true);
       } else {
         setToast({
           visible: true,
@@ -117,6 +116,16 @@ const DemoBooking = () => {
       setLoading(false);
     }
   };
+
+  // useEffect for redirection after a successful submission with cleanup
+  useEffect(() => {
+    if (submissionSuccess) {
+      const timer = setTimeout(() => {
+        router.push('/account/creation/DemoBookingSuccess');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [submissionSuccess, router]);
 
   return (
     <AccountPageLayout
