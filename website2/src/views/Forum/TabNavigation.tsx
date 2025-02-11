@@ -22,10 +22,6 @@ const TabNavigation: React.FC = () => {
     { href: '/clean-air-forum/resources', text: 'Resources' },
   ];
 
-  const handleTabClick = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <div className="w-full py-10">
       <div className="w-full bg-gray-50 py-4 overflow-x-auto">
@@ -37,7 +33,6 @@ const TabNavigation: React.FC = () => {
               className={`relative flex-shrink-0 text-gray-700 hover:text-gray-900 transition ${
                 isActiveTab(link.href) ? 'font-semibold text-gray-900' : ''
               }`}
-              onClick={handleTabClick}
             >
               {link.text}
               {isActiveTab(link.href) && (

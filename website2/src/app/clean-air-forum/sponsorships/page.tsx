@@ -20,6 +20,7 @@ const Page = () => {
   if (!data) {
     return null;
   }
+
   return (
     <div className="px-4 lg:px-0 flex flex-col gap-6">
       {/* Sponsorship Opportunities Text Section */}

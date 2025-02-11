@@ -109,9 +109,7 @@ const Page = () => {
           <div>
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Program Partners and Exhibitors
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900">Exhibitors</h2>
               </div>
               <PaginatedSection
                 noClick={true}
