@@ -1,63 +1,120 @@
-import axios from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 import { removeTrailingSlash } from '@/utils';
 
+// ----------------------
+// Configuration
+// ----------------------
+
+// Define the base URL for the API
 const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
+
+// Retrieve the API token from environment variables
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || '';
 
-// Axios instance to include any necessary headers
-const apiClient = axios.create({
+// Create an Axios instance with default configurations
+const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Function to subscribe a user to newsletter
-export const subscribeToNewsletter = async (body: any) => {
+// ----------------------
+// Generic Request Handlers
+// ----------------------
+
+/**
+ * Generic GET request handler.
+ */
+const getRequest = async (
+  endpoint: string,
+  params?: any,
+): Promise<any | null> => {
   try {
-    const response = await apiClient.post('/users/newsletter/subscribe', body);
+    const response: AxiosResponse<any> = await apiClient.get(endpoint, {
+      params,
+    });
     return response.data;
   } catch (error) {
-    console.error(error);
+    handleError(error, `GET ${endpoint}`);
     return null;
   }
 };
 
-// Function to post user feedback / inquiry / contact us
-export const postContactUs = async (body: any) => {
+/**
+ * Generic POST request handler.
+ */
+const postRequest = async (
+  endpoint: string,
+  body: any,
+): Promise<any | null> => {
   try {
-    const response = await apiClient.post('/users/inquiries/register', body);
+    const response: AxiosResponse<any> = await apiClient.post(endpoint, body);
     return response.data;
   } catch (error) {
-    console.error(error);
+    handleError(error, `POST ${endpoint}`);
     return null;
   }
 };
 
+/**
+ * Error handling function.
+ */
+const handleError = (error: unknown, context: string) => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    console.error(`Error in ${context}:`, axiosError.message);
+    if (axiosError.response) {
+      console.error('Response data:', axiosError.response.data);
+      console.error('Response status:', axiosError.response.status);
+    }
+  } else {
+    console.error(`Unexpected error in ${context}:`, error);
+  }
+};
+
+/**
+ * Subscribe a user to the newsletter.
+ */
+export const subscribeToNewsletter = async (body: any): Promise<any | null> => {
+  return postRequest('/users/newsletter/subscribe', body);
+};
+
+/**
+ * Post user feedback, inquiry, or contact us message.
+ */
+export const postContactUs = async (body: any): Promise<any | null> => {
+  return postRequest('/users/inquiries/register', body);
+};
+
+/**
+ * Fetch maintenance data for the website.
+ */
 export const getMaintenances = async (): Promise<any | null> => {
-  try {
-    const response = await apiClient.get('/users/maintenances/website');
-
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching maintenance data:', error);
-    return null;
-  }
+  return getRequest('/users/maintenances/website');
 };
 
-// Get grids summary endpoint it uses a api_token to authenticate the request
+// ----------------------
+// Device Services
+// ----------------------
+
+/**
+ * Fetch grids summary data. Requires API token for authentication.
+ */
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
-    const response = await apiClient.get('/devices/grids/summary', {
-      params: {
-        token: API_TOKEN,
+    const response: AxiosResponse<any> = await apiClient.get(
+      '/devices/grids/summary',
+      {
+        params: {
+          token: API_TOKEN,
+        },
       },
-    });
-
+    );
     return response.data;
   } catch (error) {
-    console.error('Error fetching grids summary data:', error);
+    handleError(error, 'GET /devices/grids/summary');
     return null;
   }
 };

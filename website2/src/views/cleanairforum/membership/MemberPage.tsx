@@ -35,7 +35,7 @@ const SkeletonPaginatedSection: React.FC = () => {
 };
 
 const MemberPage: React.FC = () => {
-  const { partners, isLoading } = usePartners();
+  const { data: partners, isLoading } = usePartners();
 
   // Categorize partners using useMemo for performance optimization
   const {

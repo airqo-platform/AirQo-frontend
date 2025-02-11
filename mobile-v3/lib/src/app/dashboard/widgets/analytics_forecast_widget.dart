@@ -27,16 +27,14 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
 
   double _getResponsiveHeight(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    // Calculate height based on screen size, with minimum and maximum bounds
-    final height = screenHeight * 0.1; // 10% of screen height
-    return height.clamp(60.0, 100.0); // Min 60, max 100
+    final height = screenHeight * 0.1;
+    return height.clamp(60.0, 100.0);
   }
 
   double _getResponsiveIconSize(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // Calculate icon size based on screen width
-    final iconSize = screenWidth * 0.04; // 4% of screen width
-    return iconSize.clamp(20.0, 30.0); // Min 20, max 30
+    final iconSize = screenWidth * 0.04;
+    return iconSize.clamp(20.0, 30.0);
   }
 
   double _getResponsiveMargin(BuildContext context) {

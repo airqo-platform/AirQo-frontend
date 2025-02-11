@@ -190,7 +190,11 @@ const Navbar: React.FC = () => {
           className={`flex items-center justify-between ${mainConfig.containerClass}`}
         >
           {/* Logo Section */}
-          <Link href="/" passHref className="flex items-center">
+          <Link
+            href={`${mainConfig.homePageUrl}`}
+            passHref
+            className="flex items-center"
+          >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
               alt="AirQo"

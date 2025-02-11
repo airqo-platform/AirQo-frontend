@@ -230,6 +230,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [maintenanceType, setMaintenanceType] = useState('preventive');
 
   const createTagOption = (tag) => ({ label: tag, value: tag });
 
@@ -267,6 +268,7 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
       tags: extracted_tags,
       description: description,
       userName: parsedData.email,
+      maintenanceType: maintenanceType,
       email: parsedData.email,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName
@@ -336,6 +338,10 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
     toggleShow();
   };
 
+  const handleMaintenanceTypeChange = (event) => {
+    setMaintenanceType(event.target.value);
+  };
+
   return (
     <Paper style={{ minHeight: '400px', padding: '5px 10px' }}>
       <h4>Add Log</h4>
@@ -361,6 +367,25 @@ const AddLogForm = ({ deviceName, deviceLocation, toggleShow, loading, setLoadin
             value={description || ''}
             onChange={(event) => setDescription(event.target.value)}
           />
+        </div>
+        <div>
+          <TextField
+            select
+            fullWidth
+            label="Maintenance Type"
+            style={{ margin: '10px 0' }}
+            value={maintenanceType}
+            onChange={handleMaintenanceTypeChange}
+            SelectProps={{
+              native: true,
+              style: { width: '100%', height: '50px' }
+            }}
+            required
+            variant="outlined"
+          >
+            <option value="preventive">Preventive</option>
+            <option value="corrective">Corrective</option>
+          </TextField>
         </div>
         <div style={{ marginTop: '5px' }}>
           <CreatableLabelledSelect
@@ -436,6 +461,12 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       render: (rowData) => {
         return <div className={'table-truncate'}>{rowData.tags && rowData.tags.join(', ')}</div>;
       }
+    },
+    {
+      title: 'Maintenance Type',
+      field: 'maintenanceType',
+      cellStyle: { width: 100, maxWidth: 100 },
+      render: (rowData) => <div className={'table-truncate'}>{rowData.maintenanceType}</div>
     },
     {
       title: 'Created On',

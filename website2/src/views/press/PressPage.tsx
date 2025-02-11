@@ -9,7 +9,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { usePressArticles } from '@/hooks/useApiHooks';
 
 const PressPage: React.FC = () => {
-  const { pressArticles, isLoading, isError } = usePressArticles();
+  const { data: pressArticles, isLoading, isError } = usePressArticles();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 

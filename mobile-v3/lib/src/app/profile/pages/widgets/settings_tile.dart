@@ -38,7 +38,7 @@ class SettingsTile extends StatelessWidget {
             subtitle: description != null
                 ? Text(description!,
                     style: TextStyle(
-                        color: AppColors.secondaryHeadlineColor2,
+                        color: Theme.of(context).textTheme.headlineMedium?.color,
                         fontSize: 14,
                         fontWeight: FontWeight.w400))
                 : null,
@@ -54,11 +54,14 @@ class SettingsTile extends StatelessWidget {
                 ),
               ],
             ),
-            title: Text(title,
+            title: Text(
+                title,
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryHeadlineColor3)),
+                    color: Theme.of(context).textTheme.headlineSmall?.color
+                )
+            ),
           ),
           Divider(
             color:Theme.of(context).highlightColor,

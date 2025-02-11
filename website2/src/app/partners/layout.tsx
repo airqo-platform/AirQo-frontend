@@ -9,37 +9,6 @@ export const metadata: Metadata = {
     'Discover the organizations and partners working with AirQo to improve air quality across Africa. Learn about the strategic collaborations aimed at addressing air pollution and environmental health challenges.',
   keywords:
     'AirQo partners, air quality partners, environmental collaborations, air quality improvement, air pollution solutions, environmental health, AirQo collaborations, strategic partnerships',
-  openGraph: {
-    title: 'Our Partners - AirQo Collaborations and Partnerships',
-    description:
-      'Explore the organizations working with AirQo to improve air quality across Africa. Learn about our partnerships and collaborations aimed at addressing air pollution and improving environmental health.',
-    url: 'https://yourdomain.com/partners',
-    siteName: 'AirQo',
-    images: [
-      {
-        url: 'https://yourdomain.com/static/partners-og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'AirQo Partners - Collaborating for Better Air Quality',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    site: '@AirQo',
-    title: 'Our Partners - AirQo Collaborations and Partnerships',
-    description:
-      'Learn about AirQo’s partners and their collaborative efforts to improve air quality across Africa.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: 'https://yourdomain.com/partners',
-  },
 };
 
 type PartnersLayoutProps = {

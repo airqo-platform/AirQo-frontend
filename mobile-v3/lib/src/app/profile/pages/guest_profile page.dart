@@ -74,7 +74,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                 Text(
                   "Guest User",
                   style: TextStyle(
-                    color: AppColors.boldHeadlineColor2,
+                    color: Theme.of(context).textTheme.headlineSmall?.color,
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
@@ -86,7 +86,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                 child: Text(
                   'Settings',
                 style:TextStyle(
-                  color: AppColors.boldHeadlineColor2,
+                  color: Theme.of(context).textTheme.headlineSmall?.color,
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
                   ),

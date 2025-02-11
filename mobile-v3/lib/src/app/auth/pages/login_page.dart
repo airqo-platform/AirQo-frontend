@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
+import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
@@ -28,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
-    
+
     try {
       authBloc = context.read<AuthBloc>();
 
@@ -67,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.boldHeadlineColor),
+                color: Theme.of(context).textTheme.headlineLarge?.color),
           ),
           centerTitle: true,
         ),
@@ -174,20 +175,35 @@ class _LoginPageState extends State<LoginPage> {
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text("Don't have an account?",
                     style: TextStyle(
-                        color: AppColors.boldHeadlineColor,
+                        color: Theme.of(context).textTheme.headlineLarge?.color,
                         fontWeight: FontWeight.w500)),
                 InkWell(
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => CreateAccountScreen())),
                   child: Text(
-                    "Create Account",
+                    " Create Account",
                     style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: AppColors.primaryColor),
                   ),
                 )
               ]),
+              SizedBox(height: 16),
+
+              Center(
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ForgotPasswordPage())),
+                  child: Text(
+                    "Forgot password?",
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.primaryColor),
+                  ),
+                ),
+              )
             ],
+
           ),
         ),
       ),

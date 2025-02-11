@@ -35,11 +35,11 @@ const SkeletonCard: React.FC = () => (
 /** Main AboutPage Component **/
 
 const AboutPage: React.FC = () => {
-  const { boardMembers, isLoading: loadingBoard } = useBoardMembers();
-  const { teamMembers, isLoading: loadingTeam } = useTeamMembers();
-  const { externalTeamMembers, isLoading: loadingExternalTeam } =
+  const { data: boardMembers, isLoading: loadingBoard } = useBoardMembers();
+  const { data: teamMembers, isLoading: loadingTeam } = useTeamMembers();
+  const { data: externalTeamMembers, isLoading: loadingExternalTeam } =
     useExternalTeamMembers();
-  const { partners } = usePartners();
+  const { data: partners } = usePartners();
 
   // filter out partners whose website_category is airqo
   const filteredPartners = partners.filter(
@@ -268,7 +268,7 @@ const AboutPage: React.FC = () => {
                 pollution challenges.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
-                They provide accurate, hyperlocal, and timely data providing
+                We provide accurate, hyperlocal, and timely data providing
                 evidence of the magnitude and scale of air pollution across the
                 continent.
               </p>
