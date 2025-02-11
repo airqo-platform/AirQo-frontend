@@ -44,23 +44,23 @@ export const useGrids = (networkId: string) => {
 
 // Hook to get grid details by gridId
 export const useGridDetails = (gridId: string) => {
-  const mutation = useMutation({
-    mutationFn: async () => await grids.getGridDetailsApi(gridId),
+  const dispatch = useDispatch();
+  const { data, isLoading, error } = useQuery<Grid, AxiosError<ErrorResponse>>({
+    queryKey: ["grid", gridId],
+    queryFn: () => grids.getGridDetailsApi(gridId),
+    enabled: !!gridId,
     onSuccess: () => {
       console.log("Grid details fetched successfully");
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      console.error(
-        "Failed to fetch grid details:",
-        error.response?.data?.message
-      );
+      dispatch(setError(error.message));
     },
-  });
+  } as UseQueryOptions<Grid, AxiosError<ErrorResponse>>);
 
   return {
-    gridDetails: mutation.mutate || [],
-    isLoading: mutation.isPending,
-    error: mutation.error as Error | null,
+    gridDetails: data?.grids[0] ?? ({} as Grid),
+    isLoading,
+    error,
   };
 };
 

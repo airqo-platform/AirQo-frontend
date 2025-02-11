@@ -12,34 +12,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GridSitesTable } from "@/components/grids/grid-sites";
 import { DateRangePicker } from "@/components/grids/date-range-picker";
 import { useGridDetails } from "@/core/hooks/useGrids";
+import { Grid } from "@/app/types/grids";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function GridDetailsPage() {
   const router = useRouter();
   const { id } = useParams();
   const { gridDetails, isLoading, error } = useGridDetails(id.toString());
-  const [gridData, setGridData] = useState({
-    name: "gambia",
-    id: "673cf5b9328bd600130351c4",
-    visibility: "true",
-    administrativeLevel: "country",
-    description: "",
-  });
+  const [gridData, setGridData] = useState<Grid>({
+    name: "",
+    _id: "",
+    visibility: false,
+    admin_level: "",
+    network: "",
+    long_name: "",
+    createdAt: "",
+    sites: [],
+    numberOfSites: 0,
+  } as Grid);
 
   useEffect(() => {
-    setGridData({
-      ...gridDetails,
-      name: gridDetails.name,
-      visibility: gridDetails.visibility,
-      administrativeLevel: gridDetails.admin_level,
-      description: gridDetails.description,
-    });
-  }, [gridDetails]);
+    if (gridDetails && gridDetails._id !== gridData._id) {
+      setGridData({ ...gridDetails });
+    }
+  }, [gridDetails, gridData._id]);
 
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -61,6 +63,18 @@ export default function GridDetailsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error.message}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -78,7 +92,7 @@ export default function GridDetailsPage() {
             <Label htmlFor="gridName">Grid name *</Label>
             <Input
               id="gridName"
-              value={gridData.name}
+              value={gridData.name || ""}
               onChange={(e) =>
                 setGridData({ ...gridData, name: e.target.value })
               }
@@ -87,11 +101,11 @@ export default function GridDetailsPage() {
           <div className="space-y-2">
             <Label htmlFor="gridId">Grid ID *</Label>
             <div className="flex gap-2">
-              <Input id="gridId" value={gridData._id} readOnly />
+              <Input id="gridId" value={gridData._id || ""} readOnly />
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => handleCopyToClipboard(gridData.id)}
+                onClick={() => handleCopyToClipboard(gridData._id || "")}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -103,9 +117,13 @@ export default function GridDetailsPage() {
           <div className="space-y-2">
             <Label htmlFor="visibility">Visibility *</Label>
             <Select
-              value={gridData.visibility}
+              value={
+                gridData.visibility !== undefined
+                  ? gridData.visibility.toString()
+                  : "false"
+              }
               onValueChange={(value) =>
-                setGridData({ ...gridData, visibility: value })
+                setGridData({ ...gridData, visibility: value === "true" })
               }
             >
               <SelectTrigger>
@@ -121,27 +139,15 @@ export default function GridDetailsPage() {
             <Label htmlFor="adminLevel">Administrative level *</Label>
             <Input
               id="adminLevel"
-              value={gridData.administrativeLevel}
+              value={gridData.admin_level || ""}
               onChange={(e) =>
                 setGridData({
                   ...gridData,
-                  administrativeLevel: e.target.value,
+                  admin_level: e.target.value,
                 })
               }
             />
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={gridData.description}
-            onChange={(e) =>
-              setGridData({ ...gridData, description: e.target.value })
-            }
-            rows={4}
-          />
         </div>
 
         {/* API Endpoints */}
