@@ -16,14 +16,11 @@ type OrganizationRolesProps = {
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const dispatch = useAppDispatch()
   const roles = useAppSelector((state) => state.user.activeNetwork?.roles || [])
-  const status = useAppSelector((state: RootState) => state.roles.status)
   const [newRoleName, setNewRoleName] = useState("")
 
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchRoles(organizationId))
-    }
-  }, [status, dispatch, organizationId])
+    dispatch(fetchRoles(organizationId))
+  }, [dispatch, organizationId])
 
   const handleCreateRole = (e: React.FormEvent) => {
     e.preventDefault()
