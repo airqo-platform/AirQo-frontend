@@ -84,7 +84,11 @@ export function CreateGridForm() {
 
       await createGrid(gridData);
 
-      setOpen(false);
+      setTimeout(() => {
+        if (!isLoading) {
+          setOpen(false);
+        }
+      }, 3000);
     } catch (error: AxiosError<ErrorResponse>) {
       setError(error.message || "An error occurred while creating the site.");
     }
@@ -168,7 +172,9 @@ export function CreateGridForm() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Submit</Button>
+                <Button type="submit" disabled={isLoading}>
+                  Submit
+                </Button>
               </div>
               {error && (
                 <Alert variant="destructive">
