@@ -5,6 +5,7 @@ import devicesReducer from "./slices/devicesSlice";
 import cohortsReducer from "./slices/cohortsSlice";
 import gridsReducer from "./slices/gridsSlice";
 import clientsRudcer from "./slices/clientsSlice";
+import groupsReducer from "./slices/groupsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     grids: gridsReducer,
     cohorts: cohortsReducer,
     clients: clientsRudcer,
+    groups: groupsReducer,
   },
 });
 

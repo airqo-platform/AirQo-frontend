@@ -14,21 +14,21 @@ interface ErrorResponse {
     message: string;
 }
 
-  export const useGroups = () => {
+export const useGroups = () => {
     const dispatch = useDispatch();
-  
+
     const { data, isLoading, error } = useQuery<
         GroupsState,
-      AxiosError<ErrorResponse>
+        AxiosError<ErrorResponse>
     >({
-      queryKey: ["groups"],
-      queryFn: () => groups.getGroupsApi(),
-      onSuccess: (data: GroupsState) => {
-        dispatch(setGroups(data.groups));
-      },
-      onError: (error: AxiosError<ErrorResponse>) => {
-        dispatch(setError(error.message));
-      },
+        queryKey: ["groups"],
+        queryFn: () => groups.getGroupsApi(),
+        onSuccess: (data: GroupsState) => {
+            dispatch(setGroups(data.groups));
+        },
+        onError: (error: AxiosError<ErrorResponse>) => {
+            dispatch(setError(error.message));
+        },
     } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
 
     return {
@@ -51,33 +51,33 @@ interface ErrorResponse {
         );
       },
     });
-  
-    return {
-      getGroupDetails: mutation.mutate || [],
-      isLoading: mutation.isPending,
-      error: mutation.error as Error | null,
-    };
-  };
 
-  export const useUpdateGridDetails = (gridId: string) => {
+    return {
+        getGroupDetails: mutation.mutate || [],
+        isLoading: mutation.isPending,
+        error: mutation.error as Error | null,
+    };
+};
+
+export const useUpdateGridDetails = (gridId: string) => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
-      mutationFn: async () => await groups.getGroupDetailsApi(gridId),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
-      },
-      onError: (error: AxiosError<ErrorResponse>) => {
+        mutationFn: async () => await groups.getGroupDetailsApi(gridId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
+        },
+        onError: (error: AxiosError<ErrorResponse>) => {
         console.error(
-          "Failed to update grid details:",
-          error.response?.data?.message
+            "Failed to update grid details:",
+            error.response?.data?.message
         );
-      },
+        },
     });
-  
+
     return {
-      updateGridDetails: mutation.mutate,
-      isLoading: mutation.isPending,
-      error: mutation.error,
+        updateGridDetails: mutation.mutate,
+        isLoading: mutation.isPending,
+        error: mutation.error,
     };
 };
 
