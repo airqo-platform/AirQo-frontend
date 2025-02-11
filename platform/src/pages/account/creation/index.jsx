@@ -62,13 +62,17 @@ const UserDesignation = () => {
               tabIndex={disabled ? -1 : 0}
               aria-disabled={disabled}
             >
+              {/* 
+                Responsive height classes ensure uniformity across screen sizes:
+                h-48 on small screens, h-56 on sm, h-64 on md, and h-72 on lg.
+              */}
               <CheckComponent
                 text={title}
                 subText={subText}
                 checked={clickedRole === title}
                 disabled={disabled}
                 width="w-full"
-                className="min-h-[250px] flex flex-col justify-center p-6 border rounded-lg shadow-sm hover:shadow-md transition"
+                className="flex flex-col justify-center p-6 border rounded-lg shadow-sm hover:shadow-md transition h-48 sm:h-56 md:h-64 lg:h-72"
               />
             </div>
           ))}
