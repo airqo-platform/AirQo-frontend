@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { AppDispatch, RootState } from "@/lib/store"
+import { useAppDispatch, useAppSelector } from "@/core/redux/hooks"
 import { fetchRoles, createRole, updateRole } from "@/lib/slices/rolesSlice"
 
 type OrganizationRolesProps = {
@@ -14,9 +14,9 @@ type OrganizationRolesProps = {
 }
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
-  const dispatch = useDispatch<AppDispatch>()
-  const roles = useSelector((state: RootState) => state.roles.list)
-  const status = useSelector((state: RootState) => state.roles.status)
+  const dispatch = useAppDispatch()
+  const roles = useAppSelector((state) => state.user.activeNetwork?.roles || [])
+  const status = useAppSelector((state: RootState) => state.roles.status)
   const [newRoleName, setNewRoleName] = useState("")
 
   useEffect(() => {

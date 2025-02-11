@@ -32,7 +32,7 @@ export const useGroups = () => {
     } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
 
     return {
-      grids: data?.groups ?? [],
+      groups: data?.groups ?? [],
       isLoading,
       error,
     };
@@ -59,12 +59,12 @@ export const useGroups = () => {
     };
 };
 
-export const useUpdateGridDetails = (gridId: string) => {
+export const useUpdateGroupDetails = (gridId: string) => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: async () => await groups.getGroupDetailsApi(gridId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
+            queryClient.invalidateQueries({ queryKey: ["groupDetails", gridId] });
         },
         onError: (error: AxiosError<ErrorResponse>) => {
         console.error(
@@ -75,13 +75,13 @@ export const useUpdateGridDetails = (gridId: string) => {
     });
 
     return {
-        updateGridDetails: mutation.mutate,
+        updateGroupDetails: mutation.mutate,
         isLoading: mutation.isPending,
         error: mutation.error,
     };
 };
 
-  export const useCreateGrid = () => {
+  export const useCreateGroup = () => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
       mutationFn: async (newGroup: Group) =>

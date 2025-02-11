@@ -36,10 +36,10 @@ export const groups = {
       );
     }
   },
-  updateGroupDetailsApi: async (gridId: string) => {
+  updateGroupDetailsApi: async (gridId: string, data: Group) => {
     try {
       const response = await axiosInstance.put(
-        `${USERS_MGT_URL}/groups/${gridId}`
+        `${USERS_MGT_URL}/groups/${gridId}`, data
       );
       return response.data;
     } catch (error) {

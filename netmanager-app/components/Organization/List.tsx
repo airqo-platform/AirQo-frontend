@@ -6,25 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks"
-import { fetchOrganizations } from "@/lib/slices/organizationsSlice"
+import { useGroups } from "@/core/hooks/useGroups"
 
 export function OrganizationList() {
-  const dispatch = useAppDispatch()
-  const organizations = useAppSelector((state) => state.organizations.list)
-  const status = useAppSelector((state) => state.organizations.status)
+  // const dispatch = useAppDispatch()
   const [searchTerm, setSearchTerm] = useState("")
+  const { groups, isLoading, error } = useGroups()
 
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchOrganizations())
-    }
-  }, [status, dispatch])
-
-  const filteredOrganizations = organizations.filter((org) => org.name.toLowerCase().includes(searchTerm.toLowerCase()))
-
-  if (status === "loading") {
-    return <div>Loading...</div>
-  }
+  const filteredOrganizations = groups.filter((org) => org.grp_title.toLowerCase().includes(searchTerm.toLowerCase()))
+  const status = isLoading ? "loading" : error ? "failed" : "success"
 
   if (status === "failed") {
     return <div>Error loading organizations. Please try again.</div>
@@ -53,12 +43,12 @@ export function OrganizationList() {
         </TableHeader>
         <TableBody>
           {filteredOrganizations.map((org) => (
-            <TableRow key={org.id}>
-              <TableCell>{org.name}</TableCell>
+            <TableRow key={org._id}>
+              <TableCell>{org.grp_title}</TableCell>
               <TableCell>{new Date(org.createdAt).toLocaleDateString()}</TableCell>
               <TableCell>
                 <Button asChild variant="link">
-                  <Link href={`/organizations/${org.id}`}>View Details</Link>
+                  <Link href={`/organizations/${org._id}`}>View Details</Link>
                 </Button>
               </TableCell>
             </TableRow>

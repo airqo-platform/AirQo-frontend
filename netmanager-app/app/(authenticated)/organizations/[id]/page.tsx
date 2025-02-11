@@ -1,16 +1,12 @@
-import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/session"
+// import { redirect } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { OrganizationProfile } from "./organization-profile"
-import { TeamMembers } from "./team-members"
-import { OrganizationRoles } from "./organization-roles"
+import { OrganizationProfile } from "@/components/Organization/organization-profile"
+import { TeamMembers } from "@/components/Organization/team-members"
+import { OrganizationRoles } from "@/components/Organization/organization-roles"
+// import { useAppSelector } from "@/core/redux/hooks"
 
-export default async function OrganizationDetailsPage({ params }: { params: { id: string } }) {
-  const user = await getCurrentUser()
-
-  if (!user || user.role !== "AIRQO_SUPER_ADMIN") {
-    redirect("/")
-  }
+export const  OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
+  // const user = useAppSelector((state) => state.user.userDetails)
 
   return (
     <div className="container mx-auto py-10">
