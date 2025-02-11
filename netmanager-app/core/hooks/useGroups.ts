@@ -14,7 +14,7 @@ interface ErrorResponse {
     message: string;
 }
 
-  export const useGrids = () => {
+  export const useGroups = () => {
     const dispatch = useDispatch();
   
     const { data, isLoading, error } = useQuery<
