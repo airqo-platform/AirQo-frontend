@@ -1,11 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useAppSelector, useAppDispatch } from "@/core/redux/hooks"
 import { useGroups } from "@/core/hooks/useGroups"
 
 export function OrganizationList() {

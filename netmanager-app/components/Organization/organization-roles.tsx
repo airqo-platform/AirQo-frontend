@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useAppDispatch, useAppSelector } from "@/core/redux/hooks"
-import { fetchRoles, createRole, updateRole } from "@/lib/slices/rolesSlice"
+import { useAppDispatch } from "@/core/redux/hooks"
+import { roles } from "@/core/apis/roles"
+import { useOrgRole, useRoles } from "@/core/hooks/useRoles"
+
+
 
 type OrganizationRolesProps = {
   organizationId: string
@@ -15,16 +17,21 @@ type OrganizationRolesProps = {
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const dispatch = useAppDispatch()
-  const roles = useAppSelector((state) => state.user.activeNetwork?.roles || [])
+  const {grproles, isLoading, error} = useOrgRole(organizationId)
   const [newRoleName, setNewRoleName] = useState("")
+  const status = isLoading ? "loading" : error ? "failed" : "success"
 
-  useEffect(() => {
-    dispatch(fetchRoles(organizationId))
-  }, [dispatch, organizationId])
 
-  const handleCreateRole = (e: React.FormEvent) => {
+  const handleCreateRole = async (e: React.FormEvent) => {
     e.preventDefault()
-    dispatch(createRole({ organizationId, name: newRoleName }))
+    const data = {
+      role_name: newRoleName,
+    }
+    try {
+      const newRole = await  roles.createRoleApi(data)
+    } catch (error) {
+      
+    }
     setNewRoleName("")
   }
 
@@ -59,7 +66,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {roles.map((role) => (
+          {grproles.map((role) => (
             <TableRow key={role.id}>
               <TableCell>{role.name}</TableCell>
               <TableCell>{role.permissions.join(", ")}</TableCell>

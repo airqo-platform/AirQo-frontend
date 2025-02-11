@@ -34,3 +34,26 @@ export const useRoles = () => {
     error,
   };
 };
+
+export const useOrgRole = (groupId: string) => {
+    const dispatch = useAppDispatch();
+
+    const { data, isLoading, error } = useQuery({
+      queryKey: ["clients", groupId],
+      queryFn: () =>
+        roles.getRolesDetailsApi(groupId || ""),
+      onSuccess: (data: any) => {
+        dispatch(setRoles(data));
+      },
+      onError: (error: Error) => {
+        dispatch(setError(error.message));
+      },
+    });
+  
+    return {
+      grproles: data?.roles || [],
+      isLoading,
+      error: error as Error | null,
+    };
+  };
+  
