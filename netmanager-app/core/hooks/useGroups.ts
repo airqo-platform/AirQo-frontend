@@ -10,11 +10,10 @@ import { Group } from "@/app/types/groups";
 import { GroupsState, setError, setGroups } from "../redux/slices/groupsSlice";
 import { useDispatch } from "react-redux";
   
-  interface ErrorResponse {
+interface ErrorResponse {
     message: string;
-  }
-  
-  // Hook to get the grid summary
+}
+
   export const useGrids = () => {
     const dispatch = useDispatch();
   
@@ -30,16 +29,15 @@ import { useDispatch } from "react-redux";
       onError: (error: AxiosError<ErrorResponse>) => {
         dispatch(setError(error.message));
       },
-    } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>);
-  
+    } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
+
     return {
       grids: data?.groups ?? [],
       isLoading,
       error,
     };
-  };
-  
-  // Hook to get grid details by gridId
+};
+
   export const useGroupsDetails = (groupId: string) => {
     const mutation = useMutation({
       mutationFn: async () => await groups.getGroupDetailsApi(groupId),
