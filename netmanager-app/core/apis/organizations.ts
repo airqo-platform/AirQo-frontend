@@ -1,7 +1,7 @@
 import createAxiosInstance from "./axiosConfig";
 import { USERS_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
-import { CreateGrid } from "@/app/types/grids";
+import { Group } from "@/app/types/groups";
 
 const axiosInstance = createAxiosInstance();
 
@@ -49,7 +49,7 @@ export const groups = {
       );
     }
   },
-  createGroupApi: async (data: CreateGrid) => {
+  createGroupApi: async (data: Group) => {
     try {
       const response = await axiosInstance.post(
         `${USERS_MGT_URL}/groups`,

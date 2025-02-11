@@ -40,7 +40,7 @@ import { useDispatch } from "react-redux";
   };
   
   // Hook to get grid details by gridId
-  export const useGridDetails = (groupId: string) => {
+  export const useGroupsDetails = (groupId: string) => {
     const mutation = useMutation({
       mutationFn: async () => await groups.getGroupDetailsApi(groupId),
       onSuccess: () => {
@@ -60,14 +60,12 @@ import { useDispatch } from "react-redux";
       error: mutation.error as Error | null,
     };
   };
-  
-  // Hook to update grid details
+
   export const useUpdateGridDetails = (gridId: string) => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
-      mutationFn: async () => await grids.updateGridDetailsApi(gridId),
+      mutationFn: async () => await groups.getGroupDetailsApi(gridId),
       onSuccess: () => {
-        // Invalidate and refetch the grid details
         queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
       },
       onError: (error: AxiosError<ErrorResponse>) => {
@@ -83,17 +81,15 @@ import { useDispatch } from "react-redux";
       isLoading: mutation.isPending,
       error: mutation.error,
     };
-  };
-  
-  // Hook to create a new grid
+};
+
   export const useCreateGrid = () => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
-      mutationFn: async (newGrid: CreateGrid) =>
-        await grids.createGridApi(newGrid),
+      mutationFn: async (newGroup: Group) =>
+        await groups.createGroupApi(newGroup),
       onSuccess: () => {
-        // Invalidate and refetch the grid summary after creating a new grid
-        queryClient.invalidateQueries({ queryKey: ["gridSummary"] });
+        queryClient.invalidateQueries({ queryKey: ["groups"] });
       },
       onError: (error: AxiosError<ErrorResponse>) => {
         console.error("Failed to create grid:", error.response?.data?.message);
