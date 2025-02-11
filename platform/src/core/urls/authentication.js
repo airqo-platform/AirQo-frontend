@@ -40,3 +40,5 @@ export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;
 export const ACTIVATION_REQUEST_URI = `${CLIENT_URI}/activate-request`;
 
 export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
+
+export const INQUIRY_REGISTER_URL = `${AUTH_URL}/inquiries/register`;
