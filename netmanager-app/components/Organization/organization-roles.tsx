@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useAppDispatch } from "@/core/redux/hooks"
+import { useAppDispatch, useAppSelector } from "@/core/redux/hooks"
 import { roles } from "@/core/apis/roles"
 import { useOrgRole } from "@/core/hooks/useRoles"
 
@@ -20,14 +20,19 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const {grproles, isLoading, error} = useOrgRole(organizationId)
   const [newRoleName, setNewRoleName] = useState("")
   const status = isLoading ? "loading" : error ? "failed" : "success"
-
+  const network = useAppSelector((state) => state.user.activeNetwork)
 
   const handleCreateRole = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!network) {
+      console.error("Network is null");
+      return;
+    }
+
     const data = {
       role_name: newRoleName,
-      network_id: selectedNetworkId,
+      network_id: network._id,
       group_id: organizationId,
     };
 

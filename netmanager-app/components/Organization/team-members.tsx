@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { AppDispatch, RootState } from "@/lib/store"
-import { fetchMembers, inviteMember, updateMemberRole } from "@/lib/slices/membersSlice"
 
 type TeamMembersProps = {
   organizationId: string
