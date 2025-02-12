@@ -19,23 +19,23 @@ interface Groups {
   }
 
 export interface GroupsDetailState {
-  groups: Groups[];
+  group: Groups[];
   isLoading: boolean;
   error: string | null;
 }
 
-const initialState: GroupsState = {
-    groups: [],
+const initialState: GroupsDetailState = {
+    group: [],
     isLoading: false,
     error: null,
 };
 
-const sitesSlice = createSlice({
-  name: "groups",
+const groupDetailsSlice = createSlice({
+  name: "group",
   initialState,
   reducers: {
-    setGroups(state, action: PayloadAction<Groups[]>) {
-      state.groups = action.payload;
+    setGroup(state, action: PayloadAction<Groups[]>) {
+      state.group = action.payload;
       state.isLoading = false;
       state.error = null;
     },
@@ -50,5 +50,5 @@ const sitesSlice = createSlice({
   },
 });
 
-export const { setGroups, setLoading, setError } = sitesSlice.actions;
-export default sitesSlice.reducer;
+export const { setGroup, setLoading, setError } = groupDetailsSlice.actions;
+export default groupDetailsSlice.reducer;

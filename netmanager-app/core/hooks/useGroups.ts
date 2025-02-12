@@ -8,7 +8,8 @@ import { AxiosError } from "axios";
 import { groups, groupMembers } from "../apis/organizations";
 import { Group } from "@/app/types/groups";
 import { GroupsState, setError, setGroups } from "../redux/slices/groupsSlice";
-import { TeamState, setTeamMember } from "../redux/slices/teamSlice";
+import {  setTeamMember } from "../redux/slices/teamSlice";
+import { GroupsDetailState, setGroup } from "../redux/slices/groupDetailsSlice";
 import { useDispatch } from "react-redux";
   
 interface ErrorResponse {
@@ -43,21 +44,21 @@ export const useGroups = () => {
     const dispatch = useDispatch();
 
     const { data, isLoading, error } = useQuery<
-        GroupsState,
+      GroupsDetailState,
         AxiosError<ErrorResponse>
     >({
         queryKey: ["groups"],
-        queryFn: () => groups.getGroupsApi(),
-        onSuccess: (data: GroupsState) => {
-            dispatch(setGroups(data.groups));
+        queryFn: () => groups.getGroupDetailsApi(groupId),
+        onSuccess: (data: GroupsDetailState) => {
+            dispatch(setGroup(data.group));
         },
         onError: (error: AxiosError<ErrorResponse>) => {
             dispatch(setError(error.message));
         },
-    } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
+    } as UseQueryOptions<GroupsDetailState, AxiosError<ErrorResponse>>)
 
     return {
-      groups: data?.groups ?? [],
+      group: data?.group ?? [],
       isLoading,
       error,
     };
@@ -109,22 +110,19 @@ export const useUpdateGroupDetails = (gridId: string) => {
 export const useTeamMembers = (groupId: string) => {
   const dispatch = useDispatch();
 
-  const { data, isLoading, error } = useQuery<
-      TeamState,
-      AxiosError<ErrorResponse>
-  >({
+  const { data, isLoading, error } = useQuery({
       queryKey: ["team", groupId],
       queryFn: () => groupMembers.getGroupMembersApi(groupId),
-      onSuccess: (data: TeamState) => {
+      onSuccess: (data: any) => {
           dispatch(setTeamMember(data.team));
       },
       onError: (error: AxiosError<ErrorResponse>) => {
           dispatch(setError(error.message));
       },
-  } as UseQueryOptions<TeamState, AxiosError<ErrorResponse>>)
+  });
 
   return {
-    team: data?.team ?? [],
+    team: data?.group ?? [],
     isLoading,
     error,
   };

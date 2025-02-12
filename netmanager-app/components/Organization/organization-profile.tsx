@@ -15,8 +15,9 @@ type OrganizationProfileProps = {
 
 export function OrganizationProfile({ organizationId }: OrganizationProfileProps) {
 //   const dispatch = useAppDispatch()
-  const { getGroupDetails, isLoading, error } = useGroupsDetails(organizationId)
-  const organization = getGroupDetails()
+  const { group, isLoading, error } = useGroupsDetails(organizationId)
+  const status = isLoading ? "loading" : error ? "failed" : "success"
+  const organization = group;
   const [grp_title, setName] = useState(organization?.grp_title || "")
   const [grp_description, setDescription] = useState(organization?.grp_description || "")
 
@@ -41,8 +42,12 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
     }
   }
 
-  if (!organization) {
+  if (status === "loading") {
     return <div>Loading...</div>
+  }
+
+  if (status === "failed") {
+    return <div>Error loading roles. Please try again.</div>
   }
 
   return (

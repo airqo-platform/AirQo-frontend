@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTeamMembers } from "@/core/hooks/useGroups"
 import { groupMembers } from "@/core/apis/organizations"
 import { useRoles } from "@/core/hooks/useRoles"
+import { GroupMember } from "@/app/types/groups"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type TeamMembersProps = {
   organizationId: string
@@ -19,15 +22,13 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
   const { team, isLoading, error } = useTeamMembers(organizationId)
   const { roles, isLoading: rolesLoading, error: rolesError } = useRoles()
   const [newMemberEmail, setNewMemberEmail] = useState("")
-
   const status = isLoading ? "loading" : error ? "failed" : "success"
   const rolesStatus = rolesLoading ? "loading" : rolesError ? "failed" : "success"
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const newRole = await groupMembers.inviteUserToGroupTeam(organizationId, newMemberEmail)
-      return newRole
+      await groupMembers.inviteUserToGroupTeam(organizationId, newMemberEmail)
     } catch (error) {
       console.error("Error inviting member:", error)
     } finally {
@@ -35,9 +36,12 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
     }
   }
 
-  const handleUpdateRole = (memberId: string, newRole: string) => {
-    dispatch(updateMemberRole({ memberId, role: newRole }))
+  
+
+  const handleUpdateRole = (memberId: string, roleId: string) => {
+    dispatch(updateMemberRole({ memberId, role: roleId }))
   }
+
 
   if (status === "loading") {
     return <div>Loading members...</div>
@@ -70,12 +74,19 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {team.map((member) => (
+        {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={5}>
+                <Skeleton className="w-full h-12" />
+              </TableCell>
+            </TableRow>
+          ) : team?.length > 0 ? (
+            team.map((member: GroupMember) => (
             <TableRow key={member._id}>
               <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
               <TableCell>{member.email}</TableCell>
               <TableCell>
-                <Select value={member.role_name} onValueChange={(value) => handleUpdateRole(member._id, value)}>
+                <Select value={member.role_id} onValueChange={(value) => handleUpdateRole(member._id, value)}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
@@ -86,8 +97,8 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                       <SelectItem value="" disabled>Error loading roles</SelectItem>
                     ) : (
                       roles.map((role) => (
-                        <SelectItem key={role._id} value={role.name}>
-                          {role.name}
+                        <SelectItem key={role._id} value={role._id}>
+                          {role.role_name}
                         </SelectItem>
                       ))
                     )}
@@ -104,7 +115,14 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={5} className="text-center">
+              No teams found
+            </TableCell>
+          </TableRow>
+        )}
         </TableBody>
       </Table>
     </div>

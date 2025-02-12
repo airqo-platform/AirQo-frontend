@@ -30,7 +30,7 @@ const initialState: GroupsState = {
     error: null,
 };
 
-const sitesSlice = createSlice({
+const groupsSlice = createSlice({
   name: "groups",
   initialState,
   reducers: {
@@ -50,5 +50,5 @@ const sitesSlice = createSlice({
   },
 });
 
-export const { setGroups, setLoading, setError } = sitesSlice.actions;
-export default sitesSlice.reducer;
+export const { setGroups, setLoading, setError } = groupsSlice.actions;
+export default groupsSlice.reducer;
