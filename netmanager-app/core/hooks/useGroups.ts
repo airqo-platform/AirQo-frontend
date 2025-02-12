@@ -5,9 +5,10 @@ import {
     UseQueryOptions,
   } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { groups } from "../apis/organizations";
+import { groups, groupMembers } from "../apis/organizations";
 import { Group } from "@/app/types/groups";
 import { GroupsState, setError, setGroups } from "../redux/slices/groupsSlice";
+import { TeamState, setTeamMember } from "../redux/slices/teamSlice";
 import { useDispatch } from "react-redux";
   
 interface ErrorResponse {
@@ -100,4 +101,28 @@ export const useUpdateGroupDetails = (gridId: string) => {
       error: mutation.error,
     };
   };
-  
+
+
+export const useTeamMembers = (groupId: string) => {
+  const dispatch = useDispatch();
+
+  const { data, isLoading, error } = useQuery<
+      GroupsState,
+      AxiosError<ErrorResponse>
+  >({
+      queryKey: ["team", groupId],
+      queryFn: () => groupMembers.getGroupMembersApi(groupId),
+      onSuccess: (data: TeamState) => {
+          dispatch(setTeamMember(data.team));
+      },
+      onError: (error: AxiosError<ErrorResponse>) => {
+          dispatch(setError(error.message));
+      },
+  } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
+
+  return {
+    groups: data?.groups ?? [],
+    isLoading,
+    error,
+  };
+};

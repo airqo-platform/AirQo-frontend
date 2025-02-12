@@ -1,25 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { Role } from "@/app/types/roles";
+import { GroupMember } from "@/app/types/groups";
 
-export interface RolesState {
-  roles: Role[];
+export interface TeamState {
+  team: GroupMember[];
   isLoading: boolean;
   error: string | null;
 }
 
-const initialState: RolesState = {
-  roles: [],
+const initialState: TeamState = {
+  team: [],
   isLoading: false,
   error: null,
 };
 
-const rolesSlice = createSlice({
-  name: "roles",
+const teamMembersSlice = createSlice({
+  name: "team",
   initialState,
   reducers: {
-    setRoles(state, action: PayloadAction<Role[]>) {
-      state.roles = action.payload;
+    setTeamMember(state, action: PayloadAction<GroupMember[]>) {
+      state.team = action.payload;
       state.isLoading = false;
       state.error = null;
     },
@@ -33,5 +33,5 @@ const rolesSlice = createSlice({
   },
 });
 
-export const { setRoles, setLoading, setError } = rolesSlice.actions;
-export default rolesSlice.reducer;
+export const { setTeamMember, setLoading, setError } = teamMembersSlice.actions;
+export default teamMembersSlice.reducer;
