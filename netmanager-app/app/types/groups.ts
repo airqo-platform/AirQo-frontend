@@ -21,5 +21,31 @@ import { UserDetails } from "@/app/types/users";
     message: string
     group: Group
   }
+
+interface RolePermission {
+    _id: string;
+    permission: string;
+  };
   
+export interface GroupMember {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+    profilePicture: string;
+    jobTitle: string;
+    isActive: boolean;
+    lastLogin: string;
+    createdAt: string;
+    role_name: string;
+    role_id: string;
+    role_permissions: RolePermission[];
+  };
+  
+export interface GroupMembersResponse {
+    success: boolean;
+    message: string;
+    group_members: GroupMember[];
+  };
   

@@ -64,3 +64,49 @@ export const groups = {
     }
   },
 };
+
+export const groupMembers = {
+  getGroupMembersApi: async (groupId: string) => {
+    try {
+      const response = await axiosInstance.get(
+        `${USERS_MGT_URL}/groups/${groupId}/assigned-users`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch grids summary"
+      );
+    }
+  },
+
+  inviteUserToGroupTeam: async (groupId: string, userEmail: string) => {
+    try {
+      const response = await axiosInstance.post(
+        `${USERS_MGT_URL}/requests/emails/groups/${groupId}`,
+        { emails: [userEmail] }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch grids summary"
+      );
+    }
+  },
+
+  acceptGroupTeamInvite: async (groupId: string, userEmail: string) => {
+    try {
+      const response = await axiosInstance.post(
+        `${USERS_MGT_URL}/requests/emails/groups/${groupId}`,
+        { emails: [userEmail] }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch grids summary"
+      );
+    }
+  },
+}
