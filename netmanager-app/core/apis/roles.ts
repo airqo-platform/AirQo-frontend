@@ -19,7 +19,7 @@ export const roles = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
+        axiosError.response?.data?.message || "Failed to fetch roles summary"
       );
     }
   },
@@ -32,7 +32,7 @@ export const roles = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grid details"
+        axiosError.response?.data?.message || "Failed to fetch role details" 
       );
     }
   },
@@ -45,7 +45,7 @@ export const roles = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to update grid details"
+        axiosError.response?.data?.message || "Failed to update role details"
       );
     }
   },
@@ -59,7 +59,7 @@ export const roles = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to create grid"
+        axiosError.response?.data?.message || "Failed to create role"
       );
     }
   },

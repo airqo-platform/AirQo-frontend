@@ -18,7 +18,7 @@ interface Groups {
     grp_manager: UserDetails
   }
 
-export interface GroupsState {
+export interface GroupsDetailState {
   groups: Groups[];
   isLoading: boolean;
   error: string | null;

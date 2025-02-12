@@ -44,7 +44,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     }
 
     setNewRoleName("");
-};
+  };
 
 
   const handleUpdateRole = (roleId: string, newName: string) => {

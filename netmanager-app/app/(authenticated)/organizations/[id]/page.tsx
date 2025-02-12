@@ -1,3 +1,4 @@
+import React from "react"
 // import { redirect } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OrganizationProfile } from "@/components/Organization/organization-profile"
@@ -5,7 +6,7 @@ import { TeamMembers } from "@/components/Organization/team-members"
 import { OrganizationRoles } from "@/components/Organization/organization-roles"
 // import { useAppSelector } from "@/core/redux/hooks"
 
-export const  OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
+const  OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
   // const user = useAppSelector((state) => state.user.userDetails)
 
   return (
@@ -31,3 +32,4 @@ export const  OrganizationDetailsPage = ({ params }: { params: { id: string } })
   )
 }
 
+export default OrganizationDetailsPage;

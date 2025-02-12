@@ -1,32 +1,38 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
+import { useState } from "react"
+import { useAppDispatch } from "@/core/redux/hooks"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTeamMembers } from "@/core/hooks/useGroups"
+import { groupMembers } from "@/core/apis/organizations"
+import { useRoles } from "@/core/hooks/useRoles"
 
 type TeamMembersProps = {
   organizationId: string
 }
 
 export function TeamMembers({ organizationId }: TeamMembersProps) {
-  const dispatch = useDispatch<AppDispatch>()
-  const members = useSelector((state: RootState) => state.members.list)
-  const status = useSelector((state: RootState) => state.members.status)
+  const dispatch = useAppDispatch()
+  const { team, isLoading, error } = useTeamMembers(organizationId)
+  const { roles, isLoading: rolesLoading, error: rolesError } = useRoles()
   const [newMemberEmail, setNewMemberEmail] = useState("")
 
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchMembers(organizationId))
-    }
-  }, [status, dispatch, organizationId])
+  const status = isLoading ? "loading" : error ? "failed" : "success"
+  const rolesStatus = rolesLoading ? "loading" : rolesError ? "failed" : "success"
 
-  const handleInvite = (e: React.FormEvent) => {
+  const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
-    dispatch(inviteMember({ organizationId, email: newMemberEmail }))
-    setNewMemberEmail("")
+    try {
+      const newRole = await groupMembers.inviteUserToGroupTeam(organizationId, newMemberEmail)
+      return newRole
+    } catch (error) {
+      console.error("Error inviting member:", error)
+    } finally {
+      setNewMemberEmail("")
+    }
   }
 
   const handleUpdateRole = (memberId: string, newRole: string) => {
@@ -34,7 +40,7 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
   }
 
   if (status === "loading") {
-    return <div>Loading...</div>
+    return <div>Loading members...</div>
   }
 
   if (status === "failed") {
@@ -64,27 +70,35 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {members.map((member) => (
-            <TableRow key={member.id}>
-              <TableCell>{member.name}</TableCell>
+          {team.map((member) => (
+            <TableRow key={member._id}>
+              <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
               <TableCell>{member.email}</TableCell>
               <TableCell>
-                <Select value={member.role} onValueChange={(value) => handleUpdateRole(member.id, value)}>
+                <Select value={member.role_name} onValueChange={(value) => handleUpdateRole(member._id, value)}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Member">Member</SelectItem>
-                    <SelectItem value="Manager">Manager</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
+                    {rolesStatus === "loading" ? (
+                      <SelectItem value="" disabled>Loading roles...</SelectItem>
+                    ) : rolesStatus === "failed" ? (
+                      <SelectItem value="" disabled>Error loading roles</SelectItem>
+                    ) : (
+                      roles.map((role) => (
+                        <SelectItem key={role._id} value={role.name}>
+                          {role.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </TableCell>
               <TableCell>
                 <Button
                   variant="outline"
-                  onClick={() => handleUpdateRole(member.id, "Manager")}
-                  disabled={member.role === "Manager"}
+                  onClick={() => handleUpdateRole(member._id, "Manager")}
+                  disabled={member.role_name === "Manager"}
                 >
                   Assign as Manager
                 </Button>
@@ -96,4 +110,3 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
     </div>
   )
 }
-

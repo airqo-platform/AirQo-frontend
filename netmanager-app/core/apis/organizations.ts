@@ -75,7 +75,7 @@ export const groupMembers = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
+        axiosError.response?.data?.message || "Failed to fetch group members" 
       );
     }
   },
@@ -90,7 +90,7 @@ export const groupMembers = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
+        axiosError.response?.data?.message || "Failed to send invitation" 
       );
     }
   },
@@ -105,7 +105,7 @@ export const groupMembers = {
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
+        axiosError.response?.data?.message || "Failed to accept invitation" 
       );
     }
   },

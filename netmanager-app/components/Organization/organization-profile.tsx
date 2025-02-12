@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useAppSelector } from "@/core/redux/hooks"
 import { groups } from "@/core/apis/organizations"
+import { useGroupsDetails } from "@/core/hooks/useGroups"
 
 type OrganizationProfileProps = {
   organizationId: string
@@ -14,9 +15,8 @@ type OrganizationProfileProps = {
 
 export function OrganizationProfile({ organizationId }: OrganizationProfileProps) {
 //   const dispatch = useAppDispatch()
-  const organization = useAppSelector((state) =>
-    state.groups.groups.find((org) => org._id === organizationId),
-  )
+  const { getGroupDetails, isLoading, error } = useGroupsDetails(organizationId)
+  const organization = getGroupDetails()
   const [grp_title, setName] = useState(organization?.grp_title || "")
   const [grp_description, setDescription] = useState(organization?.grp_description || "")
 

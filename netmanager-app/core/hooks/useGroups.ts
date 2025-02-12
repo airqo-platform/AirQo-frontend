@@ -40,23 +40,26 @@ export const useGroups = () => {
 };
 
   export const useGroupsDetails = (groupId: string) => {
-    const mutation = useMutation({
-      mutationFn: async () => await groups.getGroupDetailsApi(groupId),
-      onSuccess: () => {
-        console.log("Grid details fetched successfully");
-      },
-      onError: (error: AxiosError<ErrorResponse>) => {
-        console.error(
-          "Failed to fetch grid details:",
-          error.response?.data?.message
-        );
-      },
-    });
+    const dispatch = useDispatch();
+
+    const { data, isLoading, error } = useQuery<
+        GroupsState,
+        AxiosError<ErrorResponse>
+    >({
+        queryKey: ["groups"],
+        queryFn: () => groups.getGroupsApi(),
+        onSuccess: (data: GroupsState) => {
+            dispatch(setGroups(data.groups));
+        },
+        onError: (error: AxiosError<ErrorResponse>) => {
+            dispatch(setError(error.message));
+        },
+    } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
 
     return {
-        getGroupDetails: mutation.mutate || [],
-        isLoading: mutation.isPending,
-        error: mutation.error as Error | null,
+      groups: data?.groups ?? [],
+      isLoading,
+      error,
     };
 };
 
@@ -107,7 +110,7 @@ export const useTeamMembers = (groupId: string) => {
   const dispatch = useDispatch();
 
   const { data, isLoading, error } = useQuery<
-      GroupsState,
+      TeamState,
       AxiosError<ErrorResponse>
   >({
       queryKey: ["team", groupId],
@@ -118,10 +121,10 @@ export const useTeamMembers = (groupId: string) => {
       onError: (error: AxiosError<ErrorResponse>) => {
           dispatch(setError(error.message));
       },
-  } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
+  } as UseQueryOptions<TeamState, AxiosError<ErrorResponse>>)
 
   return {
-    groups: data?.groups ?? [],
+    team: data?.team ?? [],
     isLoading,
     error,
   };
