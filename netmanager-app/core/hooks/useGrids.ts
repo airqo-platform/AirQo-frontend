@@ -46,7 +46,7 @@ export const useGrids = (networkId: string) => {
 export const useGridDetails = (gridId: string) => {
   const dispatch = useDispatch();
   const { data, isLoading, error } = useQuery<Grid, AxiosError<ErrorResponse>>({
-    queryKey: ["grid", gridId],
+    queryKey: ["gridDetails", gridId],
     queryFn: () => grids.getGridDetailsApi(gridId),
     enabled: !!gridId,
     onSuccess: () => {
@@ -68,7 +68,8 @@ export const useGridDetails = (gridId: string) => {
 export const useUpdateGridDetails = (gridId: string) => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async () => await grids.updateGridDetailsApi(gridId),
+    mutationFn: (updatedFields: { name?: string; visibility?: boolean }) =>
+      grids.updateGridDetailsApi(gridId, updatedFields),
     onSuccess: () => {
       // Invalidate and refetch the grid details
       queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
@@ -82,7 +83,7 @@ export const useUpdateGridDetails = (gridId: string) => {
   });
 
   return {
-    updateGridDetails: mutation.mutate,
+    updateGridDetails: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
   };

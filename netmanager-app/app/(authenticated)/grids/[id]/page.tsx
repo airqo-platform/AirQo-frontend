@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,21 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GridSitesTable } from "@/components/grids/grid-sites";
 import { DateRangePicker } from "@/components/grids/date-range-picker";
-import { useGridDetails } from "@/core/hooks/useGrids";
+import { useGridDetails, useUpdateGridDetails } from "@/core/hooks/useGrids";
 import { Grid } from "@/app/types/grids";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { toast } from "sonner";
 
 export default function GridDetailsPage() {
   const router = useRouter();
   const { id } = useParams();
   const { gridDetails, isLoading, error } = useGridDetails(id.toString());
+  const {
+    updateGridDetails,
+    isLoading: isSaving,
+    error: saveError,
+  } = useUpdateGridDetails(id.toString());
   const [gridData, setGridData] = useState<Grid>({
     name: "",
     _id: "",
@@ -36,23 +42,52 @@ export default function GridDetailsPage() {
     sites: [],
     numberOfSites: 0,
   } as Grid);
+  const [originalGridData, setOriginalGridData] = useState<Grid>({
+    name: "",
+    _id: "",
+    visibility: false,
+    admin_level: "",
+    network: "",
+    long_name: "",
+    createdAt: "",
+    sites: [],
+    numberOfSites: 0,
+  } as Grid);
+
+  // Memoize gridDetails to prevent unnecessary re-renders
+  const memoizedGridDetails = useMemo(() => gridDetails, [gridDetails]);
 
   useEffect(() => {
-    if (gridDetails && gridDetails._id !== gridData._id) {
-      setGridData({ ...gridDetails });
+    if (memoizedGridDetails) {
+      setGridData({ ...memoizedGridDetails });
+      setOriginalGridData({ ...memoizedGridDetails });
     }
-  }, [gridDetails, gridData._id]);
+  }, [memoizedGridDetails]);
 
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
   const handleReset = () => {
-    // Reset form to original values
+    setGridData({ ...originalGridData });
   };
 
-  const handleSave = () => {
-    // Save changes
+  const handleSave = async () => {
+    const updatedFields: Partial<Grid> = {
+      name: gridData.name,
+      admin_level: gridData.admin_level,
+    };
+    if (gridData.visibility !== originalGridData.visibility) {
+      updatedFields.visibility = gridData.visibility;
+    }
+
+    try {
+      await updateGridDetails(updatedFields);
+      toast("Grid details updated successfully");
+    } catch (error) {
+      console.error(error);
+      toast("Failed to update grid details");
+    }
   };
 
   if (isLoading) {
@@ -63,13 +98,15 @@ export default function GridDetailsPage() {
     );
   }
 
-  if (error) {
+  if (error || saveError) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <Alert variant="destructive" className="max-w-md">
           <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
+          <AlertDescription>
+            {error?.message || saveError?.message}
+          </AlertDescription>
         </Alert>
       </div>
     );
@@ -90,13 +127,7 @@ export default function GridDetailsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="gridName">Grid name *</Label>
-            <Input
-              id="gridName"
-              value={gridData.name || ""}
-              onChange={(e) =>
-                setGridData({ ...gridData, name: e.target.value })
-              }
-            />
+            <Input id="gridName" value={gridData.name || ""} readOnly />
           </div>
           <div className="space-y-2">
             <Label htmlFor="gridId">Grid ID *</Label>
@@ -140,12 +171,7 @@ export default function GridDetailsPage() {
             <Input
               id="adminLevel"
               value={gridData.admin_level || ""}
-              onChange={(e) =>
-                setGridData({
-                  ...gridData,
-                  admin_level: e.target.value,
-                })
-              }
+              readOnly
             />
           </div>
         </div>
@@ -198,10 +224,12 @@ export default function GridDetailsPage() {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleReset}>
+          <Button variant="outline" onClick={handleReset} disabled={isSaving}>
             Reset
           </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            Save Changes
+          </Button>
         </div>
 
         {/* Grid Sites */}
