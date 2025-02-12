@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAppDispatch } from "@/core/redux/hooks"
 import { roles } from "@/core/apis/roles"
-import { useOrgRole, useRoles } from "@/core/hooks/useRoles"
+import { useOrgRole } from "@/core/hooks/useRoles"
 
 
 
@@ -23,17 +23,24 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
 
 
   const handleCreateRole = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+
     const data = {
       role_name: newRoleName,
-    }
+      network_id: selectedNetworkId,
+      group_id: organizationId,
+    };
+
     try {
-      const newRole = await  roles.createRoleApi(data)
+      const newRole = await roles.createRoleApi(data);
+      console.log("Role created successfully:", newRole);
     } catch (error) {
-      
+      console.error("Error creating role:", error);
     }
-    setNewRoleName("")
-  }
+
+    setNewRoleName("");
+};
+
 
   const handleUpdateRole = (roleId: string, newName: string) => {
     dispatch(updateRole({ id: roleId, name: newName }))
@@ -67,15 +74,15 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
         </TableHeader>
         <TableBody>
           {grproles.map((role) => (
-            <TableRow key={role.id}>
-              <TableCell>{role.name}</TableCell>
+            <TableRow key={role._id}>
+              <TableCell>{role.role_name}</TableCell>
               <TableCell>{role.permissions.join(", ")}</TableCell>
               <TableCell>
                 <Button
                   variant="outline"
                   onClick={() => {
                     const newName = prompt("Enter new role name:", role.name)
-                    if (newName) handleUpdateRole(role.id, newName)
+                    if (newName) handleUpdateRole(role._id, newName)
                   }}
                 >
                   Edit

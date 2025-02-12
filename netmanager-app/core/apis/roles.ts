@@ -49,7 +49,7 @@ export const roles = {
       );
     }
   },
-  createRoleApi: async (data: Role) => {
+  createRoleApi: async (data: any) => {
     try {
       const response = await axiosInstance.post(
         `${USERS_MGT_URL}/roles`,
