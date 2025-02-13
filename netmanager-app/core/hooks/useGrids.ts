@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
-import { CreateGrid } from "@/app/types/grids";
+import { CreateGrid, Grid } from "@/app/types/grids";
 import { GridsState, setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
@@ -44,23 +44,23 @@ export const useGrids = (networkId: string) => {
 
 // Hook to get grid details by gridId
 export const useGridDetails = (gridId: string) => {
-  const mutation = useMutation({
-    mutationFn: async () => await grids.getGridDetailsApi(gridId),
+  const dispatch = useDispatch();
+  const { data, isLoading, error } = useQuery<Grid, AxiosError<ErrorResponse>>({
+    queryKey: ["gridDetails", gridId],
+    queryFn: () => grids.getGridDetailsApi(gridId),
+    enabled: !!gridId,
     onSuccess: () => {
       console.log("Grid details fetched successfully");
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      console.error(
-        "Failed to fetch grid details:",
-        error.response?.data?.message
-      );
+      dispatch(setError(error.message));
     },
-  });
+  } as UseQueryOptions<Grid, AxiosError<ErrorResponse>>);
 
   return {
-    getGridDetails: mutation.mutate || [],
-    isLoading: mutation.isPending,
-    error: mutation.error as Error | null,
+    gridDetails: data?.grids[0] ?? ({} as Grid),
+    isLoading,
+    error,
   };
 };
 
@@ -68,7 +68,8 @@ export const useGridDetails = (gridId: string) => {
 export const useUpdateGridDetails = (gridId: string) => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async () => await grids.updateGridDetailsApi(gridId),
+    mutationFn: (updatedFields: { name?: string; visibility?: boolean }) =>
+      grids.updateGridDetailsApi(gridId, updatedFields),
     onSuccess: () => {
       // Invalidate and refetch the grid details
       queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
@@ -82,7 +83,7 @@ export const useUpdateGridDetails = (gridId: string) => {
   });
 
   return {
-    updateGridDetails: mutation.mutate,
+    updateGridDetails: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
   };
@@ -96,7 +97,7 @@ export const useCreateGrid = () => {
       await grids.createGridApi(newGrid),
     onSuccess: () => {
       // Invalidate and refetch the grid summary after creating a new grid
-      queryClient.invalidateQueries({ queryKey: ["gridSummary"] });
+      queryClient.invalidateQueries({ queryKey: ["grids"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.error("Failed to create grid:", error.response?.data?.message);
@@ -104,7 +105,7 @@ export const useCreateGrid = () => {
   });
 
   return {
-    createGrid: mutation.mutate,
+    createGrid: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
   };
