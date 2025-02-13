@@ -4,6 +4,7 @@ import React from 'react';
 
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
@@ -14,22 +15,20 @@ const LogisticsPage = () => {
     return null;
   }
 
-  // Render static content from the event model
+  // Render static content from the event model.
   const vaccinationHTML = renderContent(
     data.travel_logistics_vaccination_details,
   );
   const visaHTML = renderContent(data.travel_logistics_visa_details);
 
-  // Define a default text string that indicates no content.
-  const defaultMessage = 'No details available yet.';
-
-  const showVaccination =
-    vaccinationHTML.trim() !== '' && !vaccinationHTML.includes(defaultMessage);
-  const showVisa = visaHTML.trim() !== '' && !visaHTML.includes(defaultMessage);
+  const showVaccination = isValidHTMLContent(vaccinationHTML);
+  const showVisa = isValidHTMLContent(visaHTML);
 
   // Filter extra sections assigned to the "logistics" page.
-  const logisticsSections = data.sections?.filter((section: any) =>
-    section.pages.includes('logistics'),
+  const logisticsSections = data.sections?.filter(
+    (section: any) =>
+      section.pages.includes('logistics') &&
+      isValidHTMLContent(renderContent(section.content)),
   );
 
   return (

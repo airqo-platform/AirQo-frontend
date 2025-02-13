@@ -5,6 +5,7 @@ import React from 'react';
 
 import { Divider } from '@/components/ui';
 import { useSelector } from '@/hooks/reduxHooks';
+import { isValidGlossaryContent } from '@/utils/glossaryValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
@@ -23,20 +24,16 @@ const Page: React.FC = () => {
     return title.split(',')[0].trim().toLowerCase().replace(/\s+/g, '-');
   };
 
-  // Define what you consider a default "empty" message.
-  const defaultMessage = 'No details available yet.';
-
   // Render the main glossary content.
   const glossaryHTML = renderContent(selectedEvent.glossary_details);
-  const showGlossaryMain =
-    glossaryHTML.trim() !== '' && !glossaryHTML.includes(defaultMessage);
+  const showGlossaryMain = isValidGlossaryContent(glossaryHTML);
+  console.info(glossaryHTML);
 
-  // Filter extra sections assigned to the "glossary" page
-  // and filter out those with no meaningful content.
+  // Filter extra sections assigned to the "glossary" page.
   const glossarySections = selectedEvent.sections?.filter((section: any) => {
     if (!section.pages.includes('glossary')) return false;
     const sectionHTML = renderContent(section.content);
-    return sectionHTML.trim() !== '' && !sectionHTML.includes(defaultMessage);
+    return isValidGlossaryContent(sectionHTML);
   });
 
   return (
@@ -78,7 +75,7 @@ const Page: React.FC = () => {
         </div>
       </div>
 
-      {/* Clear Air Glossary Section */}
+      {/* Clean Air Glossary Section */}
       {showGlossaryMain && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
@@ -86,7 +83,7 @@ const Page: React.FC = () => {
             {/* Left column: Heading */}
             <div className="md:w-1/3 mb-4 md:mb-0">
               <h2 className="text-2xl font-bold text-gray-900">
-                Clear Air Glossary
+                Clean Air Glossary
               </h2>
             </div>
             {/* Right column: Glossary content */}

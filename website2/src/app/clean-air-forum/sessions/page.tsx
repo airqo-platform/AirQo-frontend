@@ -6,10 +6,19 @@ import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
-const AccordionItem: React.FC<any> = ({
+interface AccordionItemProps {
+  title: string;
+  subText: string;
+  sessions: any[];
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+const AccordionItem: React.FC<AccordionItemProps> = ({
   title,
   subText,
   sessions,
@@ -71,29 +80,23 @@ const Page: React.FC = () => {
   const data = useForumData();
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
-  // Define a default placeholder text.
-  const defaultMessage = 'No details available yet.';
-
   if (!data) {
     return null;
   }
 
-  // Render and check schedule_details.
+  // Render and validate schedule_details.
   const scheduleHTML = renderContent(data.schedule_details);
-  const showSchedule =
-    scheduleHTML.trim() !== '' && !scheduleHTML.includes(defaultMessage);
+  const showSchedule = isValidHTMLContent(scheduleHTML);
 
-  // Render and check registration_details.
+  // Render and validate registration_details.
   const registrationHTML = renderContent(data.registration_details);
-  const showRegistration =
-    registrationHTML.trim() !== '' &&
-    !registrationHTML.includes(defaultMessage);
+  const showRegistration = isValidHTMLContent(registrationHTML);
 
-  // Filter extra sections assigned to the "session" page.
+  // Filter extra sections assigned to the "session" page and validate content.
   const sessionSections = data?.sections?.filter((section: any) => {
     if (!section.pages.includes('session')) return false;
     const sectionHTML = renderContent(section.content);
-    return sectionHTML.trim() !== '' && !sectionHTML.includes(defaultMessage);
+    return isValidHTMLContent(sectionHTML);
   });
 
   const handleToggle = (id: string) => {
@@ -126,7 +129,6 @@ const Page: React.FC = () => {
 
       {/* Programs Accordion */}
       <>
-        <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
         {data.programs?.map((program: any) => (
           <AccordionItem
             key={program.id}
@@ -142,7 +144,7 @@ const Page: React.FC = () => {
       {/* Registration Section */}
       {showRegistration && (
         <div>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          <Divider className="bg-black p-0 mb-4 h-[1px] w-full" />
           <div className="flex flex-col md:flex-row md:space-x-8">
             <div className="md:w-1/3 mb-4 md:mb-0">
               <h2 className="text-2xl font-bold">Registration</h2>
