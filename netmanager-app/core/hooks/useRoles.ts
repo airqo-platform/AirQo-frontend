@@ -41,7 +41,7 @@ export const useOrgRole = (groupId: string) => {
     const { data, isLoading, error } = useQuery({
       queryKey: ["grouproles", groupId],
       queryFn: () =>
-        roles(groupId || ""),
+        roles.getOrgRolesApi(groupId || ""),
       onSuccess: (data: any) => {
         dispatch(setRoles(data));
       },
@@ -51,7 +51,7 @@ export const useOrgRole = (groupId: string) => {
     });
   
     return {
-      grproles: data?.roles || [],
+      grproles: data?.group_roles || [],
       isLoading,
       error: error as Error | null,
     };
