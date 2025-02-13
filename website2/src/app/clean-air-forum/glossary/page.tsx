@@ -27,7 +27,6 @@ const Page: React.FC = () => {
   // Render the main glossary content.
   const glossaryHTML = renderContent(selectedEvent.glossary_details);
   const showGlossaryMain = isValidGlossaryContent(glossaryHTML);
-  console.info(glossaryHTML);
 
   // Filter extra sections assigned to the "glossary" page.
   const glossarySections = selectedEvent.sections?.filter((section: any) => {
