@@ -114,7 +114,7 @@ export const useTeamMembers = (groupId: string) => {
       queryKey: ["team", groupId],
       queryFn: () => groupMembers.getGroupMembersApi(groupId),
       onSuccess: (data: any) => {
-          dispatch(setTeamMember(data.team));
+          dispatch(setTeamMember(data));
       },
       onError: (error: AxiosError<ErrorResponse>) => {
           dispatch(setError(error.message));
@@ -122,7 +122,7 @@ export const useTeamMembers = (groupId: string) => {
   });
 
   return {
-    team: data?.group ?? [],
+    team: data?.group_members || [],
     isLoading,
     error,
   };
