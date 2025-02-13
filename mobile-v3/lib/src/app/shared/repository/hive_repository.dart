@@ -10,9 +10,10 @@ class HiveBoxNames {
 class HiveRepository {
   HiveRepository._();
 
-  static Future<void> saveData(String boxName, String key, value) async {
+  static Future<dynamic> saveData(String boxName, String key, dynamic value) async {
     var box = await Hive.openBox(boxName);
     await box.put(key, value);
+    return value;
   }
 
   static Future<String?> getData(String key, String boxName) async {

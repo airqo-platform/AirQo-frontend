@@ -18,6 +18,7 @@ import 'package:airqo/src/app/other/places/repository/google_places_repository.d
 import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/profile/pages/guest_profile%20page.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
@@ -92,7 +93,7 @@ class AirqoMobile extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AuthBloc(authRepository),
+          create: (context) => AuthBloc(authRepository)..add(AppStarted()),
         ),
         BlocProvider(
           create: (context) => ForecastBloc(forecastRepository),
@@ -141,7 +142,7 @@ class AirqoMobile extends StatelessWidget {
             //     scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
             //     brightness: Brightness.light),
             title: "AirQo",
-            home: Decider(),
+            home: GuestProfilePage(),
           );
         },
       ),
@@ -164,7 +165,10 @@ class _DeciderState extends State<Decider> {
           children: [
             FutureBuilder<String?>(
               future: HiveRepository.getData('token', HiveBoxNames.authBox),
+
               builder: (context, snapshot) {
+
+
                 // Handle loading state
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Scaffold(
