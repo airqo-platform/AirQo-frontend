@@ -71,7 +71,9 @@ export const groupMembers = {
       const response = await axiosInstance.get(
         `${USERS_MGT_URL}/groups/${groupId}/assigned-users`
       );
-      return response;
+      console.log(response.data);
+      return response.data;
+      
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(

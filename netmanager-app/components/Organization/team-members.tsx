@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAppDispatch, useAppSelector } from "@/core/redux/hooks"
+import { useState } from "react"
+import { useAppDispatch } from "@/core/redux/hooks"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -97,9 +97,12 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                 <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>
-                  <Select value={member.role_id} onValueChange={(value) => handleUpdateRole(member._id, value)}>
+                  <Select
+                    value={member.role_id}
+                    onValueChange={(newRoleId) => handleUpdateRole(member._id, newRoleId)}
+                  >
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select a role" />
+                      <SelectValue placeholder={member.role_name} />
                     </SelectTrigger>
                     <SelectContent>
                       {rolesLoading ? (
@@ -111,11 +114,13 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                           Error loading roles
                         </SelectItem>
                       ) : (
-                        roles.map((role) => (
-                          <SelectItem key={role._id} value={role._id}>
-                            {role.role_name}
-                          </SelectItem>
-                        ))
+                        roles
+                          .filter((role) => role._id !== member.role_id)
+                          .map((role) => (
+                            <SelectItem key={role._id} value={role._id}>
+                              {role.role_name}
+                            </SelectItem>
+                          ))
                       )}
                     </SelectContent>
                   </Select>

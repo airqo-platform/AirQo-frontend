@@ -67,15 +67,16 @@ export const useGroups = () => {
 export const useUpdateGroupDetails = (gridId: string) => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: async () => await groups.getGroupDetailsApi(gridId),
+        mutationFn: async (updatedGroup: Partial<Group>) =>
+            await groups.updateGroupApi(gridId, updatedGroup),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["groupDetails", gridId] });
         },
         onError: (error: AxiosError<ErrorResponse>) => {
-        console.error(
-            "Failed to update grid details:",
-            error.response?.data?.message
-        );
+            console.error(
+                "Failed to update group details:",
+                error.response?.data?.message
+            );
         },
     });
 
@@ -86,34 +87,40 @@ export const useUpdateGroupDetails = (gridId: string) => {
     };
 };
 
-  export const useCreateGroup = () => {
+export const useCreateGroup = () => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
-      mutationFn: async (newGroup: Group) =>
-        await groups.createGroupApi(newGroup),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["groups"] });
-      },
-      onError: (error: AxiosError<ErrorResponse>) => {
-        console.error("Failed to create grid:", error.response?.data?.message);
-      },
+        mutationFn: async (newGroup: Group) =>
+            await groups.createGroupApi(newGroup),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["groups"] });
+        },
+        onError: (error: AxiosError<ErrorResponse>) => {
+            console.error("Failed to create group:", error.response?.data?.message);
+        },
     });
-  
-    return {
-      createGrid: mutation.mutate,
-      isLoading: mutation.isPending,
-      error: mutation.error,
-    };
-  };
 
+    return {
+        createGroup: mutation.mutate,
+        isLoading: mutation.isPending,
+        error: mutation.error,
+    };
+};
+
+interface TeamMembersResponse {
+  group_members: Array<{
+    id: string;
+
+  }>;
+}
 
 export const useTeamMembers = (groupId: string) => {
   const dispatch = useDispatch();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<TeamMembersResponse, AxiosError<ErrorResponse>>({
       queryKey: ["team", groupId],
       queryFn: () => groupMembers.getGroupMembersApi(groupId),
-      onSuccess: (data: any) => {
+      onSuccess: (data: TeamMembersResponse) => {
           dispatch(setTeamMember(data));
       },
       onError: (error: AxiosError<ErrorResponse>) => {
