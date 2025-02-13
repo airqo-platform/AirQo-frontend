@@ -1,17 +1,16 @@
 'use client';
-
 import DOMPurify from 'dompurify';
 import React from 'react';
 
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
 const SponsorshipPage = () => {
   const data = useForumData();
-  const defaultMessage = 'No details available yet.';
 
   if (!data) {
     return null;
@@ -29,16 +28,14 @@ const SponsorshipPage = () => {
   const sponsorshipSections = data.sections?.filter((section: any) => {
     if (!section.pages.includes('sponsorships')) return false;
     const html = renderContent(section.content);
-    return html.trim() !== '' && !html.includes(defaultMessage);
+    return isValidHTMLContent(html);
   });
 
-  // Check main text section
+  // Check main text section.
   const mainSponsorshipHTML = renderContent(
     data.sponsorship_opportunities_partners,
   );
-  const showMainSponsorship =
-    mainSponsorshipHTML.trim() !== '' &&
-    !mainSponsorshipHTML.includes(defaultMessage);
+  const showMainSponsorship = isValidHTMLContent(mainSponsorshipHTML);
 
   return (
     <div className="px-4 lg:px-0 flex flex-col gap-6">

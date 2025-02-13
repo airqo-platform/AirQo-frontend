@@ -4,13 +4,13 @@ import React from 'react';
 
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
 const Page: React.FC = () => {
   const data = useForumData();
-  const defaultMessage = 'No details available yet.';
 
   if (!data) {
     return null;
@@ -47,15 +47,13 @@ const Page: React.FC = () => {
 
   // Check the main partners text section.
   const mainPartnersHTML = renderContent(data.partners_text_section);
-  const showMainPartners =
-    mainPartnersHTML.trim() !== '' &&
-    !mainPartnersHTML.includes(defaultMessage);
+  const showMainPartners = isValidHTMLContent(mainPartnersHTML);
 
   // Filter extra sections assigned to the "partners" page.
   const partnersSections = data.sections?.filter((section: any) => {
     if (!section.pages.includes('partners')) return false;
     const sectionHTML = renderContent(section.content);
-    return sectionHTML.trim() !== '' && !sectionHTML.includes(defaultMessage);
+    return isValidHTMLContent(sectionHTML);
   });
 
   return (

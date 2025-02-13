@@ -4,15 +4,15 @@ import React, { useState } from 'react';
 
 import { Divider, MemberCard, Pagination } from '@/components/ui/';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
 const Page: React.FC = () => {
   const data = useForumData();
   const membersPerPage = 6;
-  const defaultMessage = 'No details available yet.';
 
-  // Separate pagination states for Keynote Speakers and Speakers
+  // Separate pagination states for Keynote Speakers and Speakers.
   const [currentKeyNotePage, setCurrentKeyNotePage] = useState(1);
   const [currentSpeakersPage, setCurrentSpeakersPage] = useState(1);
 
@@ -33,7 +33,7 @@ const Page: React.FC = () => {
       person.category === 'Speaker and Committee Member',
   );
 
-  // Pagination calculations for keynote speakers.
+  // Pagination calculations for Keynote Speakers.
   const totalKeyNotePages = Math.ceil(KeyNoteSpeakers?.length / membersPerPage);
   const startKeyNoteIdx = (currentKeyNotePage - 1) * membersPerPage;
   const endKeyNoteIdx = startKeyNoteIdx + membersPerPage;
@@ -42,7 +42,7 @@ const Page: React.FC = () => {
     endKeyNoteIdx,
   );
 
-  // Pagination calculations for speakers.
+  // Pagination calculations for Speakers.
   const totalSpeakersPages = Math.ceil(Speakers?.length / membersPerPage);
   const startSpeakersIdx = (currentSpeakersPage - 1) * membersPerPage;
   const endSpeakersIdx = startSpeakersIdx + membersPerPage;
@@ -54,17 +54,15 @@ const Page: React.FC = () => {
   const handleSpeakersPageChange = (newPage: number) =>
     setCurrentSpeakersPage(newPage);
 
-  // Check main speakers text section.
+  // Validate the main speakers text section.
   const mainSpeakersHTML = renderContent(data.speakers_text_section);
-  const showMainSpeakers =
-    mainSpeakersHTML.trim() !== '' &&
-    !mainSpeakersHTML.includes(defaultMessage);
+  const showMainSpeakers = isValidHTMLContent(mainSpeakersHTML);
 
   // Filter extra sections assigned to the "speakers" page.
   const speakersExtraSections = data?.sections?.filter((section: any) => {
     if (!section.pages.includes('speakers')) return false;
     const sectionHTML = renderContent(section.content);
-    return sectionHTML.trim() !== '' && !sectionHTML.includes(defaultMessage);
+    return isValidHTMLContent(sectionHTML);
   });
 
   return (
