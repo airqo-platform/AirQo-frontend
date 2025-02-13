@@ -1,35 +1,47 @@
-import React from "react"
-// import { redirect } from "next/navigation"
+import type React from "react"
+import { Suspense } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OrganizationProfile } from "@/components/Organization/organization-profile"
 import { TeamMembers } from "@/components/Organization/team-members"
 import { OrganizationRoles } from "@/components/Organization/organization-roles"
-// import { useAppSelector } from "@/core/redux/hooks"
+import { Skeleton } from "@/components/ui/skeleton"
 
-const  OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
-  // const user = useAppSelector((state) => state.user.userDetails)
+const LoadingFallback = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-8 w-3/4" />
+    <Skeleton className="h-64 w-full" />
+  </div>
+)
 
+const TabContent = ({ value, children }: { value: string; children: React.ReactNode }) => (
+  <TabsContent value={value}>
+    <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+  </TabsContent>
+)
+
+const OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto">
       <h1 className="text-3xl font-bold mb-6">Organization Details</h1>
       <Tabs defaultValue="profile">
-        <TabsList>
+        <TabsList className="grid grid-cols-3">
           <TabsTrigger value="profile">Organization Profile</TabsTrigger>
           <TabsTrigger value="members">Team Members</TabsTrigger>
           <TabsTrigger value="roles">Organization Roles</TabsTrigger>
         </TabsList>
-        <TabsContent value="profile">
+        <TabContent value="profile">
           <OrganizationProfile organizationId={params.id} />
-        </TabsContent>
-        <TabsContent value="members">
+        </TabContent>
+        <TabContent value="members">
           <TeamMembers organizationId={params.id} />
-        </TabsContent>
-        <TabsContent value="roles">
+        </TabContent>
+        <TabContent value="roles">
           <OrganizationRoles organizationId={params.id} />
-        </TabsContent>
+        </TabContent>
       </Tabs>
     </div>
   )
 }
 
-export default OrganizationDetailsPage;
+export default OrganizationDetailsPage
+
