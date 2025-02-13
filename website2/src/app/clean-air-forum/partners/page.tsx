@@ -6,15 +6,17 @@ import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
 import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
+import SectionDisplay from '@/views/Forum/SectionDisplay';
 
-const Page = () => {
+const Page: React.FC = () => {
   const data = useForumData();
+  const defaultMessage = 'No details available yet.';
 
   if (!data) {
     return null;
   }
 
-  // Filter Co-Convening Partners
+  // Filter partner groups by category.
   const conveningPartners = data.partners
     ?.filter((partner: any) => partner.category === 'Co-Convening Partner')
     .map((partner: any) => ({
@@ -22,7 +24,6 @@ const Page = () => {
       logoUrl: partner.partner_logo_url,
     }));
 
-  // Filter Host Partners
   const hostPartners = data.partners
     ?.filter((partner: any) => partner.category === 'Host Partner')
     .map((partner: any) => ({
@@ -30,7 +31,6 @@ const Page = () => {
       logoUrl: partner.partner_logo_url,
     }));
 
-  // Filter Program Partners
   const programPartners = data.partners
     ?.filter((partner: any) => partner.category === 'Program Partner')
     .map((partner: any) => ({
@@ -38,7 +38,6 @@ const Page = () => {
       logoUrl: partner.partner_logo_url,
     }));
 
-  // Filter Funding Partners (if available)
   const fundingPartners = data.partners
     ?.filter((partner: any) => partner.category === 'Funding Partner')
     .map((partner: any) => ({
@@ -46,22 +45,45 @@ const Page = () => {
       logoUrl: partner.partner_logo_url,
     }));
 
+  // Check the main partners text section.
+  const mainPartnersHTML = renderContent(data.partners_text_section);
+  const showMainPartners =
+    mainPartnersHTML.trim() !== '' &&
+    !mainPartnersHTML.includes(defaultMessage);
+
+  // Filter extra sections assigned to the "partners" page.
+  const partnersSections = data.sections?.filter((section: any) => {
+    if (!section.pages.includes('partners')) return false;
+    const sectionHTML = renderContent(section.content);
+    return sectionHTML.trim() !== '' && !sectionHTML.includes(defaultMessage);
+  });
+
   return (
     <div className="px-4 lg:px-0 flex flex-col gap-6">
       {/* Partners Text Section */}
-      <div className="py-4">
-        <h2 className="text-2xl font-bold">Partners</h2>
-        <div
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(
-              renderContent(data.partners_text_section),
-            ),
-          }}
-        />
-      </div>
+      {showMainPartners && (
+        <div className="py-4">
+          <h2 className="text-2xl font-bold">Partners</h2>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(mainPartnersHTML),
+            }}
+          />
+        </div>
+      )}
+
+      {/* Additional Partners Sections using SectionDisplay */}
+      {partnersSections && partnersSections.length > 0 && (
+        <>
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          {partnersSections.map((section: any) => (
+            <SectionDisplay key={section.id} section={section} />
+          ))}
+        </>
+      )}
 
       {/* Convening Partners Section */}
-      {conveningPartners?.length > 0 && (
+      {conveningPartners && conveningPartners.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
@@ -82,7 +104,7 @@ const Page = () => {
       )}
 
       {/* Host Partners Section */}
-      {hostPartners?.length > 0 && (
+      {hostPartners && hostPartners.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
@@ -102,8 +124,8 @@ const Page = () => {
         </>
       )}
 
-      {/*  */}
-      {programPartners?.length > 0 && (
+      {/* Program Partners (Exhibitors) Section */}
+      {programPartners && programPartners.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
@@ -122,7 +144,7 @@ const Page = () => {
       )}
 
       {/* Funding Partners Section */}
-      {fundingPartners?.length > 0 && (
+      {fundingPartners && fundingPartners.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
