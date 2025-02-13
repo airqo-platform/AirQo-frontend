@@ -36,6 +36,20 @@ export const roles = {
       );
     }
   },
+
+  getOrgRolesApi: async (groupId: string) => {
+    try {
+      const response = await axiosInstance.get(
+        `${USERS_MGT_URL}/groups/${groupId}/roles`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch group roles" 
+      );
+    }
+  },
   updateRoleDetailsApi: async (roleId: string, data: Role) => {
     try {
       const response = await axiosInstance.put(

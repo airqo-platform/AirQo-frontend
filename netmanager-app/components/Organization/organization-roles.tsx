@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,7 +17,7 @@ type OrganizationRolesProps = {
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const dispatch = useAppDispatch()
-  const {grproles, isLoading, error} = useOrgRole(organizationId)
+  const {grproles, isLoading, error} = useOrgRole()
   const [newRoleName, setNewRoleName] = useState("")
   const status = isLoading ? "loading" : error ? "failed" : "success"
   const network = useAppSelector((state) => state.user.activeNetwork)

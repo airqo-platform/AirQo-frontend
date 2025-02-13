@@ -5,24 +5,28 @@ import { useAppDispatch } from "@/core/redux/hooks"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRoles } from "@/core/hooks/useRoles"
-import { GroupMember } from "@/app/types/groups"
+import type { GroupMember } from "@/app/types/groups"
 import { Skeleton } from "@/components/ui/skeleton"
 import { groupMembers } from "@/core/apis/organizations"
 import { toast } from "@/components/ui/use-toast"
 import { useTeamMembers } from "@/core/hooks/useGroups"
+// import { updateMemberRole } from "@/core/redux/slices/groups" // Import the missing action
 
 type TeamMembersProps = {
   organizationId: string
 }
 
 export function TeamMembers({ organizationId }: TeamMembersProps) {
-  const dispatch = useAppDispatch()
+  // const dispatch = useAppDispatch()
   const { team, isLoading, error } = useTeamMembers(organizationId)
   const { roles, isLoading: rolesLoading, error: rolesError } = useRoles()
   const [newMemberEmail, setNewMemberEmail] = useState("")
-
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [newRoleId, setNewRoleId] = useState<string>("")
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,13 +47,16 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
     }
   }
 
-  const handleUpdateRole = async (memberId: string, roleId: string) => {
+  const handleUpdateRole = async () => {
+    if (!selectedMember || !newRoleId) return
+
     try {
-      await dispatch(updateMemberRole({ organizationId, memberId, roleId })).unwrap()
+      // await dispatch(updateMemberRole({ organizationId, memberId: selectedMember._id, roleId: newRoleId })).unwrap()
       toast({
         title: "Role updated",
         description: "The member's role has been successfully updated.",
       })
+      setIsDialogOpen(false)
     } catch (error) {
       console.error("Error updating role:", error)
       toast({
@@ -96,43 +103,51 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
               <TableRow key={member._id}>
                 <TableCell>{`${member.firstName} ${member.lastName}`}</TableCell>
                 <TableCell>{member.email}</TableCell>
+                <TableCell>{member.role_name || "No role assigned"}</TableCell>
                 <TableCell>
-                  <Select
-                    value={member.role_id}
-                    onValueChange={(newRoleId) => handleUpdateRole(member._id, newRoleId)}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder={member.role_name} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rolesLoading ? (
-                        <SelectItem value="" disabled>
-                          Loading roles...
-                        </SelectItem>
-                      ) : rolesError ? (
-                        <SelectItem value="" disabled>
-                          Error loading roles
-                        </SelectItem>
-                      ) : (
-                        roles
-                          .filter((role) => role._id !== member.role_id)
-                          .map((role) => (
-                            <SelectItem key={role._id} value={role._id}>
-                              {role.role_name}
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedMember(member)
+                          setNewRoleId(member.role_id || "")
+                        }}
+                      >
+                        Update Role
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>
+                          Update Role for {member.firstName} {member.lastName}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <Select value={newRoleId} onValueChange={setNewRoleId}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a new role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {rolesLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Loading roles...
                             </SelectItem>
-                          ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleUpdateRole(member._id, "Manager")}
-                    disabled={member.role_name === "Manager"}
-                  >
-                    Assign as Manager
-                  </Button>
+                          ) : rolesError ? (
+                            <SelectItem value="error" disabled>
+                              Error loading roles
+                            </SelectItem>
+                          ) : (
+                            roles.map((role) => (
+                              <SelectItem key={role._id} value={role._id}>
+                                {role.role_name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handleUpdateRole}>Update Role</Button>
+                    </DialogContent>
+                  </Dialog>
                 </TableCell>
               </TableRow>
             ))

@@ -111,4 +111,19 @@ export const groupMembers = {
       );
     }
   },
+
+  updateGroupTeam: async (groupId: string, userEmail: string) => {
+    try {
+      const response = await axiosInstance.post(
+        `${USERS_MGT_URL}/requests/emails/groups/${groupId}`,
+        { emails: [userEmail] }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to accept invitation" 
+      );
+    }
+  },
 }

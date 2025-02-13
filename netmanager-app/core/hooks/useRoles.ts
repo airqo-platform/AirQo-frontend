@@ -39,9 +39,9 @@ export const useOrgRole = (groupId: string) => {
     const dispatch = useAppDispatch();
 
     const { data, isLoading, error } = useQuery({
-      queryKey: ["clients", groupId],
+      queryKey: ["grouproles", groupId],
       queryFn: () =>
-        roles.getRolesDetailsApi(groupId || ""),
+        roles(groupId || ""),
       onSuccess: (data: any) => {
         dispatch(setRoles(data));
       },
