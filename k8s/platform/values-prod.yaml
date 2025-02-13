@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-next-platform
   pullPolicy: Always
-  tag: prod-87212ef4-1737696175
+  tag: prod-16e65200-1739133930
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -20,33 +20,27 @@ ingress:
 resources:
   limits:
     cpu: 200m
-    memory: 700Mi
+    memory: 350Mi
   requests:
-    cpu: 100m
-    memory: 250Mi
+    cpu: 20m
+    memory: 150Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 4
   targetCPUUtilizationPercentage: 70
-nodeSelector: {}
+nodeSelector:
+  role: control-plane
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
+      - preference:
           matchExpressions:
-            - key: node-type
+            - key: role
               operator: In
               values:
-                - general-purpose
-      - weight: 1
-        preference:
-          matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - high-memory
+                - control-plane
+        weight: 1
 app:
   name: airqo-next-platform
   label: airqo-next-platform

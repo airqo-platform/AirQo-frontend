@@ -93,7 +93,7 @@ export default function DevicesPage() {
       device._id?.toLowerCase().includes(searchLower) ||
       device.description?.toLowerCase().includes(searchLower) ||
       device.device_codes.some((code) =>
-        code.toLowerCase().includes(searchLower)
+        code ? code.toLowerCase().includes(searchLower) : false
       )
     );
   });
