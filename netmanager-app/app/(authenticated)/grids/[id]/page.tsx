@@ -182,7 +182,7 @@ export default function GridDetailsPage() {
             <Label>Recent Measurements API</Label>
             <div className="flex gap-2">
               <Input
-                value="https://api.airqo.net/api/v2/devices/measurements"
+                value={`https://api.airqo.net/api/v2/devices/measurements/${gridData._id}`}
                 readOnly
                 className="font-mono text-sm"
               />
@@ -191,7 +191,7 @@ export default function GridDetailsPage() {
                 size="icon"
                 onClick={() =>
                   handleCopyToClipboard(
-                    "https://api.airqo.net/api/v2/devices/measurements"
+                    `https://api.airqo.net/api/v2/devices/measurements/${gridData._id}`
                   )
                 }
               >
@@ -203,7 +203,7 @@ export default function GridDetailsPage() {
             <Label>Historical Measurements API</Label>
             <div className="flex gap-2">
               <Input
-                value="https://api.airqo.net/api/v2/devices/measurements"
+                value={`https://api.airqo.net/api/v2/devices/measurements/grids/${gridData._id}`}
                 readOnly
                 className="font-mono text-sm"
               />
@@ -212,7 +212,7 @@ export default function GridDetailsPage() {
                 size="icon"
                 onClick={() =>
                   handleCopyToClipboard(
-                    "https://api.airqo.net/api/v2/devices/measurements"
+                    `https://api.airqo.net/api/v2/devices/measurements/grids/${gridData._id}`
                   )
                 }
               >
