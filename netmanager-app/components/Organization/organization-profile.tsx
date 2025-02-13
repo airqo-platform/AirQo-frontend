@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { groups } from "@/core/apis/organizations"
 import { useGroupsDetails } from "@/core/hooks/useGroups"
 import { toast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type OrganizationProfileProps = {
   organizationId: string
@@ -52,7 +53,7 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
   }
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <Skeleton className="w-full h-64" />
   }
 
   if (error) {

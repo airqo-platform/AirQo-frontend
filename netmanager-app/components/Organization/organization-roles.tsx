@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAppSelector } from "@/core/redux/hooks"
 import { roles } from "@/core/apis/roles"
 import { useOrgRole } from "@/core/hooks/useRoles"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type OrganizationRolesProps = {
   organizationId: string
@@ -49,8 +50,8 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     console.log("Updating role:", roleId, newName)
   }
 
-  if (status === "loading") {
-    return <div>Loading...</div>
+  if (isLoading) {
+    return <Skeleton className="w-full h-64" />
   }
 
   if (status === "failed") {
