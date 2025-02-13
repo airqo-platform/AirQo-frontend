@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 
 import { Divider, MemberCard, Pagination } from '@/components/ui/';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
@@ -11,7 +12,6 @@ const Page: React.FC = () => {
   const data = useForumData();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const membersPerPage = 6;
-  const defaultMessage = 'No details available yet.';
 
   // Memoize committee members.
   const committeeMembers = useMemo(
@@ -40,8 +40,7 @@ const Page: React.FC = () => {
 
   // Render main committee text.
   const committeeHTML = renderContent(data?.committee_text_section || '');
-  const showCommitteeMain =
-    committeeHTML.trim() !== '' && !committeeHTML.includes(defaultMessage);
+  const showCommitteeMain = isValidHTMLContent(committeeHTML);
 
   // Filter extra sections assigned to the "committee" page.
   const committeeSections = useMemo(() => {
@@ -49,9 +48,7 @@ const Page: React.FC = () => {
       data?.sections?.filter((section: any) => {
         if (!section.pages.includes('committee')) return false;
         const sectionHTML = renderContent(section.content);
-        return (
-          sectionHTML.trim() !== '' && !sectionHTML.includes(defaultMessage)
-        );
+        return isValidHTMLContent(sectionHTML);
       }) || []
     );
   }, [data?.sections]);
