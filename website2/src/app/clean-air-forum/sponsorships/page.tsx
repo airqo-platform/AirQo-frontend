@@ -54,7 +54,6 @@ const SponsorshipPage = () => {
       {/* Additional Section Data for Sponsorship Page */}
       {sponsorshipSections && sponsorshipSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {sponsorshipSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}
