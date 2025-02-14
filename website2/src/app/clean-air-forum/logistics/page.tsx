@@ -32,12 +32,13 @@ const LogisticsPage = () => {
   );
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 prose max-w-none lg:px-0">
       {/* Render static Vaccination Section if content exists */}
       {showVaccination && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-          <div>
+
+          <div className="py-6">
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -59,7 +60,7 @@ const LogisticsPage = () => {
       {showVisa && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-          <div>
+          <div className="py-6">
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
                 <h2 className="text-2xl font-bold text-gray-900">

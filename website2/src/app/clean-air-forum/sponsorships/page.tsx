@@ -38,16 +38,19 @@ const SponsorshipPage = () => {
   const showMainSponsorship = isValidHTMLContent(mainSponsorshipHTML);
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 prose max-w-none lg:px-0">
       {/* Sponsorship Opportunities Text Section */}
       {showMainSponsorship && (
-        <div className="py-4">
-          <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(mainSponsorshipHTML),
-            }}
-          />
+        <div>
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          <div>
+            <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(mainSponsorshipHTML),
+              }}
+            />
+          </div>
         </div>
       )}
 

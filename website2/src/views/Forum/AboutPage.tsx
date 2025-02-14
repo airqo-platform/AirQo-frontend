@@ -54,7 +54,7 @@ const AboutPage = () => {
         <section className="space-y-6">
           <h2 className="text-2xl font-bold text-left">Introduction</h2>
           <div
-            className="prose"
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(data.introduction),
             }}
@@ -69,6 +69,7 @@ const AboutPage = () => {
         {/* Sponsorship Opportunities Section */}
         <SectionRow title="Sponsorship Opportunities">
           <div
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(
                 data?.sponsorship_opportunities_about || '',
@@ -82,6 +83,7 @@ const AboutPage = () => {
         {/* Sponsorship Packages Section */}
         <SectionRow title="Sponsorship Packages">
           <div
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(data?.sponsorship_packages || ''),
             }}

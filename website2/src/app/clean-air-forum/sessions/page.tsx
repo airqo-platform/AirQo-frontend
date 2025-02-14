@@ -35,7 +35,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   };
 
   return (
-    <div className="bg-gray-100 rounded-lg shadow-sm p-4 mb-4">
+    <div className="bg-gray-100 rounded-lg shadow-sm py-2 px-4 mb-4">
       <div
         className="flex justify-between items-center cursor-pointer"
         onClick={onToggle}
@@ -104,7 +104,7 @@ const Page: React.FC = () => {
   };
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 prose max-w-none lg:px-0">
       {/* Schedule Section */}
       {showSchedule && (
         <div className="py-4">
