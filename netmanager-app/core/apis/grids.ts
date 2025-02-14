@@ -36,10 +36,14 @@ export const grids = {
       );
     }
   },
-  updateGridDetailsApi: async (gridId: string) => {
+  updateGridDetailsApi: async (
+    gridId: string,
+    updatePayload: { name?: string; visibility?: boolean }
+  ) => {
     try {
       const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}/grids/${gridId}`
+        `${DEVICES_MGT_URL}/grids/${gridId}`,
+        updatePayload
       );
       return response.data;
     } catch (error) {

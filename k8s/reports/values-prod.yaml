@@ -13,36 +13,30 @@ service:
   port: 3000
 ingress:
   enabled: false
-nodeSelector: {}
 torelations: {}
 resources:
   requests:
-    cpu: 5m
-    memory: 60Mi
-  limits:
-    cpu: 100m
+    cpu: 10m
     memory: 150Mi
+  limits:
+    cpu: 50m
+    memory: 200Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 4
-  targetMemoryUtilizationPercentage: 70
+  maxReplicas: 3
+  targetMemoryUtilizationPercentage: 80
+nodeSelector: 
+  role: control-plane
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
+      - preference:
           matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - general-purpose
-      - weight: 1
-        preference:
-          matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - high-memory
+          - key: role
+            operator: In
+            values:
+            - control-plane
+        weight: 1
 app:
   name: airqo-reports
   label: airqo-reports

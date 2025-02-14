@@ -249,7 +249,7 @@ const SingleEvent: React.FC<any> = ({ id }) => {
               )}
             </div>
             <div
-              className="prose lg:prose-xl"
+              className="prose max-w-none"
               dangerouslySetInnerHTML={{
                 __html: eventDetailsHtml || 'Event details coming soon.',
               }}

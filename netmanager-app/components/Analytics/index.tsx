@@ -20,7 +20,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Cohort } from "@/app/types/cohorts";
 import { Grid } from "@/app/types/grids";
-import { useDevices } from "@/core/hooks/useDevices";
+import { useMapReadings } from "@/core/hooks/useDevices";
 import { transformDataToGeoJson } from "@/lib/utils";
 
 const NewAnalytics: React.FC = () => {
@@ -43,7 +43,7 @@ const NewAnalytics: React.FC = () => {
     activeNetwork?.net_name ?? ""
   );
   const { cohorts, isLoading: isCohortsLoading } = useCohorts();
-  const { mapReadings, isLoading: isReadingsLoading } = useDevices();
+  const { mapReadings, isLoading } = useMapReadings();
 
   const airqloudsData = isCohort ? cohorts : grids;
 

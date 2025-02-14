@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -26,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, MapPin, Check } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sites } from "@/core/apis/sites";
 import { useAppSelector } from "@/core/redux/hooks";
@@ -35,8 +34,6 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useApproximateCoordinates } from "@/core/hooks/useSites";
-import { AxiosError } from "axios";
-import Error from "next/error";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
