@@ -32,6 +32,7 @@ const AboutPage = () => {
     const objectives = data?.engagement?.objectives || [];
     return (
       <section className="space-y-6">
+        <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
         <h2 className="text-2xl font-bold text-left">Objectives</h2>
         <div className="divide-y divide-gray-200">
           {objectives.map((objective: any) => (
