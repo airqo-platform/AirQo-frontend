@@ -60,18 +60,20 @@ const Page: React.FC = () => {
   const handlePageChange = (newPage: number) => setCurrentPage(newPage);
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 prose max-w-none lg:px-0">
       <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Program Committee Text Section */}
-      <div className="py-4">
-        <h2 className="text-2xl font-bold">Program Committee</h2>
+      <div>
         {showCommitteeMain && (
-          <div
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(committeeHTML),
-            }}
-          />
+          <>
+            <h2 className="text-2xl font-bold">Program Committee</h2>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(committeeHTML),
+              }}
+            />
+          </>
         )}
       </div>
 

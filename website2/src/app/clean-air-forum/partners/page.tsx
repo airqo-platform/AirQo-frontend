@@ -57,7 +57,7 @@ const Page: React.FC = () => {
   });
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 prose max-w-none lg:px-0">
       {/* Partners Text Section */}
       {showMainPartners && (
         <div className="py-4">

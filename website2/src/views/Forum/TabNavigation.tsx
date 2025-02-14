@@ -30,7 +30,7 @@ const TabNavigation: React.FC = () => {
             <Link
               key={index}
               href={link.href}
-              className={`relative flex-shrink-0 text-gray-700 hover:text-gray-900 transition ${
+              className={`relative flex-shrink-0 no-underline text-gray-700 hover:text-gray-900 transition ${
                 isActiveTab(link.href) ? 'font-semibold text-gray-900' : ''
               }`}
             >

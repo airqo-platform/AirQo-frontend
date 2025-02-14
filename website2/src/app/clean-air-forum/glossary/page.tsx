@@ -36,11 +36,11 @@ const Page: React.FC = () => {
   });
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 lg:px-0 prose max-w-none flex flex-col gap-6">
       <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Clean Air Forum Events Section */}
-      <div className="flex flex-col md:flex-row md:space-x-8">
+      <div className="flex flex-col md:flex-row py-6 md:space-x-8">
         {/* Left column: Heading */}
         <div className="md:w-1/3 mb-4 md:mb-0">
           <h3 className="text-xl font-semibold">Clean Air Forum Events</h3>
@@ -78,7 +78,7 @@ const Page: React.FC = () => {
       {showGlossaryMain && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-          <div className="flex flex-col md:flex-row md:space-x-8">
+          <div className="flex flex-col py-6 md:flex-row md:space-x-8">
             {/* Left column: Heading */}
             <div className="md:w-1/3 mb-4 md:mb-0">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -87,7 +87,7 @@ const Page: React.FC = () => {
             </div>
             {/* Right column: Glossary content */}
             <div
-              className="md:w-2/3 space-y-4"
+              className="md:w-2/3"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(glossaryHTML),
               }}
