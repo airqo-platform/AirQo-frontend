@@ -75,3 +75,10 @@
     @apply bg-background text-foreground;
   }
 }
+.drop {
+        transform: rotate(180deg);
+        transition: 0.2s ease-in-out;
+      }
+.revert {
+        transition: 0.2s ease-in-out;
+      }

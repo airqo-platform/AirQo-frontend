@@ -16,8 +16,8 @@ const NetManagerMap = () => {
     if (mapContainerRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        center: [-74.5, 40], // starting position [lng, lat]
-        zoom: 9 // starting zoom
+        center: [18.5, 5], // starting position [lng, lat] Africa
+        zoom: 3 // starting zoom
       });
     }
   });
@@ -26,12 +26,17 @@ const NetManagerMap = () => {
         <div className="flex bg-blue-500 p-1 rounded-lg">
           <div className="flex flex-col gap-3">
             <h1 className="font-bold">Net Manager Map</h1>
-            <Input placeholder="Search" name="Search" className="w-full" /> 
+            <Input placeholder="Search all locations" name="Search" className="w-full" /> 
           </div>
         </div>
       
         <div className="flex-grow ml-[1%] "> 
-          <div ref={mapContainerRef} className="rounded-lg map-container w-full h-full"></div>
+                { mapContainerRef ?(
+                <div ref={mapContainerRef} className="rounded-lg map-container w-full h-full"></div>
+        ):(
+                <div className='text-black'>Loading...</div>
+        )
+          }
         </div>
       </div>
   )
