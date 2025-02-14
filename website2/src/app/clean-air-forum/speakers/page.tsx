@@ -66,7 +66,7 @@ const Page: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-col px-4 lg:px-0 gap-6">
+    <div className="px-4 prose max-w-none lg:px-0">
       <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
       {/* Speakers Text Section */}

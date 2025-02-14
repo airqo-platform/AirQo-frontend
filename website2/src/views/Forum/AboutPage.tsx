@@ -32,6 +32,7 @@ const AboutPage = () => {
     const objectives = data?.engagement?.objectives || [];
     return (
       <section className="space-y-6">
+        <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
         <h2 className="text-2xl font-bold text-left">Objectives</h2>
         <div className="divide-y divide-gray-200">
           {objectives.map((objective: any) => (
@@ -54,7 +55,7 @@ const AboutPage = () => {
         <section className="space-y-6">
           <h2 className="text-2xl font-bold text-left">Introduction</h2>
           <div
-            className="prose"
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(data.introduction),
             }}
@@ -69,6 +70,7 @@ const AboutPage = () => {
         {/* Sponsorship Opportunities Section */}
         <SectionRow title="Sponsorship Opportunities">
           <div
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(
                 data?.sponsorship_opportunities_about || '',
@@ -82,6 +84,7 @@ const AboutPage = () => {
         {/* Sponsorship Packages Section */}
         <SectionRow title="Sponsorship Packages">
           <div
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(data?.sponsorship_packages || ''),
             }}

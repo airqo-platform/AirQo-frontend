@@ -25,50 +25,53 @@ export interface SectionData {
 const SectionDisplay: React.FC<{ section: SectionData }> = ({ section }) => {
   const contentHTML = DOMPurify.sanitize(renderContent(section.content));
 
-  // If title is empty, simply render the content.
+  // If title is empty, just show the content in full width.
   if (!section.title.trim()) {
     return (
-      <div className="my-8">
+      <div className="my-8 prose max-w-none">
+        {/* We apply prose + max-w-none here */}
         <div dangerouslySetInnerHTML={{ __html: contentHTML }} />
       </div>
     );
   }
 
+  // "split" type: side-by-side layout
   if (section.section_type === 'split') {
     return (
       <>
         <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-        <div className="flex flex-col md:flex-row gap-4 my-8">
-          {/* 
-              For split sections, we use conditional order classes.
-              - If reverse_order is false: title is first (left) and content second (right).
-              - If reverse_order is true: content is first (left) and title second (right).
-           */}
+        {/* We remove .prose from this parent so it doesn't impose its max-width */}
+        <div className="flex flex-col md:flex-row prose max-w-none gap-4 my-8">
+          {/* Title column (left or right) */}
           <div
-            className={`w-full md:w-1/3 ${section.reverse_order ? 'order-2' : 'order-1'}`}
+            className={`w-full md:w-1/3 ${
+              section.reverse_order ? 'order-2' : 'order-1'
+            }`}
           >
             <h2 className="text-xl font-bold">{section.title}</h2>
           </div>
+
+          {/* Content column (left or right, with .prose max-w-none) */}
           <div
-            className={`w-full md:w-2/3 text-left space-y-4 ${section.reverse_order ? 'order-1' : 'order-2'}`}
+            className={`${
+              section.reverse_order ? 'order-1' : 'order-2'
+            } w-full md:w-2/3 text-left space-y-4`}
           >
             <div dangerouslySetInnerHTML={{ __html: contentHTML }} />
           </div>
         </div>
       </>
     );
-  } else {
-    // For "column" type, render the title above the content with a small gap.
-    return (
-      <div className="my-8">
-        <h2 className="text-2xl font-bold">{section.title}</h2>
-        <div
-          className="mt-2"
-          dangerouslySetInnerHTML={{ __html: contentHTML }}
-        />
-      </div>
-    );
   }
+
+  // "column" type: title above content
+  return (
+    <div className="my-8 prose max-w-none">
+      <h2 className="text-2xl font-bold">{section.title}</h2>
+      {/* .prose plus .max-w-none so it fills width */}
+      <div className="mt-2" dangerouslySetInnerHTML={{ __html: contentHTML }} />
+    </div>
+  );
 };
 
 export default SectionDisplay;
