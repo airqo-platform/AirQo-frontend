@@ -31,10 +31,14 @@ export default function Layout({ children }: LayoutProps) {
 
     return (
         <div className={`flex h-screen bg-background ${darkMode ? "dark" : ""}`}>
-            <Sidebar isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} isMobileView={isMobileView} />
+            <Sidebar isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
 
-            <div className="flex flex-col flex-1 overflow-hidden">
-                <Topbar toggleSidebar={toggleSidebar} isMobileView={isMobileView} />
+            <div
+                className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ease-in-out ${
+                    isSidebarCollapsed ? 'ml-16' : 'ml-64'
+                }`}
+            >
+                <Topbar  />
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-6">
                     <div className="container mx-auto">{children}</div>
                 </main>
@@ -42,4 +46,3 @@ export default function Layout({ children }: LayoutProps) {
         </div>
     )
 }
-
