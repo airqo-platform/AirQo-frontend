@@ -37,6 +37,16 @@ export const useDevices = () => {
     },
   } as UseQueryOptions<DevicesSummaryResponse, AxiosError<ErrorResponse>>);
 
+  return {
+    devices: devicesQuery.data?.devices || [],
+    isLoading: devicesQuery.isLoading,
+    error: devicesQuery.error,
+  };
+};
+
+export const useMapReadings = () => {
+  const dispatch = useDispatch();
+
   const mapReadingsQuery = useQuery<
     ReadingsApiResponse,
     AxiosError<ErrorResponse>
@@ -50,9 +60,8 @@ export const useDevices = () => {
   } as UseQueryOptions<ReadingsApiResponse, AxiosError<ErrorResponse>>);
 
   return {
-    devices: devicesQuery.data?.devices || [],
     mapReadings: mapReadingsQuery.data?.measurements || [],
-    isLoading: devicesQuery.isLoading || mapReadingsQuery.isLoading,
-    error: devicesQuery.error || mapReadingsQuery.error,
+    isLoading: mapReadingsQuery.isLoading,
+    error: mapReadingsQuery.error,
   };
 };

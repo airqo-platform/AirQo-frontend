@@ -4,12 +4,19 @@ import React from 'react';
 
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
+import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
+import SectionDisplay from '@/views/Forum/SectionDisplay';
 
-const Page = () => {
+const SponsorshipPage = () => {
   const data = useForumData();
 
+  if (!data) {
+    return null;
+  }
+
+  // Prepare Sponsor Partner data for the sponsors section.
   const sponsorPartner = data.partners
     ?.filter((partner: any) => partner.category === 'Sponsor Partner')
     .map((partner: any) => ({
@@ -17,26 +24,47 @@ const Page = () => {
       logoUrl: partner.partner_logo_url,
     }));
 
-  if (!data) {
-    return null;
-  }
-  return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
-      {/* Sponsorship Opportunities Text Section */}
-      <div className="py-4">
-        <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
+  // Filter sections that have the "sponsorships" page and meaningful content.
+  const sponsorshipSections = data.sections?.filter((section: any) => {
+    if (!section.pages.includes('sponsorships')) return false;
+    const html = renderContent(section.content);
+    return isValidHTMLContent(html);
+  });
 
-        <div
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(
-              renderContent(data.sponsorship_opportunities_partners),
-            ),
-          }}
-        />
-      </div>
+  // Check main text section.
+  const mainSponsorshipHTML = renderContent(
+    data.sponsorship_opportunities_partners,
+  );
+  const showMainSponsorship = isValidHTMLContent(mainSponsorshipHTML);
+
+  return (
+    <div className="px-4 prose max-w-none lg:px-0">
+      {/* Sponsorship Opportunities Text Section */}
+      {showMainSponsorship && (
+        <div>
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          <div>
+            <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(mainSponsorshipHTML),
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Additional Section Data for Sponsorship Page */}
+      {sponsorshipSections && sponsorshipSections.length > 0 && (
+        <>
+          {sponsorshipSections.map((section: any) => (
+            <SectionDisplay key={section.id} section={section} />
+          ))}
+        </>
+      )}
 
       {/* Sponsors Section */}
-      {sponsorPartner?.length > 0 && (
+      {sponsorPartner && sponsorPartner.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
@@ -57,4 +85,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default SponsorshipPage;

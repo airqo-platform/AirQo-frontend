@@ -19,7 +19,7 @@ ingress:
   enabled: false
 resources:
   limits:
-    cpu: 50m
+    cpu: 200m
     memory: 100Mi
   requests:
     cpu: 10m
@@ -28,19 +28,19 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 70
-nodeSelector: {}
+nodeSelector: 
+  role: control-plane
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 10
-        preference:
+      - preference:
           matchExpressions:
-            - key: node-type
-              operator: In
-              values:
-                - general-purpose
-app:
+          - key: role
+            operator: In
+            values:
+            - control-plane
+        weight: 1
   name: airqo-prod-docs
   label: airqo-prod-docs
   namespace: production

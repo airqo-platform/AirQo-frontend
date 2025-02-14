@@ -58,7 +58,8 @@ export default function MyProfile() {
     setError(null);
 
     try {
-      const userData = currentUser;
+      const response = await users.getUserDetails(currentUser._id);
+      const userData = response?.users?.[0];
 
       if (userData) {
         setProfile({

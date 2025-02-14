@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MultiSelect, Option } from "react-multi-select-component";
 import { useToast } from "@/components/ui/use-toast";
 import { ExportType, FormData } from "@/app/types/export";
@@ -18,9 +24,9 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { Grid } from "@/app/types/grids";
 
 const pollutantOptions = [
-    { value: "pm2.5", label: "PM2.5" },
-    { value: "pm10", label: "PM10" },
-    { value: "no2", label: "NO2" },
+  { value: "pm2.5", label: "PM2.5" },
+  { value: "pm10", label: "PM10" },
+  { value: "no2", label: "NO2" },
 ];
 
 interface ExportFormProps {
@@ -48,7 +54,6 @@ const options = {
   ],
 };
 
-
 export const roundToEndOfDay = (dateISOString: string): Date => {
   const end = new Date(dateISOString);
   end.setUTCHours(23, 59, 59, 999);
@@ -63,22 +68,25 @@ const getvalue = (options: Option[]): string => {
   return options[0].value;
 };
 
-
 export const roundToStartOfDay = (dateISOString: string): Date => {
   const start = new Date(dateISOString);
   start.setUTCHours(0, 0, 0, 1);
   return start;
 };
 
-
 export default function ExportForm({ exportType }: ExportFormProps) {
-    const [loading, setLoading] = useState(false);
-    const { sites } = useSites();
-    const { grids } = useGrids();
-    const { devices } = useDevices();
-    const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const [loading, setLoading] = useState(false);
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { sites } = useSites();
+  const { grids } = useGrids(activeNetwork?.net_name || "");
+  const { devices } = useDevices();
 
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
     defaultValues: {
       startDateTime: undefined,
       endDateTime: undefined,
@@ -99,32 +107,49 @@ export default function ExportForm({ exportType }: ExportFormProps) {
   useEffect(() => {
     let isSubscribed = true;
     if (sites?.length) {
-      const newSiteOptions = sites.map((site: Site) => ({ value: site._id, label: site.name }));
-      if (isSubscribed && JSON.stringify(newSiteOptions) !== JSON.stringify(siteOptions)) {
+      const newSiteOptions = sites.map((site: Site) => ({
+        value: site._id,
+        label: site.name,
+      }));
+      if (
+        isSubscribed &&
+        JSON.stringify(newSiteOptions) !== JSON.stringify(siteOptions)
+      ) {
         setSiteOptions(newSiteOptions);
       }
-      
     }
     if (grids?.length) {
-      const newCityOptions = grids.map((grid: Grid) => ({ value: grid._id, label: grid.name }));
-      if (isSubscribed && JSON.stringify(newCityOptions) !== JSON.stringify(cityOptions)) {
+      const newCityOptions = grids.map((grid: Grid) => ({
+        value: grid._id,
+        label: grid.name,
+      }));
+      if (
+        isSubscribed &&
+        JSON.stringify(newCityOptions) !== JSON.stringify(cityOptions)
+      ) {
         setCityOptions(newCityOptions);
       }
     }
-    
+
     if (devices?.length) {
-      const newDeviceOptions = devices.map((device: Device) => ({ value: device._id, label: device.name }));
-      if (isSubscribed && JSON.stringify(newDeviceOptions) !== JSON.stringify(deviceOptions)) {
+      const newDeviceOptions = devices.map((device: Device) => ({
+        value: device._id,
+        label: device.name,
+      }));
+      if (
+        isSubscribed &&
+        JSON.stringify(newDeviceOptions) !== JSON.stringify(deviceOptions)
+      ) {
         setDeviceOptions(newDeviceOptions);
       }
     }
     return () => {
-          isSubscribed = false;
+      isSubscribed = false;
     };
   }, [sites, grids, devices]);
 
   const exportData = (data: string, filename: string, type: string) => {
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
     const blob = new Blob([data], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -144,13 +169,13 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       if (response) {
         if (data.fileType === "csv") {
           if (typeof response !== "string") {
-            throw new Error('Invalid CSV data format.');
+            throw new Error("Invalid CSV data format.");
           }
           exportData(response, filename, "text/csv;charset=utf-8;");
         }
 
         if (data.fileType === "json") {
-          const jsonString = JSON.stringify(response.data)
+          const jsonString = JSON.stringify(response.data);
           exportData(jsonString, filename, "application/json");
         }
 
@@ -158,41 +183,42 @@ export default function ExportForm({ exportType }: ExportFormProps) {
           title: "Data exported successfully",
           description: "Your data has been exported and is ready for download.",
           variant: "success",
-        })
-
+        });
       } else {
         toast({
           title: "Error exporting data",
-          description: "An error occurred while exporting your data. Please try again later.",
+          description:
+            "An error occurred while exporting your data. Please try again later.",
           variant: "destructive",
         });
       }
-
     } catch (error: any) {
       console.error("Error exporting data", error);
-      let errorMessage
+      let errorMessage;
 
       if (error.response) {
-
         if (error.response.status >= 500) {
-          errorMessage = "An error occurred while exporting your data. Please try again later.";
-
+          errorMessage =
+            "An error occurred while exporting your data. Please try again later.";
         } else {
-          if (error.response.data.status === 'success') {
+          if (error.response.data.status === "success") {
             toast({
               title: "Error exporting data",
-              description: 'No data found for the selected parameters',
+              description: "No data found for the selected parameters",
               variant: "default",
-            })
+            });
             return;
           }
-          errorMessage = typeof error.response.data.message === 'string' ? error.response.data : 'An error occurred while downloading data';
+          errorMessage =
+            typeof error.response.data.message === "string"
+              ? error.response.data
+              : "An error occurred while downloading data";
         }
-      
-      }else if (error.request) {
-        errorMessage = 'No response received from server';;
+      } else if (error.request) {
+        errorMessage = "No response received from server";
       } else {
-        errorMessage = 'An error occurred while exporting your data. Please try again later.';
+        errorMessage =
+          "An error occurred while exporting your data. Please try again later.";
       }
 
       toast({
@@ -203,13 +229,11 @@ export default function ExportForm({ exportType }: ExportFormProps) {
     } finally {
       setLoading(false);
     }
-
   };
-
 
   const onSubmit = async (data: any) => {
     setLoading(true);
-  
+
     if (data.startDateTime > data.endDateTime) {
       toast({
         title: "Invalid date range",
@@ -219,40 +243,41 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       setLoading(false);
       return;
     }
-  
-    const Difference_In_Time = new Date(data.endDateTime).getTime() - new Date(data.startDateTime).getTime();
+
+    const Difference_In_Time =
+      new Date(data.endDateTime).getTime() -
+      new Date(data.startDateTime).getTime();
     const Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
-  
+
     if (Difference_In_Days > 28) {
       toast({
         title: "Invalid date range",
-        description: "For time periods greater than a month, please reduce the time difference to a week to avoid timeouts!",
+        description:
+          "For time periods greater than a month, please reduce the time difference to a week to avoid timeouts!",
         variant: "default",
       });
       setLoading(false);
       return;
     }
-  
+
     let body: FormData = {
       startDateTime: roundToStartOfDay(data.startDateTime).toISOString(),
       endDateTime: roundToEndOfDay(data.endDateTime).toISOString(),
-      sites: getValues(data.sites), 
+      sites: getValues(data.sites),
       devices: getValues(data.devices || []),
       cities: getValues(data.cities || []),
       regions: getValues(data.regions || []),
-      network: activeNetwork?.net_name || '',
+      network: activeNetwork?.net_name || "",
       dataType: getvalue(data.dataType || []),
       pollutants: getValues(data.pollutants),
-      frequency:data.frequency,
+      frequency: data.frequency,
       fileType: data.fileType,
       outputFormat: data.outputFormat,
       minimum: true,
     };
-  
+
     await downloadData(body);
   };
-  
-
 
   const renderSelect = (
     name: keyof FormData,
@@ -311,11 +336,17 @@ export default function ExportForm({ exportType }: ExportFormProps) {
   const renderFieldBasedOnTab = () => {
     switch (exportType) {
       case "sites":
-        return renderMultiSelect("sites", siteOptions, "Select sites", { required: "At least one site must be selected" });
+        return renderMultiSelect("sites", siteOptions, "Select sites", {
+          required: "At least one site must be selected",
+        });
       case "devices":
-        return renderMultiSelect("devices", deviceOptions, "Select devices", { required: "At least one device must be selected" });
+        return renderMultiSelect("devices", deviceOptions, "Select devices", {
+          required: "At least one device must be selected",
+        });
       case "airqlouds":
-        return renderMultiSelect("cities", cityOptions, "Select Grids", { required: "At least one Grids must be selected" });
+        return renderMultiSelect("cities", cityOptions, "Select Grids", {
+          required: "At least one Grids must be selected",
+        });
       default:
         return null;
     }
@@ -329,8 +360,11 @@ export default function ExportForm({ exportType }: ExportFormProps) {
           control={control}
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
-            <DatePicker value={field.value ? new Date(field.value) : undefined} onChange={field.onChange} disabled={field.disabled} />
-
+            <DatePicker
+              value={field.value ? new Date(field.value) : undefined}
+              onChange={field.onChange}
+              disabled={field.disabled}
+            />
           )}
         />
         <Controller
@@ -338,24 +372,43 @@ export default function ExportForm({ exportType }: ExportFormProps) {
           control={control}
           rules={{ required: "End date is required" }}
           render={({ field }) => (
-            <DatePicker value={field.value ? new Date(field.value) : undefined} onChange={field.onChange} disabled={field.disabled} />
-
+            <DatePicker
+              value={field.value ? new Date(field.value) : undefined}
+              onChange={field.onChange}
+              disabled={field.disabled}
+            />
           )}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         {renderFieldBasedOnTab()}
-        {renderMultiSelect("pollutants", pollutantOptions, "Select pollutants", { required: "At least one pollutant must be selected" })}
+        {renderMultiSelect(
+          "pollutants",
+          pollutantOptions,
+          "Select pollutants",
+          { required: "At least one pollutant must be selected" }
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {renderSelect("frequency", options.frequency, "Select frequency", { required: "Frequency is required" })}
-        {renderSelect("fileType", options.fileType, "Select file type", { required: "File type is required" })}
+        {renderSelect("frequency", options.frequency, "Select frequency", {
+          required: "Frequency is required",
+        })}
+        {renderSelect("fileType", options.fileType, "Select file type", {
+          required: "File type is required",
+        })}
       </div>
 
-      {renderSelect("outputFormat", options.outputFormat, "Select output format", { required: "Output format is required" })}
-      {renderSelect("dataType", options.dataType, "Select data type", { required: "Data type is required" })}
+      {renderSelect(
+        "outputFormat",
+        options.outputFormat,
+        "Select output format",
+        { required: "Output format is required" }
+      )}
+      {renderSelect("dataType", options.dataType, "Select data type", {
+        required: "Data type is required",
+      })}
 
       <div className="flex justify-center space-x-4">
         <Button type="submit" disabled={loading}>
@@ -368,7 +421,9 @@ export default function ExportForm({ exportType }: ExportFormProps) {
 
       {Object.keys(errors).length > 0 && (
         <div>
-          <p className="text-red-500 text-center">Please fill in all the required fields</p>
+          <p className="text-red-500 text-center">
+            Please fill in all the required fields
+          </p>
         </div>
       )}
     </form>
