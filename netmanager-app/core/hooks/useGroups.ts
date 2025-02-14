@@ -19,19 +19,16 @@ interface ErrorResponse {
 export const useGroups = () => {
     const dispatch = useDispatch();
 
-    const { data, isLoading, error } = useQuery<
-        GroupsState,
-        AxiosError<ErrorResponse>
-    >({
+    const { data, isLoading, error } = useQuery({
         queryKey: ["groups"],
         queryFn: () => groups.getGroupsApi(),
-        onSuccess: (data: GroupsState) => {
+        onSuccess: (data: any) => {
             dispatch(setGroups(data.groups));
         },
-        onError: (error: AxiosError<ErrorResponse>) => {
+        onError: (error: Error) => {
             dispatch(setError(error.message));
         },
-    } as UseQueryOptions<GroupsState, AxiosError<ErrorResponse>>)
+    })
 
     return {
       groups: data?.groups ?? [],
@@ -43,19 +40,16 @@ export const useGroups = () => {
   export const useGroupsDetails = (groupId: string) => {
     const dispatch = useDispatch();
 
-    const { data, isLoading, error } = useQuery<
-      GroupsDetailState,
-        AxiosError<ErrorResponse>
-    >({
-        queryKey: ["groups"],
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["groupDetails", groupId],
         queryFn: () => groups.getGroupDetailsApi(groupId),
-        onSuccess: (data: GroupsDetailState) => {
+        onSuccess: (data: any) => {
             dispatch(setGroup(data.group));
         },
-        onError: (error: AxiosError<ErrorResponse>) => {
+        onError: (error: Error) => {
             dispatch(setError(error.message));
         },
-    } as UseQueryOptions<GroupsDetailState, AxiosError<ErrorResponse>>)
+    })
 
     return {
       group: data?.group ?? [],

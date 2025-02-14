@@ -15,7 +15,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Search, Plus, Eye, Users } from "lucide-react"
+import { Search, Eye, Users } from "lucide-react"
+import { CreateOrganizationDialog } from "./Create-group"
 
 const ITEMS_PER_PAGE = 8
 
@@ -80,11 +81,7 @@ export function OrganizationList() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Organizations</h2>
-        <Button asChild>
-          <Link href="/admin/organization-settings/create">
-            <Plus className="mr-2 h-4 w-4" /> Create Organization
-          </Link>
-        </Button>
+        <CreateOrganizationDialog />
       </div>
 
       <div className="flex items-center space-x-2">

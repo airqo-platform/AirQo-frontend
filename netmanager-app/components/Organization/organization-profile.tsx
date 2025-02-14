@@ -1,84 +1,96 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { groups } from "@/core/apis/organizations"
-import { useGroupsDetails } from "@/core/hooks/useGroups"
-import { toast } from "@/components/ui/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
-import { UserIcon, UsersIcon } from "lucide-react"
-import type React from "react" // Added import for React
+import type React from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { groups } from "@/core/apis/organizations";
+import { useGroupsDetails } from "@/core/hooks/useGroups";
+import { toast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UserIcon, UsersIcon } from "lucide-react";
 
-type OrganizationProfileProps = {
-  organizationId: string
+interface OrganizationProfileProps {
+  organizationId: string;
 }
 
 export function OrganizationProfile({ organizationId }: OrganizationProfileProps) {
-  const { group, isLoading, error } = useGroupsDetails(organizationId)
+  const { group, isLoading, error } = useGroupsDetails(organizationId);
   const [formData, setFormData] = useState({
     grp_title: "",
     grp_description: "",
     grp_website: "",
     grp_status: "INACTIVE",
-  })
-  const [isUpdating, setIsUpdating] = useState(false)
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    if (group) {
+    if (
+      group &&
+      (group.grp_title !== formData.grp_title ||
+        group.grp_description !== formData.grp_description ||
+        group.grp_website !== formData.grp_website ||
+        group.grp_status !== formData.grp_status)
+    ) {
       setFormData({
         grp_title: group.grp_title || "",
         grp_description: group.grp_description || "",
         grp_website: group.grp_website || "",
         grp_status: group.grp_status || "INACTIVE",
-      })
+      });
     }
-  }, [group])
+  }, [group]);
 
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setFormData((prev) => (prev[name] === value ? prev : { ...prev, [name]: value }));
+    },
+    []
+  );
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleStatusChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, grp_status: checked ? "ACTIVE" : "INACTIVE" }))
-  }
+  const handleStatusChange = useCallback((checked: boolean) => {
+    setFormData((prev) =>
+      prev.grp_status === (checked ? "ACTIVE" : "INACTIVE")
+        ? prev
+        : { ...prev, grp_status: checked ? "ACTIVE" : "INACTIVE" }
+    );
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsUpdating(true)
+    e.preventDefault();
+    setIsUpdating(true);
 
     try {
-      await groups.updateGroupDetailsApi(organizationId, formData)
+      await groups.updateGroupDetailsApi(organizationId, formData);
       toast({
         title: "Profile Updated",
         description: "The organization profile has been successfully updated.",
-      })
+      });
     } catch (error) {
-      console.error("Failed to update organization profile", error)
+      console.error("Failed to update organization profile", error);
       toast({
         title: "Update Failed",
         description: "There was an error updating the organization profile. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   if (isLoading) {
-    return <Skeleton className="w-full h-[600px]" />
+    return <Skeleton className="w-full h-[600px]" />;
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error loading organization details. Please try again.</div>
+    return <div className="text-center text-red-500">Error loading organization details. Please try again.</div>;
   }
 
   return (
@@ -95,7 +107,9 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
             </Avatar>
             <div>
               <h2 className="text-xl font-semibold">{formData.grp_title}</h2>
-              <Badge variant={formData.grp_status === "ACTIVE" ? "default" : "secondary"}>{formData.grp_status}</Badge>
+              <Badge variant={formData.grp_status === "ACTIVE" ? "default" : "secondary"}>
+                {formData.grp_status}
+              </Badge>
             </div>
           </div>
 
@@ -149,6 +163,5 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
-
