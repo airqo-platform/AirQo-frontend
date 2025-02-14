@@ -21,7 +21,7 @@ const BannerSection: React.FC<BannerSectionProps> = ({ data }) => {
     <div className="w-full pt-10 bg-white relative">
       <div className="max-w-5xl mx-auto flex flex-col-reverse md:flex-row items-center px-4 lg:px-0 justify-between gap-6">
         {/* Text Section */}
-        <div className="md:w-[40%] space-y-6 flex flex-col justify-center h-full">
+        <div className="md:w-[40%] prose max-w-none h-full">
           <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
             {data.title}
           </h1>
