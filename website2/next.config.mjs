@@ -34,6 +34,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/clean-air/forum',
+        destination: '/clean-air-forum/about',
+        permanent: true,
+      },
+      {
+        source: '/clean-air-forum',
+        destination: '/clean-air-forum/about',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
