@@ -172,7 +172,7 @@ class _DeciderState extends State<Decider> {
                 // Handle loading state
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
+                    body: const Center(child: CircularProgressIndicator()),
                   );
                 }
                 if (snapshot.connectionState == ConnectionState.done) {
