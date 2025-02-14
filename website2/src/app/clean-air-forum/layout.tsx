@@ -6,6 +6,7 @@ import Footer from '@/components/layouts/Footer';
 import Navbar from '@/components/layouts/Navbar';
 import NewsLetter from '@/components/layouts/NewsLetter';
 import Loading from '@/components/loading';
+import { NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useDispatch, useSelector } from '@/hooks/reduxHooks';
@@ -67,7 +68,7 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
   }
 
   if (!selectedEvent) {
-    return null;
+    return <NoData message="No event found" />;
   }
 
   return (
