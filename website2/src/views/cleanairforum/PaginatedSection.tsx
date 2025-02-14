@@ -64,7 +64,7 @@ const PaginatedSection: React.FC<PaginatedSectionProps> = ({
                     alt={'logo'}
                     width={271}
                     height={144}
-                    className="object-contain w-full h-full max-h-[144px] max-w-[271px] mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110"
+                    className="object-contain w-full h-full max-h-[144px] min-w-[271px] p-3 max-w-[271px] mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110"
                   />
                 </div>
               ))}
