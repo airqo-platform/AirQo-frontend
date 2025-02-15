@@ -55,7 +55,7 @@ const PartnersPage: React.FC = () => {
     <div className="px-4 prose max-w-none lg:px-0">
       {showMainPartners && (
         <div className="py-4">
-          <h2 className="text-2xl font-bold">Partners</h2>
+          <h1 className="text-2xl font-bold">Partners</h1>
           <div
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(mainPartnersHTML),
@@ -66,7 +66,6 @@ const PartnersPage: React.FC = () => {
 
       {partnersSections && partnersSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {partnersSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}

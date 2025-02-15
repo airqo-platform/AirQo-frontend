@@ -86,7 +86,6 @@ const CommitteePage: React.FC = () => {
       {/* Extra Committee Sections using SectionDisplay */}
       {committeeSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {committeeSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}
@@ -94,7 +93,7 @@ const CommitteePage: React.FC = () => {
       )}
 
       {/* Member Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
         {displayedMembers.map((person: any) => (
           <MemberCard
             key={person.id}

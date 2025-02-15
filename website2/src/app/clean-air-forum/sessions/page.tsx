@@ -105,7 +105,7 @@ const ProgramsPage: React.FC = () => {
     <div className="px-4 prose max-w-none lg:px-0">
       {showSchedule && (
         <div className="py-4">
-          <h2 className="text-2xl font-bold">Schedule</h2>
+          <h1 className="text-2xl font-bold">Schedule</h1>
           <div
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(scheduleHTML),
@@ -116,7 +116,6 @@ const ProgramsPage: React.FC = () => {
 
       {sessionSections && sessionSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {sessionSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}
@@ -139,9 +138,9 @@ const ProgramsPage: React.FC = () => {
       {showRegistration && (
         <div>
           <Divider className="bg-black p-0 mb-4 h-[1px] w-full" />
-          <div className="flex flex-col md:flex-row md:space-x-8">
+          <div className="flex flex-col md:flex-row md:space-x-8 py-6">
             <div className="md:w-1/3 mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold">Registration</h2>
+              <h1 className="text-2xl mt-4 pt-0 font-bold">Registration</h1>
             </div>
             <div
               className="md:w-2/3 space-y-4"

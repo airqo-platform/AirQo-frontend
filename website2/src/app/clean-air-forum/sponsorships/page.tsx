@@ -36,8 +36,9 @@ const SponsorshipPage: React.FC = () => {
       {showMainSponsorship && (
         <div>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-          <div>
-            <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
+          <div className="py-6">
+            <h1 className="text-2xl font-bold">Sponsorship opportunities</h1>
+
             <div
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(mainSponsorshipHTML),
@@ -59,9 +60,11 @@ const SponsorshipPage: React.FC = () => {
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
-            <div className="flex flex-col md:flex-row md:space-x-8">
+            <div className="flex flex-col md:flex-row md:space-x-8 py-6">
               <div className="md:w-1/3 mb-4 md:mb-0">
-                <h2 className="text-2xl font-bold text-gray-900">Sponsors</h2>
+                <h1 className="text-2xl mt-0 font-bold text-gray-900">
+                  Sponsors
+                </h1>
               </div>
               <PaginatedSection
                 noClick={true}

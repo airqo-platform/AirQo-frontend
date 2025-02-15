@@ -44,7 +44,9 @@ const GlossaryPage: React.FC = () => {
       <div className="flex flex-col md:flex-row py-6 md:space-x-8">
         {/* Left column: Heading */}
         <div className="md:w-1/3 mb-4 md:mb-0">
-          <h3 className="text-xl font-semibold">Clean Air Forum Events</h3>
+          <h1 className="text-2xl mt-4 font-semibold">
+            Clean Air Forum Events
+          </h1>
         </div>
         {/* Right column: List of event links */}
         <div className="md:w-2/3">
@@ -77,9 +79,9 @@ const GlossaryPage: React.FC = () => {
           <div className="flex flex-col py-6 md:flex-row md:space-x-8">
             {/* Left column: Heading */}
             <div className="md:w-1/3 mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl mt-4 font-bold text-gray-900">
                 Clean Air Glossary
-              </h2>
+              </h1>
             </div>
             {/* Right column: Glossary content */}
             <div

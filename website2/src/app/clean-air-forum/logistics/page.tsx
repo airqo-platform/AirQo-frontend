@@ -44,9 +44,9 @@ const LogisticsPage: React.FC = () => {
           <div className="py-6">
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl mt-4 font-bold text-gray-900">
                   Vaccination
-                </h2>
+                </h1>
               </div>
               <div
                 className="md:w-2/3 space-y-4"
@@ -66,9 +66,9 @@ const LogisticsPage: React.FC = () => {
           <div className="py-6">
             <div className="flex flex-col md:flex-row md:space-x-8">
               <div className="md:w-1/3 mb-4 md:mb-0">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl mt-4 font-bold text-gray-900">
                   Visa invitation letter
-                </h2>
+                </h1>
               </div>
               <div
                 className="md:w-2/3 space-y-4"
@@ -84,7 +84,6 @@ const LogisticsPage: React.FC = () => {
       {/* Render additional Logistics Sections, if any */}
       {logisticsSections && logisticsSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {logisticsSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}

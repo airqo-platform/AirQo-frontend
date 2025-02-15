@@ -86,8 +86,9 @@ const SpeakersPage: React.FC = () => {
       )}
 
       {/* Keynote Speakers Section */}
-      <h2 className="text-2xl font-bold">Keynote Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+      <h1 className="text-2xl font-bold">Keynote Speakers</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
         {displayedKeyNoteSpeakers.map((person: any) => (
           <MemberCard
             key={person.id}
@@ -111,7 +112,7 @@ const SpeakersPage: React.FC = () => {
 
       {/* Speakers Section */}
       <h2 className="text-2xl font-bold">Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
         {displayedSpeakers.map((person: any) => (
           <MemberCard
             key={person.id}
@@ -134,7 +135,6 @@ const SpeakersPage: React.FC = () => {
       {/* Extra Speakers Sections */}
       {speakersExtraSections && speakersExtraSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {speakersExtraSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}
