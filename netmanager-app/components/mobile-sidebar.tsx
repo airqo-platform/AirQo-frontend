@@ -287,7 +287,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
         </div>
 
         {/* Sidebar Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t mt-0 md:mt-4">
+        <div className="absolute bottom-0 left-0 right-0  border-t mt-8 md:mt-8">
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
