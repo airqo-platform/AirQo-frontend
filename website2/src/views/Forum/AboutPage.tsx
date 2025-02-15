@@ -1,11 +1,11 @@
 'use client';
+
 import React from 'react';
 
 import { Divider, NoData } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
 
-// Reusable component for a two-column row with a bold title on the left.
 type SectionRowProps = {
   title: string;
   children: React.ReactNode;
@@ -20,16 +20,15 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
   </div>
 );
 
-const AboutPage = () => {
-  const data = useForumData();
+const AboutPage: React.FC = () => {
+  const { selectedEvent } = useForumData();
 
-  if (!data || !data.introduction) {
-    return <NoData />;
+  if (!selectedEvent || !selectedEvent.introduction) {
+    return <NoData message="No event found" />;
   }
 
-  // Objectives Section: Render each objective as a SectionRow
   const renderObjectives = () => {
-    const objectives = data?.engagement?.objectives || [];
+    const objectives = selectedEvent.engagement?.objectives || [];
     return (
       <section className="space-y-6">
         <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
@@ -49,15 +48,14 @@ const AboutPage = () => {
     <div className="w-full px-6 lg:px-0 bg-white">
       <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
 
-      {/* Main Content */}
       <div className="max-w-5xl mx-auto space-y-12 py-8">
-        {/* Introduction Section (kept out of the redesign) */}
+        {/* Introduction Section */}
         <section className="space-y-6">
           <h2 className="text-2xl font-bold text-left">Introduction</h2>
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{
-              __html: renderContent(data.introduction),
+              __html: renderContent(selectedEvent.introduction),
             }}
           />
         </section>
@@ -73,7 +71,7 @@ const AboutPage = () => {
             className="prose max-w-none"
             dangerouslySetInnerHTML={{
               __html: renderContent(
-                data?.sponsorship_opportunities_about || '',
+                selectedEvent.sponsorship_opportunities_about || '',
               ),
             }}
           />
@@ -86,7 +84,7 @@ const AboutPage = () => {
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{
-              __html: renderContent(data?.sponsorship_packages || ''),
+              __html: renderContent(selectedEvent.sponsorship_packages || ''),
             }}
           />
         </SectionRow>

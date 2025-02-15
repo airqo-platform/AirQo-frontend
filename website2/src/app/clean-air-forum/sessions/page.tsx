@@ -1,4 +1,5 @@
 'use client';
+
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
 import React, { useState } from 'react';
@@ -76,24 +77,21 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   );
 };
 
-const Page: React.FC = () => {
-  const data = useForumData();
+const ProgramsPage: React.FC = () => {
+  const { selectedEvent } = useForumData();
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
-  if (!data) {
+  if (!selectedEvent) {
     return null;
   }
 
-  // Render and validate schedule_details.
-  const scheduleHTML = renderContent(data.schedule_details);
+  const scheduleHTML = renderContent(selectedEvent.schedule_details);
   const showSchedule = isValidHTMLContent(scheduleHTML);
 
-  // Render and validate registration_details.
-  const registrationHTML = renderContent(data.registration_details);
+  const registrationHTML = renderContent(selectedEvent.registration_details);
   const showRegistration = isValidHTMLContent(registrationHTML);
 
-  // Filter extra sections assigned to the "session" page and validate content.
-  const sessionSections = data?.sections?.filter((section: any) => {
+  const sessionSections = selectedEvent.sections?.filter((section: any) => {
     if (!section.pages.includes('session')) return false;
     const sectionHTML = renderContent(section.content);
     return isValidHTMLContent(sectionHTML);
@@ -105,7 +103,6 @@ const Page: React.FC = () => {
 
   return (
     <div className="px-4 prose max-w-none lg:px-0">
-      {/* Schedule Section */}
       {showSchedule && (
         <div className="py-4">
           <h2 className="text-2xl font-bold">Schedule</h2>
@@ -117,7 +114,6 @@ const Page: React.FC = () => {
         </div>
       )}
 
-      {/* Extra Session Sections using SectionDisplay */}
       {sessionSections && sessionSections.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
@@ -127,9 +123,8 @@ const Page: React.FC = () => {
         </>
       )}
 
-      {/* Programs Accordion */}
       <>
-        {data.programs?.map((program: any) => (
+        {selectedEvent.programs?.map((program: any) => (
           <AccordionItem
             key={program.id}
             title={program.title}
@@ -141,7 +136,6 @@ const Page: React.FC = () => {
         ))}
       </>
 
-      {/* Registration Section */}
       {showRegistration && (
         <div>
           <Divider className="bg-black p-0 mb-4 h-[1px] w-full" />
@@ -162,4 +156,4 @@ const Page: React.FC = () => {
   );
 };
 
-export default Page;
+export default ProgramsPage;

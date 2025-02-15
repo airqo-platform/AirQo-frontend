@@ -1,13 +1,19 @@
+// components/layouts/TabNavigation.tsx
 'use client';
+
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import React from 'react';
 
 const TabNavigation: React.FC = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // Read the current slug, if it exists.
+  const currentSlug = searchParams.get('slug');
 
   // Function to check if the tab is active based on the current pathname.
-  const isActiveTab = (path: string) => pathname === path;
+  const isActiveTab = (path: string) =>
+    pathname === path || pathname.startsWith(path);
 
   // Define the tabs list.
   const tabs = [
@@ -22,6 +28,14 @@ const TabNavigation: React.FC = () => {
     { href: '/clean-air-forum/resources', text: 'Resources' },
   ];
 
+  // If currentSlug exists, append it to the URL as a query parameter.
+  const buildHref = (href: string) => {
+    if (currentSlug) {
+      return `${href}?slug=${encodeURIComponent(currentSlug)}`;
+    }
+    return href;
+  };
+
   return (
     <div className="w-full py-10">
       <div className="w-full bg-gray-50 py-4 overflow-x-auto">
@@ -29,7 +43,7 @@ const TabNavigation: React.FC = () => {
           {tabs.map((link, index) => (
             <Link
               key={index}
-              href={link.href}
+              href={buildHref(link.href)}
               className={`relative flex-shrink-0 no-underline text-gray-700 hover:text-gray-900 transition ${
                 isActiveTab(link.href) ? 'font-semibold text-gray-900' : ''
               }`}
