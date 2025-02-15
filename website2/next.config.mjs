@@ -38,7 +38,7 @@ const nextConfig = {
     return [
       {
         source: '/clean-air/forum',
-        destination: '/clean-air-forum/about',
+        destination: '/clean-air-forum/about?slug=clean-air-forum-2024',
         permanent: true,
       },
       {
