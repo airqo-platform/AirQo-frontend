@@ -16,11 +16,11 @@ import {
 import { useAuth } from "@/core/hooks/users"
 
 interface TopbarProps {
-  toggleSidebar: () => void
+  // toggleSidebar: () => void
   isMobileView: boolean
 }
 
-const Topbar: React.FC<TopbarProps> = ({ toggleSidebar, isMobileView }) => {
+const Topbar: React.FC<TopbarProps> = ({ isMobileView }) => {
   const [darkMode, setDarkMode] = useState(false)
   const { logout } = useAuth()
 
@@ -52,11 +52,11 @@ const Topbar: React.FC<TopbarProps> = ({ toggleSidebar, isMobileView }) => {
 
   return (
       <div className="h-16 border-b bg-background px-4 flex items-center justify-between">
-        {isMobileView && (
+        {/* {isMobileView && (
             <Button variant="ghost" size="icon" onClick={toggleSidebar}>
               <Menu size={24} />
             </Button>
-        )}
+        )} */}
 
         <div className="flex items-center gap-4 ml-auto">
           <DropdownMenu>
