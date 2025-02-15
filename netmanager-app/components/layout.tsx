@@ -38,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
                     isSidebarCollapsed ? 'ml-16' : 'ml-64'
                 }`}
             >
-                <Topbar isMobileView={isMobileView} />
+                <Topbar  isMobileView={isMobileView} />
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-6">
                     <div className="container mx-auto">{children}</div>
                 </main>

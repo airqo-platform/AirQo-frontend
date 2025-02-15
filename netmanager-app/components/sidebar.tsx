@@ -64,10 +64,11 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
 
   return (
     <>
-      <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 md:hidden" onClick={toggleMobileMenu}>
+      <Button variant="ghost" size="icon" className=" fixed top-4 left-4 z-50 md:hidden" onClick={toggleMobileMenu}>
         <Menu />
       </Button>
 
+      <div className="hidden md:block">
       <DesktopSidebar
         isSidebarCollapsed={isSidebarCollapsed}
         toggleSidebar={toggleSidebar}
@@ -82,7 +83,11 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
         isActive={isActive}
         logout={logout}
       />
+      </div>
 
+      <div
+        className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}
+      >
       <MobileSidebar
         isMobileMenuOpen={isMobileMenuOpen}
         toggleMobileMenu={toggleMobileMenu}
@@ -97,6 +102,8 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
         isActive={isActive}
         logout={logout}
       />
+      </div>
+
     </>
   )
 }

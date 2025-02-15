@@ -49,6 +49,7 @@ interface MobileSidebarProps {
   handleNetworkChange: (network: Network) => void
   isActive: (path: string) => boolean
   logout: () => void
+  className?: string
 }
 
 const MobileSidebar: React.FC<MobileSidebarProps> = ({
@@ -64,6 +65,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
   handleNetworkChange,
   isActive,
   logout,
+  className,
 }) => {
   const NavItem = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) => (
     <Link
@@ -89,11 +91,11 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
         initial={{ x: "-100%" }}
         animate={{ x: isMobileMenuOpen ? "0%" : "-100%" }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 md:hidden flex flex-col"
+        className={`fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 md:hidden flex flex-col ${className || ''}`}
       >
         {/* Close Button */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-lg font-semibold">Menu</h2>
+        <div className="flex justify-between items-center border-b">
+          <h2 className="text-lg font-semibold">AirQo</h2>
           <Button
             variant="ghost"
             size="icon"

@@ -51,6 +51,7 @@ interface DesktopSidebarProps {
   handleNetworkChange: (network: Network) => void
   isActive: (path: string) => boolean
   logout: () => void
+  className?: string
 }
 
 const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
@@ -66,6 +67,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   handleNetworkChange,
   isActive,
   logout,
+  className,
 }) => {
   const NavItem = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) => (
     <TooltipProvider>
