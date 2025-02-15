@@ -8,7 +8,7 @@ import 'package:http/http.dart';
 
 abstract class AuthRepository {
   //login function
-  Future<void> loginWithEmailAndPassword(String username, String password);
+  Future<String> loginWithEmailAndPassword(String username, String password);
   Future<void> registerWithEmailAndPassword(RegisterInputModel model);
   Future<String> requestPasswordReset(String email);
   Future<String> updatePassword({
@@ -20,7 +20,7 @@ abstract class AuthRepository {
 
 class AuthImpl extends AuthRepository {
   @override
-  Future<void> loginWithEmailAndPassword(String username,
+  Future<String> loginWithEmailAndPassword(String username,
       String password) async {
     Response loginResponse = await http.post(
         Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
@@ -42,6 +42,8 @@ class AuthImpl extends AuthRepository {
       HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
       HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
     }
+
+    return data["token"];
   }
 
   @override
