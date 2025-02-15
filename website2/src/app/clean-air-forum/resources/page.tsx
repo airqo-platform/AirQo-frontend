@@ -19,7 +19,7 @@ const getFileNameFromUrl = (url: string | null | undefined): string | null => {
 // Accordion Item Component (for each session inside a resource)
 const AccordionItem = ({ session, isOpen, toggleAccordion }: any) => {
   return (
-    <div className="bg-gray-100 rounded-lg shadow-sm p-4 mb-4">
+    <div className="bg-gray-100 rounded-lg shadow-sm py-2 px-4 mb-4">
       <div
         className="flex justify-between items-center cursor-pointer"
         onClick={toggleAccordion}
@@ -39,8 +39,6 @@ const AccordionItem = ({ session, isOpen, toggleAccordion }: any) => {
             <div key={file.id} className="mb-4">
               <div className="flex items-start space-x-2 pl-4">
                 {/* Add indentation */}
-                {/* Bullet Point */}
-                <span className="text-gray-700">•</span>
                 {/* Resource Summary */}
                 <div>
                   <p className="text-sm text-gray-900 font-semibold">
@@ -113,7 +111,7 @@ const Page = () => {
   };
 
   return (
-    <div className=" px-4 lg:px-0 py-6 gap-6 flex flex-col">
+    <div className="px-4 prose max-w-none lg:px-0">
       {/* Buttons for Expand/Collapse All */}
       <div className="flex justify-end space-x-4 mb-4">
         <button

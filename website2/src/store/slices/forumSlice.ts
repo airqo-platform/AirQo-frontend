@@ -6,6 +6,7 @@ export interface ForumEvent {
   id: number;
   title: string;
   glossary_details: string;
+  sections: string[];
   // Add additional fields as needed (e.g. introduction, banner, etc.)
 }
 
