@@ -40,7 +40,7 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
     const [userCollapsed, setUserCollapsed] = useState(false);
     const [isDevicesOpen, setIsDevicesOpen] = useState(false);
     // const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { logout } = useAuth();
     const dispatch = useAppDispatch();
 
@@ -84,9 +84,9 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
     //     setIsSidebarCollapsed(!isSidebarCollapsed);
     // };
 
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
+    // const toggleMobileMenu = () => {
+    //     setIsMobileMenuOpen(!isMobileMenuOpen);
+    // };
 
     const NavItem = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) => (
         <TooltipProvider>
@@ -112,14 +112,14 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
     return (
         <>
             {/* Mobile menu toggle button */}
-            <Button
-                variant="ghost"
-                size="icon"
-                className="fixed top-4 left-4 z-50 md:hidden"
-                onClick={toggleMobileMenu}
-            >
-                <Menu />
-            </Button>
+            {/*<Button*/}
+            {/*    variant="ghost"*/}
+            {/*    size="icon"*/}
+            {/*    className="fixed top-4 left-4 z-50 md:hidden"*/}
+            {/*    onClick={toggleMobileMenu}*/}
+            {/*>*/}
+            {/*    <Menu />*/}
+            {/*</Button>*/}
 
             {/* Sidebar */}
             <div
