@@ -8,8 +8,10 @@ class AppColors {
   // static Color highlightColor = Color(0xff2E2F33);
   // static Color boldHeadlineColor = Color(0xff9EA3AA);
   // static Color secondaryHeadlineColor = Color(0xff60646C);
-  
+   //#FAFAFA #E1E7EC
   static Color primaryColor = Color(0xff145FFF);
+  static Color backgroundColor2 = Color(0xffFAFAFA);
+  static Color borderColor2 = Color(0xffE1E7EC);
   static Color backgroundColor = Color(0xffF9FAFB);
   static Color highlightColor = Color(0xffF3F6F8);
   static Color boldHeadlineColor = Color(0xff6F87A1);
