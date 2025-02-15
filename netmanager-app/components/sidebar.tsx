@@ -40,7 +40,7 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
     const [userCollapsed, setUserCollapsed] = useState(false);
     const [isDevicesOpen, setIsDevicesOpen] = useState(false);
     // const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { logout } = useAuth();
     const dispatch = useAppDispatch();
 
@@ -125,14 +125,13 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
             <div
                 className={`fixed top-0 left-0 h-full bg-card border-r transition-all duration-300 ease-in-out z-40 shadow-lg
           ${isSidebarCollapsed ? 'w-16' : 'w-64'}
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
             >
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-900">
+                <div className="flex items-center justify-between border-b bg-white dark:bg-gray-900">
                     {/* Brand Name with Smooth Transition */}
                     <motion.h1
-                        className="text-xl font-bold text-gray-900 dark:text-white"
+                        className="flex items-center justify-center text-xl font-bold text-gray-900 dark:text-white"
                         initial={{opacity: 0, x: -20}}
                         animate={{opacity: isSidebarCollapsed ? 0 : 1, x: isSidebarCollapsed ? -20 : 0}}
                         transition={{duration: 0.3}}
@@ -141,20 +140,34 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
                     </motion.h1>
 
                     {/* Sidebar Toggle Button */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleSidebar}
-                        className="hidden md:flex transition-all duration-300 ease-in-out hover:bg-accent hover:rotate-180"
-                    >
-                        {isSidebarCollapsed ? <ChevronRight size={24}/> : <ChevronLeft size={24}/>}
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={toggleSidebar}
+                                    className="hidden md:flex transition-all duration-300 ease-in-out hover:bg-accent p-2 rounded-lg shadow-md hover:scale-110"
+                                >
+                                    <motion.div
+                                        animate={{ rotate: isSidebarCollapsed ? 180 : 0, scale: 1.2 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    >
+                                        {isSidebarCollapsed ? <Menu size={28} /> : <X size={28} />}
+                                    </motion.div>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                {isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
                     {/* Mobile Menu Close Button */}
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={toggleMobileMenu}
+                        // onClick={toggleMobileMenu}
                         className="md:hidden transition-transform duration-200 hover:bg-accent"
                     >
                         <X size={24}/>
@@ -354,7 +367,7 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
                 </div>
 
                 {/* Sidebar Footer */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t  ">
+                <div className="absolute bottom-0 left-0 right-0 p-4 border-t mt-0 md:mt-4 ">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
