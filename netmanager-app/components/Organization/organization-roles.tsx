@@ -79,7 +79,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
 
   const handleUpdateRole = async (roleId: string, newName: string) => {
     try {
-      // Implement the actual role update logic here
       // await roles.updateRoleApi(roleId, { role_name: newName })
       toast({
         title: "Role updated",

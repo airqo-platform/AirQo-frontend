@@ -76,7 +76,6 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
     if (!selectedMember || !newRoleId) return
 
     try {
-      // Implement the actual role update logic here
       toast({
         title: "Role updated",
         description: "The member's role has been successfully updated.",

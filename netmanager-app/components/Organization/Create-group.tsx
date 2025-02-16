@@ -71,8 +71,8 @@ const inviteMembersSchema = z.object({
 })
 
 const industries = [
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "technology", label: "Technology" },
+  { value: "Manufacturing", label: "Manufacturing" },
+  { value: "Information Technology", label: "Information Technology" },
   { value: "healthcare", label: "Healthcare" },
   { value: "finance", label: "Finance" },
   { value: "education", label: "Education" },
