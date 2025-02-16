@@ -4,7 +4,7 @@ import { OrganizationList } from "@/components/Organization/List"
 const OrganizationSettingsPage = () => {
 
   return (
-    <div className="container mx-auto">
+    <div className=" mx-auto">
       <OrganizationList />
     </div>
   )
