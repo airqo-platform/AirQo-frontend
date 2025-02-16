@@ -13,6 +13,12 @@ import * as z from "zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import TimezoneSelect, { allTimezones } from "react-timezone-select"
 import countryList from "react-select-country-list"
+import { useMutation } from "@tanstack/react-query"
+import { useDispatch } from "react-redux"
+import { sites } from "@/core/apis/sites"
+import { setError } from "@/core/redux/slices/sitesSlice"
+import { useAppSelector } from "@/core/redux/hooks"
+import { useSites } from "@/core/hooks/useSites"
 
 // Step 1: Create Organization
 const createOrgSchema = z.object({
@@ -92,6 +98,9 @@ export function CreateOrganizationDialog() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  const dispatch = useDispatch()
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
+  const activeGroup = useAppSelector((state) => state.user.activeGroup)
 
   const countries = useMemo(() => countryList().getData(), [])
 
@@ -128,6 +137,26 @@ export function CreateOrganizationDialog() {
     },
   })
 
+  const { sites: groupsData, isLoading: isLoadingGroups, error: groupsError } = useSites()
+
+  const createSiteMutation = useMutation({
+    mutationFn: (siteData: any) => sites.createSite(siteData),
+    onSuccess: () => {
+      toast({
+        title: "Site created",
+        description: "The site has been successfully created.",
+      })
+    },
+    onError: (error: Error) => {
+      dispatch(setError(error.message))
+      toast({
+        title: "Error",
+        description: "Failed to create site. Please try again.",
+        variant: "destructive",
+      })
+    },
+  })
+
   const onSubmit = async (data: any) => {
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
@@ -140,16 +169,38 @@ export function CreateOrganizationDialog() {
         ...addDevicesForm.getValues(),
         ...data,
       }
-      // Here you would typically make an API call to create the organization
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
-      console.log("Creating organization:", finalData)
-      toast({
-        title: "Organization created",
-        description: "The organization has been successfully created.",
-      })
-      setOpen(false)
-      resetForms()
-      setIsSubmitting(false)
+      try {
+        // Create the organization
+        const createdOrg = await createOrganization(finalData) // Placeholder - replace with your actual API call
+        const newGroupId = createdOrg.id // Assuming the API returns the new group ID
+
+        // Create sites with the new group ID
+        for (const site of finalData.sites) {
+          await createSiteMutation.mutateAsync({
+            name: site.name,
+            address: site.address,
+            groups: [newGroupId], // Add only the new group ID
+            network: activeNetwork?.net_name,
+          })
+        }
+
+        // Here you would typically make API calls to create devices and invite members
+
+        toast({
+          title: "Organization created",
+          description: "The organization has been successfully created.",
+        })
+        setOpen(false)
+        resetForms()
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create organization. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -162,6 +213,14 @@ export function CreateOrganizationDialog() {
   }
 
   const renderStep = () => {
+    if (isLoadingGroups) {
+      return <div>Loading groups...</div>
+    }
+
+    if (groupsError) {
+      return <div>Error loading groups: {groupsError.message}</div>
+    }
+
     switch (currentStep) {
       case 1:
         return (
@@ -298,8 +357,8 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addSitesForm}>
             <form onSubmit={addSitesForm.handleSubmit(() => setCurrentStep(3))} className="space-y-6">
-              {addSitesForm.fields.sites.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 bg-muted rounded-lg">
+              {addSitesForm.getValues().sites.map((_, index) => (
+                <div key={index} className="space-y-4 p-4 bg-muted rounded-lg">
                   <h3 className="font-semibold">Site {index + 1}</h3>
                   <FormField
                     control={addSitesForm.control}
@@ -332,7 +391,10 @@ export function CreateOrganizationDialog() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => addSitesForm.append({ name: "", address: "" })}
+                onClick={() => {
+                  const currentSites = addSitesForm.getValues().sites
+                  addSitesForm.setValue("sites", [...currentSites, { name: "", address: "" }])
+                }}
                 className="w-full"
               >
                 Add Another Site
@@ -494,5 +556,12 @@ export function CreateOrganizationDialog() {
       </DialogContent>
     </Dialog>
   )
+}
+
+// Placeholder function - replace with your actual API call
+const createOrganization = async (data: any) => {
+  // Your API call to create the organization here
+  // ...
+  return { id: 123 } // Replace with the actual ID returned by your API
 }
 
