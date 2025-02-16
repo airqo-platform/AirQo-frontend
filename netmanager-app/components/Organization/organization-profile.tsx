@@ -1,167 +1,154 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { groups } from "@/core/apis/organizations";
-import { useGroupsDetails } from "@/core/hooks/useGroups";
-import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
-import { UserIcon, UsersIcon } from "lucide-react";
+import type React from "react"
+import { useState, useEffect, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { groups } from "@/core/apis/organizations"
+import { useGroupsDetails } from "@/core/hooks/useGroups"
+import { toast } from "@/components/ui/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+import { UsersIcon, Globe, FileText } from "lucide-react"
 
 interface OrganizationProfileProps {
-  organizationId: string;
+  organizationId: string
 }
 
 export function OrganizationProfile({ organizationId }: OrganizationProfileProps) {
-  const { group, isLoading, error } = useGroupsDetails(organizationId);
+  const { group, isLoading, error } = useGroupsDetails(organizationId)
   const [formData, setFormData] = useState({
     grp_title: "",
     grp_description: "",
     grp_website: "",
     grp_status: "INACTIVE",
-  });
-  const [isUpdating, setIsUpdating] = useState(false);
+  })
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
-    if (
-      group &&
-      (group.grp_title !== formData.grp_title ||
-        group.grp_description !== formData.grp_description ||
-        group.grp_website !== formData.grp_website ||
-        group.grp_status !== formData.grp_status)
-    ) {
+    if (group) {
       setFormData({
         grp_title: group.grp_title || "",
         grp_description: group.grp_description || "",
         grp_website: group.grp_website || "",
         grp_status: group.grp_status || "INACTIVE",
-      });
+      })
     }
-  }, [group]);
+  }, [group])
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
-      setFormData((prev) => (prev[name] === value ? prev : { ...prev, [name]: value }));
-    },
-    []
-  );
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }, [])
 
-  const handleStatusChange = useCallback((checked: boolean) => {
-    setFormData((prev) =>
-      prev.grp_status === (checked ? "ACTIVE" : "INACTIVE")
-        ? prev
-        : { ...prev, grp_status: checked ? "ACTIVE" : "INACTIVE" }
-    );
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdating(true);
+    e.preventDefault()
+    setIsUpdating(true)
 
     try {
-      await groups.updateGroupDetailsApi(organizationId, formData);
+      await groups.updateGroupDetailsApi(organizationId, formData)
       toast({
         title: "Profile Updated",
         description: "The organization profile has been successfully updated.",
-      });
+      })
     } catch (error) {
-      console.error("Failed to update organization profile", error);
+      console.error("Failed to update organization profile", error)
       toast({
         title: "Update Failed",
         description: "There was an error updating the organization profile. Please try again.",
         variant: "destructive",
-      });
+      })
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
 
   if (isLoading) {
-    return <Skeleton className="w-full h-[600px]" />;
+    return <Skeleton className="w-full h-[600px]" />
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error loading organization details. Please try again.</div>;
+    return <div className="text-center text-red-500">Error loading organization details. Please try again.</div>
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Organization Profile</CardTitle>
+    <Card className="w-full">
+      <CardHeader className="bg-primary/5 border-b">
+        <CardTitle className="text-3xl font-bold">Organization Profile</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <Avatar className="w-20 h-20">
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+            <Avatar className="w-24 h-24 border-4 border-primary/10">
               <AvatarImage src={group?.grp_profile_picture} alt={formData.grp_title} />
-              <AvatarFallback>{formData.grp_title.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-2xl">{formData.grp_title.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div>
-              <h2 className="text-xl font-semibold">{formData.grp_title}</h2>
-              <Badge variant={formData.grp_status === "ACTIVE" ? "default" : "secondary"}>
+            <div className="text-center md:text-left">
+              <h2 className="text-2xl font-semibold">{formData.grp_title}</h2>
+              <Badge variant={formData.grp_status === "ACTIVE" ? "default" : "secondary"} className="mt-2">
                 {formData.grp_status}
               </Badge>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="grp_title">Organization Name</Label>
-            <Input id="grp_title" name="grp_title" value={formData.grp_title} onChange={handleInputChange} required />
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="grp_title" className="text-sm font-medium">
+                <UsersIcon className="w-4 h-4 inline-block mr-2" />
+                Organization Name
+              </Label>
+              <Input
+                id="grp_title"
+                name="grp_title"
+                value={formData.grp_title}
+                onChange={handleInputChange}
+                required
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="grp_website" className="text-sm font-medium">
+                <Globe className="w-4 h-4 inline-block mr-2" />
+                Website
+              </Label>
+              <Input
+                id="grp_website"
+                name="grp_website"
+                value={formData.grp_website}
+                onChange={handleInputChange}
+                type="url"
+                className="w-full"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="grp_description">Description</Label>
+            <Label htmlFor="grp_description" className="text-sm font-medium">
+              <FileText className="w-4 h-4 inline-block mr-2" />
+              Description
+            </Label>
             <Textarea
               id="grp_description"
               name="grp_description"
               value={formData.grp_description}
               onChange={handleInputChange}
               rows={4}
+              className="w-full resize-none"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="grp_website">Website</Label>
-            <Input
-              id="grp_website"
-              name="grp_website"
-              value={formData.grp_website}
-              onChange={handleInputChange}
-              type="url"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch id="grp_status" checked={formData.grp_status === "ACTIVE"} onCheckedChange={handleStatusChange} />
-            <Label htmlFor="grp_status">Active Status</Label>
-          </div>
-
-          {group?.grp_manager && (
-            <div className="flex items-center space-x-2">
-              <UserIcon className="w-5 h-5 text-muted-foreground" />
-              <span>Manager: {`${group.grp_manager.firstName} ${group.grp_manager.lastName}`}</span>
-            </div>
-          )}
-
-          <div className="flex items-center space-x-2">
-            <UsersIcon className="w-5 h-5 text-muted-foreground" />
-            <span>Number of Users: {group?.numberOfGroupUsers || 0}</span>
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isUpdating}>
+          <Button type="submit" className="w-full md:w-auto" disabled={isUpdating}>
             {isUpdating ? "Updating..." : "Update Profile"}
           </Button>
         </form>
       </CardContent>
     </Card>
-  );
+  )
 }
+
