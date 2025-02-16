@@ -179,12 +179,10 @@ export function CreateOrganizationDialog() {
           await createSiteMutation.mutateAsync({
             name: site.name,
             address: site.address,
-            groups: [newGroupId], // Add only the new group ID
+            groups: [newGroupId], 
             network: activeNetwork?.net_name,
           })
         }
-
-        // Here you would typically make API calls to create devices and invite members
 
         toast({
           title: "Organization created",
