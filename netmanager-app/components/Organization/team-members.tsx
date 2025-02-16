@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,9 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRoles } from "@/core/hooks/useRoles"
 import type { GroupMember } from "@/app/types/groups"
 import { Skeleton } from "@/components/ui/skeleton"
-import { groupMembers } from "@/core/apis/organizations"
-import { toast } from "@/components/ui/use-toast"
-import { useTeamMembers } from "@/core/hooks/useGroups"
+import { useToast } from "@/components/ui/use-toast"
+import { useTeamMembers, useInviteUserToGroup } from "@/core/hooks/useGroups"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import {
   Pagination,
@@ -38,8 +36,10 @@ type SortField = "firstName" | "lastName" | "email" | "role_name"
 type SortOrder = "asc" | "desc"
 
 export function TeamMembers({ organizationId }: TeamMembersProps) {
+  const { toast } = useToast()
   const { team, isLoading, error } = useTeamMembers(organizationId)
   const { roles, isLoading: rolesLoading, error: rolesError } = useRoles()
+  const inviteUserMutation = useInviteUserToGroup(organizationId)
   const [newMemberEmail, setNewMemberEmail] = useState("")
   const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -52,22 +52,24 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      await groupMembers.inviteUserToGroupTeam(organizationId, newMemberEmail)
-      toast({
-        title: "Invitation sent",
-        description: `An invitation has been sent to ${newMemberEmail}`,
-      })
-      setNewMemberEmail("")
-      setIsInviteDialogOpen(false)
-    } catch (error) {
-      console.error("Error inviting member:", error)
-      toast({
-        title: "Error",
-        description: "Failed to invite member. Please try again.",
-        variant: "destructive",
-      })
-    }
+    inviteUserMutation.mutate(newMemberEmail, {
+      onSuccess: () => {
+        toast({
+          title: "Invitation sent",
+          description: `An invitation has been sent to ${newMemberEmail}`,
+        })
+        setNewMemberEmail("")
+        setIsInviteDialogOpen(false)
+      },
+      onError: (error: Error) => {
+        console.error("Error inviting member:", error)
+        toast({
+          title: "Invitation Failed",
+          description: error.message || "Failed to invite member. Please try again.",
+          variant: "destructive",
+        })
+      },
+    })
   }
 
   const handleUpdateRole = async () => {

@@ -121,3 +121,29 @@ export const useTeamMembers = (groupId: string) => {
     error,
   };
 };
+
+
+export const useInviteUserToGroup = (groupId: string) => {
+    const queryClient = useQueryClient()
+    const dispatch = useDispatch()
+  
+    return useMutation({
+      mutationFn: async (userEmail: string) => {
+        const response = await groupMembers.getGroupMembersApi(groupId)
+        const existingMembers = response.members || []
+        const isExistingMember = existingMembers.some((member: any) => member.email === userEmail)
+  
+        if (isExistingMember) {
+          throw new Error("User is already a member of this group")
+        }
+
+        return groupMembers.inviteUserToGroupTeam(groupId, userEmail)
+      },
+      onSuccess: (data, userEmail) => {
+        queryClient.invalidateQueries(["groupMembers", groupId])
+      },
+      onError: (error: Error) => {
+        dispatch(setError(error.message || "Failed to invite user to group"))
+      },
+    })
+  }
