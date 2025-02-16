@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,20 +14,20 @@ import { useGroupsDetails } from "@/core/hooks/useGroups"
 import { toast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UsersIcon, Globe, FileText } from "lucide-react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 interface OrganizationProfileProps {
   organizationId: string
 }
 
 export function OrganizationProfile({ organizationId }: OrganizationProfileProps) {
+  const queryClient = useQueryClient()
   const { group, isLoading, error } = useGroupsDetails(organizationId)
   const [formData, setFormData] = useState({
     grp_title: "",
     grp_description: "",
     grp_website: "",
-    grp_status: "INACTIVE",
   })
-  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     if (group) {
@@ -35,37 +35,37 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
         grp_title: group.grp_title || "",
         grp_description: group.grp_description || "",
         grp_website: group.grp_website || "",
-        grp_status: group.grp_status || "INACTIVE",
       })
     }
   }, [group])
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }, [])
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsUpdating(true)
-
-    try {
-      await groups.updateGroupDetailsApi(organizationId, formData)
+  const updateMutation = useMutation({
+    mutationFn: (data: typeof formData) => groups.updateGroupDetailsApi(organizationId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["groupDetails", organizationId])
       toast({
         title: "Profile Updated",
         description: "The organization profile has been successfully updated.",
       })
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error("Failed to update organization profile", error)
       toast({
         title: "Update Failed",
         description: "There was an error updating the organization profile. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsUpdating(false)
-    }
+    },
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    updateMutation.mutate(formData)
   }
 
   if (isLoading) {
@@ -143,8 +143,8 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
             />
           </div>
 
-          <Button type="submit" className="w-full md:w-auto" disabled={isUpdating}>
-            {isUpdating ? "Updating..." : "Update Profile"}
+          <Button type="submit" className="w-full md:w-auto" disabled={updateMutation.isLoading}>
+            {updateMutation.isLoading ? "Updating..." : "Update Profile"}
           </Button>
         </form>
       </CardContent>

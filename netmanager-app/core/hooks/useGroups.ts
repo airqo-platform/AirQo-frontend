@@ -2,14 +2,13 @@ import {
     useMutation,
     useQuery,
     useQueryClient,
-    UseQueryOptions,
   } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { groups, groupMembers } from "../apis/organizations";
 import { Group } from "@/app/types/groups";
-import { GroupsState, setError, setGroups } from "../redux/slices/groupsSlice";
+import {  setError, setGroups } from "../redux/slices/groupsSlice";
 import {  setTeamMember } from "../redux/slices/teamSlice";
-import { GroupsDetailState, setGroup } from "../redux/slices/groupDetailsSlice";
+import {  setGroup } from "../redux/slices/groupDetailsSlice";
 import { useDispatch } from "react-redux";
   
 interface ErrorResponse {
@@ -58,28 +57,22 @@ export const useGroups = () => {
     };
 };
 
-export const useUpdateGroupDetails = (gridId: string) => {
-    const queryClient = useQueryClient();
-    const mutation = useMutation({
-        mutationFn: async (updatedGroup: Partial<Group>) =>
-            await groups.updateGroupApi(gridId, updatedGroup),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["groupDetails", gridId] });
-        },
-        onError: (error: AxiosError<ErrorResponse>) => {
-            console.error(
-                "Failed to update group details:",
-                error.response?.data?.message
-            );
-        },
-    });
-
-    return {
-        updateGroupDetails: mutation.mutate,
-        isLoading: mutation.isPending,
-        error: mutation.error,
-    };
-};
+export const useUpdateGroupDetails = () => {
+    const queryClient = useQueryClient()
+    const dispatch = useDispatch()
+  
+    return useMutation({
+      mutationFn: ({ groupId, data }: { groupId: string; data: Partial<Group> }) =>
+        groups.updateGroupDetailsApi(groupId, data),
+      onSuccess: (data, variables) => {
+        queryClient.invalidateQueries(["groupDetails", variables.groupId])
+        dispatch(setGroup(data.group))
+      },
+      onError: (error: AxiosError<ErrorResponse>) => {
+        dispatch(setError(error.response?.data?.message || "Failed to update group details"))
+      },
+    })
+  }
 
 export const useCreateGroup = () => {
     const queryClient = useQueryClient();
