@@ -13,6 +13,7 @@ import {
   getExternalTeamMembers,
   getForumEventDetails,
   getForumEvents,
+  getForumEventTitles,
   getHighlights,
   getImpactNumbers,
   getPartnerDetails,
@@ -130,12 +131,18 @@ export const usePartnerDetails = (id: string | null) =>
  * ------------------------------------- */
 export const useForumEvents = () => useFetch('forumEvents', getForumEvents, []);
 
-export const useForumEventDetails = (id: string | null) =>
-  useFetch(
-    id ? `forumEventDetails/${id}` : null,
-    () => getForumEventDetails(id!),
+export const useForumEventDetails = (slug: string | null) => {
+  // If no slug is passed, default to "latest"
+  const effectiveSlug = slug || 'latest';
+  return useFetch(
+    `forumEventDetails/${effectiveSlug}`,
+    () => getForumEventDetails(effectiveSlug),
     null,
   );
+};
+
+export const useForumEventTitles = () =>
+  useFetch('forumEventTitles', getForumEventTitles, []);
 
 /** -------------------------------------
  *          CLEAN AIR RESOURCES
