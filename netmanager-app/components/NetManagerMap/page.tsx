@@ -91,9 +91,10 @@ const NetManagerMap = () => {
 
   }
   return (
-        <div className="flex h-screen -ml-5  "> 
-       <div className='border rounded-lg w-[24%]'>
-                <div className="flex flex-col border gap-2  p-1 rounded-lg">
+        <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 
+
+       <div className=' flex  flex-grow md:flex-grow-0  border rounded-lg  md:w-[24%]'>
+                <div className="flex flex-col border gap-2  p-1 rounded-lg w-full">
                         <div className="flex flex-col gap-3">
                         <h1 className="font-bold">Net Manager Map</h1>
                         <Input
@@ -135,14 +136,15 @@ const NetManagerMap = () => {
 
        </div>
       
-        <div className="flex-grow ml-[1%] "> 
+        <div className=" flex flex-grow   md:ml-[1%] bg-blue-400"> 
                 { mapContainerRef ?(
-                <div ref={mapContainerRef} className="rounded-lg map-container w-full h-full"/>
+                <div ref={mapContainerRef} className="rounded-lg map-container w-full   md:h-full"/>
         ):(
                 <div className='text-black'>Loading...</div>
         )
           }
         </div>
+        
       </div>
   )
 }
