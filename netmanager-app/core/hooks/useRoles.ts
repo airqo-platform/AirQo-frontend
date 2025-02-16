@@ -6,6 +6,7 @@ import { useAppDispatch } from "../redux/hooks";
 import { roles } from "../apis/roles";
 import { RolesState, setRoles, setError } from "../redux/slices/rolesSlice";
 import { AxiosError } from "axios";
+import { AnyCnameRecord } from "dns";
 
 interface ErrorResponse {
   message: string;
@@ -15,18 +16,17 @@ export const useRoles = () => {
   const dispatch = useAppDispatch();
 
   const { data, isLoading, error } = useQuery<
-    RolesState,
     AxiosError<ErrorResponse>
   >({
     queryKey: ["roles"],
     queryFn: () => roles.getRolesApi(),
-    onSuccess: (data: RolesState) => {
+    onSuccess: (data: any) => {
       dispatch(setRoles(data.roles));
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(setError(error.message));
     },
-  }as UseQueryOptions<RolesState, AxiosError<ErrorResponse>>);
+  }as UseQueryOptions< AxiosError<ErrorResponse>>);
 
   return {
     roles: data?.roles ?? [],

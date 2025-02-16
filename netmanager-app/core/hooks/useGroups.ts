@@ -15,6 +15,13 @@ interface ErrorResponse {
     message: string;
 }
 
+interface TeamMembersResponse {
+  group_members: Array<{
+    id: string;
+
+  }>;
+}
+
 export const useGroups = () => {
     const dispatch = useDispatch();
 
@@ -93,13 +100,6 @@ export const useCreateGroup = () => {
         error: mutation.error,
     };
 };
-
-interface TeamMembersResponse {
-  group_members: Array<{
-    id: string;
-
-  }>;
-}
 
 export const useTeamMembers = (groupId: string) => {
   const dispatch = useDispatch();
