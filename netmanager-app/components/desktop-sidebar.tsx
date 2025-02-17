@@ -226,17 +226,17 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                   <DropdownMenuLabel>Select Network</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {availableNetworks
-                    .filter((network) => network._id === activeNetwork?._id)
-                    .map((network) => (
-                      <DropdownMenuItem
-                        key={network._id}
-                        onClick={() => handleNetworkChange(network)}
-                        className="flex items-center justify-between uppercase"
-                      >
-                        {network.net_name}
-                        {activeNetwork?._id === network._id && <Check size={16} />}
-                      </DropdownMenuItem>
-                    ))}
+                      // Removed filter to show all networks
+                      .map((network) => (
+                        <DropdownMenuItem
+                          key={network._id}
+                          onClick={() => handleNetworkChange(network)}
+                          className="flex items-center justify-between uppercase"
+                        >
+                          {network.net_name}
+                          {activeNetwork?._id === network._id && <Check size={16} />}
+                        </DropdownMenuItem>
+                      ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

@@ -195,7 +195,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                     <DropdownMenuLabel>Select Network</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {availableNetworks
-                      .filter((network) => network._id === activeNetwork?._id)
+                      // Removed filter to show all networks
                       .map((network) => (
                         <DropdownMenuItem
                           key={network._id}
