@@ -145,6 +145,62 @@ class AirqoMobile extends StatelessWidget {
   }
 }
 
+// class Decider extends StatefulWidget {
+//   @override
+//   _DeciderState createState() => _DeciderState();
+// }
+
+// class _DeciderState extends State<Decider> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
+//       builder: (context, connectivityState) {
+//         logDebug('Current connectivity state: $connectivityState');
+//         return Stack(
+//           children: [
+//             FutureBuilder<String?>(
+//               future: HiveRepository.getData('token', HiveBoxNames.authBox),
+//
+//               builder: (context, snapshot) {
+//
+//
+//                 // Handle loading state
+//                 if (snapshot.connectionState == ConnectionState.waiting) {
+//                   return Scaffold(
+//                     body: const Center(child: CircularProgressIndicator()),
+//                   );
+//                 }
+//                 if (snapshot.connectionState == ConnectionState.done) {
+//                   if (!snapshot.hasData) {
+//                     return WelcomeScreen();
+//                   } else {
+//                     return NavPage();
+//                   }
+//                 } else {
+//                   return Scaffold(body: Center(child: Text('An Error occured.')));
+//                 }
+//               },
+//             ),
+//             if (connectivityState is ConnectivityOffline)
+//               Positioned(
+//                 top: 0,
+//                 left: 0,
+//                 right: 0,
+//                 child: NoInternetBanner(
+//                   onClose: () {
+//                     logInfo('No internet connection banner dismissed');
+//                     context
+//                         .read<ConnectivityBloc>()
+//                         .add(ConnectivityBannerDismissed());
+//                   },
+//                 ),
+//               ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+// }
 class Decider extends StatefulWidget {
   @override
   _DeciderState createState() => _DeciderState();
@@ -156,49 +212,41 @@ class _DeciderState extends State<Decider> {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
       builder: (context, connectivityState) {
         logDebug('Current connectivity state: $connectivityState');
-        return Stack(
-          children: [
-            FutureBuilder<String?>(
-              future: HiveRepository.getData('token', HiveBoxNames.authBox),
+        return BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            debugPrint("Current AuthState: $authState");
 
-              builder: (context, snapshot) {
+            // Handle loading state
+            if (authState is AuthLoading) {
+              return Scaffold(
+                body: const Center(child: CircularProgressIndicator()),
+              );
+            }
 
+            // Handle guest user
+            if (authState is GuestUser) {
+              return WelcomeScreen();
+            }
 
-                // Handle loading state
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Scaffold(
-                    body: const Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (!snapshot.hasData) {
-                    return WelcomeScreen();
-                  } else {
-                    return NavPage();
-                  }
-                } else {
-                  return Scaffold(body: Center(child: Text('An Error occured.')));
-                }
-              },
-            ),
-            if (connectivityState is ConnectivityOffline)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: NoInternetBanner(
-                  onClose: () {
-                    logInfo('No internet connection banner dismissed');
-                    context
-                        .read<ConnectivityBloc>()
-                        .add(ConnectivityBannerDismissed());
-                  },
-                ),
-              ),
-          ],
+            // Handle logged-in user
+            if (authState is AuthLoaded) {
+              return NavPage();
+            }
+
+            // Handle error state
+            if (authState is AuthLoadingError) {
+              return Scaffold(
+                body: Center(child: Text('Error: ${authState.message}')),
+              );
+            }
+
+            // Default fallback (e.g., AuthInitial)
+            return Scaffold(
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          },
         );
       },
     );
   }
 }
-
