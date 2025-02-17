@@ -36,6 +36,12 @@ const GlossaryPage: React.FC = () => {
   const glossaryHTML = renderContent(selectedEvent.glossary_details);
   const showGlossaryMain = isValidGlossaryContent(glossaryHTML);
 
+  const glossarySections = selectedEvent.sections?.filter((section: any) => {
+    if (!section.pages.includes('glossary')) return false;
+    const html = renderContent(section.content);
+    return html.trim().length > 0;
+  });
+
   return (
     <div className="px-4 lg:px-0 prose max-w-none flex flex-col gap-6">
       <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
@@ -95,9 +101,9 @@ const GlossaryPage: React.FC = () => {
       )}
 
       {/* Additional Glossary Sections (if any) */}
-      {selectedEvent.sections && selectedEvent.sections.length > 0 && (
+      {glossarySections && glossarySections.length > 0 && (
         <>
-          {selectedEvent.sections.map((section: any) => (
+          {glossarySections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}
         </>
