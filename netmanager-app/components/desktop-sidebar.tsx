@@ -12,7 +12,7 @@ import {
   Activity,
   UserCircle,
   Download,
-  Map,
+  MapIcon,
   ChevronRight,
   Check,
   PlusCircle,
@@ -172,7 +172,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 <NavItem href="/analytics" icon={BarChart2} label="Analytics" />
               </li>
               <li>
-                <NavItem href="/network-map" icon={Map} label="Network Map" />
+                <NavItem href="/network-map" icon={MapIcon} label="Network Map" />
               </li>
               <li>
                 <NavItem href="/data-export" icon={Download} label="Data Export" />
