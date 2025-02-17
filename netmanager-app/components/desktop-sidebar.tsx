@@ -289,7 +289,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 </li>
               </PermissionGuard>
 
-              <PermissionGuard permission="CREATE__UPDATE_AND_DELETE_COHORTS">
+              <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_COHORTS">
                 <li>
                   <NavItem href="/cohorts" icon={Layers} label="Cohorts" />
                 </li>
