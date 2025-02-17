@@ -20,6 +20,8 @@ import { sites } from "@/core/apis/sites"
 import { setError } from "@/core/redux/slices/sitesSlice"
 // import { useAppSelector } from "@/core/redux/hooks"
 import { useSites } from "@/core/hooks/useSites"
+import { useGroups } from "@/core/hooks/useGroups"
+import { useDevices } from "@/core/hooks/useDevices"
 
 // Step 1: Create Organization
 const createOrgSchema = z.object({
@@ -139,9 +141,9 @@ export function CreateOrganizationDialog() {
     },
   })
 
-  const { sites: groupsData, isLoading: isLoadingGroups, error: groupsError } = useSites()
-  const { data: allSites, isLoading: isLoadingSites } = useQuery(["sites"], () => sites.getAllSites())
-  const { data: allDevices, isLoading: isLoadingDevices } = useQuery(["devices"], () => sites.getAllDevices())
+  const { groups: groupsData, isLoading: isLoadingGroups, error: groupsError } = useGroups()
+  const {sites: allSites, isLoading: isLoadingSites, error: sitesError } = useSites()
+  const { devices: allDevices, isLoading: isLoadingDevices, error: deviceError } = useDevices()
 
   const updateSitesMutation = useMutation({
     mutationFn: (updateData: { siteIds: string[]; updateData: { groups: string[] } }) => sites.updateSites(updateData),
@@ -357,7 +359,7 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <Input type="url" placeholder="https://example.com" {...field} className="w-full" />
                     </FormControl>
-                    <FormDescription>Enter the organization's website URL (optional)</FormDescription>
+                    <FormDescription>Enter the organization&apos;s website URL (optional)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -371,7 +373,7 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <Input type="url" placeholder="https://example.com/image.jpg" {...field} className="w-full" />
                     </FormControl>
-                    <FormDescription>Enter a URL for the organization's profile picture (optional)</FormDescription>
+                    <FormDescription>Enter a URL for the organization&apos;s profile picture (optional)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
