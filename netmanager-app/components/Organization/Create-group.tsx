@@ -7,7 +7,23 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
-import { Plus, Loader2, ChevronRight, ChevronLeft, Check } from "lucide-react"
+import {
+  Plus,
+  Loader2,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Building2,
+  Globe,
+  Briefcase,
+  Clock,
+  Link,
+  Image,
+  MapPin,
+  Users,
+  Laptop,
+  Search,
+} from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, Controller } from "react-hook-form"
 import * as z from "zod"
@@ -105,6 +121,8 @@ export function CreateOrganizationDialog() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const dispatch = useDispatch()
+  const [siteSearch, setSiteSearch] = useState("")
+  const [deviceSearch, setDeviceSearch] = useState("")
 
   const countries = useMemo(() => countryList().getData(), [])
 
@@ -144,6 +162,14 @@ export function CreateOrganizationDialog() {
   const { groups: groupsData, isLoading: isLoadingGroups, error: groupsError } = useGroups()
   const { sites: allSites, isLoading: isLoadingSites } = useSites()
   const { devices: allDevices, isLoading: isLoadingDevices } = useDevices()
+
+  const filteredSites = useMemo(() => {
+    return allSites.filter((site) => site.name.toLowerCase().includes(siteSearch.toLowerCase()))
+  }, [allSites, siteSearch])
+
+  const filteredDevices = useMemo(() => {
+    return allDevices.filter((device) => device.name.toLowerCase().includes(deviceSearch.toLowerCase()))
+  }, [allDevices, deviceSearch])
 
   const updateSitesMutation = useMutation({
     mutationFn: (updateData: { siteIds: string[]; updateData: { groups: string[] } }) => sites.updateSites(updateData),
@@ -260,14 +286,15 @@ export function CreateOrganizationDialog() {
           <Form {...createOrgForm}>
             <form onSubmit={createOrgForm.handleSubmit(() => setCurrentStep(2))} className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
-                {" "}
-                {/* Updated grid layout */}
                 <FormField
                   control={createOrgForm.control}
                   name="grp_title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Organization Name</FormLabel>
+                      <FormLabel>
+                        <Building2 className="w-4 h-4 inline-block mr-2" />
+                        Organization Name
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter organization name" {...field} className="w-full" />
                       </FormControl>
@@ -280,7 +307,10 @@ export function CreateOrganizationDialog() {
                   name="grp_country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country</FormLabel>
+                      <FormLabel>
+                        <MapPin className="w-4 h-4 inline-block mr-2" />
+                        Country
+                      </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger className="w-full">
@@ -304,7 +334,10 @@ export function CreateOrganizationDialog() {
                   name="grp_industry"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Industry</FormLabel>
+                      <FormLabel>
+                        <Briefcase className="w-4 h-4 inline-block mr-2" />
+                        Industry
+                      </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger className="w-full">
@@ -329,7 +362,10 @@ export function CreateOrganizationDialog() {
                 name="grp_timezone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Timezone</FormLabel>
+                    <FormLabel>
+                      <Clock className="w-4 h-4 inline-block mr-2" />
+                      Timezone
+                    </FormLabel>
                     <FormControl>
                       <Controller
                         name="grp_timezone"
@@ -357,7 +393,10 @@ export function CreateOrganizationDialog() {
                 name="grp_website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>
+                      <Link className="w-4 h-4 inline-block mr-2" />
+                      Website
+                    </FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://example.com" {...field} className="w-full" />
                     </FormControl>
@@ -371,7 +410,10 @@ export function CreateOrganizationDialog() {
                 name="grp_profile_picture"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Profile Picture URL</FormLabel>
+                    <FormLabel>
+                      <Image className="w-4 h-4 inline-block mr-2" />
+                      Profile Picture URL
+                    </FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://example.com/image.jpg" {...field} className="w-full" />
                     </FormControl>
@@ -394,10 +436,21 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addSitesForm}>
             <form onSubmit={addSitesForm.handleSubmit(() => setCurrentStep(3))} className="space-y-6">
+              <div className="mb-4">
+                <FormLabel>
+                  <Search className="w-4 h-4 inline-block mr-2" />
+                  Search Sites
+                </FormLabel>
+                <Input
+                  type="text"
+                  placeholder="Search sites..."
+                  value={siteSearch}
+                  onChange={(e) => setSiteSearch(e.target.value)}
+                  className="w-full"
+                />
+              </div>
               <div className="grid grid-cols-3 gap-4">
-                {" "}
-                {/* Updated grid layout */}
-                {allSites.map((site) => (
+                {filteredSites.map((site) => (
                   <Card key={site._id} className="p-4">
                     <CardContent className="flex items-center justify-between p-0">
                       <div className="flex items-center space-x-4">
@@ -427,8 +480,6 @@ export function CreateOrganizationDialog() {
                         </label>
                       </div>
                       <Avatar className="h-12 w-12">
-                        {" "}
-                        {/* Updated avatar size */}
                         <AvatarImage src={`https://avatar.vercel.sh/${site.name}.png`} alt={site.name} />
                         <AvatarFallback>{site.name.charAt(0)}</AvatarFallback>
                       </Avatar>
@@ -441,7 +492,10 @@ export function CreateOrganizationDialog() {
                 name="sites"
                 render={() => (
                   <FormItem>
-                    <FormLabel>Selected Sites</FormLabel>
+                    <FormLabel>
+                      <Globe className="w-4 h-4 inline-block mr-2" />
+                      Selected Sites
+                    </FormLabel>
                     <FormControl>
                       <div className="space-y-2">
                         {addSitesForm.getValues().sites.map((site) => (
@@ -472,7 +526,7 @@ export function CreateOrganizationDialog() {
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={addSitesForm.getValues().sites.length === 0}>
                   Next <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -483,10 +537,21 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addDevicesForm}>
             <form onSubmit={addDevicesForm.handleSubmit(() => setCurrentStep(4))} className="space-y-6">
+              <div className="mb-4">
+                <FormLabel>
+                  <Search className="w-4 h-4 inline-block mr-2" />
+                  Search Devices
+                </FormLabel>
+                <Input
+                  type="text"
+                  placeholder="Search devices..."
+                  value={deviceSearch}
+                  onChange={(e) => setDeviceSearch(e.target.value)}
+                  className="w-full"
+                />
+              </div>
               <div className="grid grid-cols-3 gap-4">
-                {" "}
-                {/* Updated grid layout */}
-                {allDevices.map((device) => (
+                {filteredDevices.map((device) => (
                   <Card key={device._id} className="p-4">
                     <CardContent className="flex items-center justify-between p-0">
                       <div className="flex items-center space-x-4">
@@ -516,8 +581,6 @@ export function CreateOrganizationDialog() {
                         </label>
                       </div>
                       <Avatar className="h-12 w-12">
-                        {" "}
-                        {/* Updated avatar size */}
                         <AvatarImage src={`https://avatar.vercel.sh/${device.name}.png`} alt={device.name} />
                         <AvatarFallback>{device.name.charAt(0)}</AvatarFallback>
                       </Avatar>
@@ -530,7 +593,10 @@ export function CreateOrganizationDialog() {
                 name="devices"
                 render={() => (
                   <FormItem>
-                    <FormLabel>Selected Devices</FormLabel>
+                    <FormLabel>
+                      <Laptop className="w-4 h-4 inline-block mr-2" />
+                      Selected Devices
+                    </FormLabel>
                     <FormControl>
                       <div className="space-y-2">
                         {addDevicesForm.getValues().devices.map((device) => (
@@ -561,7 +627,7 @@ export function CreateOrganizationDialog() {
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(2)}>
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={addDevicesForm.getValues().devices.length === 0}>
                   Next <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -581,7 +647,10 @@ export function CreateOrganizationDialog() {
                       name={`members.${index}.email`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>
+                            <Users className="w-4 h-4 inline-block mr-2" />
+                            Email
+                          </FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="Enter email address" {...field} className="w-full" />
                           </FormControl>
@@ -594,7 +663,10 @@ export function CreateOrganizationDialog() {
                       name={`members.${index}.role`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Role</FormLabel>
+                          <FormLabel>
+                            <Users className="w-4 h-4 inline-block mr-2" />
+                            Role
+                          </FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="w-full">
@@ -651,14 +723,12 @@ export function CreateOrganizationDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
-        {" "}
-        {/* Updated DialogContent className */}
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Create New Organization</DialogTitle>
         </DialogHeader>
         <div className="mt-4">
           <div className="mb-8">
-            <Progress value={(currentStep / 4) * 100} className="h-3" /> {/* Updated Progress className */}
+            <Progress value={(currentStep / 4) * 100} className="h-3" />
             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
               <span>Organization Details</span>
               <span>Add Sites</span>
