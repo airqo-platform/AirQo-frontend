@@ -1,27 +1,29 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
-import { Plus, Loader2 } from "lucide-react"
+import { Plus, Loader2, ChevronRight, ChevronLeft, Check } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, Controller } from "react-hook-form"
 import * as z from "zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import TimezoneSelect, { allTimezones } from "react-timezone-select"
 import countryList from "react-select-country-list"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { useDispatch } from "react-redux"
 import { sites } from "@/core/apis/sites"
 import { setError } from "@/core/redux/slices/sitesSlice"
-// import { useAppSelector } from "@/core/redux/hooks"
-import { useSites } from "@/core/hooks/useSites"
 import { useGroups } from "@/core/hooks/useGroups"
+import { useSites } from "@/core/hooks/useSites"
 import { useDevices } from "@/core/hooks/useDevices"
+import { Card, CardContent } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 // Step 1: Create Organization
 const createOrgSchema = z.object({
@@ -84,12 +86,12 @@ const industries = [
   { value: "other", label: "Other" },
 ]
 
-// const deviceTypes = [
-//   { value: "sensor", label: "Sensor" },
-//   { value: "camera", label: "Camera" },
-//   { value: "controller", label: "Controller" },
-//   { value: "other", label: "Other" },
-// ]
+const deviceTypes = [
+  { value: "sensor", label: "Sensor" },
+  { value: "camera", label: "Camera" },
+  { value: "controller", label: "Controller" },
+  { value: "other", label: "Other" },
+]
 
 const roles = [
   { value: "admin", label: "Admin" },
@@ -103,8 +105,6 @@ export function CreateOrganizationDialog() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const dispatch = useDispatch()
-  // const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
-  // const activeGroup = useAppSelector((state) => state.user.activeGroup)
 
   const countries = useMemo(() => countryList().getData(), [])
 
@@ -142,8 +142,8 @@ export function CreateOrganizationDialog() {
   })
 
   const { groups: groupsData, isLoading: isLoadingGroups, error: groupsError } = useGroups()
-  const {sites: allSites, isLoading: isLoadingSites, error: sitesError } = useSites()
-  const { devices: allDevices, isLoading: isLoadingDevices, error: deviceError } = useDevices()
+  const { sites: allSites, isLoading: isLoadingSites } = useSites()
+  const { devices: allDevices, isLoading: isLoadingDevices } = useDevices()
 
   const updateSitesMutation = useMutation({
     mutationFn: (updateData: { siteIds: string[]; updateData: { groups: string[] } }) => sites.updateSites(updateData),
@@ -244,7 +244,7 @@ export function CreateOrganizationDialog() {
   const renderStep = () => {
     if (isLoadingGroups || isLoadingSites || isLoadingDevices) {
       return (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       )
@@ -259,7 +259,9 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...createOrgForm}>
             <form onSubmit={createOrgForm.handleSubmit(() => setCurrentStep(2))} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                {" "}
+                {/* Updated grid layout */}
                 <FormField
                   control={createOrgForm.control}
                   name="grp_title"
@@ -297,31 +299,31 @@ export function CreateOrganizationDialog() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={createOrgForm.control}
+                  name="grp_industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Industry</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select industry" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {industries.map((industry) => (
+                            <SelectItem key={industry.value} value={industry.value}>
+                              {industry.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <FormField
-                control={createOrgForm.control}
-                name="grp_industry"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Industry</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select industry" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {industries.map((industry) => (
-                          <SelectItem key={industry.value} value={industry.value}>
-                            {industry.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={createOrgForm.control}
                 name="grp_timezone"
@@ -373,16 +375,18 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <Input type="url" placeholder="https://example.com/image.jpg" {...field} className="w-full" />
                     </FormControl>
-                    <FormDescription>Enter a URL for the organization&apos;s profile picture (optional)</FormDescription>
+                    <FormDescription>
+                      Enter a URL for the organization&apos;s profile picture (optional)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <DialogFooter>
-                <Button type="submit" className="w-full">
-                  Next
+              <div className="flex justify-end">
+                <Button type="submit">
+                  Next <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </Form>
         )
@@ -390,34 +394,46 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addSitesForm}>
             <form onSubmit={addSitesForm.handleSubmit(() => setCurrentStep(3))} className="space-y-6">
-              <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                {" "}
+                {/* Updated grid layout */}
                 {allSites.map((site) => (
-                  <div key={site._id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`site-${site._id}`}
-                      checked={addSitesForm.getValues().sites.some((s) => s._id === site._id)}
-                      onCheckedChange={(checked) => {
-                        const currentSites = addSitesForm.getValues().sites
-                        if (checked) {
-                          addSitesForm.setValue("sites", [
-                            ...currentSites,
-                            { _id: site._id, name: site.name, groups: [] },
-                          ])
-                        } else {
-                          addSitesForm.setValue(
-                            "sites",
-                            currentSites.filter((s) => s._id !== site._id),
-                          )
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`site-${site._id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {site.name}
-                    </label>
-                  </div>
+                  <Card key={site._id} className="p-4">
+                    <CardContent className="flex items-center justify-between p-0">
+                      <div className="flex items-center space-x-4">
+                        <Checkbox
+                          id={`site-${site._id}`}
+                          checked={addSitesForm.getValues().sites.some((s) => s._id === site._id)}
+                          onCheckedChange={(checked) => {
+                            const currentSites = addSitesForm.getValues().sites
+                            if (checked) {
+                              addSitesForm.setValue("sites", [
+                                ...currentSites,
+                                { _id: site._id, name: site.name, groups: [] },
+                              ])
+                            } else {
+                              addSitesForm.setValue(
+                                "sites",
+                                currentSites.filter((s) => s._id !== site._id),
+                              )
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`site-${site._id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {site.name}
+                        </label>
+                      </div>
+                      <Avatar className="h-12 w-12">
+                        {" "}
+                        {/* Updated avatar size */}
+                        <AvatarImage src={`https://avatar.vercel.sh/${site.name}.png`} alt={site.name} />
+                        <AvatarFallback>{site.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
               <FormField
@@ -429,7 +445,7 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <div className="space-y-2">
                         {addSitesForm.getValues().sites.map((site) => (
-                          <div key={site._id} className="flex items-center justify-between">
+                          <div key={site._id} className="flex items-center justify-between bg-muted p-2 rounded-md">
                             <span>{site.name}</span>
                             <div>
                               {site.groups.map((groupId) => {
@@ -452,12 +468,14 @@ export function CreateOrganizationDialog() {
                   </FormItem>
                 )}
               />
-              <DialogFooter className="flex justify-between">
+              <div className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
-                  Back
+                  <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit">Next</Button>
-              </DialogFooter>
+                <Button type="submit">
+                  Next <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </form>
           </Form>
         )
@@ -465,34 +483,46 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addDevicesForm}>
             <form onSubmit={addDevicesForm.handleSubmit(() => setCurrentStep(4))} className="space-y-6">
-              <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                {" "}
+                {/* Updated grid layout */}
                 {allDevices.map((device) => (
-                  <div key={device._id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`device-${device._id}`}
-                      checked={addDevicesForm.getValues().devices.some((d) => d._id === device._id)}
-                      onCheckedChange={(checked) => {
-                        const currentDevices = addDevicesForm.getValues().devices
-                        if (checked) {
-                          addDevicesForm.setValue("devices", [
-                            ...currentDevices,
-                            { _id: device._id, name: device.name, groups: [] },
-                          ])
-                        } else {
-                          addDevicesForm.setValue(
-                            "devices",
-                            currentDevices.filter((d) => d._id !== device._id),
-                          )
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`device-${device._id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {device.name}
-                    </label>
-                  </div>
+                  <Card key={device._id} className="p-4">
+                    <CardContent className="flex items-center justify-between p-0">
+                      <div className="flex items-center space-x-4">
+                        <Checkbox
+                          id={`device-${device._id}`}
+                          checked={addDevicesForm.getValues().devices.some((d) => d._id === device._id)}
+                          onCheckedChange={(checked) => {
+                            const currentDevices = addDevicesForm.getValues().devices
+                            if (checked) {
+                              addDevicesForm.setValue("devices", [
+                                ...currentDevices,
+                                { _id: device._id, name: device.name, groups: [] },
+                              ])
+                            } else {
+                              addDevicesForm.setValue(
+                                "devices",
+                                currentDevices.filter((d) => d._id !== device._id),
+                              )
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`device-${device._id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {device.name}
+                        </label>
+                      </div>
+                      <Avatar className="h-12 w-12">
+                        {" "}
+                        {/* Updated avatar size */}
+                        <AvatarImage src={`https://avatar.vercel.sh/${device.name}.png`} alt={device.name} />
+                        <AvatarFallback>{device.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
               <FormField
@@ -504,7 +534,7 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <div className="space-y-2">
                         {addDevicesForm.getValues().devices.map((device) => (
-                          <div key={device._id} className="flex items-center justify-between">
+                          <div key={device._id} className="flex items-center justify-between bg-muted p-2 rounded-md">
                             <span>{device.name}</span>
                             <div>
                               {device.groups.map((groupId) => {
@@ -527,12 +557,14 @@ export function CreateOrganizationDialog() {
                   </FormItem>
                 )}
               />
-              <DialogFooter className="flex justify-between">
+              <div className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(2)}>
-                  Back
+                  <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit">Next</Button>
-              </DialogFooter>
+                <Button type="submit">
+                  Next <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </form>
           </Form>
         )
@@ -541,46 +573,48 @@ export function CreateOrganizationDialog() {
           <Form {...inviteMembersForm}>
             <form onSubmit={inviteMembersForm.handleSubmit(onSubmit)} className="space-y-6">
               {inviteMembersForm.fields.members.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 bg-muted rounded-lg">
-                  <h3 className="font-semibold">Member {index + 1}</h3>
-                  <FormField
-                    control={inviteMembersForm.control}
-                    name={`members.${index}.email`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="Enter email address" {...field} className="w-full" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={inviteMembersForm.control}
-                    name={`members.${index}.role`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Card key={field.id} className="p-4">
+                  <CardContent className="space-y-4 p-0">
+                    <h3 className="font-semibold">Member {index + 1}</h3>
+                    <FormField
+                      control={inviteMembersForm.control}
+                      name={`members.${index}.email`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
+                            <Input type="email" placeholder="Enter email address" {...field} className="w-full" />
                           </FormControl>
-                          <SelectContent>
-                            {roles.map((role) => (
-                              <SelectItem key={role.value} value={role.value}>
-                                {role.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={inviteMembersForm.control}
+                      name={`members.${index}.role`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select role" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {roles.map((role) => (
+                                <SelectItem key={role.value} value={role.value}>
+                                  {role.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
               ))}
               <Button
                 type="button"
@@ -588,17 +622,21 @@ export function CreateOrganizationDialog() {
                 onClick={() => inviteMembersForm.append({ email: "", role: "" })}
                 className="w-full"
               >
-                Invite Another Member
+                <Plus className="mr-2 h-4 w-4" /> Invite Another Member
               </Button>
-              <DialogFooter className="flex justify-between">
+              <div className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(3)}>
-                  Back
+                  <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="mr-2 h-4 w-4" />
+                  )}
                   Create Organization
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </Form>
         )
@@ -612,12 +650,24 @@ export function CreateOrganizationDialog() {
           <Plus className="mr-2 h-4 w-4" /> Create Organization
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
+        {" "}
+        {/* Updated DialogContent className */}
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Create New Organization</DialogTitle>
-          <p className="text-muted-foreground">Step {currentStep} of 4</p>
         </DialogHeader>
-        <div className="mt-4">{renderStep()}</div>
+        <div className="mt-4">
+          <div className="mb-8">
+            <Progress value={(currentStep / 4) * 100} className="h-3" /> {/* Updated Progress className */}
+            <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+              <span>Organization Details</span>
+              <span>Add Sites</span>
+              <span>Add Devices</span>
+              <span>Invite Members</span>
+            </div>
+          </div>
+          {renderStep()}
+        </div>
       </DialogContent>
     </Dialog>
   )
