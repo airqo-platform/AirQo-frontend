@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 import { Plus, Loader2 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,11 +14,11 @@ import * as z from "zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import TimezoneSelect, { allTimezones } from "react-timezone-select"
 import countryList from "react-select-country-list"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useDispatch } from "react-redux"
 import { sites } from "@/core/apis/sites"
 import { setError } from "@/core/redux/slices/sitesSlice"
-import { useAppSelector } from "@/core/redux/hooks"
+// import { useAppSelector } from "@/core/redux/hooks"
 import { useSites } from "@/core/hooks/useSites"
 
 // Step 1: Create Organization
@@ -39,11 +40,12 @@ const addSitesSchema = z.object({
   sites: z
     .array(
       z.object({
-        name: z.string().min(2, { message: "Site name must be at least 2 characters." }),
-        address: z.string().min(5, { message: "Address must be at least 5 characters." }),
+        _id: z.string(),
+        name: z.string(),
+        groups: z.array(z.string()),
       }),
     )
-    .min(1, { message: "Add at least one site." }),
+    .min(1, { message: "Select at least one site." }),
 })
 
 // Step 3: Add Devices
@@ -51,14 +53,14 @@ const addDevicesSchema = z.object({
   devices: z
     .array(
       z.object({
-        name: z.string().min(2, { message: "Device name must be at least 2 characters." }),
-        type: z.string({ required_error: "Please select a device type." }),
+        _id: z.string(),
+        name: z.string(),
+        groups: z.array(z.string()),
       }),
     )
-    .min(1, { message: "Add at least one device." }),
+    .min(1, { message: "Select at least one device." }),
 })
 
-// Step 4: Invite Members
 const inviteMembersSchema = z.object({
   members: z
     .array(
@@ -80,12 +82,12 @@ const industries = [
   { value: "other", label: "Other" },
 ]
 
-const deviceTypes = [
-  { value: "sensor", label: "Sensor" },
-  { value: "camera", label: "Camera" },
-  { value: "controller", label: "Controller" },
-  { value: "other", label: "Other" },
-]
+// const deviceTypes = [
+//   { value: "sensor", label: "Sensor" },
+//   { value: "camera", label: "Camera" },
+//   { value: "controller", label: "Controller" },
+//   { value: "other", label: "Other" },
+// ]
 
 const roles = [
   { value: "admin", label: "Admin" },
@@ -99,8 +101,8 @@ export function CreateOrganizationDialog() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const dispatch = useDispatch()
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
-  const activeGroup = useAppSelector((state) => state.user.activeGroup)
+  // const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
+  // const activeGroup = useAppSelector((state) => state.user.activeGroup)
 
   const countries = useMemo(() => countryList().getData(), [])
 
@@ -119,14 +121,14 @@ export function CreateOrganizationDialog() {
   const addSitesForm = useForm<z.infer<typeof addSitesSchema>>({
     resolver: zodResolver(addSitesSchema),
     defaultValues: {
-      sites: [{ name: "", address: "" }],
+      sites: [],
     },
   })
 
   const addDevicesForm = useForm<z.infer<typeof addDevicesSchema>>({
     resolver: zodResolver(addDevicesSchema),
     defaultValues: {
-      devices: [{ name: "", type: "" }],
+      devices: [],
     },
   })
 
@@ -138,20 +140,41 @@ export function CreateOrganizationDialog() {
   })
 
   const { sites: groupsData, isLoading: isLoadingGroups, error: groupsError } = useSites()
+  const { data: allSites, isLoading: isLoadingSites } = useQuery(["sites"], () => sites.getAllSites())
+  const { data: allDevices, isLoading: isLoadingDevices } = useQuery(["devices"], () => sites.getAllDevices())
 
-  const createSiteMutation = useMutation({
-    mutationFn: (siteData: any) => sites.createSite(siteData),
+  const updateSitesMutation = useMutation({
+    mutationFn: (updateData: { siteIds: string[]; updateData: { groups: string[] } }) => sites.updateSites(updateData),
     onSuccess: () => {
       toast({
-        title: "Site created",
-        description: "The site has been successfully created.",
+        title: "Sites updated",
+        description: "The sites have been successfully updated.",
       })
     },
     onError: (error: Error) => {
       dispatch(setError(error.message))
       toast({
         title: "Error",
-        description: "Failed to create site. Please try again.",
+        description: "Failed to update sites. Please try again.",
+        variant: "destructive",
+      })
+    },
+  })
+
+  const updateDevicesMutation = useMutation({
+    mutationFn: (updateData: { deviceIds: string[]; updateData: { groups: string[] } }) =>
+      sites.updateDevices(updateData),
+    onSuccess: () => {
+      toast({
+        title: "Devices updated",
+        description: "The devices have been successfully updated.",
+      })
+    },
+    onError: (error: Error) => {
+      dispatch(setError(error.message))
+      toast({
+        title: "Error",
+        description: "Failed to update devices. Please try again.",
         variant: "destructive",
       })
     },
@@ -162,7 +185,6 @@ export function CreateOrganizationDialog() {
       setCurrentStep(currentStep + 1)
     } else {
       setIsSubmitting(true)
-      // Combine data from all steps
       const finalData = {
         ...createOrgForm.getValues(),
         ...addSitesForm.getValues(),
@@ -170,30 +192,37 @@ export function CreateOrganizationDialog() {
         ...data,
       }
       try {
-        // Create the organization
-        const createdOrg = await createOrganization(finalData) // Placeholder - replace with your actual API call
-        const newGroupId = createdOrg.id // Assuming the API returns the new group ID
+        const createdOrg = await createOrganization(finalData)
+        const newGroupId = createdOrg.id
 
-        // Create sites with the new group ID
-        for (const site of finalData.sites) {
-          await createSiteMutation.mutateAsync({
-            name: site.name,
-            address: site.address,
-            groups: [newGroupId], 
-            network: activeNetwork?.net_name,
-          })
-        }
+        const sitesToUpdate = finalData.sites.map((site) => ({
+          ...site,
+          groups: [...site.groups, newGroupId],
+        }))
+        await updateSitesMutation.mutateAsync({
+          siteIds: sitesToUpdate.map((site) => site._id),
+          updateData: { groups: sitesToUpdate[0].groups },
+        })
+
+        const devicesToUpdate = finalData.devices.map((device) => ({
+          ...device,
+          groups: [...device.groups, newGroupId],
+        }))
+        await updateDevicesMutation.mutateAsync({
+          deviceIds: devicesToUpdate.map((device) => device._id),
+          updateData: { groups: devicesToUpdate[0].groups },
+        })
 
         toast({
           title: "Organization created",
-          description: "The organization has been successfully created.",
+          description: "The organization has been successfully created and sites/devices updated.",
         })
         setOpen(false)
         resetForms()
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to create organization. Please try again.",
+          description: "Failed to create organization or update sites/devices. Please try again.",
           variant: "destructive",
         })
       } finally {
@@ -211,12 +240,16 @@ export function CreateOrganizationDialog() {
   }
 
   const renderStep = () => {
-    if (isLoadingGroups) {
-      return <div>Loading groups...</div>
+    if (isLoadingGroups || isLoadingSites || isLoadingDevices) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      )
     }
 
     if (groupsError) {
-      return <div>Error loading groups: {groupsError.message}</div>
+      return <div>Error loading data: {groupsError.message}</div>
     }
 
     switch (currentStep) {
@@ -355,48 +388,68 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addSitesForm}>
             <form onSubmit={addSitesForm.handleSubmit(() => setCurrentStep(3))} className="space-y-6">
-              {addSitesForm.getValues().sites.map((_, index) => (
-                <div key={index} className="space-y-4 p-4 bg-muted rounded-lg">
-                  <h3 className="font-semibold">Site {index + 1}</h3>
-                  <FormField
-                    control={addSitesForm.control}
-                    name={`sites.${index}.name`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Site Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter site name" {...field} className="w-full" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={addSitesForm.control}
-                    name={`sites.${index}.address`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Site Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter site address" {...field} className="w-full" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const currentSites = addSitesForm.getValues().sites
-                  addSitesForm.setValue("sites", [...currentSites, { name: "", address: "" }])
-                }}
-                className="w-full"
-              >
-                Add Another Site
-              </Button>
+              <div className="space-y-4">
+                {allSites.map((site) => (
+                  <div key={site._id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`site-${site._id}`}
+                      checked={addSitesForm.getValues().sites.some((s) => s._id === site._id)}
+                      onCheckedChange={(checked) => {
+                        const currentSites = addSitesForm.getValues().sites
+                        if (checked) {
+                          addSitesForm.setValue("sites", [
+                            ...currentSites,
+                            { _id: site._id, name: site.name, groups: [] },
+                          ])
+                        } else {
+                          addSitesForm.setValue(
+                            "sites",
+                            currentSites.filter((s) => s._id !== site._id),
+                          )
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`site-${site._id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {site.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <FormField
+                control={addSitesForm.control}
+                name="sites"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Selected Sites</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        {addSitesForm.getValues().sites.map((site) => (
+                          <div key={site._id} className="flex items-center justify-between">
+                            <span>{site.name}</span>
+                            <div>
+                              {site.groups.map((groupId) => {
+                                const group = groupsData.find((g) => g._id === groupId)
+                                return group ? (
+                                  <span
+                                    key={groupId}
+                                    className="inline-block bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs mr-1"
+                                  >
+                                    {group.name}
+                                  </span>
+                                ) : null
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <DialogFooter className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
                   Back
@@ -410,56 +463,68 @@ export function CreateOrganizationDialog() {
         return (
           <Form {...addDevicesForm}>
             <form onSubmit={addDevicesForm.handleSubmit(() => setCurrentStep(4))} className="space-y-6">
-              {addDevicesForm.fields.devices.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 bg-muted rounded-lg">
-                  <h3 className="font-semibold">Device {index + 1}</h3>
-                  <FormField
-                    control={addDevicesForm.control}
-                    name={`devices.${index}.name`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Device Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter device name" {...field} className="w-full" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={addDevicesForm.control}
-                    name={`devices.${index}.type`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Device Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select device type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {deviceTypes.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => addDevicesForm.append({ name: "", type: "" })}
-                className="w-full"
-              >
-                Add Another Device
-              </Button>
+              <div className="space-y-4">
+                {allDevices.map((device) => (
+                  <div key={device._id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`device-${device._id}`}
+                      checked={addDevicesForm.getValues().devices.some((d) => d._id === device._id)}
+                      onCheckedChange={(checked) => {
+                        const currentDevices = addDevicesForm.getValues().devices
+                        if (checked) {
+                          addDevicesForm.setValue("devices", [
+                            ...currentDevices,
+                            { _id: device._id, name: device.name, groups: [] },
+                          ])
+                        } else {
+                          addDevicesForm.setValue(
+                            "devices",
+                            currentDevices.filter((d) => d._id !== device._id),
+                          )
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`device-${device._id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {device.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <FormField
+                control={addDevicesForm.control}
+                name="devices"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Selected Devices</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        {addDevicesForm.getValues().devices.map((device) => (
+                          <div key={device._id} className="flex items-center justify-between">
+                            <span>{device.name}</span>
+                            <div>
+                              {device.groups.map((groupId) => {
+                                const group = groupsData.find((g) => g._id === groupId)
+                                return group ? (
+                                  <span
+                                    key={groupId}
+                                    className="inline-block bg-primary text-primary-foreground rounded-full px-2 py-1 text-xs mr-1"
+                                  >
+                                    {group.name}
+                                  </span>
+                                ) : null
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <DialogFooter className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(2)}>
                   Back
