@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { groups } from "@/core/apis/organizations"
+import { groupsApi } from "@/core/apis/organizations"
 import { useGroupsDetails } from "@/core/hooks/useGroups"
 import { toast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,7 +39,7 @@ export function OrganizationProfile({ organizationId }: OrganizationProfileProps
   }, [group])
 
   const updateMutation = useMutation({
-    mutationFn: (data: typeof formData) => groups.updateGroupDetailsApi(organizationId, data),
+    mutationFn: (data: typeof formData) => groupsApi.updateGroupDetailsApi(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries(["groupDetails", organizationId])
       toast({

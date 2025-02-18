@@ -19,6 +19,7 @@ import {
   Image,
   MapPin,
   Users,
+  FileText,
 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
@@ -26,22 +27,20 @@ import * as z from "zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import TimezoneSelect, { allTimezones } from "react-timezone-select"
 import countryList from "react-select-country-list"
-import { useMutation } from "@tanstack/react-query"
-import { useDispatch } from "react-redux"
-import { sites } from "@/core/apis/sites"
-import { setError } from "@/core/redux/slices/sitesSlice"
-import { useGroups } from "@/core/hooks/useGroups"
-import { useSites } from "@/core/hooks/useSites"
-import { useDevices } from "@/core/hooks/useDevices"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { useCreateGroup, useAssignDevicesToGroup, useAssignSitesToGroup, useInviteUserToGroup } from "@/core/hooks/useGroups"
+import { useSites } from "@/core/hooks/useSites"
+import { useDevices } from "@/core/hooks/useDevices"
+import { Textarea } from "@/components/ui/textarea"
 
 const createOrgSchema = z.object({
   grp_title: z.string().min(2, { message: "Organization name must be at least 2 characters." }),
   grp_country: z.string({ required_error: "Please select a country." }),
   grp_industry: z.string({ required_error: "Please select an industry." }),
   grp_timezone: z.object({ value: z.string(), label: z.string() }, { required_error: "Please select a timezone." }),
-  grp_website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+  grp_description: z.string().min(1, { message: "Description is required." }),
+  grp_website: z.string().url({ message: "Please enter a valid URL." }).min(1, { message: "Website is required." }),
   grp_profile_picture: z
     .string()
     .url({ message: "Please enter a valid URL for the profile picture." })
@@ -91,7 +90,6 @@ export function CreateOrganizationDialog() {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
-  const dispatch = useDispatch()
 
   const countries = countryList().getData()
 
@@ -102,6 +100,7 @@ export function CreateOrganizationDialog() {
       grp_country: "",
       grp_industry: "",
       grp_timezone: { value: "", label: "" },
+      grp_description: "",
       grp_website: "",
       grp_profile_picture: "",
     },
@@ -137,136 +136,93 @@ export function CreateOrganizationDialog() {
     name: "members",
   })
 
-  const { groups: groupsData, isLoading: isLoadingGroups, error: groupsError } = useGroups()
+  const { mutate: createGroup, isLoading: isCreatingGroup } = useCreateGroup()
+  const { mutate: assignDevicesToGroup, isLoading: isAssigningDevices } = useAssignDevicesToGroup()
+  const { mutate: assignSitesToGroup, isLoading: isAssigningSites } = useAssignSitesToGroup()
+  const { mutate: inviteUserToGroup, isLoading: isInvitingMembers } = useInviteUserToGroup("")
+
   const { sites: allSites, isLoading: isLoadingSites } = useSites()
   const { devices: allDevices, isLoading: isLoadingDevices } = useDevices()
 
-  const createOrganizationMutation = useMutation({
-    mutationFn: (data: z.infer<typeof createOrgSchema>) => createOrganization(data),
-    onSuccess: (data) => {
+  const onCreateOrganization = async (data: z.infer<typeof createOrgSchema>) => {
+    try {
+      await createGroup(data)
       toast({
         title: "Organization created",
         description: `Successfully created organization: ${data.grp_title}`,
       })
       setCurrentStep(2)
-    },
-    onError: (error: Error) => {
+    } catch (error) {
       toast({
         title: "Error",
-        description: `Failed to create organization: ${error.message}`,
+        description: `Failed to create organization: ${(error as Error).message}`,
         variant: "destructive",
       })
-    },
-  })
+      console.error("Error creating organization:", error)
+    }
+  }
 
-  const updateSitesMutation = useMutation({
-    mutationFn: (updateData: { siteIds: string[]; updateData: { groups: string[] } }) => sites.updateSites(updateData),
-    onSuccess: () => {
+  const onAddSites = async (data: z.infer<typeof addSitesSchema>) => {
+    const groupId = createOrgForm.getValues().grp_title
+    try {
+      await assignSitesToGroup({
+        siteIds: data.sites.map((site) => site._id),
+        groups: [groupId],
+      })
       toast({
-        title: "Sites updated",
-        description: "The sites have been successfully updated with the new organization.",
+        title: "Sites added",
+        description: "The sites have been successfully added to the organization.",
       })
       setCurrentStep(3)
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message))
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update sites. Please try again.",
+        description: `Failed to add sites: ${(error as Error).message}`,
         variant: "destructive",
       })
-    },
-  })
+    }
+  }
 
-  const updateDevicesMutation = useMutation({
-    mutationFn: (updateData: { deviceIds: string[]; updateData: { groups: string[] } }) =>
-      sites.updateDevices(updateData),
-    onSuccess: () => {
+  const onAddDevices = async (data: z.infer<typeof addDevicesSchema>) => {
+    const groupId = createOrgForm.getValues().grp_title
+    try {
+      await assignDevicesToGroup({
+        deviceIds: data.devices.map((device) => device._id),
+        groups: [groupId],
+      })
       toast({
-        title: "Devices updated",
-        description: "The devices have been successfully updated with the new organization.",
+        title: "Devices added",
+        description: "The devices have been successfully added to the organization.",
       })
       setCurrentStep(4)
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message))
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update devices. Please try again.",
+        description: `Failed to add devices: ${(error as Error).message}`,
         variant: "destructive",
       })
-    },
-  })
+    }
+  }
 
-  const inviteMembersMutation = useMutation({
-    mutationFn: (data: z.infer<typeof inviteMembersSchema>) => inviteMembers(data),
-    onSuccess: () => {
+  const onInviteMembers = async (data: z.infer<typeof inviteMembersSchema>) => {
+    const groupId = createOrgForm.getValues().grp_title
+    try {
+      for (const member of data.members) {
+        await inviteUserToGroup(member.email)
+      }
       toast({
         title: "Invitations sent",
         description: "Successfully sent invitations to the new members.",
       })
       setOpen(false)
       resetForms()
-    },
-    onError: (error: Error) => {
+    } catch (error) {
       toast({
         title: "Error",
-        description: `Failed to send invitations: ${error.message}`,
+        description: `Failed to invite members: ${(error as Error).message}`,
         variant: "destructive",
       })
-    },
-  })
-
-  const onCreateOrganization = (data: z.infer<typeof createOrgSchema>) => {
-    createOrganizationMutation.mutate(data)
-  }
-
-  const onAddSites = (data: z.infer<typeof addSitesSchema>) => {
-    const newGroupTitle = createOrganizationMutation.data?.grp_title
-    if (!newGroupTitle) {
-      toast({
-        title: "Error",
-        description: "Organization not created yet. Please go back and create the organization first.",
-        variant: "destructive",
-      })
-      return
     }
-
-    const sitesToUpdate = data.sites.map((site) => ({
-      ...site,
-      groups: [...new Set([...site.groups, newGroupTitle])],
-    }))
-
-    updateSitesMutation.mutate({
-      siteIds: sitesToUpdate.map((site) => site._id),
-      updateData: { groups: sitesToUpdate[0].groups },
-    })
-  }
-
-  const onAddDevices = (data: z.infer<typeof addDevicesSchema>) => {
-    const newGroupTitle = createOrganizationMutation.data?.grp_title
-    if (!newGroupTitle) {
-      toast({
-        title: "Error",
-        description: "Organization not created yet. Please go back and create the organization first.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const devicesToUpdate = data.devices.map((device) => ({
-      ...device,
-      groups: [...new Set([...device.groups, newGroupTitle])],
-    }))
-
-    updateDevicesMutation.mutate({
-      deviceIds: devicesToUpdate.map((device) => device._id),
-      updateData: { groups: devicesToUpdate[0].groups },
-    })
-  }
-
-  const onInviteMembers = (data: z.infer<typeof inviteMembersSchema>) => {
-    inviteMembersMutation.mutate(data)
   }
 
   const resetForms = () => {
@@ -278,16 +234,12 @@ export function CreateOrganizationDialog() {
   }
 
   const renderStep = () => {
-    if (isLoadingGroups || isLoadingSites || isLoadingDevices) {
+    if (isLoadingSites || isLoadingDevices) {
       return (
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       )
-    }
-
-    if (groupsError) {
-      return <div>Error loading data: {groupsError.message}</div>
     }
 
     switch (currentStep) {
@@ -391,6 +343,22 @@ export function CreateOrganizationDialog() {
               />
               <FormField
                 control={createOrgForm.control}
+                name="grp_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <FileText className="w-4 h-4 inline-block mr-2" />
+                      Description
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Enter organization description" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={createOrgForm.control}
                 name="grp_website"
                 render={({ field }) => (
                   <FormItem>
@@ -401,7 +369,6 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <Input type="url" placeholder="https://example.com" {...field} />
                     </FormControl>
-                    <FormDescription>Enter the organization&apos;s website URL (optional)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -424,8 +391,8 @@ export function CreateOrganizationDialog() {
                 )}
               />
               <div className="flex justify-end">
-                <Button type="submit" disabled={createOrganizationMutation.isLoading}>
-                  {createOrganizationMutation.isLoading ? (
+                <Button type="submit" disabled={isCreatingGroup}>
+                  {isCreatingGroup ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="mr-2 h-4 w-4" />
@@ -507,8 +474,8 @@ export function CreateOrganizationDialog() {
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit" disabled={updateSitesMutation.isLoading}>
-                  {updateSitesMutation.isLoading ? (
+                <Button type="submit" disabled={isAssigningSites}>
+                  {isAssigningSites ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="mr-2 h-4 w-4" />
@@ -590,8 +557,8 @@ export function CreateOrganizationDialog() {
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(2)}>
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit" disabled={updateDevicesMutation.isLoading}>
-                  {updateDevicesMutation.isLoading ? (
+                <Button type="submit" disabled={isAssigningDevices}>
+                  {isAssigningDevices ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="mr-2 h-4 w-4" />
@@ -632,8 +599,8 @@ export function CreateOrganizationDialog() {
                 <Button type="button" variant="outline" onClick={() => setCurrentStep(3)}>
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button type="submit" disabled={inviteMembersMutation.isLoading}>
-                  {inviteMembersMutation.isLoading ? (
+                <Button type="submit" disabled={isInvitingMembers}>
+                  {isInvitingMembers ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Check className="mr-2 h-4 w-4" />
@@ -673,17 +640,5 @@ export function CreateOrganizationDialog() {
       </DialogContent>
     </Dialog>
   )
-}
-
-const createOrganization = async (data: z.infer<typeof createOrgSchema>) => {
-  // Simulating API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  return { ...data, id: Math.random().toString(36).substr(2, 9) }
-}
-
-const inviteMembers = async (data: z.infer<typeof inviteMembersSchema>) => {
-  // Simulating API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  return { success: true, invitedMembers: data.members.length }
 }
 
