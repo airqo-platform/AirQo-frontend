@@ -206,3 +206,21 @@ export const useUpdateGroupMember = () => {
   })
 }
 
+export const useActivateGroup = () => {
+  const queryClient = useQueryClient()
+  const dispatch = useDispatch()
+
+  return useMutation({
+    mutationFn: ({ groupId, status }: { groupId: string; status: 'ACTIVE' | 'INACTIVE' }) =>
+      groupsApi.updateGroupDetailsApi(groupId, { grp_status: status }),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries(["groups"])
+      queryClient.invalidateQueries(["groupDetails", variables.groupId])
+      dispatch(setGroup(data.group))
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      dispatch(setError(error.response?.data?.message || "Failed to update group status"))
+    },
+  })
+}
+

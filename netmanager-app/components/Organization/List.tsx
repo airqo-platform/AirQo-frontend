@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Loader2, ArrowUpDown, Eye } from "lucide-react"
+import { Search, Loader2, ArrowUpDown, Eye, Power } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -14,12 +14,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { useGroups } from "@/core/hooks/useGroups"
+import { useGroups, useActivateGroup } from "@/core/hooks/useGroups"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { CreateOrganizationDialog } from "./Create-group"
+import { toast } from "@/components/ui/use-toast"
 
 const ITEMS_PER_PAGE = 8
 
@@ -32,6 +33,7 @@ export function OrganizationList() {
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
   const { groups, isLoading, error } = useGroups()
+  const activateGroupMutation = useActivateGroup()
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -107,6 +109,23 @@ export function OrganizationList() {
     return pageNumbers
   }
 
+  const handleActivateGroup = async (groupId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+    try {
+      await activateGroupMutation.mutateAsync({ groupId, status: newStatus })
+      toast({
+        title: "Success",
+        description: `Group ${newStatus === "ACTIVE" ? "activated" : "deactivated"} successfully.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update group status. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -167,20 +186,20 @@ export function OrganizationList() {
         </DropdownMenu>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("grp_title")}>
+              <TableHead className="w-[30%] cursor-pointer" onClick={() => handleSort("grp_title")}>
                 Name {sortField === "grp_title" && (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("grp_status")}>
+              <TableHead className="w-[20%] cursor-pointer" onClick={() => handleSort("grp_status")}>
                 Status {sortField === "grp_status" && (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => handleSort("numberOfGroupUsers")}>
+              <TableHead className="w-[20%] cursor-pointer" onClick={() => handleSort("numberOfGroupUsers")}>
                 Users {sortField === "numberOfGroupUsers" && (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="w-[30%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -198,11 +217,23 @@ export function OrganizationList() {
                 </TableCell>
                 <TableCell>{org.numberOfGroupUsers}</TableCell>
                 <TableCell>
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href={`/organizations/${org._id}`}>
-                      <Eye className="mr-2 h-4 w-4" /> View Details
-                    </Link>
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button asChild variant="ghost" size="sm" className="w-1/2">
+                      <Link href={`/organizations/${org._id}`}>
+                        <Eye className="mr-2 h-4 w-4" /> View Details
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-1/2"
+                      onClick={() => handleActivateGroup(org._id, org.grp_status)}
+                      disabled={activateGroupMutation.isLoading}
+                    >
+                      <Power className={`mr-2 h-4 w-4 ${org.grp_status === "ACTIVE" ? "text-green-500" : "text-red-500"}`} />
+                      {org.grp_status === "ACTIVE" ? "Deactivate" : "Activate"}
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -257,4 +288,3 @@ export function OrganizationList() {
     </div>
   )
 }
-
