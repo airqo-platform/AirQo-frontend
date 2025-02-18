@@ -107,13 +107,15 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <img 
+          <Image 
             src="/images/airqo_logo.svg" 
             alt="Logo" 
+            width={112}
+            height={48} 
             className={`transition-all duration-300 ${
               isSidebarCollapsed 
-                ? "w-12 h-8 sm:w-12 sm:h-10 md:w-12 md:h-12"  // Smaller size when collapsed
-                : "w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-32 2xl:h-12"  // Full size when expanded
+                ? "w-12 h-8 sm:w-12 sm:h-10 md:w-12 md:h-12" 
+                : "w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-32 2xl:h-12"
             }`}
           />
         </motion.div>

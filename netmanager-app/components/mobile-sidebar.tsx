@@ -36,6 +36,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import type { Group, Network } from "@/app/types/users"
 import { PermissionGuard } from "@/components/permission-guard"
 import { Card, CardContent } from "@/components/ui/card"
+import Image from "next/image";
 
 interface MobileSidebarProps {
   isMobileMenuOpen: boolean
@@ -97,9 +98,11 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
         {/* Close Button */}
         <div className="flex justify-between items-center border-b">
            <div className="flex justify-center items-center h-full w-full">
-           <img 
+           <Image 
               src="/images/airqo_logo.svg" 
               alt="Logo" 
+              width={48} 
+              height={48} 
               className="w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-12"
             />
            </div>
