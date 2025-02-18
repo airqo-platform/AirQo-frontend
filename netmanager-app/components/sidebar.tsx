@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -61,6 +61,11 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
+  useEffect(() => {
+    if (isSidebarCollapsed) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isSidebarCollapsed]);
 
   return (
     <>
