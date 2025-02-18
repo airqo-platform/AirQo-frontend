@@ -1,12 +1,13 @@
 // redux/forumSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-/** Define a minimal ForumEvent type based on your data */
 export interface ForumEvent {
   id: number;
   title: string;
+  unique_title: string;
   glossary_details: string;
-  // Add additional fields as needed (e.g. introduction, banner, etc.)
+  sections: any[];
+  // ... add additional fields as needed
 }
 
 interface ForumState {
@@ -30,7 +31,6 @@ const forumSlice = createSlice({
     },
     selectEvent: (state, action: PayloadAction<number>) => {
       state.selectedEventIndex = action.payload;
-      // Reset active tab whenever a new event is selected
       state.activeTab = 'About';
     },
     setActiveTab: (state, action: PayloadAction<string>) => {

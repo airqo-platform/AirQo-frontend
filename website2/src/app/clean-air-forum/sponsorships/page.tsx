@@ -1,4 +1,5 @@
 'use client';
+
 import DOMPurify from 'dompurify';
 import React from 'react';
 
@@ -6,43 +7,64 @@ import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
 import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
+import SectionDisplay from '@/views/Forum/SectionDisplay';
 
-const Page = () => {
-  const data = useForumData();
+const SponsorshipPage: React.FC = () => {
+  const { selectedEvent } = useForumData();
+  if (!selectedEvent) return null;
 
-  const sponsorPartner = data.partners
+  const sponsorPartner = selectedEvent.partners
     ?.filter((partner: any) => partner.category === 'Sponsor Partner')
     .map((partner: any) => ({
       id: partner.id,
       logoUrl: partner.partner_logo_url,
     }));
 
-  if (!data) {
-    return null;
-  }
+  const sponsorshipSections = selectedEvent.sections?.filter((section: any) => {
+    if (!section.pages.includes('sponsorships')) return false;
+    const html = renderContent(section.content);
+    return html.trim().length > 0;
+  });
+
+  const mainSponsorshipHTML = renderContent(
+    selectedEvent.sponsorship_opportunities_partners,
+  );
+  const showMainSponsorship = mainSponsorshipHTML.trim().length > 0;
+
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
-      {/* Sponsorship Opportunities Text Section */}
-      <div className="py-4">
-        <h2 className="text-2xl font-bold">Sponsorship opportunities</h2>
+    <div className="px-4 prose max-w-none lg:px-0">
+      {showMainSponsorship && (
+        <div>
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          <div className="py-6">
+            <h1 className="text-2xl font-bold">Sponsorship opportunities</h1>
 
-        <div
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(
-              renderContent(data.sponsorship_opportunities_partners),
-            ),
-          }}
-        />
-      </div>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(mainSponsorshipHTML),
+              }}
+            />
+          </div>
+        </div>
+      )}
 
-      {/* Sponsors Section */}
-      {sponsorPartner?.length > 0 && (
+      {sponsorshipSections && sponsorshipSections.length > 0 && (
+        <>
+          {sponsorshipSections.map((section: any) => (
+            <SectionDisplay key={section.id} section={section} />
+          ))}
+        </>
+      )}
+
+      {sponsorPartner && sponsorPartner.length > 0 && (
         <>
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div>
-            <div className="flex flex-col md:flex-row md:space-x-8">
+            <div className="flex flex-col md:flex-row md:space-x-8 py-6">
               <div className="md:w-1/3 mb-4 md:mb-0">
-                <h2 className="text-2xl font-bold text-gray-900">Sponsors</h2>
+                <h1 className="text-2xl mt-0 font-bold text-gray-900">
+                  Sponsors
+                </h1>
               </div>
               <PaginatedSection
                 noClick={true}
@@ -57,4 +79,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default SponsorshipPage;

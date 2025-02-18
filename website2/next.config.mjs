@@ -34,6 +34,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/clean-air/forum',
+        destination: '/clean-air-forum/about?slug=clean-air-forum-2024',
+        permanent: true,
+      },
+      {
+        source: '/clean-air-forum',
+        destination: '/clean-air-forum/about',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

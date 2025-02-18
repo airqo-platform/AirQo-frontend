@@ -1,61 +1,73 @@
 'use client';
+
 import DOMPurify from 'dompurify';
 import Link from 'next/link';
-// import { useRouter } from 'next/navigation';
 import React from 'react';
 
+import Loading from '@/components/loading';
 import { Divider } from '@/components/ui';
-import { useSelector } from '@/hooks/reduxHooks';
-// import { selectEvent } from '@/store/slices/forumSlice';
+import { NoData } from '@/components/ui';
+import { useForumData } from '@/context/ForumDataContext';
+import { ForumEvent } from '@/types/forum';
+import { isValidGlossaryContent } from '@/utils/glossaryValidator';
 import { renderContent } from '@/utils/quillUtils';
+import SectionDisplay from '@/views/Forum/SectionDisplay';
 
-const Page: React.FC = () => {
-  // const router = useRouter();
-  // const dispatch = useDispatch();
-  // Retrieve forum events and selected event index from Redux.
-  const { events, selectedEventIndex } = useSelector((state) => state.forum);
+const GlossaryPage: React.FC = () => {
+  // Access data from the context.
+  const { selectedEvent, eventTitles } = useForumData();
 
-  if (events.length === 0) {
-    return null;
+  // If either is not available, show a loading state.
+  if (!selectedEvent || !eventTitles) {
+    return <Loading />;
   }
 
-  const selectedEvent = events[selectedEventIndex];
+  // Extract the events list from eventTitles.
+  // If eventTitles is an array, use it directly; otherwise, assume it's a ForumTitlesResponse.
+  const eventsList: ForumEvent[] = Array.isArray(eventTitles)
+    ? eventTitles
+    : eventTitles.forum_events;
 
-  // Utility function to create a slug from event title.
-  const createSlug = (title: string) => {
-    return title.split(',')[0].trim().toLowerCase().replace(/\s+/g, '-');
-  };
+  if (eventsList.length === 0) {
+    return <NoData message="No events found" />;
+  }
+
+  // Render the main glossary content using the selected event.
+  const glossaryHTML = renderContent(selectedEvent.glossary_details);
+  const showGlossaryMain = isValidGlossaryContent(glossaryHTML);
+
+  const glossarySections = selectedEvent.sections?.filter((section: any) => {
+    if (!section.pages.includes('glossary')) return false;
+    const html = renderContent(section.content);
+    return html.trim().length > 0;
+  });
 
   return (
-    <div className="px-4 lg:px-0 flex flex-col gap-6">
+    <div className="px-4 lg:px-0 prose max-w-none flex flex-col gap-6">
       <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 
-      {/* Clean Air Forum Events Section */}
-      <div className="flex flex-col md:flex-row md:space-x-8">
+      {/* Clean Air Forum Events Section (Sidebar) */}
+      <div className="flex flex-col md:flex-row py-6 md:space-x-8">
         {/* Left column: Heading */}
         <div className="md:w-1/3 mb-4 md:mb-0">
-          <h3 className="text-xl font-semibold">Clean Air Forum Events</h3>
+          <h1 className="text-2xl mt-4 font-semibold">
+            Clean Air Forum Events
+          </h1>
         </div>
-        {/* Right column: List of events */}
+        {/* Right column: List of event links */}
         <div className="md:w-2/3">
           <ul className="space-y-2">
-            {events.map((event, index) => {
-              const slug = createSlug(event.title);
-              const href = `/clean-air-forum?slug=${encodeURIComponent(slug)}`;
+            {eventsList.map((event) => {
+              // Use the unique_title directly in the link.
+              const href = `/clean-air-forum/about?slug=${encodeURIComponent(
+                event.unique_title,
+              )}`;
               return (
                 <li key={event.id}>
                   <Link
                     href={href}
                     target="_blank"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      // dispatch(selectEvent(index));
-                      // Open the event page in a new tab.
-                      window.open(href, '_blank');
-                    }}
-                    className={`text-blue-600 hover:underline ${
-                      selectedEventIndex === index ? 'font-bold' : ''
-                    }`}
+                    className="text-blue-600 hover:underline"
                   >
                     {event.title}
                   </Link>
@@ -66,28 +78,38 @@ const Page: React.FC = () => {
         </div>
       </div>
 
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+      {/* Clean Air Glossary Section */}
+      {showGlossaryMain && (
+        <>
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          <div className="flex flex-col py-6 md:flex-row md:space-x-8">
+            {/* Left column: Heading */}
+            <div className="md:w-1/3 mb-4 md:mb-0">
+              <h1 className="text-2xl mt-4 font-bold text-gray-900">
+                Clean Air Glossary
+              </h1>
+            </div>
+            {/* Right column: Glossary content */}
+            <div
+              className="md:w-2/3"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(glossaryHTML),
+              }}
+            ></div>
+          </div>
+        </>
+      )}
 
-      {/* Clear Air Glossary Section */}
-      <div className="flex flex-col md:flex-row md:space-x-8">
-        {/* Left column: Heading */}
-        <div className="md:w-1/3 mb-4 md:mb-0">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Clear Air Glossary
-          </h2>
-        </div>
-        {/* Right column: Glossary content */}
-        <div
-          className="md:w-2/3 space-y-4"
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(
-              renderContent(selectedEvent.glossary_details),
-            ),
-          }}
-        ></div>
-      </div>
+      {/* Additional Glossary Sections (if any) */}
+      {glossarySections && glossarySections.length > 0 && (
+        <>
+          {glossarySections.map((section: any) => (
+            <SectionDisplay key={section.id} section={section} />
+          ))}
+        </>
+      )}
     </div>
   );
 };
 
-export default Page;
+export default GlossaryPage;
