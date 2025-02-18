@@ -3,8 +3,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import goodair from '/images/map/GoodAir.png'
 
 const NetManagerMap = () => {
 
@@ -14,24 +12,26 @@ const NetManagerMap = () => {
         const [locationId,setlocationId] =useState("")
         const [suggestions, setSuggestions] = useState<any[]>([]);
         const token = 'pk.eyJ1IjoiZWxpYWxpZ2h0IiwiYSI6ImNtNzJsMnZnbjBhajIyanIwN3A3eWY2YmUifQ.x0x411yjbETiJ-F8ebivHQ'
+
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
          moderate :'/images/map/Moderate.png',
          hazardous :'/images/map/Hazardous.png',
          unhealthy: '/images/map/Unhealthy.png',
-         veryunhealthy :'/images/map/VeryUnhealthy.png'}
+         veryunhealthy :'/images/map/VeryUnhealthy.png',
+         unknownAQ:'/images/map/VeryUnhealthy.png',
+         unhealthySG: '/images/map/UnhealthySG.png',
+        }
 
        
-        // const Sessiontoken = localStorage.getItem("token");
+
         const [sessionToken, setSessionToken] = useState<string | null>(null);
-       console.log("locationId : ",locationId)
        useEffect(() => {
-        if (typeof window !== "undefined") { // Ensure this runs only in the browser
+        if (typeof window !== "undefined") { 
             const storedToken = localStorage.getItem("token");
             setSessionToken(storedToken);
         }
     }, []);
-    console.log("Session token:", sessionToken);
 
   useEffect(() => {
     mapboxgl.accessToken = token;
@@ -39,8 +39,8 @@ const NetManagerMap = () => {
     if (mapContainerRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        center: [18.5, 5], 
-        zoom: 3.5 
+        center: [18.5, 3], 
+        zoom: 2.5
         
       });
 
@@ -63,30 +63,30 @@ const NetManagerMap = () => {
                               });
                         // Listen for when the mouse enters a feature in your 'data-layer'
                         mapRef.current.on('mouseenter', 'data-layer', (e) => {
-                                // Change the cursor style to indicate interactivity.
                                 if (mapRef.current) {
                                     mapRef.current.getCanvas().style.cursor = 'pointer';
                                 }
-                        
                                 // Get the feature under the mouse pointer (the first feature).
                                 const feature = e.features ? e.features[0] : null;
+                                if (feature && feature.properties) {
+                                    
+                                      }
+                                      
                                 if (!feature) return;
-                        
-                                // Build your HTML content using feature properties.
+
                                 const htmlContent = `
                                 <div style="font-size: 14px; border-radius: 25px; background-color: white; padding: 10px;  rgba(0, 0, 0, 0.2); max-width: full;">
                                         <div>${feature.properties?.time ?? 'Unknown time'}</div><br>
                                         <div style="display: flex; justify-content: space-between;gap: 20px;">
                                         <strong style="display: flex; ">${feature.properties?.location_name ?? 'Unknown Location'}</strong>
-                                        <div style="display: flex;font-weight: bold; ">${feature.properties?.value ?? 'N/A'}µg/m³</div>
+                                        <div style="display: flex;font-weight: bold; ">${feature.properties?.value.toFixed(2) ?? 'N/A'}µg/m³</div>
                                         </div>
 
                                         <div style=" display: flex;gap: 10px; ">
                                         <h1 style="font-weight: bold; color: ${feature.properties?.aqi_color ?? 'black'};">Air Quality is ${feature.properties?.aqi_category ?? 'N/A'}</h1>
-                                        <img src=${AirQuality} style="background-color: ${feature.properties?.aqi_color ?? 'green'};width: 30px; height: 30px;border-radius: 50%;font-size: 18px;"></img>
+                                        <img src="${AirQuality.goodair}" style="background-color: ${feature.properties?.aqi_color ?? 'green'};width: 30px; height: 30px;border-radius: 50%;font-size: 18px;"></img>
                                         </div>
                                 </div>
-
                                 `;
                         
                                 // Set the popup at the feature's coordinates and add the HTML content.
@@ -105,38 +105,50 @@ const NetManagerMap = () => {
                                 }
                                 popup.remove();
                         });
-                        // mapRef.current.loadImage(AirQuality.goodair, (error, image) => {
-                        //         if (error) throw error;
-                            
-                        //         if (mapRef.current && !mapRef.current.hasImage('custom-icon')) {
-                        //             mapRef.current.addImage('custom-icon', image);
-                        //         }})
-
+                        Object.entries(AirQuality).forEach(([key, url]) => {
+                        if (mapRef.current) {
+                            mapRef.current.loadImage(url, (error, image) => {
+                                if (error) throw error;
+                        
+                                if (mapRef.current && image && !mapRef.current.hasImage(key)) {
+                                    mapRef.current.addImage(key, image);
+                                }
+                            });
+                        }
+                            });
+                            mapRef.current.addLayer({
+                                'id': 'circle-layer',
+                                'type': 'circle',
+                                'source': 'data',
+                                'paint': {
+                                    'circle-color': 'white',
+                                    'circle-radius': 30,
+                                    'circle-opacity': 1
+                                }
+                            });
                         mapRef.current.addLayer({
                           'id': 'data-layer',
-                          'type': 'circle',
+                          'type': 'symbol',
                           'source': 'data',
-                          'paint': {
-                            'circle-color': ['get', 'aqi_color'],
-                            'circle-radius': 20,
-                            'circle-stroke-color': 'white',
-                            'circle-stroke-width': 1,
-                        //     'circle-stroke-color': '#000000',
-                            'circle-opacity': 0.5
-                          },
+                          'layout': {
+                                    'icon-image': [
+                                                        'match',
+                                                        ['get', 'aqi_category'],
+                                                        'Good', 'goodair', 
+                                                        'Moderate', 'moderate', 
+                                                        'Unhealthy', 'unhealthy',
+                                                        'Unhealthy for Sensitive Groups', 'unhealthySG',
+                                                        'Hazardous','Hazardous',
+                                                        'Very Unhealthy', 'veryunhealthy',
+                                                        'unknownAQ' 
+                                                        ],
+                                    'icon-size': 0.05,
+                                    'icon-allow-overlap': true
+                                },
+                          
                           'filter': ['has', 'aqi_category']
                         });
-                        // mapRef.current.addLayer({
-                        //         'id': 'icon-layer',
-                        //         'type': 'symbol',
-                        //         'source': 'data',
-                        //         'layout': {
-                        //             'icon-image': 'custom-icon',
-                        //             'icon-size': 0.04,
-                        //             'icon-allow-overlap': true
-                        //         },
-                        //         'filter': ['has', 'aqi_category']
-                        //     });
+                   
             
                       } catch (error) {
                         console.error('Error fetching GeoJSON:', error);
@@ -159,7 +171,7 @@ const NetManagerMap = () => {
       if (mapRef.current) {
         mapRef.current.flyTo({
                 center: [18.5,5], 
-                zoom: 3.5,
+                zoom: 3.0,
                 essential: true 
             });
       }
@@ -213,7 +225,7 @@ const NetManagerMap = () => {
                 if (mapRef.current) {
                         mapRef.current.flyTo({
                                 center: data.features[0].geometry.coordinates, 
-                                zoom: 10,
+                                zoom: 12,
                                 essential: true 
                             });
                       }
@@ -242,10 +254,10 @@ const NetManagerMap = () => {
                                                 month: "long",
                                                 day: "numeric"
                                               }),
-                                          location_name:item.siteDetails.location_name,
+                                          location_name:item.siteDetails.name,
                                           aqi_category: item.aqi_category,
                                           aqi_color:item.aqi_color.startsWith("#") ? item.aqi_color : `#${item.aqi_color}`,
-                                          value:item.pm2_5?.value.toFixed(2) ?? 0,
+                                          value:item.pm2_5 ?.value??0,
                                           }
                                           }))
                                           }
@@ -306,7 +318,7 @@ const NetManagerMap = () => {
 
        </div>
       
-        <div className=" flex flex-grow   md:ml-[1%] "> 
+        <div className=" flex flex-grow   md:ml-[1%] ">
                 { mapContainerRef ?(
                 <div ref={mapContainerRef} className="rounded-lg map-container w-full   md:h-full"/>
         ):(
