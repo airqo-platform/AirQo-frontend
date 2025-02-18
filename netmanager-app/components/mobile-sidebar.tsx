@@ -95,7 +95,13 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
       >
         {/* Close Button */}
         <div className="flex justify-between items-center border-b">
-          <h2 className="text-lg font-semibold">AirQo</h2>
+           <div className="flex justify-center items-center h-full w-full">
+           <img 
+              src="/images/airqo_logo.svg" 
+              alt="Logo" 
+              className="w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-12"
+            />
+           </div>
           <Button
             variant="ghost"
             size="icon"
