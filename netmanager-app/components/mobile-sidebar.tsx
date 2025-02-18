@@ -20,6 +20,7 @@ import {
   MonitorSmartphone,
   LogOut,
   NetworkIcon,
+  ChevronLeft,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
@@ -108,7 +109,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
             onClick={toggleMobileMenu}
             className="transition-transform duration-200 hover:bg-gray-200"
           >
-            <X size={24} />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
         </div>
 

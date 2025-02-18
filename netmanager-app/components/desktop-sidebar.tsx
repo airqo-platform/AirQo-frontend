@@ -19,8 +19,9 @@ import {
   MonitorSmartphone,
   LogOut,
   NetworkIcon,
-  Menu,
-  X,
+  ArrowLeft,
+  ArrowRight,
+  ChevronLeft
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
@@ -99,47 +100,45 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     >
       {/* Sidebar Header */}
       <div className="flex items-center justify-between border-b bg-white dark:bg-gray-900">
-        <motion.h1
+        
+        <motion.div
           className="flex items-center justify-center text-xl font-bold text-gray-900 dark:text-white"
           initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: isSidebarCollapsed ? 0 : 1, x: isSidebarCollapsed ? -20 : 0 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {!isSidebarCollapsed && 
-          
-          (
-            // <div className="flex justify-center items-center h-full w-full">
-           <img 
-              src="/images/airqo_logo.svg" 
-              alt="Logo" 
-              className="w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-12"
-            />
-          //  </div>
-          )
-          }
-        </motion.h1>
+          <img 
+            src="/images/airqo_logo.svg" 
+            alt="Logo" 
+            className={`transition-all duration-300 ${
+              isSidebarCollapsed 
+                ? "w-12 h-8 sm:w-12 sm:h-10 md:w-12 md:h-12"  // Smaller size when collapsed
+                : "w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-32 2xl:h-12"  // Full size when expanded
+            }`}
+          />
+        </motion.div>
 
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
+                <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="hidden md:flex transition-all duration-300 ease-in-out hover:bg-accent p-2 rounded-lg shadow-md hover:scale-110"
+                className="h-8 w-8 rounded-lg hover:bg-gray-100"
               >
-                <motion.div
-                  animate={{ rotate: isSidebarCollapsed ? 180 : 0, scale: 1.2 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
-                  {isSidebarCollapsed ? <Menu size={28} /> : <X size={28} />}
-                </motion.div>
+                {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
+
+
+
+
+      {/* END  */}
 
       {/* Sidebar Content */}
       <div className="h-[calc(100vh-64px)] overflow-y-auto">

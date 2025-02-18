@@ -51,7 +51,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView }) => {
   ]
 
   return (
-      <div className="h-16 border-b bg-background px-4 flex items-center justify-between">
+      <div className="h-14 border-b bg-background px-4 flex items-center justify-between">
         {/* {isMobileView && (
             <Button variant="ghost" size="icon" onClick={toggleSidebar}>
               <Menu size={24} />
