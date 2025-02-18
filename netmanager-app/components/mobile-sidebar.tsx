@@ -96,7 +96,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
         className={`fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 md:hidden flex flex-col ${className || ''}`}
       >
         {/* Close Button */}
-        <div className="flex justify-between items-center border-b">
+        <div className="flex justify-between items-center">
            <div className="flex justify-center items-center h-full w-full">
            <Image 
               src="/images/airqo_logo.svg" 
@@ -297,10 +297,10 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
         </div>
 
         {/* Sidebar Footer */}
-        <div className="absolute bottom-0 left-0 right-0  border-t mt-8 md:mt-8">
+        <div className="absolute bottom-0 left-0 right-0 mt-8 md:mt-8 bg-white">
           <Button
             variant="ghost"
-            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="w-full justify-start text-destructive hover:text-destructive"
             onClick={logout}
           >
             <LogOut size={18} className="mr-2" />

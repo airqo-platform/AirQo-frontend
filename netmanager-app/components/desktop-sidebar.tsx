@@ -94,13 +94,13 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-card border-r transition-all duration-300 ease-in-out z-40 shadow-lg
+      className={`fixed top-0 left-0 h-full bg-card transition-all duration-300 ease-in-out z-40 shadow-lg
                 ${isSidebarCollapsed ? "w-16" : "w-64"}
             `}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between border-b bg-white dark:bg-gray-900">
-        
+      <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 p-2 relative">
+        {/* Logo */}
         <motion.div
           className="flex items-center justify-center text-xl font-bold text-gray-900 dark:text-white"
           initial={{ opacity: 0, x: -20 }}
@@ -112,35 +112,32 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             alt="Logo" 
             width={112}
             height={48} 
-            className={`transition-all duration-300 ${
-              isSidebarCollapsed 
-                ? "w-12 h-8 sm:w-12 sm:h-10 md:w-12 md:h-12" 
-                : "w-12 h-12 sm:w-16 sm:h-12 md:w-20 md:h-12 lg:w-24 lg:h-12 xl:w-28 xl:h-12 2xl:w-32 2xl:h-12"
-            }`}
+            className="w-12 h-8 sm:w-12 sm:h-10 md:w-12 md:h-12"
           />
         </motion.div>
 
+        {/* Sidebar Toggle Button */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-                <Button
+              <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="h-8 w-8 rounded-lg hover:bg-gray-100"
+                className={`absolute top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
+                  ${isSidebarCollapsed ? "left-12" : "left-60"}`}
               >
-                {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                {isSidebarCollapsed ? (
+                  <ChevronRight className="h-4 w-4 text-gray-700" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4 text-gray-700" />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-
-
-
-
-      {/* END  */}
 
       {/* Sidebar Content */}
       <div className="h-[calc(100vh-64px)] overflow-y-auto">
@@ -335,13 +332,13 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       </div>
 
       {/* Sidebar Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t mt-0 md:mt-4 ">
+      <div className="absolute bottom-0 left-0 right-0 p-4 mt-0 md:mt-4 bg-white">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="w-full justify-start text-destructive hover:text-destructive "
                 onClick={logout}
               >
                 <LogOut size={18} className="mr-2" />

@@ -16,7 +16,6 @@ import {
 import { useAuth } from "@/core/hooks/users"
 
 interface TopbarProps {
-  // toggleSidebar: () => void
   isMobileView: boolean
 }
 
