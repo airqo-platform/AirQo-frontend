@@ -44,10 +44,14 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<AuthBloc>().add(LogoutUser());
-              Navigator.pushReplacement(
+              context
+                  .read<AuthBloc>()
+                  .add(LogoutUser());
+
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => WelcomeScreen()),
+                (Route<dynamic> route) => false,
               );
             },
             child: const Text('Log Out'),
