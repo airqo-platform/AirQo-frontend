@@ -13,6 +13,7 @@ import {
   FORGOT_PWD_URL,
   RESET_PWD_URL,
   MAINTENANCE_STATUS_URL,
+  INQUIRY_REGISTER_URL,
 } from '../urls/authentication';
 import axios from 'axios';
 import createAxiosInstance from './axiosConfig';
@@ -236,6 +237,19 @@ export const getMaintenanceStatus = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching maintenance status:', error);
+    throw error;
+  }
+};
+
+export const registerInquiry = async (data) => {
+  try {
+    const response = await createAxiosInstance().post(
+      INQUIRY_REGISTER_URL,
+      data,
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error registering inquiry:', error);
     throw error;
   }
 };
