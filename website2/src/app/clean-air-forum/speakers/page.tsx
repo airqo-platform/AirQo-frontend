@@ -1,4 +1,5 @@
 'use client';
+
 import DOMPurify from 'dompurify';
 import React, { useState } from 'react';
 
@@ -8,62 +9,66 @@ import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/Forum/SectionDisplay';
 
-const Page: React.FC = () => {
-  const data = useForumData();
+const SpeakersPage: React.FC = () => {
+  // Now we use the selectedEvent from context
+  const { selectedEvent } = useForumData();
   const membersPerPage = 6;
-
-  // Separate pagination states for Keynote Speakers and Speakers.
   const [currentKeyNotePage, setCurrentKeyNotePage] = useState(1);
   const [currentSpeakersPage, setCurrentSpeakersPage] = useState(1);
 
-  if (!data) {
+  if (!selectedEvent) {
     return null;
   }
 
-  // Filter keynote speakers and speakers.
-  const KeyNoteSpeakers = data?.persons?.filter(
-    (person: any) =>
-      person.category === 'Key Note Speaker' ||
-      person.category === 'Committee Member and Key Note Speaker',
-  );
-
-  const Speakers = data?.persons?.filter(
-    (person: any) =>
-      person.category === 'Speaker' ||
-      person.category === 'Speaker and Committee Member',
-  );
+  // Filter keynote speakers and speakers from selectedEvent.persons.
+  // (Adjust your filtering logic as needed.)
+  const keyNoteSpeakers =
+    selectedEvent.persons?.filter(
+      (person: any) =>
+        person.category === 'Key Note Speaker' ||
+        person.category === 'Committee Member and Key Note Speaker',
+    ) || [];
+  const speakers =
+    selectedEvent.persons?.filter(
+      (person: any) =>
+        person.category === 'Speaker' ||
+        person.category === 'Speaker and Committee Member',
+    ) || [];
 
   // Pagination calculations for Keynote Speakers.
-  const totalKeyNotePages = Math.ceil(KeyNoteSpeakers?.length / membersPerPage);
+  const totalKeyNotePages = Math.ceil(keyNoteSpeakers.length / membersPerPage);
   const startKeyNoteIdx = (currentKeyNotePage - 1) * membersPerPage;
-  const endKeyNoteIdx = startKeyNoteIdx + membersPerPage;
-  const displayedKeyNoteSpeakers = KeyNoteSpeakers?.slice(
+  const displayedKeyNoteSpeakers = keyNoteSpeakers.slice(
     startKeyNoteIdx,
-    endKeyNoteIdx,
+    startKeyNoteIdx + membersPerPage,
   );
 
   // Pagination calculations for Speakers.
-  const totalSpeakersPages = Math.ceil(Speakers?.length / membersPerPage);
+  const totalSpeakersPages = Math.ceil(speakers.length / membersPerPage);
   const startSpeakersIdx = (currentSpeakersPage - 1) * membersPerPage;
-  const endSpeakersIdx = startSpeakersIdx + membersPerPage;
-  const displayedSpeakers = Speakers?.slice(startSpeakersIdx, endSpeakersIdx);
+  const displayedSpeakers = speakers.slice(
+    startSpeakersIdx,
+    startSpeakersIdx + membersPerPage,
+  );
 
-  // Handle page changes.
+  // Handlers for page changes.
   const handleKeyNotePageChange = (newPage: number) =>
     setCurrentKeyNotePage(newPage);
   const handleSpeakersPageChange = (newPage: number) =>
     setCurrentSpeakersPage(newPage);
 
   // Validate the main speakers text section.
-  const mainSpeakersHTML = renderContent(data.speakers_text_section);
+  const mainSpeakersHTML = renderContent(selectedEvent.speakers_text_section);
   const showMainSpeakers = isValidHTMLContent(mainSpeakersHTML);
 
   // Filter extra sections assigned to the "speakers" page.
-  const speakersExtraSections = data?.sections?.filter((section: any) => {
-    if (!section.pages.includes('speakers')) return false;
-    const sectionHTML = renderContent(section.content);
-    return isValidHTMLContent(sectionHTML);
-  });
+  const speakersExtraSections = selectedEvent.sections?.filter(
+    (section: any) => {
+      if (!section.pages.includes('speakers')) return false;
+      const sectionHTML = renderContent(section.content);
+      return isValidHTMLContent(sectionHTML);
+    },
+  );
 
   return (
     <div className="px-4 prose max-w-none lg:px-0">
@@ -81,9 +86,10 @@ const Page: React.FC = () => {
       )}
 
       {/* Keynote Speakers Section */}
-      <h2 className="text-2xl font-bold">Keynote Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-        {displayedKeyNoteSpeakers?.map((person: any) => (
+      <h1 className="text-2xl font-bold">Keynote Speakers</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
+        {displayedKeyNoteSpeakers.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}
@@ -92,8 +98,6 @@ const Page: React.FC = () => {
           />
         ))}
       </div>
-
-      {/* Pagination for Keynote Speakers */}
       {totalKeyNotePages > 1 && (
         <div className="py-6">
           <Pagination
@@ -108,8 +112,8 @@ const Page: React.FC = () => {
 
       {/* Speakers Section */}
       <h2 className="text-2xl font-bold">Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-        {displayedSpeakers?.map((person: any) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
+        {displayedSpeakers.map((person: any) => (
           <MemberCard
             key={person.id}
             member={person}
@@ -118,8 +122,6 @@ const Page: React.FC = () => {
           />
         ))}
       </div>
-
-      {/* Pagination for Speakers */}
       {totalSpeakersPages > 1 && (
         <div className="py-6">
           <Pagination
@@ -130,10 +132,9 @@ const Page: React.FC = () => {
         </div>
       )}
 
-      {/* Extra Speakers Sections using SectionDisplay */}
+      {/* Extra Speakers Sections */}
       {speakersExtraSections && speakersExtraSections.length > 0 && (
         <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           {speakersExtraSections.map((section: any) => (
             <SectionDisplay key={section.id} section={section} />
           ))}
@@ -143,4 +144,4 @@ const Page: React.FC = () => {
   );
 };
 
-export default Page;
+export default SpeakersPage;

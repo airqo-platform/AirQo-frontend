@@ -398,7 +398,7 @@ const EngagementDialog = () => {
 
           {/* Right Side */}
           <motion.div
-            className="w-full lg:w-1/2 flex flex-col justify-center gap-6 h-full p-2 md:p-16"
+            className="w-full lg:w-1/2 flex flex-col justify-center gap-6 h-full p-2 md:p-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}

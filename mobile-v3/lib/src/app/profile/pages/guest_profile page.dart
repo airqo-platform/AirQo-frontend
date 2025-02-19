@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/profile/pages/widgets/guest_settings_widget.dart';
 //import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter/cupertino.dart';
@@ -134,12 +135,53 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                   ),
                 ),
               ),
+
+              SizedBox(
+                height: 18,
+              ),
+              InkWell(
+                onTap: () => Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                    builder: (context) => LoginPage()),(route) => false, ),
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                      color: AppColors.backgroundColor2,
+                      border: Border.all(
+                          color: AppColors.borderColor2
+                      ),
+                      borderRadius:
+                      BorderRadius.circular(4)),
+                  child: Center(
+                    child: isLoading
+                        ? Spinner()
+                        : Text(
+                      "Login",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               SizedBox(
                 height: 76,
               ),
 
               Center(
-                  child: SvgPicture.asset('assets/images/shared/Frame 26085560.svg')
+                  child: Column(
+                    children: [
+                      SvgPicture.asset('assets/images/shared/logo.svg',),
+                      SizedBox(height: 18,),
+                      Text(
+                        "3.40.1(1)",
+                        style: TextStyle(color: Theme.of(context).textTheme.headlineMedium?.color),),
+                      SizedBox(height: 18,),
+                      SvgPicture.asset('assets/images/shared/Frame 128.svg',
+                      color: Theme.of(context).textTheme.titleLarge?.color,)
+                    ],
+                  ),
+
               ),
               SizedBox(
                 height: 220,

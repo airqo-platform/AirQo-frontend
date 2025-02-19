@@ -1,8 +1,6 @@
 import 'dart:io';
-
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
@@ -21,9 +19,7 @@ import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
-
 import 'package:airqo/src/meta/utils/colors.dart';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -92,7 +88,7 @@ class AirqoMobile extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AuthBloc(authRepository),
+          create: (context) => AuthBloc(authRepository)..add(AppStarted()),
         ),
         BlocProvider(
           create: (context) => ForecastBloc(forecastRepository),
@@ -164,11 +160,14 @@ class _DeciderState extends State<Decider> {
           children: [
             FutureBuilder<String?>(
               future: HiveRepository.getData('token', HiveBoxNames.authBox),
+
               builder: (context, snapshot) {
+
+
                 // Handle loading state
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
+                    body: const Center(child: CircularProgressIndicator()),
                   );
                 }
                 if (snapshot.connectionState == ConnectionState.done) {
