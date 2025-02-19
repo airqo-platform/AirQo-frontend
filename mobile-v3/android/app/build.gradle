@@ -39,14 +39,14 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def googleMapApiKey = appProperties.getProperty('google.maps.key')
+def googleMapApiKey = appProperties.getProperty('google.maps.key') ?: secrets.getProperty('MAPS_API_KEY')
 if (googleMapApiKey == null) {
-    throw new GradleException("Google Maps Key not found. Define google.maps.key in the key.properties file.")
+    throw new GradleException("Google Maps Key not found. Define either google.maps.key in key.properties or MAPS_API_KEY in secrets.properties")
 }
 
-def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev')
+def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev') ?: secrets.getProperty('MAPS_API_KEY_DEV')
 if (googleMapApiKeyDev == null) {
-    throw new GradleException("Google Maps Key not found. Define google.maps.key_dev in the key.properties file.")
+    throw new GradleException("Google Maps Dev Key not found. Define either google.maps.key.dev in key.properties or MAPS_API_KEY_DEV in secrets.properties")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
