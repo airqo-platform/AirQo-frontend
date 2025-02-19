@@ -1,3 +1,6 @@
+import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
@@ -9,6 +12,7 @@ class SettingsWidget extends StatefulWidget {
   @override
   State<SettingsWidget> createState() => _SettingsWidgetState();
 }
+
 class _SettingsWidgetState extends State<SettingsWidget> {
   String _appVersion = '';
   bool _locationEnabled = true;
@@ -40,9 +44,11 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement actual logout logic
-              // e.g., clear user session, revoke tokens
-              Navigator.of(context).pushReplacementNamed('/login');
+              context.read<AuthBloc>().add(LogoutUser());
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => WelcomeScreen()),
+              );
             },
             child: const Text('Log Out'),
           ),
