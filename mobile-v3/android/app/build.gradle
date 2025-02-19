@@ -49,6 +49,16 @@ if (googleMapApiKeyDev == null) {
     throw new GradleException("Google Maps Dev Key not found. Define either google.maps.key.dev in key.properties or MAPS_API_KEY_DEV in secrets.properties")
 }
 
+def googlePlacesKey = appProperties.getProperty('google.places.key') ?: secrets.getProperty('PLACES_API_KEY')
+if (googlePlacesKey == null) {
+    throw new GradleException("Google Places Key not found. Define either google.places.key in key.properties or PLACES_API_KEY in secrets.properties")
+}
+
+def googlePlacesKeyDev = appProperties.getProperty('google.places.key.dev') ?: secrets.getProperty('PLACES_API_KEY_DEV')
+if (googlePlacesKeyDev == null) {
+    throw new GradleException("Google Places Dev Key not found. Define either google.places.key.dev in key.properties or PLACES_API_KEY_DEV in secrets.properties")
+}
+
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
@@ -98,13 +108,19 @@ android {
     productFlavors {
         airqo {
             dimension "airqo"
-            manifestPlaceholders = [googleMapsKey:googleMapApiKey]
+            manifestPlaceholders = [
+                googleMapsKey:googleMapApiKey,
+                googlePlacesKey: googlePlacesKey
+                ]
         }
  
         airqodev {
             dimension "airqo"
             applicationIdSuffix ".dev"
-            manifestPlaceholders = [googleMapsKey:googleMapApiKeyDev]
+            manifestPlaceholders = [
+                googleMapsKey:googleMapApiKeyDev,
+                googlePlacesKey: googlePlacesKeyDev
+                ]
         }
         
     }
