@@ -34,31 +34,58 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   void _showLogoutConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Confirm Logout'),
         content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              context
-                  .read<AuthBloc>()
-                  .add(LogoutUser());
-
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => WelcomeScreen()),
-                (Route<dynamic> route) => false,
-              );
-            },
+            onPressed: () => _handleLogout(dialogContext),
             child: const Text('Log Out'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleLogout(BuildContext dialogContext) async {
+    Navigator.pop(dialogContext);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      context.read<AuthBloc>().add(LogoutUser());
+
+      await for (final state in context.read<AuthBloc>().stream) {
+        if (state is GuestUser) {
+          Navigator.pop(context);
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => WelcomeScreen()),
+            (route) => false,
+          );
+          break;
+        } else if (state is AuthLoadingError) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+          break;
+        }
+      }
+    } catch (e) {
+      Navigator.pop(context); 
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An unexpected error occurred')),
+      );
+    }
   }
 
   void _showDeleteAccountDialog() {
