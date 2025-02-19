@@ -46,13 +46,11 @@ import {
 import type { Group, Network } from "@/app/types/users";
 import { PermissionGuard } from "@/components/permission-guard";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight } from "lucide-react";
 
 const Sidebar = () => {
   const pathname = usePathname();
   const [userCollapsed, setUserCollapsed] = useState(false);
   const [isDevicesOpen, setIsDevicesOpen] = useState(false);
-  const [navcollapse,setnavcollapse ] = useState(false);
   const { logout } = useAuth();
   const dispatch = useAppDispatch();
 
@@ -91,17 +89,13 @@ const Sidebar = () => {
     dispatch(setActiveGroup(group));
     localStorage.setItem("activeGroup", JSON.stringify(group));
   };
-  const handleCollapsible =()=>{
-        setnavcollapse((prevState)=>!prevState);
-  }
 
   return (
-    <>
-    <div className={` ${navcollapse? "w-64":""} w-32 p-1 h-screen bg-card border-r flex flex-col  `}>
+    <div className="w-64 h-screen bg-card border-r flex flex-col">
       {/* Organization Switcher */}
       <Card className="m-4 bg-primary text-primary-foreground">
         <CardContent className="p-3">
-          <h2 className={` ${navcollapse?"text-sm font-semibold mb-2":"hidden"} `}>Organization</h2>
+          <h2 className="text-sm font-semibold mb-2">Organization</h2>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -109,7 +103,7 @@ const Sidebar = () => {
                 className="w-full justify-between uppercase"
               >
                 {activeGroup?.grp_title || "Select Organization"}
-                <ChevronDown className={`${navcollapse?"":"hidden"}`} size={16} />
+                <ChevronDown size={16} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
@@ -131,7 +125,7 @@ const Sidebar = () => {
       </Card>
 
       {/* Main Navigation */}
-      <div className="flex-1 p-4 overflow-y-auto ">
+      <div className="flex-1 p-4 overflow-y-auto">
         <nav className="space-y-6">
           {/* Overview */}
           <div>
@@ -148,8 +142,8 @@ const Sidebar = () => {
                       : ""
                   }`}
                 >
-                  { navcollapse? (<BarChart2 size={18} />):(<BarChart2 className="ml-5"  size={20} />)}
-                  <span className={`${navcollapse?"":"hidden"}`} >Analytics</span>
+                  <BarChart2 size={18} />
+                  <span>Analytics</span>
                 </Link>
               </li>
               <li>
@@ -161,8 +155,8 @@ const Sidebar = () => {
                       : ""
                   }`}
                 >
-                  { navcollapse? (<Map size={18} />):(<Map className="ml-5"  size={20} />)}
-                  <span className={`${navcollapse?"":"hidden"}`}  >Network Map</span>
+                  <Map size={18} />
+                  <span>Network Map</span>
                 </Link>
               </li>
               <li>
@@ -174,8 +168,8 @@ const Sidebar = () => {
                       : ""
                   }`}
                 >
-                  { navcollapse? (<Download size={18} />):(<Download className="ml-5"  size={20} />)}
-                  <span className={`${navcollapse?"":"hidden"}`}  >Data Export</span>
+                  <Download size={18} />
+                  <span>Data Export</span>
                 </Link>
               </li>
             </ul>
@@ -235,7 +229,7 @@ const Sidebar = () => {
 
           {/* Network */}
           <div>
-            <h2 className={`${navcollapse?"text-sm font-semibold text-foreground/60 mb-2":"hidden"}`} >
+            <h2 className="text-sm font-semibold text-foreground/60 mb-2">
               Network
             </h2>
 
@@ -248,8 +242,8 @@ const Sidebar = () => {
                     className="w-full justify-between text-foreground"
                   >
                     <div className="flex items-center gap-2">
-                    { navcollapse? (<NetworkIcon size={18} />):(<NetworkIcon className="ml-5"  size={20} />)}
-                      <span className={`${navcollapse?"uppercase":"hidden"}`} >
+                      <NetworkIcon size={18} />
+                      <span className="uppercase">
                         {activeNetwork?.net_name || "Select Network"}
                       </span>
                     </div>
@@ -416,8 +410,8 @@ const Sidebar = () => {
                       : ""
                   }`}
                 >
-                  { navcollapse? (<Activity size={18} />):(<Activity className="ml-5"  size={20} />)}
-                  <span className={`${navcollapse?"":"hidden"}`}>Activity Logs</span>
+                  <Activity size={18} />
+                  <span>Activity Logs</span>
                 </Link>
               </li>
             </ul>
@@ -425,7 +419,7 @@ const Sidebar = () => {
 
           {/* Account */}
           <div>
-            <h2 className={`${navcollapse?"text-sm font-semibold text-foreground/60 mb-2":"hidden"}`}>
+            <h2 className="text-sm font-semibold text-foreground/60 mb-2">
               Account
             </h2>
             <ul className="space-y-2">
@@ -438,8 +432,8 @@ const Sidebar = () => {
                       : ""
                   }`}
                 >
-                  { navcollapse? (<UserCircle size={18} />):(<UserCircle className="ml-5"  size={20} />)}
-                  <span className={`${navcollapse?"":"hidden"}`} >Profile Settings</span>
+                  <UserCircle size={18} />
+                  <span>Profile Settings</span>
                 </Link>
               </li>
             </ul>
@@ -461,8 +455,6 @@ const Sidebar = () => {
         </Button>
       </div>
     </div>
-    <ChevronRight onClick={handleCollapsible} className={` ${navcollapse?"drop":"revert" } flex cursor-pointer  -ml-3 bg-white  text-black border border-3 border-gray-200 rounded-full drop-shadow-lg mt-10 `}/>
-    </>
   );
 };
 
