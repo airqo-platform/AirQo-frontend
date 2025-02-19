@@ -11,7 +11,9 @@ const NetManagerMap = () => {
         const [query, setQuery] = useState("");
         const [locationId,setlocationId] =useState("")
         const [suggestions, setSuggestions] = useState<any[]>([]);
-        const token = 'pk.eyJ1IjoiZWxpYWxpZ2h0IiwiYSI6ImNtNzJsMnZnbjBhajIyanIwN3A3eWY2YmUifQ.x0x411yjbETiJ-F8ebivHQ'
+        const [sessionToken, setSessionToken] = useState<string | null>(null);
+        const token = process.env.NEXT_PUBLIC_MAP_API_TOKEN
+        const AirQoToken = process.env.NEXT_PUBLIC_AIRQO_DATA_TOKEN
 
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
@@ -25,7 +27,7 @@ const NetManagerMap = () => {
 
        
 
-        const [sessionToken, setSessionToken] = useState<string | null>(null);
+        //Get the Session Token for the User
        useEffect(() => {
         if (typeof window !== "undefined") { 
             const storedToken = localStorage.getItem("token");
@@ -35,19 +37,19 @@ const NetManagerMap = () => {
 
   useEffect(() => {
     mapboxgl.accessToken = token;
-
     if (mapContainerRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
+        style:'mapbox://styles/mapbox/navigation-day-v1',
         center: [18.5, 3], 
-        zoom: 2.5
-        
+        zoom: 3
       });
 
       mapRef.current.on('load', async () => {
         if (mapRef.current) {
+                // mapRef.current.setTerrain(null)
                 try {
-                        const response = await fetch('https://staging-analytics.airqo.net/api/v2/devices/readings/map?token=NQ9PFPCJXNEREMUR');
+                        const response = await fetch(`https://staging-analytics.airqo.net/api/v2/devices/readings/map?token=${AirQoToken}`);
                         const jsonData = await response.json();
                         const geojsonData = ConvertToGeojson(jsonData);
                         console.log('GeoJson Data : ',geojsonData)
