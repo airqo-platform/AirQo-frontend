@@ -1,33 +1,37 @@
 'use client';
 import { createContext, ReactNode, useContext } from 'react';
 
-// Define the context
-const ForumDataContext = createContext<any | undefined>(undefined);
+import { ForumEvent, ForumTitlesResponse } from '@/types/forum';
 
-// Create a custom hook to access the context
+export interface ForumData {
+  selectedEvent: ForumEvent;
+  // eventTitles can be an array of ForumEvent or a ForumTitlesResponse object.
+  eventTitles: ForumEvent[] | ForumTitlesResponse;
+  // You may add more fields as needed.
+}
+
+const ForumDataContext = createContext<ForumData | undefined>(undefined);
+
 export const useForumData = () => {
   const context = useContext(ForumDataContext);
-  // Instead of throwing an error, return undefined or a default value
   if (!context) {
     console.warn(
-      'useForumData was called outside of ForumDataProvider. Returning default value.',
+      'useForumData was called outside of ForumDataProvider. Returning empty object.',
     );
-    return {};
+    return {} as ForumData;
   }
   return context;
 };
 
-// Define the provider to wrap your layout
 export const ForumDataProvider = ({
   children,
   data,
 }: {
   children: ReactNode;
-  data: any;
+  data: ForumData;
 }) => {
-  const safeData = data || {};
   return (
-    <ForumDataContext.Provider value={safeData}>
+    <ForumDataContext.Provider value={data}>
       {children}
     </ForumDataContext.Provider>
   );
