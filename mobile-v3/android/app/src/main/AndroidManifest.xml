@@ -15,7 +15,7 @@
         <!-- Google Places API key -->
         <meta-data 
             android:name="com.google.android.places.API_KEY"
-            android:value="${PLACES_API_KEY}" />
+            android:value="${googlePlacesKey}" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
