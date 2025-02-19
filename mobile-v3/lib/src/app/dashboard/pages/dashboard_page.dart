@@ -106,24 +106,24 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               SizedBox(width: 8),
               GestureDetector(
-                onTap: () {
-                  final authState = context.read<AuthBloc>().state;
-                  if (authState is GuestUser) {
+                // onTap: () {
+                //   final authState = context.read<AuthBloc>().state;
+                //   if (authState is GuestUser) {
                     
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => GuestProfilePage(),
-                      ),
-                    );
-                  } else {
-                    // Navigate to the regular profile page
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ProfilePage(),
-                      ),
-                    );
-                  }
-                },
+                //     Navigator.of(context).push(
+                //       MaterialPageRoute(
+                //         builder: (context) => GuestProfilePage(),
+                //       ),
+                //     );
+                //   } else {
+                //     // Navigate to the regular profile page
+                //     Navigator.of(context).push(
+                //       MaterialPageRoute(
+                //         builder: (context) => ProfilePage(),
+                //       ),
+                //     );
+                //   }
+                // },
                   child: BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, authState) {
                       if (authState is GuestUser) {
