@@ -9,64 +9,20 @@ import '../../shared/repository/hive_repository.dart';
 part 'auth_event.dart';
 part 'auth_state.dart';
 
-// class AuthBloc extends Bloc<AuthEvent, AuthState> {
-//   final AuthRepository authRepository;
-//   AuthBloc(this.authRepository) : super(AuthInitial()) {
-//     on<AuthEvent>((event, emit) async {
-//       if (event is LoginUser) {
-//         try {
-//           emit(AuthLoading());
-//           await authRepository.loginWithEmailAndPassword(
-//               event.username, event.password);
-//
-//           emit(AuthLoaded(AuthPurpose.LOGIN));
-//         } catch (e) {
-//           debugPrint(e.toString());
-//           emit(
-//             AuthLoadingError(
-//               e.toString(),
-//             ),
-//           );
-//         }
-//       } else if (event is RegisterUser) {
-//         try {
-//           emit(AuthLoading());
-//
-//           await authRepository.registerWithEmailAndPassword(event.model);
-//
-//           emit(AuthLoaded(AuthPurpose.REGISTER));
-//         } catch (e) {
-//           debugPrint(e.toString());
-//           emit(
-//             AuthLoadingError(
-//               e.toString(),
-//             ),
-//           );
-//         }
-//       } else if (event is UseAsGuest) {
-//         emit(GuestUser());
-//       }
-//     });
-//   }
-// }
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc(this.authRepository) : super(AuthInitial()) {
-    //debugPrint("AuthBloc initialized");
-
     on<AppStarted>(_onAppStarted);
-
 
     on<LoginUser>(_onLoginUser);
 
-
     on<RegisterUser>(_onRegisterUser);
 
+    on<LogoutUser>(_onLogoutUser);
 
     on<UseAsGuest>((event, emit) => emit(GuestUser()));
   }
-
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
@@ -85,15 +41,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-
   Future<void> _onLoginUser(LoginUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-
-      final token = await authRepository.loginWithEmailAndPassword(event.username, event.password);
+      final token = await authRepository.loginWithEmailAndPassword(
+          event.username, event.password);
       await HiveRepository.saveData(HiveBoxNames.authBox, 'token', token);
       // Save token in Hive
-      final savedToken = await HiveRepository.getData('token', HiveBoxNames.authBox);
+      final savedToken =
+          await HiveRepository.getData('token', HiveBoxNames.authBox);
       //debugPrint("Saved token: $savedToken");
 
       emit(AuthLoaded(AuthPurpose.LOGIN));
@@ -103,8 +59,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-
-  Future<void> _onRegisterUser(RegisterUser event, Emitter<AuthState> emit) async {
+  Future<void> _onRegisterUser(
+      RegisterUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
@@ -115,6 +71,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+
+  Future<void> _onLogoutUser(LogoutUser event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await HiveRepository.deleteData(
+          'token', HiveBoxNames.authBox); // Remove token from Hive
+      emit(GuestUser()); // Emit guest state after logout
+    } catch (e) {
+      debugPrint("Logout error: $e");
+      emit(AuthLoadingError("Failed to log out. Please try again."));
+    }
+  }
 
   String _extractErrorMessage(dynamic e) {
     if (e is Exception) {
