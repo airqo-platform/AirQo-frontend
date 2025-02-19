@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ConvertToGeojson } from '@/lib/utils';
 
 const NetManagerMap = () => {
 
@@ -157,10 +158,6 @@ const NetManagerMap = () => {
                       }
                     }
                   });
-                }{
-                        <div>
-                                Loading Data
-                        </div>
                 }
               }, []);
 
@@ -235,37 +232,7 @@ const NetManagerMap = () => {
                 .catch(error => console.error("Error fetching location:", error));
 
   }
-  const ConvertToGeojson=(data: any)=>{
-          return {
-                  type: "FeatureCollection" as const,
-                  features: data.measurements.map((item: any) => ({
-                          type: "Feature",
-                          geometry: {
-                                  type: "Point",
-                                  coordinates: [
-                                        item.siteDetails.approximate_longitude, 
-                                        item.siteDetails.approximate_latitude
-                                ]
-                                  },
-                                  properties: {
-                                          id: item._id,
-                                          site_id:item.site_id,
-                                          time: new Date(item.time).toLocaleDateString("en-US", {
-                                                weekday: "long",
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric"
-                                              }),
-                                          location_name:item.siteDetails.name,
-                                          aqi_category: item.aqi_category,
-                                          aqi_color:item.aqi_color.startsWith("#") ? item.aqi_color : `#${item.aqi_color}`,
-                                          value:item.pm2_5 ?.value??0,
-                                          }
-                                          }))
-                                          }
-  
-  
-          }
+
 
   return (
         <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 

@@ -42,3 +42,35 @@ export const transformDataToGeoJson = (
     features,
   };
 };
+
+export const ConvertToGeojson=(data: any)=>{
+        return {
+                type: "FeatureCollection" as const,
+                features: data.measurements.map((item: any) => ({
+                        type: "Feature",
+                        geometry: {
+                                type: "Point",
+                                coordinates: [
+                                      item.siteDetails.approximate_longitude, 
+                                      item.siteDetails.approximate_latitude
+                              ]
+                                },
+                                properties: {
+                                        id: item._id,
+                                        site_id:item.site_id,
+                                        time: new Date(item.time).toLocaleDateString("en-US", {
+                                              weekday: "long",
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric"
+                                            }),
+                                        location_name:item.siteDetails.name,
+                                        aqi_category: item.aqi_category,
+                                        aqi_color:item.aqi_color.startsWith("#") ? item.aqi_color : `#${item.aqi_color}`,
+                                        value:item.pm2_5 ?.value??0,
+                                        }
+                                        }))
+                                        }
+
+
+        }
