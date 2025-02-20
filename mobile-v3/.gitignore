@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 
@@ -65,6 +67,8 @@ app.*.map.json
 /ios/Configuration.storekit
 /ios/Flutter/Generated.xcconfig
 /ios/Flutter/flutter_export_environment.sh
+/ios/Podfile.lock
+
 
 # Environment files
 .env
