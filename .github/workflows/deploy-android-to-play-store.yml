@@ -61,6 +61,12 @@ jobs:
           gcloud secrets versions access latest --secret="prod-env-mobile-app" > .env.prod
           gcloud secrets versions access latest --secret="prod-env-mobile-CI" > .env.dev
 
+      - name: Add API keys to local.properties
+        run: |
+          cd android/
+          echo "MAPS_API_KEY=$(gcloud secrets versions access latest --secret='GOOGLE_MAPS_API_KEY')" >> local.properties
+          echo "PLACES_API_KEY=$(gcloud secrets versions access latest --secret='GOOGLE_PLACES_API_KEY')" >> local.properties
+
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1.123.0
         with:
