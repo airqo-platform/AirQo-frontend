@@ -61,35 +61,35 @@ jobs:
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == netmanager/* ]]; then
+            if [[ $file == src/netmanager/* ]]; then
               echo "run_netmanager=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == calibrate/* ]]; then
+            if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == platform/* ]]; then
+            if [[ $file == src/platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == docs/* ]]; then
+            if [[ $file == src/docs/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == website/* ]]; then
+            if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == website2/* ]]; then
+            if [[ $file == src/website2/* ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
             fi            
 
-            if [[ $file == inventory/* ]]; then
+            if [[ $file == src/inventory/* ]]; then
               echo "run_inventory=true" >>$GITHUB_OUTPUT
             fi 
 
-            if [[ $file == reports/* ]]; then
+            if [[ $file == src/reports/* ]]; then
               echo "run_reports=true" >>$GITHUB_OUTPUT
             fi
 
@@ -116,14 +116,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
+        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > src/netmanager/.env
 
       - name: npm Install and Build
         uses: actions/setup-node@v2
         with:
           node-version: "12"
       - run: |
-          cd netmanager/
+          cd src/netmanager/
           npm install
           CI=false npm run build
 
@@ -136,7 +136,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd netmanager/
+          cd src/netmanager/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
@@ -203,14 +203,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
+        run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > src/calibrate/.env
 
       - name: npm Install and Build
         uses: actions/setup-node@v2
         with:
           node-version: "12"
       - run: |
-          cd calibrate/
+          cd src/calibrate/
           npm install
           CI=false npm run build
 
@@ -223,7 +223,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd calibrate/
+          cd src/calibrate/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:latest
@@ -290,7 +290,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
+        run: gcloud secrets versions access latest --secret="sta-env-next-platform" > src/platform/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -301,7 +301,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd platform/
+          cd src/platform/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/analytics-platform-pr-previews:latest
@@ -366,7 +366,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-inventory" > inventory/.env
+        run: gcloud secrets versions access latest --secret="sta-env-inventory" > src/inventory/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -377,7 +377,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd inventory/
+          cd src/inventory/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:latest
@@ -452,7 +452,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd docs/
+          cd src/docs/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
@@ -527,11 +527,11 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "website/"
+          dir: "src/website/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd website/
+          cd src/website/
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
@@ -563,7 +563,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd website/
+          cd src/website/
           docker build . \
           --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }} \
           --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
@@ -577,22 +577,22 @@ jobs:
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
-      - name: Deploy to App Engine
-        run: |-
-          cd website/
-          gcloud app deploy  \
-            --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
-            --project=${{ secrets.FRONTEND_PROJECT_ID }} \
-            --quiet
+      # - name: Deploy to App Engine
+      #   run: |-
+      #     cd src/website/
+      #     gcloud app deploy  \
+      #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
+      #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+      #       --quiet
 
-      - name: Delete Old Versions
-        run: |-
-          service="website-pr-previews"
-            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-            for version in $versions; do
-              echo "Deleting version: $version for service: $service"
-              gcloud app versions delete "$version" --service=$service --quiet
-            done
+      # - name: Delete Old Versions
+      #   run: |-
+      #     service="website-pr-previews"
+      #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+      #       for version in $versions; do
+      #         echo "Deleting version: $version for service: $service"
+      #         gcloud app versions delete "$version" --service=$service --quiet
+      #       done
 
   website-pr-comment:
     name: website-preview-link-comment
@@ -641,11 +641,11 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "website2/"
+          dir: "src/website2/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd website2/
+          cd src/website2/
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
@@ -670,7 +670,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd website2/
+          cd src/website2/
           docker build . \
           --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }} \
           --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
@@ -680,7 +680,7 @@ jobs:
 
       - name: Deploy to App Engine
         run: |-
-          cd website2/
+          cd src/website2/
           gcloud app deploy  \
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
@@ -732,7 +732,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-reports" > reports/.env
+        run: gcloud secrets versions access latest --secret="sta-env-reports" > src/reports/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -743,7 +743,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd reports/
+          cd src/reports/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:latest

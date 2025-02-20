@@ -29,7 +29,7 @@ jobs:
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == mobile/* ]]; then
+            if [[ $file == src/mobile/* ]]; then
               echo "run_code_anaysis=true" >>$GITHUB_OUTPUT
             fi
 
@@ -47,7 +47,7 @@ jobs:
         uses: dart-code-checker/dart-code-metrics-action@v4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          relative_path: mobile/
+          relative_path: src/mobile/
           pull_request_comment: true
           check_unused_files: true
           fatal_performance: true
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: mobile
+        working-directory: src/mobile
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.2

@@ -34,7 +34,7 @@ jobs:
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == website/* ]]; then
+            if [[ $file == src/website/* ]]; then
               echo "run_website_tests=true" >>$GITHUB_OUTPUT
             fi
 
@@ -67,7 +67,7 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "website/"
+          dir: "src/website/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
