@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/platform" # Location of package manifests
+    directory: "src/platform/" # Location of package manifests
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
