@@ -1,5 +1,6 @@
 /**
  * Static routes to be included in the sitemap.xml file
+ *
  */
 const staticRoutes = [
   '',
