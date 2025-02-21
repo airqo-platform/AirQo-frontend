@@ -38,13 +38,11 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={interFont.variable}>
-      <head>
-        {/* Inject Google Analytics if the measurement ID is available */}
+      <body>
+        {/* Move GA component inside body */}
         {GA_MEASUREMENT_ID && (
           <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
         )}
-      </head>
-      <body>
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>
