@@ -78,7 +78,7 @@ const CommunitiesPage = () => {
         variants={containerVariants}
       >
         <motion.div
-          className={`${mainConfig.containerClass} grid grid-cols-1 lg:grid-cols-2 gap-8 items-center`}
+          className={`${mainConfig.containerClass} grid grid-cols-1 sm:grid-cols-2 gap-8 items-center`}
           variants={itemVariants}
         >
           {/* Text Content */}
@@ -91,7 +91,7 @@ const CommunitiesPage = () => {
                 height={90}
                 className="bg-blue-100 p-2 rounded-full mr-4"
               />
-              <h2 className="text-[32px] leading-[36px] font-medium ">
+              <h2 className="text-[32px] leading-[36px] font-medium">
                 AirQommunity <br /> champions
               </h2>
             </div>
@@ -110,40 +110,41 @@ const CommunitiesPage = () => {
 
           {/* Images Section */}
           <motion.div
-            className="flex flex-col lg:flex-row gap-4 items-center lg:items-start"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             variants={itemVariants}
           >
-            {/* Left Section - Two Smaller Images */}
-            <motion.div className="flex flex-col gap-4" variants={itemVariants}>
-              <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_411_ueuurb.webp"
-                alt="Champion 1"
-                width={250}
-                height={250}
-                className="rounded-lg object-cover w-full lg:w-auto"
-              />
+            {/* Left Column: Two Small Images */}
+            <div className="grid grid-rows-2 gap-4">
+              {/* Always visible */}
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248680/website/photos/Solutions/Rectangle_405_cl9ixu.webp"
                 alt="Champion 2"
-                width={250}
-                height={250}
-                className="rounded-lg object-cover w-full lg:w-auto"
+                width={500}
+                height={500}
+                className="rounded-lg object-cover w-full h-full"
               />
-            </motion.div>
+              {/* Visible from sm and above */}
+              <div className="hidden sm:block">
+                <Image
+                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_411_ueuurb.webp"
+                  alt="Champion 1"
+                  width={500}
+                  height={500}
+                  className="rounded-lg object-cover w-full h-full"
+                />
+              </div>
+            </div>
 
-            {/* Right Section - Larger Image */}
-            <motion.div
-              className="flex-1 h-full hidden lg:flex max-h-[450px]"
-              variants={itemVariants}
-            >
+            {/* Right Column: Large Image (Visible from sm and above) */}
+            <div className="hidden sm:flex">
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_410_btjgs7.webp"
                 alt="Champion 3"
-                width={262}
-                height={450}
-                className="object-cover rounded-lg w-full lg:w-auto h-[462px]"
+                width={500}
+                height={700}
+                className="object-cover rounded-lg w-full h-full"
               />
-            </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       </motion.section>
@@ -214,7 +215,7 @@ const CommunitiesPage = () => {
         variants={containerVariants}
       >
         <motion.div
-          className={`${mainConfig.containerClass} grid grid-cols-1 lg:grid-cols-2 gap-8 items-center`}
+          className={`${mainConfig.containerClass} grid grid-cols-1 sm:grid-cols-2 gap-8 items-center`}
           variants={itemVariants}
         >
           {/* Text Content */}
@@ -238,40 +239,41 @@ const CommunitiesPage = () => {
 
           {/* Images Section */}
           <motion.div
-            className="flex flex-col lg:flex-row gap-4 items-center lg:items-start"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             variants={itemVariants}
           >
-            {/* Left Section - Two Smaller Images */}
-            <motion.div className="flex flex-col gap-4" variants={itemVariants}>
+            {/* Left Column: Two Small Images */}
+            <div className="grid grid-rows-2 gap-4">
+              {/* Always visible */}
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/AirQo_Web_IMG01_kyvty5.webp"
-                alt="Champion 1"
-                width={250}
-                height={250}
-                className="rounded-lg object-cover w-full lg:w-auto"
+                alt="Image 1"
+                width={500}
+                height={500}
+                className="rounded-lg object-cover w-full h-full"
               />
-              <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_Web_IMG10_rpw83s.webp"
-                alt="Champion 2"
-                width={250}
-                height={250}
-                className="rounded-lg object-cover w-full lg:w-auto"
-              />
-            </motion.div>
+              {/* Visible from sm and above */}
+              <div className="hidden sm:block">
+                <Image
+                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_Web_IMG10_rpw83s.webp"
+                  alt="Image 2"
+                  width={500}
+                  height={500}
+                  className="rounded-lg object-cover w-full h-full"
+                />
+              </div>
+            </div>
 
-            {/* Right Section - Larger Image */}
-            <motion.div
-              className="flex-1 h-full hidden lg:flex max-h-[450px]"
-              variants={itemVariants}
-            >
+            {/* Right Column: Large Image (Visible from sm and above) */}
+            <div className="hidden sm:flex">
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_408_tkcdpv.webp"
-                alt="Champion 3"
-                width={262}
-                height={450}
-                className="object-cover rounded-lg w-full lg:w-auto h-auto"
+                alt="Large Image"
+                width={500}
+                height={700}
+                className="object-cover rounded-lg w-full h-full"
               />
-            </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       </motion.section>

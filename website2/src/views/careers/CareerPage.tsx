@@ -133,7 +133,7 @@ const CareerPage: React.FC = () => {
             {careersError || departmentsError ? (
               <NoData message="Failed to load careers or departments. Please try again later." />
             ) : Object.keys(groupedJobsByDepartment || {}).length === 0 ? (
-              <NoData message="No open positions found." />
+              <NoData message="We're not hiring at the moment, but our team is always growing. Keep an eye on this space for exciting opportunities." />
             ) : (
               Object.keys(groupedJobsByDepartment || {}).map(
                 (departmentName) => (
