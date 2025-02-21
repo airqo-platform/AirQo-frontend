@@ -39,7 +39,6 @@ export default async function RootLayout({
   return (
     <html lang="en" className={interFont.variable}>
       <body>
-        {/* Move GA component inside body */}
         {GA_MEASUREMENT_ID && (
           <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
         )}
