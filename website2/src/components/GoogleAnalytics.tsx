@@ -11,13 +11,12 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
 
   return (
     <>
-      {/* Load the GA library after the page becomes interactive */}
+      {/* Load the GA library lazily */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
-        strategy="afterInteractive"
-        // Optionally, use strategy="lazyOnload" if you experience performance issues.
+        strategy="lazyOnload"
       />
-      <Script id="ga-script" strategy="afterInteractive">
+      <Script id="ga-script" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){ dataLayer.push(arguments); }
