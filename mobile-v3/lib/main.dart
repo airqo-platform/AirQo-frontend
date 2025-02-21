@@ -212,39 +212,57 @@ class _DeciderState extends State<Decider> {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
       builder: (context, connectivityState) {
         logDebug('Current connectivity state: $connectivityState');
-        return BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, authState) {
-            debugPrint("Current AuthState: $authState");
+        return Stack(
+          children: [
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, authState) {
+                debugPrint("Current AuthState: $authState");
 
-            // Handle loading state
-            if (authState is AuthLoading) {
-              return Scaffold(
-                body: const Center(child: CircularProgressIndicator()),
-              );
-            }
+                // Handle loading state
+                if (authState is AuthLoading) {
+                  return Scaffold(
+                    body: const Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-            // Handle guest user
-            if (authState is GuestUser) {
-              return WelcomeScreen();
-            }
+                // Handle guest user
+                if (authState is GuestUser) {
+                  return WelcomeScreen();
+                }
 
-            // Handle logged-in user
-            if (authState is AuthLoaded) {
-              return NavPage();
-            }
+                // Handle logged-in user
+                if (authState is AuthLoaded) {
+                  return NavPage();
+                }
 
-            // Handle error state
-            if (authState is AuthLoadingError) {
-              return Scaffold(
-                body: Center(child: Text('Error: ${authState.message}')),
-              );
-            }
+                // Handle error state
+                if (authState is AuthLoadingError) {
+                  return Scaffold(
+                    body: Center(child: Text('Error: ${authState.message}')),
+                  );
+                }
 
-            // Default fallback (e.g., AuthInitial)
-            return Scaffold(
-              body: const Center(child: CircularProgressIndicator()),
-            );
-          },
+                // Default fallback (e.g., AuthInitial)
+                return Scaffold(
+                  body: const Center(child: CircularProgressIndicator()),
+                );
+              },
+            ),
+            if (connectivityState is ConnectivityOffline)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: NoInternetBanner(
+                  onClose: () {
+                    logInfo('No internet connection banner dismissed');
+                    context
+                        .read<ConnectivityBloc>()
+                        .add(ConnectivityBannerDismissed());
+                  },
+                ),
+              ),
+          ],
         );
       },
     );
