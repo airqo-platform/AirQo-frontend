@@ -4,9 +4,16 @@ import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
+import { IconButton } from './components/IconButton'
+import LayerIcon from "@/public/icons/map/layerIcon";
+import RefreshIcon from "@/public/icons/map/refreshIcon";
+import ShareIcon from "@/public/icons/map/ShareIcon";
+import LayerModel from './components/LayerModal';
+import {mapStyles, mapDetails} from './data/constants'
+
 
 const NetManagerMap = () => {
-
+        // const { width } = useWindowSize();
         const mapContainerRef = useRef<HTMLDivElement>(null);
         const mapRef = useRef<mapboxgl.Map | null>(null);
         const [query, setQuery] = useState("");
@@ -15,6 +22,11 @@ const NetManagerMap = () => {
         const [sessionToken, setSessionToken] = useState<string | null>(null);
         const token = process.env.NEXT_PUBLIC_MAP_API_TOKEN
         const AirQoToken = process.env.NEXT_PUBLIC_AIRQO_DATA_TOKEN
+        const [isOpen, setIsOpen] = useState(false);
+        const [NodeType, setNodeType] = useState('Emoji');
+        const [mapStyle, setMapStyle] = useState(
+          'mapbox://styles/mapbox/streets-v11',
+        );
 
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
@@ -27,7 +39,12 @@ const NetManagerMap = () => {
         }
 
        
-
+        const refreshMap = useRefreshMap(
+                setToastMessage,
+                mapRef,
+                dispatch,
+                selectedNode,
+              );
         //Get the Session Token for the User
        useEffect(() => {
         if (typeof window !== "undefined") { 
@@ -41,7 +58,7 @@ const NetManagerMap = () => {
     if (mapContainerRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style:'mapbox://styles/mapbox/navigation-day-v1',
+        style:'mapbox://styles/mapbox/streets-v11',
         center: [18.5, 3], 
         zoom: 3
       });
@@ -294,10 +311,41 @@ const NetManagerMap = () => {
                 <div className='text-black'>Loading...</div>
         )
           }
+          <div className="absolute top-24 right-10 z-40 flex flex-col gap-4">
+            
+         <IconButton
+         onClick={() => setIsOpen(true)}
+         title='Map Layers'
+         icon={<LayerIcon width={24} height={24} fill={""}/>}
+         />
+        
+          <IconButton
+          onClick={refreshMap}
+          title='Refresh Map'
+          icon={<RefreshIcon width={24} height={24} fill={""} />}
+          />
+          
+          <IconButton
+          onClick={shareLocation}
+          title='Refresh Map'
+          icon={<ShareIcon width={24} height={24} fill={""} />}
+          />
         </div>
+
+        </div>
+        <LayerModel
+         isOpen={isOpen}
+         onClose={() => setIsOpen(false)}
+         mapStyles={mapStyles}
+         mapDetails={mapDetails}
+         disabled="Heatmap"
+         onMapDetailsSelect={setNodeType}
+         onStyleSelect={(style) => setMapStyle(style.url)}
+        />
         
       </div>
   )
 }
+
 
 export default NetManagerMap

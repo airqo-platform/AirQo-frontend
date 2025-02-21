@@ -74,3 +74,42 @@ export const ConvertToGeojson=(data: any)=>{
 
 
         }
+
+        /**
+ * Function to refresh the map
+ */
+export const useRefreshMap = (
+        setToastMessage,
+        mapRef,
+        dispatch,
+        selectedNode,
+      ) =>
+        useCallback(() => {
+          const map = mapRef.current;
+      
+          if (map) {
+            try {
+              const originalStyle =
+                map.getStyle().sprite.split('/').slice(0, -1).join('/') +
+                '/style.json';
+              map.setStyle(originalStyle);
+      
+              setToastMessage({
+                message: 'Map refreshed successfully',
+                type: 'success',
+                bgColor: 'bg-blue-600',
+              });
+            } catch (error) {
+              console.error('Error refreshing the map:', error);
+              setToastMessage({
+                message: 'Failed to refresh the map',
+                type: 'error',
+                bgColor: 'bg-red-600',
+              });
+            }
+      
+            if (selectedNode) {
+              dispatch(setSelectedNode(null));
+            }
+          }
+        }, [mapRef, dispatch, setToastMessage, selectedNode]);
