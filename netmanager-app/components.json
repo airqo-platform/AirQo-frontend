@@ -15,7 +15,9 @@
     "utils": "@/lib/utils",
     "ui": "@/components/ui",
     "lib": "@/lib",
-    "core": "@/core"
+    "core": "@/core",
+    "icons": "@/public/icons/",
+    "images":"@/public/images"
   },
   "iconLibrary": "lucide"
 }
