@@ -10,7 +10,20 @@ class GuestSettingsWidget extends StatefulWidget {
 }
 
 class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
-  bool _locationEnabled = true;
+  bool _locationEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _getInitialLocationStatus();
+  }
+
+  Future<void> _getInitialLocationStatus() async {
+    final status = await Permission.location.status;
+    setState(() {
+      _locationEnabled = status.isGranted;
+    });
+  }
 
   Future<void> _toggleLocation(bool value) async {
     if (value) {
@@ -49,13 +62,13 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
             },
             description:
                 "AirQo to use your precise location to locate the Air Quality of your nearest location"),
-        SettingsTile(
-            iconPath: "assets/icons/notification.svg",
-            title: "Notifications",
-            onChanged: (value) {
-              print(value);
-            },
-            description: "Create an account to get air quality alerts"),
+        // SettingsTile(
+        //     iconPath: "assets/icons/notification.svg",
+        //     title: "Notifications",
+        //     onChanged: (value) {
+        //       print(value);
+        //     },
+        //     description: "Create an account to get air quality alerts"),
         SettingsTile(
           iconPath: "assets/images/shared/feedback_icon.svg",
           title: "Send Feedback",

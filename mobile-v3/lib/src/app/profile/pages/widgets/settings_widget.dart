@@ -16,15 +16,22 @@ class SettingsWidget extends StatefulWidget {
 
 class _SettingsWidgetState extends State<SettingsWidget> {
   String _appVersion = '';
-  bool _locationEnabled = true;
-  bool _notificationsEnabled = true;
+  bool _locationEnabled = false;
+  // bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    _getInitialLocationStatus();
     _getAppVersion();
   }
 
+  Future<void> _getInitialLocationStatus() async {
+    final status = await Permission.location.status;
+    setState(() {
+      _locationEnabled = status.isGranted;
+    });
+  }
 
   Future<void> _toggleLocation(bool value) async {
     if (value) {
@@ -186,19 +193,19 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             ),
 
             // Notifications Setting
-            SettingsTile(
-              switchValue: _notificationsEnabled,
-              iconPath: "assets/icons/notification.svg",
-              title: "Notifications",
-              onChanged: (value) {
-                setState(() {
-                  _notificationsEnabled = value;
-                });
-                print("Notifications setting: $value");
-              },
-              description:
-                  "AirQo to send you in-app & push notifications & spike alerts.",
-            ),
+            // SettingsTile(
+            //   switchValue: _notificationsEnabled,
+            //   iconPath: "assets/icons/notification.svg",
+            //   title: "Notifications",
+            //   onChanged: (value) {
+            //     setState(() {
+            //       _notificationsEnabled = value;
+            //     });
+            //     print("Notifications setting: $value");
+            //   },
+            //   description:
+            //       "AirQo to send you in-app & push notifications & spike alerts.",
+            // ),
 
             // Send Feedback
             SettingsTile(
@@ -250,20 +257,20 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             ),
 
             // Delete Account Section
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3),
-              child: InkWell(
-                onTap: _showDeleteAccountDialog,
-                child: Text(
-                  "Delete Account",
-                  style: TextStyle(
-                    color: Colors.red.shade300,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3),
+            //   child: InkWell(
+            //     onTap: _showDeleteAccountDialog,
+            //     child: Text(
+            //       "Delete Account",
+            //       style: TextStyle(
+            //         color: Colors.red.shade300,
+            //         fontWeight: FontWeight.bold,
+            //         decoration: TextDecoration.underline,
+            //       ),
+            //     ),
+            //   ),
+            // ),
 
             SizedBox(height: screenHeight * 0.03),
 
