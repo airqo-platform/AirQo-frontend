@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import { ReactNode, Suspense } from 'react';
 
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
@@ -33,10 +34,14 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const maintenance = await checkMaintenance();
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (
     <html lang="en" className={interFont.variable}>
       <body>
+        {GA_MEASUREMENT_ID && (
+          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
+        )}
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>

@@ -104,6 +104,10 @@ export const getForumEventDetails = async (id: string): Promise<any> => {
   return getRequest(`/forum-events/${id}/`);
 };
 
+export const getForumEventTitles = async (): Promise<any> => {
+  return getRequest('/forum-event-titles/');
+};
+
 // Clean Air Resources API
 export const getCleanAirResources = async (): Promise<any> => {
   return getRequest('/clean-air-resources/');
