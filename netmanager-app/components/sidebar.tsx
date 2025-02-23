@@ -1,461 +1,117 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  BarChart2,
-  Users,
-  Shield,
-  Radio,
-  MapPin,
-  Layers,
-  Grid,
-  Building2,
-  Activity,
-  UserCircle,
-  Download,
-  Map,
-  ChevronDown,
-  Check,
-  PlusCircle,
-  MonitorSmartphone,
-  LogOut,
-  Network as NetworkIcon,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { useAuth } from "@/core/hooks/users";
-import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
-import {
-  setActiveNetwork,
-  setActiveGroup,
-} from "@/core/redux/slices/userSlice";
-import type { Group, Network } from "@/app/types/users";
-import { PermissionGuard } from "@/components/permission-guard";
-import { Card, CardContent } from "@/components/ui/card";
+import type React from "react"
+import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
+import { Menu } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/core/hooks/users"
+import { useAppSelector, useAppDispatch } from "@/core/redux/hooks"
+import { setActiveNetwork, setActiveGroup } from "@/core/redux/slices/userSlice"
+import type { Group, Network } from "@/app/types/users"
+import DesktopSidebar from "./desktop-sidebar"
+import MobileSidebar from "./mobile-sidebar"
 
-const Sidebar = () => {
-  const pathname = usePathname();
-  const [userCollapsed, setUserCollapsed] = useState(false);
-  const [isDevicesOpen, setIsDevicesOpen] = useState(false);
-  const { logout } = useAuth();
-  const dispatch = useAppDispatch();
+interface AppSidebarProps {
+  isSidebarCollapsed: boolean
+  toggleSidebar: () => void
+}
 
-  // Get networks and active network from Redux
-  const availableNetworks = useAppSelector(
-    (state) => state.user.availableNetworks
-  );
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const userGroups = useAppSelector((state) => state.user.userGroups);
+const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar }) => {
+  const pathname = usePathname()
+  const [userCollapsed, setUserCollapsed] = useState(false)
+  const [isDevicesOpen, setIsDevicesOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { logout } = useAuth()
+  const dispatch = useAppDispatch()
 
-  const isActive = (path: string) => pathname?.startsWith(path);
-  const isDevicesActive = isActive("/devices");
+  const availableNetworks = useAppSelector((state) => state.user.availableNetworks)
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
+  const activeGroup = useAppSelector((state) => state.user.activeGroup)
+  const userGroups = useAppSelector((state) => state.user.userGroups)
+
+  const isActive = (path: string) => pathname?.startsWith(path)
+  const isDevicesActive = isActive("/devices")
 
   useEffect(() => {
     if (isDevicesActive && !userCollapsed) {
-      setIsDevicesOpen(true);
+      setIsDevicesOpen(true)
     } else if (!isDevicesActive) {
-      setUserCollapsed(false);
+      setUserCollapsed(false)
     }
-  }, [pathname, isDevicesActive, userCollapsed]);
+  }, [isDevicesActive, userCollapsed])
 
   const handleDevicesToggle = (open: boolean) => {
-    setIsDevicesOpen(open);
+    setIsDevicesOpen(open)
     if (isDevicesActive) {
-      setUserCollapsed(!open);
+      setUserCollapsed(!open)
     }
-  };
+  }
 
   const handleNetworkChange = (network: Network) => {
-    dispatch(setActiveNetwork(network));
-    localStorage.setItem("activeNetwork", JSON.stringify(network));
-  };
+    dispatch(setActiveNetwork(network))
+    localStorage.setItem("activeNetwork", JSON.stringify(network))
+  }
 
   const handleOrganizationChange = (group: Group) => {
-    dispatch(setActiveGroup(group));
-    localStorage.setItem("activeGroup", JSON.stringify(group));
-  };
+    dispatch(setActiveGroup(group))
+    localStorage.setItem("activeGroup", JSON.stringify(group))
+  }
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+  useEffect(() => {
+    if (isSidebarCollapsed) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isSidebarCollapsed]);
 
   return (
-    <div className="w-64 h-screen bg-card border-r flex flex-col">
-      {/* Organization Switcher */}
-      <Card className="m-4 bg-primary text-primary-foreground">
-        <CardContent className="p-3">
-          <h2 className="text-sm font-semibold mb-2">Organization</h2>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="secondary"
-                className="w-full justify-between uppercase"
-              >
-                {activeGroup?.grp_title || "Select Organization"}
-                <ChevronDown size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>Switch Organization</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {userGroups.map((group) => (
-                <DropdownMenuItem
-                  key={group._id}
-                  onClick={() => handleOrganizationChange(group)}
-                  className="flex items-center justify-between uppercase"
-                >
-                  {group.grp_title}
-                  {activeGroup?._id === group._id && <Check size={16} />}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardContent>
-      </Card>
+    <>
+      <Button variant="ghost" size="icon" className=" fixed top-4 left-4 z-50 md:hidden" onClick={toggleMobileMenu}>
+        <Menu />
+      </Button>
 
-      {/* Main Navigation */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        <nav className="space-y-6">
-          {/* Overview */}
-          <div>
-            <h2 className="text-sm font-semibold text-foreground/60 mb-2">
-              Overview
-            </h2>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/analytics"
-                  className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                    isActive("/analytics")
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }`}
-                >
-                  <BarChart2 size={18} />
-                  <span>Analytics</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/network-map"
-                  className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                    isActive("/network-map")
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }`}
-                >
-                  <Map size={18} />
-                  <span>Network Map</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/data-export"
-                  className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                    isActive("/data-export")
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }`}
-                >
-                  <Download size={18} />
-                  <span>Data Export</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Organization */}
-          <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground/60 mb-2">
-                Organization
-              </h2>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/user-management"
-                    className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                      isActive("/user-management")
-                        ? "bg-accent text-accent-foreground"
-                        : ""
-                    }`}
-                  >
-                    <Users size={18} />
-                    <span>User Management</span>
-                  </Link>
-                </li>
-                <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
-                  <li>
-                    <Link
-                      href="/access-control"
-                      className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                        isActive("/access-control")
-                          ? "bg-accent text-accent-foreground"
-                          : ""
-                      }`}
-                    >
-                      <Shield size={18} />
-                      <span>Access Control</span>
-                    </Link>
-                  </li>
-                </PermissionGuard>
-                <li>
-                  <Link
-                    href="/organizations"
-                    className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                      isActive("/organizations")
-                        ? "bg-accent text-accent-foreground"
-                        : ""
-                    }`}
-                  >
-                    <Building2 size={18} />
-                    <span>Organizations</span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </PermissionGuard>
-
-          {/* Network */}
-          <div>
-            <h2 className="text-sm font-semibold text-foreground/60 mb-2">
-              Network
-            </h2>
-
-            {/* Network Switcher */}
-            <div className="mb-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between text-foreground"
-                  >
-                    <div className="flex items-center gap-2">
-                      <NetworkIcon size={18} />
-                      <span className="uppercase">
-                        {activeNetwork?.net_name || "Select Network"}
-                      </span>
-                    </div>
-                    <ChevronDown size={16} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>Select Network</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {availableNetworks
-                    .filter((network) => network._id === activeNetwork?._id)
-                    .map((network) => (
-                      <DropdownMenuItem
-                        key={network._id}
-                        onClick={() => handleNetworkChange(network)}
-                        className="flex items-center justify-between uppercase"
-                      >
-                        {network.net_name}
-                        {activeNetwork?._id === network._id && (
-                          <Check size={16} />
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Network Items */}
-            <ul className="space-y-2">
-              <PermissionGuard
-                permission={[
-                  "CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES",
-                  "DEPLOY_AIRQO_DEVICES",
-                ]}
-                requireAll={false}
-              >
-                <li>
-                  <Collapsible
-                    open={isDevicesOpen}
-                    onOpenChange={handleDevicesToggle}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-between ${
-                          isActive("/devices/overview") && !isDevicesOpen
-                            ? "bg-accent text-accent-foreground"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Radio size={18} />
-                          <span>Devices</span>
-                        </div>
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${
-                            isDevicesOpen ? "rotate-180" : ""
-                          }`}
-                        />
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="ml-6 space-y-2">
-                      <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
-                        <Link
-                          href="/devices/overview"
-                          className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                            pathname === "/devices/overview"
-                              ? "bg-accent text-accent-foreground"
-                              : ""
-                          }`}
-                        >
-                          <BarChart2 size={18} />
-                          <span>Overview</span>
-                        </Link>
-                      </PermissionGuard>
-
-                      <PermissionGuard permission="DEPLOY_AIRQO_DEVICES">
-                        <Link
-                          href="/devices/deploy"
-                          className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                            isActive("/devices/deploy")
-                              ? "bg-accent text-accent-foreground"
-                              : ""
-                          }`}
-                        >
-                          <PlusCircle size={18} />
-                          <span>Deploy Device</span>
-                        </Link>
-                      </PermissionGuard>
-
-                      <PermissionGuard permission="VIEW_NETWORK_UPTIME">
-                        <Link
-                          href="/devices/monitoring"
-                          className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                            isActive("/devices/monitoring")
-                              ? "bg-accent text-accent-foreground"
-                              : ""
-                          }`}
-                        >
-                          <MonitorSmartphone size={18} />
-                          <span>Monitoring</span>
-                        </Link>
-                      </PermissionGuard>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </li>
-              </PermissionGuard>
-
-              <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_SITES">
-                <li>
-                  <Link
-                    href="/sites"
-                    className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                      isActive("/sites")
-                        ? "bg-accent text-accent-foreground"
-                        : ""
-                    }`}
-                  >
-                    <MapPin size={18} />
-                    <span>Sites</span>
-                  </Link>
-                </li>
-              </PermissionGuard>
-
-              <PermissionGuard permission="CREATE__UPDATE_AND_DELETE_COHORTS">
-                <li>
-                  <Link
-                    href="/cohorts"
-                    className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                      isActive("/cohorts")
-                        ? "bg-accent text-accent-foreground"
-                        : ""
-                    }`}
-                  >
-                    <Layers size={18} />
-                    <span>Cohorts</span>
-                  </Link>
-                </li>
-              </PermissionGuard>
-
-              <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_GRIDS">
-                <li>
-                  <Link
-                    href="/grids"
-                    className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                      isActive("/grids")
-                        ? "bg-accent text-accent-foreground"
-                        : ""
-                    }`}
-                  >
-                    <Grid size={18} />
-                    <span>Grids</span>
-                  </Link>
-                </li>
-              </PermissionGuard>
-
-              <li>
-                <Link
-                  href="/activity-logs"
-                  className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                    isActive("/activity-logs")
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }`}
-                >
-                  <Activity size={18} />
-                  <span>Activity Logs</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Account */}
-          <div>
-            <h2 className="text-sm font-semibold text-foreground/60 mb-2">
-              Account
-            </h2>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/profile"
-                  className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md ${
-                    isActive("/profile")
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }`}
-                >
-                  <UserCircle size={18} />
-                  <span>Profile Settings</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
+      <div className="hidden md:block">
+      <DesktopSidebar
+        isSidebarCollapsed={isSidebarCollapsed}
+        toggleSidebar={toggleSidebar}
+        isDevicesOpen={isDevicesOpen}
+        handleDevicesToggle={handleDevicesToggle}
+        activeGroup={activeGroup}
+        userGroups={userGroups}
+        handleOrganizationChange={handleOrganizationChange}
+        activeNetwork={activeNetwork}
+        availableNetworks={availableNetworks}
+        handleNetworkChange={handleNetworkChange}
+        isActive={isActive}
+        logout={logout}
+      />
       </div>
 
-      {/* Logout Section */}
-      <div className="p-4 border-t">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={() => {
-            logout();
-          }}
-        >
-          <LogOut size={18} className="mr-2" />
-          <span>Logout</span>
-        </Button>
+      <div
+        className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}
+      >
+      <MobileSidebar
+        isMobileMenuOpen={isMobileMenuOpen}
+        toggleMobileMenu={toggleMobileMenu}
+        isDevicesOpen={isDevicesOpen}
+        handleDevicesToggle={handleDevicesToggle}
+        activeGroup={activeGroup}
+        userGroups={userGroups}
+        handleOrganizationChange={handleOrganizationChange}
+        activeNetwork={activeNetwork}
+        availableNetworks={availableNetworks}
+        handleNetworkChange={handleNetworkChange}
+        isActive={isActive}
+        logout={logout}
+      />
       </div>
-    </div>
-  );
-};
 
-export default Sidebar;
+    </>
+  )
+}
+
+export default Sidebar
+
