@@ -47,9 +47,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is GuestUser) {
-          Future.microtask(() => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => NavPage()),
-              ));
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => NavPage()),
+          );
         }
       },
       child: Scaffold(
@@ -101,7 +101,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   children: [
                     InkWell(
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => CreateAccountScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => CreateAccountScreen()),
                       ),
                       child: Container(
                         height: 56,
@@ -146,7 +147,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     SizedBox(height: 18),
                     InkWell(
-                      onTap: () => context.read<AuthBloc>().add(UseAsGuest()),
+                      onTap: () {
+                        print("Guest button tapped");
+                        context.read<AuthBloc>().add(UseAsGuest());
+                      },
                       child: Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -154,7 +158,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             Text(
                               "Continue as guest ",
                               style: TextStyle(
-                                color: Theme.of(context).textTheme.headlineLarge?.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .headlineLarge
+                                    ?.color,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -162,7 +169,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               'assets/icons/chevron-right.svg',
                               height: 16.0,
                               width: 16.0,
-                              color: Theme.of(context).textTheme.headlineLarge?.color,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .headlineLarge
+                                  ?.color,
                             ),
                           ],
                         ),

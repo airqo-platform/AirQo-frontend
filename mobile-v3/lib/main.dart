@@ -227,7 +227,7 @@ class _DeciderState extends State<Decider> {
 
                 // Handle guest user
                 if (authState is GuestUser) {
-                  return WelcomeScreen();
+                  return NavPage();
                 }
 
                 // Handle logged-in user

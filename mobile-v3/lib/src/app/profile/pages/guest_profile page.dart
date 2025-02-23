@@ -103,12 +103,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                 indent: 20,
               ),
 
-
-
-
               GuestSettingsWidget(),
-
-
 
               SizedBox(
                 height: 18,

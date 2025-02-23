@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -22,6 +23,30 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   void initState() {
     super.initState();
     _getAppVersion();
+  }
+
+
+  Future<void> _toggleLocation(bool value) async {
+    if (value) {
+      // Check current permission status.
+      var status = await Permission.location.status;
+      if (!status.isGranted) {
+        // Request the location permission.
+        status = await Permission.location.request();
+        if (!status.isGranted) {
+          // If permission is not granted, notify the user and exit early.
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Location permission not granted")),
+          );
+          return;
+        }
+      }
+    }
+    // If we get here, permission is granted (or the user is turning location off)
+    setState(() {
+      _locationEnabled = value;
+    });
+    print("Location setting: $value");
   }
 
   Future<void> _getAppVersion() async {
@@ -52,45 +77,44 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   }
 
   Future<void> _handleLogout(BuildContext dialogContext) async {
-  Navigator.pop(dialogContext); // Close confirmation dialog
+    Navigator.pop(dialogContext); // Close confirmation dialog
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
-  );
-
-  try {
-    context.read<AuthBloc>().add(LogoutUser());
-
-    await for (final state in context.read<AuthBloc>().stream) {
-      if (state is GuestUser) {
-        Navigator.pop(context);
-
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => WelcomeScreen()),
-          (route) => false,
-        );
-        break;
-      } else if (state is AuthLoadingError) {
-        Navigator.pop(context);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message)),
-        );
-        break;
-      }
-    }
-  } catch (e) {
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('An unexpected error occurred')),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-  }
-}
 
+    try {
+      context.read<AuthBloc>().add(LogoutUser());
+
+      await for (final state in context.read<AuthBloc>().stream) {
+        if (state is GuestUser) {
+          Navigator.pop(context);
+
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => WelcomeScreen()),
+            (route) => false,
+          );
+          break;
+        } else if (state is AuthLoadingError) {
+          Navigator.pop(context);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+          break;
+        }
+      }
+    } catch (e) {
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An unexpected error occurred')),
+      );
+    }
+  }
 
   void _showDeleteAccountDialog() {
     final TextEditingController passwordController = TextEditingController();
@@ -154,11 +178,8 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               switchValue: _locationEnabled,
               iconPath: "assets/images/shared/location_icon.svg",
               title: "Location",
-              onChanged: (value) {
-                setState(() {
-                  _locationEnabled = value;
-                });
-                print("Location setting: $value");
+              onChanged: (value) async {
+                await _toggleLocation(value);
               },
               description:
                   "AirQo to use your precise location to locate the Air Quality of your nearest location",
