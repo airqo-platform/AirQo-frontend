@@ -199,8 +199,11 @@ const NetManagerMap = () => {
       return;
     }
     const GetSuggestions=(latitude?: number, longitude?: number)=>{
-
-        FetchSuggestions(value,token?token:"",sessionToken?sessionToken:"",latitude,longitude)
+        if (!token || !sessionToken) {
+          console.error('Missing required tokens');
+                 return;
+        }
+        FetchSuggestions(value, token, sessionToken, latitude, longitude)
           .then(data => {
             if (data) {
               console.log(data)
