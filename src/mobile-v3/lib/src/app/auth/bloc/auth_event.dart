@@ -26,3 +26,7 @@ class RegisterUser extends AuthEvent {
 class UseAsGuest extends AuthEvent {
   const UseAsGuest();
 }
+
+class LogoutUser extends AuthEvent {
+  const LogoutUser();
+}

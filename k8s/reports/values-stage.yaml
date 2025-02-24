@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-reports
-  tag: stage-881acf30-1730309646
+  tag: stage-07e1532b-1740386563
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
@@ -25,17 +25,17 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetMemoryUtilizationPercentage: 80
-nodeSelector: 
+nodeSelector:
   role: control-plane
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - preference:
           matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
+            - key: role
+              operator: In
+              values:
+                - control-plane
         weight: 1
 app:
   name: airqo-stage-reports

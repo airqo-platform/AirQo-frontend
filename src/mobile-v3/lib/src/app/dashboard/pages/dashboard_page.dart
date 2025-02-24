@@ -106,24 +106,24 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               SizedBox(width: 8),
               GestureDetector(
-                onTap: () {
-                  final authState = context.read<AuthBloc>().state;
-                  if (authState is GuestUser) {
+                // onTap: () {
+                //   final authState = context.read<AuthBloc>().state;
+                //   if (authState is GuestUser) {
                     
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => GuestProfilePage(),
-                      ),
-                    );
-                  } else {
-                    // Navigate to the regular profile page
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ProfilePage(),
-                      ),
-                    );
-                  }
-                },
+                //     Navigator.of(context).push(
+                //       MaterialPageRoute(
+                //         builder: (context) => GuestProfilePage(),
+                //       ),
+                //     );
+                //   } else {
+                //     // Navigate to the regular profile page
+                //     Navigator.of(context).push(
+                //       MaterialPageRoute(
+                //         builder: (context) => ProfilePage(),
+                //       ),
+                //     );
+                //   }
+                // },
                   child: BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, authState) {
                       if (authState is GuestUser) {
@@ -186,6 +186,18 @@ class _DashboardPageState extends State<DashboardPage> {
                       SizedBox(height: 16),
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, authState) {
+                          if (authState is AuthLoading) {
+
+                            return Text(
+                              "Hi, 👋🏼",
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).textTheme.headlineLarge?.color,
+                              ),
+                            );
+                          }
+
                           if (authState is GuestUser) {
                             return Text(
                               "Hi, Guest 👋🏼",
@@ -195,7 +207,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                 color: Theme.of(context).textTheme.headlineLarge?.color,
                               ),
                             );
-                          } else {
+                          }
+
+                          if (authState is AuthLoaded) {
                             return BlocBuilder<UserBloc, UserState>(
                               builder: (context, userState) {
                                 if (userState is UserLoaded) {
@@ -209,7 +223,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   );
                                 }
                                 return Text(
-                                  "Hi,👋🏼",
+                                  "Hi, 👋🏼",
                                   style: TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.w700,
@@ -219,6 +233,28 @@ class _DashboardPageState extends State<DashboardPage> {
                               },
                             );
                           }
+
+                          // Handle error state
+                          if (authState is AuthLoadingError) {
+                            return Text(
+                              "Hi, 👋🏼",
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).textTheme.headlineLarge?.color,
+                              ),
+                            );
+                          }
+
+                          // Default fallback
+                          return Text(
+                            "Hi, 👋🏼",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).textTheme.headlineLarge?.color,
+                            ),
+                          );
                         },
                       ),
 

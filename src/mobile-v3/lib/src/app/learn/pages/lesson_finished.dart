@@ -14,19 +14,19 @@ class LessonFinishedWidget extends StatelessWidget {
           Text("👋🏼 Great Job !",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           Text(
-              "You can invite your friends to learn a thing about Air Pollution",
+              "You can now teach your friends to learn a thing about Air Pollution",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
           SizedBox(height: 64),
-          SmallRoundedButton(
-            label: "Share",
-            imagePath: "assets/images/shared/share_icon.svg",
-          ),
-          SizedBox(height: 16),
-          SmallRoundedButton(
-            label: "Rate the App",
-            imagePath: "assets/images/shared/bookmark_icon.svg",
-          ),
+          // SmallRoundedButton(
+          //   label: "Share",
+          //   imagePath: "assets/images/shared/share_icon.svg",
+          // ),
+          // SizedBox(height: 16),
+          // SmallRoundedButton(
+          //   label: "Rate the App",
+          //   imagePath: "assets/images/shared/bookmark_icon.svg",
+          // ),
         ],
       ),
     );
