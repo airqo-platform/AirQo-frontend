@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
+import 'package:dotted_border/dotted_border.dart';
 
 class MyPlacesView extends StatelessWidget {
   const MyPlacesView({super.key});
@@ -33,7 +34,7 @@ class MyPlacesView extends StatelessWidget {
           _buildAddLocationCard(context),
           SizedBox(height: 16),
           
-          // Second Add Location Card with FAB
+          // Add Location Card with Floating Action Button
           _buildAddLocationCardWithFAB(context),
         ],
       ),
@@ -41,17 +42,19 @@ class MyPlacesView extends StatelessWidget {
   }
 
   Widget _buildAddLocationCard(BuildContext context) {
-    return Container(
-      height: 150,
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: AppColors.primaryColor,
-          width: 2,
-          style: BorderStyle.solid,
+    return DottedBorder(
+      color: AppColors.primaryColor,
+      strokeWidth: 2,
+      dashPattern: [8, 4], // Dash and gap size
+      borderType: BorderType.RRect,
+      radius: Radius.circular(8),
+      child: Container(
+        height: 150,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Color(0xFF2E2F33), // Background color inside dashed border
+          borderRadius: BorderRadius.circular(8),
         ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
         child: TextButton(
           onPressed: () {
             // Add location logic
@@ -72,17 +75,19 @@ class MyPlacesView extends StatelessWidget {
   Widget _buildAddLocationCardWithFAB(BuildContext context) {
     return Stack(
       children: [
-        Container(
-          height: 150,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: AppColors.primaryColor,
-              width: 2,
-              style: BorderStyle.solid,
+        DottedBorder(
+          color: AppColors.primaryColor,
+          strokeWidth: 2,
+          dashPattern: [8, 4], // Dash and gap size
+          borderType: BorderType.RRect,
+          radius: Radius.circular(8),
+          child: Container(
+            height: 150,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Color(0xFF2E2F33), // Background color inside dashed border
+              borderRadius: BorderRadius.circular(8),
             ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
             child: TextButton(
               onPressed: () {
                 // Add location logic
@@ -108,8 +113,8 @@ class MyPlacesView extends StatelessWidget {
                 // Add location logic
               },
               backgroundColor: AppColors.primaryColor,
-              child: Icon(Icons.add, color: Colors.white),
               mini: false,
+              child: Icon(Icons.add, color: Colors.white),
             ),
           ),
         ),
