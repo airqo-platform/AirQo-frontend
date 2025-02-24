@@ -4,7 +4,7 @@ import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
-import { GetAirQuoData,FetchSuggestions,UserClick } from '@/api/MapData';
+import { GetAirQuoData,FetchSuggestions,UserClick } from '@/core/apis/MapData';
 import { IconButton } from './components/IconButton'
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
