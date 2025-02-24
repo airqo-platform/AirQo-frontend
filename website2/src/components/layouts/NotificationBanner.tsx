@@ -8,9 +8,15 @@ import { FaArrowRightLong } from 'react-icons/fa6';
 // import { FiGlobe } from 'react-icons/fi';
 import mainConfig from '@/configs/mainConfigs';
 
+import { trackEvent } from '../GoogleAnalytics';
+
 const CLEAN_AIR_NETWORK_ROUTE = '/clean-air-network';
 
 const NotificationBanner: React.FC = () => {
+  const handleNetworkClick = (version: 'desktop' | 'mobile') => {
+    trackEvent('link_click', 'navigation', `clean_air_network_${version}`);
+  };
+
   return (
     <div className="bg-blue-50 text-[14px] text-gray-700">
       <div
@@ -23,7 +29,10 @@ const NotificationBanner: React.FC = () => {
         </div> */}
 
         {/* CLEAN-AIR Network Link */}
-        <Link href={CLEAN_AIR_NETWORK_ROUTE}>
+        <Link
+          href={CLEAN_AIR_NETWORK_ROUTE}
+          onClick={() => handleNetworkClick('desktop')}
+        >
           <div className="items-center space-x-2 hidden md:flex cursor-pointer">
             <span className="text-sm font-medium">
               Join the CLEAN-AIR Network
@@ -36,7 +45,13 @@ const NotificationBanner: React.FC = () => {
               Learn more <FaArrowRightLong className="ml-2 w-4 h-4" />
             </motion.span>
           </div>
-          <div className="items-center space-x-2 flex md:hidden cursor-pointer">
+          <div
+            className="items-center space-x-2 flex md:hidden cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent double event firing
+              handleNetworkClick('mobile');
+            }}
+          >
             <span className="text-[10px] text-blue-600 hover:text-blue-800 font-medium">
               Join the CLEAN-AIR Network
             </span>
