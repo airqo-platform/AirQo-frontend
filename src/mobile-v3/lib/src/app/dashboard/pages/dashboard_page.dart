@@ -21,7 +21,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  DashboardView currentView = DashboardView.all;
+  DashboardView currentView = DashboardView.myPlaces;
   String? selectedCountry;
 
   @override
@@ -29,7 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
     context.read<DashboardBloc>().add(LoadDashboard());
     context.read<UserBloc>().add(LoadUser());
-    
+
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthInitial || authState is GuestUser) {
       context.read<AuthBloc>().add(UseAsGuest());
@@ -75,19 +75,18 @@ class _DashboardPageState extends State<DashboardPage> {
         return NearbyView();
       case DashboardView.country:
         return BlocBuilder<DashboardBloc, DashboardState>(
-          builder: (context, state) {
-            if (state is DashboardLoaded) {
-              final countryMeasurements = state.response.measurements!
-                  .where((m) => m.siteDetails?.country == selectedCountry)
-                  .toList();
-              return MeasurementsList(measurements: countryMeasurements);
-            } else if (state is DashboardLoading) {
-              return DashboardLoadingPage();
-            } else {
-              return ErrorPage();
-            }
+            builder: (context, state) {
+          if (state is DashboardLoaded) {
+            final countryMeasurements = state.response.measurements!
+                .where((m) => m.siteDetails?.country == selectedCountry)
+                .toList();
+            return MeasurementsList(measurements: countryMeasurements);
+          } else if (state is DashboardLoading) {
+            return DashboardLoadingPage();
+          } else {
+            return ErrorPage();
           }
-        );
+        });
       default: // DashboardView.all
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {

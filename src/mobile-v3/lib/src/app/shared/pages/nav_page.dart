@@ -55,25 +55,18 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
               ),
               label: ""),
           BottomNavigationBarItem(
-              icon: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Container(
-                  height: 54,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        "assets/icons/search_icon.svg",
-                        height: 20,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        "Search",
-                        style: TextStyle(color: Colors.white),
-                      )
-                    ],
+              icon: Column(
+                children: [
+                  SvgPicture.asset(
+                    "assets/icons/search_icon.svg",
+                    height: 20,
                   ),
-                ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Search",
+                    style: TextStyle(fontSize: 12),
+                  )
+                ],
               ),
               label: ""),
           BottomNavigationBarItem(
