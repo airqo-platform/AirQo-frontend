@@ -70,8 +70,10 @@ const NetManagerMap = () => {
         if (mapRef.current) {
 
                 try {
-                        const Data = await GetAirQuoData(AirQoToken?AirQoToken:"")
-                        console.log(Data)
+                        if (!AirQoToken) {
+                            throw new Error('Token is missing');
+                        }
+                        const Data = await GetAirQuoData(AirQoToken);
                         const geojsonData = ConvertToGeojson(Data);
                         console.log('GeoJson Data : ',geojsonData)
 
