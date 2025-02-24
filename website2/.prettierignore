@@ -1,8 +1,0 @@
-node_modules/
-build/
-dist/
-.next/
-public/
-coverage/
-*.min.js
-*.snap

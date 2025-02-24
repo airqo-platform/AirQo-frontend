@@ -28,6 +28,7 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 4
   targetCPUUtilizationPercentage: 70
+priorityClassName: high-priority
 nodeSelector:
   role: control-plane
 tolerations: []
