@@ -214,12 +214,20 @@ const HomePlayerSection: React.FC = () => {
   }, [videoState.isModalOpen, videoState.isBackgroundVideoPlaying]);
 
   const handleExploreData = useCallback(() => {
-    trackEvent('button_click', 'navigation', 'explore_data');
+    trackEvent({
+      action: 'button_click',
+      category: 'navigation',
+      label: 'explore_data',
+    });
     router.push('/explore-data');
   }, [router]);
 
   const handleGetInvolved = useCallback(() => {
-    trackEvent('button_click', 'engagement', 'get_involved');
+    trackEvent({
+      action: 'button_click',
+      category: 'engagement',
+      label: 'get_involved',
+    });
     dispatch(openModal());
   }, [dispatch]);
 
