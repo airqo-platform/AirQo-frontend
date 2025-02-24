@@ -32,11 +32,11 @@ jobs:
 
           while IFS= read -r file
           do
-            if [[ $file == platform/* ]]; then
+            if [[ $file == src/platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == docs/* ]]; then
+            if [[ $file == src/docs/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
@@ -63,13 +63,13 @@ jobs:
 
       - name: Create .env file
         run: |
-          gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
-          echo "INSTRUMENT_CODE=1" >> platform/.env
+          gcloud secrets versions access latest --secret="sta-env-next-platform" > src/platform/.env
+          echo "INSTRUMENT_CODE=1" >> src/platform/.env
 
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          working-directory: ./platform/
+          working-directory: ./src/platform/
           build: yarn build
           start: yarn start
           browser: chrome
@@ -84,7 +84,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          directory: platform/coverage/
+          directory: src/platform/coverage/
 
   ### test docs changes ###
   docs:
@@ -100,7 +100,7 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          working-directory: ./docs/
+          working-directory: ./src/docs/
           start: yarn preview
           wait-on: http://localhost:3000
           browser: chrome
@@ -113,4 +113,4 @@ jobs:
       - name: Deploy code coverage report 🚀
         uses: codecov/codecov-action@v3
         with:
-          directory: ./docs/coverage/lcov-report
+          directory: ./src/docs/coverage/lcov-report

@@ -72,35 +72,35 @@ jobs:
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == netmanager/* ]]; then
+            if [[ $file == src/netmanager/* ]]; then
               echo "run_netmanager=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == website/* ]]; then
+            if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == website2/* ]]; then
+            if [[ $file == src/website2/* ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
             fi            
 
-            if [[ $file == calibrate/* ]]; then
+            if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == platform/* ]]; then
+            if [[ $file == src/platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == docs/* ]]; then
+            if [[ $file == src/docs/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == inventory/* ]]; then
+            if [[ $file == src/inventory/* ]]; then
               echo "run_inventory=true" >>$GITHUB_OUTPUT
             fi 
 
-            if [[ $file == reports/* ]]; then
+            if [[ $file == src/reports/* ]]; then
               echo "run_reports=true" >>$GITHUB_OUTPUT
             fi
 
@@ -136,7 +136,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
+        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > src/netmanager/.env
           
 
       - name: NPM Setup and Build
@@ -144,7 +144,7 @@ jobs:
         with:
           node-version: "12"
       - run: |
-          cd netmanager/
+          cd src/netmanager/
           npm install
           CI=false npm run build
 
@@ -157,7 +157,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd netmanager/
+          cd src/netmanager/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:latest
@@ -185,107 +185,107 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=netmanager/.env env-platform-staging | kubectl replace -f - -n staging
+          --from-env-file=src/netmanager/.env env-platform-staging | kubectl replace -f - -n staging
 
   ### deploy website ###
-  website:
-    name: build-push-deploy-website
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_website == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  # website:
+  #   name: build-push-deploy-website
+  #   needs: [check, image-tag]
+  #   if: needs.check.outputs.run_website == 'true'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+  #     - name: Login to GCR
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: ${{ env.REGISTRY_URL }}
+  #         username: _json_key
+  #         password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
+  #     - name: Google login
+  #       uses: google-github-actions/auth@v1
+  #       with:
+  #         credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
-      - name: Setup Cloud SDK(gcloud)
-        uses: "google-github-actions/setup-gcloud@v1"
+  #     - name: Setup Cloud SDK(gcloud)
+  #       uses: "google-github-actions/setup-gcloud@v1"
 
-      - name: Create google_application_credentials.json file
-        id: create-google-application-credentials-file
-        uses: jsdaniell/create-json@1.1.2
-        with:
-          name: "google_application_credentials.json"
-          json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "website/"
+  #     - name: Create google_application_credentials.json file
+  #       id: create-google-application-credentials-file
+  #       uses: jsdaniell/create-json@1.1.2
+  #       with:
+  #         name: "google_application_credentials.json"
+  #         json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+  #         dir: "src/website/"
 
-      - name: Create app.yaml and .env.yaml files
-        run: |
-          cd website/
-          echo "========== Creating app.yaml file =========="          
-          echo "runtime: python" > app.yaml
-          echo "env: flex" >> app.yaml
-          echo "service: staging" >> app.yaml
-          echo "includes:" >> app.yaml
-          echo "  - .env.yaml" >> app.yaml
-          echo "automatic_scaling:" >> app.yaml
-          echo "  cool_down_period_sec: 120" >> app.yaml
-          echo "  min_num_instances: 1" >> app.yaml
-          echo "  max_num_instances: 5" >> app.yaml
-          echo "  cpu_utilization:" >> app.yaml
-          echo "    target_utilization: 0.8" >> app.yaml
-          echo "========== Creating .env.yaml file =========="  
-          echo "env_variables:" > .env.yaml
-          echo "runtime_config:" >> app.yaml
-          echo "  operating_system: \"ubuntu22\"" >> app.yaml
-          echo "  runtime_version: \"3.12\"" >> app.yaml
-          echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
-          echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
-          echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
-          echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
-          echo "  DATABASE_URI: ${{ secrets.WEBSITE_STAGE_DATABASE_URI }}" >> .env.yaml
-          echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_STAGE_GS_BUCKET_NAME }}" >> .env.yaml
-          echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }}" >> .env.yaml
-          echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
-          echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
-          echo "  DEBUG: False" >> .env.yaml
-          echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+  #     - name: Create app.yaml and .env.yaml files
+  #       run: |
+  #         cd src/website/
+  #         echo "========== Creating app.yaml file =========="          
+  #         echo "runtime: python" > app.yaml
+  #         echo "env: flex" >> app.yaml
+  #         echo "service: staging" >> app.yaml
+  #         echo "includes:" >> app.yaml
+  #         echo "  - .env.yaml" >> app.yaml
+  #         echo "automatic_scaling:" >> app.yaml
+  #         echo "  cool_down_period_sec: 120" >> app.yaml
+  #         echo "  min_num_instances: 1" >> app.yaml
+  #         echo "  max_num_instances: 5" >> app.yaml
+  #         echo "  cpu_utilization:" >> app.yaml
+  #         echo "    target_utilization: 0.8" >> app.yaml
+  #         echo "========== Creating .env.yaml file =========="  
+  #         echo "env_variables:" > .env.yaml
+  #         echo "runtime_config:" >> app.yaml
+  #         echo "  operating_system: \"ubuntu22\"" >> app.yaml
+  #         echo "  runtime_version: \"3.12\"" >> app.yaml
+  #         echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
+  #         echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
+  #         echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
+  #         echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
+  #         echo "  DATABASE_URI: ${{ secrets.WEBSITE_STAGE_DATABASE_URI }}" >> .env.yaml
+  #         echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_STAGE_GS_BUCKET_NAME }}" >> .env.yaml
+  #         echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }}" >> .env.yaml
+  #         echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
+  #         echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
+  #         echo "  DEBUG: False" >> .env.yaml
+  #         echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
 
-      - name: Build and Push Docker Image
-        run: |
-          cd website/
-          docker build . \
-          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }} \
-          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
-          --build-arg REACT_APP_NETMANAGER_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER }} \
-          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_BASE_AIRQLOUDS_URL }} \
-          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
-          --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }} \
-          --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
-          --build-arg REACT_APP_GEO_LOCATION_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_GEO_LOCATION_URL }} \
-          --build-arg REACT_APP_OPENCAGE_API_KEY=${{ secrets.REACT_APP_OPENCAGE_API_KEY }} \
-          --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
-          docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+  #     - name: Build and Push Docker Image
+  #       run: |
+  #         cd src/website/
+  #         docker build . \
+  #         --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }} \
+  #         --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
+  #         --build-arg REACT_APP_NETMANAGER_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER }} \
+  #         --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_BASE_AIRQLOUDS_URL }} \
+  #         --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
+  #         --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }} \
+  #         --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
+  #         --build-arg REACT_APP_GEO_LOCATION_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_GEO_LOCATION_URL }} \
+  #         --build-arg REACT_APP_OPENCAGE_API_KEY=${{ secrets.REACT_APP_OPENCAGE_API_KEY }} \
+  #         --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
+  #         docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
+  #         docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+  #         docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
 
-      - name: Deploy to App Engine
-        run: |-
-          cd website/
-          gcloud app deploy  \
-            --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
-            --project=${{ secrets.FRONTEND_PROJECT_ID }} \
-            --quiet
+      # - name: Deploy to App Engine
+      #   run: |-
+      #     cd src/website/
+      #     gcloud app deploy  \
+      #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
+      #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+      #       --quiet
 
-      - name: Delete Old Versions
-        run: |-
-          service="staging"
-            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-            for version in $versions; do
-              echo "Deleting version: $version for service: $service"
-              gcloud app versions delete "$version" --service=$service --quiet
-            done
+      # - name: Delete Old Versions
+      #   run: |-
+      #     service="staging"
+      #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+      #       for version in $versions; do
+      #         echo "Deleting version: $version for service: $service"
+      #         gcloud app versions delete "$version" --service=$service --quiet
+      #       done
 
   ### deploy website2 ###
   website2:
@@ -318,11 +318,11 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "website2/"
+          dir: "src/website2/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd website2/
+          cd src/website2/
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
@@ -351,10 +351,11 @@ jobs:
           echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
           echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+          echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
 
       - name: Build and Push Docker Image
         run: |
-          cd website2/
+          cd src/website2/
           docker build . \
           --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }} \
           --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
@@ -366,7 +367,7 @@ jobs:
 
       - name: Deploy to App Engine
         run: |-
-          cd website2/
+          cd src/website2/
           gcloud app deploy  \
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
@@ -375,11 +376,36 @@ jobs:
       - name: Delete Old Versions
         run: |-
           service="staging"
-            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-            for version in $versions; do
-              echo "Deleting version: $version for service: $service"
-              gcloud app versions delete "$version" --service=$service --quiet
-            done            
+          versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+
+          for version in $versions; do
+              echo "Attempting to delete version: $version for service: $service"
+
+              attempt=1
+              max_attempts=3
+
+              while [ $attempt -le $max_attempts ]; do
+                  # Check for ongoing operations
+                  if gcloud app operations list --format="value(name)" --filter="status=RUNNING" | grep -q .; then
+                      echo "Another operation is still running. Waiting 30 seconds... (Attempt $attempt/$max_attempts)"
+                      sleep 30
+                      ((attempt++))
+                  else
+                      if gcloud app versions delete "$version" --service=$service --quiet; then
+                          echo "Successfully deleted version: $version"
+                          break
+                      else
+                          echo "Failed to delete version: $version. Retrying... ($attempt/$max_attempts)"
+                          sleep 10
+                          ((attempt++))
+                      fi
+                  fi
+              done
+
+              if [ $attempt -gt $max_attempts ]; then
+                  echo "Skipping version: $version after $max_attempts failed attempts."
+              fi
+          done           
 
 
   ### build and push calibrate app image ###
@@ -401,14 +427,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
+        run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > src/calibrate/.env
 
       - name: NPM Setup and Build
         uses: actions/setup-node@v3
         with:
           node-version: "12"
       - run: |
-          cd calibrate/
+          cd src/calibrate/
           npm install
           CI=false npm run build
 
@@ -421,7 +447,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd calibrate/
+          cd src/calibrate/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-calibrate-app:latest
@@ -448,7 +474,7 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
+          --from-env-file=src/calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
 
   ### build and push analytics platform image ###
   analytics-platform:
@@ -469,7 +495,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
+        run: gcloud secrets versions access latest --secret="sta-env-next-platform" > src/platform/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -480,7 +506,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd platform/
+          cd src/platform/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:latest
@@ -507,7 +533,7 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=platform/.env env-next-platform-staging | kubectl replace -f - -n staging
+          --from-env-file=src/platform/.env env-next-platform-staging | kubectl replace -f - -n staging
 
   ### build and push docs image ###
   docs:
@@ -528,7 +554,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd docs/
+          cd src/docs/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} .
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:latest
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:latest
@@ -565,7 +591,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-inventory" > inventory/.env
+        run: gcloud secrets versions access latest --secret="sta-env-inventory" > src/inventory/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -576,7 +602,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd inventory/
+          cd src/inventory/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-inventory:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-inventory:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-inventory:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-inventory:latest
@@ -603,7 +629,7 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=inventory/.env env-inventory-staging | kubectl replace -f - -n staging
+          --from-env-file=src/inventory/.env env-inventory-staging | kubectl replace -f - -n staging
             
   ### build and push reports image ###
   reports:
@@ -624,7 +650,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-reports" > reports/.env
+        run: gcloud secrets versions access latest --secret="sta-env-reports" > src/reports/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -635,7 +661,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd reports/
+          cd src/reports/
           docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-reports:${{ needs.image-tag.outputs.build_id }} .
           docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-reports:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-reports:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-reports:latest
@@ -662,4 +688,4 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=reports/.env env-reports-staging | kubectl replace -f - -n staging
+          --from-env-file=src/reports/.env env-reports-staging | kubectl replace -f - -n staging
