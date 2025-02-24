@@ -1,4 +1,4 @@
-import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart'; 
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';

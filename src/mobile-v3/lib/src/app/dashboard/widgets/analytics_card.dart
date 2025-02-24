@@ -1,6 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class AnalyticsCard extends StatelessWidget {
   final Measurement measurement;
 
-  const AnalyticsCard(this.measurement);
+  const AnalyticsCard(this.measurement, {super.key});
   @override
   Widget build(BuildContext context) {
     return InkWell(

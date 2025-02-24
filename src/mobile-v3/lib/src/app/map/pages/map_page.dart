@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
