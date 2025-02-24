@@ -47,6 +47,12 @@ import {
 } from "@/components/ui/tooltip";
 import Image from "next/image";
 
+const formatTitle = (title: string) => {
+  return title
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 interface DesktopSidebarProps {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
@@ -176,7 +182,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                   variant="secondary"
                   className="w-full justify-between uppercase"
                 >
-                  {activeGroup?.grp_title || "Select Organization"}
+                  {activeGroup?.grp_title
+                    ? `${formatTitle(activeGroup.grp_title).slice(0, 16)}${
+                        activeGroup.grp_title.length > 16 ? "..." : ""
+                      }`
+                    : "Select Organization"}
                   <ChevronRight size={16} />
                 </Button>
               </DropdownMenuTrigger>
@@ -189,7 +199,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                     onClick={() => handleOrganizationChange(group)}
                     className="flex items-center justify-between uppercase"
                   >
-                    {group.grp_title}
+                    {formatTitle(group.grp_title || "")}
                     {activeGroup?._id === group._id && <Check size={16} />}
                   </DropdownMenuItem>
                 ))}
@@ -229,44 +239,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               </li>
             </ul>
           </div>
-
-          {/* Organization */}
-          <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
-            <div>
-              <h2
-                className={`text-sm font-semibold text-foreground/60 mb-2 ${
-                  isSidebarCollapsed ? "hidden" : "block"
-                }`}
-              >
-                Organization
-              </h2>
-              <ul className="space-y-2">
-                <li>
-                  <NavItem
-                    href="/user-management"
-                    icon={Users}
-                    label="User Management"
-                  />
-                </li>
-                <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
-                  <li>
-                    <NavItem
-                      href="/access-control"
-                      icon={Shield}
-                      label="Access Control"
-                    />
-                  </li>
-                </PermissionGuard>
-                <li>
-                  <NavItem
-                    href="/organizations"
-                    icon={Building2}
-                    label="Organizations"
-                  />
-                </li>
-              </ul>
-            </div>
-          </PermissionGuard>
 
           {/* Network */}
           <div>
@@ -433,6 +405,44 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               </li>
             </ul>
           </div>
+
+          {/* Organization */}
+          <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+            <div>
+              <h2
+                className={`text-sm font-semibold text-foreground/60 mb-2 ${
+                  isSidebarCollapsed ? "hidden" : "block"
+                }`}
+              >
+                App Management
+              </h2>
+              <ul className="space-y-2">
+                <li>
+                  <NavItem
+                    href="/user-management"
+                    icon={Users}
+                    label="User Management"
+                  />
+                </li>
+                <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
+                  <li>
+                    <NavItem
+                      href="/access-control"
+                      icon={Shield}
+                      label="Access Control"
+                    />
+                  </li>
+                </PermissionGuard>
+                <li>
+                  <NavItem
+                    href="/organizations"
+                    icon={Building2}
+                    label="Organizations"
+                  />
+                </li>
+              </ul>
+            </div>
+          </PermissionGuard>
         </nav>
       </div>
 
