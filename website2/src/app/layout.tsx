@@ -1,16 +1,21 @@
 import './globals.css';
 
+import dynamic from 'next/dynamic';
 import localFont from 'next/font/local';
 import { ReactNode, Suspense } from 'react';
 
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
-import GoogleAnalytics from '@/components/GoogleAnalytics';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { checkMaintenance } from '@/lib/maintenance';
 
 import MaintenancePage from './MaintenancePage';
+
+// Load the GA component dynamically, disabling SSR so that it runs only on the client.
+const GoogleAnalytics = dynamic(() => import('@/components/GoogleAnalytics'), {
+  ssr: false,
+});
 
 const interFont = localFont({
   src: [
@@ -54,8 +59,10 @@ export default async function RootLayout({
           </ReduxDataProvider>
         </ErrorBoundary>
 
-        {/* Initialize & Track Google Analytics */}
-        <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
+        {/* Initialize & Track Google Analytics only on the client */}
+        {GA_MEASUREMENT_ID && (
+          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );
