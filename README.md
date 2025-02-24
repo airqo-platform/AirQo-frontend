@@ -20,12 +20,12 @@ The AirQo project aims to measure and quantify the scale of air pollution throug
 
 This repo is made up of six (6) product sub directories:
 
-- [Analytics Platform](/platform/)
-- [Calibrate](/calibrate/)
-- [Docs](/docs/)
-- [Mobile app](/mobile/)
-- [Netmanager](/netmanager/)
-- [Website](/website/)
+- [Analytics Platform](src/platform/)
+- [Calibrate](src//calibrate/)
+- [Docs](src/docs/)
+- [Mobile app](src/mobile/)
+- [Netmanager](src/netmanager/)
+- [Website](src/website/)
 
 ## Contributing
 
