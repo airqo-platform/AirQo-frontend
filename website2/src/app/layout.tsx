@@ -4,7 +4,7 @@ import localFont from 'next/font/local';
 import { ReactNode, Suspense } from 'react';
 
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
-import { GoogleAnalytics } from '@/components/GoogleAnalytics';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
@@ -38,11 +38,6 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={interFont.variable}>
-      <head>
-        {GA_MEASUREMENT_ID && (
-          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
-        )}
-      </head>
       <body>
         <ErrorBoundary>
           <ReduxDataProvider>
@@ -58,6 +53,9 @@ export default async function RootLayout({
             </Suspense>
           </ReduxDataProvider>
         </ErrorBoundary>
+
+        {/* Initialize & Track Google Analytics */}
+        <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
       </body>
     </html>
   );
