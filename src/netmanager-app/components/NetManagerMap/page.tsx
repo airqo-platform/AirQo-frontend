@@ -53,7 +53,11 @@ const NetManagerMap = () => {
     }, []);
 
   useEffect(() => {
-    mapboxgl.accessToken = token;
+        if (!token) {
+                console.error('Map token is missing');
+                  return;
+                 }
+        mapboxgl.accessToken = token;
     if (mapContainerRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
