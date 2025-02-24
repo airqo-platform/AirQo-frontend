@@ -1,10 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Search, Loader2, ArrowUpDown, Eye, Power } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState } from "react";
+import { Search, Loader2, ArrowUpDown, Eye, Power } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Pagination,
   PaginationContent,
@@ -13,125 +20,123 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { useGroups, useActivateGroup } from "@/core/hooks/useGroups"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
-import { CreateOrganizationDialog } from "./Create-group"
-import { toast } from "@/components/ui/use-toast"
+} from "@/components/ui/pagination";
+import { useGroups } from "@/core/hooks/useGroups";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { CreateOrganizationDialog } from "./Create-group";
 
-const ITEMS_PER_PAGE = 8
+const ITEMS_PER_PAGE = 8;
 
-type SortField = "grp_title" | "grp_status" | "numberOfGroupUsers" | "createdAt"
-type SortOrder = "asc" | "desc"
+type SortField =
+  | "grp_title"
+  | "grp_status"
+  | "numberOfGroupUsers"
+  | "createdAt";
+type SortOrder = "asc" | "desc";
+
+const formatTitle = (title: string) => {
+  return title
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 export function OrganizationList() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [sortField, setSortField] = useState<SortField>("createdAt")
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
-  const { groups, isLoading, error } = useGroups()
-  const activateGroupMutation = useActivateGroup()
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const { groups, isLoading, error } = useGroups();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortOrder("asc")
+      setSortField(field);
+      setSortOrder("asc");
     }
-  }
+  };
 
   const sortOrganizations = (orgsToSort: any[]) => {
     return [...orgsToSort].sort((a, b) => {
       if (sortField === "createdAt") {
-        const dateA = new Date(a.createdAt || 0).getTime()
-        const dateB = new Date(b.createdAt || 0).getTime()
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       }
 
-      let compareA = a[sortField]
-      let compareB = b[sortField]
+      let compareA = a[sortField];
+      let compareB = b[sortField];
 
       if (typeof compareA === "string") {
-        compareA = compareA.toLowerCase()
-        compareB = compareB.toLowerCase()
+        compareA = compareA.toLowerCase();
+        compareB = compareB.toLowerCase();
       }
 
-      if (compareA < compareB) return sortOrder === "asc" ? -1 : 1
-      if (compareA > compareB) return sortOrder === "asc" ? 1 : -1
-      return 0
-    })
-  }
+      if (compareA < compareB) return sortOrder === "asc" ? -1 : 1;
+      if (compareA > compareB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  };
 
-  const filteredOrganizations = groups.filter((org) => org.grp_title.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredOrganizations = groups.filter((org) =>
+    org.grp_title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const sortedOrganizations = sortOrganizations(filteredOrganizations)
+  const sortedOrganizations = sortOrganizations(filteredOrganizations);
 
-  const totalPages = Math.ceil(sortedOrganizations.length / ITEMS_PER_PAGE)
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIndex = startIndex + ITEMS_PER_PAGE
-  const currentOrganizations = sortedOrganizations.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(sortedOrganizations.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentOrganizations = sortedOrganizations.slice(startIndex, endIndex);
 
   const getPageNumbers = () => {
-    const pageNumbers = []
-    const maxVisiblePages = 5
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i)
+        pageNumbers.push(i);
       }
     } else {
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) {
-          pageNumbers.push(i)
+          pageNumbers.push(i);
         }
-        pageNumbers.push("ellipsis")
-        pageNumbers.push(totalPages)
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1)
-        pageNumbers.push("ellipsis")
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
         for (let i = totalPages - 3; i <= totalPages; i++) {
-          pageNumbers.push(i)
+          pageNumbers.push(i);
         }
       } else {
-        pageNumbers.push(1)
-        pageNumbers.push("ellipsis")
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pageNumbers.push(i)
+          pageNumbers.push(i);
         }
-        pageNumbers.push("ellipsis")
-        pageNumbers.push(totalPages)
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
       }
     }
-    return pageNumbers
-  }
-
-  const handleActivateGroup = async (groupId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE"
-    try {
-      await activateGroupMutation.mutateAsync({ groupId, status: newStatus })
-      toast({
-        title: "Success",
-        description: `Group ${newStatus === "ACTIVE" ? "activated" : "deactivated"} successfully.`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update group status. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
+    return pageNumbers;
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -143,7 +148,7 @@ export function OrganizationList() {
           <AlertDescription>{error.message}</AlertDescription>
         </Alert>
       </div>
-    )
+    );
   }
 
   return (
@@ -171,16 +176,21 @@ export function OrganizationList() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleSort("createdAt")}>
-              Date Created {sortField === "createdAt" && (sortOrder === "asc" ? "↑" : "↓")}
+              Date Created{" "}
+              {sortField === "createdAt" && (sortOrder === "asc" ? "↑" : "↓")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort("grp_title")}>
-              Name {sortField === "grp_title" && (sortOrder === "asc" ? "↑" : "↓")}
+              Name{" "}
+              {sortField === "grp_title" && (sortOrder === "asc" ? "↑" : "↓")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort("grp_status")}>
-              Status {sortField === "grp_status" && (sortOrder === "asc" ? "↑" : "↓")}
+              Status{" "}
+              {sortField === "grp_status" && (sortOrder === "asc" ? "↑" : "↓")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort("numberOfGroupUsers")}>
-              Users {sortField === "numberOfGroupUsers" && (sortOrder === "asc" ? "↑" : "↓")}
+              Users{" "}
+              {sortField === "numberOfGroupUsers" &&
+                (sortOrder === "asc" ? "↑" : "↓")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -190,14 +200,28 @@ export function OrganizationList() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[30%] cursor-pointer" onClick={() => handleSort("grp_title")}>
-                Name {sortField === "grp_title" && (sortOrder === "asc" ? "↑" : "↓")}
+              <TableHead
+                className="w-[30%] cursor-pointer"
+                onClick={() => handleSort("grp_title")}
+              >
+                Name{" "}
+                {sortField === "grp_title" && (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead className="w-[20%] cursor-pointer" onClick={() => handleSort("grp_status")}>
-                Status {sortField === "grp_status" && (sortOrder === "asc" ? "↑" : "↓")}
+              <TableHead
+                className="w-[20%] cursor-pointer"
+                onClick={() => handleSort("grp_status")}
+              >
+                Status{" "}
+                {sortField === "grp_status" &&
+                  (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
-              <TableHead className="w-[20%] cursor-pointer" onClick={() => handleSort("numberOfGroupUsers")}>
-                Users {sortField === "numberOfGroupUsers" && (sortOrder === "asc" ? "↑" : "↓")}
+              <TableHead
+                className="w-[20%] cursor-pointer"
+                onClick={() => handleSort("numberOfGroupUsers")}
+              >
+                Users{" "}
+                {sortField === "numberOfGroupUsers" &&
+                  (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead className="w-[30%]">Actions</TableHead>
             </TableRow>
@@ -205,11 +229,15 @@ export function OrganizationList() {
           <TableBody>
             {currentOrganizations.map((org) => (
               <TableRow key={org._id}>
-                <TableCell className="font-medium">{org.grp_title}</TableCell>
+                <TableCell className="font-medium">
+                  {formatTitle(org.grp_title)}
+                </TableCell>
                 <TableCell>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      org.grp_status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                      org.grp_status === "ACTIVE"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
                     {org.grp_status === "ACTIVE" ? "Active" : "Inactive"}
@@ -222,16 +250,6 @@ export function OrganizationList() {
                       <Link href={`/organizations/${org._id}`}>
                         <Eye className="mr-2 h-4 w-4" /> View Details
                       </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-1/2"
-                      onClick={() => handleActivateGroup(org._id, org.grp_status)}
-                      disabled={activateGroupMutation.isLoading}
-                    >
-                      <Power className={`mr-2 h-4 w-4 ${org.grp_status === "ACTIVE" ? "text-green-500" : "text-red-500"}`} />
-                      {org.grp_status === "ACTIVE" ? "Deactivate" : "Activate"}
                     </Button>
                   </div>
                 </TableCell>
@@ -254,8 +272,14 @@ export function OrganizationList() {
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
                 />
               </PaginationItem>
 
@@ -277,8 +301,14 @@ export function OrganizationList() {
 
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
@@ -286,5 +316,5 @@ export function OrganizationList() {
         </div>
       )}
     </div>
-  )
+  );
 }

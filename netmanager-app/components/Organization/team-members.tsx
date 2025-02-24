@@ -1,18 +1,38 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useRoles } from "@/core/hooks/useRoles"
-import type { GroupMember } from "@/app/types/groups"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/components/ui/use-toast"
-import { useTeamMembers, useInviteUserToGroup } from "@/core/hooks/useGroups"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import type React from "react";
+import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGroupRoles } from "@/core/hooks/useRoles";
+import type { GroupMember } from "@/app/types/groups";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+import { useTeamMembers, useInviteUserToGroup } from "@/core/hooks/useGroups";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -21,150 +41,168 @@ import {
   PaginationEllipsis,
   PaginationPrevious,
   PaginationNext,
-} from "@/components/ui/pagination"
-import { Label } from "@/components/ui/label"
-import { UserPlus, Search, ArrowUpDown } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+} from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
+import { UserPlus, Search, ArrowUpDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type TeamMembersProps = {
-  organizationId: string
-}
+  organizationId: string;
+};
 
-const ITEMS_PER_PAGE = 6
+const ITEMS_PER_PAGE = 6;
 
-type SortField = "firstName" | "lastName" | "email" | "role_name"
-type SortOrder = "asc" | "desc"
+type SortField = "firstName" | "lastName" | "email" | "role_name";
+type SortOrder = "asc" | "desc";
 
 export function TeamMembers({ organizationId }: TeamMembersProps) {
-  const { toast } = useToast()
-  const { team, isLoading, error } = useTeamMembers(organizationId)
-  const { roles, isLoading: rolesLoading, error: rolesError } = useRoles()
-  const inviteUserMutation = useInviteUserToGroup(organizationId)
-  const [newMemberEmail, setNewMemberEmail] = useState("")
-  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
-  const [newRoleId, setNewRoleId] = useState<string>("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortField, setSortField] = useState<SortField>("lastName")
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
+  const { toast } = useToast();
+  const { team, isLoading, error } = useTeamMembers(organizationId);
+  const {
+    grproles,
+    isLoading: groupRolesLoading,
+    error: groupRolesError,
+  } = useGroupRoles(organizationId);
+  const inviteUserMutation = useInviteUserToGroup(organizationId);
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(
+    null
+  );
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [newRoleId, setNewRoleId] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField>("lastName");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     inviteUserMutation.mutate(newMemberEmail, {
       onSuccess: () => {
         toast({
           title: "Invitation sent",
           description: `An invitation has been sent to ${newMemberEmail}`,
-        })
-        setNewMemberEmail("")
-        setIsInviteDialogOpen(false)
+        });
+        setNewMemberEmail("");
+        setIsInviteDialogOpen(false);
       },
       onError: (error: Error) => {
-        console.error("Error inviting member:", error)
+        console.error("Error inviting member:", error);
         toast({
           title: "Invitation Failed",
-          description: error.message || "Failed to invite member. Please try again.",
+          description:
+            error.message || "Failed to invite member. Please try again.",
           variant: "destructive",
-        })
+        });
       },
-    })
-  }
+    });
+  };
 
   const handleUpdateRole = async () => {
-    if (!selectedMember || !newRoleId) return
+    if (!selectedMember || !newRoleId) return;
 
     try {
       toast({
         title: "Role updated",
         description: "The member's role has been successfully updated.",
-      })
-      setIsDialogOpen(false)
+      });
+      setIsDialogOpen(false);
     } catch (error) {
-      console.error("Error updating role:", error)
+      console.error("Error updating role:", error);
       toast({
         title: "Error",
         description: "Failed to update role. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortOrder("asc")
+      setSortField(field);
+      setSortOrder("asc");
     }
-  }
+  };
 
   const sortedAndFilteredTeam = useMemo(() => {
     return team
       .filter((member: GroupMember) => {
-        const searchLower = searchQuery.toLowerCase()
+        const searchLower = searchQuery.toLowerCase();
         return (
           member.firstName.toLowerCase().includes(searchLower) ||
           member.lastName.toLowerCase().includes(searchLower) ||
           member.email.toLowerCase().includes(searchLower) ||
           member.role_name?.toLowerCase().includes(searchLower)
-        )
+        );
       })
       .sort((a: GroupMember, b: GroupMember) => {
-        const compareA = a[sortField].toString().toLowerCase()
-        const compareB = b[sortField].toString().toLowerCase()
+        const compareA = a[sortField].toString().toLowerCase();
+        const compareB = b[sortField].toString().toLowerCase();
 
-        return sortOrder === "asc" ? compareA.localeCompare(compareB) : compareB.localeCompare(compareA)
-      })
-  }, [team, searchQuery, sortField, sortOrder])
+        return sortOrder === "asc"
+          ? compareA.localeCompare(compareB)
+          : compareB.localeCompare(compareA);
+      });
+  }, [team, searchQuery, sortField, sortOrder]);
 
-  const totalPages = Math.ceil(sortedAndFilteredTeam.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(sortedAndFilteredTeam.length / ITEMS_PER_PAGE);
   const currentTeamMembers = sortedAndFilteredTeam.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  )
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const getPageNumbers = () => {
-    const pageNumbers = []
-    const maxVisiblePages = 5
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i)
+        pageNumbers.push(i);
       }
     } else {
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) {
-          pageNumbers.push(i)
+          pageNumbers.push(i);
         }
-        pageNumbers.push("ellipsis")
-        pageNumbers.push(totalPages)
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
       } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1)
-        pageNumbers.push("ellipsis")
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
         for (let i = totalPages - 3; i <= totalPages; i++) {
-          pageNumbers.push(i)
+          pageNumbers.push(i);
         }
       } else {
-        pageNumbers.push(1)
-        pageNumbers.push("ellipsis")
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pageNumbers.push(i)
+          pageNumbers.push(i);
         }
-        pageNumbers.push("ellipsis")
-        pageNumbers.push(totalPages)
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
       }
     }
-    return pageNumbers
-  }
+    return pageNumbers;
+  };
 
   if (isLoading) {
-    return <Skeleton className="w-full h-96" />
+    return <Skeleton className="w-full h-96" />;
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error loading members. Please try again.</div>
+    return (
+      <div className="text-center text-red-500">
+        Error loading members. Please try again.
+      </div>
+    );
   }
 
   return (
@@ -220,7 +258,10 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {["firstName", "lastName", "email", "role_name"].map((field) => (
-                <DropdownMenuItem key={field} onClick={() => handleSort(field as SortField)}>
+                <DropdownMenuItem
+                  key={field}
+                  onClick={() => handleSort(field as SortField)}
+                >
                   {field.charAt(0).toUpperCase() + field.slice(1)}{" "}
                   {sortField === field && (sortOrder === "asc" ? "↑" : "↓")}
                 </DropdownMenuItem>
@@ -233,17 +274,36 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="cursor-pointer" onClick={() => handleSort("firstName")}>
-                  First Name {sortField === "firstName" && (sortOrder === "asc" ? "↑" : "↓")}
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("firstName")}
+                >
+                  First Name{" "}
+                  {sortField === "firstName" &&
+                    (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort("lastName")}>
-                  Last Name {sortField === "lastName" && (sortOrder === "asc" ? "↑" : "↓")}
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("lastName")}
+                >
+                  Last Name{" "}
+                  {sortField === "lastName" &&
+                    (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
-                  Email {sortField === "email" && (sortOrder === "asc" ? "↑" : "↓")}
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("email")}
+                >
+                  Email{" "}
+                  {sortField === "email" && (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort("role_name")}>
-                  Role {sortField === "role_name" && (sortOrder === "asc" ? "↑" : "↓")}
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("role_name")}
+                >
+                  Role{" "}
+                  {sortField === "role_name" &&
+                    (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -254,7 +314,9 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                   <TableCell>{member.firstName}</TableCell>
                   <TableCell>{member.lastName}</TableCell>
                   <TableCell>{member.email}</TableCell>
-                  <TableCell>{member.role_name || "No role assigned"}</TableCell>
+                  <TableCell>
+                    {member.role_name || "No role assigned"}
+                  </TableCell>
                   <TableCell>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                       <DialogTrigger asChild>
@@ -262,8 +324,8 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedMember(member)
-                            setNewRoleId(member.role_id || "")
+                            setSelectedMember(member);
+                            setNewRoleId(member.role_id || "");
                           }}
                         >
                           Update Role
@@ -280,16 +342,16 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                             <SelectValue placeholder="Select a new role" />
                           </SelectTrigger>
                           <SelectContent>
-                            {rolesLoading ? (
+                            {groupRolesLoading ? (
                               <SelectItem value="loading" disabled>
                                 Loading roles...
                               </SelectItem>
-                            ) : rolesError ? (
+                            ) : groupRolesError ? (
                               <SelectItem value="error" disabled>
                                 Error loading roles
                               </SelectItem>
                             ) : (
-                              roles.map((role) => (
+                              grproles.map((role) => (
                                 <SelectItem key={role._id} value={role._id}>
                                   {role.role_name}
                                 </SelectItem>
@@ -298,7 +360,9 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                           </SelectContent>
                         </Select>
                         <DialogFooter>
-                          <Button onClick={handleUpdateRole}>Update Role</Button>
+                          <Button onClick={handleUpdateRole}>
+                            Update Role
+                          </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -322,8 +386,14 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
                 {getPageNumbers().map((pageNumber, index) => (
@@ -343,8 +413,14 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                 ))}
                 <PaginationItem>
                   <PaginationNext
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -353,6 +429,5 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
-

@@ -1,12 +1,8 @@
-import {
-    useQuery,
-    UseQueryOptions,
-  } from "@tanstack/react-query";
-import { useAppDispatch } from "../redux/hooks";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { roles } from "../apis/roles";
-import { RolesState, setRoles, setError } from "../redux/slices/rolesSlice";
+import { setRoles, setError } from "../redux/slices/rolesSlice";
 import { AxiosError } from "axios";
-import { AnyCnameRecord } from "dns";
 
 interface ErrorResponse {
   message: string;
@@ -15,9 +11,7 @@ interface ErrorResponse {
 export const useRoles = () => {
   const dispatch = useAppDispatch();
 
-  const { data, isLoading, error } = useQuery<
-    AxiosError<ErrorResponse>
-  >({
+  const { data, isLoading, error } = useQuery<AxiosError<ErrorResponse>>({
     queryKey: ["roles"],
     queryFn: () => roles.getRolesApi(),
     onSuccess: (data: any) => {
@@ -26,7 +20,7 @@ export const useRoles = () => {
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(setError(error.message));
     },
-  }as UseQueryOptions< AxiosError<ErrorResponse>>);
+  } as UseQueryOptions<AxiosError<ErrorResponse>>);
 
   return {
     roles: data?.roles ?? [],
@@ -35,25 +29,23 @@ export const useRoles = () => {
   };
 };
 
-export const useOrgRole = (groupId: string) => {
-    const dispatch = useAppDispatch();
+export const useGroupRoles = (groupId: string) => {
+  const dispatch = useAppDispatch();
 
-    const { data, isLoading, error } = useQuery({
-      queryKey: ["grouproles", groupId],
-      queryFn: () =>
-        roles.getOrgRolesApi(groupId || ""),
-      onSuccess: (data: any) => {
-        dispatch(setRoles(data));
-      },
-      onError: (error: Error) => {
-        dispatch(setError(error.message));
-      },
-    });
-  
-    return {
-      grproles: data?.group_roles || [],
-      isLoading,
-      error: error as Error | null,
-    };
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["grouproles", groupId],
+    queryFn: () => roles.getOrgRolesApi(groupId || ""),
+    onSuccess: (data: any) => {
+      dispatch(setRoles(data));
+    },
+    onError: (error: Error) => {
+      dispatch(setError(error.message));
+    },
+  });
+
+  return {
+    grproles: data?.group_roles || [],
+    isLoading,
+    error: error as Error | null,
   };
-  
+};
