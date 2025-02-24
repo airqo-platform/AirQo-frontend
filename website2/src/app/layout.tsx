@@ -34,14 +34,16 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const maintenance = await checkMaintenance();
-  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'N/A';
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
 
   return (
     <html lang="en" className={interFont.variable}>
-      <body>
+      <head>
         {GA_MEASUREMENT_ID && (
           <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
         )}
+      </head>
+      <body>
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>

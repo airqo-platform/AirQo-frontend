@@ -49,20 +49,17 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
       />
       <script
-        id="google-analytics"
-        onError={(e) => {
-          console.error('Error initializing Google Analytics:', e);
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${measurementId}', {
+              page_path: window.location.pathname,
+            });
+          `,
         }}
-      >
-        {`
-          window.dataLayer = window.dataLayer || [];
-          window.gtag = function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${measurementId}', {
-            page_path: window.location.pathname,
-          });
-        `}
-      </script>
+      />
     </>
   );
 }
