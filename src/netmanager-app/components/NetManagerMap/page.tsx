@@ -4,7 +4,7 @@ import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
-import { GetAirQuoData,FetchSuggestions,UserClick } from '@/core/apis/MapData';
+import { GetAirQuoData,FetchSuggestions,UserClick,token,AirQoToken } from '@/core/apis/MapData';
 import { IconButton } from './components/IconButton'
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
@@ -21,8 +21,6 @@ const NetManagerMap = () => {
         const [locationId,setlocationId] =useState("")
         const [suggestions, setSuggestions] = useState<any[]>([]);
         const [sessionToken, setSessionToken] = useState<string | null>(null);
-        const token = process.env.NEXT_PUBLIC_MAP_API_TOKEN
-        const AirQoToken = process.env.NEXT_PUBLIC_AIRQO_DATA_TOKEN
         const [isOpen, setIsOpen] = useState(false);
         const [NodeType, setNodeType] = useState('Emoji');
         const [mapStyle, setMapStyle] = useState(
