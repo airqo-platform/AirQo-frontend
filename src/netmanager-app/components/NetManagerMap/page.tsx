@@ -35,7 +35,7 @@ const NetManagerMap = () => {
          hazardous :'/images/map/Hazardous.png',
          unhealthy: '/images/map/Unhealthy.png',
          veryunhealthy :'/images/map/VeryUnhealthy.png',
-         unknownAQ:'/images/map/VeryUnhealthy.png',
+         unknownAQ:'/images/map/UnknownAQ.png',
          unhealthySG: '/images/map/UnhealthySG.png',
         }
 
