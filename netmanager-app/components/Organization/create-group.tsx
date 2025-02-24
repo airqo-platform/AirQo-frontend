@@ -18,21 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Plus,
-  Loader2,
-  ChevronLeft,
-  Check,
-  Building2,
-  Globe,
-  Briefcase,
-  Clock,
-  Link,
-  Image,
-  MapPin,
-  Users,
-  FileText,
-} from "lucide-react";
+import { Plus, Loader2, ChevronLeft, Check, Users } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";

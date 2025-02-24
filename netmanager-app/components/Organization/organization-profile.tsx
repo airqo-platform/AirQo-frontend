@@ -7,12 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { groupsApi } from "@/core/apis/organizations";
 import { useGroupsDetails } from "@/core/hooks/useGroups";
 import { toast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UsersIcon, Globe, FileText } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const formatTitle = (title: string) => {
