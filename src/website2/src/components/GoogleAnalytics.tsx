@@ -45,7 +45,6 @@ export default function GoogleAnalytics({
   }, [measurementId, pathname, searchParams]);
 
   if (!measurementId) {
-    // If you don't provide a measurement ID, no GA scripts will load
     return null;
   }
 
@@ -71,7 +70,7 @@ export default function GoogleAnalytics({
 }
 
 /**
- * Example helper function to track custom GA events.
+ * helper function to track custom GA events.
  */
 export function trackEvent({
   action,
