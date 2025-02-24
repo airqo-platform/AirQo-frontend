@@ -654,8 +654,6 @@ jobs:
           echo "  - .env.yaml" >> app.yaml
           echo "automatic_scaling:" >> app.yaml
           echo "  cool_down_period_sec: 120" >> app.yaml
-          echo "  min_num_instances: 1" >> app.yaml
-          echo "  max_num_instances: 3" >> app.yaml
           echo "  cpu_utilization:" >> app.yaml
           echo "    target_utilization: 0.8" >> app.yaml
           echo "runtime_config:" >> app.yaml
@@ -709,7 +707,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New Website2 changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
-            })            
+            })
 
   ### deploy reports preview ###
   reports:

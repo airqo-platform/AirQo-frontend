@@ -35,7 +35,7 @@ const AfricanCities: React.FC = () => {
     setSelectedCity(city);
   };
 
-  if (!africanCountries) return;
+  if (!africanCountries) return null;
 
   return (
     <div className={`${mainConfig.containerClass} p-4 lg:p-0`}>
@@ -101,22 +101,28 @@ const AfricanCities: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Section: Images */}
-          <div
-            className={`grid grid-cols-$
-              {selectedCity.content[0].image.length === 2 ? '2' : '1'} gap-4 items-center`}
-          >
-            {selectedCity.content[0].image.map((img: any) => (
-              <Image
+          {/* Right Section: Responsive Images */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {selectedCity.content[0].image.map((img: any, index: number) => (
+              // On mobile, only show the first image; on sm and above, show all images.
+              <div
                 key={img.id}
-                src={img.image_url}
-                alt={`City Image ${img.id}`}
-                width={500}
-                height={300}
-                className="rounded-lg shadow-md h-full max-h-[350px] object-cover w-full transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
-              />
+                className={`${
+                  index > 0 ? 'hidden sm:flex' : 'flex'
+                } items-center justify-center w-full h-64`}
+              >
+                <Image
+                  src={img.image_url}
+                  alt={`City Image ${img.id}`}
+                  width={500}
+                  height={500}
+                  className="rounded-lg shadow-md object-cover w-full h-full transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+                />
+              </div>
             ))}
           </div>
+
+          {/* Overlay Blob Image */}
           <div className="absolute top-12 lg:top-20 -z-40 right-0 max-w-[500px] max-h-[300px] lg:max-w-[630px] lg:max-h-[400px] flex items-center justify-center">
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/about_us_vector_3_p0mihk.png"

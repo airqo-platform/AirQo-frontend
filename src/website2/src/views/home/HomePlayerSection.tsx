@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { trackEvent } from '@/components/GoogleAnalytics';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
@@ -212,14 +213,15 @@ const HomePlayerSection: React.FC = () => {
     }
   }, [videoState.isModalOpen, videoState.isBackgroundVideoPlaying]);
 
-  const handleExploreData = useCallback(
-    () => router.push('/explore-data'),
-    [router],
-  );
-  const handleGetInvolved = useCallback(
-    () => dispatch(openModal()),
-    [dispatch],
-  );
+  const handleExploreData = useCallback(() => {
+    trackEvent('button_click', 'navigation', 'explore_data');
+    router.push('/explore-data');
+  }, [router]);
+
+  const handleGetInvolved = useCallback(() => {
+    trackEvent('button_click', 'engagement', 'get_involved');
+    dispatch(openModal());
+  }, [dispatch]);
 
   return (
     <div
