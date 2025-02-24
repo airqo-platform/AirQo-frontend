@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-docs
   pullPolicy: Always
-  tag: stage-24c8f6ba-1733852714
+  tag: stage-07e1532b-1740386563
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -28,7 +28,7 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
-nodeSelector: 
+nodeSelector:
   role: control-plane
 tolerations: []
 affinity:
@@ -36,10 +36,10 @@ affinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - preference:
           matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
+            - key: role
+              operator: In
+              values:
+                - control-plane
         weight: 1
 app:
   name: airqo-stage-docs
