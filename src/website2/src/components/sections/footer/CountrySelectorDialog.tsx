@@ -40,7 +40,7 @@ const CountrySelectorDialog: React.FC = () => {
   // Calculate total pages
   const totalPages = useMemo(
     () => Math.ceil(airqloudData.length / itemsPerPage),
-    [airqloudData.length, itemsPerPage],
+    [airqloudData.length],
   );
 
   // Cache for flags to avoid redundant fetches
@@ -54,9 +54,7 @@ const CountrySelectorDialog: React.FC = () => {
       }
       try {
         const response = await fetch(
-          `https://restcountries.com/v3.1/name/${encodeURIComponent(
-            countryName.replace('_', ' '),
-          )}`,
+          `https://restcountries.com/v3.1/name/${encodeURIComponent(countryName.replace('_', ' '))}`,
           { signal: abortSignal },
         );
         if (!response.ok) {
@@ -74,48 +72,36 @@ const CountrySelectorDialog: React.FC = () => {
     [flagCache],
   );
 
-  // Fetch airqloud summary using the proxy route
+  // Fetch airqloud summary using the proxy route or production service
   const fetchAirqloudSummary = useCallback(
     async (abortSignal: AbortSignal) => {
       try {
         let data;
-
         if (process.env.NODE_ENV === 'development') {
-          // Use proxy in development
           const response = await fetch(
             `/api/proxy?endpoint=devices/grids/summary`,
             {
               method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
+              headers: { 'Content-Type': 'application/json' },
               signal: abortSignal,
             },
           );
-
-          if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-          }
-
+          if (!response.ok) throw new Error(`Error: ${response.statusText}`);
           data = await response.json();
         } else {
-          // Use getGridsSummary in production
           data = await getGridsSummary();
         }
-
-        // Filter the data to only include grids where admin_level is "country"
+        // Filter data to only include grids where admin_level is "country"
         const countryLevelData: AirqloudCountry[] = data.grids.filter(
           (grid: any) => grid.admin_level === 'country',
         );
-
-        // Fetch flags dynamically based on long_name
+        // Dynamically fetch flags
         const countriesWithFlags = await Promise.all(
           countryLevelData.map(async (country: AirqloudCountry) => {
             const flag = await fetchFlag(country.long_name, abortSignal);
             return { ...country, flag };
           }),
         );
-
         setAirqloudData(countriesWithFlags);
       } catch (error) {
         if ((error as any).name !== 'AbortError') {
@@ -126,13 +112,25 @@ const CountrySelectorDialog: React.FC = () => {
     [fetchFlag],
   );
 
-  // Function to get the user's country based on their coordinates using a reverse geocoding API
+  // Helper: Wrap the geolocation API in a promise
+  const getCurrentPositionAsync = (
+    options: PositionOptions = {},
+  ): Promise<GeolocationPosition> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation not supported'));
+      } else {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      }
+    });
+  };
+
+  // Function to get the user's country based on coordinates using reverse geocoding
   const fetchUserCountry = useCallback(
-    async (latitude: number, longitude: number, abortSignal: AbortSignal) => {
+    async (latitude: number, longitude: number) => {
       try {
         const response = await fetch(
           `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${process.env.NEXT_PUBLIC_OPENCAGE_API_KEY}`,
-          { signal: abortSignal },
         );
         if (!response.ok) {
           throw new Error(
@@ -143,79 +141,68 @@ const CountrySelectorDialog: React.FC = () => {
         const country = data.results[0]?.components?.country || null;
         setUserCountry(country);
       } catch (error) {
-        if ((error as any).name !== 'AbortError') {
-          console.error('Error fetching user country:', error);
-        }
+        console.error('Error fetching user country:', error);
         setUserCountry(null);
       }
     },
     [],
   );
 
-  // Helper function to format long country names and remove underscores
+  // Helper to format and truncate long country names
   const formatCountryName = useCallback((name: string) => {
-    const cleanName = name.replace(/_/g, ' '); // Replace all underscores with spaces
-    return cleanName.length > 20 ? `${cleanName.slice(0, 20)}...` : cleanName; // Truncate long names
+    const cleanName = name.replace(/_/g, ' ');
+    return cleanName.length > 20 ? `${cleanName.slice(0, 20)}...` : cleanName;
   }, []);
 
-  // Effect to get the user's location when the component mounts
+  // Effect: Get the user's coordinates and fetch the corresponding country
   useEffect(() => {
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const position = await getCurrentPositionAsync({ timeout: 10000 });
+        if (isMounted) {
           const { latitude, longitude } = position.coords;
-          fetchUserCountry(latitude, longitude, signal);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
+          fetchUserCountry(latitude, longitude);
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+        if (isMounted) {
           setUserCountry(null);
-        },
-      );
-    }
-
+        }
+      }
+    })();
     return () => {
-      controller.abort();
+      isMounted = false;
     };
   }, [fetchUserCountry]);
 
-  // Effect to fetch the airqloud data
+  // Effect: Fetch airqloud data
   useEffect(() => {
     const controller = new AbortController();
     fetchAirqloudSummary(controller.signal);
-
     return () => {
       controller.abort();
     };
   }, [fetchAirqloudSummary]);
 
-  // Effect to set the default selected country once data has been loaded
+  // Effect: Set the default selected country once data is loaded
   useEffect(() => {
     if (airqloudData.length > 0) {
       let defaultCountry: AirqloudCountry | null = null;
-
-      // Check if the user's country is in the airqloudData
       if (userCountry) {
-        const foundCountry = airqloudData.find(
-          (country) =>
-            country.long_name.toLowerCase() === userCountry.toLowerCase(),
-        );
-        defaultCountry = foundCountry || null;
+        defaultCountry =
+          airqloudData.find(
+            (country) =>
+              country.long_name.toLowerCase() === userCountry.toLowerCase(),
+          ) || null;
       }
-
-      // If the user's country is not found, fall back to Uganda
       if (!defaultCountry) {
         defaultCountry =
           airqloudData.find(
             (country) => country.long_name.toLowerCase() === 'uganda',
           ) || null;
       }
-
-      // If Uganda is not found, fall back to the first country
       defaultCountry = defaultCountry || airqloudData[0];
-
       setSelectedCountryData(defaultCountry);
       dispatch(setSelectedCountry(defaultCountry));
     }
@@ -228,11 +215,11 @@ const CountrySelectorDialog: React.FC = () => {
     setIsOpen(false);
   }, [dispatch, selectedCountryData]);
 
-  // Pagination logic to show only the current page's countries
+  // Pagination logic for displaying countries on the current page
   const paginatedCountries = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return airqloudData.slice(startIndex, startIndex + itemsPerPage);
-  }, [airqloudData, currentPage, itemsPerPage]);
+  }, [airqloudData, currentPage]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -275,7 +262,7 @@ const CountrySelectorDialog: React.FC = () => {
             {airqloudData.length > 0 ? (
               <>
                 <h3 className="text-lg font-semibold">Selected Country</h3>
-                <div className="flex items-center space-x-2 ">
+                <div className="flex items-center space-x-2">
                   {selectedCountryData?.flag && (
                     <Image
                       src={selectedCountryData.flag}
@@ -313,7 +300,6 @@ const CountrySelectorDialog: React.FC = () => {
                           className="rounded-md"
                         />
                       )}
-                      {/* Tooltip for truncated country names */}
                       <span title={country.long_name}>
                         {formatCountryName(country.long_name)}
                       </span>
@@ -321,7 +307,6 @@ const CountrySelectorDialog: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Pagination component */}
                 {totalPages > 1 && (
                   <div className="mt-2">
                     <Pagination
@@ -333,7 +318,6 @@ const CountrySelectorDialog: React.FC = () => {
                 )}
               </>
             ) : (
-              // Friendly interface when no data is available
               <div className="flex flex-col items-center justify-center h-full">
                 <p className="text-lg text-gray-600">
                   No countries available at the moment.
