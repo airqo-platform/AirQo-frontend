@@ -8,7 +8,6 @@ export const useUserClients = () => {
   const dispatch = useDispatch();
   const userDetails = useAppSelector((state) => state.user.userDetails);
 
-
   const { data, isLoading, error } = useQuery({
     queryKey: ["clients", userDetails?._id],
     queryFn: () =>
