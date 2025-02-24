@@ -497,69 +497,69 @@ jobs:
             })
 
   ### deploy website preview ###
-  website:
-    name: build-push-website-deploy-preview
-    needs: [check]
-    if: needs.check.outputs.run_website == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  # website:
+  #   name: build-push-website-deploy-preview
+  #   needs: [check]
+  #   if: needs.check.outputs.run_website == 'true'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+  #     - name: Login to GCR
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: ${{ env.REGISTRY_URL }}
+  #         username: _json_key
+  #         password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
+  #     - name: Google login
+  #       uses: google-github-actions/auth@v1
+  #       with:
+  #         credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
-      - name: Setup Cloud SDK(gcloud)
-        uses: "google-github-actions/setup-gcloud@v1"
+  #     - name: Setup Cloud SDK(gcloud)
+  #       uses: "google-github-actions/setup-gcloud@v1"
 
-      - name: Create google_application_credentials.json file
-        id: create-google-application-credentials-file
-        uses: jsdaniell/create-json@v1.2.2
-        with:
-          name: "google_application_credentials.json"
-          json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "src/website/"
+  #     - name: Create google_application_credentials.json file
+  #       id: create-google-application-credentials-file
+  #       uses: jsdaniell/create-json@v1.2.2
+  #       with:
+  #         name: "google_application_credentials.json"
+  #         json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+  #         dir: "src/website/"
 
-      - name: Create app.yaml and .env.yaml files
-        run: |
-          cd src/website/
-          echo "========== Creating app.yaml file =========="          
-          echo "runtime: python" > app.yaml
-          echo "env: flex" >> app.yaml
-          echo "service: website-pr-previews" >> app.yaml
-          echo "includes:" >> app.yaml
-          echo "  - .env.yaml" >> app.yaml
-          echo "automatic_scaling:" >> app.yaml
-          echo "  cool_down_period_sec: 120" >> app.yaml
-          echo "  min_num_instances: 1" >> app.yaml
-          echo "  max_num_instances: 3" >> app.yaml
-          echo "  cpu_utilization:" >> app.yaml
-          echo "    target_utilization: 0.8" >> app.yaml
-          echo "runtime_config:" >> app.yaml
-          echo "  operating_system: \"ubuntu22\"" >> app.yaml
-          echo "  runtime_version: \"3.12\"" >> app.yaml
-          echo "========== Creating .env.yaml file =========="  
-          echo "env_variables:" > .env.yaml
-          echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
-          echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
-          echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
-          echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
-          echo "  DATABASE_URI: ${{ secrets.WEBSITE_DEV_DATABASE_URI }}" >> .env.yaml
-          echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_DEV_GS_BUCKET_NAME }}" >> .env.yaml
-          echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }}" >> .env.yaml
-          echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
-          echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
-          echo "  DEBUG: False" >> .env.yaml
-          echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+  #     - name: Create app.yaml and .env.yaml files
+  #       run: |
+  #         cd src/website/
+  #         echo "========== Creating app.yaml file =========="          
+  #         echo "runtime: python" > app.yaml
+  #         echo "env: flex" >> app.yaml
+  #         echo "service: website-pr-previews" >> app.yaml
+  #         echo "includes:" >> app.yaml
+  #         echo "  - .env.yaml" >> app.yaml
+  #         echo "automatic_scaling:" >> app.yaml
+  #         echo "  cool_down_period_sec: 120" >> app.yaml
+  #         echo "  min_num_instances: 1" >> app.yaml
+  #         echo "  max_num_instances: 3" >> app.yaml
+  #         echo "  cpu_utilization:" >> app.yaml
+  #         echo "    target_utilization: 0.8" >> app.yaml
+  #         echo "runtime_config:" >> app.yaml
+  #         echo "  operating_system: \"ubuntu22\"" >> app.yaml
+  #         echo "  runtime_version: \"3.12\"" >> app.yaml
+  #         echo "========== Creating .env.yaml file =========="  
+  #         echo "env_variables:" > .env.yaml
+  #         echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
+  #         echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
+  #         echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
+  #         echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
+  #         echo "  DATABASE_URI: ${{ secrets.WEBSITE_DEV_DATABASE_URI }}" >> .env.yaml
+  #         echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_DEV_GS_BUCKET_NAME }}" >> .env.yaml
+  #         echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }}" >> .env.yaml
+  #         echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
+  #         echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
+  #         echo "  DEBUG: False" >> .env.yaml
+  #         echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
 
       # - name: Build and Push Docker Image
       #   run: |
@@ -594,21 +594,21 @@ jobs:
       #         gcloud app versions delete "$version" --service=$service --quiet
       #       done
 
-  website-pr-comment:
-    name: website-preview-link-comment
-    if: needs.check.outputs.run_website == 'true'
-    needs: [website]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'New Website changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
-            })
+  # website-pr-comment:
+  #   name: website-preview-link-comment
+  #   if: needs.check.outputs.run_website == 'true'
+  #   needs: [website]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/github-script@v6
+  #       with:
+  #         script: |
+  #           github.rest.issues.createComment({
+  #             issue_number: context.issue.number,
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             body: 'New Website changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
+  #           })
 
   ### deploy website2 preview ###
   website2:
@@ -687,11 +687,36 @@ jobs:
       - name: Delete Old Versions
         run: |-
           service="website-pr-previews"
-            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-            for version in $versions; do
-              echo "Deleting version: $version for service: $service"
-              gcloud app versions delete "$version" --service=$service --quiet
-            done
+          versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+
+          for version in $versions; do
+              echo "Attempting to delete version: $version for service: $service"
+
+              attempt=1
+              max_attempts=3
+
+              while [ $attempt -le $max_attempts ]; do
+                  # Check for ongoing operations
+                  if gcloud app operations list --format="value(name)" --filter="status=RUNNING" | grep -q .; then
+                      echo "Another operation is still running. Waiting 30 seconds... (Attempt $attempt/$max_attempts)"
+                      sleep 30
+                      ((attempt++))
+                  else
+                      if gcloud app versions delete "$version" --service=$service --quiet; then
+                          echo "Successfully deleted version: $version"
+                          break
+                      else
+                          echo "Failed to delete version: $version. Retrying... ($attempt/$max_attempts)"
+                          sleep 10
+                          ((attempt++))
+                      fi
+                  fi
+              done
+
+              if [ $attempt -gt $max_attempts ]; then
+                  echo "Skipping version: $version after $max_attempts failed attempts."
+              fi
+          done
 
   website2-pr-comment:
     name: website2-preview-link-comment
