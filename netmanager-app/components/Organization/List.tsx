@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Loader2, ArrowUpDown, Eye, Power } from "lucide-react";
+import { Search, Loader2, ArrowUpDown, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,13 +31,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreateOrganizationDialog } from "./Create-group";
+import { CreateOrganizationDialog } from "./create-group";
 
 const ITEMS_PER_PAGE = 8;
 
 type SortField =
   | "grp_title"
-  | "grp_status"
+  | "grp_industry"
   | "numberOfGroupUsers"
   | "createdAt";
 type SortOrder = "asc" | "desc";
@@ -75,9 +75,13 @@ export function OrganizationList() {
       let compareA = a[sortField];
       let compareB = b[sortField];
 
+      if (!compareA || !compareB) {
+        return sortOrder === "asc" ? -1 : 1;
+      }
+
       if (typeof compareA === "string") {
-        compareA = compareA.toLowerCase();
-        compareB = compareB.toLowerCase();
+        compareA = formatTitle(compareA).toLowerCase();
+        compareB = formatTitle(compareB).toLowerCase();
       }
 
       if (compareA < compareB) return sortOrder === "asc" ? -1 : 1;
@@ -183,9 +187,10 @@ export function OrganizationList() {
               Name{" "}
               {sortField === "grp_title" && (sortOrder === "asc" ? "↑" : "↓")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort("grp_status")}>
-              Status{" "}
-              {sortField === "grp_status" && (sortOrder === "asc" ? "↑" : "↓")}
+            <DropdownMenuItem onClick={() => handleSort("grp_industry")}>
+              Industry{" "}
+              {sortField === "grp_industry" &&
+                (sortOrder === "asc" ? "↑" : "↓")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort("numberOfGroupUsers")}>
               Users{" "}
@@ -209,10 +214,10 @@ export function OrganizationList() {
               </TableHead>
               <TableHead
                 className="w-[20%] cursor-pointer"
-                onClick={() => handleSort("grp_status")}
+                onClick={() => handleSort("grp_industry")}
               >
-                Status{" "}
-                {sortField === "grp_status" &&
+                Industry{" "}
+                {sortField === "grp_industry" &&
                   (sortOrder === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead
@@ -233,14 +238,8 @@ export function OrganizationList() {
                   {formatTitle(org.grp_title)}
                 </TableCell>
                 <TableCell>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      org.grp_status === "ACTIVE"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {org.grp_status === "ACTIVE" ? "Active" : "Inactive"}
+                  <span className="inline-flex items-center font-medium capitalize">
+                    {org.grp_industry ? org.grp_industry : "Not provided"}
                   </span>
                 </TableCell>
                 <TableCell>{org.numberOfGroupUsers}</TableCell>

@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeftIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { RouteGuard } from "@/components/route-guard";
 
 const LoadingFallback = () => (
   <div className="space-y-4">
@@ -34,35 +35,37 @@ const OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
 
   return (
-    <div className="container mx-auto">
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        className="flex items-center space-x-2 mb-6"
-        onClick={() => router.push("/organizations")}
-      >
-        <ArrowLeftIcon className="h-4 w-4" />
-        <span>Back to Organizations</span>
-      </Button>
-      {/* Organization Details */}
-      <h1 className="text-3xl font-bold mb-6">Organization Details</h1>
-      <Tabs defaultValue="profile">
-        <TabsList className="grid grid-cols-3">
-          <TabsTrigger value="profile">Organization Profile</TabsTrigger>
-          <TabsTrigger value="members">Team Members</TabsTrigger>
-          <TabsTrigger value="roles">Organization Roles</TabsTrigger>
-        </TabsList>
-        <TabContent value="profile">
-          <OrganizationProfile organizationId={params.id} />
-        </TabContent>
-        <TabContent value="members">
-          <TeamMembers organizationId={params.id} />
-        </TabContent>
-        <TabContent value="roles">
-          <OrganizationRoles organizationId={params.id} />
-        </TabContent>
-      </Tabs>
-    </div>
+    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+      <div className="container mx-auto">
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          className="flex items-center space-x-2 mb-6"
+          onClick={() => router.push("/organizations")}
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to Organizations</span>
+        </Button>
+        {/* Organization Details */}
+        <h1 className="text-3xl font-bold mb-6">Organization Details</h1>
+        <Tabs defaultValue="profile">
+          <TabsList className="grid grid-cols-3">
+            <TabsTrigger value="profile">Organization Profile</TabsTrigger>
+            <TabsTrigger value="members">Team Members</TabsTrigger>
+            <TabsTrigger value="roles">Organization Roles</TabsTrigger>
+          </TabsList>
+          <TabContent value="profile">
+            <OrganizationProfile organizationId={params.id} />
+          </TabContent>
+          <TabContent value="members">
+            <TeamMembers organizationId={params.id} />
+          </TabContent>
+          <TabContent value="roles">
+            <OrganizationRoles organizationId={params.id} />
+          </TabContent>
+        </Tabs>
+      </div>
+    </RouteGuard>
   );
 };
 
