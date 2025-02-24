@@ -25,6 +25,8 @@ export default function GoogleAnalytics({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  console.info('gta', measurementId);
+
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
