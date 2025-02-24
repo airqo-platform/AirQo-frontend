@@ -16,16 +16,35 @@ This repo contains the frontend code for the AirQo platform. This includes the c
 
 The AirQo project aims to measure and quantify the scale of air pollution throughout Africa through the design, development and deployment of a network of low-cost air quality sensing devices mounted on either static or mobile objects.
 
-## File Organization.
+## Folder Organization.
+This is a monorepo with all the frontend applications located under the src folder. Outside the src folder are infrastructure related files and other artifacts necessary for collaborative development and deployment.
 
-This repo is made up of six (6) product sub directories:
-
-- [Analytics Platform](src/platform/)
-- [Calibrate](src//calibrate/)
-- [Docs](src/docs/)
-- [Mobile app](src/mobile/)
-- [Netmanager](src/netmanager/)
-- [Website](src/website/)
+```
+.
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── k8s
+│   ├── calibrate
+│   ├── docs
+│   ├── inventory
+│   ├── netmanager
+│   ├── platform
+│   └── reports
+└── src
+    ├── Maintenance
+    ├── calibrate
+    ├── docs
+    ├── inventory
+    ├── mobile
+    ├── mobile-v3
+    ├── netmanager
+    ├── netmanager-app
+    ├── platform
+    ├── reports
+    ├── website
+    └── website2
+```
 
 ## Contributing
 
