@@ -22,6 +22,7 @@ import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 import TabNavigation from '@/views/cleanairforum/TabNavigation';
 
+import { trackEvent } from '../GoogleAnalytics';
 import NotificationBanner from './NotificationBanner';
 
 // Type definitions
@@ -271,6 +272,7 @@ const Navbar: React.FC = () => {
               ))}
               <CustomButton
                 onClick={() => {
+                  trackEvent('button_click', 'engagement', 'get_involved');
                   dispatch(openModal());
                   handleLinkClick();
                 }}
@@ -280,6 +282,7 @@ const Navbar: React.FC = () => {
               </CustomButton>
               <CustomButton
                 onClick={() => {
+                  trackEvent('button_click', 'navigation', 'explore_data');
                   router.push('/explore-data');
                   handleLinkClick();
                 }}
