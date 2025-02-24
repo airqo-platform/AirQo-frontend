@@ -57,27 +57,27 @@ jobs:
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == netmanager/* ]]; then
+            if [[ $file == src/netmanager/* ]]; then
               echo "remove_netmanager_preview=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == calibrate/* ]]; then
+            if [[ $file == src/calibrate/* ]]; then
               echo "remove_calibrate_app_preview=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == platform/* ]]; then
+            if [[ $file == src/platform/* ]]; then
               echo "remove_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == docs/* ]]; then
+            if [[ $file == src/docs/* ]]; then
               echo "remove_docs=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == inventory/* ]]; then
+            if [[ $file == src/inventory/* ]]; then
               echo "remove_inventory=true" >>$GITHUB_OUTPUT
             fi 
             
-            if [[ $file == reports/* ]]; then
+            if [[ $file == src/reports/* ]]; then
               echo "remove_reports=true" >>$GITHUB_OUTPUT
             fi
 

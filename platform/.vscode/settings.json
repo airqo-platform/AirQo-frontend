@@ -1,9 +1,0 @@
-{
-  "scss.lint.unknownAtRules": "ignore",
-  "svg.preview.background": "editor",
-  "githubPullRequests.ignoredPullRequestBranches": ["staging"],
-
-  "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
-}
