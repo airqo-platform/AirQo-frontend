@@ -4,6 +4,7 @@ import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
+import { GetAirQuoData,FetchSuggestions,UserClick } from '@/api/MapData';
 import { IconButton } from './components/IconButton'
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
@@ -39,12 +40,12 @@ const NetManagerMap = () => {
         }
 
        
-        const refreshMap = useRefreshMap(
-                setToastMessage,
-                mapRef,
-                dispatch,
-                selectedNode,
-              );
+        // const refreshMap = useRefreshMap(
+        //         setToastMessage,
+        //         mapRef,
+        //         dispatch,
+        //         selectedNode,
+        //       );
         //Get the Session Token for the User
        useEffect(() => {
         if (typeof window !== "undefined") { 
@@ -65,11 +66,11 @@ const NetManagerMap = () => {
 
       mapRef.current.on('load', async () => {
         if (mapRef.current) {
-                // mapRef.current.setTerrain(null)
+
                 try {
-                        const response = await fetch(`https://staging-analytics.airqo.net/api/v2/devices/readings/map?token=${AirQoToken}`);
-                        const jsonData = await response.json();
-                        const geojsonData = ConvertToGeojson(jsonData);
+                        const Data = await GetAirQuoData(AirQoToken?AirQoToken:"")
+                        console.log(Data)
+                        const geojsonData = ConvertToGeojson(Data);
                         console.log('GeoJson Data : ',geojsonData)
 
                         mapRef.current.addSource('data', {
@@ -194,22 +195,18 @@ const NetManagerMap = () => {
       return;
     }
     const GetSuggestions=(latitude?: number, longitude?: number)=>{
-        
-        
-  if (latitude !== undefined && longitude !== undefined) {
-        const proximityParam = `${longitude},${latitude}`;
-        fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${value.toLowerCase()}&access_token=${token}&proximity=${proximityParam}&session_token=${sessionToken}`)
-        .then(response => response.json())
-        
-        .then(data => {
-                console.log("data :",data.suggestions)
-                if (data.suggestions) {
-                        setSuggestions(data.suggestions);
-                      }
-                console.log("Number of Suggesstions", suggestions.length)
-                })
-                .catch(error => console.error("Error fetching suggestions:", error));
-      }
+
+        FetchSuggestions(value,token?token:"",sessionToken?sessionToken:"",latitude,longitude)
+          .then(data => {
+            if (data) {
+              console.log(data)
+              setSuggestions(data);
+            }
+            console.log("Number of Suggesstions", suggestions.length)
+          })
+          .catch(error => {
+            console.error("Error fetching suggestions:", error);
+          });
     }
     const fetchUserLocation = () => {
         if (navigator.geolocation) {
@@ -234,8 +231,7 @@ const NetManagerMap = () => {
   }
   //Retrieving The Location Clicked By The User
   const handleLocationClick = (locationid: any) => {
-        fetch(`https://api.mapbox.com/search/searchbox/v1/retrieve/${locationid}?&access_token=${token}&session_token=${sessionToken}`)
-        .then(response => response.json())
+        UserClick(token?token:"",sessionToken?sessionToken:"",locationid)
         .then(data => {
                 console.log(data.features[0].geometry.coordinates)
                 if (mapRef.current) {
@@ -276,7 +272,7 @@ const NetManagerMap = () => {
                         </div>
 
                         <div className='flex w-full '>
-                        { suggestions? (suggestions.length > 0 && (
+                        { suggestions.length > 0? (
                                 
                         <div
                         id="search-suggestions"
@@ -293,9 +289,9 @@ const NetManagerMap = () => {
                         </div>
                         ))}
                         </div>
-                )):(
+                ):(
                         <div  className="bg-white w-full border border-gray-300 mt-1 rounded-md shadow-md max-h-40 overflow-y-auto p-2 hover:bg-gray-200 cursor-pointer">
-                                Loading Suggestions...
+                                Type to see Suggestions...
                         </div>
                 )}
                         </div>
@@ -320,13 +316,13 @@ const NetManagerMap = () => {
          />
         
           <IconButton
-          onClick={refreshMap}
+          onClick={() => setIsOpen(true)}
           title='Refresh Map'
           icon={<RefreshIcon width={24} height={24} fill={""} />}
           />
           
           <IconButton
-          onClick={shareLocation}
+          onClick={() => setIsOpen(true)}
           title='Refresh Map'
           icon={<ShareIcon width={24} height={24} fill={""} />}
           />
