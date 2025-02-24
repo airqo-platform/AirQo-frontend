@@ -1,96 +1,94 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
+import Script from 'next/script';
 import { useEffect } from 'react';
 
 declare global {
   interface Window {
-    gtag: (
-      option: string,
-      gaTrackingId: string,
-      options: Record<string, unknown>,
-    ) => void;
-    dataLayer: Record<string, unknown>[];
+    dataLayer?: Record<string, any>[];
+    gtag?: (...args: any[]) => void;
   }
 }
 
 interface GoogleAnalyticsProps {
-  measurementId: string;
+  measurementId?: string;
 }
 
-// Validate measurement ID format
-const isValidMeasurementId = (id: string): boolean => {
-  return /^G-[A-Z0-9]+$/.test(id);
-};
-
-export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
+/**
+ * Single component to initialize Google Analytics and
+ * track page views on route changes using the Next.js App Router.
+ */
+export default function GoogleAnalytics({
+  measurementId,
+}: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!measurementId || !isValidMeasurementId(measurementId)) return;
+    if (
+      typeof window === 'undefined' ||
+      !measurementId ||
+      typeof window.gtag === 'undefined'
+    ) {
+      return;
+    }
 
-    const url = pathname + searchParams.toString();
+    // Construct page path with query strings (if any)
+    const pagePath = searchParams.toString()
+      ? `${pathname}?${searchParams.toString()}`
+      : pathname;
 
-    window.gtag?.('config', measurementId, {
-      page_path: url,
+    window.gtag('config', measurementId, {
+      page_path: pagePath,
     });
-  }, [pathname, searchParams, measurementId]);
+  }, [measurementId, pathname, searchParams]);
 
-  if (!measurementId || !isValidMeasurementId(measurementId)) {
-    console.warn('Invalid or missing Google Analytics Measurement ID');
+  if (!measurementId) {
+    // If you don't provide a measurement ID, no GA scripts will load
     return null;
   }
 
   return (
     <>
-      <script
-        async
+      {/* Load the gtag script AFTER the page is interactive */}
+      <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+        strategy="afterInteractive"
       />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${measurementId}', {
-              page_path: window.location.pathname,
-            });
-          `,
-        }}
-      />
+      <Script id="ga-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){ dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', '${measurementId}', {
+            page_path: window.location.pathname,
+          });
+        `}
+      </Script>
     </>
   );
 }
 
-// Safe event tracking utility with input validation
-export const trackEvent = (
-  action: string,
-  category: string,
-  label: string,
-  value?: number,
-) => {
-  // Validate inputs
-  if (!action || typeof action !== 'string') return;
-  if (!category || typeof category !== 'string') return;
-  if (!label || typeof label !== 'string') return;
-  if (value !== undefined && typeof value !== 'number') return;
-
-  // Sanitize inputs
-  const sanitizedAction = action.slice(0, 100);
-  const sanitizedCategory = category.slice(0, 100);
-  const sanitizedLabel = label.slice(0, 100);
-
-  if (typeof window.gtag !== 'undefined') {
-    try {
-      window.gtag('event', sanitizedAction, {
-        event_category: sanitizedCategory,
-        event_label: sanitizedLabel,
-        value: value,
-      });
-    } catch (error) {
-      console.error('Error tracking event:', error);
-    }
+/**
+ * Example helper function to track custom GA events.
+ */
+export function trackEvent({
+  action,
+  category,
+  label,
+  value,
+}: {
+  action: string;
+  category: string;
+  label: string;
+  value?: number;
+}) {
+  if (typeof window !== 'undefined' && typeof window.gtag !== 'undefined') {
+    window.gtag('event', action, {
+      event_category: category,
+      event_label: label,
+      value,
+    });
   }
-};
+}

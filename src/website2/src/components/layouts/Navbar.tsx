@@ -272,7 +272,11 @@ const Navbar: React.FC = () => {
               ))}
               <CustomButton
                 onClick={() => {
-                  trackEvent('button_click', 'engagement', 'get_involved');
+                  trackEvent({
+                    action: 'button_click',
+                    category: 'engagement',
+                    label: 'get_involved',
+                  });
                   dispatch(openModal());
                   handleLinkClick();
                 }}
@@ -282,7 +286,11 @@ const Navbar: React.FC = () => {
               </CustomButton>
               <CustomButton
                 onClick={() => {
-                  trackEvent('button_click', 'navigation', 'explore_data');
+                  trackEvent({
+                    action: 'button_click',
+                    category: 'navigation',
+                    label: 'explore_data',
+                  });
                   router.push('/explore-data');
                   handleLinkClick();
                 }}

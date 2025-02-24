@@ -14,7 +14,11 @@ const CLEAN_AIR_NETWORK_ROUTE = '/clean-air-network';
 
 const NotificationBanner: React.FC = () => {
   const handleNetworkClick = (version: 'desktop' | 'mobile') => {
-    trackEvent('link_click', 'navigation', `clean_air_network_${version}`);
+    trackEvent({
+      action: 'link_click',
+      category: 'navigation',
+      label: `clean_air_network_${version}`,
+    });
   };
 
   return (
