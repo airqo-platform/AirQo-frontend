@@ -39,7 +39,8 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const maintenance = await checkMaintenance();
-  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+  const GA_MEASUREMENT_ID =
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
 
   return (
     <html lang="en" className={interFont.variable}>
@@ -47,6 +48,9 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>
+              {/* Initialize & Track Google Analytics only on the client */}
+              <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
+
               {maintenance.isActive ? (
                 <MaintenancePage message={maintenance.message} />
               ) : (
@@ -58,11 +62,6 @@ export default async function RootLayout({
             </Suspense>
           </ReduxDataProvider>
         </ErrorBoundary>
-
-        {/* Initialize & Track Google Analytics only on the client */}
-        {GA_MEASUREMENT_ID && (
-          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
-        )}
       </body>
     </html>
   );
