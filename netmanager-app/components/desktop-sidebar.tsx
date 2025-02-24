@@ -337,7 +337,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                           isActive("/devices/overview") && !isDevicesOpen
                             ? "bg-accent text-accent-foreground"
                             : ""
-                        }`}
+                        } ${isSidebarCollapsed ? "justify-center" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <Radio size={18} />
@@ -443,7 +443,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-destructive hover:text-destructive "
+                className={`w-full justify-start text-destructive hover:text-destructive ${
+                  isSidebarCollapsed ? "justify-center" : ""
+                }`}
                 onClick={logout}
               >
                 <LogOut size={18} />
