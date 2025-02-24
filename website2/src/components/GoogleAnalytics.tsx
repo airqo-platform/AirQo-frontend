@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import Script from 'next/script';
 import { useEffect } from 'react';
 
 declare global {
@@ -45,29 +44,22 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
 
   return (
     <>
-      <Script
+      <script
+        async
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
-        strategy="afterInteractive"
-        onError={(e) => {
-          console.error('Error loading Google Analytics:', e);
+      />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${measurementId}', {
+              page_path: window.location.pathname,
+            });
+          `,
         }}
       />
-      <Script
-        id="google-analytics"
-        strategy="afterInteractive"
-        onError={(e) => {
-          console.error('Error initializing Google Analytics:', e);
-        }}
-      >
-        {`
-          window.dataLayer = window.dataLayer || [];
-          window.gtag = function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${measurementId}', {
-            page_path: window.location.pathname,
-          });
-        `}
-      </Script>
     </>
   );
 }
