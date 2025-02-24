@@ -1,7 +1,7 @@
 'use client';
 import { motion, useAnimation } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
+import { Link } from '@/navigation';
 import { openModal } from '@/store/slices/modalSlice';
 import TabNavigation from '@/views/cleanairforum/TabNavigation';
 

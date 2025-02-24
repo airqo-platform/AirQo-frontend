@@ -1,0 +1,24 @@
+{
+    "home": {
+      "title": "Accueil | AirQo",
+      "description": "Explorez les données et les outils de surveillance de la qualité de l'air par AirQo.",
+      "keywords": "qualité de l'air, pollution, surveillance, AirQo, environnement",
+      "highResolutionTitle": "Réseau de surveillance de la qualité de l'air à haute résolution",
+      "airQualityMonitor": "Moniteur de qualité de l'air",
+      "monitorDescription": "Nous déployons un réseau de surveillance de la qualité de l'air à haute résolution dans les zones urbaines cibles à travers l'Afrique pour accroître la sensibilisation et la compréhension de la gestion de la qualité de l'air, fournir des informations exploitables et dériver des actions contre la pollution de l'air.",
+      "learnMore": "En savoir plus",
+      "analyticsTitle": "Une plateforme interactive d'analyse de la qualité de l'air",
+      "airQualityAnalytics": "Analyses de la qualité de l'air",
+      "analyticsDescription": "Accédez et visualisez des informations en temps réel et historiques sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser.",
+      "apiTitle": "Amplifiez l'impact sur la qualité de l'air grâce à notre API",
+      "airQualityAPI": "API de qualité de l'air",
+      "apiDescription": "Vous êtes développeur ? Nous vous invitons à exploiter nos données ouvertes sur la qualité de l'air dans votre application",
+      "getStartedHere": "Commencez ici",
+      "mapTitle": "Informations en direct sur la qualité de l'air en Afrique",
+      "airQualityMap": "Carte de la qualité de l'air",
+      "mapDescription": "Visualisez les informations horaires sur la qualité de l'air en un seul clic, sur notre réseau croissant dans les villes africaines",
+      "viewMore": "Voir plus",
+      "downloadApp": "Téléchargez l'application",
+      "appDescription": "Découvrez la qualité de l'air que vous respirez"
+    }
+  }
