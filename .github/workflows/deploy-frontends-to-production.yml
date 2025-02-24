@@ -324,11 +324,36 @@ jobs:
       - name: Delete Old Versions
         run: |-
           service="default"
-            versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-            for version in $versions; do
-              echo "Deleting version: $version for service: $service"
-              gcloud app versions delete "$version" --service=$service --quiet
-            done            
+          versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+
+          for version in $versions; do
+              echo "Attempting to delete version: $version for service: $service"
+
+              attempt=1
+              max_attempts=3
+
+              while [ $attempt -le $max_attempts ]; do
+                  # Check for ongoing operations
+                  if gcloud app operations list --format="value(name)" --filter="status=RUNNING" | grep -q .; then
+                      echo "Another operation is still running. Waiting 30 seconds... (Attempt $attempt/$max_attempts)"
+                      sleep 30
+                      ((attempt++))
+                  else
+                      if gcloud app versions delete "$version" --service=$service --quiet; then
+                          echo "Successfully deleted version: $version"
+                          break
+                      else
+                          echo "Failed to delete version: $version. Retrying... ($attempt/$max_attempts)"
+                          sleep 10
+                          ((attempt++))
+                      fi
+                  fi
+              done
+
+              if [ $attempt -gt $max_attempts ]; then
+                  echo "Skipping version: $version after $max_attempts failed attempts."
+              fi
+          done
 
   ### build and push calibrate app image ###
   calibrate-app:
