@@ -10,6 +10,7 @@ import {
 } from '@/lib/store/services/account/LoginSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { getUserDetails } from '@/core/apis/Account';
+import Spinner from '../../common/components/Spinner';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -19,6 +20,9 @@ export default function withAuth(Component) {
     const dispatch = useDispatch();
     const router = useRouter();
     const userCredentials = useSelector((state) => state.login);
+    const [isRedirecting, setIsRedirecting] = React.useState(
+      router.query.success === 'google',
+    );
 
     const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
       try {
@@ -58,8 +62,6 @@ export default function withAuth(Component) {
 
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        const storedUserGroup = localStorage.getItem('activeGroup');
-
         // Handle Google redirect first
         if (router.query.success === 'google') {
           const token = Cookies.get('access_token');
@@ -70,11 +72,17 @@ export default function withAuth(Component) {
               .then((response) => setupUserSession(response.users[0]))
               .catch((error) => {
                 console.error('Google auth error:', error);
+                setIsRedirecting(false);
                 router.push('/account/login');
               });
+          } else {
+            setIsRedirecting(false);
+            router.push('/account/login');
           }
+          return; // Exit early to prevent further checks until redirect is resolved
         }
 
+        const storedUserGroup = localStorage.getItem('activeGroup');
         if (!userCredentials.success) {
           router.push('/account/login');
         }
@@ -83,7 +91,12 @@ export default function withAuth(Component) {
           LogoutUser(dispatch, router);
         }
       }
-    }, [userCredentials, dispatch, router, retryWithDelay]);
+    }, [userCredentials, dispatch, router, retryWithDelay, isRedirecting]);
+
+    // Block rendering until redirect is handled
+    if (isRedirecting) {
+      return <Spinner width={20} height={20} />;
+    }
 
     // Render the component if the user is authenticated
     return userCredentials.success ? <Component {...props} /> : null;
