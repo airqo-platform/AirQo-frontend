@@ -45,12 +45,9 @@ export default async function RootLayout({
   params: { locale },
 }: Props) {
   const maintenance = await checkMaintenance();
-<<<<<<<< HEAD:src/website2/src/app/[locale]/layout.tsx
   const messages = await getMessages();
-========
   const GA_MEASUREMENT_ID =
     process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
->>>>>>>> f7a7ee4f1ba54f96646538966050053981e5657b:src/website2/src/app/layout.tsx
 
   return (
     <html lang={locale} className={interFont.variable}>
