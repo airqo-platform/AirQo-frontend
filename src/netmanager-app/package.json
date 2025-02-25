@@ -55,6 +55,7 @@
     "react-redux": "^9.2.0",
     "react-select-country-list": "^2.2.3",
     "react-timezone-select": "^3.2.8",
+    "react-zxing": "^2.1.0",
     "recharts": "^2.15.0",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.6.0",

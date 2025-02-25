@@ -29,6 +29,7 @@ import {
   StepTitle,
 } from "@/components/ui/stepper";
 import { useToast } from "@/components/ui/use-toast";
+import QRScanner from "@/components/devices/qrcode";
 
 interface MountTypeOption {
   value: string;
@@ -57,6 +58,7 @@ interface DeviceDetailsStepProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: string) => (value: string) => void;
   onCheckboxChange: (checked: boolean) => void;
+  onScanQRCode: () => void;
 }
 
 interface LocationStepProps {
@@ -87,11 +89,12 @@ const DeviceDetailsStep = ({
   onInputChange,
   onSelectChange,
   onCheckboxChange,
+  onScanQRCode
 }: DeviceDetailsStepProps) => {
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <Button className="w-full">
+        <Button className="w-full" onClick={onScanQRCode}>
           <QrCode className="mr-2 h-4 w-4" />
           Scan QR Code
         </Button>
@@ -299,6 +302,7 @@ const DeployDevicePage = () => {
     siteName: "",
     network: "Network A", // This comes from Redux state
   });
+  const [isQRScannerOpen, setIsQRScannerOpen] = React.useState<boolean>(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -351,6 +355,34 @@ const DeployDevicePage = () => {
 
   const validateLocation = (): boolean => {
     return Boolean(deviceData.latitude && deviceData.longitude);
+  };
+
+  const handleScanQRCode = (): void => {
+    setIsQRScannerOpen(true);
+  };
+
+  const handleQRResult = (result: string): void => {
+    try {
+      // Assuming QR code contains JSON with device data
+      const scannedData = JSON.parse(result);
+      toast({
+        title: "QR Code Scanned",
+        description: "Device information has been loaded.",
+      });
+      
+      // Merge scanned data with existing state
+      setDeviceData(prev => ({
+        ...prev,
+        ...scannedData
+      }));
+    } catch (error) {
+      toast({
+        title: "Invalid QR Code",
+        description: "The scanned QR code doesn't contain valid device data.",
+        variant: "destructive",
+      });
+      console.error("QR parsing error:", error);
+    }
   };
 
   const handleDeploy = (): void => {
@@ -410,6 +442,7 @@ const DeployDevicePage = () => {
               onInputChange={handleInputChange}
               onSelectChange={handleSelectChange}
               onCheckboxChange={handleCheckboxChange}
+              onScanQRCode={handleScanQRCode}
             />
           )}
           {currentStep === 1 && (
@@ -445,6 +478,13 @@ const DeployDevicePage = () => {
           )}
         </CardFooter>
       </Card>
+
+      {/* QR Code Scanner Dialog */}
+      <QRScanner 
+        onResult={handleQRResult}
+        isOpen={isQRScannerOpen}
+        onClose={() => setIsQRScannerOpen(false)}
+      />
     </div>
   );
 };
