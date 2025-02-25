@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 ## Getting Started.
 
 First, run the development server:
@@ -222,4 +219,3 @@ The simplest way to deploy the website is via the [Vercel Platform](https://verc
 Thank you for your interest in contributing to our website. Your support and contributions are vital to the ongoing success and improvement of the project!
 
 ---
->>>>>>> f7a7ee4f1ba54f96646538966050053981e5657b
