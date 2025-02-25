@@ -4,13 +4,13 @@ import { Input } from '../ui/input'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
-import { GetAirQuoData,FetchSuggestions,UserClick,token,AirQoToken } from '@/core/apis/MapData';
+import { GetAirQuoData,FetchSuggestions,UserClick,token,AirQoToken,mapStyles, mapDetails } from '@/core/apis/MapData';
 import { IconButton } from './components/IconButton'
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
 import ShareIcon from "@/public/icons/map/ShareIcon";
 import LayerModel from './components/LayerModal';
-import {mapStyles, mapDetails} from './data/constants'
+import { LoaderCircle } from 'lucide-react';
 
 
 const NetManagerMap = () => {
@@ -22,10 +22,10 @@ const NetManagerMap = () => {
         const [suggestions, setSuggestions] = useState<any[]>([]);
         const [sessionToken, setSessionToken] = useState<string | null>(null);
         const [isOpen, setIsOpen] = useState(false);
+        const [loading,setLoading] = useState(true)
+        const [airdata,setAirdata] = useState(false)
         const [NodeType, setNodeType] = useState('Emoji');
-        const [mapStyle, setMapStyle] = useState(
-          'mapbox://styles/mapbox/streets-v11',
-        );
+        const [mapStyle, setMapStyle] = useState(mapStyles[0].url);
 
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
@@ -59,9 +59,10 @@ const NetManagerMap = () => {
                  }
         mapboxgl.accessToken = token;
     if (mapContainerRef.current) {
+        setLoading(false)
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style:'mapbox://styles/mapbox/streets-v11',
+        style:mapStyle,
         center: [18.5, 3], 
         zoom: 3
       });
@@ -74,6 +75,7 @@ const NetManagerMap = () => {
                             throw new Error('Token is missing');
                         }
                         const Data = await GetAirQuoData(AirQoToken);
+                        setAirdata(true)
                         const geojsonData = ConvertToGeojson(Data);
                         console.log('GeoJson Data : ',geojsonData)
 
@@ -181,7 +183,7 @@ const NetManagerMap = () => {
                     }
                   });
                 }
-              }, []);
+              }, [token]);
 
   const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
         const value = e.target.value;
@@ -253,7 +255,7 @@ const NetManagerMap = () => {
 
   }
 
-
+ 
   return (
         <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 
 
@@ -307,14 +309,16 @@ const NetManagerMap = () => {
 
        </div>
       
-        <div className=" flex flex-grow   md:ml-[1%] ">
-                { mapContainerRef ?(
-                <div ref={mapContainerRef} className="rounded-lg map-container w-full   md:h-full"/>
-        ):(
-                <div className='text-black'>Loading...</div>
-        )
-          }
-          <div className="absolute top-24 right-10 z-40 flex flex-col gap-4">
+       { loading ||!airdata &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
+          <div
+            className={`bg-white w-[64px] h-[64px] flex justify-center items-center rounded-md shadow-md p-3`}
+          >
+            <LoaderCircle className='animate-spin text-blue-600' width={32} height={32} />
+          </div>
+        </div>)}
+       <div ref={mapContainerRef} className=" flex flex-grow   md:ml-[1%] rounded-lg container  w-full  md:h-full"/>
+
+        <div className="absolute top-24 right-10 z-40 flex flex-col gap-4">
             
          <IconButton
          onClick={() => setIsOpen(true)}
@@ -334,8 +338,8 @@ const NetManagerMap = () => {
           icon={<ShareIcon width={24} height={24} fill={""} />}
           />
         </div>
-
-        </div>
+        
+        <div className='flex border border-2' >
         <LayerModel
          isOpen={isOpen}
          onClose={() => setIsOpen(false)}
@@ -345,6 +349,7 @@ const NetManagerMap = () => {
          onMapDetailsSelect={setNodeType}
          onStyleSelect={(style) => setMapStyle(style.url)}
         />
+        </div>
         
       </div>
   )
