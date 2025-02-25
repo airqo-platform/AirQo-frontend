@@ -17,6 +17,18 @@ import {
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import CustomModal from '@/components/Modal/videoModals/CustomModal';
 import StepProgress from '@/components/steppers/CircularStepper';
+import Cookies from 'js-cookie';
+import jwt_decode from 'jwt-decode';
+import { useRouter } from 'next/router';
+import {
+  setUserInfo,
+  setSuccess,
+} from '@/lib/store/services/account/LoginSlice';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { getUserDetails } from '@/core/apis/Account';
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 // Video URL constant
 const ANALYTICS_VIDEO_URL =
@@ -60,6 +72,7 @@ const createSteps = (handleModal, handleCardClick) => [
 
 const Home = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   // Selectors
   const checkListData = useSelector((state) => state.checklists.checklist);
@@ -67,6 +80,8 @@ const Home = () => {
   const checkListStatus = useSelector((state) => state.checklists.status);
 
   // State hooks
+  const [loading, setLoading] = useState(false);
+
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const totalSteps = 4;
@@ -84,6 +99,82 @@ const Home = () => {
     }
     return null;
   }, []);
+
+  const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retries > 0 && error.response?.status === 429) {
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+        return retryWithDelay(fn, retries - 1);
+      }
+      throw error;
+    }
+  };
+
+  // Refactored session setup logic for reuse
+  const setupUserSession = async (user) => {
+    if (!user.groups[0]?.grp_title) {
+      throw new Error(
+        'Server error. Contact support to add you to the AirQo Organisation',
+      );
+    }
+
+    localStorage.setItem('loggedUser', JSON.stringify(user));
+
+    const preferencesResponse = await retryWithDelay(() =>
+      dispatch(getIndividualUserPreferences({ identifier: user._id })),
+    );
+    if (preferencesResponse.payload.success) {
+      const preferences = preferencesResponse.payload.preferences;
+      const activeGroup = preferences[0]?.group_id
+        ? user.groups.find((group) => group._id === preferences[0].group_id)
+        : user.groups.find((group) => group.grp_title === 'airqo');
+      localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+    }
+
+    dispatch(setUserInfo(user));
+    dispatch(setSuccess(true));
+    router.push('/Home');
+  };
+
+  // Handle Google redirect
+  useEffect(() => {
+    const handleGoogleRedirect = async () => {
+      if (router.query.success === 'google') {
+        setLoading(true);
+        try {
+          // Retrieve the access_token cookie using js-cookie
+          const token = Cookies.get('access_token');
+          if (!token) {
+            throw new Error('No access_token cookie found');
+          }
+
+          // Store the token in localStorage as 'token'
+          localStorage.setItem('token', token);
+          const decoded = jwt_decode(token);
+
+          // Fetch user details using the token
+          const response = await retryWithDelay(() =>
+            getUserDetails(decoded._id, token),
+          );
+          const user = response.users[0];
+
+          await setupUserSession(user);
+        } catch (error) {
+          dispatch(setSuccess(false));
+          setLoading(false);
+          throw error;
+        }
+      }
+    };
+
+    handleGoogleRedirect();
+  }, [router, dispatch]);
+
+  if (loading) {
+    return <HomeSkeleton />;
+  }
 
   // Handlers
   const handleModal = useCallback(() => {
