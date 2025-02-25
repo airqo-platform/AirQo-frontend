@@ -14,6 +14,7 @@ import Spinner from '../../common/components/Spinner';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
+const LOGIN_ROUTE = '/account/login';
 
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
@@ -23,6 +24,7 @@ export default function withAuth(Component) {
     const [isRedirecting, setIsRedirecting] = React.useState(
       router.query.success === 'google',
     );
+    const [redirectToLogin, setRedirectToLogin] = React.useState(false);
 
     const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
       try {
@@ -58,6 +60,7 @@ export default function withAuth(Component) {
 
       dispatch(setUserInfo(user));
       dispatch(setSuccess(true));
+      setIsRedirecting(false);
     };
 
     useEffect(() => {
@@ -73,18 +76,21 @@ export default function withAuth(Component) {
               .catch((error) => {
                 console.error('Google auth error:', error);
                 setIsRedirecting(false);
-                router.push('/account/login');
+                setRedirectToLogin(true);
+              })
+              .finally(() => {
+                if (!userCredentials.success) setRedirectToLogin(true);
               });
           } else {
             setIsRedirecting(false);
-            router.push('/account/login');
+            setRedirectToLogin(true);
           }
           return; // Exit early to prevent further checks until redirect is resolved
         }
 
         const storedUserGroup = localStorage.getItem('activeGroup');
         if (!userCredentials.success) {
-          router.push('/account/login');
+          setRedirectToLogin(true);
         }
 
         if (!storedUserGroup) {
@@ -92,6 +98,13 @@ export default function withAuth(Component) {
         }
       }
     }, [userCredentials, dispatch, router, retryWithDelay, isRedirecting]);
+
+    // Handle deferred redirect to /account/login
+    useEffect(() => {
+      if (redirectToLogin) {
+        router.push(LOGIN_ROUTE);
+      }
+    }, [redirectToLogin, router]);
 
     // Block rendering until redirect is handled
     if (isRedirecting) {
