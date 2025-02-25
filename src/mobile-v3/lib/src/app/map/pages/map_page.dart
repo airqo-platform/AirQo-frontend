@@ -303,7 +303,7 @@ class _MapScreenState extends State<MapScreen>
                         zoom: 6,
                       ),
                       markers: markers.toSet()),
-                  Container(
+                  SizedBox(
                       height: MediaQuery.of(context).size.height,
                       width: MediaQuery.of(context).size.width,
                       child: Column(
@@ -320,6 +320,13 @@ class _MapScreenState extends State<MapScreen>
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Color(0xff3E4147)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(44),
+                                      ),
                                       // width: 56,
                                       // height: 300,
                                       child: Column(
@@ -352,13 +359,6 @@ class _MapScreenState extends State<MapScreen>
                                                   )),
                                             );
                                           }).toList()),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Color(0xff3E4147)
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(44),
-                                      ),
                                     ),
                                     Spacer(),
                                     Container(
@@ -943,55 +943,6 @@ class _MapScreenState extends State<MapScreen>
                                                 ],
                                               );
                                             }
-                                            // } else if (placesState
-                                            //     is SearchLoaded) {
-                                            //   if (placesState.response
-                                            //       .predictions.isEmpty) {
-                                            //     return Center(
-                                            //       child: Text(
-                                            //         "No results found",
-                                            //         style: TextStyle(
-                                            //             fontSize: 18,
-                                            //             fontWeight:
-                                            //                 FontWeight.w500,
-                                            //             color: AppColors
-                                            //                 .boldHeadlineColor),
-                                            //       ),
-                                            //     );
-                                            //   }
-                                            //   return ListView.separated(
-                                            //       separatorBuilder:
-                                            //           (context, index) {
-                                            //         return Divider(
-                                            //           indent: 50,
-                                            //         );
-                                            //       },
-                                            //       padding:
-                                            //           const EdgeInsets.only(),
-                                            //       shrinkWrap: true,
-                                            //       itemCount: placesState
-                                            //           .response
-                                            //           .predictions
-                                            //           .length,
-                                            //       itemBuilder:
-                                            //           (context, index) {
-                                            //         Prediction prediction =
-                                            //             placesState.response
-                                            //                 .predictions[index];
-
-                                            //         return GestureDetector(
-                                            //           onTap: () => viewDetails(
-                                            //               placeName: prediction
-                                            //                   .description),
-                                            //           child: LocationDisplayWidget(
-                                            //               title: prediction
-                                            //                   .description,
-                                            //               subTitle: prediction
-                                            //                   .structuredFormatting
-                                            //                   .mainText),
-                                            //         );
-                                            //       });
-                                            // }
                                             return Expanded(
                                               child: Column(
                                                 crossAxisAlignment:

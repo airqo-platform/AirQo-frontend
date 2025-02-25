@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/dashboard/pages/location_selection_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -29,11 +30,11 @@ class MyPlacesView extends StatelessWidget {
             ),
           ),
           SizedBox(height: 24),
-          
+
           // Add Location Card
           _buildAddLocationCard(context),
           SizedBox(height: 16),
-          
+
           // Add Location Card with Floating Action Button
           _buildAddLocationCardWithFAB(context),
         ],
@@ -91,6 +92,8 @@ class MyPlacesView extends StatelessWidget {
             child: TextButton(
               onPressed: () {
                 // Add location logic
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => LocationSelectionScreen()));
               },
               child: Text(
                 "+Add Location",
