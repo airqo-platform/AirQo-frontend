@@ -18,6 +18,7 @@ import {
 } from '@/lib/store/services/account/LoginSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
+import { GOOGLE_AUTH_URL } from '@/core/urls/authentication';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -110,6 +111,15 @@ const UserLogin = () => {
     dispatch(setUserData({ key, value }));
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      // Redirect to Google auth URL
+      window.location.href = GOOGLE_AUTH_URL;
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
   return (
     <AccountPageLayout
       pageTitle="AirQo Analytics | Login"
@@ -168,6 +178,7 @@ const UserLogin = () => {
               </div>
             </div>
           </div>
+
           <div className="mt-10">
             <button
               data-testid="login-btn"
@@ -179,6 +190,19 @@ const UserLogin = () => {
                 <Spinner data-testid="spinner" width={25} height={25} />
               ) : (
                 'Login'
+              )}
+            </button>
+
+            <button
+              data-testid="google-login-btn"
+              className="w-full btn border-blue-900 rounded-[12px] text-white text-sm outline-none border"
+              disabled={loading}
+              onClick={handleGoogleLogin}
+            >
+              {loading ? (
+                <Spinner data-testid="spinner" width={25} height={25} />
+              ) : (
+                'Login with Google'
               )}
             </button>
           </div>
