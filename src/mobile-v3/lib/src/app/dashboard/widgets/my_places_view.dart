@@ -22,11 +22,25 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   bool isLoading = false;
   final UserPreferencesRepository _preferencesRepo = UserPreferencesImpl();
   String? currentUserId;
+  
+  // Flag to avoid duplicate dashboard loads
+  // bool _dashboardLoadTriggered = false;
 
   @override
   void initState() {
     super.initState();
     _initializeUserData();
+    
+    // Make sure we listen to dashboard state changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final dashboardState = context.read<DashboardBloc>().state;
+      if (dashboardState is! DashboardLoaded) {
+        loggy.info('Dashboard not loaded in initState, triggering load');
+        context.read<DashboardBloc>().add(LoadDashboard());
+      } else {
+        loggy.info('Dashboard already loaded in initState');
+      }
+    });
   }
 
   Future<void> _initializeUserData() async {
@@ -36,13 +50,14 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       });
       
       final userId = await AuthHelper.getCurrentUserId();
+      loggy.info('Retrieved user ID: $userId');
       
       if (userId != null) {
         setState(() {
           currentUserId = userId;
         });
         
-        // Load user preferences to get saved locations
+
         await _loadUserPreferences(userId);
       } else {
         loggy.warning('No user ID found - user might not be logged in');
@@ -241,14 +256,39 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     // Get the dashboard state to access measurements
     final dashboardState = context.watch<DashboardBloc>().state;
     
+    loggy.info('Building saved locations with ${selectedLocationIds?.length ?? 0} IDs');
+    
     if (dashboardState is DashboardLoaded) {
+      loggy.info('Dashboard is loaded with ${dashboardState.response.measurements?.length ?? 0} measurements');
+      
+      // Log all IDs for debugging
+      if (dashboardState.response.measurements != null) {
+        loggy.info('Available measurement IDs: ${dashboardState.response.measurements!.map((m) => m.id).toList()}');
+      }
+      
+      if (selectedLocationIds != null) {
+        loggy.info('Selected location IDs: $selectedLocationIds');
+      }
+      
       // Find measurements that match our selected IDs
       final selectedMeasurements = dashboardState.response.measurements
-          ?.where((measurement) => 
-              selectedLocationIds?.contains(measurement.id) ?? false)
+          ?.where((measurement) {
+            final isSelected = selectedLocationIds?.contains(measurement.id) ?? false;
+            if (isSelected) {
+              loggy.info('Found matching measurement: ${measurement.id}');
+            }
+            return isSelected;
+          })
           .toList() ?? [];
       
+      loggy.info('Found ${selectedMeasurements.length} matching measurements');
+      
       if (selectedMeasurements.isEmpty) {
+        // If we have IDs but no matching measurements, trigger a dashboard reload
+        if (selectedLocationIds != null && selectedLocationIds!.isNotEmpty) {
+          loggy.info('No matching measurements found for IDs, triggering dashboard reload');
+          Future.microtask(() => context.read<DashboardBloc>().add(LoadDashboard()));
+        }
         return _buildEmptySavedLocationsView();
       }
       
@@ -291,7 +331,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
               ),
               const SizedBox(height: 16),
             ],
-          )).toList(),
+          )),
           
           // Add more locations button
           if (selectedMeasurements.length < 4)
@@ -382,15 +422,26 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     
     // Handle the returned selected locations
     if (result != null) {
+      loggy.info('Received locations from selection screen: $result');
+      
+      // Force the list to be treated as a List<String>
+      final List<String> locationIds = List<String>.from(result);
+      
       setState(() {
-        selectedLocationIds = result.cast<String>();
+        selectedLocationIds = locationIds;
       });
       
       loggy.info('Selected locations updated: $selectedLocationIds');
       
+      // Make sure dashboard is loaded to display these locations
+      final dashboardBloc = context.read<DashboardBloc>();
+      if (dashboardBloc.state is! DashboardLoaded) {
+        dashboardBloc.add(LoadDashboard());
+      }
+      
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Successfully updated your locations'),
           backgroundColor: Colors.green,
         ),
@@ -409,7 +460,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         height: 150,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFF2E2F33), // Background color inside dashed border
+          //color: const Color(0xFF2E2F33), // Background color inside dashed border
           borderRadius: BorderRadius.circular(8),
         ),
         child: TextButton(

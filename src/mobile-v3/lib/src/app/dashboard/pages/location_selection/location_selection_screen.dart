@@ -12,6 +12,8 @@ import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/utils/connectivity_helper.dart';
+import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 
 import 'package:loggy/loggy.dart';
 
@@ -80,20 +82,232 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
   Future<void> _initializeUserData() async {
     try {
-      final userId = await AuthHelper.getCurrentUserId();
+      loggy.info('⭐ Starting to initialize user data');
 
-      if (userId != null) {
-        setState(() {
-          currentUserId = userId;
-        });
+      // Debug token information first
+      await AuthHelper.debugToken();
 
-        // Load user preferences
-        await _loadUserPreferences(userId);
+      final authState = context.read<AuthBloc>().state;
+      loggy.info('Current auth state: ${authState.runtimeType}');
+
+      final isLoggedIn = authState is AuthLoaded;
+      loggy.info('Is user logged in according to AuthBloc? $isLoggedIn');
+
+      // Check if token is expired
+      final isExpired = await AuthHelper.isTokenExpired();
+      loggy.info('Is token expired? $isExpired');
+
+      if (isLoggedIn) {
+        if (isExpired) {
+          loggy.warning('Token is expired, user needs to login again');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  const Text('Your session has expired. Please log in again.'),
+              duration: const Duration(seconds: 8),
+              action: SnackBarAction(
+                label: 'Log In',
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false,
+                  );
+                },
+              ),
+            ),
+          );
+          return;
+        }
+
+        final userId = await AuthHelper.getCurrentUserId();
+        loggy.info('Retrieved user ID: ${userId ?? "NULL"}');
+
+        if (userId != null) {
+          setState(() {
+            currentUserId = userId;
+          });
+          loggy.info('✅ User ID set in state: $currentUserId');
+
+          await _loadUserPreferences(userId);
+        } else {
+          loggy.warning('❌ No user ID found in token - token may be invalid');
+
+          // Optionally, show a message to the user
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text(
+                      'Authentication issue detected. Please log in again.')),
+            );
+          }
+        }
       } else {
-        loggy.warning('No user ID found - user might not be logged in');
+        loggy.warning('❌ User is not logged in according to AuthBloc');
+        // You could show a login prompt here
       }
     } catch (e) {
-      loggy.error('Error initializing user data: $e');
+      loggy.error('❌ Error initializing user data: $e');
+      loggy.error('Stack trace: ${StackTrace.current}');
+    }
+  }
+
+  Future<void> _saveSelectedLocations() async {
+    loggy.info(
+        'Save button pressed with ${selectedLocations.length} selected locations');
+
+    // First debug the token
+    await AuthHelper.debugToken();
+
+    // Check auth state from the bloc
+    final authState = context.read<AuthBloc>().state;
+    final isLoggedIn = authState is AuthLoaded;
+
+    loggy.info('Current auth state: ${authState.runtimeType}');
+    loggy.info('Is user logged in? $isLoggedIn');
+
+    if (!isLoggedIn) {
+      loggy.warning('❌ User not logged in, cannot save');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save your locations')),
+      );
+      // Optionally navigate to login screen
+      return;
+    }
+
+    // Check if token is expired
+    final isExpired = await AuthHelper.isTokenExpired();
+    if (isExpired) {
+      loggy.warning('❌ Token is expired, cannot save');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Your session has expired. Please log in again.'),
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(
+            label: 'Log In',
+            onPressed: () {
+
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const LoginPage(), 
+                ),
+                (route) => false, 
+              );
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
+    // If no user ID, try to get it again
+    if (currentUserId == null) {
+      loggy.info('Current user ID is null, attempting to retrieve it');
+      final userId = await AuthHelper.getCurrentUserId();
+
+      if (userId == null) {
+        loggy.error('❌ Failed to retrieve user ID');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Cannot retrieve user ID. Please log in again.')),
+        );
+        return;
+      }
+
+      loggy.info('✅ Successfully retrieved user ID: $userId');
+      currentUserId = userId;
+    } else {
+      loggy.info('Using existing user ID: $currentUserId');
+    }
+
+    // Check connectivity first
+    final hasConnection = await ConnectivityHelper.isConnected();
+    if (!hasConnection) {
+      loggy.warning('No internet connection detected');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'No internet connection. Please try again when connected.')),
+      );
+      return;
+    }
+
+    setState(() {
+      isSaving = true;
+    });
+
+    try {
+      loggy.info('Creating selected sites list');
+      // Create list of selected site objects
+      final List<Map<String, dynamic>> selectedSites =
+          selectedLocations.map((id) {
+        final measurement = allMeasurements.firstWhere(
+          (m) => m.id == id,
+          orElse: () => throw Exception('Measurement not found for ID $id'),
+        );
+
+        // Extract site details from the measurement
+        final siteMap = {
+          "_id": id,
+          "name": measurement.siteDetails?.name ?? 'Unknown Location',
+          "search_name": measurement.siteDetails?.searchName ??
+              measurement.siteDetails?.name ??
+              'Unknown Location',
+          "latitude": measurement.siteDetails?.approximateLatitude ??
+              measurement.siteDetails?.approximateLatitude,
+          "longitude": measurement.siteDetails?.approximateLongitude ??
+              measurement.siteDetails?.approximateLongitude,
+        };
+
+        loggy.info('Prepared site map for ID $id: $siteMap');
+        return siteMap;
+      }).toList();
+
+      // Prepare the request body
+      final Map<String, dynamic> requestBody = {
+        "user_id": currentUserId,
+        "selected_sites": selectedSites,
+      };
+
+      loggy.info(
+          'Sending request with user_id: $currentUserId and ${selectedSites.length} sites');
+
+      // Call the repository
+      final response = await _preferencesRepo.replacePreference(requestBody);
+      loggy.info('API response: $response');
+
+      if (response['success'] == true) {
+        // Show success message
+        loggy.info('✅ Successfully saved locations');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Locations saved successfully')),
+        );
+        Navigator.pop(context, selectedLocations.toList());
+      } else {
+        // Show error message
+        loggy.error('❌ API returned error: ${response["message"]}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Failed to save locations: ${response["message"]}')),
+        );
+      }
+    } catch (e) {
+      loggy.error('❌ Error saving locations: $e');
+      loggy.error('Stack trace: ${StackTrace.current}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'An error occurred while saving locations: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
     }
   }
 
@@ -204,96 +418,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           showLocationLimitError = false;
         }
       });
-    }
-  }
-
-  Future<void> _saveSelectedLocations() async {
-    loggy.info(
-        'Save button pressed with ${selectedLocations.length} selected locations');
-
-    // If no user ID, we can't save preferences
-    if (currentUserId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Cannot save locations: User not logged in')),
-      );
-      return;
-    }
-
-    // Check connectivity first
-    final hasConnection = await ConnectivityHelper.isConnected();
-    if (!hasConnection) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'No internet connection. Please try again when connected.')),
-      );
-      return;
-    }
-
-    setState(() {
-      isSaving = true;
-    });
-
-    try {
-      // Create list of selected site objects using the correct fields from your Measurement model
-      final List<Map<String, dynamic>> selectedSites =
-          selectedLocations.map((id) {
-        final measurement = allMeasurements.firstWhere(
-          (m) => m.id == id,
-          orElse: () => throw Exception('Measurement not found for ID $id'),
-        );
-
-        // Extract site details from the measurement
-        return {
-          "_id": id,
-          "name": measurement.siteDetails?.name ?? 'Unknown Location',
-          "search_name": measurement.siteDetails?.searchName ??
-              measurement.siteDetails?.name ??
-              'Unknown Location',
-          "latitude": measurement.siteDetails?.approximateLatitude ??
-              measurement.siteDetails?.approximateLatitude,
-          "longitude": measurement.siteDetails?.approximateLongitude ??
-              measurement.siteDetails?.approximateLongitude,
-        };
-      }).toList();
-
-      // Prepare the request body
-      final Map<String, dynamic> requestBody = {
-        "user_id": currentUserId,
-        "selected_sites": selectedSites,
-      };
-
-      // Call the repository
-      final response = await _preferencesRepo.replacePreference(requestBody);
-
-      if (response['success'] == true) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Locations saved successfully')),
-        );
-        Navigator.pop(context, selectedLocations.toList());
-      } else {
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text('Failed to save locations: ${response["message"]}')),
-        );
-      }
-    } catch (e) {
-      loggy.error('Error saving locations: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'An error occurred while saving locations: ${e.toString()}')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          isSaving = false;
-        });
-      }
     }
   }
 
