@@ -4,9 +4,11 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
-import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
+import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
+import 'package:airqo/src/app/dashboard/widgets/location_display_widget.dart';
+import 'package:airqo/src/app/other/places/models/auto_complete_response.dart';
 
 class LocationSelectionScreen extends StatefulWidget {
   const LocationSelectionScreen({super.key});
@@ -17,6 +19,9 @@ class LocationSelectionScreen extends StatefulWidget {
 }
 
 class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
+  bool showDetails = false;
+  Measurement? currentDetails;
+  String? currentDetailsName;
   Set<String> selectedLocations = {};
   TextEditingController searchController = TextEditingController();
   bool isModalFull = true;
@@ -88,6 +93,21 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     });
   }
 
+  void viewDetails({Measurement? measurement, String? placeName}) {
+    if (measurement != null) {
+      setState(() {
+        showDetails = true;
+        currentDetails = measurement;
+      });
+    } else if (measurement == null && placeName != null) {
+      googlePlacesBloc!.add(GetPlaceDetails(placeName));
+      setState(() {
+        showDetails = true;
+        currentDetailsName = placeName;
+      });
+    }
+  }
+
   void resetFilter() {
     setState(() {
       filteredMeasurements = [];
@@ -105,10 +125,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
         title: Text(
           'Add location',
           style: TextStyle(
-            color: AppColors.boldHeadlineColor,
-            fontSize: 24,
-            fontWeight: FontWeight.w700
-          ),
+              color: AppColors.boldHeadlineColor,
+              fontSize: 24,
+              fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
@@ -204,8 +223,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
           ),
           Expanded(
             child: BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
-              builder: (context, state) {
-                if (state is SearchLoading) {
+              builder: (context, placesState) {
+                if (placesState is SearchLoading) {
                   return Column(
                     children: [
                       GooglePlacesLoader(),
@@ -215,6 +234,57 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                       GooglePlacesLoader(),
                     ],
                   );
+                } else if (placesState is SearchLoaded) {
+                  return Column(
+                    children: [
+                      // Show local AirQuality matches first
+                      if (localSearchResults.isNotEmpty) ...[
+                        Text("Air Quality Monitoring Locations",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        ListView.separated(
+                            shrinkWrap: true,
+                            itemCount: localSearchResults.length,
+                            separatorBuilder: (context, index) =>
+                                Divider(indent: 50),
+                            itemBuilder: (context, index) {
+                              Measurement measurement =
+                                  localSearchResults[index];
+                              return GestureDetector(
+                                onTap: () =>
+                                    viewDetails(measurement: measurement),
+                                child: LocationDisplayWidget(
+                                  title:
+                                      measurement.siteDetails!.locationName ??
+                                          "",
+                                  subTitle: measurement.siteDetails!.name ?? "",
+                                ),
+                              );
+                            }),
+                        Divider(),
+                      ],
+
+                      // Then show Google Places results
+                      Text("Other Locations",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: placesState.response.predictions.length,
+                          separatorBuilder: (context, index) =>
+                              Divider(indent: 50),
+                          itemBuilder: (context, index) {
+                            Prediction prediction =
+                                placesState.response.predictions[index];
+                            return GestureDetector(
+                              onTap: () => viewDetails(
+                                  placeName: prediction.description),
+                              child: LocationDisplayWidget(
+                                  title: prediction.description,
+                                  subTitle:
+                                      prediction.structuredFormatting.mainText),
+                            );
+                          }),
+                    ],
+                  );               
                 }
 
                 List<Measurement> measurements = currentFilter == "All"
@@ -305,83 +375,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class GooglePlacesLoader extends StatelessWidget {
-  const GooglePlacesLoader({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        child: Row(
-      children: [
-        ShimmerContainer(height: 50, borderRadius: 100, width: 50),
-        SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ShimmerText(
-              width: 200,
-            ),
-            SizedBox(height: 8),
-            ShimmerText()
-          ],
-        )
-      ],
-    ));
-  }
-}
-
-class LocationDisplayWidget extends StatelessWidget {
-  final String title;
-  final String subTitle;
-  const LocationDisplayWidget(
-      {super.key, required this.title, required this.subTitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          CircleAvatar(
-              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? Color(0xff3E4147)
-                  : Theme.of(context).highlightColor,
-              child: Center(
-                child:
-                    SvgPicture.asset("assets/images/shared/location_pin.svg"),
-              )),
-          SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                subTitle,
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Color(0xff7A7F87),
-                    fontWeight: FontWeight.w500),
-              ),
-              SizedBox(width: 4),
-              Text(
-                title,
-                maxLines: 1,
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xff7A7F87),
-                    fontWeight: FontWeight.w500),
-              )
-            ],
-          )
         ],
       ),
     );
