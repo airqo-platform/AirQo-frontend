@@ -14,6 +14,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/utils/connectivity_helper.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/auth/services/token_debugger.dart';
 
 import 'package:loggy/loggy.dart';
 
@@ -84,7 +85,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     try {
       loggy.info('⭐ Starting to initialize user data');
 
-      // Debug token information first
+      // Debug token information
       await AuthHelper.debugToken();
 
       final authState = context.read<AuthBloc>().state;
@@ -93,33 +94,39 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       final isLoggedIn = authState is AuthLoaded;
       loggy.info('Is user logged in according to AuthBloc? $isLoggedIn');
 
-      // Check if token is expired
-      final isExpired = await AuthHelper.isTokenExpired();
-      loggy.info('Is token expired? $isExpired');
-
       if (isLoggedIn) {
+        // Use the enhanced token checker
+        final isExpired = await TokenDebugger.checkTokenExpiration();
+
         if (isExpired) {
           loggy.warning('Token is expired, user needs to login again');
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  const Text('Your session has expired. Please log in again.'),
-              duration: const Duration(seconds: 8),
-              action: SnackBarAction(
-                label: 'Log In',
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (route) => false,
-                  );
-                },
+          // Show SnackBar with action button to navigate to login
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                    'Your session has expired. Please log in again.'),
+                duration: const Duration(seconds: 8),
+                action: SnackBarAction(
+                  label: 'Log In',
+                  onPressed: () {
+                    // Navigate directly to login screen
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginPage(),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          }
           return;
         }
 
+        // Token valid, proceed to get user ID
         final userId = await AuthHelper.getCurrentUserId();
         loggy.info('Retrieved user ID: ${userId ?? "NULL"}');
 
@@ -156,7 +163,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     loggy.info(
         'Save button pressed with ${selectedLocations.length} selected locations');
 
-    // First debug the token
+    // Debug token
     await AuthHelper.debugToken();
 
     // Check auth state from the bloc
@@ -171,12 +178,12 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please log in to save your locations')),
       );
-      // Optionally navigate to login screen
       return;
     }
 
-    // Check if token is expired
-    final isExpired = await AuthHelper.isTokenExpired();
+    // Use enhanced token checker
+    final isExpired = await TokenDebugger.checkTokenExpiration();
+
     if (isExpired) {
       loggy.warning('❌ Token is expired, cannot save');
 
@@ -187,13 +194,12 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           action: SnackBarAction(
             label: 'Log In',
             onPressed: () {
-
+              // Navigate directly to login screen
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
-                  builder: (context) =>
-                      const LoginPage(), 
+                  builder: (context) => const LoginPage(),
                 ),
-                (route) => false, 
+                (route) => false,
               );
             },
           ),
@@ -201,39 +207,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       );
       return;
     }
-
-    // If no user ID, try to get it again
-    if (currentUserId == null) {
-      loggy.info('Current user ID is null, attempting to retrieve it');
-      final userId = await AuthHelper.getCurrentUserId();
-
-      if (userId == null) {
-        loggy.error('❌ Failed to retrieve user ID');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Cannot retrieve user ID. Please log in again.')),
-        );
-        return;
-      }
-
-      loggy.info('✅ Successfully retrieved user ID: $userId');
-      currentUserId = userId;
-    } else {
-      loggy.info('Using existing user ID: $currentUserId');
-    }
-
-    // Check connectivity first
-    final hasConnection = await ConnectivityHelper.isConnected();
-    if (!hasConnection) {
-      loggy.warning('No internet connection detected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'No internet connection. Please try again when connected.')),
-      );
-      return;
-    }
-
     setState(() {
       isSaving = true;
     });
