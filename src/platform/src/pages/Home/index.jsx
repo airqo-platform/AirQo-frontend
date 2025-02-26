@@ -1,4 +1,4 @@
-import dynamic from 'next/dynamic';
+// Import statements
 import withAuth from '@/core/utils/protectedRoute';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Layout from '@/components/Layout';
@@ -302,4 +302,4 @@ const Home = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(withAuth(Home)), { ssr: false });
+export default withAuth(Home);
