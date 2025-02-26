@@ -205,50 +205,70 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Add places you love",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).textTheme.headlineLarge?.color,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Start by adding locations you care about.",
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Show loading indicator when fetching user data
-          if (isLoading)
-            Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primaryColor,
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Add places you love",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).textTheme.headlineLarge?.color,
+                ),
               ),
-            )
-          else ...[
-            // Show saved locations if any
-            if (selectedLocationIds != null && selectedLocationIds!.isNotEmpty)
-              _buildSavedLocationsSection(),
-            
-            // Show card options if no locations are saved
-            if (selectedLocationIds == null || selectedLocationIds!.isEmpty) ...[
-              _buildAddLocationCard(context),
-              const SizedBox(height: 16),
-              _buildAddLocationCardWithFAB(context),
+              const SizedBox(height: 8),
+              Text(
+                "Start by adding locations you care about.",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Show loading indicator when fetching user data
+              if (isLoading)
+                Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
+                )
+              else ...[
+                // Show saved locations if any
+                if (selectedLocationIds != null && selectedLocationIds!.isNotEmpty)
+                  _buildSavedLocationsSection(),
+                
+                // Show card options if no locations are saved
+                if (selectedLocationIds == null || selectedLocationIds!.isEmpty) ...[
+                  _buildAddLocationCard(context),
+                  const SizedBox(height: 16),
+                  _buildAddLocationCardWithFAB(context),
+                ],
+              ],
             ],
-          ],
-        ],
-      ),
+          ),
+        ),
+        
+        // Add floating action button for non-empty state
+        if (!isLoading && selectedLocationIds != null && selectedLocationIds!.isNotEmpty)
+          Positioned(
+            right: 16,
+            bottom: 90, // Position it higher to be visible above the navigation bar
+            child: FloatingActionButton(
+              onPressed: () => _navigateToLocationSelection(context),
+              backgroundColor: const Color(0xFF0066FF), // Bright blue color matching the image
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // Slightly rounded corners
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 24),
+            ),
+          ),
+      ],
     );
   }
   
@@ -333,22 +353,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
             ],
           )),
           
-          // Add more locations button
-          if (selectedMeasurements.length < 4)
-            OutlinedButton.icon(
-              onPressed: () => _navigateToLocationSelection(context),
-              icon: Icon(Icons.add, color: AppColors.primaryColor),
-              label: Text(
-                "Add more locations",
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: Size(double.infinity, 48),
-                side: BorderSide(color: AppColors.primaryColor),
-              ),
-            ),
+          // Padding at the bottom to avoid the FAB overlapping with content
+          const SizedBox(height: 64),
         ],
       );
     } else {
