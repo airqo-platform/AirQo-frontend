@@ -45,8 +45,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
       builder: (context, placesState) {
         // Check dashboard state for loading/error conditions
         final dashboardState = context.watch<DashboardBloc>().state;
-        loggy.debug('Building with GooglePlacesState: ${placesState.runtimeType}, DashboardState: ${dashboardState.runtimeType}');
-        
+        loggy.debug(
+            'Building with GooglePlacesState: ${placesState.runtimeType}, DashboardState: ${dashboardState.runtimeType}');
+
         // Handle loading state
         if (isLoading || dashboardState is DashboardLoading) {
           loggy.info('Showing loading indicator');
@@ -69,11 +70,13 @@ class LocationListView extends StatelessWidget with UiLoggy {
 
         // Handle error state
         if (errorMessage != null || dashboardState is DashboardLoadingError) {
-          final errorMsg = errorMessage ?? 
-              (dashboardState is DashboardLoadingError ? dashboardState.message : 'Unknown error');
-          
+          final errorMsg = errorMessage ??
+              (dashboardState is DashboardLoadingError
+                  ? dashboardState.message
+                  : 'Unknown error');
+
           loggy.error('Showing error: $errorMsg');
-          
+
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -120,10 +123,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
             );
           } else if (placesState is SearchLoaded) {
             bool hasLocalResults = localSearchResults.isNotEmpty;
-            bool hasGoogleResults =
-                placesState.response.predictions.isNotEmpty;
+            bool hasGoogleResults = placesState.response.predictions.isNotEmpty;
 
-            loggy.info('Search results - local: $hasLocalResults (${localSearchResults.length}), Google: $hasGoogleResults (${placesState.response.predictions.length})');
+            loggy.info(
+                'Search results - local: $hasLocalResults (${localSearchResults.length}), Google: $hasGoogleResults (${placesState.response.predictions.length})');
 
             if (!hasLocalResults && !hasGoogleResults) {
               loggy.info('No search results found');
@@ -137,41 +140,64 @@ class LocationListView extends StatelessWidget with UiLoggy {
 
             return ListView(
               children: [
-                // Show local AirQuality matches first
                 if (hasLocalResults) ...[
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    child: Text(
-                      "Air Quality Monitoring Locations",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                   ...localSearchResults
-                      .map((measurement) => GestureDetector(
-                            onTap: () =>
-                                onViewDetails(measurement: measurement),
-                            child: LocationDisplayWidget(
-                              title: measurement
-                                      .siteDetails!.locationName ??
-                                  "",
-                              subTitle:
-                                  measurement.siteDetails!.name ?? "",
-                            ),
+                      .map((measurement) => Column(
+                            children: [
+                              ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.grey[800],
+                                  child: SvgPicture.asset(
+                                    "assets/images/shared/location_pin.svg",
+                                  ),
+                                ),
+                                title: Text(
+                                  measurement.siteDetails?.city ??
+                                      measurement.siteDetails?.town ??
+                                      measurement.siteDetails?.locationName ??
+                                      "Unknown Location",
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                subtitle: Text(
+                                  measurement.siteDetails?.name ??
+                                      measurement.siteDetails?.formattedName ??
+                                      "",
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                                trailing: Checkbox(
+                                  value: selectedLocations
+                                      .contains(measurement.id),
+                                  onChanged: (value) {
+                                    onToggleSelection(measurement.id, value!);
+                                  },
+                                  fillColor: MaterialStateProperty.resolveWith(
+                                    (states) =>
+                                        states.contains(MaterialState.selected)
+                                            ? AppColors.primaryColor
+                                            : Colors.transparent,
+                                  ),
+                                  side: BorderSide(color: Colors.grey[600]!),
+                                ),
+                                onTap: () =>
+                                    onViewDetails(measurement: measurement),
+                              ),
+                              if (measurement != localSearchResults.last)
+                                const Divider(indent: 50),
+                            ],
                           ))
                       .toList(),
-                  if (hasGoogleResults)
-                    const Divider(thickness: 1, height: 32),
+                  if (hasGoogleResults) const Divider(thickness: 1, height: 32),
                 ],
 
                 // Then show Google Places results
                 if (hasGoogleResults) ...[
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text(
                       "Other Locations",
                       style: TextStyle(
@@ -180,17 +206,15 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       ),
                     ),
                   ),
-                  ...placesState.response.predictions
-                      .map((prediction) => GestureDetector(
-                            onTap: () => onViewDetails(
-                                placeName: prediction.description),
-                            child: LocationDisplayWidget(
-                              title: prediction.description,
-                              subTitle: prediction
-                                  .structuredFormatting.mainText,
-                            ),
-                          ))
-                      .toList(),
+                  ...placesState.response.predictions.map((prediction) =>
+                      GestureDetector(
+                        onTap: () =>
+                            onViewDetails(placeName: prediction.description),
+                        child: LocationDisplayWidget(
+                          title: prediction.description,
+                          subTitle: prediction.structuredFormatting.mainText,
+                        ),
+                      )),
                 ],
               ],
             );
@@ -198,11 +222,11 @@ class LocationListView extends StatelessWidget with UiLoggy {
         }
 
         // Handle filtered or all locations
-        List<Measurement> measurements = currentFilter == "All"
-            ? allMeasurements
-            : filteredMeasurements;
-            
-        loggy.info('Displaying ${measurements.length} measurements with filter: $currentFilter');
+        List<Measurement> measurements =
+            currentFilter == "All" ? allMeasurements : filteredMeasurements;
+
+        loggy.info(
+            'Displaying ${measurements.length} measurements with filter: $currentFilter');
 
         if (measurements.isEmpty) {
           loggy.info('No measurements to display');
@@ -224,13 +248,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: currentFilter == "All"
-                      ? onRetry
-                      : onResetFilter,
+                  onPressed: currentFilter == "All" ? onRetry : onResetFilter,
                   child: Text(
-                    currentFilter == "All"
-                        ? "Refresh"
-                        : "Show All Locations",
+                    currentFilter == "All" ? "Refresh" : "Show All Locations",
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
                 ),
@@ -242,12 +262,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
         loggy.debug('Building ListView with ${measurements.length} items');
         return ListView.separated(
           itemCount: measurements.length,
-          separatorBuilder: (context, index) =>
-              const Divider(indent: 50),
+          separatorBuilder: (context, index) => const Divider(indent: 50),
           itemBuilder: (context, index) {
             final measurement = measurements[index];
-            final isSelected =
-                selectedLocations.contains(measurement.id);
+            final isSelected = selectedLocations.contains(measurement.id);
 
             return ListTile(
               leading: CircleAvatar(
@@ -281,6 +299,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 ),
                 side: BorderSide(color: Colors.grey[600]!),
               ),
+              onTap: () => onViewDetails(measurement: measurement),
             );
           },
         );

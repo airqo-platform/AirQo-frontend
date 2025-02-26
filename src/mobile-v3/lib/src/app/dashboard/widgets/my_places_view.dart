@@ -1,12 +1,192 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:airqo/src/app/shared/utils/connectivity_helper.dart';
+import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
+import 'package:loggy/loggy.dart';
 
-class MyPlacesView extends StatelessWidget {
+class MyPlacesView extends StatefulWidget {
   const MyPlacesView({super.key});
+
+  @override
+  State<MyPlacesView> createState() => _MyPlacesViewState();
+}
+
+class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
+  List<String>? selectedLocationIds;
+  bool isLoading = false;
+  final UserPreferencesRepository _preferencesRepo = UserPreferencesImpl();
+  String? currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeUserData();
+  }
+
+  Future<void> _initializeUserData() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      
+      final userId = await AuthHelper.getCurrentUserId();
+      
+      if (userId != null) {
+        setState(() {
+          currentUserId = userId;
+        });
+        
+        // Load user preferences to get saved locations
+        await _loadUserPreferences(userId);
+      } else {
+        loggy.warning('No user ID found - user might not be logged in');
+      }
+    } catch (e) {
+      loggy.error('Error initializing user data: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadUserPreferences(String userId) async {
+    try {
+      final response = await _preferencesRepo.getUserPreferences(userId);
+
+      if (response['success'] == true && response['data'] != null) {
+        final prefsData = response['data'];
+        
+        if (prefsData['selected_sites'] != null && prefsData['selected_sites'] is List) {
+          setState(() {
+            selectedLocationIds = (prefsData['selected_sites'] as List)
+                .map((site) => site['_id'].toString())
+                .toList()
+                .cast<String>();
+          });
+          
+          loggy.info('Loaded ${selectedLocationIds?.length ?? 0} previously selected locations');
+          
+          // If we have locations, make sure the dashboard is loaded
+          if (selectedLocationIds != null && selectedLocationIds!.isNotEmpty) {
+            final dashboardBloc = context.read<DashboardBloc>();
+            if (dashboardBloc.state is! DashboardLoaded) {
+              dashboardBloc.add(LoadDashboard());
+            }
+          }
+        }
+      }
+    } catch (e) {
+      loggy.error('Error loading user preferences: $e');
+    }
+  }
+  
+  // Remove a location from saved locations
+  Future<void> _removeLocation(String locationId) async {
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot remove location: User not logged in')),
+      );
+      return;
+    }
+    
+    // Check connectivity first
+    final hasConnection = await ConnectivityHelper.isConnected();
+    if (!hasConnection) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No internet connection. Please try again when connected.')),
+      );
+      return;
+    }
+    
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      
+      // Remove the location ID from our local list
+      setState(() {
+        selectedLocationIds?.remove(locationId);
+      });
+      
+      // Create updated selected sites list for the API
+      final dashboardBloc = context.read<DashboardBloc>();
+      if (dashboardBloc.state is DashboardLoaded) {
+        final dashboardState = dashboardBloc.state as DashboardLoaded;
+        final measurements = dashboardState.response.measurements ?? [];
+        
+        // Find measurements corresponding to remaining IDs
+        final List<Map<String, dynamic>> updatedSites = (selectedLocationIds ?? []).map((id) {
+          // Find the corresponding measurement
+          final measurement = measurements.firstWhere(
+            (m) => m.id == id,
+            orElse: () => throw Exception('Measurement not found for ID $id'),
+          );
+          
+          // Create site entry
+          return {
+            "_id": id,
+            "name": measurement.siteDetails?.name ?? 'Unknown Location',
+            "search_name": measurement.siteDetails?.searchName ?? 
+                measurement.siteDetails?.name ?? 'Unknown Location',
+            "latitude": measurement.siteDetails?.approximateLatitude ??
+                measurement.siteDetails?.approximateLatitude,
+            "longitude": measurement.siteDetails?.approximateLongitude ??
+                measurement.siteDetails?.approximateLongitude,
+          };
+        }).toList();
+        
+        // Prepare the request body
+        final Map<String, dynamic> requestBody = {
+          "user_id": currentUserId,
+          "selected_sites": updatedSites,
+        };
+        
+        // Update preferences
+        final response = await _preferencesRepo.replacePreference(requestBody);
+        
+        if (response['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location removed successfully')),
+          );
+        } else {
+          // If API request fails, restore the removed ID
+          setState(() {
+            if (selectedLocationIds != null && !selectedLocationIds!.contains(locationId)) {
+              selectedLocationIds!.add(locationId);
+            }
+          });
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to remove location: ${response["message"]}')),
+          );
+        }
+      }
+    } catch (e) {
+      loggy.error('Error removing location: $e');
+      
+      // Restore the ID if there was an error
+      setState(() {
+        if (selectedLocationIds != null && !selectedLocationIds!.contains(locationId)) {
+          selectedLocationIds!.add(locationId);
+        }
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +203,7 @@ class MyPlacesView extends StatelessWidget {
               color: Theme.of(context).textTheme.headlineLarge?.color,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             "Start by adding locations you care about.",
             style: TextStyle(
@@ -31,37 +211,190 @@ class MyPlacesView extends StatelessWidget {
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-          // Add Location Card
-          _buildAddLocationCard(context),
-          SizedBox(height: 16),
-
-          // Add Location Card with Floating Action Button
-          _buildAddLocationCardWithFAB(context),
+          // Show loading indicator when fetching user data
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primaryColor,
+              ),
+            )
+          else ...[
+            // Show saved locations if any
+            if (selectedLocationIds != null && selectedLocationIds!.isNotEmpty)
+              _buildSavedLocationsSection(),
+            
+            // Show card options if no locations are saved
+            if (selectedLocationIds == null || selectedLocationIds!.isEmpty) ...[
+              _buildAddLocationCard(context),
+              const SizedBox(height: 16),
+              _buildAddLocationCardWithFAB(context),
+            ],
+          ],
         ],
       ),
+    );
+  }
+  
+  Widget _buildSavedLocationsSection() {
+    // Get the dashboard state to access measurements
+    final dashboardState = context.watch<DashboardBloc>().state;
+    
+    if (dashboardState is DashboardLoaded) {
+      // Find measurements that match our selected IDs
+      final selectedMeasurements = dashboardState.response.measurements
+          ?.where((measurement) => 
+              selectedLocationIds?.contains(measurement.id) ?? false)
+          .toList() ?? [];
+      
+      if (selectedMeasurements.isEmpty) {
+        return _buildEmptySavedLocationsView();
+      }
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Your saved locations",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).textTheme.titleLarge?.color,
+                ),
+              ),
+              OutlinedButton(
+                onPressed: () => _navigateToLocationSelection(context),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppColors.primaryColor),
+                ),
+                child: Text(
+                  "Manage",
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Analytics cards for selected locations
+          ...selectedMeasurements.map((measurement) => Column(
+            children: [
+              SwipeableAnalyticsCard(
+                measurement: measurement,
+                onRemove: _removeLocation,
+              ),
+              const SizedBox(height: 16),
+            ],
+          )).toList(),
+          
+          // Add more locations button
+          if (selectedMeasurements.length < 4)
+            OutlinedButton.icon(
+              onPressed: () => _navigateToLocationSelection(context),
+              icon: Icon(Icons.add, color: AppColors.primaryColor),
+              label: Text(
+                "Add more locations",
+                style: TextStyle(
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                minimumSize: Size(double.infinity, 48),
+                side: BorderSide(color: AppColors.primaryColor),
+              ),
+            ),
+        ],
+      );
+    } else {
+      return _buildEmptySavedLocationsView();
+    }
+  }
+  
+  Widget _buildEmptySavedLocationsView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Your saved locations",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          selectedLocationIds != null && selectedLocationIds!.isNotEmpty
+              ? "Loading your locations..."
+              : "You haven't saved any locations yet.",
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+        ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: () => _navigateToLocationSelection(context),
+          icon: Icon(Icons.add, color: AppColors.primaryColor),
+          label: Text(
+            "Add locations",
+            style: TextStyle(
+              color: AppColors.primaryColor,
+            ),
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: Size(double.infinity, 48),
+            side: BorderSide(color: AppColors.primaryColor),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildAddLocationCard(context),
+      ],
     );
   }
 
   // Open location selection screen
   void _navigateToLocationSelection(BuildContext context) async {
-    // Ensure DashboardBloc has the latest data before navigation
+    // Check for internet connection
+    final hasConnection = await ConnectivityHelper.isConnected();
+    if (!hasConnection) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No internet connection. Please try again when connected.'),
+        ),
+      );
+      return;
+    }
+
     final dashboardBloc = context.read<DashboardBloc>();
     if (dashboardBloc.state is! DashboardLoaded) {
       dashboardBloc.add(LoadDashboard());
     }
-    
-    // Navigate to the location selection screen
+
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => LocationSelectionScreen())
+      MaterialPageRoute(builder: (context) => const LocationSelectionScreen())
     );
     
-    // Handle the returned selected locations if needed
+    // Handle the returned selected locations
     if (result != null) {
-      // Result will be a List<String> of selected location IDs
-      print('Selected locations: $result');
-      // Process the selected locations as needed
+      setState(() {
+        selectedLocationIds = result.cast<String>();
+      });
+      
+      loggy.info('Selected locations updated: $selectedLocationIds');
+      
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully updated your locations'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -69,14 +402,14 @@ class MyPlacesView extends StatelessWidget {
     return DottedBorder(
       color: AppColors.primaryColor,
       strokeWidth: 2,
-      dashPattern: [8, 4], // Dash and gap size
+      dashPattern: const [8, 4], // Dash and gap size
       borderType: BorderType.RRect,
-      radius: Radius.circular(8),
+      radius: const Radius.circular(8),
       child: Container(
         height: 150,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Color(0xFF2E2F33), // Background color inside dashed border
+          color: const Color(0xFF2E2F33), // Background color inside dashed border
           borderRadius: BorderRadius.circular(8),
         ),
         child: TextButton(
@@ -100,14 +433,14 @@ class MyPlacesView extends StatelessWidget {
         DottedBorder(
           color: AppColors.primaryColor,
           strokeWidth: 2,
-          dashPattern: [8, 4], // Dash and gap size
+          dashPattern: const [8, 4], 
           borderType: BorderType.RRect,
-          radius: Radius.circular(8),
+          radius: const Radius.circular(8),
           child: Container(
             height: 150,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Color(0xFF2E2F33), // Background color inside dashed border
+              //color: Color(0xFF2E2F33),  Background color inside dashed border
               borderRadius: BorderRadius.circular(8),
             ),
             child: TextButton(
@@ -127,12 +460,12 @@ class MyPlacesView extends StatelessWidget {
           right: 0,
           bottom: 0,
           child: Container(
-            margin: EdgeInsets.all(8),
+            margin: const EdgeInsets.all(8),
             child: FloatingActionButton(
               onPressed: () => _navigateToLocationSelection(context),
               backgroundColor: AppColors.primaryColor,
               mini: false,
-              child: Icon(Icons.add, color: Colors.white),
+              child: const Icon(Icons.add, color: Colors.white),
             ),
           ),
         ),

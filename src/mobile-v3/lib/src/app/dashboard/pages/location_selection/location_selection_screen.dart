@@ -7,7 +7,11 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/components/coun
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/location_list_view.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/location_search_bar.dart';
+import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
+import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/utils/connectivity_helper.dart';
 
 import 'package:loggy/loggy.dart';
 
@@ -34,14 +38,18 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   bool isLoading = true;
   String? errorMessage;
   bool showLocationLimitError = false;
-  
-  // Maximum number of locations a user can select
   static const int maxLocations = 4;
+  final UserPreferencesRepository _preferencesRepo = UserPreferencesImpl();
+  bool isSaving = false;
+  String? currentUserId;
+  UserPreferencesModel? userPreferences;
 
   @override
   void initState() {
     super.initState();
     loggy.info('initState called');
+
+    _initializeUserData();
 
     googlePlacesBloc = context.read<GooglePlacesBloc>()
       ..add(ResetGooglePlaces());
@@ -67,6 +75,50 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           errorMessage = "No measurements available in loaded state";
         });
       }
+    }
+  }
+
+  Future<void> _initializeUserData() async {
+    try {
+      final userId = await AuthHelper.getCurrentUserId();
+
+      if (userId != null) {
+        setState(() {
+          currentUserId = userId;
+        });
+
+        // Load user preferences
+        await _loadUserPreferences(userId);
+      } else {
+        loggy.warning('No user ID found - user might not be logged in');
+      }
+    } catch (e) {
+      loggy.error('Error initializing user data: $e');
+    }
+  }
+
+  Future<void> _loadUserPreferences(String userId) async {
+    try {
+      final response = await _preferencesRepo.getUserPreferences(userId);
+
+      if (response['success'] == true && response['data'] != null) {
+        final prefsData = UserPreferencesModel.fromJson(response['data']);
+
+        setState(() {
+          userPreferences = prefsData;
+
+          // Pre-select any saved locations
+          if (prefsData.selectedSites.isNotEmpty) {
+            selectedLocations =
+                prefsData.selectedSites.map((site) => site.id).toSet();
+
+            loggy.info(
+                'Loaded ${selectedLocations.length} previously selected locations');
+          }
+        });
+      }
+    } catch (e) {
+      loggy.error('Error loading user preferences: $e');
     }
   }
 
@@ -144,7 +196,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             // Don't add the location
             return;
           }
-          
+
           selectedLocations.add(id);
           showLocationLimitError = false;
         } else {
@@ -155,10 +207,94 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     }
   }
 
-  void _saveSelectedLocations() {
+  Future<void> _saveSelectedLocations() async {
     loggy.info(
         'Save button pressed with ${selectedLocations.length} selected locations');
-    Navigator.pop(context, selectedLocations.toList());
+
+    // If no user ID, we can't save preferences
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Cannot save locations: User not logged in')),
+      );
+      return;
+    }
+
+    // Check connectivity first
+    final hasConnection = await ConnectivityHelper.isConnected();
+    if (!hasConnection) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'No internet connection. Please try again when connected.')),
+      );
+      return;
+    }
+
+    setState(() {
+      isSaving = true;
+    });
+
+    try {
+      // Create list of selected site objects using the correct fields from your Measurement model
+      final List<Map<String, dynamic>> selectedSites =
+          selectedLocations.map((id) {
+        final measurement = allMeasurements.firstWhere(
+          (m) => m.id == id,
+          orElse: () => throw Exception('Measurement not found for ID $id'),
+        );
+
+        // Extract site details from the measurement
+        return {
+          "_id": id,
+          "name": measurement.siteDetails?.name ?? 'Unknown Location',
+          "search_name": measurement.siteDetails?.searchName ??
+              measurement.siteDetails?.name ??
+              'Unknown Location',
+          "latitude": measurement.siteDetails?.approximateLatitude ??
+              measurement.siteDetails?.approximateLatitude,
+          "longitude": measurement.siteDetails?.approximateLongitude ??
+              measurement.siteDetails?.approximateLongitude,
+        };
+      }).toList();
+
+      // Prepare the request body
+      final Map<String, dynamic> requestBody = {
+        "user_id": currentUserId,
+        "selected_sites": selectedSites,
+      };
+
+      // Call the repository
+      final response = await _preferencesRepo.replacePreference(requestBody);
+
+      if (response['success'] == true) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Locations saved successfully')),
+        );
+        Navigator.pop(context, selectedLocations.toList());
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Failed to save locations: ${response["message"]}')),
+        );
+      }
+    } catch (e) {
+      loggy.error('Error saving locations: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'An error occurred while saving locations: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
+    }
   }
 
   void _retryLoading() {
@@ -220,95 +356,101 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             ),
           ],
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Search Bar
-            LocationSearchBar(
-              controller: searchController,
-              onChanged: _handleSearch,
-            ),
+        body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Search Bar
+          LocationSearchBar(
+            controller: searchController,
+            onChanged: _handleSearch,
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-            // Countries Filter
-            CountriesFilter(
-              currentFilter: currentFilter,
-              onFilterSelected: _filterByCountry,
-              onResetFilter: _resetFilter,
-            ),
+          // Countries Filter
+          CountriesFilter(
+            currentFilter: currentFilter,
+            onFilterSelected: _filterByCountry,
+            onResetFilter: _resetFilter,
+          ),
 
-            // Error message for location limit
-            if (showLocationLimitError)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  'You can select up to 4 locations only',
-                  style: TextStyle(
-                    color: Colors.red[400],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-
+          // Error message for location limit
+          if (showLocationLimitError)
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
-                'All locations',
+                'You can select up to 4 locations only',
                 style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 20,
+                  color: Colors.red[400],
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
 
-            // Locations List
-            Expanded(
-              child: LocationListView(
-                isLoading: isLoading,
-                errorMessage: errorMessage,
-                onRetry: _retryLoading,
-                searchController: searchController,
-                currentFilter: currentFilter,
-                allMeasurements: allMeasurements,
-                filteredMeasurements: filteredMeasurements,
-                localSearchResults: localSearchResults,
-                selectedLocations: selectedLocations,
-                onToggleSelection: _toggleLocationSelection,
-                onViewDetails: _viewDetails,
-                onResetFilter: _resetFilter,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'All locations',
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
               ),
             ),
+          ),
 
-            // Save Button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed:
-                      selectedLocations.isEmpty ? null : _saveSelectedLocations,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Save (${selectedLocations.length}) Locations',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+          // Locations List
+          Expanded(
+            child: LocationListView(
+              isLoading: isLoading,
+              errorMessage: errorMessage,
+              onRetry: _retryLoading,
+              searchController: searchController,
+              currentFilter: currentFilter,
+              allMeasurements: allMeasurements,
+              filteredMeasurements: filteredMeasurements,
+              localSearchResults: localSearchResults,
+              selectedLocations: selectedLocations,
+              onToggleSelection: _toggleLocationSelection,
+              onViewDetails: _viewDetails,
+              onResetFilter: _resetFilter,
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: selectedLocations.isEmpty || isSaving
+                    ? null
+                    : _saveSelectedLocations,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                child: isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Save (${selectedLocations.length}) Locations',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
               ),
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
