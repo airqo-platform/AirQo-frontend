@@ -149,7 +149,9 @@ const SiteCard = React.memo(
     // Render site name with truncation and tooltip
     const wrappedSiteName = useMemo(() => {
       const baseClasses =
-        'w-full max-w-[200px] lg:max-w-[150px] text-left overflow-hidden text-ellipsis whitespace-nowrap';
+      'w-full max-w-[180px] sm:max-w-[100px] md:max-w-[170px] lg:max-w-[150px] text-left whitespace-nowrap text-base sm:text-sm md:text-xs';
+
+        // 'w-full max-w-[200px] lg:max-w-[150px] text-left overflow-hidden text-ellipsis whitespace-nowrap';
 
       if (isTruncated) {
         return (
