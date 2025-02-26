@@ -28,19 +28,15 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
-import 'src/app/shared/repository/hive_repository.dart';
+import 'core/utils/app_loggy_setup.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-  Loggy.initLoggy(
-    logPrinter: const PrettyPrinter(),
-    logOptions: const LogOptions(
-      LogLevel.all,
-      stackTraceLevel: LogLevel.error,
-    ),
-  );
+  // Initialize Loggy before runApp
+  AppLoggySetup.init(isDevelopment: true); // Set to false for production
+
   await dotenv.load(fileName: ".env.prod");
 
   try {

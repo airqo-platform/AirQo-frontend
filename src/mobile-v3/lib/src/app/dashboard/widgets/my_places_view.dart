@@ -1,7 +1,9 @@
-import 'package:airqo/src/app/dashboard/pages/location_selection_screen.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MyPlacesView extends StatelessWidget {
   const MyPlacesView({super.key});
@@ -42,6 +44,27 @@ class MyPlacesView extends StatelessWidget {
     );
   }
 
+  // Open location selection screen
+  void _navigateToLocationSelection(BuildContext context) async {
+    // Ensure DashboardBloc has the latest data before navigation
+    final dashboardBloc = context.read<DashboardBloc>();
+    if (dashboardBloc.state is! DashboardLoaded) {
+      dashboardBloc.add(LoadDashboard());
+    }
+    
+    // Navigate to the location selection screen
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => LocationSelectionScreen())
+    );
+    
+    // Handle the returned selected locations if needed
+    if (result != null) {
+      // Result will be a List<String> of selected location IDs
+      print('Selected locations: $result');
+      // Process the selected locations as needed
+    }
+  }
+
   Widget _buildAddLocationCard(BuildContext context) {
     return DottedBorder(
       color: AppColors.primaryColor,
@@ -57,9 +80,7 @@ class MyPlacesView extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: TextButton(
-          onPressed: () {
-            // Add location logic
-          },
+          onPressed: () => _navigateToLocationSelection(context),
           child: Text(
             "+Add Location",
             style: TextStyle(
@@ -90,11 +111,7 @@ class MyPlacesView extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: TextButton(
-              onPressed: () {
-                // Add location logic
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => LocationSelectionScreen()));
-              },
+              onPressed: () => _navigateToLocationSelection(context),
               child: Text(
                 "+Add Location",
                 style: TextStyle(
@@ -112,9 +129,7 @@ class MyPlacesView extends StatelessWidget {
           child: Container(
             margin: EdgeInsets.all(8),
             child: FloatingActionButton(
-              onPressed: () {
-                // Add location logic
-              },
+              onPressed: () => _navigateToLocationSelection(context),
               backgroundColor: AppColors.primaryColor,
               mini: false,
               child: Icon(Icons.add, color: Colors.white),
