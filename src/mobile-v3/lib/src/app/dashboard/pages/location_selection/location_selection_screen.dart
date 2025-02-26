@@ -33,6 +33,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   String currentFilter = "All";
   bool isLoading = true;
   String? errorMessage;
+  bool showLocationLimitError = false;
+  
+  // Maximum number of locations a user can select
+  static const int maxLocations = 4;
 
   @override
   void initState() {
@@ -134,9 +138,18 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     if (id != null) {
       setState(() {
         if (selected) {
+          // Check if we're already at max locations before adding
+          if (selectedLocations.length >= maxLocations) {
+            showLocationLimitError = true;
+            // Don't add the location
+            return;
+          }
+          
           selectedLocations.add(id);
+          showLocationLimitError = false;
         } else {
           selectedLocations.remove(id);
+          showLocationLimitError = false;
         }
       });
     }
@@ -224,6 +237,20 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
               onFilterSelected: _filterByCountry,
               onResetFilter: _resetFilter,
             ),
+
+            // Error message for location limit
+            if (showLocationLimitError)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'You can select up to 4 locations only',
+                  style: TextStyle(
+                    color: Colors.red[400],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
 
             Padding(
               padding: const EdgeInsets.all(16),
