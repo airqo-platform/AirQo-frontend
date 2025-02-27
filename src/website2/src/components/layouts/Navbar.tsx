@@ -225,13 +225,27 @@ const Navbar: React.FC = () => {
                 </NavigationMenuItem>
               ))}
               <CustomButton
-                onClick={() => dispatch(openModal())}
+                onClick={() => {
+                  trackEvent({
+                    action: 'button_click',
+                    category: 'engagement',
+                    label: 'get_involved',
+                  });
+                  dispatch(openModal());
+                }}
                 className="text-blue-600 bg-blue-50 transition rounded-none"
               >
                 Get involved
               </CustomButton>
               <CustomButton
-                onClick={() => router.push('/explore-data')}
+                onClick={() => {
+                  trackEvent({
+                    action: 'button_click',
+                    category: 'navigation',
+                    label: 'explore_data',
+                  });
+                  router.push('/explore-data');
+                }}
                 className="rounded-none"
               >
                 Explore data

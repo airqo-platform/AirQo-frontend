@@ -5,6 +5,8 @@ import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { subscribeToNewsletter } from '@/services/externalService';
 
+import { trackEvent } from '../GoogleAnalytics';
+
 const NewsLetter: React.FC = () => {
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>(
     'idle',
@@ -32,6 +34,11 @@ const NewsLetter: React.FC = () => {
       const response = await subscribeToNewsletter(formData);
       if (response.success) {
         setFormStatus('success');
+        trackEvent({
+          action: 'submit_form',
+          category: 'newsletter',
+          label: 'newsletter_subscription',
+        });
       } else {
         setFormStatus('error');
       }

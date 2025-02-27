@@ -192,6 +192,11 @@ const HomePlayerSection: React.FC = () => {
   const modalPlayerRef = useRef<any>(null);
 
   const handlePlayButtonClick = useCallback(() => {
+    trackEvent({
+      action: 'video_play',
+      category: 'video',
+      label: 'home_page_video',
+    });
     setVideoState((prev) => ({ ...prev, isModalOpen: true }));
   }, []);
 
