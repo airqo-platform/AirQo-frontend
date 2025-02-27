@@ -1,4 +1,4 @@
-import ResourcePage from '@/views/cleanairforum/resources/ResourcePage';
+import ResourcePage from '@/views/cleanAirNetwork/resources/ResourcePage';
 
 const page = () => {
   return (

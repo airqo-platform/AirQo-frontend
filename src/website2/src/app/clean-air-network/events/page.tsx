@@ -1,4 +1,4 @@
-import EventsPage from '@/views/cleanairforum/events/EventsPage';
+import EventsPage from '@/views/cleanAirNetwork/events/EventsPage';
 
 const page = () => {
   return (

@@ -7,7 +7,7 @@ import { Divider, NoData } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
-import SectionDisplay from '@/views/Forum/SectionDisplay';
+import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
 
 type SectionRowProps = {
   title: string;

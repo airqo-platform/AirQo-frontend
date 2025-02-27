@@ -1,4 +1,4 @@
-import MemberPage from '@/views/cleanairforum/membership/MemberPage';
+import MemberPage from '@/views/cleanAirNetwork/membership/MemberPage';
 
 const page = () => {
   return (

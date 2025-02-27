@@ -1,6 +1,6 @@
 import React from 'react';
 
-import AboutPage from '@/views/Forum/AboutPage';
+import AboutPage from '@/views/cleanAirForum/AboutPage';
 
 const page = () => {
   return (

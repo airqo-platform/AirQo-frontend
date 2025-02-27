@@ -1,6 +1,6 @@
 import React from 'react';
 
-import CleanAirPage from './CleanAirPage';
+import CleanAirPage from '@/views/cleanAirNetwork/about/CleanAirPage';
 
 const page = () => {
   return (
