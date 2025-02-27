@@ -68,22 +68,21 @@ class UserPreferencesModel extends Equatable with UiLoggy {
     logger.info('Parsing UserPreferencesModel from JSON');
     logger.info('JSON keys: ${json.keys.toList()}');
 
-    // Navigate to preference data, with fallback
-    final preference = json['preference'] ?? json;
-
     // Extract ID with multiple fallback strategies
-    final String id = preference['_id'] ?? preference['id'] ?? '';
+    final String id = json['_id'] ?? json['id'] ?? '';
 
     // Extract user ID
-    final String userId = preference['user_id'] ?? '';
+    final String userId = json['user_id'] ?? json['userId'] ?? '';
 
     // Extract selected sites with comprehensive parsing
     List<SelectedSite> sites = [];
     try {
-      final selectedSitesRaw = preference['selected_sites'];
+      final selectedSitesRaw =
+          json['selected_sites'] ?? json['selectedSites'] ?? [];
 
-      if (selectedSitesRaw != null && selectedSitesRaw is List) {
-        logger.info('Found ${selectedSitesRaw.length} selected sites');
+      if (selectedSitesRaw is List) {
+        logger
+            .info('Found ${selectedSitesRaw.length} potential selected sites');
 
         sites = selectedSitesRaw
             .where((site) => site is Map<String, dynamic>)
@@ -98,9 +97,6 @@ class UserPreferencesModel extends Equatable with UiLoggy {
     } catch (e) {
       logger.error('Error parsing selected sites: $e');
     }
-
-    // Additional metadata logging
-    logger.info('Parsed preference with ${sites.length} sites');
 
     return UserPreferencesModel(
       id: id,

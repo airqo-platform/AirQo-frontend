@@ -46,36 +46,40 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           // Debug log to see the structure of the response
           loggy.info(
               'Preference response structure: ${prefsResponse.keys.toList()}');
-          if (prefsResponse.containsKey('data')) {
-            loggy.info(
-                'Data structure: ${prefsResponse['data'] is List ? 'List' : 'Map'}');
-          }
 
-          // Check all possible structures
           if (prefsResponse['success'] == true) {
             try {
-              // First, try parsing from the preference/data field
-              if (prefsResponse['preference'] != null) {
-                preferences = UserPreferencesModel.fromJson(prefsResponse);
-              } else if (prefsResponse['data'] is Map) {
-                preferences =
-                    UserPreferencesModel.fromJson(prefsResponse['data']);
-              } else if (prefsResponse['data'] is List &&
-                  prefsResponse['data'].isNotEmpty) {
-                preferences =
-                    UserPreferencesModel.fromJson(prefsResponse['data'].first);
+              // New parsing strategy for the list-based preferences
+              if (prefsResponse['preferences'] is List &&
+                  prefsResponse['preferences'].isNotEmpty) {
+                // Take the first item in the preferences list
+                final preferenceData = prefsResponse['preferences'].first;
+
+                // Ensure it's a Map before parsing
+                if (preferenceData is Map<String, dynamic>) {
+                  preferences = UserPreferencesModel.fromJson(preferenceData);
+
+                  loggy.info(
+                      'Successfully loaded preferences with ${preferences.selectedSites.length} sites');
+                }
               }
 
-              // Fallback to alternative field names
-              if (preferences == null && prefsResponse['preferences'] != null) {
-                preferences =
-                    UserPreferencesModel.fromJson(prefsResponse['preferences']);
+              // Fallback parsing strategies
+              if (preferences == null) {
+                if (prefsResponse['preference'] != null) {
+                  preferences = UserPreferencesModel.fromJson(
+                      prefsResponse['preference']);
+                } else if (prefsResponse['data'] is Map) {
+                  preferences =
+                      UserPreferencesModel.fromJson(prefsResponse['data']);
+                } else if (prefsResponse['data'] is List &&
+                    prefsResponse['data'].isNotEmpty) {
+                  preferences = UserPreferencesModel.fromJson(
+                      prefsResponse['data'].first);
+                }
               }
 
-              if (preferences != null) {
-                loggy.info(
-                    'Successfully loaded preferences with ${preferences.selectedSites.length} sites');
-              } else {
+              if (preferences == null) {
                 loggy.warning('Unable to parse preferences from response');
               }
             } catch (parseError) {
