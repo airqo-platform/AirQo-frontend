@@ -33,8 +33,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       // Load air quality data
       AirQualityResponse response = await repository.fetchAirQualityReadings();
 
-      // Try to load user preferences directly within the dashboard loading flow
       UserPreferencesModel? preferences;
+
       try {
         final userId = await AuthHelper.getCurrentUserId();
         if (userId != null) {
@@ -43,21 +43,52 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           final prefsResponse =
               await preferencesRepo.getUserPreferences(userId);
 
-          if (prefsResponse['success'] == true &&
-              prefsResponse['data'] != null) {
-            preferences = UserPreferencesModel.fromJson(prefsResponse['data']);
+          // Debug log to see the structure of the response
+          loggy.info(
+              'Preference response structure: ${prefsResponse.keys.toList()}');
+          if (prefsResponse.containsKey('data')) {
             loggy.info(
-                'Successfully loaded preferences with ${preferences.selectedSites.length} sites');
+                'Data structure: ${prefsResponse['data'] is List ? 'List' : 'Map'}');
+          }
+
+          // Check all possible structures
+          if (prefsResponse['success'] == true) {
+            try {
+              // First, try parsing from the preference/data field
+              if (prefsResponse['preference'] != null) {
+                preferences = UserPreferencesModel.fromJson(prefsResponse);
+              } else if (prefsResponse['data'] is Map) {
+                preferences =
+                    UserPreferencesModel.fromJson(prefsResponse['data']);
+              } else if (prefsResponse['data'] is List &&
+                  prefsResponse['data'].isNotEmpty) {
+                preferences =
+                    UserPreferencesModel.fromJson(prefsResponse['data'].first);
+              }
+
+              // Fallback to alternative field names
+              if (preferences == null && prefsResponse['preferences'] != null) {
+                preferences =
+                    UserPreferencesModel.fromJson(prefsResponse['preferences']);
+              }
+
+              if (preferences != null) {
+                loggy.info(
+                    'Successfully loaded preferences with ${preferences.selectedSites.length} sites');
+              } else {
+                loggy.warning('Unable to parse preferences from response');
+              }
+            } catch (parseError) {
+              loggy.error('Error parsing preference data: $parseError');
+              loggy.error('Problematic data structure: $prefsResponse');
+            }
           } else {
             loggy.warning(
                 'Failed to load user preferences during dashboard load: ${prefsResponse['message']}');
           }
-        } else {
-          loggy.info('No user ID available during dashboard load');
         }
       } catch (e) {
         loggy.error('Error loading preferences during dashboard load: $e');
-        // Continue without preferences rather than failing the whole dashboard
       }
 
       // Emit loaded state with preferences (if loaded) or null

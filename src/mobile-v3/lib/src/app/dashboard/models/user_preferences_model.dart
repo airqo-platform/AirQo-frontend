@@ -23,7 +23,7 @@ class SelectedSite extends Equatable {
   factory SelectedSite.fromJson(Map<String, dynamic> json) {
     // Extract the ID field, handling both "_id" and "id" keys
     final String id = json['_id'] ?? json['id'] ?? '';
-    
+
     return SelectedSite(
       id: id,
       name: json['name'] ?? 'Unknown Location',
@@ -67,40 +67,41 @@ class UserPreferencesModel extends Equatable with UiLoggy {
     final logger = Loggy('UserPreferencesModel');
     logger.info('Parsing UserPreferencesModel from JSON');
     logger.info('JSON keys: ${json.keys.toList()}');
-    
-    // Handle nested preference structure
+
+    // Navigate to preference data, with fallback
     final preference = json['preference'] ?? json;
-    
-    // Extract ID
+
+    // Extract ID with multiple fallback strategies
     final String id = preference['_id'] ?? preference['id'] ?? '';
-    logger.info('Found preference ID: $id');
-    
+
     // Extract user ID
     final String userId = preference['user_id'] ?? '';
-    logger.info('Found user ID: $userId');
-    
-    // Extract selected sites with better error handling
+
+    // Extract selected sites with comprehensive parsing
     List<SelectedSite> sites = [];
     try {
       final selectedSitesRaw = preference['selected_sites'];
-      
+
       if (selectedSitesRaw != null && selectedSitesRaw is List) {
         logger.info('Found ${selectedSitesRaw.length} selected sites');
-        
+
         sites = selectedSitesRaw
-            .map((site) => site is Map<String, dynamic> ? SelectedSite.fromJson(site) : null)
-            .where((site) => site != null)
-            .cast<SelectedSite>()
+            .where((site) => site is Map<String, dynamic>)
+            .map((site) => SelectedSite.fromJson(site))
             .toList();
-        
+
         logger.info('Successfully parsed ${sites.length} site models');
       } else {
-        logger.warning('No selected_sites found or invalid format: $selectedSitesRaw');
+        logger.warning(
+            'No selected_sites found or invalid format: $selectedSitesRaw');
       }
     } catch (e) {
       logger.error('Error parsing selected sites: $e');
     }
-    
+
+    // Additional metadata logging
+    logger.info('Parsed preference with ${sites.length} sites');
+
     return UserPreferencesModel(
       id: id,
       userId: userId,
