@@ -12,6 +12,7 @@ import '../widgets/measurements_list.dart';
 import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
+import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -20,19 +21,25 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.myPlaces;
   String? selectedCountry;
 
   @override
   void initState() {
     super.initState();
+    loggy.info('Initializing DashboardPage');
+    
+    // Load dashboard data which will also load preferences
     context.read<DashboardBloc>().add(LoadDashboard());
     context.read<UserBloc>().add(LoadUser());
 
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthInitial || authState is GuestUser) {
+      loggy.info('Using guest account');
       context.read<AuthBloc>().add(UseAsGuest());
+    } else {
+      loggy.info('User is already authenticated');
     }
   }
 
@@ -70,7 +77,25 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildContentForCurrentView() {
     switch (currentView) {
       case DashboardView.myPlaces:
-        return MyPlacesView();
+        return BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoaded) {
+              loggy.info('Dashboard loaded with preferences: ${state.userPreferences != null}');
+              if (state.userPreferences != null) {
+                loggy.info('User has ${state.selectedLocationIds.length} selected locations');
+              }
+              
+              return MyPlacesView(
+                userPreferences: state.userPreferences,
+              );
+            } else if (state is DashboardLoading) {
+              return DashboardLoadingPage();
+            } else if (state is DashboardLoadingError) {
+              return ErrorPage();
+            }
+            return Container();
+          },
+        );
       case DashboardView.nearby:
         return NearbyView();
       case DashboardView.country:

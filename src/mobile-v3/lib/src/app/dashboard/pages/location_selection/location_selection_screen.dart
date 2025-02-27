@@ -11,7 +11,6 @@ import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.d
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:airqo/src/app/shared/utils/connectivity_helper.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/services/token_debugger.dart';
