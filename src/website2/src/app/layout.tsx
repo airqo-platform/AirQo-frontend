@@ -39,8 +39,7 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const maintenance = await checkMaintenance();
-  const GA_MEASUREMENT_ID =
-    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
 
   return (
     <html lang="en" className={interFont.variable}>
