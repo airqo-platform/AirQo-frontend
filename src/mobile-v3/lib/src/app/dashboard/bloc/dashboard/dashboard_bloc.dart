@@ -30,18 +30,39 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
     try {
       emit(DashboardLoading());
 
+      // Load air quality data
       AirQualityResponse response = await repository.fetchAirQualityReadings();
       
-      // If we have a current state with preferences, keep them
+      // Try to load user preferences directly within the dashboard loading flow
       UserPreferencesModel? preferences;
-      if (state is DashboardLoaded) {
-        preferences = (state as DashboardLoaded).userPreferences;
+      try {
+        final userId = await AuthHelper.getCurrentUserId();
+        if (userId != null) {
+          loggy.info('Loading preferences during dashboard load for user: $userId');
+          final prefsResponse = await preferencesRepo.getUserPreferences(userId);
+          
+          if (prefsResponse['success'] == true && prefsResponse['data'] != null) {
+            preferences = UserPreferencesModel.fromJson(prefsResponse['data']);
+            loggy.info('Successfully loaded preferences with ${preferences.selectedSites.length} sites');
+          } else {
+            loggy.warning('Failed to load user preferences during dashboard load: ${prefsResponse['message']}');
+          }
+        } else {
+          loggy.info('No user ID available during dashboard load');
+        }
+      } catch (e) {
+        loggy.error('Error loading preferences during dashboard load: $e');
+        // Continue without preferences rather than failing the whole dashboard
       }
       
+      // Emit loaded state with preferences (if loaded) or null
       emit(DashboardLoaded(response, userPreferences: preferences));
       
-      // After loading dashboard, try to load user preferences
-      add(LoadUserPreferences());
+      // If preferences failed to load initially, try again as a separate event
+      if (preferences == null) {
+        loggy.info('Preferences not loaded initially, retrying as separate event');
+        add(LoadUserPreferences());
+      }
     } catch (e) {
       loggy.error('Error loading dashboard: $e');
       emit(DashboardLoadingError(e.toString()));
@@ -60,21 +81,57 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         return;
       }
       
-      // Get the measurements corresponding to the selected location IDs
-      final selectedMeasurements = currentState.response.measurements
-          ?.where((m) => m.id != null && locationIds.contains(m.id))
-          .toList() ?? [];
+      // If we have existing preferences, use them as a reference for site details
+      List<Map<String, dynamic>> selectedSites = [];
       
-      // Create the selected sites list for the API
-      final List<Map<String, dynamic>> selectedSites = selectedMeasurements.map((m) {
-        return {
-          "_id": m.id,
-          "name": m.siteDetails?.name ?? 'Unknown Location',
-          "search_name": m.siteDetails?.searchName ?? m.siteDetails?.name ?? 'Unknown Location',
-          "latitude": m.siteDetails?.approximateLatitude ?? m.siteDetails?.approximateLatitude,
-          "longitude": m.siteDetails?.approximateLongitude ?? m.siteDetails?.approximateLongitude,
-        };
-      }).toList();
+      if (currentState.userPreferences != null) {
+        // First, include any existing sites that are still in the locationIds list
+        for (var site in currentState.userPreferences!.selectedSites) {
+          if (locationIds.contains(site.id)) {
+            selectedSites.add({
+              "_id": site.id,
+              "name": site.name,
+              "search_name": site.searchName ?? site.name,
+              "latitude": site.latitude,
+              "longitude": site.longitude,
+              "createdAt": DateTime.now().toIso8601String(),
+            });
+          }
+        }
+      }
+      
+      // For any locationIds that weren't in existing preferences, try to find them in measurements
+      final existingSiteIds = selectedSites.map((s) => s["_id"] as String).toSet();
+      final remainingIds = locationIds.where((id) => !existingSiteIds.contains(id)).toList();
+      
+      if (remainingIds.isNotEmpty) {
+        loggy.info('Finding details for ${remainingIds.length} new location IDs');
+        
+        // Get measurements for the remaining IDs
+        for (final id in remainingIds) {
+          // Try to find a matching measurement
+          final matchingMeasurement = currentState.response.measurements
+              ?.where(
+                (m) => m.id == id || m.siteDetails?.id == id || m.siteId == id,
+              ).firstOrNull;
+          
+          if (matchingMeasurement != null) {
+            selectedSites.add({
+              "_id": id,
+              "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
+              "search_name": matchingMeasurement.siteDetails?.searchName ?? 
+                             matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
+              "latitude": matchingMeasurement.siteDetails?.approximateLatitude ?? 
+                          matchingMeasurement.siteDetails?.siteCategory?.latitude,
+              "longitude": matchingMeasurement.siteDetails?.approximateLongitude ?? 
+                           matchingMeasurement.siteDetails?.siteCategory?.longitude,
+              "createdAt": DateTime.now().toIso8601String(),
+            });
+          } else {
+            loggy.warning('Could not find details for location ID: $id');
+          }
+        }
+      }
       
       // Prepare request body
       final Map<String, dynamic> requestBody = {
@@ -82,7 +139,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         "selected_sites": selectedSites,
       };
       
-      loggy.info('Updating preferences with ${selectedSites.length} locations');
+      loggy.info('Updating preferences with ${selectedSites.length} locations out of ${locationIds.length} IDs');
       final response = await preferencesRepo.replacePreference(requestBody);
       
       if (response['success'] == true) {
@@ -99,7 +156,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   
   Future<void> _handleLoadUserPreferences(Emitter<DashboardState> emit) async {
     // Only proceed if we have a loaded dashboard
-    if (state is! DashboardLoaded) return;
+    if (state is! DashboardLoaded) {
+      loggy.warning('Cannot load preferences: Dashboard not in loaded state');
+      return;
+    }
     
     try {
       final currentState = state as DashboardLoaded;
@@ -119,11 +179,25 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         
         loggy.info('Loaded preferences: ${prefsData.selectedSites.length} sites');
         
+        // Verify if the preferences contain sites
+        if (prefsData.selectedSites.isEmpty) {
+          loggy.info('Loaded preferences contain no selected sites');
+        } else {
+          // Log a sample of the loaded sites to verify data structure
+          for (int i = 0; i < min(prefsData.selectedSites.length, 3); i++) {
+            final site = prefsData.selectedSites[i];
+            loggy.info('Loaded site ${i+1}: ${site.name} (ID: ${site.id})');
+          }
+        }
+        
         // Update the state with user preferences
         emit(DashboardLoaded(
           currentState.response, 
           userPreferences: prefsData
         ));
+      } else if (response['auth_error'] == true) {
+        loggy.warning('Authentication error when loading preferences');
+        // Handle auth error - possibly redirect to login or refresh token
       } else {
         loggy.warning('Failed to load user preferences: ${response['message']}');
       }
@@ -132,4 +206,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       // Don't emit error state here, just log it
     }
   }
+  
+  // Helper to get minimum of two integers
+  int min(int a, int b) => a < b ? a : b;
 }
