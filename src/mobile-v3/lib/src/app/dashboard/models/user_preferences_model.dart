@@ -1,76 +1,110 @@
+import 'package:equatable/equatable.dart';
+import 'package:loggy/loggy.dart';
 
-
-class SelectedSite {
+/// Model for a site location
+class SelectedSite extends Equatable {
   final String id;
   final String name;
-  final String searchName;
+  final String? searchName;
   final double? latitude;
   final double? longitude;
-  
-  SelectedSite({
+
+  const SelectedSite({
     required this.id,
     required this.name,
-    required this.searchName,
+    this.searchName,
     this.latitude,
     this.longitude,
   });
-  
+
+  @override
+  List<Object?> get props => [id, name, searchName, latitude, longitude];
+
   factory SelectedSite.fromJson(Map<String, dynamic> json) {
+    // Extract the ID field, handling both "_id" and "id" keys
+    final String id = json['_id'] ?? json['id'] ?? '';
+    
     return SelectedSite(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? 'Unknown',
-      searchName: json['search_name'] ?? 'Unknown',
-      latitude: json['latitude'],
-      longitude: json['longitude'],
+      id: id,
+      name: json['name'] ?? 'Unknown Location',
+      searchName: json['search_name'] ?? json['searchName'],
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
     );
   }
-  
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'name': name,
-      'search_name': searchName,
-      'latitude': latitude,
-      'longitude': longitude,
-    };
+
+  // Helper method to safely parse doubles
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
   }
 }
 
-class UserPreferencesModel {
+/// Model for user preferences including selected locations
+class UserPreferencesModel extends Equatable with UiLoggy {
+  final String id;
   final String userId;
   final List<SelectedSite> selectedSites;
-  final String? pollutant;
-  final String? frequency;
-  
-  UserPreferencesModel({
+
+  const UserPreferencesModel({
+    required this.id,
     required this.userId,
     required this.selectedSites,
-    this.pollutant,
-    this.frequency,
   });
-  
+
+  @override
+  List<Object> get props => [id, userId, selectedSites];
+
   factory UserPreferencesModel.fromJson(Map<String, dynamic> json) {
+    final logger = Loggy('UserPreferencesModel');
+    logger.info('Parsing UserPreferencesModel from JSON');
+    logger.info('JSON keys: ${json.keys.toList()}');
+    
+    // Handle nested preference structure
+    final preference = json['preference'] ?? json;
+    
+    // Extract ID
+    final String id = preference['_id'] ?? preference['id'] ?? '';
+    logger.info('Found preference ID: $id');
+    
+    // Extract user ID
+    final String userId = preference['user_id'] ?? '';
+    logger.info('Found user ID: $userId');
+    
+    // Extract selected sites with better error handling
     List<SelectedSite> sites = [];
-    if (json['selected_sites'] != null) {
-      sites = (json['selected_sites'] as List)
-          .map((site) => SelectedSite.fromJson(site))
-          .toList();
+    try {
+      final selectedSitesRaw = preference['selected_sites'];
+      
+      if (selectedSitesRaw != null && selectedSitesRaw is List) {
+        logger.info('Found ${selectedSitesRaw.length} selected sites');
+        
+        sites = selectedSitesRaw
+            .map((site) => site is Map<String, dynamic> ? SelectedSite.fromJson(site) : null)
+            .where((site) => site != null)
+            .cast<SelectedSite>()
+            .toList();
+        
+        logger.info('Successfully parsed ${sites.length} site models');
+      } else {
+        logger.warning('No selected_sites found or invalid format: $selectedSitesRaw');
+      }
+    } catch (e) {
+      logger.error('Error parsing selected sites: $e');
     }
     
     return UserPreferencesModel(
-      userId: json['user_id'] ?? '',
+      id: id,
+      userId: userId,
       selectedSites: sites,
-      pollutant: json['pollutant'],
-      frequency: json['frequency'],
     );
-  }
-  
-  Map<String, dynamic> toJson() {
-    return {
-      'user_id': userId,
-      'selected_sites': selectedSites.map((site) => site.toJson()).toList(),
-      'pollutant': pollutant,
-      'frequency': frequency,
-    };
   }
 }
