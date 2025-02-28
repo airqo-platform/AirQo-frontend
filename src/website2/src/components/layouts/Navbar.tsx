@@ -20,7 +20,7 @@ import {
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
-import TabNavigation from '@/views/cleanairforum/TabNavigation';
+import TabNavigation from '@/views/cleanAirNetwork/TabNavigation';
 
 import { trackEvent } from '../GoogleAnalytics';
 import NotificationBanner from './NotificationBanner';

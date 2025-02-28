@@ -1,12 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
-import {
-  FaFacebookF,
-  FaLinkedinIn,
-  FaTwitter,
-  FaYoutube,
-} from 'react-icons/fa';
+import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 
 import mainConfig from '@/configs/mainConfigs';
 
@@ -33,9 +29,9 @@ const Footer = () => {
               width={70}
               height={60}
             />
-            <p className="text-gray-800 text-[16px] font-semibold mt-4">
+            <h1 className="text-gray-700 font-semibold mt-4">
               Clean air for all <br /> African Cities.
-            </p>
+            </h1>
           </div>
           <div className="flex space-x-4 mt-6">
             <Link
@@ -65,7 +61,7 @@ const Footer = () => {
               aria-label="Twitter"
               className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
             >
-              <FaTwitter size={14} />
+              <FaXTwitter size={14} />
             </Link>
           </div>
         </div>
