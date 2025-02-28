@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import GlossaryPage from '@/views/cleanAirForum/glossary/GlossaryPage';
+import GlossaryPage from '../../../views/cleanAirForum/glossary/GlossaryPage';
 
 export const metadata: Metadata = {
   title: 'Glossary | Clean Air Forum',

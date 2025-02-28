@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import CommitteePage from '@/views/cleanAirForum/program-committee/CommitteePage';
+import CommitteePage from '../../../views/cleanAirForum/program-committee/CommitteePage';
 
 export const metadata: Metadata = {
   title: 'Program Committee | Clean Air Forum | AirQo',
