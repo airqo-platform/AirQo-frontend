@@ -78,7 +78,7 @@ const NewsLetter: React.FC = () => {
           // Split layout for idle state (header and form side-by-side on lg screens)
           <div className="flex flex-col lg:flex-row items-center lg:items-start lg:justify-between gap-12 w-full">
             <div className="lg:w-1/2 text-center lg:text-left space-y-4">
-              <h2 className="text-2xl md:text-[40px] font-bold text-blue-600">
+              <h2 className="text-2xl leading-tight md:text-[40px] font-bold text-blue-600">
                 Subscribe to our Newsletter
               </h2>
               <p className="text-blue-600 text-[20px]">

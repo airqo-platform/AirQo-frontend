@@ -7,7 +7,7 @@ import { Divider, NoData } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
-import SectionDisplay from '@/views/Forum/SectionDisplay';
+import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
 
 type SectionRowProps = {
   title: string;
@@ -27,7 +27,7 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
   </>
 );
 
-const AboutPage: React.FC = () => {
+const AboutPage = () => {
   const { selectedEvent } = useForumData();
 
   if (!selectedEvent) {

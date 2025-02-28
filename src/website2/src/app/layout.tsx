@@ -39,6 +39,45 @@ export default async function RootLayout({
   const description =
     'AirQo is transforming air quality management in Africa by providing low-cost sensors, real-time data, and actionable insights to help communities and organizations improve air quality.';
 
+  const keywords = [
+    'AirQo',
+    'air quality monitoring',
+    'air pollution',
+    'PM1',
+    'PM2.5',
+    'PM10',
+    'NO2',
+    'SO2',
+    'CO',
+    'O3',
+    'air quality index',
+    'AQI',
+    'real-time air quality data',
+    'low-cost air sensors',
+    'urban air pollution',
+    'environmental monitoring',
+    'climate change',
+    'air quality management',
+    'clean air solutions',
+    'air quality in Africa',
+    'environmental health',
+    'ambient air monitoring',
+    'particulate matter',
+    'air quality forecasting',
+    'air quality analytics',
+    'pollution mitigation',
+    'environmental data',
+    'sustainable cities',
+    'public health',
+    'respiratory health',
+    'environmental policy',
+    'air quality research',
+    'air quality standards',
+    'air quality compliance',
+    'air pollution control',
+    'air quality education',
+  ].join(', ');
+
   const maintenance = await checkMaintenance();
 
   return (
@@ -47,24 +86,54 @@ export default async function RootLayout({
         {/* Primary SEO */}
         <title>{title}</title>
         <meta name="description" content={description} />
-        <meta
-          name="keywords"
-          content="AirQo, air quality, sensors, data, real-time monitoring, Africa"
-        />
+        <meta name="keywords" content={keywords} />
         <meta name="author" content="AirQo" />
         <meta name="robots" content="index, follow" />
+        <meta name="apple-mobile-web-app-title" content="AirQo" />
+
+        {/* Real Favicon Generator / Favicon + App Icons */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/web-app-manifest-192x192.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="512x512"
+          href="/web-app-manifest-512x512.png"
+        />
+        <link rel="icon" type="image/png" href="/icon.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+
+        {/* Windows / MS Tiles */}
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
+
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ffffff" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content={siteUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
+        <meta property="og:image" content={`${siteUrl}icon.png`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={siteUrl} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={`${siteUrl}icon.png`} />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={siteUrl} />
 
         {/* GA snippet must appear in <head> for Search Console verification */}
         <Script
@@ -73,13 +142,13 @@ export default async function RootLayout({
         />
         <Script id="ga-init" strategy="beforeInteractive">
           {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){ dataLayer.push(arguments); }
-          gtag('js', new Date());
-          gtag('config', '${GA_ID}', {
-            page_path: window.location.pathname,
-          });
-        `}
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){ dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}', {
+              page_path: window.location.pathname,
+            });
+          `}
         </Script>
       </head>
       <body>
