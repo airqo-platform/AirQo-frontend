@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:loggy/loggy.dart';
 
 class NearbyViewEmptyState extends StatefulWidget {
-  const NearbyViewEmptyState({super.key});
+  final String? errorMessage;
+  final VoidCallback? onRetry;
+
+  const NearbyViewEmptyState({
+    super.key, 
+    this.errorMessage,
+    this.onRetry,
+  });
 
   @override
   State<NearbyViewEmptyState> createState() => _NearbyViewEmptyStateState();
@@ -22,23 +30,70 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
     });
 
     try {
-      // Request permission
-      final status = await Permission.location.request();
+      // First check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showLocationServicesDisabledDialog();
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
 
-      if (status.isGranted) {
-        loggy.info('Location permission granted');
+      // Check current permission status
+      LocationPermission permission = await Geolocator.checkPermission();
+      
+      // If already granted, just continue
+      if (permission == LocationPermission.always || 
+          permission == LocationPermission.whileInUse) {
+        loggy.info('Location permission already granted: ${permission.toString()}');
+        
+        if (widget.onRetry != null) {
+          widget.onRetry!();
+        } else {
+          // Refresh dashboard data with location
+          context.read<DashboardBloc>().add(LoadDashboard());
+        }
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      
+      // Request permission if not already granted
+      permission = await Geolocator.requestPermission();
+
+      if (permission == LocationPermission.always || 
+          permission == LocationPermission.whileInUse) {
+        loggy.info('Location permission granted: ${permission.toString()}');
+        
         // Refresh dashboard data with location
-        context.read<DashboardBloc>().add(LoadDashboard());
-      } else if (status.isDenied) {
+        if (widget.onRetry != null) {
+          widget.onRetry!();
+        } else {
+          context.read<DashboardBloc>().add(LoadDashboard());
+        }
+      } else if (permission == LocationPermission.denied) {
         loggy.warning('Location permission denied');
-        // Could show a message here
-      } else if (status.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Location permission was denied. Please try again.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else if (permission == LocationPermission.deniedForever) {
         loggy.warning('Location permission permanently denied');
         // Show dialog to open app settings
         _showOpenSettingsDialog();
       }
     } catch (e) {
       loggy.error('Error requesting location permission: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: ${e.toString()}'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -48,11 +103,37 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
     }
   }
 
+  void _showLocationServicesDisabledDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Location Services Disabled'),
+        content: Text(
+          'Location services are disabled on your device. '
+          'Please enable location services to see air quality data near you.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Geolocator.openLocationSettings();
+            },
+            child: Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showOpenSettingsDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Location Required'),
+        title: Text('Location Permission Required'),
         content: Text(
           'Location permission is required to show air quality data near you. '
           'Please enable location in app settings.',
@@ -162,6 +243,33 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
             textAlign: TextAlign.center,
           ),
           
+          // Error message if provided
+          if (widget.errorMessage != null) ...[
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.errorMessage!,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
           SizedBox(height: 40),
           
           // Enable Location Button
@@ -174,8 +282,9 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                disabledBackgroundColor: AppColors.primaryColor.withOpacity(0.5),
               ),
               child: _isLoading
                   ? SizedBox(
