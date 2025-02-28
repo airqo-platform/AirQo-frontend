@@ -29,5 +29,54 @@
     "getInvolvedButton": "Get involved",
     "closeModalAriaLabel": "Close Modal",
     "closeButton": "Close"
+  },
+  "engagementDialog": {
+    "options": {
+      "partner": {
+        "title": "I'm a Partner.",
+        "description": "Interested in supporting AirQo's vision"
+      },
+      "policymaker": {
+        "title": "I'm a Policymaker.",
+        "description": "Interested in air quality information"
+      },
+      "communityChampion": {
+        "title": "I'm a Community Champion.",
+        "description": "Interested in raising awareness about air pollution."
+      },
+      "researcher": {
+        "title": "I'm a Researcher.",
+        "description": "Interested in Air Quality data and analytics"
+      },
+      "developer": {
+        "title": "I'm a Developer.",
+        "description": "Interested in establishing an Air Quality Network, utilizing the AirQo API, or both."
+      }
+    },
+    "form": {
+      "back": "Back",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email address",
+      "termsAndConditions": "I agree to the <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>",
+      "message": "Get involved - Request from the website",
+      "errorMessage": "Oops! Something went wrong. Please try again.",
+      "validationError": "You must accept the terms and conditions and select a category.",
+      "sending": "Sending...",
+      "send": "Send"
+    },
+    "success": {
+      "title": "Success!",
+      "message": "Thank you for your submission. We will get in touch with you soon!",
+      "close": "Close"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "getInvolved": "Get Involved"
+    },
+    "header": {
+      "title": "How would you like to engage with us?",
+      "description": "Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard."
+    }
   }
 }

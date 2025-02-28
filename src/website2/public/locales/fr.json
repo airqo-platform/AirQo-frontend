@@ -29,5 +29,54 @@
     "getInvolvedButton": "S'impliquer",
     "closeModalAriaLabel": "Fermer la fenêtre",
     "closeButton": "Fermer"
+  },
+  "engagementDialog": {
+    "options": {
+      "partner": {
+        "title": "Je suis un partenaire.",
+        "description": "Intéressé à soutenir la vision d'AirQo"
+      },
+      "policymaker": {
+        "title": "Je suis un décideur politique.",
+        "description": "Intéressé par les informations sur la qualité de l'air"
+      },
+      "communityChampion": {
+        "title": "Je suis un champion communautaire.",
+        "description": "Intéressé à sensibiliser sur la pollution de l'air."
+      },
+      "researcher": {
+        "title": "Je suis un chercheur.",
+        "description": "Intéressé par les données et analyses sur la qualité de l'air"
+      },
+      "developer": {
+        "title": "Je suis un développeur.",
+        "description": "Intéressé par l'établissement d'un réseau de qualité de l'air, l'utilisation de l'API AirQo, ou les deux."
+      }
+    },
+    "form": {
+      "back": "Retour",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse e-mail",
+      "termsAndConditions": "J'accepte les <termsLink>Conditions d'utilisation</termsLink> et la <privacyLink>Politique de confidentialité</privacyLink>",
+      "message": "S'impliquer - Demande depuis le site web",
+      "errorMessage": "Oups ! Quelque chose s'est mal passé. Veuillez réessayer.",
+      "validationError": "Vous devez accepter les conditions générales et sélectionner une catégorie.",
+      "sending": "Envoi en cours...",
+      "send": "Envoyer"
+    },
+    "success": {
+      "title": "Succès !",
+      "message": "Merci pour votre soumission. Nous vous contacterons bientôt !",
+      "close": "Fermer"
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "getInvolved": "S'impliquer"
+    },
+    "header": {
+      "title": "Comment souhaitez-vous vous engager avec nous ?",
+      "description": "Accédez aux informations sur la qualité de l'air en temps réel et historiques à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser."
+    }
   }
 }
