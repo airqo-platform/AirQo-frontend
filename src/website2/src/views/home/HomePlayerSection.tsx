@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { trackEvent } from '@/components/GoogleAnalytics';
@@ -49,30 +50,33 @@ interface VideoState {
 const TextSection: React.FC<{
   onExploreData: () => void;
   onGetInvolved: () => void;
-}> = React.memo(({ onExploreData, onGetInvolved }) => (
-  <div className="lg:w-1/2 w-full flex flex-col justify-center gap-1">
-    <h1 className="text-[32px] lg:text-[56px] font-semibold leading-tight">
-      Clean air for all African cities
-    </h1>
-    <p className="text-base mb-6 max-w-[390px]">
-      <span className="text-lg text-blue-600 font-medium">
-        &quot;9 out of 10 people breathe polluted air&quot;
-      </span>
-      <br />
-      We empower communities with accurate, hyperlocal and timely air quality
-      data to drive air pollution mitigation actions.
-    </p>
-    <div className="flex gap-4">
-      <CustomButton onClick={onExploreData}>Explore data</CustomButton>
-      <CustomButton
-        onClick={onGetInvolved}
-        className="bg-blue-50 text-blue-600"
-      >
-        Get involved
-      </CustomButton>
+}> = React.memo(({ onExploreData, onGetInvolved }) => {
+  const t = useTranslations('playerSection');
+
+  return (
+    <div className="lg:w-1/2 w-full flex flex-col justify-center gap-1">
+      <h1 className="text-[32px] lg:text-[56px] font-semibold leading-tight">
+        {t('title')}
+      </h1>
+      <p className="text-base mb-6 max-w-[390px]">
+        <span className="text-lg text-blue-600 font-medium">{t('quote')}</span>
+        <br />
+        {t('description')}
+      </p>
+      <div className="flex gap-4">
+        <CustomButton onClick={onExploreData}>
+          {t('exploreDataButton')}
+        </CustomButton>
+        <CustomButton
+          onClick={onGetInvolved}
+          className="bg-blue-50 text-blue-600"
+        >
+          {t('getInvolvedButton')}
+        </CustomButton>
+      </div>
     </div>
-  </div>
-));
+  );
+});
 
 TextSection.displayName = 'TextSection';
 
