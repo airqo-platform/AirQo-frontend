@@ -78,5 +78,59 @@
       "title": "Comment souhaitez-vous vous engager avec nous ?",
       "description": "Accédez aux informations sur la qualité de l'air en temps réel et historiques à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser."
     }
+  },
+  "navbar": {
+    "menu": {
+      "products": "Produits",
+      "solutions": "Solutions",
+      "about": "À propos"
+    },
+    "products": {
+      "binosMonitor": {
+        "title": "Moniteur Binos",
+        "description": "Conçu en Afrique pour les villes africaines"
+      },
+      "analyticsDashboard": {
+        "title": "Tableau de bord analytique",
+        "description": "Analyses de la qualité de l'air pour les villes africaines"
+      },
+      "mobileApp": {
+        "title": "Application mobile",
+        "description": "Découvrez la qualité de l'air autour de vous"
+      },
+      "airQualityAPI": {
+        "title": "API de qualité de l'air",
+        "description": "Accédez aux données brutes et calibrées"
+      },
+      "airQalibrate": {
+        "title": "AirQalibrate",
+        "description": "Calibrez les données de vos capteurs à faible coût"
+      }
+    },
+    "solutions": {
+      "africanCities": {
+        "title": "Pour les villes africaines",
+        "description": "Améliorer la gestion de la qualité de l'air dans les villes africaines"
+      },
+      "communities": {
+        "title": "Pour les communautés",
+        "description": "Donner aux communautés des informations sur la qualité de l'air"
+      },
+      "research": {
+        "title": "Pour la recherche",
+        "description": "Faire progresser les connaissances et les preuves sur les problèmes de qualité de l'air"
+      }
+    },
+    "about": {
+      "aboutUs": "À propos de nous",
+      "resources": "Ressources",
+      "careers": "Carrières",
+      "contactUs": "Contactez-nous",
+      "events": "Événements",
+      "press": "Presse",
+      "cleanAirForum": "Forum CLEAN-Air"
+    },
+    "getInvolved": "S'impliquer",
+    "exploreData": "Explorer les données"
   }
 }

@@ -2,7 +2,9 @@
 import { motion, useAnimation } from 'framer-motion';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
@@ -40,119 +42,131 @@ type MenuItems = {
 const menuItems: MenuItems = {
   Products: [
     {
-      title: 'Binos Monitor',
-      description: 'Built in Africa for African cities',
+      title: 'products.binosMonitor.title',
+      description: 'products.binosMonitor.description',
       href: '/products/monitor',
     },
     {
-      title: 'Analytics Dashboard',
-      description: 'Air quality analytics for African cities',
+      title: 'products.analyticsDashboard.title',
+      description: 'products.analyticsDashboard.description',
       href: '/products/analytics',
     },
     {
-      title: 'Mobile App',
-      description: 'Discover the quality of air around you',
+      title: 'products.mobileApp.title',
+      description: 'products.mobileApp.description',
       href: '/products/mobile-app',
     },
     {
-      title: 'Air Quality API',
-      description: 'Access raw and calibrated data',
+      title: 'products.airQualityAPI.title',
+      description: 'products.airQualityAPI.description',
       href: '/products/api',
     },
     {
-      title: 'AirQalibrate',
-      description: 'Calibrate your low-cost sensor data',
+      title: 'products.airQalibrate.title',
+      description: 'products.airQalibrate.description',
       href: '/products/calibrate',
     },
   ],
   Solutions: [
     {
-      title: 'For African Cities',
-      description: 'Advancing air quality management in African Cities',
+      title: 'solutions.africanCities.title',
+      description: 'solutions.africanCities.description',
       href: '/solutions/african-cities',
     },
     {
-      title: 'For Communities',
-      description: 'Empowering communities with air quality information',
+      title: 'solutions.communities.title',
+      description: 'solutions.communities.description',
       href: '/solutions/communities',
     },
     {
-      title: 'For Research',
-      description: 'Advancing knowledge and evidence on air quality issues',
+      title: 'solutions.research.title',
+      description: 'solutions.research.description',
       href: '/solutions/research',
     },
   ],
   About: [
-    { title: 'About Us', href: '/about-us' },
-    { title: 'Resources', href: '/resources' },
-    { title: 'Careers', href: '/careers' },
-    { title: 'Contact Us', href: '/contact' },
-    { title: 'Events', href: '/events' },
-    { title: 'Press', href: '/press' },
-    { title: 'CLEAN-Air Forum', href: '/clean-air-forum/about' },
+    { title: 'about.aboutUs', href: '/about-us' },
+    { title: 'about.resources', href: '/resources' },
+    { title: 'about.careers', href: '/careers' },
+    { title: 'about.contactUs', href: '/contact' },
+    { title: 'about.events', href: '/events' },
+    { title: 'about.press', href: '/press' },
+    { title: 'about.cleanAirForum', href: '/clean-air-forum/about' },
   ],
 };
 
-// Custom hook to track scroll direction
+// Custom hook to detect scroll direction
 function useScrollDirection() {
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(
-    null,
-  );
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollDirection(currentScrollY > lastScrollY ? 'down' : 'up');
-      setLastScrollY(currentScrollY);
+    let lastScrollY = window.pageYOffset;
+
+    const updateScrollDirection = () => {
+      const scrollY = window.pageYOffset;
+      const direction = scrollY > lastScrollY ? 'down' : 'up';
+      if (direction !== scrollDirection) {
+        setScrollDirection(direction);
+      }
+      lastScrollY = scrollY > 0 ? scrollY : 0;
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+    window.addEventListener('scroll', updateScrollDirection);
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollDirection);
+    };
+  }, [scrollDirection]);
 
   return scrollDirection;
 }
 
-// Helper component for rendering dropdown items
-const DropdownMenuContent: React.FC<{ title: string; items: MenuItem[] }> = ({
-  title,
-  items,
-}) => (
-  <NavigationMenuContent className="bg-white shadow-lg md:w-[400px] lg:w-[600px] text-sm rounded-md p-4">
-    <div className="text-gray-400 mb-4">{title}</div>
-    <div className="flex gap-8">
-      {items
-        .reduce<MenuItem[][]>((acc, item, idx) => {
-          const colIdx = Math.floor(idx / Math.ceil(items.length / 2));
-          if (!acc[colIdx]) acc[colIdx] = [];
-          acc[colIdx].push(item);
-          return acc;
-        }, [])
-        .map((colItems, index) => (
-          <ul key={index} className="flex-1 space-y-3">
-            {colItems.map((item) => (
-              <li key={item.href}>
-                <NavigationMenuLink asChild>
-                  <Link
-                    href={item.href}
-                    className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition"
-                  >
-                    <div className="font-medium">{item.title}</div>
-                    {item.description && (
-                      <div className="text-gray-500">{item.description}</div>
-                    )}
-                  </Link>
-                </NavigationMenuLink>
-              </li>
-            ))}
-          </ul>
-        ))}
-    </div>
-  </NavigationMenuContent>
-);
+// Dropdown Menu Content Component
+const DropdownMenuContent: React.FC<{
+  title: string;
+  items: MenuItem[];
+}> = ({ title, items }) => {
+  const t = useTranslations('navbar');
+
+  return (
+    <NavigationMenuContent className="bg-white shadow-lg md:w-[400px] lg:w-[600px] text-sm rounded-md p-4">
+      <div className="text-gray-400 mb-4">{title}</div>
+      <div className="flex gap-8">
+        {items
+          .reduce<MenuItem[][]>((acc, item, idx) => {
+            const colIdx = Math.floor(idx / Math.ceil(items.length / 2));
+            if (!acc[colIdx]) acc[colIdx] = [];
+            acc[colIdx].push(item);
+            return acc;
+          }, [])
+          .map((colItems, index) => (
+            <ul key={index} className="flex-1 space-y-3">
+              {colItems.map((item) => (
+                <li key={item.href}>
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href={item.href}
+                      className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition"
+                    >
+                      <div className="font-medium">{t(item.title)}</div>
+                      {item.description && (
+                        <div className="text-gray-500 text-sm mt-1">
+                          {t(item.description)}
+                        </div>
+                      )}
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+              ))}
+            </ul>
+          ))}
+      </div>
+    </NavigationMenuContent>
+  );
+};
 
 const Navbar: React.FC = () => {
+  const t = useTranslations('navbar');
   const dispatch = useDispatch();
   const pathname = usePathname();
   const router = useRouter();
@@ -219,22 +233,25 @@ const Navbar: React.FC = () => {
               {Object.entries(menuItems).map(([title, items]) => (
                 <NavigationMenuItem key={title}>
                   <NavigationMenuTrigger className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors">
-                    {title}
+                    {t(`menu.${title.toLowerCase()}`)}
                   </NavigationMenuTrigger>
-                  <DropdownMenuContent title={title} items={items} />
+                  <DropdownMenuContent
+                    title={t(`menu.${title.toLowerCase()}`)}
+                    items={items}
+                  />
                 </NavigationMenuItem>
               ))}
               <CustomButton
                 onClick={() => dispatch(openModal())}
                 className="text-blue-600 bg-blue-50 transition rounded-none"
               >
-                Get involved
+                {t('getInvolved')}
               </CustomButton>
               <CustomButton
                 onClick={() => router.push('/explore-data')}
                 className="rounded-none"
               >
-                Explore data
+                {t('exploreData')}
               </CustomButton>
             </NavigationMenuList>
             <NavigationMenuViewport />
@@ -249,7 +266,7 @@ const Navbar: React.FC = () => {
                     onClick={() => toggleExpandedMenu(title)}
                     className="text-gray-800 font-medium w-full text-left flex items-center justify-between"
                   >
-                    {title}
+                    {t(`menu.${title.toLowerCase()}`)}
                     <TbChevronDown
                       className={`ml-2 transition-transform duration-300 ${expandedMenu === title ? 'rotate-180' : 'rotate-0'}`}
                     />
@@ -264,7 +281,7 @@ const Navbar: React.FC = () => {
                         onClick={handleLinkClick}
                         className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded"
                       >
-                        {item.title}
+                        {t(item.title)}
                       </Link>
                     ))}
                   </div>
@@ -282,7 +299,7 @@ const Navbar: React.FC = () => {
                 }}
                 className="w-full text-blue-600 bg-blue-50 hover:bg-blue-100 transition rounded-none mb-2"
               >
-                Get involved
+                {t('getInvolved')}
               </CustomButton>
               <CustomButton
                 onClick={() => {
@@ -296,7 +313,7 @@ const Navbar: React.FC = () => {
                 }}
                 className="w-full rounded-none"
               >
-                Explore data
+                {t('exploreData')}
               </CustomButton>
             </div>
           )}

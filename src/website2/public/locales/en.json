@@ -78,5 +78,59 @@
       "title": "How would you like to engage with us?",
       "description": "Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard."
     }
+  },
+  "navbar": {
+    "menu": {
+      "products": "Products",
+      "solutions": "Solutions",
+      "about": "About"
+    },
+    "products": {
+      "binosMonitor": {
+        "title": "Binos Monitor",
+        "description": "Built in Africa for African cities"
+      },
+      "analyticsDashboard": {
+        "title": "Analytics Dashboard",
+        "description": "Air quality analytics for African cities"
+      },
+      "mobileApp": {
+        "title": "Mobile App",
+        "description": "Discover the quality of air around you"
+      },
+      "airQualityAPI": {
+        "title": "Air Quality API",
+        "description": "Access raw and calibrated data"
+      },
+      "airQalibrate": {
+        "title": "AirQalibrate",
+        "description": "Calibrate your low-cost sensor data"
+      }
+    },
+    "solutions": {
+      "africanCities": {
+        "title": "For African Cities",
+        "description": "Advancing air quality management in African Cities"
+      },
+      "communities": {
+        "title": "For Communities",
+        "description": "Empowering communities with air quality information"
+      },
+      "research": {
+        "title": "For Research",
+        "description": "Advancing knowledge and evidence on air quality issues"
+      }
+    },
+    "about": {
+      "aboutUs": "About Us",
+      "resources": "Resources",
+      "careers": "Careers",
+      "contactUs": "Contact Us",
+      "events": "Events",
+      "press": "Press",
+      "cleanAirForum": "CLEAN-Air Forum"
+    },
+    "getInvolved": "Get involved",
+    "exploreData": "Explore data"
   }
 }
