@@ -14,7 +14,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the page by modifying `app/[locale]/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
@@ -47,7 +47,7 @@ This guide provides clear, step-by-step instructions to help you set up your loc
 
 - [Website](#website)
   - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
+  - [Getting Started](#getting-started-1)
     - [1. Clone the Repository](#1-clone-the-repository)
     - [2. Navigate to the Website Folder](#2-navigate-to-the-website-folder)
     - [3. Install Dependencies](#3-install-dependencies)
@@ -55,7 +55,7 @@ This guide provides clear, step-by-step instructions to help you set up your loc
   - [Environment Variables \& Workflow Updates](#environment-variables--workflow-updates)
   - [Backend \& Database Integration](#backend--database-integration)
   - [Contributing](#contributing)
-  - [Learn More](#learn-more)
+  - [Learn More](#learn-more-1)
   - [Deployment](#deployment)
 
 ---
