@@ -25,12 +25,15 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   List<SelectedSite> unmatchedSites = [];
   bool isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadSelectedMeasurements();
-  }
 
+@override
+void initState() {
+  super.initState();
+  loggy.info('Initializing MyPlacesView');
+  _debugUserPreferences();
+  _debugDashboardState();
+  _loadSelectedMeasurements();
+}
   @override
   void didUpdateWidget(MyPlacesView oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -42,157 +45,231 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     }
   }
 
-  void _loadSelectedMeasurements() {
-    final state = context.read<DashboardBloc>().state;
-    
-    loggy.info('Loading measurements. Dashboard state: ${state.runtimeType}');
-    
-    // First clear previous state
+  // Replace the _loadSelectedMeasurements method in _MyPlacesViewState with this improved version
+
+void _loadSelectedMeasurements() {
+  final state = context.read<DashboardBloc>().state;
+  
+  loggy.info('Loading measurements. Dashboard state: ${state.runtimeType}');
+  
+  // First clear previous state
+  setState(() {
+    isLoading = true;
+    selectedMeasurements = [];
+    unmatchedSites = [];
+  });
+  
+  // Check if we have preferences with selected sites
+  if (widget.userPreferences == null || widget.userPreferences!.selectedSites.isEmpty) {
+    loggy.info('No selected sites in user preferences');
     setState(() {
-      isLoading = true;
-      selectedMeasurements = [];
-      unmatchedSites = [];
+      isLoading = false;
     });
+    return;
+  }
+  
+  // Debug log all selected sites
+  for (var site in widget.userPreferences!.selectedSites) {
+    loggy.info('Selected site in preferences: ${site.name} (ID: ${site.id})');
+  }
+  
+  // If dashboard is loaded, try to match sites with measurements
+  if (state is DashboardLoaded) {
+    loggy.info('Dashboard is loaded');
     
-    // Check if we have preferences with selected sites
-    if (widget.userPreferences == null || widget.userPreferences!.selectedSites.isEmpty) {
-      loggy.info('No selected sites in user preferences');
+    if (state.response.measurements == null || state.response.measurements!.isEmpty) {
+      loggy.warning('No measurements available in dashboard state');
+      // All sites are unmatched
       setState(() {
+        unmatchedSites = List.from(widget.userPreferences!.selectedSites);
         isLoading = false;
       });
       return;
     }
     
-    // Debug log all selected sites
-    for (var site in widget.userPreferences!.selectedSites) {
-      loggy.info('Selected site: ${site.name} (ID: ${site.id})');
+    loggy.info('Total measurements available: ${state.response.measurements!.length}');
+    
+    // Debug log first few measurements to check ID format
+    final sampleSize = min(3, state.response.measurements!.length);
+    for (var i = 0; i < sampleSize; i++) {
+      final m = state.response.measurements![i];
+      loggy.info('Sample measurement $i: ID=${m.id}, siteId=${m.siteId}, siteDetails.id=${m.siteDetails?.id}');
     }
     
-    // If dashboard is loaded, try to match sites with measurements
-    if (state is DashboardLoaded) {
-      loggy.info('Dashboard is loaded');
+    // Find measurements that match the selected site IDs
+    final matched = <Measurement>[];
+    final unmatched = <SelectedSite>[];
+    
+    // Create a map of measurements by ID for faster lookups
+    final measurementsById = <String, Measurement>{};
+    final measurementsBySiteId = <String, Measurement>{};
+    final measurementsBySiteDetailsId = <String, Measurement>{};
+    
+    // Map measurements by all possible ID fields
+    for (final measurement in state.response.measurements!) {
+      if (measurement.id != null) {
+        measurementsById[measurement.id!] = measurement;
+      }
+      if (measurement.siteId != null) {
+        measurementsBySiteId[measurement.siteId!] = measurement;
+      }
+      if (measurement.siteDetails?.id != null) {
+        measurementsBySiteDetailsId[measurement.siteDetails!.id!] = measurement;
+      }
+    }
+    
+    for (final site in widget.userPreferences!.selectedSites) {
+      bool found = false;
       
-      if (state.response.measurements == null || state.response.measurements!.isEmpty) {
-        loggy.warning('No measurements available in dashboard state');
-        // All sites are unmatched
-        setState(() {
-          unmatchedSites = List.from(widget.userPreferences!.selectedSites);
-          isLoading = false;
-        });
-        return;
+      // Check all ID maps for matches
+      if (measurementsById.containsKey(site.id)) {
+        loggy.info('Found match in measurementsById for site: ${site.name} (ID: ${site.id})');
+        matched.add(measurementsById[site.id]!);
+        found = true;
+      } else if (measurementsBySiteId.containsKey(site.id)) {
+        loggy.info('Found match in measurementsBySiteId for site: ${site.name} (ID: ${site.id})');
+        matched.add(measurementsBySiteId[site.id]!);
+        found = true;
+      } else if (measurementsBySiteDetailsId.containsKey(site.id)) {
+        loggy.info('Found match in measurementsBySiteDetailsId for site: ${site.name} (ID: ${site.id})');
+        matched.add(measurementsBySiteDetailsId[site.id]!);
+        found = true;
       }
       
-      loggy.info('Total measurements available: ${state.response.measurements!.length}');
-      
-      // Debug log first few measurements to check ID format
-      final sampleSize = min(3, state.response.measurements!.length);
-      for (var i = 0; i < sampleSize; i++) {
-        final m = state.response.measurements![i];
-        loggy.info('Sample measurement $i: ID=${m.id}, siteId=${m.siteId}, name=${m.siteDetails?.name}');
-      }
-      
-      // Find measurements that match the selected site IDs
-      final matched = <Measurement>[];
-      final unmatched = <SelectedSite>[];
-      
-      for (final site in widget.userPreferences!.selectedSites) {
-        bool found = false;
+      // If not found by ID, try name matching as fallback
+      if (!found) {
+        loggy.info('No ID match found for site: ${site.name} (ID: ${site.id}), trying name match');
         
-        // First look for exact match by ID
         for (final measurement in state.response.measurements!) {
-          // Try matching with measurement.id
-          if (measurement.id == site.id) {
-            loggy.info('Found exact ID match for site: ${site.name} (ID: ${site.id})');
+          // Match by site name (case insensitive)
+          if (measurement.siteDetails?.name != null && 
+              measurement.siteDetails!.name!.toLowerCase() == site.name.toLowerCase()) {
+            loggy.info('Found name match for site: ${site.name}');
             matched.add(measurement);
             found = true;
             break;
           }
           
-          // Try matching with siteDetails.id
-          if (measurement.siteDetails?.id == site.id) {
-            loggy.info('Found match with siteDetails.id for site: ${site.name} (ID: ${site.id})');
+          // Try matching with search name too
+          if (measurement.siteDetails?.searchName != null && site.searchName != null &&
+              measurement.siteDetails!.searchName!.toLowerCase() == site.searchName!.toLowerCase()) {
+            loggy.info('Found search name match for site: ${site.name} (searchName: ${site.searchName})');
             matched.add(measurement);
             found = true;
             break;
+          }
+        }
+      }
+      
+      // If still not found, try coordinates as last resort
+      if (!found && site.latitude != null && site.longitude != null) {
+        loggy.info('Trying coordinates match for site: ${site.name}');
+        
+        for (final measurement in state.response.measurements!) {
+          // Get coordinates from measurement
+          double? measLat = measurement.siteDetails?.approximateLatitude;
+          double? measLong = measurement.siteDetails?.approximateLongitude;
+          
+          // If not in siteDetails, try siteCategory
+          if (measLat == null || measLong == null) {
+            measLat = measurement.siteDetails?.siteCategory?.latitude;
+            measLong = measurement.siteDetails?.siteCategory?.longitude;
           }
           
-          // Try matching with siteId
-          if (measurement.siteId == site.id) {
-            loggy.info('Found match with siteId for site: ${site.name} (ID: ${site.id})');
+          // Match with tolerance (approximately 100 meters)
+          const tolerance = 0.001;
+          if (measLat != null && measLong != null &&
+              (measLat - site.latitude!).abs() < tolerance &&
+              (measLong - site.longitude!).abs() < tolerance) {
+            
+            loggy.info('Found coordinate match for site: ${site.name} at approx. lat/long: $measLat/$measLong');
             matched.add(measurement);
             found = true;
             break;
           }
         }
-        
-        // If still not found, try matching by name or location
-        if (!found) {
-          // Try matching by site name
-          for (final measurement in state.response.measurements!) {
-            // Match by site name from siteDetails
-            if (measurement.siteDetails?.name != null && 
-                measurement.siteDetails!.name!.toLowerCase() == site.name.toLowerCase()) {
-              loggy.info('Found name match for site: ${site.name}');
-              matched.add(measurement);
-              found = true;
-              break;
-            }
-          }
-        }
-        
-        // If still not found, try matching by coordinates
-        if (!found && site.latitude != null && site.longitude != null) {
-          for (final measurement in state.response.measurements!) {
-            // First try coordinates from siteDetails
-            double? measLat = measurement.siteDetails?.approximateLatitude;
-            double? measLong = measurement.siteDetails?.approximateLongitude;
-            
-            // Also try coordinates from siteCategory
-            if (measLat == null || measLong == null) {
-              measLat = measurement.siteDetails?.siteCategory?.latitude;
-              measLong = measurement.siteDetails?.siteCategory?.longitude;
-            }
-            
-            // Match with small tolerance
-            const tolerance = 0.0001; // About 10 meters
-            if (measLat != null && measLong != null &&
-                (measLat - site.latitude!).abs() < tolerance &&
-                (measLong - site.longitude!).abs() < tolerance) {
-              
-              loggy.info('Found coordinate match for site: ${site.name}');
-              matched.add(measurement);
-              found = true;
-              break;
-            }
-          }
-        }
-        
-        if (!found) {
-          loggy.warning('No matching measurement found for site: ${site.name}');
-          unmatched.add(site);
-        }
       }
       
-      loggy.info('Successfully matched ${matched.length} measurements');
-      loggy.info('Unable to match ${unmatched.length} sites');
-      
-      setState(() {
-        selectedMeasurements = matched;
-        unmatchedSites = unmatched;
-        isLoading = false;
-      });
-      
-      // If we couldn't match any measurements but have selected sites, request a refresh
-      if (matched.isEmpty && widget.userPreferences!.selectedSites.isNotEmpty) {
-        loggy.warning('No measurements matched with selected sites, requesting refresh');
-        _requestMeasurementsRefresh();
+      if (!found) {
+        loggy.warning('No matching measurement found for site: ${site.name} (ID: ${site.id})');
+        unmatched.add(site);
       }
-    } else {
-      // Dashboard not loaded yet
-      loggy.info('Dashboard is not in loaded state, requesting data');
+    }
+    
+    loggy.info('Successfully matched ${matched.length} measurements');
+    loggy.info('Unable to match ${unmatched.length} sites');
+    
+    // Add debug logging for the matched measurements
+    for (final m in matched) {
+      loggy.info('Matched measurement: ID=${m.id}, Name=${m.siteDetails?.name}');
+    }
+    
+    // Update state with the results
+    setState(() {
+      selectedMeasurements = matched;
+      unmatchedSites = unmatched;
+      isLoading = false;
+    });
+    
+    // If we couldn't match any measurements but have selected sites, request a refresh
+    if (matched.isEmpty && widget.userPreferences!.selectedSites.isNotEmpty) {
+      loggy.warning('No measurements matched with selected sites, requesting refresh');
       _requestMeasurementsRefresh();
     }
+  } else {
+    // Dashboard not loaded yet
+    loggy.info('Dashboard is not in loaded state, requesting data');
+    _requestMeasurementsRefresh();
   }
+}
+
+// Add this debugging method to the _MyPlacesViewState class to help diagnose issues
+void _debugUserPreferences() {
+  if (widget.userPreferences == null) {
+    loggy.warning('🔴 User preferences are NULL');
+    return;
+  }
+  
+  loggy.info('🔍 User Preferences Debug Info:');
+  loggy.info('ID: ${widget.userPreferences!.id}');
+  loggy.info('User ID: ${widget.userPreferences!.userId}');
+  loggy.info('Selected Sites Count: ${widget.userPreferences!.selectedSites.length}');
+  
+  for (int i = 0; i < widget.userPreferences!.selectedSites.length; i++) {
+    final site = widget.userPreferences!.selectedSites[i];
+    loggy.info('Site $i:');
+    loggy.info('  - ID: ${site.id}');
+    loggy.info('  - Name: ${site.name}');
+    loggy.info('  - Search Name: ${site.searchName}');
+    loggy.info('  - Coordinates: ${site.latitude}, ${site.longitude}');
+  }
+}
+
+// Add this debugging method to inspect the dashboard state
+void _debugDashboardState() {
+  final state = context.read<DashboardBloc>().state;
+  
+  loggy.info('🔍 Dashboard State Debug Info:');
+  loggy.info('State Type: ${state.runtimeType}');
+  
+  if (state is DashboardLoaded) {
+    final response = state.response;
+    final userPrefs = state.userPreferences;
+    
+    loggy.info('Response Success: ${response.success}');
+    loggy.info('Response Message: ${response.message}');
+    loggy.info('Measurements Count: ${response.measurements?.length ?? 0}');
+    loggy.info('Has User Preferences: ${userPrefs != null}');
+    
+    if (userPrefs != null) {
+      loggy.info('User Preferences ID: ${userPrefs.id}');
+      loggy.info('Selected Sites in Preferences: ${userPrefs.selectedSites.length}');
+      
+      final selectedIds = state.selectedLocationIds;
+      loggy.info('Selected Location IDs: ${selectedIds.join(', ')}');
+    }
+  }
+}
 
   // Helper to get the min of two integers
   int min(int a, int b) => a < b ? a : b;

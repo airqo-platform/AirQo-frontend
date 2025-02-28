@@ -110,6 +110,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
     }
   }
 
+
   Future<void> _handleUpdateSelectedLocations(
       List<String> locationIds, Emitter<DashboardState> emit) async {
     if (state is! DashboardLoaded) return;
@@ -122,6 +123,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         loggy.warning('Cannot update preferences: No user ID available');
         return;
       }
+      
+      loggy.info('Updating selected locations for user $userId with ${locationIds.length} IDs');
+      for (final id in locationIds) {
+        loggy.info('Selected location ID: $id');
+      }
 
       // If we have existing preferences, use them as a reference for site details
       List<Map<String, dynamic>> selectedSites = [];
@@ -130,6 +136,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         // First, include any existing sites that are still in the locationIds list
         for (var site in currentState.userPreferences!.selectedSites) {
           if (locationIds.contains(site.id)) {
+            loggy.info('Including existing site ${site.name} (ID: ${site.id})');
             selectedSites.add({
               "_id": site.id,
               "name": site.name,
@@ -142,7 +149,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         }
       }
 
-      // For any locationIds that weren't in existing preferences, try to find them in measurements
+      // For any locationIds that weren't in existing preferences, find them in measurements
       final existingSiteIds =
           selectedSites.map((s) => s["_id"] as String).toSet();
       final remainingIds =
@@ -155,26 +162,44 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         // Get measurements for the remaining IDs
         for (final id in remainingIds) {
           // Try to find a matching measurement
-          final matchingMeasurement = currentState.response.measurements
-              ?.where(
-                (m) => m.id == id || m.siteDetails?.id == id || m.siteId == id,
-              )
-              .firstOrNull;
+          Measurement? matchingMeasurement;
+          
+          // First try direct ID match
+          matchingMeasurement = currentState.response.measurements
+              ?.where((m) => m.id == id).firstOrNull;
+          
+          // If not found, try siteId match
+          if (matchingMeasurement == null) {
+            matchingMeasurement = currentState.response.measurements
+                ?.where((m) => m.siteId == id).firstOrNull;
+          }
+          
+          // If still not found, try siteDetails.id match
+          if (matchingMeasurement == null) {
+            matchingMeasurement = currentState.response.measurements
+                ?.where((m) => m.siteDetails?.id == id).firstOrNull;
+          }
 
           if (matchingMeasurement != null) {
+            loggy.info('Found matching measurement for ID $id: ${matchingMeasurement.siteDetails?.name}');
+            
+            // Determine which coordinates to use (prioritize the most specific ones)
+            double? latitude = matchingMeasurement.siteDetails?.approximateLatitude;
+            double? longitude = matchingMeasurement.siteDetails?.approximateLongitude;
+            
+            if (latitude == null || longitude == null) {
+              latitude = matchingMeasurement.siteDetails?.siteCategory?.latitude;
+              longitude = matchingMeasurement.siteDetails?.siteCategory?.longitude;
+            }
+            
             selectedSites.add({
               "_id": id,
-              "name":
-                  matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
+              "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
               "search_name": matchingMeasurement.siteDetails?.searchName ??
                   matchingMeasurement.siteDetails?.name ??
                   'Unknown Location',
-              "latitude":
-                  matchingMeasurement.siteDetails?.approximateLatitude ??
-                      matchingMeasurement.siteDetails?.siteCategory?.latitude,
-              "longitude":
-                  matchingMeasurement.siteDetails?.approximateLongitude ??
-                      matchingMeasurement.siteDetails?.siteCategory?.longitude,
+              "latitude": latitude,
+              "longitude": longitude,
               "createdAt": DateTime.now().toIso8601String(),
             });
           } else {
@@ -191,6 +216,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       loggy.info(
           'Updating preferences with ${selectedSites.length} locations out of ${locationIds.length} IDs');
+          
+      // Log the exact data being sent
+      for (var site in selectedSites) {
+        loggy.info('Selected site: ${site["name"]} (ID: ${site["_id"]})');
+      }
+      
       final response = await preferencesRepo.replacePreference(requestBody);
 
       if (response['success'] == true) {
