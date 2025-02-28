@@ -13,6 +13,8 @@ import DarkMode from '@/public/images/map/dark.webp';
 import LightMode from '@/public/images/map/light.webp';
 import SatelliteMode from '@/public/images/map/satellite.webp';
 import StreetsMode from '@/public/images/map/street.webp';
+
+
 export const GetAirQuoData = async (token: string) =>{
         try {
                 if(token){
@@ -104,3 +106,20 @@ export const mapStyles = [
         },
       ];
       
+      export const UserGroups = async (token: string) =>{
+        try {
+                if(token){
+                        const response = await axios.get(`${AirQuoData}?token=${token}`);
+                const data = response.data;
+                return data;
+                }
+                {
+                        console.log("Error Token Is Missing")
+                        return null;
+                }
+                
+        }
+        catch (error) {
+                console.error('Error fetching GeoJSON:', error);
+        }
+}
