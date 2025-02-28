@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
@@ -529,42 +530,70 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade800),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.location_on_outlined,
-            size: 64,
-            color: Colors.grey.shade500,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No saved locations',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 24, bottom: 8),
+          child: Text(
+            'Add places you love',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).textTheme.headlineMedium?.color,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Add locations to monitor air quality in places that matter to you',
-            textAlign: TextAlign.center,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, bottom: 24),
+          child: Text(
+            'Start by adding locations you care about.',
             style: TextStyle(
-              color: Theme.of(context).textTheme.bodySmall?.color,
               fontSize: 16,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
-          const SizedBox(height: 24),
-        ],
+        ),
+        // First container - identical to the second one
+        _buildAddLocationContainer(),
+        // Second container - identical to the first one
+        _buildAddLocationContainer(),
+      ],
+    );
+  }
+
+// Helper method to create the identical containers
+  Widget _buildAddLocationContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: DottedBorder(
+        borderType: BorderType.RRect,
+        radius: const Radius.circular(12),
+        color: AppColors.primaryColor,
+        strokeWidth: 1.5,
+        dashPattern: const [8, 6],
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _navigateToLocationSelection,
+              child: Container(
+                height: 160,
+                width: double.infinity,
+                alignment: Alignment.center,
+                child: Text(
+                  '+Add Location',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
