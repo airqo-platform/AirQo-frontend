@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/nearest_places_model.dart';
 
-/// Nearest Places Repository Logger
+
 class NearestPlacesRepositoryLogger {
   final _logger = Loggy('NearestPlacesRepositoryLogger');
 
@@ -12,7 +12,6 @@ class NearestPlacesRepositoryLogger {
   void error(String message) => _logger.error(message);
 }
 
-/// Exception for nearest places operations
 class NearestPlacesException implements Exception {
   final String message;
   final int? statusCode;
@@ -38,7 +37,7 @@ class NearestPlacesRepository {
     http.Client? httpClient,
   }) : _httpClient = httpClient ?? http.Client();
 
-  /// Finds nearest sites based on location and radius
+
   Future<List<NearestSiteModel>> findNearestSites({
     required double longitude,
     required double latitude,
