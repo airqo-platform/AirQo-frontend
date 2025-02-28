@@ -1,7 +1,15 @@
+import { Metadata } from 'next';
+
 import LogisticsPage from '@/views/cleanAirForum/logistics/LogisticsPage';
 
-const page = () => {
+export const metadata: Metadata = {
+  title: 'Logistics | Clean Air Forum',
+  description:
+    'Get all the essential logistics information for attending the Clean Air Forum, including travel, accommodation, event schedules, and practical tips for participants.',
+};
+
+const Page = () => {
   return <LogisticsPage />;
 };
 
-export default page;
+export default Page;
