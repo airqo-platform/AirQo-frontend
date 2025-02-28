@@ -7,7 +7,7 @@ import { Divider, MemberCard, Pagination } from '@/components/ui/';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
-import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
+import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
 
 const SpeakersPage = () => {
   // Now we use the selectedEvent from context

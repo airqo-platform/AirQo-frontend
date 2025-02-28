@@ -12,7 +12,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useForumEventDetails, useForumEventTitles } from '@/hooks/useApiHooks';
 
-import BannerSection from '../../views/cleanAirForum/BannerSection';
+import BannerSection from '../../views/cleanairforum/BannerSection';
 
 type CleanAirLayoutProps = {
   children: ReactNode;

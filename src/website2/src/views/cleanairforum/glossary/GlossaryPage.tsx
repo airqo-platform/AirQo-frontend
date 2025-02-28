@@ -11,7 +11,7 @@ import { useForumData } from '@/context/ForumDataContext';
 import { ForumEvent } from '@/types/forum';
 import { isValidGlossaryContent } from '@/utils/glossaryValidator';
 import { renderContent } from '@/utils/quillUtils';
-import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
+import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
 
 const GlossaryPage = () => {
   // Access data from the context.

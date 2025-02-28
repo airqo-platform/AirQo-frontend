@@ -6,7 +6,7 @@ import React from 'react';
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
-import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
+import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
 import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 
 const SponsorshipPage = () => {

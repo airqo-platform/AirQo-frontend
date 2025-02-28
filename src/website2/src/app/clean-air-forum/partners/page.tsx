@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-import PartnersPage from '../../../views/cleanAirForum/partners/PartnersPage';
+import PartnersPage from '@/views/cleanairforum/partners/PartnersPage';
 
 export const metadata: Metadata = {
   title: 'Partners | Clean Air Forum | AirQo',
