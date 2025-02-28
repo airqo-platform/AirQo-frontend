@@ -10,7 +10,7 @@ import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
 
-const LogisticsPage: React.FC = () => {
+const LogisticsPage = () => {
   // Destructure the selected event from the context.
   const { selectedEvent } = useForumData();
 

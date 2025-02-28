@@ -9,7 +9,7 @@ import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
 
-const SpeakersPage: React.FC = () => {
+const SpeakersPage = () => {
   // Now we use the selectedEvent from context
   const { selectedEvent } = useForumData();
   const membersPerPage = 6;

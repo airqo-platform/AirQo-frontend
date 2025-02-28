@@ -10,7 +10,7 @@ import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
 import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 
-const PartnersPage: React.FC = () => {
+const PartnersPage = () => {
   const { selectedEvent } = useForumData();
   if (!selectedEvent) return null;
 

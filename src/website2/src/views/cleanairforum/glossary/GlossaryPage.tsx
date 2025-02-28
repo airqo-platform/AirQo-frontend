@@ -13,7 +13,7 @@ import { isValidGlossaryContent } from '@/utils/glossaryValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
 
-const GlossaryPage: React.FC = () => {
+const GlossaryPage = () => {
   // Access data from the context.
   const { selectedEvent, eventTitles } = useForumData();
 

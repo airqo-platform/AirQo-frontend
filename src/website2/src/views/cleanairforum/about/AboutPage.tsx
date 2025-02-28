@@ -27,7 +27,7 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
   </>
 );
 
-const AboutPage: React.FC = () => {
+const AboutPage = () => {
   const { selectedEvent } = useForumData();
 
   if (!selectedEvent) {

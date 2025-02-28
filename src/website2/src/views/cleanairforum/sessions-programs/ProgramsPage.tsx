@@ -77,7 +77,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   );
 };
 
-const ProgramsPage: React.FC = () => {
+const ProgramsPage = () => {
   const { selectedEvent } = useForumData();
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 

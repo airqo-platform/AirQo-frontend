@@ -55,7 +55,7 @@ const AccordionItem = ({ session, isOpen, toggleAccordion }: any) => {
   );
 };
 
-const ResourcesPage: React.FC = () => {
+const ResourcesPage = () => {
   const { selectedEvent } = useForumData();
   const [openAccordions, setOpenAccordions] = useState<{
     [resourceIndex: number]: { [sessionIndex: number]: boolean };

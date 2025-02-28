@@ -10,7 +10,7 @@ import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanAirForum/SectionDisplay';
 
-const CommitteePage: React.FC = () => {
+const CommitteePage = () => {
   // Always call useForumData to get the selectedEvent.
   const { selectedEvent } = useForumData();
 
