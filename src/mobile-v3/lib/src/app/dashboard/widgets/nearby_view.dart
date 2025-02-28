@@ -1,15 +1,14 @@
-import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
-import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:airqo/src/app/shared/services/notification_manager.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
+import 'package:flutter_svg/svg.dart';
 
 class NearbyView extends StatefulWidget {
   const NearbyView({super.key});
@@ -207,12 +206,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             _isLoading = false;
             _errorMessage = state.message;
           });
-          
-          NotificationManager().showNotification(
-            context,
-            message: 'Error loading air quality data: ${state.message}',
-            isSuccess: false,
-          );
         }
       },
       builder: (context, state) {
@@ -377,83 +370,86 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
           
           // Display the list of nearby measurements with distance information
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with location count and refresh button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.location_on, color: AppColors.primaryColor, size: 18),
-                    SizedBox(width: 4),
-                    Text(
-                      "Showing ${_nearbyMeasurementsWithDistance.length} locations near you",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                    Spacer(),
-                    TextButton.icon(
-                      onPressed: _retry,
-                      icon: Icon(Icons.refresh, size: 18),
-                      label: Text("Refresh"),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.primaryColor,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // User location indicator
-              if (_userPosition != null) 
+          return Container( // Fixed height container to solve the layout issue
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with location count and refresh button
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.my_location, color: Colors.blue, size: 16),
-                        SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue.shade700,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on, color: AppColors.primaryColor, size: 18),
+                      SizedBox(width: 4),
+                      Text(
+                        "Showing ${_nearbyMeasurementsWithDistance.length} locations near you",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
-                      ],
-                    ),
+                      ),
+                      Spacer(),
+                      TextButton.icon(
+                        onPressed: _retry,
+                        icon: Icon(Icons.refresh, size: 18),
+                        label: Text("Refresh"),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primaryColor,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              
-              // List of measurements
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _nearbyMeasurementsWithDistance.length,
-                  padding: EdgeInsets.only(bottom: 16),
-                  itemBuilder: (context, index) {
-                    final entry = _nearbyMeasurementsWithDistance[index];
-                    final measurement = entry.key;
-                    final distance = entry.value;
-                    
-                    return _buildMeasurementCard(measurement, distance);
-                  },
+                
+                // User location indicator
+                if (_userPosition != null) 
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.my_location, color: Colors.blue, size: 16),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue.shade700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                
+                // List of measurements - fixed: use Flexible instead of Expanded
+                Flexible(
+                  child: ListView.builder(
+                    itemCount: _nearbyMeasurementsWithDistance.length,
+                    padding: EdgeInsets.only(bottom: 16),
+                    itemBuilder: (context, index) {
+                      final entry = _nearbyMeasurementsWithDistance[index];
+                      final measurement = entry.key;
+                      final distance = entry.value;
+                      
+                      return _buildMeasurementCard(measurement, distance);
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
         
@@ -752,45 +748,4 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         return AppColors.primaryColor;
     }
   }
-  
-//   String getAirQualityIcon(Measurement measurement, double value) {
-//     // This function should be imported from utils.dart
-//     // For this implementation, I'm creating a placeholder version
-//     String baseIconPath = "assets/images/shared/";
-    
-//     if (measurement.aqiCategory == null) {
-//       if (value <= 12.0) {
-//         return "${baseIconPath}good_air.svg";
-//       } else if (value <= 35.4) {
-//         return "${baseIconPath}moderate_air.svg";
-//       } else if (value <= 55.4) {
-//         return "${baseIconPath}u4sg_air.svg";
-//       } else if (value <= 150.4) {
-//         return "${baseIconPath}unhealthy_air.svg";
-//       } else if (value <= 250.4) {
-//         return "${baseIconPath}very_unhealthy_air.svg";
-//       } else {
-//         return "${baseIconPath}hazardous_air.svg";
-//       }
-//     }
-    
-//     // Use AQI category if available
-//     switch (measurement.aqiCategory!.toLowerCase()) {
-//       case 'good':
-//         return "${baseIconPath}good_air.svg";
-//       case 'moderate':
-//         return "${baseIconPath}moderate_air.svg";
-//       case 'unhealthy for sensitive groups':
-//       case 'u4sg':
-//         return "${baseIconPath}u4sg_air.svg";
-//       case 'unhealthy':
-//         return "${baseIconPath}unhealthy_air.svg";
-//       case 'very unhealthy':
-//         return "${baseIconPath}very_unhealthy_air.svg";
-//       case 'hazardous':
-//         return "${baseIconPath}hazardous_air.svg";
-//       default:
-//         return "${baseIconPath}moderate_air.svg";
-//     }
-//   }
- }
+}
