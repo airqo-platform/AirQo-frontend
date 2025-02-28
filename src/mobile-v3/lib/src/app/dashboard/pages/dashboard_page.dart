@@ -1,3 +1,5 @@
+import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -51,28 +53,56 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: DashboardAppBar(),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: DashboardHeader(),
-          ),
-          SliverToBoxAdapter(
-            child: ViewSelector(
-              currentView: currentView,
-              selectedCountry: selectedCountry,
-              onViewChanged: setView,
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: DashboardAppBar(),
+    body: Stack(
+      children: [
+        CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: DashboardHeader(),
+            ),
+            SliverToBoxAdapter(
+              child: ViewSelector(
+                currentView: currentView,
+                selectedCountry: selectedCountry,
+                onViewChanged: setView,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: _buildContentForCurrentView(),
+            ),
+          ],
+        ),
+        
+        // Only show FAB when in My Places view
+        if (currentView == DashboardView.myPlaces)
+          Positioned(
+            right: 20,
+            bottom: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LocationSelectionScreen(),
+                  ),
+                ).then((value) {
+                  if (value != null) {
+                    // Force reload dashboard data
+                    context.read<DashboardBloc>().add(LoadDashboard());
+                  }
+                });
+              },
+              backgroundColor: AppColors.primaryColor,
+              child: const Icon(Icons.add, color: Colors.white),
             ),
           ),
-          SliverToBoxAdapter(
-            child: _buildContentForCurrentView(),
-          ),
-        ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
   Widget _buildContentForCurrentView() {
     switch (currentView) {
