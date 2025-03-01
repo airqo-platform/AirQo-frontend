@@ -86,24 +86,22 @@ export const useUpdateGroupDetails = () => {
 };
 
 export const useCreateGroup = () => {
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient()
+  const dispatch = useDispatch()
 
   return useMutation({
     mutationFn: (newGroup: Group) => groupsApi.createGroupApi(newGroup),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
-      dispatch(setGroups((prevGroups) => [...prevGroups, data.group]));
-      return data.group; // Ensure we're returning the created group
+      queryClient.invalidateQueries({ queryKey: ["groups"] })
+      dispatch(setGroups((prevGroups) => [...prevGroups, data.group]))
+      return data.group 
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      dispatch(
-        setError(error.response?.data?.message || "Failed to create group")
-      );
-      throw error; // Re-throw the error so it can be caught in the component
+      dispatch(setError(error.response?.data?.message || "Failed to create group"))
+      throw error
     },
-  });
-};
+  })
+}
 
 export const useAssignDevicesToGroup = () => {
   const queryClient = useQueryClient();
