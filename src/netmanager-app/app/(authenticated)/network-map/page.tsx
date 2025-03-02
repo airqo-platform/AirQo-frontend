@@ -1,5 +1,5 @@
 import React from 'react'
-import NetManagerMap from '@/components/NetManagerMap/page'
+import NetManagerMap from '@/components/NetManagermap/page'
 
 const Netmap = () => {
   return (
