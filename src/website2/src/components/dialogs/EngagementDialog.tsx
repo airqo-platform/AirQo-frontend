@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from '@/hooks';
 import { postContactUs } from '@/services/externalService';
 import { closeModal } from '@/store/slices/modalSlice';
 
+import { trackEvent } from '../GoogleAnalytics';
 import { CustomButton } from '../ui';
 
 interface EngagementOption {
@@ -172,6 +173,17 @@ const EngagementDialog = () => {
         const res = await postContactUs(requestBody);
         if (res.success) {
           setSubmissionSuccess(true);
+
+          // Fire the tracking event only on successful submission.
+          trackEvent({
+            action: 'submit_form',
+            category: 'engagement_dialog',
+            label: selectedCategory
+              ? `engagement_dialog_submit_form_success_${selectedCategory}`
+              : 'engagement_dialog_submit_form_success',
+          });
+
+          // Reset form data after successful submission
           setFormData({
             firstName: '',
             lastName: '',

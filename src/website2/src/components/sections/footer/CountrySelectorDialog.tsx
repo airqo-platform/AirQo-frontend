@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
 import { IoLocationSharp } from 'react-icons/io5';
 
+import { trackEvent } from '@/components/GoogleAnalytics';
 import {
   CustomButton,
   Dialog,
@@ -224,7 +225,16 @@ const CountrySelectorDialog: React.FC = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-xl text-gray-800 hover:bg-gray-200 transition-all">
+        <button
+          onClick={() => {
+            trackEvent({
+              action: 'button_click',
+              category: 'navigation',
+              label: 'country_selector',
+            });
+          }}
+          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-xl text-gray-800 hover:bg-gray-200 transition-all"
+        >
           <IoLocationSharp size={20} color="#2563eb" />
           <span>
             {selectedCountryData?.long_name.replace('_', ' ') ||

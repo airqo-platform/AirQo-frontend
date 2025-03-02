@@ -15,7 +15,7 @@ import {
   useTeamMembers,
 } from '@/hooks/useApiHooks';
 import { openModal } from '@/store/slices/modalSlice';
-import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
+import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 
 /** Skeleton Loader Component **/
 
