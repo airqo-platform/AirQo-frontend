@@ -162,6 +162,36 @@
       "data_records": "Points de données",
       "research_papers": "Les articles de recherche",
       "partners": "Partenaires"
+    },
+    "accordion": {
+      "cities": {
+        "highResolution": {
+          "title": "Réseau à haute résolution",
+          "content": "Nous voulons un air plus propre dans toutes les villes africaines. Nous tirons parti de notre compréhension du contexte africain."
+        },
+        "digitalPlatforms": {
+          "title": "Plateformes numériques de qualité de l'air",
+          "content": "Nous donnons les moyens aux décideurs des villes africaines d'augmenter l'accès aux données probantes sur la qualité de l'air."
+        },
+        "policyEngagement": {
+          "title": "Engagement politique",
+          "content": "Nous engageons les autorités municipales et les agences gouvernementales. Nous donnons aux dirigeants locaux des informations sur la qualité de l'air."
+        }
+      },
+      "communities": {
+        "champions": {
+          "title": "Champions AirQommunity",
+          "content": "Un réseau croissant d'agents de changement individuels. Soutenir les leaders locaux et exiger des actions."
+        },
+        "freeAccess": {
+          "title": "Accès gratuit aux informations sur la qualité de l'air",
+          "content": "Nous formons les individus et les communautés en facilitant l'accès aux informations sur la qualité de l'air."
+        },
+        "hosts": {
+          "title": "Hôtes AirQo",
+          "content": "Nous engageons les locaux à accueillir nos activités de déploiement. Nous impliquons les locaux dans nos campagnes de maintenance."
+        }
+      }
     }
   },
   "highlight": {

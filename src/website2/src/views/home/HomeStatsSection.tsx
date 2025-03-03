@@ -103,7 +103,12 @@ const AccordionAndImageSection: React.FC<{
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
       <div className="lg:w-1/2 w-full">
-        <Accordion items={accordionItems[activeTab]} />
+        <Accordion
+          items={accordionItems[activeTab].map((item) => ({
+            title: t(item.titleKey),
+            content: t(item.contentKey),
+          }))}
+        />
       </div>
       <div className="lg:w-1/2 w-full rounded-lg">
         <div className="relative w-full h-[400px] overflow-hidden">

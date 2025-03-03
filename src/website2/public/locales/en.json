@@ -162,6 +162,36 @@
       "data_records": "Data Points",
       "research_papers": "Researchers",
       "partners": "Partners"
+    },
+    "accordion": {
+      "cities": {
+        "highResolution": {
+          "title": "High Resolution Network",
+          "content": "We want cleaner air in all African cities. We leverage our understanding of the African context."
+        },
+        "digitalPlatforms": {
+          "title": "Digital air quality platforms",
+          "content": "We empower decision-makers in African cities We increase access to air quality data evidence."
+        },
+        "policyEngagement": {
+          "title": "Policy engagement",
+          "content": "We engage city authorities and government agencies We empower local leaders with air quality information."
+        }
+      },
+      "communities": {
+        "champions": {
+          "title": "AirQommunity Champions",
+          "content": "A growing network of individual change makers Championing local leaders and demand action."
+        },
+        "freeAccess": {
+          "title": "Free Access To Air Quality Information",
+          "content": "We train individuals and communities Facilitating access to air quality information."
+        },
+        "hosts": {
+          "title": "AirQo Hosts",
+          "content": "We engage locals host our deployment activities We involve locals in our maintenance drives."
+        }
+      }
     }
   },
   "highlight": {
