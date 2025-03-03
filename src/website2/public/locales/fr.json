@@ -132,5 +132,13 @@
     },
     "getInvolved": "S'impliquer",
     "exploreData": "Explorer les données"
+  },
+  "notificationBanner": {
+    "joinNetwork": "Rejoignez le réseau CLEAN-AIR",
+    "learnMore": "En savoir plus",
+    "language": {
+      "en": "Anglais",
+      "fr": "Français"
+    }
   }
 }
