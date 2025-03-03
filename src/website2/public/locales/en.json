@@ -140,5 +140,59 @@
       "en": "English",
       "fr": "French"
     }
+  },
+  "homeStatsSection": {
+    "partnerLogos": {
+      "title": "AIRQO IS SUPPORTED BY",
+      "altText": "Partner {index}"
+    },
+    "heading": {
+      "title": "Closing the air quality data gaps in Africa",
+      "description": "We provide accurate, hyperlocal, and timely air quality data to provide evidence of the magnitude and scale of air pollution across Africa.",
+      "forAfricanCities": "For African cities",
+      "forCommunities": "For Communities"
+    },
+    "accordionAndImage": {
+      "altText": "Air quality monitor installation"
+    },
+    "statistics": {
+      "african_cities": "Cities",
+      "champions": "Policy Makers",
+      "deployed_monitors": "Monitors",
+      "data_records": "Data Points",
+      "research_papers": "Researchers",
+      "partners": "Partners"
+    }
+  },
+  "highlight": {
+    "portraitAlt": "Leader Portrait",
+    "googleLogoAlt": "Google Logo",
+    "title": "Google.org Leaders to Watch 2022",
+    "description": "From expanding equity in education to addressing environmental issues, this year's Leaders to Watch are building a better future for everyone.",
+    "learnMore": "Learn more"
+  },
+  "actionButtons": {
+    "exploreData": {
+      "title": "Explore our digital tools. Learn about the quality of air around you.",
+      "action": "Explore data"
+    },
+    "getInvolved": {
+      "title": "Get involved. Learn about ways you can support our vision.",
+      "action": "Get Involved"
+    }
+  },
+  "newsletter": {
+    "title": "Subscribe to our Newsletter",
+    "description": "Learn how we are advancing air quality management in African Cities",
+    "form": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Enter your email",
+      "submitting": "Submitting...",
+      "subscribe": "Subscribe"
+    },
+    "success": "Thank you for signing up. We will send you an email to confirm your subscription shortly.",
+    "error": "Oops! Something went wrong. Please try again!",
+    "tryAgain": "Try Again"
   }
 }

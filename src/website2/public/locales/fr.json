@@ -140,5 +140,59 @@
       "en": "Anglais",
       "fr": "Français"
     }
+  },
+  "homeStatsSection": {
+    "partnerLogos": {
+      "title": "AIRQO EST SOUTENU PAR",
+      "altText": "Partenaire {index}"
+    },
+    "heading": {
+      "title": "Combler les lacunes en matière de données sur la qualité de l'air en Afrique",
+      "description": "Nous fournissons des données précises, hyperlocales et opportunes sur la qualité de l'air pour prouver l'ampleur et l'échelle de la pollution atmosphérique en Afrique.",
+      "forAfricanCities": "Pour les villes africaines",
+      "forCommunities": "Pour les communautés"
+    },
+    "accordionAndImage": {
+      "altText": "Installation d'un moniteur de qualité de l'air"
+    },
+    "statistics": {
+      "african_cities": "Villes",
+      "champions": "Les champions de la communauté",
+      "deployed_monitors": "Moniteurs",
+      "data_records": "Points de données",
+      "research_papers": "Les articles de recherche",
+      "partners": "Partenaires"
+    }
+  },
+  "highlight": {
+    "portraitAlt": "Portrait du leader",
+    "googleLogoAlt": "Logo Google",
+    "title": "Leaders à surveiller 2022 de Google.org",
+    "description": "De l'expansion de l'équité dans l'éducation à la résolution des problèmes environnementaux, les Leaders à surveiller de cette année construisent un avenir meilleur pour tous.",
+    "learnMore": "En savoir plus"
+  },
+  "actionButtons": {
+    "exploreData": {
+      "title": "Explorez nos outils numériques. Découvrez la qualité de l'air autour de vous.",
+      "action": "Explorer les données"
+    },
+    "getInvolved": {
+      "title": "Impliquez-vous. Découvrez comment vous pouvez soutenir notre vision.",
+      "action": "S'impliquer"
+    }
+  },
+  "newsletter": {
+    "title": "Abonnez-vous à notre newsletter",
+    "description": "Découvrez comment nous faisons progresser la gestion de la qualité de l'air dans les villes africaines",
+    "form": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Entrez votre email",
+      "submitting": "Envoi en cours...",
+      "subscribe": "S'abonner"
+    },
+    "success": "Merci de vous être inscrit. Nous vous enverrons bientôt un email pour confirmer votre abonnement.",
+    "error": "Oups ! Quelque chose s'est mal passé. Veuillez réessayer !",
+    "tryAgain": "Réessayer"
   }
 }
