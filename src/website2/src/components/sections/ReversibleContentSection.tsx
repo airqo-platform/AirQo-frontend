@@ -2,6 +2,7 @@ import Image from 'next/image';
 import React from 'react';
 
 import { cn } from '@/lib/utils';
+import { Link } from '@/navigation';
 
 type ReversibleContentSectionProps = {
   title: string;
@@ -34,6 +35,7 @@ const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
   rightWidth = 'lg:w-1/2',
   imageClassName = 'object-contain lg:object-cover',
 }) => {
+  const isExternalLink = buttonLink.startsWith('https');
   return (
     <section className={cn(backgroundColor, 'py-16 px-4')}>
       <div
@@ -60,12 +62,18 @@ const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
           </h2>
           <p className="text-lg text-gray-600">{description}</p>
 
-          <a
-            href={buttonLink}
+          <button
+            onClick={() => {}}
             className="inline-block text-blue-600 font-medium hover:underline mt-4"
           >
-            {buttonText} →
-          </a>
+            {isExternalLink ? (
+              <a href={buttonLink} target="_blank" rel="noopener noreferrer">
+                {buttonText} →
+              </a>
+            ) : (
+              <Link href={buttonLink}>{buttonText} →</Link>
+            )}
+          </button>
         </div>
 
         {/* Image Section */}

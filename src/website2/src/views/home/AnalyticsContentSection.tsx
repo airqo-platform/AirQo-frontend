@@ -3,6 +3,7 @@ import React from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
 import { cn } from '@/lib/utils';
+import { Link } from '@/navigation';
 
 type AnalyticsContentSectionProps = {
   title: string;
@@ -27,6 +28,7 @@ const AnalyticsContentSection: React.FC<AnalyticsContentSectionProps> = ({
   subtitleColor = 'text-gray-900',
   subtitleBgColor = 'bg-gray-200',
 }) => {
+  const isExternalLink = buttonLink.startsWith('https');
   return (
     <section className={cn(backgroundColor, 'pt-16 px-4')}>
       <div
@@ -50,12 +52,18 @@ const AnalyticsContentSection: React.FC<AnalyticsContentSectionProps> = ({
           </div>
           <div className="lg:w-1/2 space-y-4 text-center lg:text-left">
             <p className="text-lg text-gray-600">{description}</p>
-            <a
-              href={buttonLink}
+            <button
+              onClick={() => {}}
               className="inline-block text-blue-600 font-medium hover:underline mt-4"
             >
-              {buttonText} →
-            </a>
+              {isExternalLink ? (
+                <a href={buttonLink} target="_blank" rel="noopener noreferrer">
+                  {buttonText} →
+                </a>
+              ) : (
+                <Link href={buttonLink}>{buttonText} →</Link>
+              )}
+            </button>
           </div>
         </div>
 
