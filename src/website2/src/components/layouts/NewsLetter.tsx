@@ -1,11 +1,14 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { subscribeToNewsletter } from '@/services/externalService';
 
 const NewsLetter: React.FC = () => {
+  const t = useTranslations('newsletter');
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>(
     'idle',
   );
@@ -44,12 +47,12 @@ const NewsLetter: React.FC = () => {
   };
 
   // Reset the form for a new attempt (clears form fields)
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setFormStatus('idle');
     setEmail('');
     setFirstName('');
     setLastName('');
-  };
+  }, []);
 
   // Auto-reset the form 5 seconds after a successful submission
   useEffect(() => {
@@ -60,7 +63,7 @@ const NewsLetter: React.FC = () => {
       }, 5000);
     }
     return () => clearTimeout(timer);
-  }, [formStatus]);
+  }, [formStatus, handleReset]);
 
   return (
     <section className="bg-blue-50 py-28 px-4">
@@ -72,12 +75,9 @@ const NewsLetter: React.FC = () => {
           <div className="flex flex-col lg:flex-row items-center lg:items-start lg:justify-between gap-12 w-full">
             <div className="lg:w-1/2 text-center lg:text-left space-y-4">
               <h2 className="text-2xl md:text-[40px] font-bold text-blue-600">
-                Subscribe to our Newsletter
+                {t('title')}
               </h2>
-              <p className="text-blue-600 text-[20px]">
-                Learn how we are advancing air quality management in African
-                Cities
-              </p>
+              <p className="text-blue-600 text-[20px]">{t('description')}</p>
             </div>
             <form
               className="lg:w-1/2 flex flex-col space-y-4 w-full max-w-md"
@@ -87,7 +87,7 @@ const NewsLetter: React.FC = () => {
                 <input
                   type="text"
                   name="firstName"
-                  placeholder="First name"
+                  placeholder={t('form.firstName')}
                   className="w-full p-3 outline-none focus:ring-2 focus:ring-blue-500"
                   required
                   value={firstName}
@@ -96,7 +96,7 @@ const NewsLetter: React.FC = () => {
                 <input
                   type="text"
                   name="lastName"
-                  placeholder="Last name"
+                  placeholder={t('form.lastName')}
                   className="w-full p-3 outline-none focus:ring-2 focus:ring-blue-500 mt-4 md:mt-0"
                   required
                   value={lastName}
@@ -107,7 +107,7 @@ const NewsLetter: React.FC = () => {
                 <input
                   type="email"
                   name="email"
-                  placeholder="Enter your email"
+                  placeholder={t('form.email')}
                   className="w-full p-3 outline-none focus:ring-2 focus:ring-blue-500"
                   required
                   value={email}
@@ -118,7 +118,7 @@ const NewsLetter: React.FC = () => {
                   className="rounded-none"
                   disabled={loading}
                 >
-                  {loading ? 'Submitting...' : 'Subscribe'}
+                  {loading ? t('form.submitting') : t('form.subscribe')}
                 </CustomButton>
               </div>
             </form>
@@ -131,21 +131,16 @@ const NewsLetter: React.FC = () => {
                 <span role="img" aria-label="waving hand" className="text-4xl">
                   👋
                 </span>
-                <p className="text-blue-600 text-[20px]">
-                  Thank you for signing up. We will send you an email to confirm
-                  your subscription shortly.
-                </p>
+                <p className="text-blue-600 text-[20px]">{t('success')}</p>
               </>
             ) : (
               <>
                 <span role="img" aria-label="sad face" className="text-4xl">
                   😢
                 </span>
-                <p className="text-red-600 text-[20px]">
-                  Oops! Something went wrong. Please try again!
-                </p>
+                <p className="text-red-600 text-[20px]">{t('error')}</p>
                 <CustomButton onClick={handleReset} className="rounded-none">
-                  Try Again
+                  {t('tryAgain')}
                 </CustomButton>
               </>
             )}
