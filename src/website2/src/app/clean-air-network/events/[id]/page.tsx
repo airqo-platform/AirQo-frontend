@@ -1,6 +1,6 @@
 import React from 'react';
 
-import SingleEvent from '@/views/cleanairforum/events/SingleEvent';
+import SingleEvent from '@/views/cleanAirNetwork/events/SingleEvent';
 
 const page = ({ params }: { params: any }) => {
   return (

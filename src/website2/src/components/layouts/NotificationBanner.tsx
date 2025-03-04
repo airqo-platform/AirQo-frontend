@@ -10,7 +10,7 @@ import mainConfig from '@/configs/mainConfigs';
 
 import { trackEvent } from '../GoogleAnalytics';
 
-const CLEAN_AIR_NETWORK_ROUTE = '/clean-air-network';
+const CLEAN_AIR_NETWORK_ROUTE = '/clean-air-network/about';
 
 const NotificationBanner: React.FC = () => {
   const handleNetworkClick = (version: 'desktop' | 'mobile') => {
@@ -52,7 +52,7 @@ const NotificationBanner: React.FC = () => {
           <div
             className="items-center space-x-2 flex md:hidden cursor-pointer"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent double event firing
+              e.stopPropagation();
               handleNetworkClick('mobile');
             }}
           >

@@ -2,8 +2,8 @@
 import Image from 'next/image';
 import React from 'react';
 
-import ContentSection from '@/views/cleanairforum/ContentSection';
-import FeaturedEvent from '@/views/cleanairforum/FeaturedEvent';
+import ContentSection from '@/views/cleanAirNetwork/ContentSection';
+import FeaturedEvent from '@/views/cleanAirNetwork/FeaturedEvent';
 
 const CleanAirPage = () => {
   const goals = [

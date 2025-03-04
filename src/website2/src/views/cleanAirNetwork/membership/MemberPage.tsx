@@ -5,8 +5,8 @@ import React, { useMemo } from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
 import { usePartners } from '@/hooks/useApiHooks';
-import PaginatedSection from '@/views/cleanairforum/PaginatedSection';
-import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
+import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
+import RegisterBanner from '@/views/cleanAirNetwork/RegisterBanner';
 
 const SkeletonPaginatedSection: React.FC = () => {
   return (

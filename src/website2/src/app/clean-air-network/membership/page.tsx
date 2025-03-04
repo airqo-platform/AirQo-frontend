@@ -1,6 +1,14 @@
-import MemberPage from '@/views/cleanairforum/membership/MemberPage';
+import { Metadata } from 'next';
 
-const page = () => {
+import MemberPage from '@/views/cleanAirNetwork/membership/MemberPage';
+
+export const metadata: Metadata = {
+  title: 'Membership | Clean Air Network | AirQo',
+  description:
+    'Join Clean Air Network – connect with professionals dedicated to advancing air quality. Learn about membership benefits, exclusive resources, and opportunities for collaboration.',
+};
+
+const Page = () => {
   return (
     <div>
       <MemberPage />
@@ -8,4 +16,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
