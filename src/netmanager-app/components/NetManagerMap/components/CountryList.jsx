@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-// import Button from '@material-ui/core/Button';
+import Button from './Button'
 // import {
 //   setLocation,
 //   addSuggestedSites,
@@ -49,12 +49,12 @@ const CountryList = ({
   if (!sortedData.length) {
     return (
       <div className="flex gap-2 ml-2 animate-pulse mb-2">
-        {Array.from({ length: 4 }).map((_, index) => (
+      
           <div
-            key={index}
             className="bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700"
-          />
-        ))}
+          >
+                loading countries
+       </div>
       </div>
     );
   }
@@ -72,32 +72,31 @@ const CountryList = ({
         }
 
         return (
-          <Button
-            key={index}
-            type="button"
-            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px] min-w-max space-x-2 m-0 ${
-              selectedCountry?.country === country.country
-                ? 'border-2 border-blue-400'
-                : ''
-            }`}
-            variant="outline"
-            onClick={() => handleClick(country)}
-          >
-            <img
-              src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
-              alt={country.country}
-              width={20}
-              height={20}
-              onError={(e) => {
-                // Fallback in case the flag image fails to load
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = '/path-to-default-flag-image.png'; // Provide default flag image path
-              }}
-            />
-            <span className="text-sm text-secondary-neutral-light-600 font-medium">
-              {country.country}
-            </span>
-          </Button>
+          <button
+  key={index}
+  type="button"
+  className={`flex items-center justify-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px] gap-2 ${
+    selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
+  }`}
+  variant="outline"
+  onClick={() => handleClick(country)}
+>
+  <img
+    src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
+    alt={country.country}
+    width={20}
+    height={20}
+    className="w-5 h-5 object-contain" // Ensures proper scaling
+    onError={(e) => {
+      e.target.onerror = null; 
+      e.target.src = '/path-to-default-flag-image.png';
+    }}
+  />
+  <span className="text-sm text-gray-500 font-medium">
+    {country.country}
+  </span>
+</button>
+
         );
       })}
     </div>

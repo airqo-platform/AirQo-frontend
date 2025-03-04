@@ -78,17 +78,14 @@
 .country-scroll-bar {
         overflow-x: auto;
         overflow-y: hidden;
+        overflow-x:auto;
         cursor: pointer;
-      
-/* Hide the scrollbar by default */
-&::-webkit-scrollbar {
-        height: 4px;
+}
+.scrollbar-hide::-webkit-scrollbar {
         display: none;
-}
-      
-        /* // Show the scrollbar when the element is focused */
-&:hover::-webkit-scrollbar {
-        height: 4px;
-        display: block;
-}
       }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+

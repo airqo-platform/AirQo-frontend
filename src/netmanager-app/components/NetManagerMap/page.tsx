@@ -10,13 +10,13 @@ import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
 import ShareIcon from "@/public/icons/map/ShareIcon";
 import LayerModel from './components/LayerModal';
-import { Import, LoaderCircle } from 'lucide-react';
+import { Import, LoaderCircle, Loader2 } from 'lucide-react';
 import { useAppSelector } from '@/core/redux/hooks';
 import CountryList from './components/CountryList'
 import { Button } from '../ui/button';
 import allCountries from './data/countries.json'
 import { any } from 'zod';
-import { useGrids } from '@/core/hooks/useGrids';
+import { useSites } from '@/core/hooks/useSites';
 
 
 const NetManagerMap = () => {
@@ -42,10 +42,8 @@ const NetManagerMap = () => {
         const [siteDetails, setSiteDetails] = useState<any[]>([]);
         const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
         // const gridsDataSummary = useAppSelector((state) => state.grids) || [];
-         const { grids, isLoading: isGridsLoading } = useGrids(
-            activeNetwork?.net_name ?? ""
-          );
-        console.log("GridsData Summary: ", grids);
+        const { sites, isLoading, error } = useSites();
+        console.log("GridsData Summary: ",  sites);
 
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
@@ -58,18 +56,16 @@ const NetManagerMap = () => {
         }
 
                         // Set site details when grid data summary changes
-  useEffect(() => {
-
-        if (activeNetwork && Array.isArray(grids) && grids.length > 0) {
-          const newSiteDetails = grids.flatMap(
-            (grid) => grid.sites || [],
-          );
-          console.log("Site Details : ",newSiteDetails)
-          setSiteDetails(newSiteDetails);
-        }{
-                console.error("No Site Details ")
-        }
-      }, [grids, activeNetwork]);
+  
+        useEffect(() => {
+                if (Array.isArray(sites) && sites.length > 0) {
+                        setSiteDetails(sites);
+                        // const newSiteDetails = sites.flatMap(
+                        // (grid) => grid.sites || [],
+                        // );                      
+                       
+                }
+                }, [sites]);
 
       /**
    * Initialize Country Data
@@ -344,7 +340,6 @@ const NetManagerMap = () => {
                 .catch(error => console.error("Error fetching location:", error));
 
   }
-
  
   return (
         <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 
@@ -364,11 +359,11 @@ const NetManagerMap = () => {
                         <div className='flex items-center overflow-hidden px-4 transition-all duration-300 ease-in-out'>
                                 <Button
                                 type="button"
-                                 className='py-[6px] px-[10px] border-none rounded-lg text-sm font-medium'
+                                 className='flex py-[3px] px-[10px] border-none rounded-lg mb-3 text-sm font-medium'
                                 >
                                         ALL
                                 </Button>
-                                <div className='country-scroll-bar'>
+                                <div className='flex scrollbar-hide overflow-x-auto gap-2 '>
                                         <CountryList
                                         data={countryData}
                                         selectedCountry={selectedCountry}
@@ -410,7 +405,7 @@ const NetManagerMap = () => {
 
        </div>
       
-       { (loading || !airdata) &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
+       { (  loading || !airdata) &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
           <div
             className={`bg-white w-[64px] h-[64px] flex justify-center items-center rounded-md shadow-md p-3`}
           >
