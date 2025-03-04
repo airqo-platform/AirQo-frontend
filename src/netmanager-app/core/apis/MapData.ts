@@ -55,7 +55,7 @@ export  const FetchSuggestions=async(value:string,access_token:string,sessionTok
                         
                         }
                         catch(error){
-                                console.error("Error fetching suggestions:", error);
+                                // console.error("Error fetching suggestions:", error);
                         }
                 }}
 export const UserClick = async(access_token:string,sessionToken:string,locationid: string,)=>{
@@ -78,8 +78,14 @@ export const mapStyles = [
           name: 'Streets',
           image: StreetsMode,
         },
-        { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: LightMode },
-        { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: DarkMode },
+        { url: 'mapbox://styles/mapbox/light-v10', 
+        name: 'Light',
+        image: LightMode 
+        },
+        { url: 'mapbox://styles/mapbox/dark-v10', 
+        name: 'Dark', 
+        image: DarkMode 
+        },
         {
           url: 'mapbox://styles/mapbox/satellite-v9',
           name: 'Satellite',
@@ -120,6 +126,6 @@ export const mapStyles = [
                 
         }
         catch (error) {
-                console.error('Error fetching GeoJSON:', error);
+                // console.error('Error fetching GeoJSON:', error);
         }
 }

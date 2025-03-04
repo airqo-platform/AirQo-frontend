@@ -75,3 +75,20 @@
     @apply bg-background text-foreground;
   }
 }
+.country-scroll-bar {
+        overflow-x: auto;
+        overflow-y: hidden;
+        cursor: pointer;
+      
+/* Hide the scrollbar by default */
+&::-webkit-scrollbar {
+        height: 4px;
+        display: none;
+}
+      
+        /* // Show the scrollbar when the element is focused */
+&:hover::-webkit-scrollbar {
+        height: 4px;
+        display: block;
+}
+      }

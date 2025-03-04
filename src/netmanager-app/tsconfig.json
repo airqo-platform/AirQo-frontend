@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/NetManagermap/components/LayerModal.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/NetManagerMap/components/LayerModal.tsx", "components/NetManagerMap/components/CountryList.jsx"],
   "exclude": ["node_modules"]
 }

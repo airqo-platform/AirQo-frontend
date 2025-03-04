@@ -5,13 +5,18 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
 import { GetAirQuoData,FetchSuggestions,UserClick,token,AirQoToken,mapStyles, mapDetails } from '@/core/apis/MapData';
-import { IconButton } from './components/IconButton'
+import { IconButton } from './components/IconButton';
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
 import ShareIcon from "@/public/icons/map/ShareIcon";
 import LayerModel from './components/LayerModal';
-import { LoaderCircle } from 'lucide-react';
+import { Import, LoaderCircle } from 'lucide-react';
 import { useAppSelector } from '@/core/redux/hooks';
+import CountryList from './components/CountryList'
+import { Button } from '../ui/button';
+import allCountries from './data/countries.json'
+import { any } from 'zod';
+import { useGrids } from '@/core/hooks/useGrids';
 
 
 const NetManagerMap = () => {
@@ -32,6 +37,15 @@ const NetManagerMap = () => {
         const [airdata,setAirdata] = useState(false)
         const [NodeType, setNodeType] = useState('Emoji');
         const [mapStyle, setMapStyle] = useState(mapStyles[0].url);
+        const [countryData, setCountryData] = useState<any[]>([]);
+        const [selectedCountry, setSelectedCountry] = useState(null);
+        const [siteDetails, setSiteDetails] = useState<any[]>([]);
+        const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+        // const gridsDataSummary = useAppSelector((state) => state.grids) || [];
+         const { grids, isLoading: isGridsLoading } = useGrids(
+            activeNetwork?.net_name ?? ""
+          );
+        console.log("GridsData Summary: ", grids);
 
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
@@ -43,7 +57,40 @@ const NetManagerMap = () => {
          unhealthySG: '/images/map/UnhealthySG.png',
         }
 
-       
+                        // Set site details when grid data summary changes
+  useEffect(() => {
+
+        if (activeNetwork && Array.isArray(grids) && grids.length > 0) {
+          const newSiteDetails = grids.flatMap(
+            (grid) => grid.sites || [],
+          );
+          console.log("Site Details : ",newSiteDetails)
+          setSiteDetails(newSiteDetails);
+        }{
+                console.error("No Site Details ")
+        }
+      }, [grids, activeNetwork]);
+
+      /**
+   * Initialize Country Data
+   */
+        useEffect(() => {
+                if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+                const uniqueCountries = siteDetails.reduce((acc, site) => {
+                const country = allCountries.find((c) => c.country === site.country);
+                if (country && !acc.some((item) => item.country === site.country)) {
+                acc.push({ ...site, ...country });
+                }
+                return acc;
+                }, []);
+                console.log("unique Countries",uniqueCountries)
+                  setCountryData(uniqueCountries);
+                } else {
+                  console.error('No valid siteDetails data available.');
+                }
+              }, [siteDetails]);
+
+
         // const refreshMap = useRefreshMap(
         //         setToastMessage,
         //         mapRef,
@@ -314,29 +361,24 @@ const NetManagerMap = () => {
                             onChange={SearchSuggestions} name="Search" className="w-full pr-10" />
                             
                         </div>
-                        <div className='flex gap-2 overflow-auto'>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-blue-600'>
-                                        <h1 className='text-white'>ALL</h1>
+                        <div className='flex items-center overflow-hidden px-4 transition-all duration-300 ease-in-out'>
+                                <Button
+                                type="button"
+                                 className='py-[6px] px-[10px] border-none rounded-lg text-sm font-medium'
+                                >
+                                        ALL
+                                </Button>
+                                <div className='country-scroll-bar'>
+                                        <CountryList
+                                        data={countryData}
+                                        selectedCountry={selectedCountry}
+                                        setSelectedCountry={setSelectedCountry}
+                                        siteDetails={siteDetails}
+                                        />
                                 </div>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-gray-200 hover:bg-gray-300'>
-                                        Uganda
-                                </div>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-gray-200 hover:bg-gray-300'>
-                                        Uganda
-                                </div>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-gray-200 hover:bg-gray-300'>
-                                        Uganda
-                                </div>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-gray-200 hover:bg-gray-300'>
-                                        Uganda
-                                </div>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-gray-200 hover:bg-gray-300'>
-                                        Uganda
-                                </div>
-                                <div className='border rounded-lg p-1 cursor-pointer bg-gray-200 hover:bg-gray-300'>
-                                        Uganda
-                                </div>
+                              
                         </div>
+                        <div className="border border-secondary-neutral-light-100 " />
                         </div>
 
                         <div className='flex w-full '>
@@ -402,8 +444,8 @@ const NetManagerMap = () => {
         <LayerModel
          isOpen={isOpen}
          onClose={() => setIsOpen(false)}
-         mapStyles={mapStyles}
-         mapDetails={mapDetails}
+         mapStyles={mapStyles.map(style => ({ ...style, image: style.image.src }))}
+         mapDetails={mapDetails.map(detail => ({ ...detail, image: detail.image.src }))}
          disabled="Heatmap"
          onMapDetailsSelect={setNodeType}
          onStyleSelect={(style) => setMapStyle(style.url)}
