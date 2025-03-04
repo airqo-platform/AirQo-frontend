@@ -112,129 +112,119 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
 
   Future<void> _handleUpdateSelectedLocations(
-      List<String> locationIds, Emitter<DashboardState> emit) async {
-    if (state is! DashboardLoaded) return;
+    List<String> locationIds, Emitter<DashboardState> emit) async {
+  if (state is! DashboardLoaded) return;
 
-    try {
-      final currentState = state as DashboardLoaded;
-      final userId = await AuthHelper.getCurrentUserId();
+  try {
+    final currentState = state as DashboardLoaded;
+    final userId = await AuthHelper.getCurrentUserId();
 
-      if (userId == null) {
-        loggy.warning('Cannot update preferences: No user ID available');
-        return;
-      }
-      
-      loggy.info('Updating selected locations for user $userId with ${locationIds.length} IDs');
-      for (final id in locationIds) {
-        loggy.info('Selected location ID: $id');
-      }
-
-      // If we have existing preferences, use them as a reference for site details
-      List<Map<String, dynamic>> selectedSites = [];
-
-      if (currentState.userPreferences != null) {
-        // First, include any existing sites that are still in the locationIds list
-        for (var site in currentState.userPreferences!.selectedSites) {
-          if (locationIds.contains(site.id)) {
-            loggy.info('Including existing site ${site.name} (ID: ${site.id})');
-            selectedSites.add({
-              "_id": site.id,
-              "name": site.name,
-              "search_name": site.searchName ?? site.name,
-              "latitude": site.latitude,
-              "longitude": site.longitude,
-              "createdAt": DateTime.now().toIso8601String(),
-            });
-          }
-        }
-      }
-
-      // For any locationIds that weren't in existing preferences, find them in measurements
-      final existingSiteIds =
-          selectedSites.map((s) => s["_id"] as String).toSet();
-      final remainingIds =
-          locationIds.where((id) => !existingSiteIds.contains(id)).toList();
-
-      if (remainingIds.isNotEmpty) {
-        loggy.info(
-            'Finding details for ${remainingIds.length} new location IDs');
-
-        // Get measurements for the remaining IDs
-        for (final id in remainingIds) {
-          // Try to find a matching measurement
-          Measurement? matchingMeasurement;
-          
-          // First try direct ID match
-          matchingMeasurement = currentState.response.measurements
-              ?.where((m) => m.id == id).firstOrNull;
-          
-          // If not found, try siteId match
-          if (matchingMeasurement == null) {
-            matchingMeasurement = currentState.response.measurements
-                ?.where((m) => m.siteId == id).firstOrNull;
-          }
-          
-          // If still not found, try siteDetails.id match
-          if (matchingMeasurement == null) {
-            matchingMeasurement = currentState.response.measurements
-                ?.where((m) => m.siteDetails?.id == id).firstOrNull;
-          }
-
-          if (matchingMeasurement != null) {
-            loggy.info('Found matching measurement for ID $id: ${matchingMeasurement.siteDetails?.name}');
-            
-            // Determine which coordinates to use (prioritize the most specific ones)
-            double? latitude = matchingMeasurement.siteDetails?.approximateLatitude;
-            double? longitude = matchingMeasurement.siteDetails?.approximateLongitude;
-            
-            if (latitude == null || longitude == null) {
-              latitude = matchingMeasurement.siteDetails?.siteCategory?.latitude;
-              longitude = matchingMeasurement.siteDetails?.siteCategory?.longitude;
-            }
-            
-            selectedSites.add({
-              "_id": id,
-              "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
-              "search_name": matchingMeasurement.siteDetails?.searchName ??
-                  matchingMeasurement.siteDetails?.name ??
-                  'Unknown Location',
-              "latitude": latitude,
-              "longitude": longitude,
-              "createdAt": DateTime.now().toIso8601String(),
-            });
-          } else {
-            loggy.warning('Could not find details for location ID: $id');
-          }
-        }
-      }
-
-      // Prepare request body
-      final Map<String, dynamic> requestBody = {
-        "user_id": userId,
-        "selected_sites": selectedSites,
-      };
-
-      loggy.info(
-          'Updating preferences with ${selectedSites.length} locations out of ${locationIds.length} IDs');
-          
-      // Log the exact data being sent
-      for (var site in selectedSites) {
-        loggy.info('Selected site: ${site["name"]} (ID: ${site["_id"]})');
-      }
-      
-      final response = await preferencesRepo.replacePreference(requestBody);
-
-      if (response['success'] == true) {
-        loggy.info('Successfully updated preferences');
-        // Reload preferences to get the updated data
-        add(LoadUserPreferences());
-      } else {
-        loggy.warning('Failed to update preferences: ${response["message"]}');
-      }
-    } catch (e) {
-      loggy.error('Error updating preferences: $e');
+    if (userId == null) {
+      loggy.warning('Cannot update preferences: No user ID available');
+      return;
     }
+    
+    loggy.info('Updating selected locations for user $userId with ${locationIds.length} IDs');
+    for (final id in locationIds) {
+      loggy.info('Selected location ID: $id');
+    }
+
+    // Get existing preferences to merge with new selections
+    List<Map<String, dynamic>> selectedSites = [];
+    Set<String> existingSiteIds = {};
+
+    // If we have existing preferences, first include ALL existing sites
+    if (currentState.userPreferences != null) {
+      for (var site in currentState.userPreferences!.selectedSites) {
+        loggy.info('Including existing site ${site.name} (ID: ${site.id})');
+        selectedSites.add({
+          "_id": site.id,
+          "name": site.name,
+          "search_name": site.searchName ?? site.name,
+          "latitude": site.latitude,
+          "longitude": site.longitude,
+          "createdAt": DateTime.now().toIso8601String(),
+        });
+        existingSiteIds.add(site.id);
+      }
+    }
+
+    // Now add any new selections that weren't already in the existing preferences
+    for (final id in locationIds) {
+      // Skip if already included from existing preferences
+      if (existingSiteIds.contains(id)) {
+        continue;
+      }
+
+      // Try to find details for this new location
+      Measurement? matchingMeasurement;
+      
+      // First try direct ID match
+      matchingMeasurement = currentState.response.measurements
+          ?.where((m) => m.id == id).firstOrNull;
+      
+      // If not found, try siteId match
+      matchingMeasurement ??= currentState.response.measurements
+            ?.where((m) => m.siteId == id).firstOrNull;
+      
+      // If still not found, try siteDetails.id match
+      matchingMeasurement ??= currentState.response.measurements
+            ?.where((m) => m.siteDetails?.id == id).firstOrNull;
+
+      if (matchingMeasurement != null) {
+        loggy.info('Adding new location: ${matchingMeasurement.siteDetails?.name}');
+        
+        // Determine which coordinates to use (prioritize the most specific ones)
+        double? latitude = matchingMeasurement.siteDetails?.approximateLatitude;
+        double? longitude = matchingMeasurement.siteDetails?.approximateLongitude;
+        
+        if (latitude == null || longitude == null) {
+          latitude = matchingMeasurement.siteDetails?.siteCategory?.latitude;
+          longitude = matchingMeasurement.siteDetails?.siteCategory?.longitude;
+        }
+        
+        selectedSites.add({
+          "_id": id,
+          "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
+          "search_name": matchingMeasurement.siteDetails?.searchName ??
+              matchingMeasurement.siteDetails?.name ??
+              'Unknown Location',
+          "latitude": latitude,
+          "longitude": longitude,
+          "createdAt": DateTime.now().toIso8601String(),
+        });
+      } else {
+        loggy.warning('Could not find details for new location ID: $id');
+      }
+    }
+
+    // Prepare request body
+    final Map<String, dynamic> requestBody = {
+      "user_id": userId,
+      "selected_sites": selectedSites,
+    };
+
+    loggy.info(
+        'Updating preferences with ${selectedSites.length} locations');
+        
+    // Log the exact data being sent
+    for (var site in selectedSites) {
+      loggy.info('Selected site: ${site["name"]} (ID: ${site["_id"]})');
+    }
+    
+    final response = await preferencesRepo.replacePreference(requestBody);
+
+    if (response['success'] == true) {
+      loggy.info('Successfully updated preferences');
+      // Reload preferences to get the updated data
+      add(LoadUserPreferences());
+    } else {
+      loggy.warning('Failed to update preferences: ${response["message"]}');
+    }
+  } catch (e) {
+    loggy.error('Error updating preferences: $e');
   }
+}
 
   Future<void> _handleLoadUserPreferences(Emitter<DashboardState> emit) async {
     // Only proceed if we have a loaded dashboard
