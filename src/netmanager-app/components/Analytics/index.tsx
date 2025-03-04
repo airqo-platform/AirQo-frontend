@@ -16,7 +16,7 @@ import { useToast } from "@/components/ui/use-toast"
 import type { Cohort } from "@/app/types/cohorts"
 import type { Grid } from "@/app/types/grids"
 import { useMapReadings } from "@/core/hooks/useDevices"
-import { AnalyticsSkeleton } from "./analytics-skeleton"
+// import { AnalyticsSkeleton } from "./analytics-skeleton"
 
 const NewAnalytics: React.FC = () => {
   const [isCohort, setIsCohort] = useState(false)
@@ -135,7 +135,11 @@ const NewAnalytics: React.FC = () => {
   }
 
   if (isLoading) {
-    return <AnalyticsSkeleton />
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
