@@ -93,11 +93,12 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           String lastName = userState.model.users[0].lastName[0].toUpperCase();
           return GestureDetector(
             onTap: () {
-              // Navigate to profile screen with user data
+              // Navigate to profile page
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => ProfilePage(),
-              ));
+                ),
+              );
             },
             child: CircleAvatar(
               radius: 24,
