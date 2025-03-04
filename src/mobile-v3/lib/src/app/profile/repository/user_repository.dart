@@ -1,7 +1,7 @@
 import 'dart:convert';
+
 import 'package:airqo/src/app/profile/models/profile_response_model.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
-import 'package:airqo/src/app/shared/repository/base_repository_extension.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,41 +23,62 @@ class UserImpl extends UserRepository {
     }
     
     http.Response profileResponse =
-        await createAuthenticatedGetRequest("/api/v2/users/${userId}", {});
+        await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
         
     ProfileResponseModel model =
         profileResponseModelFromJson(profileResponse.body);
     return model;
   }
 
-  @override
-  Future<ProfileResponseModel> updateUserProfile({
-    required String firstName,
-    required String lastName,
-    required String email,
-  }) async {
-    final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
-    if (userId == null) {
-      throw Exception("User ID not found");
+@override
+Future<ProfileResponseModel> updateUserProfile({
+  required String firstName,
+  required String lastName,
+  required String email,
+}) async {
+  final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
+  if (userId == null) {
+    throw Exception("User ID not found");
+  }
+  
+  // Prepare the request body with the updated fields
+  final Map<String, dynamic> requestBody = {
+    "firstName": firstName,
+    "lastName": lastName,
+    "email": email,
+  };
+  
+  http.Response updateResponse = await createAuthenticatedPutRequest(
+    path: "/api/v2/users/$userId",
+    data: requestBody,
+  );
+  
+  print("https://api.airqo.net/api/v2/users/$userId");
+  print(updateResponse.statusCode);
+  
+  // Print the full response body for debugging
+  print("Full response body: ${updateResponse.body}");
+  
+  try {
+    final responseBody = json.decode(updateResponse.body);
+    print("Response structure: ${responseBody.keys}");
+    
+    // Print details of each key to identify null values
+    responseBody.forEach((key, value) {
+      print("Key: $key, Value: $value, Type: ${value?.runtimeType}");
+    });
+    
+    // Print user object structure if it exists
+    if (responseBody.containsKey('user') && responseBody['user'] != null) {
+      print("User object keys: ${(responseBody['user'] as Map).keys}");
     }
     
-    // Prepare the request body with the updated fields
-    final Map<String, dynamic> requestBody = {
-      "firstName": firstName,
-      "lastName": lastName,
-      "email": email,
-    };
+    // Try a simpler approach - just reload the profile
+    return await loadUserProfile();
     
-    // The extension should handle error responses
-    http.Response updateResponse = await createAuthenticatedPutRequest(
-      data: requestBody,
-      path: "/api/v2/users/$userId", 
-    );
-    
-    // Parse the updated user data
-    ProfileResponseModel model =
-        profileResponseModelFromJson(updateResponse.body);
-    
-    return model;
+  } catch (e) {
+    print("Error parsing update response: $e");
+    throw Exception("Failed to update profile: $e");
   }
+}
 }
