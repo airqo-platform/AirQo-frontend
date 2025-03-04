@@ -28,7 +28,6 @@ const NewAnalytics: React.FC = () => {
   const [downloadingData, setDownloadingData] = useState(false);
   const [activeGrid, setActiveGrid] = useState<Grid>();
   const [activeCohort, setActiveCohort] = useState<Cohort>();
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const [transformedReadings, setTransformedReadings] = useState<{
     type: string;
     features: {
@@ -39,9 +38,7 @@ const NewAnalytics: React.FC = () => {
   } | null>(null);
 
   const { toast } = useToast();
-  const { grids, isLoading: isGridsLoading } = useGrids(
-    activeNetwork?.net_name ?? ""
-  );
+  const { grids, isLoading: isGridsLoading } = useGrids();
   const { cohorts, isLoading: isCohortsLoading } = useCohorts();
   const { mapReadings, isLoading } = useMapReadings();
 
