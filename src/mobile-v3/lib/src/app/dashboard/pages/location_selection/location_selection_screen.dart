@@ -47,51 +47,52 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   UserPreferencesModel? userPreferences;
 
   @override
-void initState() {
-  super.initState();
-  loggy.info('initState called');
+  void initState() {
+    super.initState();
+    loggy.info('initState called');
 
-  _initializeUserData();
+    _initializeUserData();
 
-  googlePlacesBloc = context.read<GooglePlacesBloc>()
-    ..add(ResetGooglePlaces());
+    googlePlacesBloc = context.read<GooglePlacesBloc>()
+      ..add(ResetGooglePlaces());
 
-  loggy.info('Checking dashboard state');
-  final dashboardBloc = context.read<DashboardBloc>();
-  final currentState = dashboardBloc.state;
-  loggy.info('Current dashboard state: ${currentState.runtimeType}');
+    loggy.info('Checking dashboard state');
+    final dashboardBloc = context.read<DashboardBloc>();
+    final currentState = dashboardBloc.state;
+    loggy.info('Current dashboard state: ${currentState.runtimeType}');
 
-  if (currentState is DashboardLoaded) {
-    loggy.info('Dashboard already loaded, populating measurements');
-    if (currentState.response.measurements != null) {
-      loggy.info(
-          'Found ${currentState.response.measurements!.length} measurements in loaded state');
-      _populateMeasurements(currentState.response.measurements!);
-      
-      // IMPORTANT ADDITION: Pre-select existing locations from the current DashboardState
-      if (currentState.userPreferences != null &&
-          currentState.userPreferences!.selectedSites.isNotEmpty) {
-        final existingIds = currentState.userPreferences!.selectedSites
-            .map((site) => site.id)
-            .toSet();
-            
-        loggy.info('Pre-selecting ${existingIds.length} existing locations from dashboard state');
+    if (currentState is DashboardLoaded) {
+      loggy.info('Dashboard already loaded, populating measurements');
+      if (currentState.response.measurements != null) {
+        loggy.info(
+            'Found ${currentState.response.measurements!.length} measurements in loaded state');
+        _populateMeasurements(currentState.response.measurements!);
+
+        // IMPORTANT ADDITION: Pre-select existing locations from the current DashboardState
+        if (currentState.userPreferences != null &&
+            currentState.userPreferences!.selectedSites.isNotEmpty) {
+          final existingIds = currentState.userPreferences!.selectedSites
+              .map((site) => site.id)
+              .toSet();
+
+          loggy.info(
+              'Pre-selecting ${existingIds.length} existing locations from dashboard state');
+          setState(() {
+            selectedLocations = existingIds;
+          });
+        }
+      } else {
+        loggy.warning('No measurements in loaded state');
         setState(() {
-          selectedLocations = existingIds;
+          isLoading = false;
+          errorMessage = "No measurements available in loaded state";
         });
       }
     } else {
-      loggy.warning('No measurements in loaded state');
-      setState(() {
-        isLoading = false;
-        errorMessage = "No measurements available in loaded state";
-      });
+      loggy.info('Dispatching LoadDashboard event');
+      dashboardBloc.add(LoadDashboard());
     }
-  } else {
-    loggy.info('Dispatching LoadDashboard event');
-    dashboardBloc.add(LoadDashboard());
   }
-}
 
   Future<void> _initializeUserData() async {
     try {
@@ -174,100 +175,99 @@ void initState() {
 // File: src/mobile-v3/lib/src/app/dashboard/pages/location_selection/location_selection_screen.dart
 
 // Update the _saveSelectedLocations method in the LocationSelectionScreen
-Future<void> _saveSelectedLocations() async {
-  loggy.info(
-      'Save button pressed with ${selectedLocations.length} selected locations');
+  Future<void> _saveSelectedLocations() async {
+    loggy.info(
+        'Save button pressed with ${selectedLocations.length} selected locations');
 
-  // Debug token
-  await AuthHelper.debugToken();
+    // Debug token
+    await AuthHelper.debugToken();
 
-  // Check auth state from the bloc
-  final authState = context.read<AuthBloc>().state;
-  final isLoggedIn = authState is AuthLoaded;
+    // Check auth state from the bloc
+    final authState = context.read<AuthBloc>().state;
+    final isLoggedIn = authState is AuthLoaded;
 
-  loggy.info('Current auth state: ${authState.runtimeType}');
-  loggy.info('Is user logged in? $isLoggedIn');
+    loggy.info('Current auth state: ${authState.runtimeType}');
+    loggy.info('Is user logged in? $isLoggedIn');
 
-  if (!isLoggedIn) {
-    loggy.warning('❌ User not logged in, cannot save');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please log in to save your locations')),
-    );
-    return;
-  }
+    if (!isLoggedIn) {
+      loggy.warning('❌ User not logged in, cannot save');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save your locations')),
+      );
+      return;
+    }
 
-  // Use enhanced token checker
-  final isExpired = await TokenDebugger.checkTokenExpiration();
+    // Use enhanced token checker
+    final isExpired = await TokenDebugger.checkTokenExpiration();
 
-  if (isExpired) {
-    loggy.warning('❌ Token is expired, cannot save');
+    if (isExpired) {
+      loggy.warning('❌ Token is expired, cannot save');
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Your session has expired. Please log in again.'),
-        duration: const Duration(seconds: 8),
-        action: SnackBarAction(
-          label: 'Log In',
-          onPressed: () {
-            // Navigate directly to login screen
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => const LoginPage(),
-              ),
-              (route) => false,
-            );
-          },
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Your session has expired. Please log in again.'),
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(
+            label: 'Log In',
+            onPressed: () {
+              // Navigate directly to login screen
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                ),
+                (route) => false,
+              );
+            },
+          ),
         ),
-      ),
-    );
-    return;
-  }
-  
-  setState(() {
-    isSaving = true;
-  });
+      );
+      return;
+    }
 
-  try {
-    // IMPORTANT CHANGE: Instead of creating a new preference, we dispatch
-    // the UpdateSelectedLocations event to the DashboardBloc, which will
-    // merge these with existing locations
-    
-    final dashboardBloc = context.read<DashboardBloc>();
-    
-    // Convert the Set to a List
-    final locationIdsList = selectedLocations.toList();
-    
-    loggy.info('Dispatching UpdateSelectedLocations with ${locationIdsList.length} locations');
-    
-    // Dispatch the event
-    dashboardBloc.add(UpdateSelectedLocations(locationIdsList));
-    
-    // Show success message
-    loggy.info('✅ Successfully dispatched update event');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Locations saved successfully')),
-    );
-    
-    // Return to previous screen with the selected locations
-    Navigator.pop(context, locationIdsList);
-  } catch (e) {
-    loggy.error('❌ Error saving locations: $e');
-    loggy.error('Stack trace: ${StackTrace.current}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(
-              'An error occurred while saving locations: ${e.toString()}')),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        isSaving = false;
-      });
+    setState(() {
+      isSaving = true;
+    });
+
+    try {
+      // IMPORTANT CHANGE: Instead of creating a new preference, we dispatch
+      // the UpdateSelectedLocations event to the DashboardBloc, which will
+      // merge these with existing locations
+
+      final dashboardBloc = context.read<DashboardBloc>();
+
+      // Convert the Set to a List
+      final locationIdsList = selectedLocations.toList();
+
+      loggy.info(
+          'Dispatching UpdateSelectedLocations with ${locationIdsList.length} locations');
+
+      // Dispatch the event
+      dashboardBloc.add(UpdateSelectedLocations(locationIdsList));
+
+      // Show success message
+      loggy.info('✅ Successfully dispatched update event');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Locations saved successfully')),
+      );
+
+      // Return to previous screen with the selected locations
+      Navigator.pop(context, locationIdsList);
+    } catch (e) {
+      loggy.error('❌ Error saving locations: $e');
+      loggy.error('Stack trace: ${StackTrace.current}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'An error occurred while saving locations: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
     }
   }
-}
-
-
 
   Future<void> _loadUserPreferences(String userId) async {
     try {

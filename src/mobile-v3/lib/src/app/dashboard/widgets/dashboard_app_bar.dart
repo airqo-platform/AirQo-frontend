@@ -11,10 +11,10 @@ import '../../shared/widgets/loading_widget.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});
-  
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-  
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -34,7 +34,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-  
+
   Widget _buildThemeToggle(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
     return GestureDetector(
@@ -48,7 +48,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-  
+
   Widget _buildUserAvatar(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
@@ -60,7 +60,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       },
     );
   }
-  
+
   Widget _buildGuestAvatar(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -84,12 +84,13 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-  
+
   Widget _buildUserProfileAvatar(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          String firstName = userState.model.users[0].firstName[0].toUpperCase();
+          String firstName =
+              userState.model.users[0].firstName[0].toUpperCase();
           String lastName = userState.model.users[0].lastName[0].toUpperCase();
           return GestureDetector(
             onTap: () {

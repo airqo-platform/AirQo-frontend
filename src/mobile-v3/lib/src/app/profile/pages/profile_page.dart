@@ -85,25 +85,24 @@ class _ProfilePageState extends State<ProfilePage> {
                                               borderRadius:
                                                   BorderRadius.circular(200)),
                                           child: Center(
-                                          
-                                            child: InkWell(
-                                          onTap: () => Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EditProfile())),
-                                          child: Text(
-                                            "Edit your profile",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white,
+                                              child: InkWell(
+                                            onTap: () => Navigator.of(context)
+                                                .push(MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EditProfile())),
+                                            child: Text(
+                                              "Edit your profile",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white,
+                                              ),
                                             ),
-                                          ),
                                           )),
                                         ),
                                         SizedBox(width: 8),
                                         CircleAvatar(
-                                            backgroundColor:
-                                                Theme.of(context).highlightColor,
+                                            backgroundColor: Theme.of(context)
+                                                .highlightColor,
                                             radius: 26,
                                             child: SvgPicture.asset(
                                                 "assets/icons/notification.svg"))
@@ -138,9 +137,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   label: "Settings")),
                         ]),
                     Expanded(
-                      child: TabBarView(children: [
-                        SettingsWidget()
-                      ]),
+                      child: TabBarView(children: [SettingsWidget()]),
                     )
                   ],
                 )),

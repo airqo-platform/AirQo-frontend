@@ -38,7 +38,8 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   bool _validateEmail(String email) {
-    final emailRegExp = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    final emailRegExp = RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
     return emailRegExp.hasMatch(email);
   }
 
@@ -49,28 +50,28 @@ class _EditProfileState extends State<EditProfile> {
       );
       return false;
     }
-    
+
     if (_lastNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Last name cannot be empty')),
       );
       return false;
     }
-    
+
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Email cannot be empty')),
       );
       return false;
     }
-    
+
     if (!_validateEmail(_emailController.text.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter a valid email address')),
       );
       return false;
     }
-    
+
     return true;
   }
 
@@ -79,7 +80,7 @@ class _EditProfileState extends State<EditProfile> {
       setState(() {
         _isLoading = false;
       });
-      
+
       _loadingTimeout?.cancel();
       _loadingTimeout = null;
     }
@@ -88,7 +89,7 @@ class _EditProfileState extends State<EditProfile> {
   void _updateProfile() {
     // Only update if form has changed and not already loading
     if (!_formChanged || _isLoading) return;
-    
+
     // Validate form fields
     if (!_validateForm()) return;
 
@@ -149,28 +150,28 @@ class _EditProfileState extends State<EditProfile> {
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {
         print('Current state: $state');
-        
+
         if (state is UserUpdateSuccess) {
           _resetLoadingState();
           setState(() {
             _formChanged = false;
           });
-          
+
           // Load the user profile to ensure UI is up-to-date
           context.read<UserBloc>().add(LoadUser());
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Profile updated successfully'),
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Navigate back after successful update
           Navigator.of(context).pop();
         } else if (state is UserUpdateError) {
           _resetLoadingState();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error updating profile: ${state.message}'),
@@ -186,7 +187,7 @@ class _EditProfileState extends State<EditProfile> {
         if (state is UserUpdating && !_isLoading) {
           _isLoading = true;
         }
-        
+
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
@@ -198,7 +199,8 @@ class _EditProfileState extends State<EditProfile> {
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text('Discard Changes?'),
-                      content: Text('You have unsaved changes. Are you sure you want to go back?'),
+                      content: Text(
+                          'You have unsaved changes. Are you sure you want to go back?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
@@ -240,7 +242,9 @@ class _EditProfileState extends State<EditProfile> {
                     : Text(
                         'Done',
                         style: TextStyle(
-                          color: _formChanged ? Colors.white : Colors.white.withOpacity(0.5),
+                          color: _formChanged
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.5),
                           fontWeight: FontWeight.bold,
                           fontSize: 16.0,
                         ),
