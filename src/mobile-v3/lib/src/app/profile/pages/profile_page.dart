@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/profile/pages/edit_profile.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -52,11 +53,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: CircleAvatar(
                                   backgroundColor:
                                       Theme.of(context).highlightColor,
+                                  radius: 50,
                                   child: Center(
                                     child: SvgPicture.asset(
                                         "assets/icons/user_icon.svg"),
                                   ),
-                                  radius: 50,
                                 ),
                               ),
                               Expanded(
@@ -78,26 +79,26 @@ class _ProfilePageState extends State<ProfilePage> {
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 32),
                                           height: 50,
-                                          child: Center(
-                                              child: Text("Edit your profile")),
-                                          //   child: InkWell(
-                                          // onTap: () => Navigator.of(context).push(
-                                          //     MaterialPageRoute(
-                                          //         builder: (context) =>
-                                          //             EditProfile())),
-                                          // child: Text(
-                                          //   "Edit your profile",
-                                          //   style: TextStyle(
-                                          //     fontWeight: FontWeight.w500,
-                                          //     color: Colors.white,
-                                          //   ),
-                                          // ),
-                                          //)),
                                           decoration: BoxDecoration(
                                               color: Theme.of(context)
                                                   .highlightColor,
                                               borderRadius:
                                                   BorderRadius.circular(200)),
+                                          child: Center(
+                                          
+                                            child: InkWell(
+                                          onTap: () => Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditProfile())),
+                                          child: Text(
+                                            "Edit your profile",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          )),
                                         ),
                                         SizedBox(width: 8),
                                         CircleAvatar(
@@ -130,21 +131,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ? Colors.white
                                 : AppColors.primaryColor,
                         tabs: [
-                          // Tab(
-                          //     height: 60,
-                          //     icon: TabIcon(
-                          //         image: "assets/profile/exposure.svg",
-                          //         label: "Exposure")),
-                          // Tab(
-                          //     height: 60,
-                          //     icon: TabIcon(
-                          //         image: "assets/profile/places.svg",
-                          //         label: "Places")),
-                          // Tab(
-                          //     height: 60,
-                          //     icon: TabIcon(
-                          //         image: "assets/profile/devices.svg",
-                          //         label: "Devices")),
                           Tab(
                               height: 60,
                               icon: TabIcon(
@@ -153,9 +139,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ]),
                     Expanded(
                       child: TabBarView(children: [
-                        // ExposureWidget(),
-                        // Container(child: Text("devices")),
-                        // DevicesWidget(),
                         SettingsWidget()
                       ]),
                     )

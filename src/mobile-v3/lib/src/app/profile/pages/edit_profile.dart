@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class EditProfile extends StatefulWidget {
+  const EditProfile({super.key});
+
   @override
   _EditProfileState createState() => _EditProfileState();
 }
@@ -98,20 +100,13 @@ class _EditProfileState extends State<EditProfile> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Edit your name, email and add',
+                            'Edit your prfile details here',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: screenWidth * 0.035,
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.005),
-                          Text(
-                            'an optional profile picture',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: screenWidth * 0.035,
-                            ),
-                          ),
                         ],
                       ),
                     ),
