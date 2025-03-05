@@ -99,13 +99,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                             ),
                                           )),
                                         ),
-                                        SizedBox(width: 8),
-                                        CircleAvatar(
-                                            backgroundColor: Theme.of(context)
-                                                .highlightColor,
-                                            radius: 26,
-                                            child: SvgPicture.asset(
-                                                "assets/icons/notification.svg"))
+                                        //SizedBox(width: 8),
+                                        // CircleAvatar(
+                                        //     backgroundColor: Theme.of(context)
+                                        //         .highlightColor,
+                                        //     radius: 26,
+                                        //     child: SvgPicture.asset(
+                                        //         "assets/icons/notification.svg"))
                                       ],
                                     )
                                   ],

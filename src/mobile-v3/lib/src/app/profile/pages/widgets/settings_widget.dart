@@ -211,7 +211,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.red,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -244,7 +244,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             //   ),
             // ),
 
-            SizedBox(height: screenHeight * 0.03),
+            SizedBox(height: screenHeight * 0.01),
 
             // App Info
             Center(
