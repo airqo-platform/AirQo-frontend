@@ -165,19 +165,19 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             ),
 
             // Notifications Setting
-            SettingsTile(
-              switchValue: _notificationsEnabled,
-              iconPath: "assets/icons/notification.svg",
-              title: "Notifications",
-              onChanged: (value) {
-                setState(() {
-                  _notificationsEnabled = value;
-                });
-                print("Notifications setting: $value");
-              },
-              description:
-                  "AirQo to send you in-app & push notifications & spike alerts.",
-            ),
+            // SettingsTile(
+            //   switchValue: _notificationsEnabled,
+            //   iconPath: "assets/icons/notification.svg",
+            //   title: "Notifications",
+            //   onChanged: (value) {
+            //     setState(() {
+            //       _notificationsEnabled = value;
+            //     });
+            //     print("Notifications setting: $value");
+            //   },
+            //   description:
+            //       "AirQo to send you in-app & push notifications & spike alerts.",
+            // ),
 
             // Send Feedback
             // SettingsTile(
