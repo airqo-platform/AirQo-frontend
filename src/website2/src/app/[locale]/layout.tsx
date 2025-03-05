@@ -35,11 +35,7 @@ type Props = {
   params: { locale: string };
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default async function RootLayout({ children, params }: Props) {
   const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
   const siteUrl = 'https://airqo.net/';
   const title = 'AirQo | Bridging the Air Quality Data Gap in Africa';
@@ -85,15 +81,13 @@ export default async function RootLayout({
     'air quality education',
   ].join(', ');
 
-  params: { locale },
-}: Props) {
+  const { locale } = params;
+
   const maintenance = await checkMaintenance();
   const messages = await getMessages();
-  const GA_MEASUREMENT_ID =
-    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
 
   return (
-    <html lang="en" className={interFont.variable}>
+    <html lang={locale} className={interFont.variable}>
       <head>
         {/* Primary SEO */}
         <title>{title}</title>
@@ -163,7 +157,6 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-    <html lang={locale} className={interFont.variable}>
       <body>
         <ErrorBoundary>
           <ReduxDataProvider>
@@ -171,12 +164,10 @@ export default async function RootLayout({
               {maintenance.isActive ? (
                 <MaintenancePage message={maintenance.message} />
               ) : (
-                <>
-                  <NextIntlClientProvider messages={messages}>
-                    <EngagementDialog />
-                    {children}
-                  </NextIntlClientProvider>
-                </>
+                <NextIntlClientProvider messages={messages}>
+                  <EngagementDialog />
+                  {children}
+                </NextIntlClientProvider>
               )}
             </Suspense>
           </ReduxDataProvider>
