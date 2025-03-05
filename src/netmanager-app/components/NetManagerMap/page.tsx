@@ -1,10 +1,10 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { Input } from '../ui/input'
+
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
-import { GetAirQuoData,FetchSuggestions,UserClick,token,AirQoToken,mapStyles, mapDetails } from '@/core/apis/MapData';
+import { GetAirQuoData,token,AirQoToken,mapStyles, mapDetails } from '@/core/apis/MapData';
 import { IconButton } from './components/IconButton';
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
@@ -12,8 +12,9 @@ import ShareIcon from "@/public/icons/map/ShareIcon";
 import LayerModel from './components/LayerModal';
 import { Import, LoaderCircle, Loader2 } from 'lucide-react';
 import { useAppSelector } from '@/core/redux/hooks';
-import CountryList from './components/CountryList'
-import { Button } from '../ui/button';
+import MapSideBar from './components/Sidebar/page';
+
+
 import allCountries from './data/countries.json'
 import { any } from 'zod';
 import { useSites } from '@/core/hooks/useSites';
@@ -28,10 +29,7 @@ const NetManagerMap = () => {
         // const { width } = useWindowSize();
         const mapContainerRef = useRef<HTMLDivElement>(null);
         const mapRef = useRef<mapboxgl.Map | null>(null);
-        const [query, setQuery] = useState("");
-        const [locationId,setlocationId] =useState("")
-        const [suggestions, setSuggestions] = useState<any[]>([]);
-        const [sessionToken, setSessionToken] = useState<string | null>(null);
+
         const [isOpen, setIsOpen] = useState(false);
         const [loading,setLoading] = useState(true)
         const [airdata,setAirdata] = useState(false)
@@ -40,6 +38,7 @@ const NetManagerMap = () => {
         const [countryData, setCountryData] = useState<any[]>([]);
         const [selectedCountry, setSelectedCountry] = useState(null);
         const [siteDetails, setSiteDetails] = useState<any[]>([]);
+        const [sessionToken, setSessionToken] = useState<string | null>(null);
         const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
         // const gridsDataSummary = useAppSelector((state) => state.grids) || [];
         const { sites, isLoading, error } = useSites();
@@ -54,6 +53,26 @@ const NetManagerMap = () => {
          unknownAQ:'/images/map/UnknownAQ.png',
          unhealthySG: '/images/map/UnhealthySG.png',
         }
+
+        const HandleReset =()=>{
+                if (mapRef.current) {
+                        mapRef.current.flyTo({
+                                center: [18.5,5], 
+                                zoom: 3.0,
+                                essential: true 
+                            });
+                      }
+        }
+        const handleUserClick=(data: any)=>{
+                if (mapRef.current) {
+                        mapRef.current.flyTo({
+                                center: data.features[0].geometry.coordinates, 
+                                zoom: 12,
+                                essential: true 
+                            });
+                      }
+        }
+        
 
                         // Set site details when grid data summary changes
   
@@ -74,7 +93,7 @@ const NetManagerMap = () => {
                 if (Array.isArray(siteDetails) && siteDetails.length > 0) {
                 const uniqueCountries = siteDetails.reduce((acc, site) => {
                 const country = allCountries.find((c) => c.country === site.country);
-                if (country && !acc.some((item) => item.country === site.country)) {
+                if (country && !acc.some((item: { country: any; }) => item.country === site.country)) {
                 acc.push({ ...site, ...country });
                 }
                 return acc;
@@ -271,139 +290,20 @@ const NetManagerMap = () => {
                 }
               }, [token]);
 
-  const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
-        const value = e.target.value;
-    setQuery(value);
 
-    if (value.trim() === "") {
-      setSuggestions([]);
-      if (mapRef.current) {
-        mapRef.current.flyTo({
-                center: [18.5,5], 
-                zoom: 3.0,
-                essential: true 
-            });
-      }
-      return;
-    }
-    const GetSuggestions=(latitude?: number, longitude?: number)=>{
-        if (!token || !sessionToken) {
-          console.error('Missing required tokens');
-                 return;
-        }
-        FetchSuggestions(value, token, sessionToken, latitude, longitude)
-          .then(data => {
-            if (data) {
-              console.log(data)
-              setSuggestions(data);
-            }
-            console.log("Number of Suggesstions", suggestions.length)
-          })
-          .catch(error => {
-            console.error("Error fetching suggestions:", error);
-          });
-    }
-    const fetchUserLocation = () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              console.log("User Location:", latitude, longitude);
-              GetSuggestions(latitude, longitude);
-            },
-            (error) => {
-              console.error("Error getting user location:", error);
-              GetSuggestions(); 
-            }
-          );
-        } else {
-          console.error("Geolocation is not supported by this browser.");
-          GetSuggestions(); 
-        }
-      };
-      fetchUserLocation();
-
-  }
-  //Retrieving The Location Clicked By The User
-  const handleLocationClick = (locationid: any) => {
-        UserClick(token?token:"",sessionToken?sessionToken:"",locationid)
-        .then(data => {
-                console.log(data.features[0].geometry.coordinates)
-                if (mapRef.current) {
-                        mapRef.current.flyTo({
-                                center: data.features[0].geometry.coordinates, 
-                                zoom: 12,
-                                essential: true 
-                            });
-                      }
-                })
-                .catch(error => console.error("Error fetching location:", error));
-
-  }
  
   return (
         <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 
 
-       <div className=' flex  flex-grow md:flex-grow-0  border rounded-lg  md:w-[24%]'>
-                <div className="flex flex-col border gap-2  p-1 rounded-lg w-full">
-                        <div className="flex flex-col gap-3">
-                        <h1 className="font-bold">Net Manager Map</h1>
-                        <h1 className='text-gray-600'>Navigate air quality analytics with precision and actionable tips.</h1>
-                        <div className="relative w-full">
-                            <Input
-                            placeholder="Search all locations" type="text"
-                            value={query}
-                            onChange={SearchSuggestions} name="Search" className="w-full pr-10" />
-                            
-                        </div>
-                        <div className='flex items-center overflow-hidden px-4 transition-all duration-300 ease-in-out'>
-                                <Button
-                                type="button"
-                                 className='flex py-[3px] px-[10px] border-none rounded-lg mb-3 text-sm font-medium'
-                                >
-                                        ALL
-                                </Button>
-                                <div className='flex scrollbar-hide overflow-x-auto gap-2 '>
-                                        <CountryList
-                                        data={countryData}
-                                        selectedCountry={selectedCountry}
-                                        setSelectedCountry={setSelectedCountry}
-                                        siteDetails={siteDetails}
-                                        />
-                                </div>
-                              
-                        </div>
-                        <div className="border border-secondary-neutral-light-100 " />
-                        </div>
-
-                        <div className='flex w-full '>
-                        { suggestions.length > 0? (
-                                
-                        <div
-                        id="search-suggestions"
-                        className='w-full'
-                        >
-                        {suggestions.map((item, index) => (
-                        <div
-                        key={index}
-                        className="bg-white w-full border border-gray-300 mt-1 rounded-md shadow-md max-h-40 overflow-y-auto p-2 hover:bg-gray-200 cursor-pointer"
-                        onClick={()=>handleLocationClick(item.mapbox_id)}
-                        >
-                        <h1 className='text'>{item.name}</h1>
-                        <h1 className='text-gray-300' >{item.place_formatted}</h1>
-                        </div>
-                        ))}
-                        </div>
-                ):(
-                        <div  className="text-gray-500 bg-white w-full border border-gray-300 mt-1 rounded-md shadow-md max-h-40 overflow-y-auto p-2 hover:bg-gray-200 cursor-pointer">
-                                Type to see Suggestions...
-                        </div>
-                )}
-                        </div>
-                        
-                </div>
-
-       </div>
+       <MapSideBar 
+                handleUserClick={handleUserClick}
+                reset={()=>HandleReset()} 
+                token={token?token:""} 
+                sessionToken={sessionToken?sessionToken:""} 
+                countryData={countryData} selectedCountry={selectedCountry} 
+                setSelectedCountry={setSelectedCountry} 
+                siteDetails={siteDetails} 
+                />
       
        { (  loading || !airdata) &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
           <div

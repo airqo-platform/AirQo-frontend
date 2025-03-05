@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import Button from './Button'
-// import {
-//   setLocation,
-//   addSuggestedSites,
-// } from '@/lib/store/services/map/MapSlice';
+import {
+  setLocation,
+  addSuggestedSites,
+} from '@/lib/map/MapSlice';
 
 /**
  * CountryList
@@ -49,18 +49,20 @@ const CountryList = ({
   if (!sortedData.length) {
     return (
       <div className="flex gap-2 ml-2 animate-pulse mb-2">
-      
+        {Array.from({ length: 4 }).map((_, index) => (
           <div
+            key={index}
             className="bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700"
           >
-                loading countries
-       </div>
+                ...
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="flex space-x-2 ml-2 mb-2">
+    <div className="flex space-x-2 ml-2 mb-2 ">
       {sortedData.map((country, index) => {
         // Check if country and flag properties exist
         if (!country || !country.flag) {
@@ -72,30 +74,29 @@ const CountryList = ({
         }
 
         return (
-          <button
-  key={index}
-  type="button"
-  className={`flex items-center justify-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px] gap-2 ${
-    selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
-  }`}
-  variant="outline"
-  onClick={() => handleClick(country)}
->
-  <img
-    src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
-    alt={country.country}
-    width={20}
-    height={20}
-    className="w-5 h-5 object-contain" // Ensures proper scaling
-    onError={(e) => {
-      e.target.onerror = null; 
-      e.target.src = '/path-to-default-flag-image.png';
-    }}
-  />
-  <span className="text-sm text-gray-500 font-medium">
-    {country.country}
-  </span>
-</button>
+                <button
+                key={index}
+                type="button"
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 min-w-max transition-all ${
+                  selectedCountry?.country === country.country ? 'border-2 border-blue-400' : ''
+                }`}
+                onClick={() => handleClick(country)}
+              >
+                <img
+                  src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
+                  alt={country.country}
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 object-contain"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = '/path-to-default-flag-image.png';
+                  }}
+                />
+                <span className="pr-2 text-sm text-gray-700 font-medium   whitespace-nowrap">
+                  {country.country}
+                </span>
+              </button>
 
         );
       })}
