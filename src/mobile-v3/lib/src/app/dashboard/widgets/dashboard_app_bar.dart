@@ -1,3 +1,5 @@
+import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/profile/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -35,7 +37,6 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _buildThemeToggle(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
-    
     return GestureDetector(
       onTap: () => themeBloc.add(ToggleTheme(true)),
       child: CircleAvatar(
@@ -61,14 +62,24 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildGuestAvatar(BuildContext context) {
-    return CircleAvatar(
-      backgroundColor: Theme.of(context).highlightColor,
-      radius: 24,
-      child: Center(
-        child: SvgPicture.asset(
-          "assets/icons/user_icon.svg",
-          height: 22,
-          width: 22,
+    return GestureDetector(
+      onTap: () {
+        // Navigate to login/signup screen for guest users
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => LoginPage(),
+          ),
+        );
+      },
+      child: CircleAvatar(
+        backgroundColor: Theme.of(context).highlightColor,
+        radius: 24,
+        child: Center(
+          child: SvgPicture.asset(
+            "assets/icons/user_icon.svg",
+            height: 22,
+            width: 22,
+          ),
         ),
       ),
     );
@@ -78,12 +89,23 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          String firstName = userState.model.users[0].firstName[0].toUpperCase();
+          String firstName =
+              userState.model.users[0].firstName[0].toUpperCase();
           String lastName = userState.model.users[0].lastName[0].toUpperCase();
-          return CircleAvatar(
-            radius: 24,
-            backgroundColor: Theme.of(context).highlightColor,
-            child: Center(child: Text("$firstName$lastName")),
+          return GestureDetector(
+            onTap: () {
+              // Navigate to profile page
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ProfilePage(),
+                ),
+              );
+            },
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: Theme.of(context).highlightColor,
+              child: Center(child: Text("$firstName$lastName")),
+            ),
           );
         } else if (userState is UserLoadingError) {
           return Container(); // Handle error state (optional)

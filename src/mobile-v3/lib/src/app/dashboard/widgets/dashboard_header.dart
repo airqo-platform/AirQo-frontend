@@ -13,22 +13,19 @@ class DashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return PagePadding(
       padding: 16,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 16),
-          _buildGreeting(context),
-          Text(
-            "Today's Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).textTheme.headlineMedium?.color,
-            ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(height: 16),
+        _buildGreeting(context),
+        Text(
+          "Today's Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.headlineMedium?.color,
           ),
-          SizedBox(height: 16)
-        ]
-      ),
+        ),
+        SizedBox(height: 16)
+      ]),
     );
   }
 

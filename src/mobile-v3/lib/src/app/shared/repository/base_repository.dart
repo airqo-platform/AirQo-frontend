@@ -14,6 +14,41 @@ class BaseRepository {
     return _cachedToken;
   }
 
+  Future<Response> createAuthenticatedPutRequest({
+  required String path, 
+  required dynamic data
+}) async {
+  String? token = await _getToken();
+  if (token == null) {
+    throw Exception('Authentication token not found');
+  }
+  
+  String url = ApiUtils.baseUrl + path;
+  print(url);
+  
+  Response response = await http.put(
+    Uri.parse(url),
+    body: json.encode(data),
+    headers: {
+      "Authorization": "Bearer ${token}",
+      "Accept": "*/*",
+      "Content-Type": "application/json"
+    }
+  );
+  
+  print(response.statusCode);
+  
+  if (response.statusCode != 200) {
+    final responseBody = json.decode(response.body);
+    final errorMessage = responseBody is Map && responseBody.containsKey('message')
+        ? responseBody['message']
+        : 'An error occurred';
+    throw new Exception(errorMessage);
+  }
+  
+  return response;
+}
+
   Future<Response> createPostRequest(
       {required String path, dynamic data}) async {
     final token = await _getToken();
