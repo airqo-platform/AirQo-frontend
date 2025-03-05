@@ -180,13 +180,13 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             ),
 
             // Send Feedback
-            SettingsTile(
-              iconPath: "assets/images/shared/feedback_icon.svg",
-              title: "Send Feedback",
-              onChanged: (value) {
-                print("Send Feedback tapped");
-              },
-            ),
+            // SettingsTile(
+            //   iconPath: "assets/images/shared/feedback_icon.svg",
+            //   title: "Send Feedback",
+            //   onChanged: (value) {
+            //     print("Send Feedback tapped");
+            //   },
+            // ),
 
             // Our Story
             SettingsTile(
