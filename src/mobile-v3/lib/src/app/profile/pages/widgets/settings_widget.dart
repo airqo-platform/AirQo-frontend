@@ -92,49 +92,49 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 }
 
 
-  void _showDeleteAccountDialog() {
-    final TextEditingController passwordController = TextEditingController();
+  // void _showDeleteAccountDialog() {
+  //   final TextEditingController passwordController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'WARNING: This action cannot be undone. All your data will be permanently deleted.',
-              style: TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Enter Password to Confirm',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Implement actual account deletion logic
-              // Validate password, call backend deletion endpoint
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete Account'),
-          ),
-        ],
-      ),
-    );
-  }
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Delete Account'),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           const Text(
+  //             'WARNING: This action cannot be undone. All your data will be permanently deleted.',
+  //             style: TextStyle(color: Colors.red),
+  //           ),
+  //           const SizedBox(height: 16),
+  //           TextField(
+  //             controller: passwordController,
+  //             obscureText: true,
+  //             decoration: const InputDecoration(
+  //               labelText: 'Enter Password to Confirm',
+  //               border: OutlineInputBorder(),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () {
+  //             // TODO: Implement actual account deletion logic
+  //             // Validate password, call backend deletion endpoint
+  //             Navigator.of(context).pushReplacementNamed('/login');
+  //           },
+  //           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+  //           child: const Text('Delete Account'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -165,53 +165,53 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             ),
 
             // Notifications Setting
-            SettingsTile(
-              switchValue: _notificationsEnabled,
-              iconPath: "assets/icons/notification.svg",
-              title: "Notifications",
-              onChanged: (value) {
-                setState(() {
-                  _notificationsEnabled = value;
-                });
-                print("Notifications setting: $value");
-              },
-              description:
-                  "AirQo to send you in-app & push notifications & spike alerts.",
-            ),
+            // SettingsTile(
+            //   switchValue: _notificationsEnabled,
+            //   iconPath: "assets/icons/notification.svg",
+            //   title: "Notifications",
+            //   onChanged: (value) {
+            //     setState(() {
+            //       _notificationsEnabled = value;
+            //     });
+            //     print("Notifications setting: $value");
+            //   },
+            //   description:
+            //       "AirQo to send you in-app & push notifications & spike alerts.",
+            // ),
 
             // Send Feedback
-            SettingsTile(
-              iconPath: "assets/images/shared/feedback_icon.svg",
-              title: "Send Feedback",
-              onChanged: (value) {
-                print("Send Feedback tapped");
-              },
-            ),
+            // SettingsTile(
+            //   iconPath: "assets/images/shared/feedback_icon.svg",
+            //   title: "Send Feedback",
+            //   onChanged: (value) {
+            //     print("Send Feedback tapped");
+            //   },
+            // ),
 
             // Our Story
-            SettingsTile(
-              iconPath: "assets/images/shared/airqo_story_icon.svg",
-              title: "Our Story",
-              onChanged: (value) {
-                print("Our Story tapped");
-              },
-            ),
+            // SettingsTile(
+            //   iconPath: "assets/images/shared/airqo_story_icon.svg",
+            //   title: "Our Story",
+            //   onChanged: (value) {
+            //     print("Our Story tapped");
+            //   },
+            // ),
 
             // Terms and Privacy Policy
-            SettingsTile(
-              iconPath: "assets/images/shared/terms_and_privacy.svg",
-              title: "Terms and Privacy Policy",
-              onChanged: (value) {
-                print("Terms and Privacy Policy tapped");
-              },
-            ),
+            // SettingsTile(
+            //   iconPath: "assets/images/shared/terms_and_privacy.svg",
+            //   title: "Terms and Privacy Policy",
+            //   onChanged: (value) {
+            //     print("Terms and Privacy Policy tapped");
+            //   },
+            // ),
 
             // Logout Button
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.red,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -229,22 +229,22 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             ),
 
             // Delete Account Section
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3),
-              child: InkWell(
-                onTap: _showDeleteAccountDialog,
-                child: Text(
-                  "Delete Account",
-                  style: TextStyle(
-                    color: Colors.red.shade300,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3),
+            //   child: InkWell(
+            //     onTap: _showDeleteAccountDialog,
+            //     child: Text(
+            //       "Delete Account",
+            //       style: TextStyle(
+            //         color: Colors.red.shade300,
+            //         fontWeight: FontWeight.bold,
+            //         decoration: TextDecoration.underline,
+            //       ),
+            //     ),
+            //   ),
+            // ),
 
-            SizedBox(height: screenHeight * 0.03),
+            SizedBox(height: screenHeight * 0.01),
 
             // App Info
             Center(
