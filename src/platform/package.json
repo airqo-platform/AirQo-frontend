@@ -30,6 +30,7 @@
     "fuse.js": "^7.0.0",
     "html2canvas": "^1.4.1",
     "i18n-iso-countries": "^7.7.0",
+    "js-cookie": "^3.0.5",
     "json2csv": "^6.0.0-alpha.2",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",

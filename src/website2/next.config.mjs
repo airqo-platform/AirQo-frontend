@@ -50,6 +50,21 @@ const nextConfig = {
         destination: '/clean-air-forum/about',
         permanent: true,
       },
+      {
+        source: '/clean-air-network',
+        destination: '/clean-air-network/about',
+        permanent: true,
+      },
+      {
+        source: '/clean-air/about',
+        destination: '/clean-air-network/about',
+        permanent: true,
+      },
+      {
+        source: '/clean-air',
+        destination: '/clean-air-network/about',
+        permanent: true,
+      },
     ];
   },
 };

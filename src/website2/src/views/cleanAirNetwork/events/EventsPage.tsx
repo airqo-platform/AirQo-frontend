@@ -14,9 +14,9 @@ import {
 } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useCleanAirEvents } from '@/hooks/useApiHooks';
-import EventCard from '@/views/cleanairforum/EventCard';
-import EventSkeleton from '@/views/cleanairforum/EventSkeleton';
-import RegisterBanner from '@/views/cleanairforum/RegisterBanner';
+import EventCard from '@/views/cleanAirNetwork/EventCard';
+import EventSkeleton from '@/views/cleanAirNetwork/EventSkeleton';
+import RegisterBanner from '@/views/cleanAirNetwork/RegisterBanner';
 
 const months = [
   'January',
