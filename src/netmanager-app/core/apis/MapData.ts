@@ -1,27 +1,18 @@
+"use server"
 import axios from "axios";
-export const token = process.env.NEXT_PUBLIC_MAP_API_TOKEN
-export const AirQoToken = process.env.NEXT_PUBLIC_AIRQO_DATA_TOKEN
+const token = process.env.NEXT_PUBLIC_MAP_API_TOKEN
+const AirQoToken = process.env.AIRQO_DATA_TOKEN
 import {AIRQUO_DATA,MAP_BOX_SUGGESTIONS,MAP_BOX_SEARCH} from "../urls"
-import Node from '@/public/images/map/Node.webp';
-import Emoji from '@/public/images/map/Emoji.webp';
-import Heatmap from '@/public/images/map/Heatmap.webp';
-import Node_Number from '@/public/images/map/Node_number.webp';
 
-import DarkMode from '@/public/images/map/dark.webp';
-import LightMode from '@/public/images/map/light.webp';
-import SatelliteMode from '@/public/images/map/satellite.webp';
-import StreetsMode from '@/public/images/map/street.webp';
-
-
-export const GetAirQuoData = async (token: string) =>{
+export const GetAirQuoData = async () =>{
         try {
                 if(token){
-                        const response = await axios.get(`${AIRQUO_DATA}?token=${token}`);
+                        const response = await axios.get(`${AIRQUO_DATA}?token=${AirQoToken}`);
                 const data = response.data;
                 return data;
                 }
                 {
-                        console.log("Error Token Is Missing")
+                        console.log("Error Airquo Token Is Missing")
                         return null;
                 }
                 
@@ -34,7 +25,7 @@ export const GetAirQuoData = async (token: string) =>{
 export  const FetchSuggestions=async(value:string,access_token:string,sessionToken:string,latitude?: number, longitude?: number):Promise<any[] | void>=>{
         
         if (!access_token) {
-                console.log("Missing Access Token");
+                console.log("Missing Map Box Access Token");
                 return;
         }
         
@@ -70,46 +61,7 @@ export const UserClick = async(access_token:string,sessionToken:string,locationi
 
 
 }
-export const mapStyles = [
-        {
-          url: 'mapbox://styles/mapbox/streets-v11',
-          name: 'Streets',
-          image: StreetsMode,
-        },
-        { url: 'mapbox://styles/mapbox/light-v10', 
-        name: 'Light',
-        image: LightMode 
-        },
-        { url: 'mapbox://styles/mapbox/dark-v10', 
-        name: 'Dark', 
-        image: DarkMode 
-        },
-        {
-          url: 'mapbox://styles/mapbox/satellite-v9',
-          name: 'Satellite',
-          image: SatelliteMode,
-        },
-      ];
-      
-      export const mapDetails = [
-        {
-          name: 'Emoji',
-          image: Emoji,
-        },
-        {
-          name: 'Heatmap',
-          image: Heatmap,
-        },
-        {
-          name: 'Node',
-          image: Node,
-        },
-        {
-          name: 'Number',
-          image: Node_Number,
-        },
-      ];
-      
+
       export const UserGroups = async (token: string) =>{
         try {
                 if(token){

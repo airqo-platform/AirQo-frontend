@@ -43,3 +43,5 @@ export const mapDetails = [
     image: Node_Number,
   },
 ];
+
+

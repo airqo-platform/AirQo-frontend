@@ -4,13 +4,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
-import { GetAirQuoData,token,AirQoToken,mapStyles, mapDetails } from '@/core/apis/MapData';
+// import { GetAirQuoData,} from '@/core/apis/MapData';
+import { useMapData } from '@/core/hooks/useMapData';
+import {mapStyles, mapDetails} from "../NetManagerMap/data/constants"
 import { IconButton } from './components/IconButton';
 import LayerIcon from "@/public/icons/map/layerIcon";
 import RefreshIcon from "@/public/icons/map/refreshIcon";
 import ShareIcon from "@/public/icons/map/ShareIcon";
 import LayerModel from './components/LayerModal';
-import { Import, LoaderCircle, Loader2 } from 'lucide-react';
+import {  LoaderCircle, Loader2 } from 'lucide-react';
 import { useAppSelector } from '@/core/redux/hooks';
 import MapSideBar from './components/Sidebar/page';
 
@@ -29,7 +31,7 @@ const NetManagerMap = () => {
         // const { width } = useWindowSize();
         const mapContainerRef = useRef<HTMLDivElement>(null);
         const mapRef = useRef<mapboxgl.Map | null>(null);
-
+        const token = process.env.NEXT_PUBLIC_MAP_API_TOKEN
         const [isOpen, setIsOpen] = useState(false);
         const [loading,setLoading] = useState(true)
         const [airdata,setAirdata] = useState(false)
@@ -40,6 +42,8 @@ const NetManagerMap = () => {
         const [siteDetails, setSiteDetails] = useState<any[]>([]);
         const [sessionToken, setSessionToken] = useState<string | null>(null);
         const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+        const {MapData, Error, Loading} = useMapData()
+        console.log("Map Data : ",MapData)
         // const gridsDataSummary = useAppSelector((state) => state.grids) || [];
         const { sites, isLoading, error } = useSites();
         console.log("GridsData Summary: ",  sites);
@@ -153,23 +157,15 @@ const NetManagerMap = () => {
         if (mapRef.current) {
 
                 try {
-                        if (!AirQoToken) {
-                            throw new Error('Token is missing');
-                        }
-                        const Data = await GetAirQuoData(AirQoToken);
                         setAirdata(true)
-                        const geojsonData = ConvertToGeojson(Data);
+                        const geojsonData = ConvertToGeojson(MapData);
                         console.log('GeoJson Data : ',geojsonData)
 
                         mapRef.current.addSource('data', {
                           type: 'geojson',
                           data: geojsonData
                         });
-                        const popup = new mapboxgl.Popup({
-                                closeButton: false,
-                                closeOnClick: false,
-                                
-                              });
+                       
                         // Listen for when the mouse enters a feature in your 'data-layer'
                         mapRef.current.on('mouseenter', 'data-layer', (e) => {
                                 if (mapRef.current) {
