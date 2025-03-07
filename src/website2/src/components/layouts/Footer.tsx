@@ -1,17 +1,19 @@
 import Image from 'next/image';
-import Link from 'next/link';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import mainConfig from '@/configs/mainConfigs';
+import { Link } from '@/navigation';
 
 import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
 const Footer = () => {
+  const t = useTranslations('footer');
   const adminUrl = `${process.env.NEXT_PUBLIC_API_URL}/website`;
+
   return (
     <footer
       id="WebsiteFooter"
@@ -19,7 +21,7 @@ const Footer = () => {
     >
       <ScrollToTopButton />
       {/* Top Section with Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Logo and Social Media */}
         <div className="flex flex-col space-y-4">
           <div>
@@ -29,28 +31,26 @@ const Footer = () => {
               width={70}
               height={60}
             />
-            <h1 className="text-gray-700 font-semibold mt-4">
-              Clean air for all <br /> African Cities.
-            </h1>
+            <h1 className="text-gray-700 font-semibold mt-4">{t('tagline')}</h1>
           </div>
           <div className="flex space-x-4 mt-6">
             <Link
               href="https://www.facebook.com/AirQo"
-              aria-label="Facebook"
+              aria-label={t('socialLinks.facebook')}
               className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
             >
               <FaFacebookF size={14} />
             </Link>
             <Link
               href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"
-              aria-label="YouTube"
+              aria-label={t('socialLinks.youtube')}
               className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
             >
               <FaYoutube size={14} />
             </Link>
             <Link
               href="https://www.linkedin.com/company/airqo/mycompany/"
-              aria-label="LinkedIn"
+              aria-label={t('socialLinks.linkedin')}
               className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
             >
               <FaLinkedinIn size={14} />
@@ -58,7 +58,7 @@ const Footer = () => {
             <Link
               href="https://x.com/AirQoProject"
               target="_blank"
-              aria-label="Twitter"
+              aria-label={t('socialLinks.twitter')}
               className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
             >
               <FaXTwitter size={14} />
@@ -70,14 +70,16 @@ const Footer = () => {
         <div className="flex justify-between flex-wrap gap-8">
           {/* Products Section */}
           <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Products</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">
+              {t('sections.products.title')}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/products/monitor"
                   className="text-gray-600 hover:underline"
                 >
-                  Binos Monitor
+                  {t('sections.products.binosMonitor')}
                 </Link>
               </li>
               <li>
@@ -85,7 +87,7 @@ const Footer = () => {
                   href="/products/analytics"
                   className="text-gray-600 hover:underline"
                 >
-                  Analytics Dashboard
+                  {t('sections.products.analyticsDashboard')}
                 </Link>
               </li>
               <li>
@@ -93,7 +95,7 @@ const Footer = () => {
                   href="/products/api"
                   className="text-gray-600 hover:underline"
                 >
-                  Air Quality API
+                  {t('sections.products.airQualityAPI')}
                 </Link>
               </li>
               <li>
@@ -101,7 +103,7 @@ const Footer = () => {
                   href="/products/mobile-app"
                   className="text-gray-600 hover:underline"
                 >
-                  Mobile App
+                  {t('sections.products.mobileApp')}
                 </Link>
               </li>
               <li>
@@ -109,7 +111,7 @@ const Footer = () => {
                   href="/products/calibrate"
                   className="text-gray-600 hover:underline"
                 >
-                  AirQalibrate
+                  {t('sections.products.airQalibrate')}
                 </Link>
               </li>
             </ul>
@@ -117,14 +119,16 @@ const Footer = () => {
 
           {/* Solutions Section */}
           <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Solutions</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">
+              {t('sections.solutions.title')}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/solutions/african-cities"
                   className="text-gray-600 hover:underline"
                 >
-                  For African Cities
+                  {t('sections.solutions.forAfricanCities')}
                 </Link>
               </li>
               <li>
@@ -132,7 +136,7 @@ const Footer = () => {
                   href="/solutions/communities"
                   className="text-gray-600 hover:underline"
                 >
-                  For Communities
+                  {t('sections.solutions.forCommunities')}
                 </Link>
               </li>
               <li>
@@ -140,7 +144,7 @@ const Footer = () => {
                   href="/solutions/research"
                   className="text-gray-600 hover:underline"
                 >
-                  For Research
+                  {t('sections.solutions.forResearch')}
                 </Link>
               </li>
             </ul>
@@ -148,14 +152,16 @@ const Footer = () => {
 
           {/* About Section */}
           <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">About</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">
+              {t('sections.about.title')}
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/about-us"
                   className="text-gray-600 hover:underline"
                 >
-                  About AirQo
+                  {t('sections.about.aboutAirQo')}
                 </Link>
               </li>
               <li>
@@ -163,27 +169,27 @@ const Footer = () => {
                   href="/resources"
                   className="text-gray-600 hover:underline"
                 >
-                  Resources
+                  {t('sections.about.resources')}
                 </Link>
               </li>
               <li>
                 <Link href="/events" className="text-gray-600 hover:underline">
-                  Events
+                  {t('sections.about.events')}
                 </Link>
               </li>
               <li>
                 <Link href="/press" className="text-gray-600 hover:underline">
-                  Press
+                  {t('sections.about.press')}
                 </Link>
               </li>
               <li>
                 <Link href="/careers" className="text-gray-600 hover:underline">
-                  Careers
+                  {t('sections.about.careers')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-gray-600 hover:underline">
-                  Contact Us
+                  {t('sections.about.contactUs')}
                 </Link>
               </li>
               <li>
@@ -192,7 +198,7 @@ const Footer = () => {
                   target="_blank"
                   className="text-gray-600 hover:underline"
                 >
-                  Blog
+                  {t('sections.about.blog')}
                 </Link>
               </li>
             </ul>
@@ -219,16 +225,16 @@ const Footer = () => {
         <div className="flex flex-wrap gap-4 text-center lg:text-left text-gray-600">
           &copy; {new Date().getFullYear()} AirQo
           <Link href="/legal/terms-of-service" className="hover:underline">
-            Terms of service
+            {t('legal.termsOfService')}
           </Link>
           <Link href="/legal/privacy-policy" className="hover:underline">
-            Privacy Policy
+            {t('legal.privacyPolicy')}
           </Link>
           <Link href="/legal/airqo-data" className="hover:underline">
-            AirQo Data
+            {t('legal.airQoData')}
           </Link>
           <Link href="/legal/payment-refund-policy" className="hover:underline">
-            Payment Terms
+            {t('legal.paymentTerms')}
           </Link>
           <a
             href={adminUrl}
@@ -236,7 +242,7 @@ const Footer = () => {
             rel="noopener noreferrer"
             className="hover:underline"
           >
-            Admin Portal
+            {t('legal.adminPortal')}
           </a>
         </div>
 
@@ -244,7 +250,7 @@ const Footer = () => {
         <div className="flex flex-col items-center lg:items-start">
           <Image
             src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728142537/website/Logos/MakName_xmsi0k.png"
-            alt="Makerere University"
+            alt={t('makerereUniversity')}
             width={237}
             height={38}
           />

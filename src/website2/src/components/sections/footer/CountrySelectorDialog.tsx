@@ -1,6 +1,8 @@
 'use client';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
 import { IoLocationSharp } from 'react-icons/io5';
@@ -29,6 +31,7 @@ interface AirqloudCountry {
 }
 
 const CountrySelectorDialog: React.FC = () => {
+  const t = useTranslations('countrySelector');
   const dispatch = useDispatch();
   const [selectedCountryData, setSelectedCountryData] =
     useState<AirqloudCountry | null>(null);
@@ -238,14 +241,14 @@ const CountrySelectorDialog: React.FC = () => {
           <IoLocationSharp size={20} color="#2563eb" />
           <span>
             {selectedCountryData?.long_name.replace('_', ' ') ||
-              'Select Country'}
+              t('selectCountry')}
           </span>
           <FiChevronDown size={16} className="text-gray-600" />
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col h-full w-full overflow-hidden">
         <DialogHeader className="border-b flex justify-center px-4 py-6 w-full h-[40px] border-gray-300">
-          <DialogTitle className="text-xl">Country AirQloud</DialogTitle>
+          <DialogTitle className="text-xl">{t('dialog.title')}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-grow flex flex-col overflow-y-auto">
@@ -256,11 +259,9 @@ const CountrySelectorDialog: React.FC = () => {
             className="p-4"
           >
             <h1 className="text-gray-700 text-4xl font-bold">
-              Our growing network in Africa
+              {t('dialog.heading')}
             </h1>
-            <p className="text-xl mt-2">
-              View AirQo developments in your country
-            </p>
+            <p className="text-xl mt-2">{t('dialog.subheading')}</p>
           </motion.div>
 
           <motion.div
@@ -271,11 +272,13 @@ const CountrySelectorDialog: React.FC = () => {
           >
             {airqloudData.length > 0 ? (
               <>
-                <h3 className="text-lg font-semibold">Selected Country</h3>
+                <h3 className="text-lg font-semibold">
+                  {t('dialog.selectedCountry')}
+                </h3>
                 <div className="flex items-center space-x-2">
                   {selectedCountryData?.flag && (
                     <Image
-                      src={selectedCountryData.flag}
+                      src={selectedCountryData.flag || '/placeholder.svg'}
                       alt={selectedCountryData.long_name}
                       width={48}
                       height={36}
@@ -287,7 +290,9 @@ const CountrySelectorDialog: React.FC = () => {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-semibold">Select Country</h3>
+                <h3 className="text-lg font-semibold">
+                  {t('dialog.selectCountry')}
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {paginatedCountries.map((country) => (
                     <motion.button
@@ -303,7 +308,7 @@ const CountrySelectorDialog: React.FC = () => {
                     >
                       {country.flag && (
                         <Image
-                          src={country.flag}
+                          src={country.flag || '/placeholder.svg'}
                           alt={country.long_name}
                           width={30}
                           height={24}
@@ -330,9 +335,9 @@ const CountrySelectorDialog: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <p className="text-lg text-gray-600">
-                  No countries available at the moment.
+                  {t('dialog.noCountries')}
                 </p>
-                <p className="text-gray-500">Please try again later.</p>
+                <p className="text-gray-500">{t('dialog.tryAgain')}</p>
               </div>
             )}
           </motion.div>
@@ -343,13 +348,13 @@ const CountrySelectorDialog: React.FC = () => {
             className="text-gray-600 h-[40px] p-3 text-center flex justify-center items-center border bg-transparent border-gray-300 hover:bg-gray-100"
             onClick={() => setIsOpen(false)}
           >
-            Cancel
+            {t('dialog.cancel')}
           </CustomButton>
           <CustomButton
             className="text-white h-[40px] p-3 text-center flex justify-center items-center"
             onClick={handleSave}
           >
-            Save
+            {t('dialog.save')}
           </CustomButton>
         </DialogFooter>
       </DialogContent>

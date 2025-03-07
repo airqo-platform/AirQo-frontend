@@ -224,5 +224,128 @@
     "success": "Merci de vous être inscrit. Nous vous enverrons bientôt un email pour confirmer votre abonnement.",
     "error": "Oups ! Quelque chose s'est mal passé. Veuillez réessayer !",
     "tryAgain": "Réessayer"
+  },
+  "cleanAirNetwork": {
+    "intro": {
+      "title": "Le Réseau CLEAN-Air",
+      "subtitle": "Un réseau multi-régional dirigé par des Africains",
+      "description": "rassemblant une communauté de pratique pour des solutions de qualité de l'air et la gestion de la qualité de l'air à travers l'Afrique.",
+      "buttonText": "Rejoindre le Réseau",
+      "imgAlt": "Image de Mission"
+    },
+    "acronym": {
+      "intro": "est un acronyme créé à partir de",
+      "fullName": "\"Promouvoir des Environnements urbains Vivables grâce aux Réseaux Africains pour l'Air\"",
+      "description": "Le réseau rassemble des parties prenantes et des chercheurs dans la gestion de la qualité de l'air pour partager les meilleures pratiques et connaissances sur le développement et la mise en œuvre de solutions de gestion de la qualité de l'air dans les villes africaines.",
+      "invitation": "Êtes-vous une organisation ou un individu intéressé par la qualité de l'air en Afrique?",
+      "joinLink": "Rejoindre le réseau",
+      "imgAlt": "Scène Urbaine"
+    },
+    "mission": {
+      "subtitle": "Mission",
+      "title": "La Mission CLEAN-Air",
+      "description": "Renforcer les réseaux régionaux pour des partenariats durables et permettre aux partenaires de co-développer des solutions qui améliorent la capacité de surveillance, de modélisation et de gestion de la qualité de l'air dans les villes d'Afrique.",
+      "imgAlt": "Image de Mission"
+    },
+    "membership": {
+      "subtitle": "Adhésion",
+      "title": "Une Synergie pour la Qualité de l'Air en Afrique",
+      "description": "Le réseau comprend un paysage diversifié de parties prenantes, notamment des organisations de recherche, des gouvernements municipaux et nationaux, le secteur privé, des partenaires de développement et des individus qui défendent l'agenda de la qualité de l'air dans les villes africaines.",
+      "invitation": "Êtes-vous une organisation ou un individu intéressé par la qualité de l'air en Afrique? Nous vous invitons à rejoindre le Réseau CLEAN-Air.",
+      "imgAlt": "Image de Synergie"
+    },
+    "goals": {
+      "subtitle": "Objectifs",
+      "title": "Objectifs CLEAN Air",
+      "enhancingCapacity": {
+        "title": "Renforcement des Capacités Régionales",
+        "description": "Dédié à l'amélioration des capacités de surveillance, de modélisation, de gestion et d'accès aux données sur la qualité de l'air grâce à l'extension des initiatives localisées en cours dans les villes africaines."
+      },
+      "collaboration": {
+        "title": "Collaboration et Sensibilisation",
+        "description": "Engagé à favoriser une compréhension, une sensibilisation et une appréciation plus profondes des problèmes de qualité de l'air grâce à un plaidoyer fondé sur des preuves et participatif, et au partage des connaissances."
+      },
+      "cleanAirSolutions": {
+        "title": "Solutions d'Air Propre pour les Villes",
+        "description": "Le réseau CLEAN-Air est un nexus pour développer des solutions et des cadres d'air propre tangibles et contextuels pour les villes africaines."
+      }
+    }
+  },
+  "actionButtons2": {
+    "joinNetwork": {
+      "title": "Augmentez la visibilité de votre travail dans les villes africaines. Accédez à un groupe d'experts.",
+      "action": "Rejoindre le Réseau"
+    },
+    "registerEvent": {
+      "title": "Organisez-vous un événement/une activité et souhaitez-vous qu'il soit mis en avant ?",
+      "action": "S'inscrire Ici"
+    }
+  },
+  "featuredEvent": {
+    "errors": {
+      "noEvents": "Aucun événement en vedette disponible.",
+      "failedToLoad": "Échec du chargement de l'événement en vedette."
+    },
+    "dateTBA": "Date à annoncer",
+    "timeTBA": "Heure à annoncer",
+    "eventLabel": "Événement",
+    "readMore": "Lire plus"
+  },
+  "footer": {
+    "tagline": "De l'air pur pour toutes les villes africaines.",
+    "socialLinks": {
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter"
+    },
+    "sections": {
+      "products": {
+        "title": "Produits",
+        "binosMonitor": "Moniteur Binos",
+        "analyticsDashboard": "Tableau de bord d'analyse",
+        "airQualityAPI": "API de qualité de l'air",
+        "mobileApp": "Application mobile",
+        "airQalibrate": "AirQalibrate"
+      },
+      "solutions": {
+        "title": "Solutions",
+        "forAfricanCities": "Pour les villes africaines",
+        "forCommunities": "Pour les communautés",
+        "forResearch": "Pour la recherche"
+      },
+      "about": {
+        "title": "À propos",
+        "aboutAirQo": "À propos d'AirQo",
+        "resources": "Ressources",
+        "events": "Événements",
+        "press": "Presse",
+        "careers": "Carrières",
+        "contactUs": "Contactez-nous",
+        "blog": "Blog"
+      }
+    },
+    "legal": {
+      "termsOfService": "Conditions d'utilisation",
+      "privacyPolicy": "Politique de confidentialité",
+      "airQoData": "Données AirQo",
+      "paymentTerms": "Conditions de paiement",
+      "adminPortal": "Portail d'administration"
+    },
+    "makerereUniversity": "Université de Makerere"
+  },
+  "countrySelector": {
+    "selectCountry": "Sélectionner un pays",
+    "dialog": {
+      "title": "AirQloud du pays",
+      "heading": "Notre réseau croissant en Afrique",
+      "subheading": "Voir les développements d'AirQo dans votre pays",
+      "selectedCountry": "Pays sélectionné",
+      "selectCountry": "Sélectionner un pays",
+      "noCountries": "Aucun pays disponible pour le moment.",
+      "tryAgain": "Veuillez réessayer plus tard.",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
+    }
   }
 }

@@ -224,5 +224,128 @@
     "success": "Thank you for signing up. We will send you an email to confirm your subscription shortly.",
     "error": "Oops! Something went wrong. Please try again!",
     "tryAgain": "Try Again"
+  },
+  "cleanAirNetwork": {
+    "intro": {
+      "title": "The CLEAN-Air Network",
+      "subtitle": "An African-led, multi-regional network",
+      "description": "bringing together a community of practice for air quality solutions and air quality management across Africa.",
+      "buttonText": "Join the Network",
+      "imgAlt": "Mission Image"
+    },
+    "acronym": {
+      "intro": "is an acronym coined from",
+      "fullName": "\"Championing Liveable urban Environments through African Networks for Air\"",
+      "description": "The network brings together stakeholders and researchers in air quality management to share best practices and knowledge on developing and implementing air quality management solutions in African cities.",
+      "invitation": "Are you an organization or individual interested in air quality in Africa?",
+      "joinLink": "Join the network",
+      "imgAlt": "Urban Scene"
+    },
+    "mission": {
+      "subtitle": "Mission",
+      "title": "The CLEAN-Air Mission",
+      "description": "To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring, modelling and management across cities in Africa.",
+      "imgAlt": "Mission Image"
+    },
+    "membership": {
+      "subtitle": "Membership",
+      "title": "A Synergy for Air Quality in Africa",
+      "description": "The network comprises a diverse stakeholder landscape including research organisations, city and national governments, the private sector, development partners, and individuals who are championing the air quality agenda in African cities.",
+      "invitation": "Are you an organization or individual interested in air quality in Africa? We welcome you to join the CLEAN-Air Network.",
+      "imgAlt": "Synergy Image"
+    },
+    "goals": {
+      "subtitle": "Goals",
+      "title": "CLEAN Air Goals",
+      "enhancingCapacity": {
+        "title": "Enhancing Regional Capacity",
+        "description": "Dedicated to improving capacity in air quality monitoring, modeling, data management, and access through scaling up of ongoing localized initiatives in African Cities."
+      },
+      "collaboration": {
+        "title": "Collaboration and Awareness",
+        "description": "Committed to fostering a deeper understanding, awareness, and appreciation of air quality issues through evidence-informed and participatory advocacy, and knowledge sharing."
+      },
+      "cleanAirSolutions": {
+        "title": "Clean Air Solutions for Cities",
+        "description": "CLEAN-Air network is a nexus for developing tangible and contextual clean air solutions and frameworks for African cities."
+      }
+    }
+  },
+  "actionButtons2": {
+    "joinNetwork": {
+      "title": "Increase the visibility of your work in African Cities. Access a pool of experts.",
+      "action": "Join the Network"
+    },
+    "registerEvent": {
+      "title": "Are you organising an event/activity and you would want it featured?",
+      "action": "Register Here"
+    }
+  },
+  "featuredEvent": {
+    "errors": {
+      "noEvents": "No featured events available.",
+      "failedToLoad": "Failed to load featured event."
+    },
+    "dateTBA": "Date TBA",
+    "timeTBA": "Time TBA",
+    "eventLabel": "Event",
+    "readMore": "Read more"
+  },
+  "footer": {
+    "tagline": "Clean air for all African Cities.",
+    "socialLinks": {
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter"
+    },
+    "sections": {
+      "products": {
+        "title": "Products",
+        "binosMonitor": "Binos Monitor",
+        "analyticsDashboard": "Analytics Dashboard",
+        "airQualityAPI": "Air Quality API",
+        "mobileApp": "Mobile App",
+        "airQalibrate": "AirQalibrate"
+      },
+      "solutions": {
+        "title": "Solutions",
+        "forAfricanCities": "For African Cities",
+        "forCommunities": "For Communities",
+        "forResearch": "For Research"
+      },
+      "about": {
+        "title": "About",
+        "aboutAirQo": "About AirQo",
+        "resources": "Resources",
+        "events": "Events",
+        "press": "Press",
+        "careers": "Careers",
+        "contactUs": "Contact Us",
+        "blog": "Blog"
+      }
+    },
+    "legal": {
+      "termsOfService": "Terms of service",
+      "privacyPolicy": "Privacy Policy",
+      "airQoData": "AirQo Data",
+      "paymentTerms": "Payment Terms",
+      "adminPortal": "Admin Portal"
+    },
+    "makerereUniversity": "Makerere University"
+  },
+  "countrySelector": {
+    "selectCountry": "Select Country",
+    "dialog": {
+      "title": "Country AirQloud",
+      "heading": "Our growing network in Africa",
+      "subheading": "View AirQo developments in your country",
+      "selectedCountry": "Selected Country",
+      "selectCountry": "Select Country",
+      "noCountries": "No countries available at the moment.",
+      "tryAgain": "Please try again later.",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
   }
 }
