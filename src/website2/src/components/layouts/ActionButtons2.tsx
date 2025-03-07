@@ -1,11 +1,13 @@
 'use client';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 
 import mainConfig from '@/configs/mainConfigs';
 
 import { CustomButton } from '../ui';
 
 const ActionButtons2 = () => {
+  const t = useTranslations('actionButtons2');
+
   return (
     <div
       className={`flex flex-col md:flex-row gap-6 w-full ${mainConfig.containerClass}`}
@@ -22,11 +24,12 @@ const ActionButtons2 = () => {
         <div className="flex flex-col justify-between bg-blue-600 items-start text-start text-white md:rounded-xl p-8 w-full cursor-pointer transform transition-transform duration-300 focus:outline-none">
           <div>
             <h3 className="text-2xl font-medium mb-4">
-              Increase the visibility of your work in African Cities. Access a
-              pool of experts.
+              {t('joinNetwork.title')}
             </h3>
           </div>
-          <p className="mt-4 text-lg hover:underline">Join the Network →</p>
+          <p className="mt-4 text-lg hover:underline">
+            {t('joinNetwork.action')} →
+          </p>
         </div>
       </CustomButton>
 
@@ -42,11 +45,12 @@ const ActionButtons2 = () => {
         <div className="flex flex-col justify-between items-start text-start bg-blue-50 text-blue-600 md:rounded-xl p-8 w-full cursor-pointer transform transition-transform duration-300 focus:outline-none">
           <div>
             <h3 className="text-2xl font-medium mb-4">
-              Are you organising an event/activity and you would want it
-              featured?
+              {t('registerEvent.title')}
             </h3>
           </div>
-          <p className="mt-4 text-lg hover:underline">Register Here →</p>
+          <p className="mt-4 text-lg hover:underline">
+            {t('registerEvent.action')} →
+          </p>
         </div>
       </CustomButton>
     </div>

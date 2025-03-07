@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { FiCalendar, FiClock } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
@@ -10,6 +12,8 @@ import mainConfig from '@/configs/mainConfigs';
 import { getCleanAirEvents } from '@/services/apiService';
 
 const FeaturedEvent: React.FC = () => {
+  const t = useTranslations('featuredEvent');
+  const locale = useLocale();
   const router = useRouter();
   const [featuredEvent, setFeaturedEvent] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,10 +31,10 @@ const FeaturedEvent: React.FC = () => {
 
           setFeaturedEvent(featured);
         } else {
-          setError('No featured events available.');
+          setError(t('errors.noEvents'));
         }
       } catch (err) {
-        setError('Failed to load featured event.');
+        setError(t('errors.failedToLoad'));
         console.error(err);
       } finally {
         setLoading(false);
@@ -38,7 +42,7 @@ const FeaturedEvent: React.FC = () => {
     };
 
     fetchFeaturedEvent();
-  }, []);
+  }, [t]);
 
   const firstFeaturedEvent =
     featuredEvent?.length > 0 ? featuredEvent[0] : null;
@@ -97,24 +101,29 @@ const FeaturedEvent: React.FC = () => {
       id,
     } = firstFeaturedEvent;
 
+    // Format date based on current locale
     const formattedDate = end_date
-      ? new Date(end_date).toLocaleDateString('en-US', {
+      ? new Date(end_date).toLocaleDateString(locale, {
           day: '2-digit',
           month: 'long',
           year: 'numeric',
         })
-      : 'Date TBA';
+      : t('dateTBA');
 
+    // Format time based on current locale
     const formattedTime =
       start_time && end_time
-        ? `${new Date(`1970-01-01T${start_time}`).toLocaleTimeString([], {
+        ? `${new Date(`1970-01-01T${start_time}`).toLocaleTimeString(locale, {
             hour: '2-digit',
             minute: '2-digit',
-          })} - ${new Date(`1970-01-01T${end_time}`).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}`
-        : 'Time TBA';
+          })} - ${new Date(`1970-01-01T${end_time}`).toLocaleTimeString(
+            locale,
+            {
+              hour: '2-digit',
+              minute: '2-digit',
+            },
+          )}`
+        : t('timeTBA');
 
     return (
       <section className="max-w-5xl mx-auto w-full mt-16 bg-blue-50 rounded-lg shadow-sm p-6 lg:px-8 lg:py-12 flex flex-col lg:flex-row items-center gap-6">
@@ -122,7 +131,7 @@ const FeaturedEvent: React.FC = () => {
         <div className="w-full lg:w-1/2">
           <div className="relative flex justify-center w-auto lg:w-[416px] lg:h-[518px] items-center">
             <Image
-              src={event_image_url}
+              src={event_image_url || '/placeholder.svg'}
               alt={title}
               width={416}
               height={518}
@@ -138,7 +147,7 @@ const FeaturedEvent: React.FC = () => {
           {event_category && (
             <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded-full inline-block mb-3">
               {event_category.charAt(0).toUpperCase() + event_category.slice(1)}{' '}
-              Event
+              {t('eventLabel')}
             </span>
           )}
           <h2 className="text-4xl font-bold text-gray-800 mb-4">{title}</h2>
@@ -163,7 +172,7 @@ const FeaturedEvent: React.FC = () => {
             onClick={() => router.push(`/clean-air-network/events/${id}`)}
             className="text-white"
           >
-            {`Read more →`}
+            {t('readMore')} →
           </CustomButton>
         </div>
       </section>

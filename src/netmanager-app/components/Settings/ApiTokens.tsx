@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -10,6 +11,7 @@ import EditClientForm from "./EditClientForm"
 import CreateClientForm from "./CreateClientForm"
 import DialogWrapper from "./DialogWrapper"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 import { Edit, Copy, Info, Plus, Search, ArrowUpDown, Loader2 } from "lucide-react"
 import type { Client } from "@/app/types/clients"
 import { settings } from "@/core/apis/settings"
@@ -44,6 +46,7 @@ const UserClientsTable = () => {
   const [openEditForm, setOpenEditForm] = useState(false)
   const [openCreateForm, setOpenCreateForm] = useState(false)
   const [selectedClient, setSelectedClient] = useState({} as Client)
+
   const { clients, isLoading, error } = useUserClients()
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -141,6 +144,7 @@ const UserClientsTable = () => {
   }
 
   const getClientToken = (clientID: string) => {
+
     const client = clients?.find((client: Client) => client._id === clientID)
     return client && client.access_token && client.access_token.token
   }
@@ -151,6 +155,7 @@ const UserClientsTable = () => {
   }
 
   const getClientTokenCreateAt = (clientID: string) => {
+
     const client = clients?.find((client: Client) => client._id === clientID)
     return client && client.access_token && client.access_token.createdAt
   }
@@ -160,6 +165,7 @@ const UserClientsTable = () => {
     if (!res?.isActive) {
       setShowInfoModal(true)
       setIsLoadingToken(false)
+
       return
     } else {
       try {
@@ -173,6 +179,7 @@ const UserClientsTable = () => {
         }
         dispatch(performRefresh())
       } catch (error: any) {
+
         const errorMessage = error?.response?.data?.message || error.message || "Failed to generate token"
         toast({
           title: "Error",
@@ -216,6 +223,7 @@ const UserClientsTable = () => {
     return Array.isArray(client.ip_addresses) ? client.ip_addresses.join(", ") : client.ip_addresses
   }
 
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -244,6 +252,7 @@ const UserClientsTable = () => {
           <Plus className="mr-2 h-4 w-4" /> Create Client
         </Button>
       </div>
+
 
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-sm">

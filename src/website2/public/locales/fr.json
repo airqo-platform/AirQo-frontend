@@ -1,0 +1,398 @@
+{
+  "home": {
+    "title": "Accueil | AirQo",
+    "description": "Explorez les données et les outils de surveillance de la qualité de l'air par AirQo.",
+    "keywords": "qualité de l'air, pollution, surveillance, AirQo, environnement",
+    "highResolutionTitle": "Réseau de surveillance de la qualité de l'air à haute résolution",
+    "airQualityMonitor": "Moniteur de qualité de l'air",
+    "monitorDescription": "Nous déployons un réseau de surveillance de la qualité de l'air à haute résolution dans les zones urbaines cibles à travers l'Afrique pour accroître la sensibilisation et la compréhension de la gestion de la qualité de l'air, fournir des informations exploitables et dériver des actions contre la pollution de l'air.",
+    "learnMore": "En savoir plus",
+    "analyticsTitle": "Une plateforme interactive d'analyse de la qualité de l'air",
+    "airQualityAnalytics": "Analyses de la qualité de l'air",
+    "analyticsDescription": "Accédez et visualisez des informations en temps réel et historiques sur la qualité de l'air à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser.",
+    "apiTitle": "Amplifiez l'impact sur la qualité de l'air grâce à notre API",
+    "airQualityAPI": "API de qualité de l'air",
+    "apiDescription": "Vous êtes développeur ? Nous vous invitons à exploiter nos données ouvertes sur la qualité de l'air dans votre application",
+    "getStartedHere": "Commencez ici",
+    "mapTitle": "Informations en direct sur la qualité de l'air en Afrique",
+    "airQualityMap": "Carte de la qualité de l'air",
+    "mapDescription": "Visualisez les informations horaires sur la qualité de l'air en un seul clic, sur notre réseau croissant dans les villes africaines",
+    "viewMore": "Voir plus",
+    "downloadApp": "Téléchargez l'application",
+    "appDescription": "Découvrez la qualité de l'air que vous respirez"
+  },
+  "playerSection": {
+    "title": "De l'air pur pour toutes les villes africaines",
+    "quote": "\"9 personnes sur 10 respirent de l'air pollué\"",
+    "description": "Nous donnons aux communautés des données précises, hyperlocales et opportunes sur la qualité de l'air pour stimuler les actions d'atténuation de la pollution atmosphérique.",
+    "exploreDataButton": "Explorer les données",
+    "getInvolvedButton": "S'impliquer",
+    "closeModalAriaLabel": "Fermer la fenêtre",
+    "closeButton": "Fermer"
+  },
+  "engagementDialog": {
+    "options": {
+      "partner": {
+        "title": "Je suis un partenaire.",
+        "description": "Intéressé à soutenir la vision d'AirQo"
+      },
+      "policymaker": {
+        "title": "Je suis un décideur politique.",
+        "description": "Intéressé par les informations sur la qualité de l'air"
+      },
+      "communityChampion": {
+        "title": "Je suis un champion communautaire.",
+        "description": "Intéressé à sensibiliser sur la pollution de l'air."
+      },
+      "researcher": {
+        "title": "Je suis un chercheur.",
+        "description": "Intéressé par les données et analyses sur la qualité de l'air"
+      },
+      "developer": {
+        "title": "Je suis un développeur.",
+        "description": "Intéressé par l'établissement d'un réseau de qualité de l'air, l'utilisation de l'API AirQo, ou les deux."
+      }
+    },
+    "form": {
+      "back": "Retour",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse e-mail",
+      "termsAndConditions": "J'accepte les <termsLink>Conditions d'utilisation</termsLink> et la <privacyLink>Politique de confidentialité</privacyLink>",
+      "message": "S'impliquer - Demande depuis le site web",
+      "errorMessage": "Oups ! Quelque chose s'est mal passé. Veuillez réessayer.",
+      "validationError": "Vous devez accepter les conditions générales et sélectionner une catégorie.",
+      "sending": "Envoi en cours...",
+      "send": "Envoyer"
+    },
+    "success": {
+      "title": "Succès !",
+      "message": "Merci pour votre soumission. Nous vous contacterons bientôt !",
+      "close": "Fermer"
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "getInvolved": "S'impliquer"
+    },
+    "header": {
+      "title": "Comment souhaitez-vous vous engager avec nous ?",
+      "description": "Accédez aux informations sur la qualité de l'air en temps réel et historiques à travers l'Afrique grâce à notre tableau de bord d'analyse de la qualité de l'air facile à utiliser."
+    }
+  },
+  "navbar": {
+    "menu": {
+      "products": "Produits",
+      "solutions": "Solutions",
+      "about": "À propos"
+    },
+    "products": {
+      "binosMonitor": {
+        "title": "Moniteur Binos",
+        "description": "Conçu en Afrique pour les villes africaines"
+      },
+      "analyticsDashboard": {
+        "title": "Tableau de bord analytique",
+        "description": "Analyses de la qualité de l'air pour les villes africaines"
+      },
+      "mobileApp": {
+        "title": "Application mobile",
+        "description": "Découvrez la qualité de l'air autour de vous"
+      },
+      "airQualityAPI": {
+        "title": "API de qualité de l'air",
+        "description": "Accédez aux données brutes et calibrées"
+      },
+      "airQalibrate": {
+        "title": "AirQalibrate",
+        "description": "Calibrez les données de vos capteurs à faible coût"
+      }
+    },
+    "solutions": {
+      "africanCities": {
+        "title": "Pour les villes africaines",
+        "description": "Améliorer la gestion de la qualité de l'air dans les villes africaines"
+      },
+      "communities": {
+        "title": "Pour les communautés",
+        "description": "Donner aux communautés des informations sur la qualité de l'air"
+      },
+      "research": {
+        "title": "Pour la recherche",
+        "description": "Faire progresser les connaissances et les preuves sur les problèmes de qualité de l'air"
+      }
+    },
+    "about": {
+      "aboutUs": "À propos de nous",
+      "resources": "Ressources",
+      "careers": "Carrières",
+      "contactUs": "Contactez-nous",
+      "events": "Événements",
+      "press": "Presse",
+      "cleanAirForum": "Forum CLEAN-Air"
+    },
+    "getInvolved": "S'impliquer",
+    "exploreData": "Explorer les données"
+  },
+  "notificationBanner": {
+    "joinNetwork": "Rejoignez le réseau CLEAN-AIR",
+    "learnMore": "En savoir plus",
+    "language": {
+      "en": "Anglais",
+      "fr": "Français"
+    }
+  },
+  "homeStatsSection": {
+    "partnerLogos": {
+      "title": "AIRQO EST SOUTENU PAR",
+      "altText": "Partenaire {index}"
+    },
+    "heading": {
+      "title": "Combler les lacunes en matière de données sur la qualité de l'air en Afrique",
+      "description": "Nous fournissons des données précises, hyperlocales et opportunes sur la qualité de l'air pour prouver l'ampleur et l'échelle de la pollution atmosphérique en Afrique.",
+      "forAfricanCities": "Pour les villes africaines",
+      "forCommunities": "Pour les communautés"
+    },
+    "accordionAndImage": {
+      "altText": "Installation d'un moniteur de qualité de l'air"
+    },
+    "statistics": {
+      "african_cities": "Villes",
+      "champions": "Les champions de la communauté",
+      "deployed_monitors": "Moniteurs",
+      "data_records": "Points de données",
+      "research_papers": "Les articles de recherche",
+      "partners": "Partenaires"
+    },
+    "accordion": {
+      "cities": {
+        "highResolution": {
+          "title": "Réseau à haute résolution",
+          "content": "Nous voulons un air plus propre dans toutes les villes africaines. Nous tirons parti de notre compréhension du contexte africain."
+        },
+        "digitalPlatforms": {
+          "title": "Plateformes numériques de qualité de l'air",
+          "content": "Nous donnons les moyens aux décideurs des villes africaines d'augmenter l'accès aux données probantes sur la qualité de l'air."
+        },
+        "policyEngagement": {
+          "title": "Engagement politique",
+          "content": "Nous engageons les autorités municipales et les agences gouvernementales. Nous donnons aux dirigeants locaux des informations sur la qualité de l'air."
+        }
+      },
+      "communities": {
+        "champions": {
+          "title": "Champions AirQommunity",
+          "content": "Un réseau croissant d'agents de changement individuels. Soutenir les leaders locaux et exiger des actions."
+        },
+        "freeAccess": {
+          "title": "Accès gratuit aux informations sur la qualité de l'air",
+          "content": "Nous formons les individus et les communautés en facilitant l'accès aux informations sur la qualité de l'air."
+        },
+        "hosts": {
+          "title": "Hôtes AirQo",
+          "content": "Nous engageons les locaux à accueillir nos activités de déploiement. Nous impliquons les locaux dans nos campagnes de maintenance."
+        }
+      }
+    }
+  },
+  "highlight": {
+    "portraitAlt": "Portrait du leader",
+    "googleLogoAlt": "Logo Google",
+    "title": "Leaders à surveiller 2022 de Google.org",
+    "description": "De l'expansion de l'équité dans l'éducation à la résolution des problèmes environnementaux, les Leaders à surveiller de cette année construisent un avenir meilleur pour tous.",
+    "learnMore": "En savoir plus"
+  },
+  "actionButtons": {
+    "exploreData": {
+      "title": "Explorez nos outils numériques. Découvrez la qualité de l'air autour de vous.",
+      "action": "Explorer les données"
+    },
+    "getInvolved": {
+      "title": "Impliquez-vous. Découvrez comment vous pouvez soutenir notre vision.",
+      "action": "S'impliquer"
+    }
+  },
+  "newsletter": {
+    "title": "Abonnez-vous à notre newsletter",
+    "description": "Découvrez comment nous faisons progresser la gestion de la qualité de l'air dans les villes africaines",
+    "form": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Entrez votre email",
+      "submitting": "Envoi en cours...",
+      "subscribe": "S'abonner"
+    },
+    "success": "Merci de vous être inscrit. Nous vous enverrons bientôt un email pour confirmer votre abonnement.",
+    "error": "Oups ! Quelque chose s'est mal passé. Veuillez réessayer !",
+    "tryAgain": "Réessayer"
+  },
+  "cleanAirNetwork": {
+    "intro": {
+      "title": "Le Réseau CLEAN-Air",
+      "subtitle": "Un réseau multi-régional dirigé par des Africains",
+      "description": "rassemblant une communauté de pratique pour des solutions de qualité de l'air et la gestion de la qualité de l'air à travers l'Afrique.",
+      "buttonText": "Rejoindre le Réseau",
+      "imgAlt": "Image de Mission"
+    },
+    "acronym": {
+      "intro": "est un acronyme créé à partir de",
+      "fullName": "\"Promouvoir des Environnements urbains Vivables grâce aux Réseaux Africains pour l'Air\"",
+      "description": "Le réseau rassemble des parties prenantes et des chercheurs dans la gestion de la qualité de l'air pour partager les meilleures pratiques et connaissances sur le développement et la mise en œuvre de solutions de gestion de la qualité de l'air dans les villes africaines.",
+      "invitation": "Êtes-vous une organisation ou un individu intéressé par la qualité de l'air en Afrique?",
+      "joinLink": "Rejoindre le réseau",
+      "imgAlt": "Scène Urbaine"
+    },
+    "mission": {
+      "subtitle": "Mission",
+      "title": "La Mission CLEAN-Air",
+      "description": "Renforcer les réseaux régionaux pour des partenariats durables et permettre aux partenaires de co-développer des solutions qui améliorent la capacité de surveillance, de modélisation et de gestion de la qualité de l'air dans les villes d'Afrique.",
+      "imgAlt": "Image de Mission"
+    },
+    "membership": {
+      "subtitle": "Adhésion",
+      "title": "Une Synergie pour la Qualité de l'Air en Afrique",
+      "description": "Le réseau comprend un paysage diversifié de parties prenantes, notamment des organisations de recherche, des gouvernements municipaux et nationaux, le secteur privé, des partenaires de développement et des individus qui défendent l'agenda de la qualité de l'air dans les villes africaines.",
+      "invitation": "Êtes-vous une organisation ou un individu intéressé par la qualité de l'air en Afrique? Nous vous invitons à rejoindre le Réseau CLEAN-Air.",
+      "imgAlt": "Image de Synergie"
+    },
+    "goals": {
+      "subtitle": "Objectifs",
+      "title": "Objectifs CLEAN Air",
+      "enhancingCapacity": {
+        "title": "Renforcement des Capacités Régionales",
+        "description": "Dédié à l'amélioration des capacités de surveillance, de modélisation, de gestion et d'accès aux données sur la qualité de l'air grâce à l'extension des initiatives localisées en cours dans les villes africaines."
+      },
+      "collaboration": {
+        "title": "Collaboration et Sensibilisation",
+        "description": "Engagé à favoriser une compréhension, une sensibilisation et une appréciation plus profondes des problèmes de qualité de l'air grâce à un plaidoyer fondé sur des preuves et participatif, et au partage des connaissances."
+      },
+      "cleanAirSolutions": {
+        "title": "Solutions d'Air Propre pour les Villes",
+        "description": "Le réseau CLEAN-Air est un nexus pour développer des solutions et des cadres d'air propre tangibles et contextuels pour les villes africaines."
+      }
+    }
+  },
+  "actionButtons2": {
+    "joinNetwork": {
+      "title": "Augmentez la visibilité de votre travail dans les villes africaines. Accédez à un groupe d'experts.",
+      "action": "Rejoindre le Réseau"
+    },
+    "registerEvent": {
+      "title": "Organisez-vous un événement/une activité et souhaitez-vous qu'il soit mis en avant ?",
+      "action": "S'inscrire Ici"
+    }
+  },
+  "featuredEvent": {
+    "errors": {
+      "noEvents": "Aucun événement en vedette disponible.",
+      "failedToLoad": "Échec du chargement de l'événement en vedette."
+    },
+    "dateTBA": "Date à annoncer",
+    "timeTBA": "Heure à annoncer",
+    "eventLabel": "Événement",
+    "readMore": "Lire plus"
+  },
+  "footer": {
+    "tagline": "De l'air pur pour toutes les villes africaines.",
+    "socialLinks": {
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter"
+    },
+    "sections": {
+      "products": {
+        "title": "Produits",
+        "binosMonitor": "Moniteur Binos",
+        "analyticsDashboard": "Tableau de bord d'analyse",
+        "airQualityAPI": "API de qualité de l'air",
+        "mobileApp": "Application mobile",
+        "airQalibrate": "AirQalibrate"
+      },
+      "solutions": {
+        "title": "Solutions",
+        "forAfricanCities": "Pour les villes africaines",
+        "forCommunities": "Pour les communautés",
+        "forResearch": "Pour la recherche"
+      },
+      "about": {
+        "title": "À propos",
+        "aboutAirQo": "À propos d'AirQo",
+        "resources": "Ressources",
+        "events": "Événements",
+        "press": "Presse",
+        "careers": "Carrières",
+        "contactUs": "Contactez-nous",
+        "blog": "Blog"
+      }
+    },
+    "legal": {
+      "termsOfService": "Conditions d'utilisation",
+      "privacyPolicy": "Politique de confidentialité",
+      "airQoData": "Données AirQo",
+      "paymentTerms": "Conditions de paiement",
+      "adminPortal": "Portail d'administration"
+    },
+    "makerereUniversity": "Université de Makerere"
+  },
+  "countrySelector": {
+    "selectCountry": "Sélectionner un pays",
+    "dialog": {
+      "title": "AirQloud du pays",
+      "heading": "Notre réseau croissant en Afrique",
+      "subheading": "Voir les développements d'AirQo dans votre pays",
+      "selectedCountry": "Pays sélectionné",
+      "selectCountry": "Sélectionner un pays",
+      "noCountries": "Aucun pays disponible pour le moment.",
+      "tryAgain": "Veuillez réessayer plus tard.",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
+    }
+  },
+  "monitorDisplay": {
+    "monitorsIn": "Moniteurs en {country}",
+    "defaultCountry": "Pays"
+  },
+  "monitorPage": {
+    "breadcrumb": "Nos Produits > Moniteur Binos",
+    "hero": {
+      "title": "Fabriqué en Afrique pour les villes africaines.",
+      "description": "Conçu, fabriqué et calibré pour mesurer la qualité de l'air ambiant et optimisé pour s'adapter au contexte africain.",
+      "imageAlt": "Fabriqué en Afrique"
+    },
+    "designedForAfrica": {
+      "title": "Conçu pour l'Afrique",
+      "paragraph1": "Les moniteurs sont optimisés avec des capacités pour faire face aux défis comme les conditions météorologiques extrêmes, y compris les niveaux élevés de poussière et de chaleur, typiques du contexte des villes africaines.",
+      "paragraph2": "Alimenté par le réseau électrique ou l'énergie solaire, l'appareil est optimisé pour fonctionner dans des environnements caractérisés par une alimentation électrique peu fiable et une connectivité Internet intermittente. Il fonctionne sur une configuration de réseau GSM 2G pour les cartes SIM IoT.",
+      "maintenanceManual": "Manuel d'entretien",
+      "imageAlt": "Moniteur local"
+    },
+    "mobileMonitoring": {
+      "title": "Surveillance mobile",
+      "paragraph1": "Les moniteurs sont faciles à installer et peuvent être placés sur des bâtiments statiques ou des taxis-motos appelés localement 'boda-bodas' pour améliorer la couverture spatiale et la révolution.",
+      "paragraph2": "La collecte de données sur la qualité de l'air à l'aide de taxis-motos a un réel potentiel pour une surveillance de haute résolution de la qualité de l'air dans les espaces urbains. La surveillance mobile nous permet de combler les lacunes et les limitations spatiales de la surveillance statique fixe.",
+      "imageAlt": "Surveillance mobile"
+    },
+    "monitorsInAfrica": {
+      "title": "Plus de 250 moniteurs de qualité de l'air installés dans 8 grandes villes africaines",
+      "paragraph1": "Pour lutter efficacement contre la pollution atmosphérique, l'accès aux données et aux preuves contextuelles est important pour montrer l'échelle et l'ampleur de la pollution atmosphérique.",
+      "paragraph2": "Nous fournissons une solution complète de qualité de l'air dans les principales villes africaines en tirant parti des moniteurs locaux à faible coût et de l'expertise existante pour faire progresser la gestion de la qualité de l'air et, implicitement, l'amélioration de la qualité de l'air dans ces villes africaines.",
+      "imageAlt": "Moniteurs de qualité de l'air"
+    },
+    "installationGuide": {
+      "titleHighlight": "Moniteur",
+      "title": "Installation",
+      "description": "Ce guide comprend des instructions et des manuels sur la façon d'activer, d'installer, d'exploiter et de gérer facilement les moniteurs de qualité de l'air Binos."
+    },
+    "installation": {
+      "title": "Activer, installer, exploiter et gérer les moniteurs Binos",
+      "intro": "Dans ce guide, vous trouverez des recommandations :",
+      "steps": {
+        "step1": "Où placer le moniteur",
+        "step2": "Comment installer le moniteur",
+        "step3": "Comment accéder aux données à l'aide de notre tableau de bord d'analyse"
+      },
+      "guideButton": "Guide d'installation",
+      "imageAlt": "Installation du moniteur"
+    }
+  }
+}

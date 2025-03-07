@@ -1,0 +1,398 @@
+{
+  "home": {
+    "title": "Home | AirQo",
+    "description": "Explore the air quality monitoring data and tools by AirQo.",
+    "keywords": "air quality, pollution, monitoring, AirQo, environment",
+    "highResolutionTitle": "High-resolution air quality monitoring network",
+    "airQualityMonitor": "Air Quality Monitor",
+    "monitorDescription": "We deploy a high-resolution air quality monitoring network in target urban areas across Africa to increase awareness and understanding of air quality management, provide actionable information, and derive actions against air pollution.",
+    "learnMore": "Learn more",
+    "analyticsTitle": "An interactive air quality analytics platform",
+    "airQualityAnalytics": "Air Quality Analytics",
+    "analyticsDescription": "Access and visualise real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard.",
+    "apiTitle": "Amplify air quality impact through our API",
+    "airQualityAPI": "Air Quality API",
+    "apiDescription": "Are you a developer? We invite you to leverage our open-air quality data on your App",
+    "getStartedHere": "Get started here",
+    "mapTitle": "Live air quality insights across Africa",
+    "airQualityMap": "Air Quality Map",
+    "mapDescription": "Visualize hourly air quality information with a single click, over our growing network across African cities",
+    "viewMore": "View more",
+    "downloadApp": "Download the app",
+    "appDescription": "Discover the quality of air you are breathing"
+  },
+  "playerSection": {
+    "title": "Clean air for all African cities",
+    "quote": "\"9 out of 10 people breathe polluted air\"",
+    "description": "We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.",
+    "exploreDataButton": "Explore data",
+    "getInvolvedButton": "Get involved",
+    "closeModalAriaLabel": "Close Modal",
+    "closeButton": "Close"
+  },
+  "engagementDialog": {
+    "options": {
+      "partner": {
+        "title": "I'm a Partner.",
+        "description": "Interested in supporting AirQo's vision"
+      },
+      "policymaker": {
+        "title": "I'm a Policymaker.",
+        "description": "Interested in air quality information"
+      },
+      "communityChampion": {
+        "title": "I'm a Community Champion.",
+        "description": "Interested in raising awareness about air pollution."
+      },
+      "researcher": {
+        "title": "I'm a Researcher.",
+        "description": "Interested in Air Quality data and analytics"
+      },
+      "developer": {
+        "title": "I'm a Developer.",
+        "description": "Interested in establishing an Air Quality Network, utilizing the AirQo API, or both."
+      }
+    },
+    "form": {
+      "back": "Back",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email address",
+      "termsAndConditions": "I agree to the <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>",
+      "message": "Get involved - Request from the website",
+      "errorMessage": "Oops! Something went wrong. Please try again.",
+      "validationError": "You must accept the terms and conditions and select a category.",
+      "sending": "Sending...",
+      "send": "Send"
+    },
+    "success": {
+      "title": "Success!",
+      "message": "Thank you for your submission. We will get in touch with you soon!",
+      "close": "Close"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "getInvolved": "Get Involved"
+    },
+    "header": {
+      "title": "How would you like to engage with us?",
+      "description": "Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard."
+    }
+  },
+  "navbar": {
+    "menu": {
+      "products": "Products",
+      "solutions": "Solutions",
+      "about": "About"
+    },
+    "products": {
+      "binosMonitor": {
+        "title": "Binos Monitor",
+        "description": "Built in Africa for African cities"
+      },
+      "analyticsDashboard": {
+        "title": "Analytics Dashboard",
+        "description": "Air quality analytics for African cities"
+      },
+      "mobileApp": {
+        "title": "Mobile App",
+        "description": "Discover the quality of air around you"
+      },
+      "airQualityAPI": {
+        "title": "Air Quality API",
+        "description": "Access raw and calibrated data"
+      },
+      "airQalibrate": {
+        "title": "AirQalibrate",
+        "description": "Calibrate your low-cost sensor data"
+      }
+    },
+    "solutions": {
+      "africanCities": {
+        "title": "For African Cities",
+        "description": "Advancing air quality management in African Cities"
+      },
+      "communities": {
+        "title": "For Communities",
+        "description": "Empowering communities with air quality information"
+      },
+      "research": {
+        "title": "For Research",
+        "description": "Advancing knowledge and evidence on air quality issues"
+      }
+    },
+    "about": {
+      "aboutUs": "About Us",
+      "resources": "Resources",
+      "careers": "Careers",
+      "contactUs": "Contact Us",
+      "events": "Events",
+      "press": "Press",
+      "cleanAirForum": "CLEAN-Air Forum"
+    },
+    "getInvolved": "Get involved",
+    "exploreData": "Explore data"
+  },
+  "notificationBanner": {
+    "joinNetwork": "Join the CLEAN-AIR Network",
+    "learnMore": "Learn more",
+    "language": {
+      "en": "English",
+      "fr": "French"
+    }
+  },
+  "homeStatsSection": {
+    "partnerLogos": {
+      "title": "AIRQO IS SUPPORTED BY",
+      "altText": "Partner {index}"
+    },
+    "heading": {
+      "title": "Closing the air quality data gaps in Africa",
+      "description": "We provide accurate, hyperlocal, and timely air quality data to provide evidence of the magnitude and scale of air pollution across Africa.",
+      "forAfricanCities": "For African cities",
+      "forCommunities": "For Communities"
+    },
+    "accordionAndImage": {
+      "altText": "Air quality monitor installation"
+    },
+    "statistics": {
+      "african_cities": "Cities",
+      "champions": "Community Champions",
+      "deployed_monitors": "Monitors",
+      "data_records": "Data Points",
+      "research_papers": "Researchers",
+      "partners": "Partners"
+    },
+    "accordion": {
+      "cities": {
+        "highResolution": {
+          "title": "High Resolution Network",
+          "content": "We want cleaner air in all African cities. We leverage our understanding of the African context."
+        },
+        "digitalPlatforms": {
+          "title": "Digital air quality platforms",
+          "content": "We empower decision-makers in African cities We increase access to air quality data evidence."
+        },
+        "policyEngagement": {
+          "title": "Policy engagement",
+          "content": "We engage city authorities and government agencies We empower local leaders with air quality information."
+        }
+      },
+      "communities": {
+        "champions": {
+          "title": "AirQommunity Champions",
+          "content": "A growing network of individual change makers Championing local leaders and demand action."
+        },
+        "freeAccess": {
+          "title": "Free Access To Air Quality Information",
+          "content": "We train individuals and communities Facilitating access to air quality information."
+        },
+        "hosts": {
+          "title": "AirQo Hosts",
+          "content": "We engage locals host our deployment activities We involve locals in our maintenance drives."
+        }
+      }
+    }
+  },
+  "highlight": {
+    "portraitAlt": "Leader Portrait",
+    "googleLogoAlt": "Google Logo",
+    "title": "Google.org Leaders to Watch 2022",
+    "description": "From expanding equity in education to addressing environmental issues, this year's Leaders to Watch are building a better future for everyone.",
+    "learnMore": "Learn more"
+  },
+  "actionButtons": {
+    "exploreData": {
+      "title": "Explore our digital tools. Learn about the quality of air around you.",
+      "action": "Explore data"
+    },
+    "getInvolved": {
+      "title": "Get involved. Learn about ways you can support our vision.",
+      "action": "Get Involved"
+    }
+  },
+  "newsletter": {
+    "title": "Subscribe to our Newsletter",
+    "description": "Learn how we are advancing air quality management in African Cities",
+    "form": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Enter your email",
+      "submitting": "Submitting...",
+      "subscribe": "Subscribe"
+    },
+    "success": "Thank you for signing up. We will send you an email to confirm your subscription shortly.",
+    "error": "Oops! Something went wrong. Please try again!",
+    "tryAgain": "Try Again"
+  },
+  "cleanAirNetwork": {
+    "intro": {
+      "title": "The CLEAN-Air Network",
+      "subtitle": "An African-led, multi-regional network",
+      "description": "bringing together a community of practice for air quality solutions and air quality management across Africa.",
+      "buttonText": "Join the Network",
+      "imgAlt": "Mission Image"
+    },
+    "acronym": {
+      "intro": "is an acronym coined from",
+      "fullName": "\"Championing Liveable urban Environments through African Networks for Air\"",
+      "description": "The network brings together stakeholders and researchers in air quality management to share best practices and knowledge on developing and implementing air quality management solutions in African cities.",
+      "invitation": "Are you an organization or individual interested in air quality in Africa?",
+      "joinLink": "Join the network",
+      "imgAlt": "Urban Scene"
+    },
+    "mission": {
+      "subtitle": "Mission",
+      "title": "The CLEAN-Air Mission",
+      "description": "To strengthen regional networks for sustained partnerships and enable partners to co-develop solutions that enhance the capacity for air quality monitoring, modelling and management across cities in Africa.",
+      "imgAlt": "Mission Image"
+    },
+    "membership": {
+      "subtitle": "Membership",
+      "title": "A Synergy for Air Quality in Africa",
+      "description": "The network comprises a diverse stakeholder landscape including research organisations, city and national governments, the private sector, development partners, and individuals who are championing the air quality agenda in African cities.",
+      "invitation": "Are you an organization or individual interested in air quality in Africa? We welcome you to join the CLEAN-Air Network.",
+      "imgAlt": "Synergy Image"
+    },
+    "goals": {
+      "subtitle": "Goals",
+      "title": "CLEAN Air Goals",
+      "enhancingCapacity": {
+        "title": "Enhancing Regional Capacity",
+        "description": "Dedicated to improving capacity in air quality monitoring, modeling, data management, and access through scaling up of ongoing localized initiatives in African Cities."
+      },
+      "collaboration": {
+        "title": "Collaboration and Awareness",
+        "description": "Committed to fostering a deeper understanding, awareness, and appreciation of air quality issues through evidence-informed and participatory advocacy, and knowledge sharing."
+      },
+      "cleanAirSolutions": {
+        "title": "Clean Air Solutions for Cities",
+        "description": "CLEAN-Air network is a nexus for developing tangible and contextual clean air solutions and frameworks for African cities."
+      }
+    }
+  },
+  "actionButtons2": {
+    "joinNetwork": {
+      "title": "Increase the visibility of your work in African Cities. Access a pool of experts.",
+      "action": "Join the Network"
+    },
+    "registerEvent": {
+      "title": "Are you organising an event/activity and you would want it featured?",
+      "action": "Register Here"
+    }
+  },
+  "featuredEvent": {
+    "errors": {
+      "noEvents": "No featured events available.",
+      "failedToLoad": "Failed to load featured event."
+    },
+    "dateTBA": "Date TBA",
+    "timeTBA": "Time TBA",
+    "eventLabel": "Event",
+    "readMore": "Read more"
+  },
+  "footer": {
+    "tagline": "Clean air for all African Cities.",
+    "socialLinks": {
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter"
+    },
+    "sections": {
+      "products": {
+        "title": "Products",
+        "binosMonitor": "Binos Monitor",
+        "analyticsDashboard": "Analytics Dashboard",
+        "airQualityAPI": "Air Quality API",
+        "mobileApp": "Mobile App",
+        "airQalibrate": "AirQalibrate"
+      },
+      "solutions": {
+        "title": "Solutions",
+        "forAfricanCities": "For African Cities",
+        "forCommunities": "For Communities",
+        "forResearch": "For Research"
+      },
+      "about": {
+        "title": "About",
+        "aboutAirQo": "About AirQo",
+        "resources": "Resources",
+        "events": "Events",
+        "press": "Press",
+        "careers": "Careers",
+        "contactUs": "Contact Us",
+        "blog": "Blog"
+      }
+    },
+    "legal": {
+      "termsOfService": "Terms of service",
+      "privacyPolicy": "Privacy Policy",
+      "airQoData": "AirQo Data",
+      "paymentTerms": "Payment Terms",
+      "adminPortal": "Admin Portal"
+    },
+    "makerereUniversity": "Makerere University"
+  },
+  "countrySelector": {
+    "selectCountry": "Select Country",
+    "dialog": {
+      "title": "Country AirQloud",
+      "heading": "Our growing network in Africa",
+      "subheading": "View AirQo developments in your country",
+      "selectedCountry": "Selected Country",
+      "selectCountry": "Select Country",
+      "noCountries": "No countries available at the moment.",
+      "tryAgain": "Please try again later.",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+  "monitorDisplay": {
+    "monitorsIn": "Monitors in {country}",
+    "defaultCountry": "Country"
+  },
+  "monitorPage": {
+    "breadcrumb": "Our Products > Binos Monitor",
+    "hero": {
+      "title": "Built in Africa for African cities.",
+      "description": "Designed, manufactured, and calibrated to measure ambient air quality and optimized to suit the African context.",
+      "imageAlt": "Built in Africa"
+    },
+    "designedForAfrica": {
+      "title": "Designed for Africa",
+      "paragraph1": "The monitors are optimized with capabilities to cope with challenges like extreme weather conditions, including high levels of dust and heat, typical to the context of African cities.",
+      "paragraph2": "Powered by either mains or solar, the device is optimized to work in settings characterized by unreliable power and intermittent internet connectivity. It runs on a 2G GSM network configuration for IoT SIM cards.",
+      "maintenanceManual": "Maintenance Manual",
+      "imageAlt": "Local Monitor"
+    },
+    "mobileMonitoring": {
+      "title": "Mobile Monitoring",
+      "paragraph1": "The monitors are easy to install and can be placed on static buildings or motorcycle taxis locally called 'boda-bodas' to improve spatial coverage and revolution.",
+      "paragraph2": "Air quality data collection using motorcycle taxis has real potential for high-resolution air quality monitoring in urban spaces. Mobile monitoring enables us to close the gaps and spatial limitations of fixed static monitoring.",
+      "imageAlt": "Mobile Monitoring"
+    },
+    "monitorsInAfrica": {
+      "title": "250+ Air quality monitors installed in 8 major African cities",
+      "paragraph1": "To effectively tackle air pollution, access to data and contextual evidence is important to show the scale and magnitude of air pollution.",
+      "paragraph2": "We're providing an end-to-end air quality solution in major African cities leveraging the locally built low-cost monitors and existing expertise to advance air quality management, and implicitly, air quality improvement in these African cities.",
+      "imageAlt": "Air Quality Monitors"
+    },
+    "installationGuide": {
+      "titleHighlight": "Monitor",
+      "title": "Installation",
+      "description": "This guide includes instructions and manuals on how to easily activate, install, operate and manage the Binos Air Quality Monitors."
+    },
+    "installation": {
+      "title": "Activate, install, operate, and manage the Binos Monitors",
+      "intro": "In this guide, you will find recommendations:",
+      "steps": {
+        "step1": "Where to place the monitor",
+        "step2": "How to install the monitor",
+        "step3": "How to access the data using our analytics dashboard"
+      },
+      "guideButton": "Installation Guide",
+      "imageAlt": "Monitor Installation"
+    }
+  }
+}

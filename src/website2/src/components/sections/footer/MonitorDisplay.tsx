@@ -1,7 +1,11 @@
 'use client';
+import { useTranslations } from 'next-intl';
+import type React from 'react';
+
 import { useSelector } from '@/hooks';
 
 const MonitorDisplay: React.FC = () => {
+  const t = useTranslations('monitorDisplay');
   const countryData: any | null = useSelector(
     (state) => state.country.selectedCountry,
   );
@@ -28,7 +32,10 @@ const MonitorDisplay: React.FC = () => {
         ))}
       </div>
       <p className="text-gray-800">
-        Monitors in {countryData?.long_name.replace('_', ' ') || 'Country'}
+        {t('monitorsIn', {
+          country:
+            countryData?.long_name.replace('_', ' ') || t('defaultCountry'),
+        })}
       </p>
     </div>
   );
