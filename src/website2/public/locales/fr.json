@@ -347,5 +347,52 @@
       "cancel": "Annuler",
       "save": "Enregistrer"
     }
+  },
+  "monitorDisplay": {
+    "monitorsIn": "Moniteurs en {country}",
+    "defaultCountry": "Pays"
+  },
+  "monitorPage": {
+    "breadcrumb": "Nos Produits > Moniteur Binos",
+    "hero": {
+      "title": "Fabriqué en Afrique pour les villes africaines.",
+      "description": "Conçu, fabriqué et calibré pour mesurer la qualité de l'air ambiant et optimisé pour s'adapter au contexte africain.",
+      "imageAlt": "Fabriqué en Afrique"
+    },
+    "designedForAfrica": {
+      "title": "Conçu pour l'Afrique",
+      "paragraph1": "Les moniteurs sont optimisés avec des capacités pour faire face aux défis comme les conditions météorologiques extrêmes, y compris les niveaux élevés de poussière et de chaleur, typiques du contexte des villes africaines.",
+      "paragraph2": "Alimenté par le réseau électrique ou l'énergie solaire, l'appareil est optimisé pour fonctionner dans des environnements caractérisés par une alimentation électrique peu fiable et une connectivité Internet intermittente. Il fonctionne sur une configuration de réseau GSM 2G pour les cartes SIM IoT.",
+      "maintenanceManual": "Manuel d'entretien",
+      "imageAlt": "Moniteur local"
+    },
+    "mobileMonitoring": {
+      "title": "Surveillance mobile",
+      "paragraph1": "Les moniteurs sont faciles à installer et peuvent être placés sur des bâtiments statiques ou des taxis-motos appelés localement 'boda-bodas' pour améliorer la couverture spatiale et la révolution.",
+      "paragraph2": "La collecte de données sur la qualité de l'air à l'aide de taxis-motos a un réel potentiel pour une surveillance de haute résolution de la qualité de l'air dans les espaces urbains. La surveillance mobile nous permet de combler les lacunes et les limitations spatiales de la surveillance statique fixe.",
+      "imageAlt": "Surveillance mobile"
+    },
+    "monitorsInAfrica": {
+      "title": "Plus de 250 moniteurs de qualité de l'air installés dans 8 grandes villes africaines",
+      "paragraph1": "Pour lutter efficacement contre la pollution atmosphérique, l'accès aux données et aux preuves contextuelles est important pour montrer l'échelle et l'ampleur de la pollution atmosphérique.",
+      "paragraph2": "Nous fournissons une solution complète de qualité de l'air dans les principales villes africaines en tirant parti des moniteurs locaux à faible coût et de l'expertise existante pour faire progresser la gestion de la qualité de l'air et, implicitement, l'amélioration de la qualité de l'air dans ces villes africaines.",
+      "imageAlt": "Moniteurs de qualité de l'air"
+    },
+    "installationGuide": {
+      "titleHighlight": "Moniteur",
+      "title": "Installation",
+      "description": "Ce guide comprend des instructions et des manuels sur la façon d'activer, d'installer, d'exploiter et de gérer facilement les moniteurs de qualité de l'air Binos."
+    },
+    "installation": {
+      "title": "Activer, installer, exploiter et gérer les moniteurs Binos",
+      "intro": "Dans ce guide, vous trouverez des recommandations :",
+      "steps": {
+        "step1": "Où placer le moniteur",
+        "step2": "Comment installer le moniteur",
+        "step3": "Comment accéder aux données à l'aide de notre tableau de bord d'analyse"
+      },
+      "guideButton": "Guide d'installation",
+      "imageAlt": "Installation du moniteur"
+    }
   }
 }

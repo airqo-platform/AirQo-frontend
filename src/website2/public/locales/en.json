@@ -347,5 +347,52 @@
       "cancel": "Cancel",
       "save": "Save"
     }
+  },
+  "monitorDisplay": {
+    "monitorsIn": "Monitors in {country}",
+    "defaultCountry": "Country"
+  },
+  "monitorPage": {
+    "breadcrumb": "Our Products > Binos Monitor",
+    "hero": {
+      "title": "Built in Africa for African cities.",
+      "description": "Designed, manufactured, and calibrated to measure ambient air quality and optimized to suit the African context.",
+      "imageAlt": "Built in Africa"
+    },
+    "designedForAfrica": {
+      "title": "Designed for Africa",
+      "paragraph1": "The monitors are optimized with capabilities to cope with challenges like extreme weather conditions, including high levels of dust and heat, typical to the context of African cities.",
+      "paragraph2": "Powered by either mains or solar, the device is optimized to work in settings characterized by unreliable power and intermittent internet connectivity. It runs on a 2G GSM network configuration for IoT SIM cards.",
+      "maintenanceManual": "Maintenance Manual",
+      "imageAlt": "Local Monitor"
+    },
+    "mobileMonitoring": {
+      "title": "Mobile Monitoring",
+      "paragraph1": "The monitors are easy to install and can be placed on static buildings or motorcycle taxis locally called 'boda-bodas' to improve spatial coverage and revolution.",
+      "paragraph2": "Air quality data collection using motorcycle taxis has real potential for high-resolution air quality monitoring in urban spaces. Mobile monitoring enables us to close the gaps and spatial limitations of fixed static monitoring.",
+      "imageAlt": "Mobile Monitoring"
+    },
+    "monitorsInAfrica": {
+      "title": "250+ Air quality monitors installed in 8 major African cities",
+      "paragraph1": "To effectively tackle air pollution, access to data and contextual evidence is important to show the scale and magnitude of air pollution.",
+      "paragraph2": "We're providing an end-to-end air quality solution in major African cities leveraging the locally built low-cost monitors and existing expertise to advance air quality management, and implicitly, air quality improvement in these African cities.",
+      "imageAlt": "Air Quality Monitors"
+    },
+    "installationGuide": {
+      "titleHighlight": "Monitor",
+      "title": "Installation",
+      "description": "This guide includes instructions and manuals on how to easily activate, install, operate and manage the Binos Air Quality Monitors."
+    },
+    "installation": {
+      "title": "Activate, install, operate, and manage the Binos Monitors",
+      "intro": "In this guide, you will find recommendations:",
+      "steps": {
+        "step1": "Where to place the monitor",
+        "step2": "How to install the monitor",
+        "step3": "How to access the data using our analytics dashboard"
+      },
+      "guideButton": "Installation Guide",
+      "imageAlt": "Monitor Installation"
+    }
   }
 }

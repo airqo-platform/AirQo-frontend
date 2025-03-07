@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 import { BiDownload } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
@@ -40,6 +40,8 @@ const cardVariants = {
 };
 
 const MonitorPage = () => {
+  const t = useTranslations('monitorPage');
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
@@ -55,16 +57,11 @@ const MonitorPage = () => {
         >
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Binos Monitor
-            </p>
+            <p className="text-gray-500 mb-2 text-[14px]">{t('breadcrumb')}</p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
-              Built in Africa for African cities.
+              {t('hero.title')}
             </h1>
-            <p className="text-[18px] text-gray-700">
-              Designed, manufactured, and calibrated to measure ambient air
-              quality and optimized to suit the African context.
-            </p>
+            <p className="text-[18px] text-gray-700">{t('hero.description')}</p>
           </motion.div>
 
           {/* Image */}
@@ -74,7 +71,7 @@ const MonitorPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132447/website/photos/OurProducts/Monitor/monitor_ffky74.webp"
-              alt="Built in Africa"
+              alt={t('hero.imageAlt')}
               width={500}
               height={350}
               style={{ objectFit: 'cover' }}
@@ -100,17 +97,14 @@ const MonitorPage = () => {
             className="bg-green-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-8 z-10"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl mb-4">Designed for Africa</h3>
+            <h3 className="font-bold text-2xl mb-4">
+              {t('designedForAfrica.title')}
+            </h3>
             <p className="text-lg text-gray-700 mb-4">
-              The monitors are optimized with capabilities to cope with
-              challenges like extreme weather conditions, including high levels
-              of dust and heat, typical to the context of African cities.
+              {t('designedForAfrica.paragraph1')}
             </p>
             <p className="text-lg text-gray-700 mb-6">
-              Powered by either mains or solar, the device is optimized to work
-              in settings characterized by unreliable power and intermittent
-              internet connectivity. It runs on a 2G GSM network configuration
-              for IoT SIM cards.
+              {t('designedForAfrica.paragraph2')}
             </p>
 
             <CustomButton
@@ -121,7 +115,7 @@ const MonitorPage = () => {
               }
               className="flex items-center justify-center bg-transparent text-gray-700 border border-black px-4 py-3 bg-none w-full font-semibold hover:bg-gray-100 transition-colors"
             >
-              Maintenance Manual
+              {t('designedForAfrica.maintenanceManual')}
               <BiDownload className="ml-2 text-xl" />
             </CustomButton>
           </motion.div>
@@ -133,7 +127,7 @@ const MonitorPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/section-1_ia0mjq.webp"
-              alt="Local Monitor"
+              alt={t('designedForAfrica.imageAlt')}
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -161,7 +155,7 @@ const MonitorPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/section-2_byzxsz.webp"
-              alt="Mobile Monitoring"
+              alt={t('mobileMonitoring.imageAlt')}
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -174,17 +168,14 @@ const MonitorPage = () => {
             className="bg-green-50 p-6 rounded-lg shadow-md relative top-0 lg:max-w-md lg:absolute lg:right-0 lg:top-16 z-10 w-full sm:w-auto md:w-[630px] md:-top-10 flex flex-col space-y-6"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl">Mobile Monitoring</h3>
+            <h3 className="font-bold text-2xl">
+              {t('mobileMonitoring.title')}
+            </h3>
             <p className="text-lg text-gray-700">
-              The monitors are easy to install and can be placed on static
-              buildings or motorcycle taxis locally called
-              &apos;boda-bodas&apos; to improve spatial coverage and revolution.
+              {t('mobileMonitoring.paragraph1')}
             </p>
             <p className="text-lg text-gray-700">
-              Air quality data collection using motorcycle taxis has real
-              potential for high-resolution air quality monitoring in urban
-              spaces. Mobile monitoring enables us to close the gaps and spatial
-              limitations of fixed static monitoring.
+              {t('mobileMonitoring.paragraph2')}
             </p>
           </motion.div>
         </div>
@@ -208,7 +199,7 @@ const MonitorPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/Africa_bujaie.webp"
-              alt="Air Quality Monitors"
+              alt={t('monitorsInAfrica.imageAlt')}
               width={600}
               height={400}
               style={{ objectFit: 'cover' }}
@@ -222,18 +213,13 @@ const MonitorPage = () => {
             variants={cardVariants}
           >
             <h3 className="font-bold text-2xl mb-4">
-              250+ Air quality monitors installed in 8 major African cities
+              {t('monitorsInAfrica.title')}
             </h3>
             <p className="text-lg text-gray-700 mb-4">
-              To effectively tackle air pollution, access to data and contextual
-              evidence is important to show the scale and magnitude of air
-              pollution.
+              {t('monitorsInAfrica.paragraph1')}
             </p>
             <p className="text-lg text-gray-700 mt-4">
-              We&apos;re providing an end-to-end air quality solution in major
-              African cities leveraging the locally built low-cost monitors and
-              existing expertise to advance air quality management, and
-              implicitly, air quality improvement in these African cities.
+              {t('monitorsInAfrica.paragraph2')}
             </p>
           </motion.div>
         </div>
@@ -251,14 +237,16 @@ const MonitorPage = () => {
           className="text-[40px] font-semibold mb-4"
           variants={itemVariants}
         >
-          <span className="text-blue-700">Monitor</span> Installation
+          <span className="text-blue-700">
+            {t('installationGuide.titleHighlight')}
+          </span>{' '}
+          {t('installationGuide.title')}
         </motion.h2>
         <motion.p
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
-          This guide includes instructions and manuals on how to easily
-          activate, install, operate and manage the Binos Air Quality Monitors.
+          {t('installationGuide.description')}
         </motion.p>
       </motion.section>
 
@@ -278,15 +266,13 @@ const MonitorPage = () => {
             className="bg-yellow-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-16 z-10 space-y-6"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl">
-              Activate, install, operate, and manage the Binos Monitors
-            </h3>
+            <h3 className="font-bold text-2xl">{t('installation.title')}</h3>
             <div className="text-lg text-gray-700 mb-4">
-              <p>In this guide, you will find recommendations:</p>
+              <p>{t('installation.intro')}</p>
               <ol className="list-disc list-inside pl-5 mt-2">
-                <li>Where to place the monitor</li>
-                <li>How to install the monitor</li>
-                <li>How to access the data using our analytics dashboard</li>
+                <li>{t('installation.steps.step1')}</li>
+                <li>{t('installation.steps.step2')}</li>
+                <li>{t('installation.steps.step3')}</li>
               </ol>
             </div>
 
@@ -298,7 +284,7 @@ const MonitorPage = () => {
               }
               className="flex items-center justify-center text-gray-700 bg-transparent border mt-6 border-black px-4 py-3 bg-none w-full font-semibold"
             >
-              Installation Guide
+              {t('installation.guideButton')}
               <BiDownload className="ml-2 text-xl" />
             </CustomButton>
           </motion.div>
@@ -310,7 +296,7 @@ const MonitorPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/activate_g6upn0.webp"
-              alt="Monitor Installation"
+              alt={t('installation.imageAlt')}
               width={500}
               height={400}
               style={{ objectFit: 'cover' }}
