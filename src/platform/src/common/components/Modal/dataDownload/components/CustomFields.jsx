@@ -20,12 +20,24 @@ const formatName = (name, textFormat = 'lowercase') => {
  */
 const FIELD_FORMAT_RULES = {
   organization: {
-    display: (value) => formatName(value.replace(/[_-]/g, ' '), 'uppercase'),
+    display: (value) => {
+      // Fallback to an empty string if `value` is null or undefined
+      const safeValue = typeof value === 'string' ? value : '';
+      return formatName(safeValue.replace(/[_-]/g, ' '), 'uppercase');
+    },
     store: (value) => value,
   },
   default: {
-    display: (value, textFormat) => formatName(value, textFormat),
-    store: (value, textFormat) => formatName(value, textFormat),
+    display: (value, textFormat) => {
+      // Fallback to an empty string if `value` is null or undefined
+      const safeValue = typeof value === 'string' ? value : '';
+      return formatName(safeValue, textFormat);
+    },
+    store: (value, textFormat) => {
+      // Same logic here if you need to ensure `value` is a string
+      const safeValue = typeof value === 'string' ? value : '';
+      return formatName(safeValue, textFormat);
+    },
   },
 };
 

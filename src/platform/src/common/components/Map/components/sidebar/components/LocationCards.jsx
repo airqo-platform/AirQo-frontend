@@ -4,30 +4,19 @@ import { capitalizeAllText } from '@/core/utils/strings';
 import LocationIcon from '@/icons/LocationIcon';
 import Button from '@/components/Button';
 
-/**
- * Helper function to format description
- */
 const formatDescription = (description) => {
   if (!description) return '';
   const parts = description.split(',');
   return parts.length > 1 ? parts.slice(1).join(',').trim() : description;
 };
 
-/**
- * Helper function to format region
- */
 const formatRegion = (region) => {
   if (!region) return '';
   const parts = region.split(',');
   return parts.length > 1 ? parts.slice(1).join(',').trim() : region;
 };
 
-/**
- * LocationCards component
- * @description A component that displays location cards
- */
 const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
-  // Ensure the required data and functions are valid
   if (
     !Array.isArray(searchResults) ||
     typeof handleLocationSelect !== 'function'
@@ -37,7 +26,6 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
 
   const [showAllResults, setShowAllResults] = useState(false);
 
-  // Filter out duplicates and handle "show more" functionality
   const visibleResults = useMemo(() => {
     const uniqueIds = new Set();
     const uniqueSearchResults = searchResults.filter((result) => {
@@ -46,23 +34,19 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
       uniqueIds.add(id);
       return true;
     });
-
     return showAllResults
       ? uniqueSearchResults
       : uniqueSearchResults.slice(0, 6);
   }, [showAllResults, searchResults]);
 
-  // Show more results handler
   const handleShowMore = useCallback(() => {
     setShowAllResults(true);
   }, []);
 
-  // Reset showing all results when search results change
   useEffect(() => {
     setShowAllResults(false);
   }, [searchResults]);
 
-  // Handle the case where no results are available
   if (visibleResults.length === 0 && !isLoading) {
     return <p className="text-black text-center pt-8">No sites available.</p>;
   }
@@ -72,17 +56,17 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
       <div className="sidebar-scroll-bar pb-[350px] h-dvh flex flex-col gap-4 my-5 px-4">
         {visibleResults.map((grid) => {
           const description = grid?.description
-            ? capitalizeAllText(formatDescription(grid?.description))
-            : capitalizeAllText(formatRegion(grid?.region));
+            ? capitalizeAllText(formatDescription(grid.description))
+            : capitalizeAllText(formatRegion(grid.region));
           const title = capitalizeAllText(
-            grid?.place_id
+            grid.place_id
               ? grid.description?.split(',')[0]
-              : grid?.search_name?.split(',')[0],
+              : grid.search_name?.split(',')[0],
           );
 
           return (
             <div
-              key={grid?._id || grid?.place_id}
+              key={grid._id || grid.place_id}
               className="flex justify-between items-center text-sm w-full hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm cursor-pointer"
               onClick={() => handleLocationSelect(grid)}
             >
