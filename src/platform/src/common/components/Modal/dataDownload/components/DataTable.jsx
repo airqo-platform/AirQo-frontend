@@ -2,83 +2,57 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MdIndeterminateCheckBox } from 'react-icons/md';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
-import Button from '../../../Button';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
-import TopBarSearch from '../../../search/TopBarSearch';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
+import TopBarSearch from '../../../search/TopBarSearch';
 
 /**
- * TableRow Component
- * Renders a single row in the data table.
- * Wrapped with React.memo to prevent unnecessary re-renders.
+ * DataTable Props:
+ * - data (Array): The raw data items.
+ * - columns (Array): Default column definitions.
+ *   Each column can have:
+ *     - key (string): The property name in the data item.
+ *     - label (string): Column header text.
+ *     - render (function): (item, index) => JSX.Element. If provided, used to render the cell.
+ * - columnsByFilter (Object): An object mapping filter keys to column definitions.
+ * - filters (Array): Filter definitions.
+ * - onFilter (Function): (allData, activeFilter) => filteredData.
+ * - loading (Boolean): Whether to show a loading skeleton.
+ * - error (Boolean): If true, shows an error fallback.
+ * - itemsPerPage (Number): Defaults to 6.
+ * - selectedRows (Array): Currently selected items.
+ * - setSelectedRows (Function): Sets the selectedRows array.
+ * - clearSelectionTrigger (any): Changing this resets selectedRows.
+ * - onToggleRow (Function): Called when a checkbox is toggled.
+ * - searchKeys (Array): Keys used by Fuse.js for searching. Defaults to ['name'].
  */
-const TableRowComponent = ({ item, isSelected, onToggleSite, index }) => (
-  <tr
-    key={item._id || index} // Fallback to index if _id is not available
-    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-  >
-    <td className="w-4 p-4">
-      <div className="flex items-center">
-        <input
-          id={`checkbox-table-search-${index}`}
-          type="checkbox"
-          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-          checked={isSelected}
-          onChange={() => onToggleSite(item)}
-        />
-        <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
-          Select {item.name || 'Unknown Location'}
-        </label>
-      </div>
-    </td>
-    <th
-      scope="row"
-      className="py-2 font-medium flex items-center text-gray-900 whitespace-nowrap dark:text-white"
-    >
-      <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-        <LocationIcon width={16} height={16} fill="#9EA3AA" />
-      </span>
-      {item?.name
-        ? item.name.split(',')[0].length > 25
-          ? `${item.name.split(',')[0].substring(0, 25)}...`
-          : item.name.split(',')[0]
-        : 'Unknown Location'}
-    </th>
-    <td className="px-3 py-2">{item.city || 'N/A'}</td>
-    <td className="px-3 py-2">{item.country || 'N/A'}</td>
-    <td className="px-3 py-2">{item.data_provider || 'N/A'}</td>
-  </tr>
-);
-
-const TableRow = React.memo(TableRowComponent);
-TableRow.displayName = 'TableRow';
-
-/**
- * DataTable Component
- * Renders a table with data, supports selection, pagination, and search.
- */
-const DataTable = ({
+function DataTable({
   data = [],
-  selectedSites = [],
-  setSelectedSites,
-  itemsPerPage = 7,
-  clearSites,
-  selectedSiteIds = [],
+  columns = [],
+  columnsByFilter,
+  filters = [],
+  onFilter = null,
   loading = false,
-  onToggleSite,
-}) => {
+  error = false,
+  itemsPerPage = 6,
+  selectedRows = [],
+  setSelectedRows = () => {},
+  clearSelectionTrigger,
+  onToggleRow,
+  searchKeys = ['name'],
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
   const [indeterminate, setIndeterminate] = useState(false);
-  const [activeButton, setActiveButton] = useState('all');
+  const [activeFilter, setActiveFilter] = useState(filters[0] || null);
   const [searchResults, setSearchResults] = useState([]);
 
   /**
-   * Remove duplicates based on '_id' using a Set for efficient filtering.
+   * Deduplicate data by _id (if present)
    */
   const uniqueData = useMemo(() => {
+    if (!Array.isArray(data)) return [];
     const seen = new Set();
-    return data?.filter((item) => {
+    return data.filter((item) => {
       if (!item._id || seen.has(item._id)) return false;
       seen.add(item._id);
       return true;
@@ -86,61 +60,48 @@ const DataTable = ({
   }, [data]);
 
   /**
-   * Reset to first page when uniqueData, activeButton, or searchResults change.
+   * Clear selections if trigger changes
    */
   useEffect(() => {
-    setCurrentPage(1);
-  }, [uniqueData, activeButton, searchResults]);
-
-  /**
-   * Update selected sites in parent component whenever selectedSites changes.
-   */
-  useEffect(() => {
-    if (typeof setSelectedSites === 'function') {
-      setSelectedSites(selectedSites);
-    }
-  }, [selectedSites, setSelectedSites]);
-
-  /**
-   * Clear selections when 'clearSites' prop changes.
-   */
-  useEffect(() => {
-    setSelectedSites([]);
+    setSelectedRows([]);
     setSelectAll(false);
     setIndeterminate(false);
-  }, [clearSites, setSelectedSites]);
+  }, [clearSelectionTrigger, setSelectedRows]);
 
   /**
-   * Filter data based on active tab ('all' or 'favorites') and search results.
+   * Apply filters if provided, then override with search results
    */
   const filteredData = useMemo(() => {
-    let filtered =
-      activeButton === 'favorites'
-        ? uniqueData?.filter((item) =>
-            selectedSiteIds.includes(String(item._id)),
-          )
-        : uniqueData;
-
-    if (searchResults.length > 0) {
-      filtered = searchResults.map((result) => result.item);
+    let result = [...uniqueData];
+    if (onFilter && activeFilter) {
+      result = onFilter(uniqueData, activeFilter);
     }
-
-    return filtered;
-  }, [activeButton, uniqueData, selectedSiteIds, searchResults]);
-
-  /**
-   * Calculate total number of pages based on filtered data and items per page.
-   */
-  const totalPages = useMemo(
-    () => Math.ceil(filteredData?.length / itemsPerPage),
-    [filteredData, itemsPerPage],
-  );
+    if (searchResults.length > 0) {
+      result = searchResults.map((r) => r.item);
+    }
+    return result;
+  }, [uniqueData, onFilter, activeFilter, searchResults]);
 
   /**
-   * Handle page navigation.
-   * @param {number} page - The page number to navigate to.
+   * Determine effective columns:
+   * If a columnsByFilter mapping is provided and contains the active filter key,
+   * use that; otherwise, fall back to the default columns.
    */
-  const handleClick = useCallback(
+  const effectiveColumns = useMemo(() => {
+    if (columnsByFilter && activeFilter && columnsByFilter[activeFilter.key]) {
+      return columnsByFilter[activeFilter.key] || [];
+    }
+    return columns || [];
+  }, [columnsByFilter, activeFilter, columns]);
+
+  /**
+   * Pagination calculations
+   */
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredData.length / itemsPerPage) || 1;
+  }, [filteredData, itemsPerPage]);
+
+  const handlePageChange = useCallback(
     (page) => {
       if (page >= 1 && page <= totalPages) {
         setCurrentPage(page);
@@ -149,230 +110,274 @@ const DataTable = ({
     [totalPages],
   );
 
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageData = useMemo(() => {
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, startIndex, endIndex]);
+
   /**
-   * Handle "Select All" checkbox change.
-   * Selects or deselects all items based on current selection state.
+   * Row selection logic
+   */
+  const defaultOnToggleRow = (item) => {
+    const isSelected = selectedRows.some((row) => row._id === item._id);
+    if (isSelected) {
+      setSelectedRows(selectedRows.filter((row) => row._id !== item._id));
+    } else {
+      setSelectedRows([...selectedRows, item]);
+    }
+  };
+
+  const handleRowToggle = useCallback(
+    (item) => {
+      if (onToggleRow) {
+        onToggleRow(item);
+      } else {
+        defaultOnToggleRow(item);
+      }
+    },
+    [onToggleRow, selectedRows],
+  );
+
+  /**
+   * Select all / Deselect all (for current page)
    */
   const handleSelectAllChange = useCallback(() => {
     if (selectAll || indeterminate) {
-      setSelectedSites([]);
+      setSelectedRows([]);
       setSelectAll(false);
       setIndeterminate(false);
     } else {
-      setSelectedSites(filteredData);
+      setSelectedRows(currentPageData);
       setSelectAll(true);
       setIndeterminate(false);
     }
-  }, [selectAll, indeterminate, setSelectedSites, filteredData]);
+  }, [selectAll, indeterminate, setSelectedRows, currentPageData]);
 
   /**
-   * Update "Select All" and "Indeterminate" states based on selectedSites.
+   * Update selectAll & indeterminate states
    */
   useEffect(() => {
-    if (
-      selectedSites.length === filteredData?.length &&
-      filteredData?.length > 0
-    ) {
+    if (!currentPageData.length) {
+      setSelectAll(false);
+      setIndeterminate(false);
+      return;
+    }
+    if (selectedRows.length === currentPageData.length) {
       setSelectAll(true);
       setIndeterminate(false);
-    } else if (selectedSites.length > 0) {
+    } else if (selectedRows.length > 0) {
       setSelectAll(false);
       setIndeterminate(true);
     } else {
       setSelectAll(false);
       setIndeterminate(false);
     }
-  }, [selectedSites, filteredData]);
+  }, [selectedRows, currentPageData]);
 
   /**
-   * Handle search results from TopBarSearch component.
-   * @param {Array} results - The search results.
+   * Search handling
    */
   const handleSearch = useCallback((results) => {
     setSearchResults(results);
     setCurrentPage(1);
   }, []);
 
-  /**
-   * Clear search results.
-   */
   const handleClearSearch = useCallback(() => {
     setSearchResults([]);
   }, []);
 
   /**
-   * Render table rows based on current page and filtered data.
+   * Error fallback
    */
-  const renderTableRows = useMemo(() => {
-    // Ensure filteredData is defined and is an array
-    if (!Array.isArray(filteredData)) {
-      return null; // Or you can return a placeholder like an empty array `[]` or loading state
-    }
+  if (error) {
+    return (
+      <div className="p-4 text-red-600 text-center">
+        <p>Something went wrong. Please try again later.</p>
+      </div>
+    );
+  }
 
-    // Calculate start and end index based on pagination
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-
-    // Handle edge case if filteredData is empty
-    if (filteredData.length === 0) {
-      return (
-        <tr>
-          <td colSpan="5" className="p-4 text-center text-gray-500">
-            No data available
-          </td>
-        </tr>
-      );
-    }
-
-    return filteredData
-      .slice(startIndex, endIndex)
-      .map((item, index) => (
-        <TableRow
-          key={item._id || index}
-          item={item}
-          isSelected={selectedSites.some((site) => site._id === item._id)}
-          onToggleSite={onToggleSite}
-          index={startIndex + index}
-        />
-      ));
-  }, [filteredData, currentPage, itemsPerPage, selectedSites, onToggleSite]);
+  /**
+   * Loading skeleton
+   */
+  if (loading) {
+    return <TableLoadingSkeleton />;
+  }
 
   return (
-    <div className="space-y-4 mb-24 md:mb-0">
-      {/* Header with Filters and Search */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-4">
+      {/* Filters + Search */}
+      <div className="flex flex-wrap items-center justify-between">
         {/* Filter Buttons */}
-        <div className="gap-2 flex items-center">
-          <Button
-            type="button"
-            onClick={() => setActiveButton('all')}
-            variant={activeButton === 'all' ? 'filled' : 'outlined'}
-          >
-            All
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setActiveButton('favorites')}
-            variant={activeButton === 'favorites' ? 'filled' : 'outlined'}
-          >
-            Favorites
-          </Button>
+        <div className="flex gap-2">
+          {filters.map((filterDef) => {
+            const isActive = activeFilter?.key === filterDef.key;
+            return (
+              <button
+                key={filterDef.key}
+                type="button"
+                onClick={() => {
+                  setActiveFilter(filterDef);
+                  setCurrentPage(1);
+                }}
+                className={`px-4 py-2 shadow rounded-xl text-sm font-medium border transition-colors
+                  ${
+                    isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                  }
+                `}
+              >
+                {filterDef.label}
+              </button>
+            );
+          })}
         </div>
         {/* Search Bar */}
-        <TopBarSearch
-          data={uniqueData}
-          onSearch={handleSearch}
-          onClearSearch={handleClearSearch}
-          fuseOptions={{
-            keys: [
-              'name',
-              'search_name',
-              'parish',
-              'district',
-              'sub_county',
-              'city',
-              'country',
-              'data_provider',
-            ],
-            threshold: 0.3,
-          }}
-        />
+        <div>
+          <TopBarSearch
+            data={uniqueData}
+            onSearch={handleSearch}
+            onClearSearch={handleClearSearch}
+            fuseOptions={{ keys: searchKeys, threshold: 0.3 }}
+            placeholder="Search location..."
+          />
+        </div>
       </div>
 
-      {/* Table or Loading Skeleton */}
-      {loading ? (
-        <TableLoadingSkeleton />
-      ) : (
-        <div className="relative overflow-x-auto border rounded-xl">
-          {filteredData && filteredData.length === 0 ? (
-            <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-              No data available.
-            </div>
-          ) : (
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-              {/* Table Header */}
-              <thead className="text-xs text-gray-700 border-b capitalize bg-[#f9fafb] dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  {/* Select All Checkbox */}
-                  <th scope="col" className="p-4">
-                    <div className="flex items-center">
-                      {indeterminate ? (
-                        <button
-                          type="button"
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer flex items-center justify-center"
-                          onClick={handleSelectAllChange}
-                          aria-label="Select all items"
-                        >
-                          <MdIndeterminateCheckBox size={16} />
-                        </button>
-                      ) : (
+      {/* Table */}
+      <div className="relative overflow-x-auto border border-gray-200 rounded-lg bg-white">
+        {currentPageData.length === 0 ? (
+          <div className="p-4 text-center text-gray-700">
+            No data available.
+          </div>
+        ) : (
+          <table className="w-full text-sm text-left text-gray-900">
+            <thead className="border-b bg-gray-50 border-gray-200">
+              <tr className="text-gray-500 text-sm font-normal">
+                {/* Checkbox column */}
+                <th scope="col" className="w-4 p-4">
+                  <div className="flex items-center">
+                    {indeterminate ? (
+                      <button
+                        type="button"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
+                        onClick={handleSelectAllChange}
+                        aria-label="Select all items"
+                      >
+                        <MdIndeterminateCheckBox size={16} />
+                      </button>
+                    ) : (
+                      <input
+                        id="checkbox-all-search"
+                        type="checkbox"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500"
+                        checked={selectAll}
+                        onChange={handleSelectAllChange}
+                        aria-label="Select all items"
+                      />
+                    )}
+                  </div>
+                </th>
+                {/* Render column headers dynamically using effectiveColumns */}
+                {effectiveColumns.map((col) => (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    className="py-3 px-3 font-normal"
+                  >
+                    {col.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {currentPageData.map((item, idx) => {
+                const isSelected = selectedRows.some(
+                  (row) => row._id === item._id,
+                );
+                return (
+                  <tr
+                    key={item._id || idx}
+                    className="border-b py-4 border-gray-100 hover:bg-slate-50"
+                  >
+                    {/* Checkbox column */}
+                    <td className="w-4 p-4">
+                      <div className="flex items-center">
                         <input
-                          id="checkbox-all-search"
                           type="checkbox"
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                          checked={selectAll}
-                          onChange={handleSelectAllChange}
-                          aria-label="Select all items"
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500"
+                          checked={isSelected}
+                          onChange={() => handleRowToggle(item)}
                         />
-                      )}
-                      <label htmlFor="checkbox-all-search" className="sr-only">
-                        Select all
-                      </label>
-                    </div>
-                  </th>
-                  {/* Table Columns */}
-                  <th scope="col" className="py-3 font-normal">
-                    Location
-                  </th>
-                  <th scope="col" className="px-3 py-3 font-normal">
-                    City
-                  </th>
-                  <th scope="col" className="px-3 py-3 font-normal">
-                    Country
-                  </th>
-                  <th scope="col" className="px-3 py-3 font-normal">
-                    Owner
-                  </th>
-                </tr>
-              </thead>
-              {/* Table Body */}
-              <tbody>{renderTableRows}</tbody>
-            </table>
-          )}
-        </div>
-      )}
+                      </div>
+                    </td>
+                    {/* Render each cell based on effectiveColumns */}
+                    {effectiveColumns.map((col, colIdx) => {
+                      let cellContent;
+                      if (col.render && typeof col.render === 'function') {
+                        try {
+                          // Pass item and index to the render function for custom formatting.
+                          cellContent = col.render(item, idx);
+                        } catch (err) {
+                          console.error(
+                            `Error rendering column ${col.key}:`,
+                            err,
+                          );
+                          cellContent = 'Error';
+                        }
+                      } else {
+                        cellContent =
+                          item[col.key] !== undefined && item[col.key] !== null
+                            ? item[col.key]
+                            : 'N/A';
+                      }
+                      return (
+                        <td key={`${col.key}-${colIdx}`} className="py-2 px-3">
+                          {cellContent}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2 items-center">
-          {/* Previous Page Button */}
-          <Button
-            onClick={() => handleClick(currentPage - 1)}
+        <div className="flex justify-end items-center">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            Icon={ShortLeftArrow}
-            variant="outlined"
-            paddingStyles="p-2"
-            color={currentPage === 1 ? '#9EA3AA' : '#4B4E56'}
             aria-label="Previous page"
-          />
-          {/* Current Page Indicator */}
-          <span className="text-gray-700 dark:text-gray-300">
-            Page {currentPage} of {totalPages}
-          </span>
-          {/* Next Page Button */}
-          <Button
-            onClick={() => handleClick(currentPage + 1)}
+            className={`mr-2 w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 ${
+              currentPage === 1
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <ShortLeftArrow />
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            Icon={ShortRightArrow}
-            variant="outlined"
-            paddingStyles="p-2"
-            color={currentPage === totalPages ? '#9EA3AA' : '#4B4E56'}
             aria-label="Next page"
-          />
+            className={`w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 ${
+              currentPage === totalPages
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <ShortRightArrow />
+          </button>
         </div>
       )}
     </div>
   );
-};
+}
 
 export default DataTable;
