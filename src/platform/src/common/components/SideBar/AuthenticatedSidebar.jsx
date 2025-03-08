@@ -72,9 +72,27 @@ const AuthenticatedSideBar = () => {
     const collocationOpenState = localStorage.getItem('collocationOpen');
     const analyticsOpenState = localStorage.getItem('analyticsOpen');
 
-    if (collocationOpenState)
-      setCollocationOpen(JSON.parse(collocationOpenState));
-    if (analyticsOpenState) setAnalyticsOpen(JSON.parse(analyticsOpenState));
+    if (collocationOpenState) {
+      try {
+        setCollocationOpen(JSON.parse(collocationOpenState));
+      } catch (error) {
+        console.error(
+          'Error parsing "collocationOpen" from localStorage:',
+          error,
+        );
+      }
+    }
+
+    if (analyticsOpenState) {
+      try {
+        setAnalyticsOpen(JSON.parse(analyticsOpenState));
+      } catch (error) {
+        console.error(
+          'Error parsing "analyticsOpen" from localStorage:',
+          error,
+        );
+      }
+    }
   }, []);
 
   // Save dropdown states to localStorage

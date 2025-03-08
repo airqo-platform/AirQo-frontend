@@ -35,11 +35,20 @@ export const withPermission = (Component, requiredPermission) => {
     useEffect(() => {
       if (typeof window !== 'undefined') {
         const storedUserGroup = localStorage.getItem('activeGroup');
-        const parsedUserGroup = storedUserGroup
-          ? JSON.parse(storedUserGroup)
-          : {};
-        const currentRole = parsedUserGroup?.role;
+        let parsedUserGroup = {};
 
+        if (storedUserGroup) {
+          try {
+            parsedUserGroup = JSON.parse(storedUserGroup);
+          } catch (error) {
+            console.error(
+              'Error parsing "activeGroup" from localStorage:',
+              error,
+            );
+          }
+        }
+
+        const currentRole = parsedUserGroup?.role;
         const hasPermission = currentRole?.role_permissions?.some(
           (permission) => permission.permission === requiredPermission,
         );
@@ -57,13 +66,22 @@ export const withPermission = (Component, requiredPermission) => {
 export const checkAccess = (requiredPermission) => {
   if (requiredPermission && typeof window !== 'undefined') {
     const storedGroupObj = localStorage.getItem('activeGroup');
-    const currentRole = storedGroupObj ? JSON.parse(storedGroupObj).role : null;
+    let currentRole = null;
+
+    if (storedGroupObj) {
+      try {
+        const parsedGroup = JSON.parse(storedGroupObj);
+        currentRole = parsedGroup?.role || null;
+      } catch (error) {
+        console.error('Error parsing "activeGroup" from localStorage:', error);
+      }
+    }
 
     const permissions = currentRole?.role_permissions?.map(
       (item) => item.permission,
     );
-
     return permissions?.includes(requiredPermission) ?? false;
   }
+
   return false;
 };
