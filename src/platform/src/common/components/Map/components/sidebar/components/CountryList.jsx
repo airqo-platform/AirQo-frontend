@@ -1,15 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
 import Button from '@/components/Button';
 import {
   setLocation,
   addSuggestedSites,
 } from '@/lib/store/services/map/MapSlice';
 
-/**
- * CountryList
- * @description Optimized Country list component
- */
 const CountryList = ({
   siteDetails,
   data,
@@ -18,35 +15,30 @@ const CountryList = ({
 }) => {
   const dispatch = useDispatch();
 
-  // Memoize sorted data to prevent re-sorting on each render
+  // Memoize sorted data to avoid re-sorting on every render
   const sortedData = useMemo(() => {
-    if (!data || !Array.isArray(data) || data.length === 0) return [];
+    if (!Array.isArray(data) || data.length === 0) return [];
     return [...data].sort((a, b) => a.country.localeCompare(b.country));
   }, [data]);
 
   // Handle click event for country selection
   const handleClick = useCallback(
     (country) => {
-      if (!country) return; // Guard clause for invalid country data
+      if (!country) return;
 
       setSelectedCountry(country);
-
-      // Update selected location in the Redux store
       dispatch(setLocation({ country: country.country, city: '' }));
 
-      // Filter and sort siteDetails based on the selected country
       const selectedSites = siteDetails
         .filter((site) => site.country === country.country)
         .sort((a, b) => a.name.localeCompare(b.name));
 
-      // Dispatch filtered sites to the Redux store
       dispatch(addSuggestedSites(selectedSites));
     },
     [dispatch, siteDetails, setSelectedCountry],
   );
 
-  // Show loading skeleton if no data
-  if (!sortedData.length) {
+  if (sortedData.length === 0) {
     return (
       <div className="flex gap-2 ml-2 animate-pulse mb-2">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -62,7 +54,6 @@ const CountryList = ({
   return (
     <div className="flex space-x-2 ml-2 mb-2">
       {sortedData.map((country, index) => {
-        // Check if country and flag properties exist
         if (!country || !country.flag) {
           return (
             <div key={index} className="text-red-500">
@@ -70,7 +61,6 @@ const CountryList = ({
             </div>
           );
         }
-
         return (
           <Button
             key={index}
@@ -89,9 +79,8 @@ const CountryList = ({
               width={20}
               height={20}
               onError={(e) => {
-                // Fallback in case the flag image fails to load
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = '/path-to-default-flag-image.png'; // Provide default flag image path
+                e.target.onerror = null;
+                e.target.src = '/path-to-default-flag-image.png';
               }}
             />
             <span className="text-sm text-secondary-neutral-light-600 font-medium">
@@ -102,6 +91,13 @@ const CountryList = ({
       })}
     </div>
   );
+};
+
+CountryList.propTypes = {
+  siteDetails: PropTypes.array.isRequired,
+  data: PropTypes.array.isRequired,
+  selectedCountry: PropTypes.object,
+  setSelectedCountry: PropTypes.func.isRequired,
 };
 
 export default CountryList;

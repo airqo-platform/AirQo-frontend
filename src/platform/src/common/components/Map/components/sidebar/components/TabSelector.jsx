@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-/**
- * TabSelector
- * @description Tab selector component
- */
 const TabSelector = ({ defaultTab, tabs, setSelectedTab }) => {
   const [selectedTab, setSelectedTabLocal] = useState(defaultTab);
 
-  // Ensure defaultTab is part of the tabs array
   useEffect(() => {
     if (!tabs.includes(defaultTab)) {
       setSelectedTabLocal(tabs[0]);
@@ -21,7 +16,6 @@ const TabSelector = ({ defaultTab, tabs, setSelectedTab }) => {
     setSelectedTab(tab);
   };
 
-  // Return null if tabs array is invalid
   if (!Array.isArray(tabs) || tabs.length === 0) {
     return null;
   }
