@@ -12,7 +12,6 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
  * Header component for the Add Location modal.
- * Includes a back button that opens another modal.
  */
 const AddLocationHeader = () => {
   return (
@@ -25,10 +24,6 @@ const AddLocationHeader = () => {
   );
 };
 
-/**
- * Main component for adding locations.
- * Allows users to select sites and updates their preferences accordingly.
- */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
 
@@ -46,27 +41,25 @@ const AddLocations = ({ onClose }) => {
 
   const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
 
-  // Fetch sites summary data using custom hook
+  // Fetch sites summary data from Redux store
   const {
     sitesSummaryData,
     loading,
     error: fetchError,
   } = useSelector((state) => state.sites);
 
-  // filter out sites that are online online_status=online from sitesSummaryData use memo
+  // Filter out only the online sites
   const filteredSites = useMemo(() => {
     return (sitesSummaryData || []).filter((site) => site.isOnline === true);
   }, [sitesSummaryData]);
 
-  // Retrieve user ID from localStorage and memoize it
+  // Retrieve user ID from localStorage
   const userID = useMemo(() => {
     const user = localStorage.getItem('loggedUser');
     return user ? JSON.parse(user)?._id : null;
   }, []);
 
-  /**
-   * Fetch sites summary whenever the selected organization changes.
-   */
+  // Fetch sites summary whenever groupTitle changes
   useEffect(() => {
     if (groupTitle) {
       dispatch(fetchSitesSummary({ group: groupTitle }));
@@ -80,18 +73,22 @@ const AddLocations = ({ onClose }) => {
   }, [preferencesData]);
 
   /**
-   * Populate selectedSites based on selectedSiteIds and fetched filteredSites.
-   * Also initializes sidebarSites with the initially selected sites.
+   * Initialize selectedSites and sidebarSites only once, if the user
+   * currently has no local selection but the preferences have sites.
    */
   useEffect(() => {
-    if (filteredSites && selectedSiteIds.length) {
+    if (
+      selectedSites.length === 0 &&
+      selectedSiteIds.length > 0 &&
+      filteredSites.length > 0
+    ) {
       const initialSelectedSites = filteredSites.filter((site) =>
         selectedSiteIds.includes(site._id),
       );
       setSelectedSites(initialSelectedSites);
       setSidebarSites(initialSelectedSites);
     }
-  }, [filteredSites, selectedSiteIds]);
+  }, [selectedSites, selectedSiteIds, filteredSites]);
 
   /**
    * Clears all selected sites.
@@ -99,76 +96,127 @@ const AddLocations = ({ onClose }) => {
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
     setSelectedSites([]);
-    // Reset clearSelected flag in the next tick
     setTimeout(() => setClearSelected(false), 0);
   }, []);
 
   /**
    * Toggles the selection of a site.
-   * Adds to selectedSites and sidebarSites if selected.
-   * Removes from selectedSites but retains in sidebarSites if unselected.
    */
-  const handleToggleSite = useCallback(
-    (site) => {
-      setSelectedSites((prev) => {
-        const isSelected = prev.some((s) => s._id === site._id);
-        if (isSelected) {
-          // Remove from selectedSites
-          return prev.filter((s) => s._id !== site._id);
-        } else {
-          // Add to selectedSites
-          return [...prev, site];
-        }
-      });
+  const handleToggleSite = useCallback((site) => {
+    setSelectedSites((prev) => {
+      const isSelected = prev.some((s) => s._id === site._id);
+      return isSelected
+        ? prev.filter((s) => s._id !== site._id)
+        : [...prev, site];
+    });
+    setSidebarSites((prev) => {
+      const alreadyInSidebar = prev.some((s) => s._id === site._id);
+      return alreadyInSidebar ? prev : [...prev, site];
+    });
+  }, []);
 
-      setSidebarSites((prev) => {
-        const alreadyInSidebar = prev.some((s) => s._id === site._id);
-        if (!alreadyInSidebar) {
-          return [...prev, site];
-        }
-        return prev;
-      });
+  /**
+   * Custom filter function for DataTable.
+   * When the active filter is "favorites", return only sites that are currently selected.
+   * Otherwise (for "sites"), return all data.
+   */
+  const handleFilter = useCallback(
+    (data, activeFilter) => {
+      if (activeFilter.key === 'favorites') {
+        return data.filter((site) =>
+          selectedSites.some((s) => s._id === site._id),
+        );
+      }
+      return data;
     },
-    [setSelectedSites, setSidebarSites],
+    [selectedSites],
   );
 
   /**
-   * Handles the submission of selected sites.
-   * Dispatches the replaceUserPreferences action with the formatted payload.
+   * Define filters for the DataTable.
+   */
+  const filters = useMemo(
+    () => [
+      { key: 'sites', label: 'Sites' },
+      { key: 'favorites', label: 'Favorites' },
+    ],
+    [],
+  );
+
+  /**
+   * Define column mappings for the DataTable.
+   */
+  const columnsByFilter = useMemo(
+    () => ({
+      sites: [
+        {
+          key: 'location_name',
+          label: 'Location',
+          render: (item) => {
+            return (
+              <div className="flex items-center">
+                <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                  <LocationIcon width={16} height={16} fill="#9EA3AA" />
+                </span>
+                <span className="ml-2">{item.location_name}</span>
+              </div>
+            );
+          },
+        },
+        { key: 'city', label: 'City' },
+        { key: 'country', label: 'Country' },
+        { key: 'data_provider', label: 'Owner' },
+      ],
+      favorites: [
+        {
+          key: 'location_name',
+          label: 'Location',
+          render: (item) => {
+            return (
+              <div className="flex items-center">
+                <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                  <LocationIcon width={16} height={16} fill="#9EA3AA" />
+                </span>
+                <span className="ml-2">{item.location_name}</span>
+              </div>
+            );
+          },
+        },
+        { key: 'city', label: 'City' },
+        { key: 'country', label: 'Country' },
+        { key: 'data_provider', label: 'Owner' },
+      ],
+    }),
+    [],
+  );
+
+  /**
+   * Handles submission of the selected sites.
    */
   const handleSubmit = useCallback(() => {
     if (selectedSites.length === 0) {
       setError('No locations selected');
       return;
     }
-
     if (!userID) {
       setError('User not found');
       return;
     }
-
-    // if the locations are more than 4, show an error message
     if (selectedSites.length > 4) {
       setError('You can select up to 4 locations only');
       return;
     }
-
-    // Start the loading state for submission
     setSubmitLoading(true);
-
-    // Prepare selected_sites by excluding grids, devices, and airqlouds
+    // Prepare selected_sites data (excluding grids, devices, airqlouds)
     const selectedSitesData = selectedSites.map((site) => {
       const { grids, devices, airqlouds, ...rest } = site;
       return rest;
     });
-
     const payload = {
       user_id: userID,
       group_id: activeGroupId,
       selected_sites: selectedSitesData,
     };
-
-    // Dispatch the Redux action to replace user preferences
     dispatch(replaceUserPreferences(payload))
       .then(() => {
         onClose();
@@ -189,12 +237,10 @@ const AddLocations = ({ onClose }) => {
       .finally(() => {
         setSubmitLoading(false);
       });
-  }, [selectedSites, userID, dispatch, onClose]);
+  }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
 
   /**
-   * Generates the content for the sidebar.
-   * Displays only the sites that have been selected at least once.
-   * Each card reflects its current selection status.
+   * Generates the sidebar content for selected sites.
    */
   const sidebarSitesContent = useMemo(() => {
     if (loading) {
@@ -212,7 +258,6 @@ const AddLocations = ({ onClose }) => {
         </div>
       );
     }
-
     if (sidebarSites.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
@@ -223,7 +268,6 @@ const AddLocations = ({ onClose }) => {
         </div>
       );
     }
-
     return sidebarSites.map((site) => (
       <LocationCard
         key={site._id}
@@ -237,7 +281,7 @@ const AddLocations = ({ onClose }) => {
 
   return (
     <>
-      {/* Selected Sites Sidebar */}
+      {/* Sidebar for Selected Sites */}
       <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto md:border-r relative space-y-3 px-4 pt-5 pb-14">
         {sidebarSitesContent}
       </div>
@@ -247,12 +291,21 @@ const AddLocations = ({ onClose }) => {
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
             data={filteredSites}
-            selectedSites={selectedSites}
-            setSelectedSites={setSelectedSites}
-            clearSites={clearSelected}
-            selectedSiteIds={selectedSiteIds}
+            selectedRows={selectedSites}
+            setSelectedRows={setSelectedSites}
+            clearSelectionTrigger={clearSelected}
             loading={loading}
-            onToggleSite={handleToggleSite}
+            onToggleRow={handleToggleSite}
+            filters={filters}
+            columnsByFilter={columnsByFilter}
+            onFilter={handleFilter}
+            searchKeys={[
+              'location_name',
+              'search_name',
+              'city',
+              'country',
+              'data_provider',
+            ]}
           />
           {fetchError && (
             <p className="text-red-600 py-4 px-1 text-sm">
