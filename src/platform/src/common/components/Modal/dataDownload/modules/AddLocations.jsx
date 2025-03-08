@@ -55,8 +55,18 @@ const AddLocations = ({ onClose }) => {
 
   // Retrieve user ID from localStorage
   const userID = useMemo(() => {
-    const user = localStorage.getItem('loggedUser');
-    return user ? JSON.parse(user)?._id : null;
+    const storedUser = localStorage.getItem('loggedUser');
+    if (!storedUser) {
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      return parsedUser?._id ?? null;
+    } catch (error) {
+      console.error('Error parsing loggedUser from localStorage:', error);
+      return null;
+    }
   }, []);
 
   // Fetch sites summary whenever groupTitle changes

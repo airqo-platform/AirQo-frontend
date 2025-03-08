@@ -25,9 +25,21 @@ const SideBarDrawer = () => {
   const router = useRouter();
   const userInfo = useSelector((state) => state.login.userInfo);
   const [isLoading, setIsLoading] = useState(false);
-  const [collocationOpen, setCollocationOpen] = useState(() =>
-    JSON.parse(localStorage.getItem('collocationOpen') || 'false'),
-  );
+  const [collocationOpen, setCollocationOpen] = useState(() => {
+    try {
+      const storedValue = localStorage.getItem('collocationOpen');
+      if (!storedValue || storedValue === 'undefined') {
+        return false;
+      }
+      return JSON.parse(storedValue);
+    } catch (error) {
+      console.error(
+        'Error parsing "collocationOpen" from localStorage:',
+        error,
+      );
+      return false;
+    }
+  });
 
   const drawerClasses = useMemo(
     () => (togglingDrawer ? 'w-72' : 'w-0'),
