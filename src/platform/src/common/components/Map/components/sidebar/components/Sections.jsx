@@ -1,9 +1,6 @@
 import React from 'react';
 import LocationIcon from '@/icons/LocationIcon';
 
-/**
- * Render Loading Skeleton
- */
 export const renderLoadingSkeleton = () => (
   <div className="flex flex-col gap-4 animate-pulse px-4 mt-5">
     {Array.from({ length: 6 }).map((_, index) => (
@@ -15,9 +12,6 @@ export const renderLoadingSkeleton = () => (
   </div>
 );
 
-/**
- * Render No Results Message
- */
 export const renderNoResults = (hasSearched = false) => (
   <div className="flex flex-col justify-start items-center h-full w-full pt-8 px-6">
     <div className="p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5">
@@ -47,9 +41,6 @@ export const renderNoResults = (hasSearched = false) => (
   </div>
 );
 
-/**
- * Render Default
- */
 export const renderDefaultMessage = () => (
   <div className="flex flex-col justify-center items-center h-full w-full pt-8 px-6">
     <div className="p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5">

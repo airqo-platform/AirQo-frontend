@@ -87,23 +87,36 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('loggedUser'));
+    // Prevent running on the server
+    if (typeof window === 'undefined') return;
 
-    if (user) {
-      if (!userInfo) {
-        dispatch(setUserInfo(user));
+    // Attempt to retrieve the "loggedUser" from localStorage
+    const storedUser = localStorage.getItem('loggedUser');
+    let parsedUser = null;
+
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        parsedUser = JSON.parse(storedUser);
+      } catch (error) {
+        console.error('Error parsing "loggedUser" from localStorage:', error);
       }
+    }
 
+    // If parsing succeeded and we have user data
+    if (parsedUser) {
+      if (!userInfo) {
+        dispatch(setUserInfo(parsedUser));
+      }
       setUserData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        jobTitle: user.jobTitle || '',
-        country: user.country || '',
-        timezone: user.timezone || '',
-        description: user.description || '',
-        profilePicture: user.profilePicture || '',
+        firstName: parsedUser.firstName || '',
+        lastName: parsedUser.lastName || '',
+        email: parsedUser.email || '',
+        phone: parsedUser.phone || '',
+        jobTitle: parsedUser.jobTitle || '',
+        country: parsedUser.country || '',
+        timezone: parsedUser.timezone || '',
+        description: parsedUser.description || '',
+        profilePicture: parsedUser.profilePicture || '',
       });
     } else {
       setIsError({
@@ -112,7 +125,7 @@ const Profile = () => {
         type: 'error',
       });
     }
-  }, []);
+  }, [userInfo, dispatch]);
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.id]: e.target.value });
@@ -122,27 +135,49 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
 
-    const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+    // Safely parse the "loggedUser" from localStorage
+    let loggedUser = null;
+    const storedUser = localStorage.getItem('loggedUser');
+
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        loggedUser = JSON.parse(storedUser);
+      } catch (error) {
+        console.error('Error parsing "loggedUser" from localStorage:', error);
+
+        setLoading(false);
+        return;
+      }
+    }
+
+    // If we still don't have a valid user, stop here
     if (!loggedUser) {
       setLoading(false);
       return;
     }
 
     const { _id: userID } = loggedUser;
+
     try {
+      // 1. Update user creation details
       await updateUserCreationDetails(userData, userID);
 
+      // 2. Retrieve updated user info from the server
       const res = await getUserDetails(userID, userToken);
-      const updatedUser = res.users[0];
+      const updatedUser = res?.users?.[0];
 
       if (!updatedUser) {
         throw new Error('User details not updated');
       }
 
+      // 3. Merge the updated user info with the ID
       const updatedData = { _id: userID, ...updatedUser };
+
+      // 4. Store the updated user data in localStorage and Redux
       localStorage.setItem('loggedUser', JSON.stringify(updatedData));
       dispatch(setUserInfo(updatedData));
 
+      // 5. Optional: Check if certain fields are present for profile completion
       if (
         userData.firstName &&
         userData.lastName &&
@@ -153,6 +188,7 @@ const Profile = () => {
         handleProfileCompletion(3);
       }
 
+      // 6. Show success message
       setIsError({
         isError: true,
         message: 'User details successfully updated',
@@ -171,17 +207,44 @@ const Profile = () => {
   };
 
   const handleCancel = () => {
-    const user = JSON.parse(localStorage.getItem('loggedUser'));
+    // Safely parse the "loggedUser" from localStorage
+    let parsedUser = null;
+    const storedUser = localStorage.getItem('loggedUser');
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        parsedUser = JSON.parse(storedUser);
+      } catch (error) {
+        console.error('Error parsing "loggedUser" from localStorage:', error);
+      }
+    }
+
+    // If no valid user, reset to empty fields or handle accordingly
+    if (!parsedUser) {
+      setUserData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        jobTitle: '',
+        country: '',
+        timezone: '',
+        description: '',
+        profilePicture: '',
+      });
+      return;
+    }
+
+    // Update local state with user data
     setUserData({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      jobTitle: user.jobTitle || '',
-      country: user.country || '',
-      timezone: user.timezone || '',
-      description: user.description || '',
-      profilePicture: user.profilePicture || '',
+      firstName: parsedUser.firstName || '',
+      lastName: parsedUser.lastName || '',
+      email: parsedUser.email || '',
+      phone: parsedUser.phone || '',
+      jobTitle: parsedUser.jobTitle || '',
+      country: parsedUser.country || '',
+      timezone: parsedUser.timezone || '',
+      description: parsedUser.description || '',
+      profilePicture: parsedUser.profilePicture || '',
     });
   };
 
@@ -246,7 +309,7 @@ const Profile = () => {
         setUpdatedProfilePicture(croppedUrl);
         setUserData({ ...userData, profilePicture: croppedUrl });
       })
-      .catch((error) => {
+      .catch(() => {
         setIsError({
           isError: true,
           message: 'Something went wrong',
@@ -256,75 +319,111 @@ const Profile = () => {
   };
 
   const handleProfileImageUpdate = async () => {
-    if (updatedProfilePicture) {
-      const formData = new FormData();
-      formData.append('file', updatedProfilePicture);
-      formData.append(
-        'upload_preset',
-        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
-      );
-      formData.append('folder', 'profiles');
+    if (!updatedProfilePicture) return;
 
-      setProfileUploading(true);
-      await cloudinaryImageUpload(formData)
-        .then(async (responseData) => {
-          setUserData({ ...userData, profilePicture: responseData.secure_url });
-          const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
-          return await updateUserCreationDetails(
-            { profilePicture: responseData.secure_url },
-            userID,
-          )
-            .then((responseData) => {
-              localStorage.setItem(
-                'loggedUser',
-                JSON.stringify({ _id: userID, ...userData }),
-              );
-              dispatch(setUserInfo({ _id: userID, ...userData }));
-              // updated user alert
-              setIsError({
-                isError: true,
-                message: 'Profile image successfully added',
-                type: 'success',
-              });
-              setUpdatedProfilePicture('');
-              setProfileUploading(false);
-            })
-            .catch((err) => {
-              // updated user failure alert
-              setIsError({
-                isError: true,
-                message: err.message,
-                type: 'error',
-              });
-              setUpdatedProfilePicture('');
-              setProfileUploading(false);
-            });
-        })
-        .catch((err) => {
-          // unable to save image error
-          setUpdatedProfilePicture('');
-          setProfileUploading(false);
-          setIsError({
-            isError: true,
-            message: err.message,
-            type: 'error',
-          });
-        });
+    const formData = new FormData();
+    formData.append('file', updatedProfilePicture);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+    formData.append('folder', 'profiles');
+
+    setProfileUploading(true);
+
+    try {
+      // 1. Upload to Cloudinary
+      const responseData = await cloudinaryImageUpload(formData);
+
+      // 2. Update local userData state
+      setUserData((prev) => ({
+        ...prev,
+        profilePicture: responseData.secure_url,
+      }));
+
+      // 3. Safely parse "loggedUser" for user ID
+      let userID = null;
+      const storedUser = localStorage.getItem('loggedUser');
+      if (storedUser && storedUser !== 'undefined') {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          userID = parsedUser?._id || null;
+        } catch (error) {
+          console.error('Error parsing "loggedUser" from localStorage:', error);
+          // localStorage.removeItem('loggedUser');
+        }
+      }
+
+      if (!userID) {
+        throw new Error('No valid user ID found in localStorage');
+      }
+
+      // 4. Update user details with the new profile picture
+      await updateUserCreationDetails(
+        { profilePicture: responseData.secure_url },
+        userID,
+      );
+
+      // 5. Update localStorage and Redux store with new data
+      const updatedData = {
+        _id: userID,
+        ...userData,
+        profilePicture: responseData.secure_url,
+      };
+      localStorage.setItem('loggedUser', JSON.stringify(updatedData));
+      dispatch(setUserInfo(updatedData));
+
+      // 6. Success message
+      setIsError({
+        isError: true,
+        message: 'Profile image successfully added',
+        type: 'success',
+      });
+
+      setUpdatedProfilePicture('');
+      setProfileUploading(false);
+    } catch (err) {
+      console.error('Error uploading/updating profile image:', err);
+      setUpdatedProfilePicture('');
+      setProfileUploading(false);
+      setIsError({
+        isError: true,
+        message: err.message,
+        type: 'error',
+      });
     }
   };
 
   const deleteProfileImage = () => {
     setUpdatedProfilePicture('');
-    setUserData({ ...userData, profilePicture: '' });
+    setUserData((prev) => ({ ...prev, profilePicture: '' }));
 
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
+    // Safely parse "loggedUser" for user ID
+    let userID = null;
+    const storedUser = localStorage.getItem('loggedUser');
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        userID = parsedUser?._id || null;
+      } catch (error) {
+        console.error('Error parsing "loggedUser" from localStorage:', error);
+      }
+    }
+
+    if (!userID) {
+      setIsError({
+        isError: true,
+        message: 'No valid user ID found in localStorage.',
+        type: 'error',
+      });
+      return;
+    }
+
+    // Update the user profile image to empty
     updateUserCreationDetails({ profilePicture: '' }, userID)
-      .then((response) => {
-        localStorage.setItem(
-          'loggedUser',
-          JSON.stringify({ ...userData, profilePicture: '', _id: userID }),
-        );
-        dispatch(setUserInfo({ ...userData, profilePicture: '', _id: userID }));
+      .then(() => {
+        // Update localStorage and Redux
+        const updatedData = { ...userData, profilePicture: '', _id: userID };
+        localStorage.setItem('loggedUser', JSON.stringify(updatedData));
+        dispatch(setUserInfo(updatedData));
+
         setShowDeleteProfileModal(false);
         setIsError({
           isError: true,

@@ -38,17 +38,39 @@ const OrganizationDropdown = () => {
 
   // Initialize active group if missing
   useEffect(() => {
+    // If we're still fetching, do nothing yet
     if (isFetchingActiveGroup) return;
+
     const storedGroup = localStorage.getItem('activeGroup');
     if (storedGroup) {
-      const defaultGroup = JSON.parse(storedGroup);
-      dispatch(setOrganizationName(defaultGroup.grp_title));
+      try {
+        // Attempt to parse the stored group
+        const defaultGroup = JSON.parse(storedGroup);
+
+        // Check if defaultGroup and its properties exist
+        if (defaultGroup && defaultGroup.grp_title) {
+          dispatch(setOrganizationName(defaultGroup.grp_title));
+        } else {
+          // If the stored data is missing expected fields, remove it
+          localStorage.removeItem('activeGroup');
+          console.warn(
+            'activeGroup in localStorage is missing grp_title, removing it...',
+          );
+        }
+      } catch (error) {
+        // If JSON parsing fails, remove the invalid item
+        console.error('Error parsing activeGroup from localStorage:', error);
+        localStorage.removeItem('activeGroup');
+      }
     } else if (!activeGroupId && activeGroups.length > 0) {
+      // No activeGroup in localStorage, so pick the first available group
       const defaultGroup = activeGroups[0];
       localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
-      dispatch(setOrganizationName(defaultGroup.grp_title));
+      if (defaultGroup && defaultGroup.grp_title) {
+        dispatch(setOrganizationName(defaultGroup.grp_title));
+      }
     }
-  }, [activeGroupId, activeGroups, dispatch]);
+  }, [isFetchingActiveGroup, activeGroupId, activeGroups, dispatch]);
 
   const handleUpdatePreferences = useCallback(
     async (group) => {
