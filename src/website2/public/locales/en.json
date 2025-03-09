@@ -394,5 +394,142 @@
       "guideButton": "Installation Guide",
       "imageAlt": "Monitor Installation"
     }
+  },
+  "analyticsPage": {
+    "breadcrumb": "Our Products > Air quality analytics Dashboard",
+    "hero": {
+      "title": "Access and visualise air quality data in African Cities.",
+      "description": "If we can't measure air pollution, we can't manage it: Access, track, analyse and download insightful air quality data across major cities in Africa.",
+      "imageAlt": "Access and visualise air quality data"
+    },
+    "realTime": {
+      "titleHighlight": "Real-time",
+      "title": "air quality analytics for African Cities",
+      "description": "Air pollution in many cities in Africa is under-monitored in part due to the logistical constraints of setting up and maintaining a monitoring network, coupled with the expertise to process and analyse data."
+    },
+    "timelyAccess": {
+      "title": "Timely access to data",
+      "paragraph1": "The air quality analytics dashboard is an intuitive software dashboard that allows you to have timely access to historic, real-time, and forecast actionable air quality information across our monitored urban spaces in Africa.",
+      "paragraph2": "We want to see citizens and decision-makers in African Cities have timely access to air quality trends, patterns, and insights to inform data-driven decisions to tackle air pollution.",
+      "userGuide": "User Guide",
+      "imageAlt": "Timely access to data",
+      "overlapImageAlt": "Dashboard overlay"
+    },
+    "gainInsights": {
+      "title": "Gain insights to take action",
+      "paragraph1": "With our air quality analytics dashboard, you can view, historical, real-time, or forecast calibrated data in locations that matter to you.",
+      "paragraph2": "You can generate, compare and download air quality data in various African Cities and develop evidence-informed actions for air pollution.",
+      "imageAlt": "Gain insights to take action"
+    },
+    "easyToUse": {
+      "titleHighlight": "Easy to use",
+      "title": "interface",
+      "description": "Our visualization charts are designed to help you easily interpret and gain insights into the data while giving you access to air quality trends in African Cities over time. With our easy-to-use interface, you can track and visualise air quality trends over time.",
+      "exploreButton": "Explore data",
+      "imageAlt": "Easy to use interface"
+    }
+  },
+  "apiPage": {
+    "breadcrumb": "Our Products > AirQo API",
+    "hero": {
+      "title": "Access real-time air quality data.",
+      "description": "Designed to effortlessly enhance your application with vital insights, embrace the transformative potential of air quality information through our API.",
+      "imageAlt": "Access real-time air quality data"
+    },
+    "unlockInsights": {
+      "title": "Unlock Air Quality",
+      "titleHighlight": "Insights",
+      "description": "The AirQo API provides open access to a vast repository of over 2 million records of raw and calibrated real-time, historical, and forecast air quality data."
+    },
+    "redefiningAccess": {
+      "title": "Redefining data access",
+      "paragraph1": "The API uses AI and data analysis techniques to provide accurate air quality measurements. It offers PM2.5 and PM10 measurements, the most common pollutants in African cities.",
+      "paragraph2": "Our comprehensive air quality datasets include data from our low-cost air quality monitors as well as reference-grade monitors strategically deployed in major African Cities.",
+      "imageAlt": "Redefining Data Access"
+    },
+    "empoweringAudience": {
+      "title": "Start empowering your audience",
+      "paragraph1": "The AirQo API is not only about air quality data—it's about empowering users to take action to protect themselves against air pollution.",
+      "paragraph2": "Integrate air quality information in your Open Source Projects, Browser Extensions, Plugins, Mobile Apps, Desktop and Web Apps. Help users take charge of their health and join the movement for cleaner air!",
+      "imageAlt": "API Console Data"
+    },
+    "howItWorks": {
+      "titleHighlight": "How",
+      "title": "it works",
+      "description": "With our API, you have access to comprehensive documentation to enable you seamlessly integrate the data, and a dedicated support team to assist you at every step of the integration process.",
+      "readDocsButton": "Read Docs",
+      "imageAlt": "API documentation interface"
+    }
+  },
+  "calibratePage": {
+    "breadcrumb": "Our Products > AirQalibrate",
+    "hero": {
+      "title": "Calibrate your low-cost sensor data",
+      "description": "Improve the accuracy and reliability of data from your low-cost air quality monitors using AirQo's AirQalibrate tool, delivering more accurate results.",
+      "imageAlt": "Calibrate your low-cost sensor data"
+    },
+    "whyCalibrate": {
+      "titleHighlight": "Why calibrate",
+      "title": "your low-cost sensor data?",
+      "description": "Low-cost sensors are relied on to increase the geographical coverage of air quality monitoring networks but, they are sensitive to ambient conditions (humidity, temperature) which could affect the accuracy of air quality data. Calibration enhances the quality and reliability of air quality data from low-cost sensors."
+    },
+    "costEffective": {
+      "title": "Cost effective and accessible",
+      "paragraph1": "AirQalibrate is a Machine Learning based calibration tool that eliminates the need for reference-grade monitors or on-site monitor calibration.",
+      "paragraph2": "It enables users without access to reference grade monitors or technical expertise to calibrate data from their low-cost monitors, improve performance, and build trust in the air quality network.",
+      "paragraph3": "This reduces operational costs involved in monitoring, thereby enabling the expansion of monitoring systems to create a dense air quality monitoring and management network.",
+      "imageAlt": "Cost Effective Calibration"
+    },
+    "calibrateData": {
+      "title": "Calibrate your data",
+      "description": "Upload a CSV file containing your low-cost sensor PM2.5 and PM10 data, follow a few simple steps, and calibrate your data. The results are automatically downloaded when the calibration process is completed.",
+      "button": "Calibrate your data",
+      "imageAlt": "Calibrate Your Data"
+    },
+    "simpleInterface": {
+      "titleHighlight": "Simple",
+      "title": "user interface",
+      "description": "Our calibration tool features a user-friendly interface that simplifies the calibration process. Even without technical expertise, you can easily navigate the tool and calibrate the data from air quality monitors.",
+      "button": "Calibration guide",
+      "imageAlt": "Easy to use interface"
+    }
+  },
+  "mobilePage": {
+    "breadcrumb": "Our Products > Mobile App",
+    "hero": {
+      "title": "Discover the quality of air around you.",
+      "description": "Access to reliable air quality data is the first step to protecting yourself against air pollution. The AirQo Mobile App is easy to use and free to download, allowing you to stay up-to-date on the quality of the air you are breathing.",
+      "imageAlt": "Discover the quality of air around you"
+    },
+    "knowYourAir": {
+      "title": "Know your",
+      "titleHighlight": "Air",
+      "description": "The AirQo Air quality Mobile App is the first of its kind in Africa. With the App, you have access to real-time and forecast air quality information from monitored urban areas across major cities in Africa."
+    },
+    "personalizedAlerts": {
+      "title": "Personalized air quality alerts and notifications",
+      "paragraph1": "Receive personalized air quality alerts and recommendations to empower you to take action and stay healthy.",
+      "paragraph2": "Set up your favourite places to quickly check the quality of air in areas that matter to you.",
+      "paragraph3": "Turn on the notifications to know the quality of the air you are breathing.",
+      "imageAlt": "Personalized air quality alerts",
+      "bellImageAlt": "Notification bell icon"
+    },
+    "realTimeForecast": {
+      "title": "Real-time and forecast",
+      "paragraph1": "Our App gives you access to real-time and forecast air quality information at the palm of your hands, giving you the power to make informed decisions about your daily activities.",
+      "paragraph2": "Our 24-hour air quality forecast developed using Machine Learning and AI provides you with the power to better plan your day, know when to take a walk or a jog to avoid air pollution and stay healthy.",
+      "imageAlt": "Real-time and forecast",
+      "calendarImageAlt": "Calendar forecast view"
+    },
+    "healthTips": {
+      "title": "Health tips",
+      "paragraph1": "Our App provides you with detailed information beyond the numbers.",
+      "paragraph2": "You have access to frequent tips to help you stay healthy and learn how you can reduce your exposure to air pollution.",
+      "imageAlt": "Health Tips Composite Image"
+    },
+    "appDownload": {
+      "title": "Download the app",
+      "description": "Discover the quality of air you are breathing"
+    }
   }
 }

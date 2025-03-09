@@ -394,5 +394,142 @@
       "guideButton": "Guide d'installation",
       "imageAlt": "Installation du moniteur"
     }
+  },
+  "analyticsPage": {
+    "breadcrumb": "Nos Produits > Tableau de bord d'analyse de la qualité de l'air",
+    "hero": {
+      "title": "Accédez et visualisez les données sur la qualité de l'air dans les villes africaines.",
+      "description": "Si nous ne pouvons pas mesurer la pollution atmosphérique, nous ne pouvons pas la gérer : Accédez, suivez, analysez et téléchargez des données pertinentes sur la qualité de l'air dans les principales villes d'Afrique.",
+      "imageAlt": "Accédez et visualisez les données sur la qualité de l'air"
+    },
+    "realTime": {
+      "titleHighlight": "Temps réel",
+      "title": "analyses de la qualité de l'air pour les villes africaines",
+      "description": "La pollution atmosphérique dans de nombreuses villes d'Afrique est sous-surveillée en partie en raison des contraintes logistiques liées à la mise en place et à la maintenance d'un réseau de surveillance, ainsi qu'à l'expertise nécessaire pour traiter et analyser les données."
+    },
+    "timelyAccess": {
+      "title": "Accès opportun aux données",
+      "paragraph1": "Le tableau de bord d'analyse de la qualité de l'air est un tableau de bord logiciel intuitif qui vous permet d'avoir un accès opportun à des informations exploitables sur la qualité de l'air historiques, en temps réel et prévisionnelles dans nos espaces urbains surveillés en Afrique.",
+      "paragraph2": "Nous voulons que les citoyens et les décideurs des villes africaines aient un accès opportun aux tendances, aux modèles et aux informations sur la qualité de l'air pour éclairer les décisions fondées sur les données afin de lutter contre la pollution atmosphérique.",
+      "userGuide": "Guide d'utilisation",
+      "imageAlt": "Accès opportun aux données",
+      "overlapImageAlt": "Superposition du tableau de bord"
+    },
+    "gainInsights": {
+      "title": "Obtenez des informations pour agir",
+      "paragraph1": "Avec notre tableau de bord d'analyse de la qualité de l'air, vous pouvez consulter des données calibrées historiques, en temps réel ou prévisionnelles dans les lieux qui vous importent.",
+      "paragraph2": "Vous pouvez générer, comparer et télécharger des données sur la qualité de l'air dans diverses villes africaines et développer des actions fondées sur des preuves pour lutter contre la pollution atmosphérique.",
+      "imageAlt": "Obtenez des informations pour agir"
+    },
+    "easyToUse": {
+      "titleHighlight": "Facile à utiliser",
+      "title": "interface",
+      "description": "Nos graphiques de visualisation sont conçus pour vous aider à interpréter facilement et à obtenir des informations sur les données tout en vous donnant accès aux tendances de la qualité de l'air dans les villes africaines au fil du temps. Avec notre interface facile à utiliser, vous pouvez suivre et visualiser les tendances de la qualité de l'air au fil du temps.",
+      "exploreButton": "Explorer les données",
+      "imageAlt": "Interface facile à utiliser"
+    }
+  },
+  "apiPage": {
+    "breadcrumb": "Nos Produits > API AirQo",
+    "hero": {
+      "title": "Accédez aux données sur la qualité de l'air en temps réel.",
+      "description": "Conçue pour améliorer sans effort votre application avec des informations vitales, embrassez le potentiel transformateur des informations sur la qualité de l'air grâce à notre API.",
+      "imageAlt": "Accédez aux données sur la qualité de l'air en temps réel"
+    },
+    "unlockInsights": {
+      "title": "Débloquez la qualité de l'air",
+      "titleHighlight": "Insights",
+      "description": "L'API AirQo fournit un accès ouvert à un vaste référentiel de plus de 2 millions d'enregistrements de données brutes et calibrées sur la qualité de l'air en temps réel, historiques et prévisionnelles."
+    },
+    "redefiningAccess": {
+      "title": "Redéfinir l'accès aux données",
+      "paragraph1": "L'API utilise l'IA et des techniques d'analyse de données pour fournir des mesures précises de la qualité de l'air. Elle propose des mesures de PM2,5 et PM10, les polluants les plus courants dans les villes africaines.",
+      "paragraph2": "Nos ensembles de données complets sur la qualité de l'air comprennent des données provenant de nos moniteurs de qualité de l'air à faible coût ainsi que des moniteurs de référence déployés stratégiquement dans les principales villes africaines.",
+      "imageAlt": "Redéfinir l'accès aux données"
+    },
+    "empoweringAudience": {
+      "title": "Commencez à autonomiser votre audience",
+      "paragraph1": "L'API AirQo ne concerne pas seulement les données sur la qualité de l'air, il s'agit d'autonomiser les utilisateurs pour qu'ils prennent des mesures pour se protéger contre la pollution atmosphérique.",
+      "paragraph2": "Intégrez des informations sur la qualité de l'air dans vos projets Open Source, extensions de navigateur, plugins, applications mobiles, applications de bureau et Web. Aidez les utilisateurs à prendre en charge leur santé et rejoignez le mouvement pour un air plus propre !",
+      "imageAlt": "Données de la console API"
+    },
+    "howItWorks": {
+      "titleHighlight": "Comment",
+      "title": "ça fonctionne",
+      "description": "Avec notre API, vous avez accès à une documentation complète pour vous permettre d'intégrer les données de manière transparente, et une équipe de support dédiée pour vous aider à chaque étape du processus d'intégration.",
+      "readDocsButton": "Lire la documentation",
+      "imageAlt": "Interface de documentation API"
+    }
+  },
+  "calibratePage": {
+    "breadcrumb": "Nos Produits > AirQalibrate",
+    "hero": {
+      "title": "Calibrez vos données de capteurs à faible coût",
+      "description": "Améliorez la précision et la fiabilité des données de vos moniteurs de qualité de l'air à faible coût en utilisant l'outil AirQalibrate d'AirQo, fournissant des résultats plus précis.",
+      "imageAlt": "Calibrez vos données de capteurs à faible coût"
+    },
+    "whyCalibrate": {
+      "titleHighlight": "Pourquoi calibrer",
+      "title": "vos données de capteurs à faible coût ?",
+      "description": "Les capteurs à faible coût sont utilisés pour augmenter la couverture géographique des réseaux de surveillance de la qualité de l'air, mais ils sont sensibles aux conditions ambiantes (humidité, température) qui pourraient affecter la précision des données sur la qualité de l'air. La calibration améliore la qualité et la fiabilité des données sur la qualité de l'air provenant des capteurs à faible coût."
+    },
+    "costEffective": {
+      "title": "Rentable et accessible",
+      "paragraph1": "AirQalibrate est un outil de calibration basé sur l'apprentissage automatique qui élimine le besoin de moniteurs de référence ou de calibration de moniteur sur site.",
+      "paragraph2": "Il permet aux utilisateurs sans accès à des moniteurs de référence ou à une expertise technique de calibrer les données de leurs moniteurs à faible coût, d'améliorer les performances et de renforcer la confiance dans le réseau de qualité de l'air.",
+      "paragraph3": "Cela réduit les coûts opérationnels liés à la surveillance, permettant ainsi l'expansion des systèmes de surveillance pour créer un réseau dense de surveillance et de gestion de la qualité de l'air.",
+      "imageAlt": "Calibration rentable"
+    },
+    "calibrateData": {
+      "title": "Calibrez vos données",
+      "description": "Téléchargez un fichier CSV contenant les données PM2,5 et PM10 de votre capteur à faible coût, suivez quelques étapes simples et calibrez vos données. Les résultats sont automatiquement téléchargés lorsque le processus de calibration est terminé.",
+      "button": "Calibrer vos données",
+      "imageAlt": "Calibrer vos données"
+    },
+    "simpleInterface": {
+      "titleHighlight": "Simple",
+      "title": "interface utilisateur",
+      "description": "Notre outil de calibration dispose d'une interface conviviale qui simplifie le processus de calibration. Même sans expertise technique, vous pouvez facilement naviguer dans l'outil et calibrer les données des moniteurs de qualité de l'air.",
+      "button": "Guide de calibration",
+      "imageAlt": "Interface facile à utiliser"
+    }
+  },
+  "mobilePage": {
+    "breadcrumb": "Nos Produits > Application Mobile",
+    "hero": {
+      "title": "Découvrez la qualité de l'air autour de vous.",
+      "description": "L'accès à des données fiables sur la qualité de l'air est la première étape pour vous protéger contre la pollution atmosphérique. L'application mobile AirQo est facile à utiliser et gratuite à télécharger, vous permettant de rester à jour sur la qualité de l'air que vous respirez.",
+      "imageAlt": "Découvrez la qualité de l'air autour de vous"
+    },
+    "knowYourAir": {
+      "title": "Connaissez votre",
+      "titleHighlight": "Air",
+      "description": "L'application mobile de qualité de l'air AirQo est la première du genre en Afrique. Avec l'application, vous avez accès à des informations en temps réel et prévisionnelles sur la qualité de l'air dans les zones urbaines surveillées à travers les principales villes d'Afrique."
+    },
+    "personalizedAlerts": {
+      "title": "Alertes et notifications personnalisées sur la qualité de l'air",
+      "paragraph1": "Recevez des alertes et des recommandations personnalisées sur la qualité de l'air pour vous permettre d'agir et de rester en bonne santé.",
+      "paragraph2": "Configurez vos lieux préférés pour vérifier rapidement la qualité de l'air dans les zones qui vous importent.",
+      "paragraph3": "Activez les notifications pour connaître la qualité de l'air que vous respirez.",
+      "imageAlt": "Alertes personnalisées sur la qualité de l'air",
+      "bellImageAlt": "Icône de cloche de notification"
+    },
+    "realTimeForecast": {
+      "title": "Temps réel et prévisions",
+      "paragraph1": "Notre application vous donne accès à des informations en temps réel et prévisionnelles sur la qualité de l'air au creux de vos mains, vous donnant le pouvoir de prendre des décisions éclairées concernant vos activités quotidiennes.",
+      "paragraph2": "Notre prévision de qualité de l'air sur 24 heures développée à l'aide de l'apprentissage automatique et de l'IA vous donne le pouvoir de mieux planifier votre journée, de savoir quand faire une promenade ou un jogging pour éviter la pollution atmosphérique et rester en bonne santé.",
+      "imageAlt": "Temps réel et prévisions",
+      "calendarImageAlt": "Vue des prévisions du calendrier"
+    },
+    "healthTips": {
+      "title": "Conseils de santé",
+      "paragraph1": "Notre application vous fournit des informations détaillées au-delà des chiffres.",
+      "paragraph2": "Vous avez accès à des conseils fréquents pour vous aider à rester en bonne santé et apprendre comment vous pouvez réduire votre exposition à la pollution atmosphérique.",
+      "imageAlt": "Image composite de conseils de santé"
+    },
+    "appDownload": {
+      "title": "Téléchargez l'application",
+      "description": "Découvrez la qualité de l'air que vous respirez"
+    }
   }
 }

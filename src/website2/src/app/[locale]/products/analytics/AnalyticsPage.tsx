@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 import { BiDownload } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
@@ -40,6 +40,8 @@ const cardVariants = {
 };
 
 const AnalyticsPage = () => {
+  const t = useTranslations('analyticsPage');
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20 overflow-hidden">
       {/* Hero Section */}
@@ -55,17 +57,11 @@ const AnalyticsPage = () => {
         >
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Air quality analytics Dashboard
-            </p>
+            <p className="text-gray-500 mb-2 text-[14px]">{t('breadcrumb')}</p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
-              Access and visualise air quality data in African Cities.
+              {t('hero.title')}
             </h1>
-            <p className="text-[18px] text-gray-700">
-              If we can’t measure air pollution, we can’t manage it: Access,
-              track, analyse and download insightful air quality data across
-              major cities in Africa.
-            </p>
+            <p className="text-[18px] text-gray-700">{t('hero.description')}</p>
           </motion.div>
 
           {/* Image */}
@@ -75,7 +71,7 @@ const AnalyticsPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/analytics-header_csuujt.webp"
-              alt="Access and visualise air quality data"
+              alt={t('hero.imageAlt')}
               width={500}
               height={350}
               style={{ objectFit: 'cover' }}
@@ -98,17 +94,14 @@ const AnalyticsPage = () => {
           className="text-[40px] font-semibold mb-4"
           variants={itemVariants}
         >
-          <span className="text-blue-700">Real-time</span> air quality analytics
-          for African Cities
+          <span className="text-blue-700">{t('realTime.titleHighlight')}</span>{' '}
+          {t('realTime.title')}
         </motion.h2>
         <motion.p
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
-          Air pollution in many cities in Africa is under-monitored in part due
-          to the logistical constraints of setting up and maintaining a
-          monitoring network, coupled with the expertise to process and analyse
-          data.
+          {t('realTime.description')}
         </motion.p>
       </motion.section>
 
@@ -128,17 +121,14 @@ const AnalyticsPage = () => {
             className="bg-green-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-8 z-10"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl mb-4">Timely access to data</h3>
+            <h3 className="font-bold text-2xl mb-4">
+              {t('timelyAccess.title')}
+            </h3>
             <p className="text-lg text-gray-700 mb-4">
-              The air quality analytics dashboard is an intuitive software
-              dashboard that allows you to have timely access to historic,
-              real-time, and forecast actionable air quality information across
-              our monitored urban spaces in Africa.
+              {t('timelyAccess.paragraph1')}
             </p>
             <p className="text-lg text-gray-700 mb-6">
-              We want to see citizens and decision-makers in African Cities have
-              timely access to air quality trends, patterns, and insights to
-              inform data-driven decisions to tackle air pollution.
+              {t('timelyAccess.paragraph2')}
             </p>
 
             <CustomButton
@@ -149,7 +139,7 @@ const AnalyticsPage = () => {
               }
               className="flex items-center justify-center bg-transparent text-gray-700 border-2 border-black px-4 py-3 bg-none w-full font-semibold hover:bg-gray-100 transition-colors"
             >
-              User Guide
+              {t('timelyAccess.userGuide')}
               <BiDownload className="ml-2 text-xl" />
             </CustomButton>
           </motion.div>
@@ -161,7 +151,7 @@ const AnalyticsPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/section-1_awoy4i.webp"
-              alt="Timely access to data"
+              alt={t('timelyAccess.imageAlt')}
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -176,7 +166,7 @@ const AnalyticsPage = () => {
             >
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/section-1-overlap_sosw3o.webp"
-                alt="Timely access to data"
+                alt={t('timelyAccess.overlapImageAlt')}
                 fill
                 style={{ objectFit: 'contain' }}
                 className="rounded-lg w-full md:w-full"
@@ -204,7 +194,7 @@ const AnalyticsPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/Analytics/section-2_xv8lnw.webp"
-              alt="Gain insights to take action"
+              alt={t('gainInsights.imageAlt')}
               width={600}
               height={400}
               style={{ objectFit: 'cover' }}
@@ -218,17 +208,13 @@ const AnalyticsPage = () => {
             variants={cardVariants}
           >
             <h3 className="font-bold text-2xl mb-4">
-              Gain insights to take action
+              {t('gainInsights.title')}
             </h3>
             <p className="text-lg text-gray-700 mb-4">
-              With our air quality analytics dashboard, you can view,
-              historical, real-time, or forecast calibrated data in locations
-              that matter to you.
+              {t('gainInsights.paragraph1')}
             </p>
             <p className="text-lg text-gray-700 mt-4">
-              You can generate, compare and download air quality data in various
-              African Cities and develop evidence-informed actions for air
-              pollution.
+              {t('gainInsights.paragraph2')}
             </p>
           </motion.div>
         </div>
@@ -249,25 +235,23 @@ const AnalyticsPage = () => {
             variants={itemVariants}
           >
             <h2 className="text-[32px] font-bold">
-              <span className="text-blue-700">Easy to use</span> interface
+              <span className="text-blue-700">
+                {t('easyToUse.titleHighlight')}
+              </span>{' '}
+              {t('easyToUse.title')}
             </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-              Our visualization charts are designed to help you easily interpret
-              and gain insights into the data while giving you access to air
-              quality trends in African Cities over time. With our easy-to-use
-              interface, you can track and visualise air quality trends over
-              time.
+              {t('easyToUse.description')}
             </p>
 
             {/* Button */}
-
             <CustomButton
               onClick={() =>
                 window.open('https://analytics.airqo.net/', '_blank')
               }
               className=" text-white"
             >
-              Explore data
+              {t('easyToUse.exploreButton')}
             </CustomButton>
           </motion.div>
 
@@ -278,7 +262,7 @@ const AnalyticsPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/analytics-dashboard_qijm7k.webp"
-              alt="Easy to use interface"
+              alt={t('easyToUse.imageAlt')}
               width={1200}
               height={600}
               className="rounded-lg w-full"
