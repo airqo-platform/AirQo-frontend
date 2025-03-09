@@ -62,8 +62,6 @@ const UserLogin = () => {
         );
         const user = response.users[0];
 
-        console.info('user', user);
-
         if (!user.groups[0]?.grp_title) {
           throw new Error(
             'Server error. Contact support to add you to the AirQo Organisation',
@@ -76,7 +74,6 @@ const UserLogin = () => {
           dispatch(getIndividualUserPreferences({ identifier: user._id })),
         );
 
-        console.info('preferencesResponse', preferencesResponse);
         let activeGroup;
         if (preferencesResponse.payload.success) {
           const preferences = preferencesResponse.payload.preferences;
@@ -100,7 +97,6 @@ const UserLogin = () => {
           );
         }
 
-        console.info('activeGroup', activeGroup);
         localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
         dispatch(setUserInfo(user));
