@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 
 import mainConfig from '@/configs/mainConfigs';
 import AppDownloadSection from '@/views/home/AppDownloadSection';
@@ -39,11 +39,13 @@ const cardVariants = {
 };
 
 const MobilePage = () => {
+  const t = useTranslations('mobilePage');
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20 overflow-hidden">
       {/* Hero Section */}
       <motion.section
-        className="bg-yellow-50 py-16 px-4"
+        className="bg-[#EDF3FF] py-16 px-4"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -54,18 +56,11 @@ const MobilePage = () => {
         >
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Mobile App
-            </p>
+            <p className="text-gray-500 mb-2 text-[14px]">{t('breadcrumb')}</p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
-              Discover the quality of air around you.
+              {t('hero.title')}
             </h1>
-            <p className="text-[18px] text-gray-700">
-              Access to reliable air quality data is the first step to
-              protecting yourself against air pollution. The AirQo Mobile App is
-              easy to use and free to download, allowing you to stay up-to-date
-              on the quality of the air you are breathing.
-            </p>
+            <p className="text-[18px] text-gray-700">{t('hero.description')}</p>
           </motion.div>
 
           {/* Image */}
@@ -75,7 +70,7 @@ const MobilePage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/MobileApp/mobile-header_cz3n6t.webp"
-              alt="Discover the quality of air around you"
+              alt={t('hero.imageAlt')}
               width={500}
               height={350}
               style={{ objectFit: 'cover' }}
@@ -98,15 +93,16 @@ const MobilePage = () => {
           className="text-[40px] font-semibold mb-4"
           variants={itemVariants}
         >
-          Know your <span className="text-blue-700">Air</span>
+          {t('knowYourAir.title')}{' '}
+          <span className="text-blue-700">
+            {t('knowYourAir.titleHighlight')}
+          </span>
         </motion.h2>
         <motion.p
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
-          The AirQo Air quality Mobile App is the first of its kind in Africa.
-          With the App, you have access to real-time and forecast air quality
-          information from monitored urban areas across major cities in Africa.
+          {t('knowYourAir.description')}
         </motion.p>
       </motion.section>
 
@@ -127,19 +123,16 @@ const MobilePage = () => {
             variants={cardVariants}
           >
             <h3 className="font-bold text-2xl mb-4">
-              Personalized air quality alerts and notifications
+              {t('personalizedAlerts.title')}
             </h3>
             <p className="text-lg text-gray-700 mb-4">
-              Receive personalized air quality alerts and recommendations to
-              empower you to take action and stay healthy.
+              {t('personalizedAlerts.paragraph1')}
             </p>
             <p className="text-lg text-gray-700 mb-4">
-              Set up your favourite places to quickly check the quality of air
-              in areas that matter to you.
+              {t('personalizedAlerts.paragraph2')}
             </p>
             <p className="text-lg text-gray-700">
-              Turn on the notifications to know the quality of the air you are
-              breathing.
+              {t('personalizedAlerts.paragraph3')}
             </p>
           </motion.div>
 
@@ -150,7 +143,7 @@ const MobilePage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-1_x2ppgk.webp"
-              alt="Personalized air quality alerts"
+              alt={t('personalizedAlerts.imageAlt')}
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -160,7 +153,7 @@ const MobilePage = () => {
             <div className="w-[200px] h-[200px] absolute -right-24 top-40">
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-1-bell_wsueyx.webp"
-                alt="Personalized air quality alerts"
+                alt={t('personalizedAlerts.bellImageAlt')}
                 fill
                 style={{ objectFit: 'cover' }}
                 className="rounded-lg w-full md:w-full"
@@ -188,7 +181,7 @@ const MobilePage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-2_vgl9ey.webp"
-              alt="Real-time and forecast"
+              alt={t('realTimeForecast.imageAlt')}
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -197,7 +190,7 @@ const MobilePage = () => {
             <div className="absolute -left-24 top-40 w-[328px] h-[260px]">
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-2-calendar_onibdg.webp"
-                alt="Real-time and forecast"
+                alt={t('realTimeForecast.calendarImageAlt')}
                 fill
                 style={{ objectFit: 'cover' }}
                 className="rounded-lg w-full md:w-full"
@@ -210,17 +203,14 @@ const MobilePage = () => {
             className="bg-gray-100 p-6 rounded-lg shadow-md relative top-0 lg:max-w-md lg:absolute lg:right-0 lg:top-16 z-10 w-full sm:w-auto md:w-[630px] md:-top-10 flex flex-col space-y-6"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl">Real-time and forecast</h3>
+            <h3 className="font-bold text-2xl">
+              {t('realTimeForecast.title')}
+            </h3>
             <p className="text-lg text-gray-700">
-              Our App gives you access to real-time and forecast air quality
-              information at the palm of your hands, giving you the power to
-              make informed decisions about your daily activities.
+              {t('realTimeForecast.paragraph1')}
             </p>
             <p className="text-lg text-gray-700">
-              Our 24-hour air quality forecast developed using Machine Learning
-              and AI provides you with the power to better plan your day, know
-              when to take a walk or a jog to avoid air pollution and stay
-              healthy.
+              {t('realTimeForecast.paragraph2')}
             </p>
           </motion.div>
         </div>
@@ -242,13 +232,12 @@ const MobilePage = () => {
             className="bg-gray-100 p-6 rounded-lg shadow-md w-full lg:w-[40%] z-10 lg:absolute lg:left-0 lg:top-44 sm:w-auto md:w-[630px] md:-top-10"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl mb-4">Health tips</h3>
+            <h3 className="font-bold text-2xl mb-4">{t('healthTips.title')}</h3>
             <p className="text-lg text-gray-700 mb-4">
-              Our App provides you with detailed information beyond the numbers.
+              {t('healthTips.paragraph1')}
             </p>
             <p className="text-lg text-gray-700">
-              You have access to frequent tips to help you stay healthy and
-              learn how you can reduce your exposure to air pollution.
+              {t('healthTips.paragraph2')}
             </p>
           </motion.div>
 
@@ -260,7 +249,7 @@ const MobilePage = () => {
             <div className="relative right-12">
               <Image
                 src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-3_zyyjnx.webp"
-                alt="Health Tips Composite Image"
+                alt={t('healthTips.imageAlt')}
                 width={402}
                 height={475}
                 style={{ objectFit: 'cover' }}
@@ -281,10 +270,9 @@ const MobilePage = () => {
       </motion.section>
 
       {/* App Download Section */}
-
       <AppDownloadSection
-        title="Download the app"
-        description="Discover the quality of air you are breathing"
+        title={t('appDownload.title')}
+        description={t('appDownload.description')}
         appStoreLink="https://apps.apple.com/ug/app/airqo-air-quality/id1337573091"
         googlePlayLink="https://play.google.com/store/apps/details?id=com.airqo.app"
         mockupImage="https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071559/website/photos/wrapper_aum5qm.png"

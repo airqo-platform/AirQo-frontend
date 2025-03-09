@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
@@ -39,11 +39,13 @@ const cardVariants = {
 };
 
 const ApiPage = () => {
+  const t = useTranslations('apiPage');
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20 overflow-hidden">
       {/* Hero Section */}
       <motion.section
-        className="bg-yellow-50 py-16 px-4"
+        className="bg-[#EDF3FF] py-16 px-4"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -54,17 +56,11 @@ const ApiPage = () => {
         >
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} AirQo API
-            </p>
+            <p className="text-gray-500 mb-2 text-[14px]">{t('breadcrumb')}</p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
-              Access real-time air quality data.
+              {t('hero.title')}
             </h1>
-            <p className="text-[18px] text-gray-700">
-              Designed to effortlessly enhance your application with vital
-              insights, embrace the transformative potential of air quality
-              information through our API.
-            </p>
+            <p className="text-[18px] text-gray-700">{t('hero.description')}</p>
           </motion.div>
 
           {/* Image */}
@@ -74,7 +70,7 @@ const ApiPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Api/HeaderImage_ktsstb.webp"
-              alt="Access real-time air quality data"
+              alt={t('hero.imageAlt')}
               width={500}
               height={350}
               style={{ objectFit: 'cover' }}
@@ -96,16 +92,17 @@ const ApiPage = () => {
           className="text-[40px] font-semibold mb-4"
           variants={itemVariants}
         >
-          Unlock Air Quality
-          <br /> <span className="text-blue-700">Insights</span>
+          {t('unlockInsights.title')}
+          <br />{' '}
+          <span className="text-blue-700">
+            {t('unlockInsights.titleHighlight')}
+          </span>
         </motion.h2>
         <motion.p
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
-          The AirQo API provides open access to a vast repository of over 2
-          million records of raw and calibrated real-time, historical, and
-          forecast air quality data.
+          {t('unlockInsights.description')}
         </motion.p>
       </motion.section>
 
@@ -125,17 +122,14 @@ const ApiPage = () => {
             className="bg-gray-100 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-8 z-10"
             variants={cardVariants}
           >
-            <h3 className="font-bold text-2xl mb-4">Redefining data access</h3>
+            <h3 className="font-bold text-2xl mb-4">
+              {t('redefiningAccess.title')}
+            </h3>
             <p className="text-lg text-gray-700 mb-4">
-              The API uses AI and data analysis techniques to provide accurate
-              air quality measurements. It offers PM<sub>2.5</sub> and PM
-              <sub>10</sub> measurements, the most common pollutants in African
-              cities.
+              {t('redefiningAccess.paragraph1')}
             </p>
             <p className="text-lg text-gray-700">
-              Our comprehensive air quality datasets include data from our
-              low-cost air quality monitors as well as reference-grade monitors
-              strategically deployed in major African Cities.
+              {t('redefiningAccess.paragraph2')}
             </p>
           </motion.div>
 
@@ -146,7 +140,7 @@ const ApiPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Api/section-1_or1hzy.webp"
-              alt="Redefining Data Access"
+              alt={t('redefiningAccess.imageAlt')}
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -174,7 +168,7 @@ const ApiPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-2_vhnqbf.webp"
-              alt="API Console Data"
+              alt={t('empoweringAudience.imageAlt')}
               width={600}
               height={400}
               style={{ objectFit: 'cover' }}
@@ -188,18 +182,13 @@ const ApiPage = () => {
             variants={cardVariants}
           >
             <h3 className="font-bold text-2xl mb-4">
-              Start empowering your audience
+              {t('empoweringAudience.title')}
             </h3>
             <p className="text-lg text-gray-700 mb-4">
-              The AirQo API is not only about air quality data—it&apos;s about
-              empowering users to take action to protect themselves against air
-              pollution.
+              {t('empoweringAudience.paragraph1')}
             </p>
             <p className="text-lg text-gray-700 mt-4">
-              Integrate air quality information in your Open Source Projects,
-              Browser Extensions, Plugins, Mobile Apps, Desktop and Web Apps.
-              Help users take charge of their health and join the movement for
-              cleaner air!
+              {t('empoweringAudience.paragraph2')}
             </p>
           </motion.div>
         </div>
@@ -220,16 +209,16 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <h2 className="text-[32px] font-bold">
-              <span className="text-blue-700">How</span> it works
+              <span className="text-blue-700">
+                {t('howItWorks.titleHighlight')}
+              </span>{' '}
+              {t('howItWorks.title')}
             </h2>
             <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-              With our API, you have access to comprehensive documentation to
-              enable you seamlessly integrate the data, and a dedicated support
-              team to assist you at every step of the integration process.
+              {t('howItWorks.description')}
             </p>
 
             {/* Button */}
-
             <CustomButton
               onClick={() =>
                 window.open(
@@ -238,7 +227,7 @@ const ApiPage = () => {
               }
               className=" text-white "
             >
-              Read Docs
+              {t('howItWorks.readDocsButton')}
             </CustomButton>
           </motion.div>
 
@@ -249,7 +238,7 @@ const ApiPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-3_uwtkrz.webp"
-              alt="Easy to use interface"
+              alt={t('howItWorks.imageAlt')}
               width={1200}
               height={600}
               className="rounded-lg w-full"
