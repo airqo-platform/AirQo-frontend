@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import React from 'react';
+import { useTranslations } from 'next-intl';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -32,15 +32,16 @@ const itemVariants = {
 };
 
 const AfricanCityPage = () => {
+  const t = useTranslations('africanCityPage');
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-blue-50"
-        breadcrumbText="Solutions > For African Cities"
-        title="For African cities"
-        description="Leveraging a high-resolution air quality monitoring network to
-              advance air quality management in African cities."
+        breadcrumbText={t('breadcrumb')}
+        title={t('hero.title')}
+        description={t('hero.description')}
         containerVariants={containerVariants}
         itemVariants={itemVariants}
       />
@@ -57,9 +58,7 @@ const AfricanCityPage = () => {
           className="text-2xl lg:text-[40px] leading-[50px] text-gray-800"
           variants={itemVariants}
         >
-          Many African cities lack actionable data and evidence on the scale and
-          magnitude of air pollution in order to tackle air pollution, a major
-          urban environmental health challenge.
+          {t('challengeStatement')}
         </motion.p>
       </motion.section>
 
@@ -75,14 +74,13 @@ const AfricanCityPage = () => {
       >
         <section className="py-16 flex flex-col lg:flex-row justify-between items-start space-y-4 lg:space-y-0">
           <motion.h2 className="text-3xl font-semibold" variants={itemVariants}>
-            Our Approach
+            {t('approach.title')}
           </motion.h2>
           <motion.p
             className="lg:w-2/3 lg:max-w-[528px] text-lg text-gray-700"
             variants={itemVariants}
           >
-            We empower city authorities and citizens with timely information and
-            evidence to address the air pollution challenge.
+            {t('approach.description')}
           </motion.p>
         </section>
 
@@ -93,15 +91,10 @@ const AfricanCityPage = () => {
           {/* Approach Item 1 */}
           <motion.div className="space-y-4" variants={itemVariants}>
             <h3 className="font-normal text-[32px]">
-              Locally developed high-resolution <br />
-              air quality monitoring network
+              {t('approach.items.monitoring.title')}
             </h3>
             <p className="text-lg text-gray-700">
-              We want to see cleaner air in all African Cities. We leverage our
-              understanding of the African context and close collaborations with
-              relevant partners to deliver a high-resolution air quality network
-              to inform contextualized and locally relevant approaches to air
-              quality management for African cities.
+              {t('approach.items.monitoring.description')}
             </p>
           </motion.div>
           <hr className="border-gray-300" />
@@ -109,33 +102,32 @@ const AfricanCityPage = () => {
           {/* Approach Item 2 */}
           <motion.div className="space-y-4" variants={itemVariants}>
             <h3 className="font-normal text-[32px]">
-              Community-aware digital air quality platforms
+              {t('approach.items.platforms.title')}
             </h3>
             <p className="text-lg text-gray-700">
-              We empower decision-makers and citizens in African Cities with
-              increased access to air quality data evidence to help them tackle
-              urban air quality and achieve cleaner air objectives.
+              {t('approach.items.platforms.description')}
             </p>
           </motion.div>
           <hr className="border-gray-300" />
 
           {/* Approach Item 3 */}
           <motion.div className="space-y-4" variants={itemVariants}>
-            <h3 className="font-normal text-[32px]">Policy Engagement</h3>
+            <h3 className="font-normal text-[32px]">
+              {t('approach.items.policy.title')}
+            </h3>
             <p className="text-lg text-gray-700">
-              We engage city authorities and government agencies to build their
-              capacity and empower them with evidence and digital tools for air
-              quality management and informing air quality public policies.
+              {t('approach.items.policy.description')}
             </p>
           </motion.div>
           <hr className="border-gray-300" />
 
           {/* Approach Item 4 */}
           <motion.div className="space-y-4" variants={itemVariants}>
-            <h3 className="font-normal text-[32px]">Community engagement</h3>
+            <h3 className="font-normal text-[32px]">
+              {t('approach.items.community.title')}
+            </h3>
             <p className="text-lg text-gray-700">
-              We empower local leaders and targeted communities with air quality
-              information to create awareness of air quality issues.
+              {t('approach.items.community.description')}
             </p>
           </motion.div>
         </motion.div>
@@ -157,18 +149,19 @@ const AfricanCityPage = () => {
             className="text-blue-700 text-2xl font-semibold mb-2"
             variants={itemVariants}
           >
-            PUBLICATIONS
+            {t('publications.label')}
           </motion.h3>
           <motion.h2
             className="text-2xl lg:text-4xl font-normal mb-4"
             variants={itemVariants}
           >
-            Seeing the air in detail: Hyperlocal air quality dataset collected
-            from spatially distributed AirQo network.
+            {t('publications.title')}
           </motion.h2>
           <motion.div variants={itemVariants}>
-            <p className="text-gray-800 font-semibold mb-1">Published by</p>
-            <p className="text-gray-800 mb-6">AirQo</p>
+            <p className="text-gray-800 font-semibold mb-1">
+              {t('publications.publishedBy')}
+            </p>
+            <p className="text-gray-800 mb-6">{t('publications.publisher')}</p>
           </motion.div>
           <motion.div variants={itemVariants}>
             <CustomButton
@@ -180,7 +173,7 @@ const AfricanCityPage = () => {
               }
               className="flex items-center bg-transparent px-4 w-full max-w-[200px] py-3 border text-gray-700 border-gray-700 hover:bg-gray-200"
             >
-              Read More →
+              {t('publications.readMore')}
             </CustomButton>
           </motion.div>
         </CardWrapper>
