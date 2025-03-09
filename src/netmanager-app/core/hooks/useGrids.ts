@@ -7,7 +7,7 @@ import {
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
 import { CreateGrid, Grid } from "@/app/types/grids";
-import { GridsState, setError, setGrids } from "../redux/slices/gridsSlice";
+import {  setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
 
@@ -16,24 +16,21 @@ interface ErrorResponse {
 }
 
 // Hook to get the grid summary
-export const useGrids = (networkId: string) => {
+export const useGrids = () => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  const { data, isLoading, error } = useQuery<
-    GridsState,
-    AxiosError<ErrorResponse>
-  >({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["grids", activeNetwork?.net_name],
-    queryFn: () => grids.getGridsApi(networkId),
+    queryFn: () => grids.getGridsApi(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
-    onSuccess: (data: GridsState) => {
+    onSuccess: (data: any) => {
       dispatch(setGrids(data.grids));
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
+    onError: (error: Error) => {
       dispatch(setError(error.message));
     },
-  } as UseQueryOptions<GridsState, AxiosError<ErrorResponse>>);
+  });
 
   return {
     grids: data?.grids ?? [],
