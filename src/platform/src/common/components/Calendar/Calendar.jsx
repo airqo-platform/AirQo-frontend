@@ -196,7 +196,7 @@ const Calendar = ({
   const CalendarSectionComponent = ({ month, onNextMonth, onPrevMonth }) => (
     <div
       className={`${
-        showTwoCalendars ? 'px-6 pt-5 pb-6' : 'px-2 pt-2 pb-5'
+        showTwoCalendars ? 'px-6 pt-5 pb-5' : 'px-2 pt-2'
       } flex flex-col`}
     >
       <CalendarHeader

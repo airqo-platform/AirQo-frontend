@@ -6,15 +6,19 @@ import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
 import EditIcon from '@/icons/Analytics/EditIcon';
+import LocationIcon from '@/icons/Analytics/LocationIcon';
+
 import DataTable from '../components/DataTable';
 import CustomFields from '../components/CustomFields';
+import Footer from '../components/Footer';
+
 import {
   POLLUTANT_OPTIONS,
   DATA_TYPE_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
 } from '../constants';
-import Footer from '../components/Footer';
+
 import useDataDownload from '@/core/hooks/useDataDownload';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -48,10 +52,6 @@ const getMimeType = (fileType) => {
   return mimeTypes[fileType] || 'application/octet-stream';
 };
 
-/**
- * Main component for downloading data.
- * Allows users to select parameters and download air quality data accordingly.
- */
 const DataDownload = ({ onClose }) => {
   const dispatch = useDispatch();
   const {
@@ -60,6 +60,7 @@ const DataDownload = ({ onClose }) => {
     groupList,
     loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
+
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
@@ -69,23 +70,21 @@ const DataDownload = ({ onClose }) => {
     error: fetchError,
   } = useSelector((state) => state.sites);
 
+  // Local selection state for DataTable
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
+
+  // Form state
   const [formError, setFormError] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [edit, setEdit] = useState(false);
 
-  // Use the hook to fetch data
   const fetchData = useDataDownload();
 
-  // Active group data
+  // Prepare active group info
   const activeGroup = { id: activeGroupId, name: groupTitle };
 
-  // Extract selected site IDs from preferencesData
-  const selectedSiteIds = useMemo(() => {
-    return preferencesData?.[0]?.selected_sites?.map((site) => site._id) || [];
-  }, [preferencesData]);
-
-  // Organization options based on user groups
+  // Organization options
   const ORGANIZATION_OPTIONS = useMemo(
     () =>
       groupList?.map((group) => ({
@@ -95,7 +94,7 @@ const DataDownload = ({ onClose }) => {
     [groupList],
   );
 
-  // Form data state
+  // The main form data for exporting
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
     organization: activeGroup || ORGANIZATION_OPTIONS[0],
@@ -106,18 +105,12 @@ const DataDownload = ({ onClose }) => {
     fileType: FILE_TYPE_OPTIONS[0],
   });
 
-  const [edit, setEdit] = useState(false);
-
-  /**
-   * Initialize default organization once ORGANIZATION_OPTIONS are available.
-   * Defaults to "airqo" if available; otherwise, selects the first organization.
-   */
+  // Ensure the organization is set once org options are available
   useEffect(() => {
     if (ORGANIZATION_OPTIONS.length > 0 && !formData.organization) {
       const airqoNetwork = ORGANIZATION_OPTIONS.find(
         (group) => group.name.toLowerCase() === 'airqo',
       );
-
       setFormData((prevData) => ({
         ...prevData,
         organization: activeGroup || airqoNetwork,
@@ -125,12 +118,9 @@ const DataDownload = ({ onClose }) => {
     }
   }, [ORGANIZATION_OPTIONS, formData.organization, activeGroupId, groupTitle]);
 
-  /**
-   * Fetch sites summary whenever the selected organization changes.
-   */
+  // Fetch site summary for the chosen organization
   useEffect(() => {
     if (isFetchingActiveGroup) return;
-
     if (formData.organization) {
       dispatch(
         fetchSitesSummary({
@@ -141,12 +131,13 @@ const DataDownload = ({ onClose }) => {
   }, [dispatch, formData.organization, isFetchingActiveGroup]);
 
   /**
-   * Clears all selected sites and resets form data.
+   * Clears selection in both the table and form.
    */
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
     setSelectedSites([]);
-    // Reset form data after submission
+
+    // Reset form data to defaults
     const airqoNetwork = ORGANIZATION_OPTIONS.find(
       (group) => group.name.toLowerCase() === 'airqo',
     );
@@ -159,22 +150,19 @@ const DataDownload = ({ onClose }) => {
       frequency: FREQUENCY_OPTIONS[0],
       fileType: FILE_TYPE_OPTIONS[0],
     });
-    // Reset clearSelected flag in the next tick
+
     setTimeout(() => setClearSelected(false), 0);
   }, [ORGANIZATION_OPTIONS]);
 
   /**
-   * Handles the selection of form options.
-   * @param {string} id - The ID of the form field.
-   * @param {object} option - The selected option.
+   * Update a form field (title, organization, etc.).
    */
   const handleOptionSelect = useCallback((id, option) => {
     setFormData((prevData) => ({ ...prevData, [id]: option }));
   }, []);
 
   /**
-   * Toggles the selection of a site.
-   * @param {object} site - The site to toggle.
+   * Toggles the selection of a site in DataTable.
    */
   const handleToggleSite = useCallback((site) => {
     setSelectedSites((prev) => {
@@ -186,9 +174,7 @@ const DataDownload = ({ onClose }) => {
   }, []);
 
   /**
-   * Handles the submission of the form.
-   * Prepares data and calls the exportDataApi to download the data.
-   * @param {object} e - The form event.
+   * Download button handler
    */
   const handleSubmit = useCallback(
     async (e) => {
@@ -197,7 +183,7 @@ const DataDownload = ({ onClose }) => {
       setFormError('');
 
       try {
-        // Validate form data
+        // Validate date range
         if (
           !formData.duration ||
           !formData.duration.name?.start ||
@@ -208,16 +194,14 @@ const DataDownload = ({ onClose }) => {
           );
         }
 
-        // Parse the start and end dates
         const startDate = new Date(formData.duration.name.start);
         const endDate = new Date(formData.duration.name.end);
 
-        // Frequency-based duration limit validation
-        const validateDuration = (frequency, startDate, endDate) => {
-          const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months in milliseconds
-          const oneYearInMs = 12 * 30 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
-          const durationMs = endDate - startDate;
-
+        // Duration constraints for hourly/daily
+        const validateDuration = (frequency, sDate, eDate) => {
+          const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000;
+          const oneYearInMs = 12 * 30 * 24 * 60 * 60 * 1000;
+          const durationMs = eDate - sDate;
           if (frequency === 'hourly' && durationMs > sixMonthsInMs) {
             return 'For hourly frequency, the duration cannot exceed 6 months.';
           }
@@ -233,16 +217,16 @@ const DataDownload = ({ onClose }) => {
           startDate,
           endDate,
         );
-
         if (durationError) {
           throw new Error(durationError);
         }
 
+        // At least one location
         if (selectedSites.length === 0) {
           throw new Error('Please select at least one location.');
         }
 
-        // Prepare data for API
+        // Prepare data for the API
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -259,13 +243,15 @@ const DataDownload = ({ onClose }) => {
           minimum: true,
         };
 
+        // Make API call
         const response = await fetchData(apiData);
 
-        // Handle file download based on file type
+        // Build filename and MIME
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
         const fileName = `${formData.title.name}.${fileExtension}`;
 
+        // Download logic
         if (fileExtension === 'csv') {
           if (typeof response !== 'string') {
             throw new Error('Invalid CSV data format.');
@@ -279,14 +265,13 @@ const DataDownload = ({ onClose }) => {
         } else if (fileExtension === 'pdf') {
           const pdfData = response.data || [];
           const doc = new jsPDF();
-
           if (pdfData.length === 0) {
             doc.text('No data available to display.', 10, 10);
           } else {
             const tableColumn = Object.keys(pdfData[0]);
-            const tableRows = pdfData.map((data) =>
+            const tableRows = pdfData.map((row) =>
               tableColumn.map((col) =>
-                data[col] !== undefined ? data[col] : '---',
+                row[col] !== undefined ? row[col] : '---',
               ),
             );
             doc.autoTable({
@@ -303,10 +288,8 @@ const DataDownload = ({ onClose }) => {
           throw new Error('Unsupported file type.');
         }
 
-        // Show success toast
+        // Success
         CustomToast();
-
-        // Clear selections after successful download
         handleClearSelection();
         onClose();
       } catch (error) {
@@ -322,6 +305,78 @@ const DataDownload = ({ onClose }) => {
     [formData, selectedSites, handleClearSelection, fetchData, onClose],
   );
 
+  /**
+   * We only want two filters: "Sites" and "Favorites".
+   */
+  const filters = useMemo(
+    () => [
+      { key: 'sites', label: 'Sites' },
+      { key: 'favorites', label: 'Favorites' },
+    ],
+    [],
+  );
+
+  /**
+   * Show the same columns for both "Sites" and "Favorites".
+   */
+  const columnsByFilter = useMemo(
+    () => ({
+      sites: [
+        {
+          key: 'search_name',
+          label: 'Location',
+          render: (item) => (
+            <div className="flex items-center">
+              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              </span>
+              <span>{item.search_name || 'N/A'}</span>
+            </div>
+          ),
+        },
+        { key: 'city', label: 'City' },
+        { key: 'country', label: 'Country' },
+        { key: 'data_provider', label: 'Owner' },
+      ],
+      favorites: [
+        {
+          key: 'search_name',
+          label: 'Location',
+          render: (item) => (
+            <div className="flex items-center">
+              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              </span>
+              <span>{item.search_name || 'N/A'}</span>
+            </div>
+          ),
+        },
+        { key: 'city', label: 'City' },
+        { key: 'country', label: 'Country' },
+        { key: 'data_provider', label: 'Owner' },
+      ],
+    }),
+    [],
+  );
+
+  /**
+   * Custom filter callback:
+   * - "favorites": only show sites that appear in user preferences (selected_sites).
+   * - "sites": show all data.
+   */
+  const handleFilter = useCallback(
+    (allData, activeFilter) => {
+      if (activeFilter.key === 'favorites') {
+        // Only show those in the preferences
+        const favorites =
+          preferencesData?.[0]?.selected_sites?.map((s) => s._id) || [];
+        return allData.filter((site) => favorites.includes(site._id));
+      }
+      return allData;
+    },
+    [preferencesData],
+  );
+
   return (
     <>
       {/* Section 1: Form */}
@@ -329,7 +384,7 @@ const DataDownload = ({ onClose }) => {
         className="w-auto h-auto md:w-[280px] md:h-[658px] relative bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
         onSubmit={handleSubmit}
       >
-        {/* Edit Button */}
+        {/* Edit Title Button */}
         <button
           type="button"
           className={`absolute top-8 right-6 ${edit ? 'text-blue-600' : ''}`}
@@ -400,24 +455,30 @@ const DataDownload = ({ onClose }) => {
       {/* Section 2: Data Table and Footer */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {/* Data Table */}
           <DataTable
             data={sitesSummaryData}
-            selectedSites={selectedSites}
-            setSelectedSites={setSelectedSites}
-            clearSites={clearSelected}
-            selectedSiteIds={selectedSiteIds}
+            selectedRows={selectedSites}
+            setSelectedRows={setSelectedSites}
+            clearSelectionTrigger={clearSelected}
             loading={loading}
-            onToggleSite={handleToggleSite}
+            onToggleRow={handleToggleSite}
+            filters={filters}
+            columnsByFilter={columnsByFilter}
+            onFilter={handleFilter}
+            searchKeys={[
+              'location_name',
+              'search_name',
+              'city',
+              'country',
+              'data_provider',
+            ]}
           />
-          {/* Fetch Errors */}
           {fetchError && (
             <p className="text-red-600 py-4 px-1 text-sm">
               Error fetching data: {fetchError.message}
             </p>
           )}
         </div>
-        {/* Footer */}
         <Footer
           setError={setFormError}
           errorMessage={formError}
