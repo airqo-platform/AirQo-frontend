@@ -19,9 +19,8 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     (state) => state.map.selectedWeeklyPrediction,
   );
 
-  // Local state
   const [value, setValue] = useState(
-    () => new Date(selectedSite?.time || Date.now()),
+    new Date(selectedSite?.time || Date.now()),
   );
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
@@ -39,22 +38,18 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     'Sunday',
   ];
 
-  // Close date picker when clicking outside
   useOutsideClick(dropdownRef, () => setOpenDatePicker(false));
 
-  // Handle date picker changes
   const handleDateValueChange = useCallback((newValue) => {
     const date = newValue.start ? new Date(newValue.start) : new Date();
     setValue(date);
   }, []);
 
-  // Format date safely
   const safeFormatDate = useCallback(
     (date) => (isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date'),
     [],
   );
 
-  // Get active state for prediction
   const isActive = useCallback(
     (prediction) => {
       const predictionDay = new Date(prediction.time).toLocaleDateString(
@@ -70,7 +65,6 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     [selectedWeeklyPrediction, currentDay],
   );
 
-  // Get the image source for the prediction
   const getImageSrc = useCallback(
     (prediction) => {
       const siteTime = new Date(
@@ -88,7 +82,6 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     [selectedSite, recentLocationMeasurements],
   );
 
-  // Render individual prediction block
   const renderPredictionBlock = useCallback(
     (prediction, index) => (
       <div

@@ -15,19 +15,24 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   const [imageSrc, setImageSrc] = useState(images['Invalid']);
 
   useEffect(() => {
-    const isSameDaySelected = isSameDay(
-      new Date(selectedSite?.time || recentLocationMeasurements?.[0]?.time),
-      new Date(selectedWeeklyPrediction?.time),
+    const siteTime = new Date(
+      selectedSite?.time || recentLocationMeasurements?.[0]?.time,
     );
+    const predictionTime = selectedWeeklyPrediction
+      ? new Date(selectedWeeklyPrediction.time)
+      : null;
+    const isSameDaySelected = predictionTime
+      ? isSameDay(siteTime, predictionTime)
+      : true;
 
     const newPM25Value = selectedWeeklyPrediction
       ? isSameDaySelected
         ? selectedSite.pm2_5?.toFixed(2) ||
-          recentLocationMeasurements?.[0]?.pm2_5?.value.toFixed(2) ||
+          recentLocationMeasurements?.[0]?.pm2_5?.value?.toFixed(2) ||
           '-'
         : selectedWeeklyPrediction.pm2_5?.toFixed(2)
       : selectedSite?.pm2_5?.toFixed(2) ||
-        recentLocationMeasurements?.[0]?.pm2_5?.value.toFixed(2) ||
+        recentLocationMeasurements?.[0]?.pm2_5?.value?.toFixed(2) ||
         '-';
 
     setPM25Value(newPM25Value);
@@ -78,7 +83,6 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   );
 };
 
-// PropTypes for validation
 PollutantCard.propTypes = {
   selectedSite: PropTypes.shape({
     time: PropTypes.string,

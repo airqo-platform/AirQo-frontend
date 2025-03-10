@@ -1,35 +1,57 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 
 /**
- * Option component for rendering each selectable option
+ * Option component for rendering each selectable option.
+ * Wrapped with React.memo for performance optimization.
  */
-const Option = ({ isSelected, children, onSelect, image, disabled }) => (
-  <button
-    onClick={onSelect}
-    className={`flex flex-col items-center space-y-3 ${
-      isSelected ? 'border-blue-500' : ''
-    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-    disabled={disabled}
-  >
-    <div
-      className={`w-8 h-8 md:w-14 md:h-14 relative rounded-lg ${
-        isSelected ? 'border-2 border-blue-500 ring-4 ring-light-blue-100' : ''
-      } border-2`}
+const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
+  const handleClick = useCallback(() => {
+    if (!disabled) {
+      try {
+        onSelect();
+      } catch (error) {
+        console.error('Error in Option onSelect handler:', error);
+      }
+    }
+  }, [onSelect, disabled]);
+
+  const containerClasses = `
+    flex flex-col items-center space-y-3 
+    ${isSelected ? 'border-blue-500' : ''} 
+    ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+  `;
+
+  const imageContainerClasses = `
+    w-8 h-8 md:w-14 md:h-14 relative rounded-lg border-2 
+    ${isSelected ? 'border-blue-500 ring-4 ring-light-blue-100' : ''}
+  `;
+
+  return (
+    <button
+      onClick={handleClick}
+      className={containerClasses}
+      disabled={disabled}
     >
-      <Image
-        src={image}
-        alt={children}
-        layout="fill"
-        objectFit="cover"
-        className="rounded-lg"
-        loading="eager"
-      />
-    </div>
-    <span>{children}</span>
-  </button>
-);
+      <div className={imageContainerClasses}>
+        <Image
+          src={image}
+          alt={children}
+          layout="fill"
+          objectFit="cover"
+          className="rounded-lg"
+          loading="eager"
+          // Priority loading for selected images
+          priority={isSelected}
+        />
+      </div>
+      <span>{children}</span>
+    </button>
+  );
+});
+
+Option.displayName = 'Option';
 
 Option.propTypes = {
   isSelected: PropTypes.bool.isRequired,
@@ -44,7 +66,7 @@ Option.defaultProps = {
 };
 
 /**
- * LayerModal component for selecting map style and details
+ * LayerModal component for selecting map style and details.
  */
 const LayerModal = ({
   isOpen,
@@ -58,19 +80,21 @@ const LayerModal = ({
   const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
   const [selectedMapDetail, setSelectedMapDetail] = useState(mapDetails[0]);
 
+  // Reset selections when the provided options change
   useEffect(() => {
-    if (mapStyles[0]) {
-      setSelectedStyle(mapStyles[0]);
-    }
-    if (mapDetails[0]) {
-      setSelectedMapDetail(mapDetails[0]);
-    }
+    if (mapStyles[0]) setSelectedStyle(mapStyles[0]);
+    if (mapDetails[0]) setSelectedMapDetail(mapDetails[0]);
   }, [mapStyles, mapDetails]);
 
   const handleApply = useCallback(() => {
-    onStyleSelect(selectedStyle);
-    onMapDetailsSelect(selectedMapDetail.name);
-    onClose();
+    try {
+      onStyleSelect(selectedStyle);
+      onMapDetailsSelect(selectedMapDetail.name);
+      onClose();
+    } catch (error) {
+      console.error('Error applying layer modal selections:', error);
+      // Optionally, you can display an error notification here
+    }
   }, [
     selectedStyle,
     selectedMapDetail,
@@ -79,28 +103,22 @@ const LayerModal = ({
     onClose,
   ]);
 
-  const handleSelectStyle = useCallback(
-    (style) => {
-      setSelectedStyle(style);
-    },
-    [setSelectedStyle],
-  );
+  const handleSelectStyle = useCallback((style) => {
+    setSelectedStyle(style);
+  }, []);
 
-  const handleSelectDetail = useCallback(
-    (detail) => {
-      setSelectedMapDetail(detail);
-    },
-    [setSelectedMapDetail],
-  );
+  const handleSelectDetail = useCallback((detail) => {
+    setSelectedMapDetail(detail);
+  }, []);
 
   if (!isOpen) return null;
 
   return (
     <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-      <div className="absolute inset-0 bg-[#4e4e4e3b]" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-[#4e4e4e3b]" onClick={onClose} />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-50 bg-white rounded-lg overflow-hidden shadow-xl sm:max-w-lg sm:w-full"
+        className="relative z-[1000] bg-white rounded-lg overflow-hidden shadow-xl sm:max-w-lg sm:w-full"
       >
         <div className="p-4 md:p-6 text-left">
           <h3 className="text-lg font-semibold mb-3">Map Details</h3>
@@ -151,7 +169,8 @@ const LayerModal = ({
   );
 };
 
-// Add PropTypes for the LayerModal component
+LayerModal.displayName = 'LayerModal';
+
 LayerModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,

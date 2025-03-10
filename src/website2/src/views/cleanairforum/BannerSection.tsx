@@ -8,11 +8,7 @@ import { CustomButton } from '@/components/ui';
 
 import TabNavigation from './TabNavigation';
 
-type BannerSectionProps = {
-  data: any; // Type it accordingly
-};
-
-const BannerSection: React.FC<BannerSectionProps> = ({ data }) => {
+const BannerSection = ({ data }: { data: any }) => {
   if (!data) {
     return null;
   }

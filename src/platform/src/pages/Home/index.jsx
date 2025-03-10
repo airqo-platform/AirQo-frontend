@@ -58,6 +58,28 @@ const createSteps = (handleModal, handleCardClick) => [
   },
 ];
 
+const useUserData = () => {
+  const userData = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const storedUser = localStorage.getItem('loggedUser');
+    if (!storedUser || storedUser === 'undefined') {
+      return null;
+    }
+
+    try {
+      return JSON.parse(storedUser);
+    } catch (error) {
+      console.error('Error parsing "loggedUser" from localStorage:', error);
+      return null;
+    }
+  }, []);
+
+  return userData;
+};
+
 const Home = () => {
   const dispatch = useDispatch();
 
@@ -72,18 +94,7 @@ const Home = () => {
   const totalSteps = 4;
 
   // Safely retrieve user data from localStorage
-  const userData = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('loggedUser');
-      try {
-        return storedUser ? JSON.parse(storedUser) : null;
-      } catch (error) {
-        console.error('Error parsing user data from localStorage:', error);
-        return null;
-      }
-    }
-    return null;
-  }, []);
+  const userData = useUserData();
 
   // Handlers
   const handleModal = useCallback(() => {

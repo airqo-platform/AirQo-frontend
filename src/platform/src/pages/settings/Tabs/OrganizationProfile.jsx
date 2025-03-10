@@ -83,19 +83,30 @@ const OrganizationProfile = () => {
 
   useEffect(() => {
     setLoading(true);
-    const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedActiveGroupID =
-      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
 
-    // get group information
-    try {
-      dispatch(fetchGroupInfo(storedActiveGroupID));
-    } catch (error) {
-      console.error(`Error fetching group info: ${error}`);
-    } finally {
-      setLoading(false);
+    let activeGroupId = null;
+    const storedActiveGroup = localStorage.getItem('activeGroup');
+
+    if (storedActiveGroup) {
+      try {
+        const parsedActiveGroup = JSON.parse(storedActiveGroup);
+        activeGroupId = parsedActiveGroup?._id || null;
+      } catch (error) {
+        console.error('Error parsing "activeGroup" from localStorage:', error);
+      }
     }
-  }, []);
+
+    // If we have a valid ID, fetch group info
+    if (activeGroupId) {
+      try {
+        dispatch(fetchGroupInfo(activeGroupId));
+      } catch (error) {
+        console.error(`Error fetching group info: ${error}`);
+      }
+    }
+
+    setLoading(false);
+  }, [dispatch]);
 
   useEffect(() => {
     if (orgInfo) {
@@ -118,19 +129,36 @@ const OrganizationProfile = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // Safely parse 'activeGroup' from localStorage
+    let activeGroupId = null;
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedActiveGroupID =
-      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
-    if (!storedActiveGroupID) {
+
+    if (storedActiveGroup) {
+      try {
+        const parsedGroup = JSON.parse(storedActiveGroup);
+        activeGroupId = parsedGroup?._id || null;
+      } catch (error) {
+        console.error('Error parsing "activeGroup" from localStorage:', error);
+
+        setLoading(false);
+        return;
+      }
+    }
+
+    // If no valid ID, stop here
+    if (!activeGroupId) {
       setLoading(false);
       return;
     }
-    try {
-      updateGroupDetailsApi(storedActiveGroupID, orgData)
-        .then((response) => {
-          try {
-            dispatch(fetchGroupInfo(storedActiveGroupID));
 
+    try {
+      // Update group details with the parsed ID
+      updateGroupDetailsApi(activeGroupId, orgData)
+        .then(() => {
+          try {
+            // Fetch updated group info
+            dispatch(fetchGroupInfo(activeGroupId));
             setIsError({
               isError: true,
               message: 'Organization details successfully updated',
@@ -152,6 +180,7 @@ const OrganizationProfile = () => {
           setLoading(false);
         });
     } catch (error) {
+      // Catch any unexpected errors in the try block
       console.error(`Error updating user cloudinary photo: ${error}`);
       setIsError({
         isError: true,
@@ -235,7 +264,7 @@ const OrganizationProfile = () => {
         setUpdatedProfilePicture(croppedUrl);
         setOrgData({ ...orgData, grp_image: croppedUrl });
       })
-      .catch((error) => {
+      .catch(() => {
         setIsError({
           isError: true,
           message: 'Something went wrong',
@@ -245,78 +274,125 @@ const OrganizationProfile = () => {
   };
 
   const handleProfileImageUpdate = async () => {
-    if (updatedProfilePicture) {
-      const formData = new FormData();
-      formData.append('file', updatedProfilePicture);
-      formData.append(
-        'upload_preset',
-        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
-      );
-      formData.append('folder', 'organization_profiles');
+    if (!updatedProfilePicture) return;
 
-      setProfileUploading(true);
-      await cloudinaryImageUpload(formData)
-        .then(async (responseData) => {
-          setOrgData({ ...orgData, grp_image: responseData.secure_url });
-          const storedActiveGroup = localStorage.getItem('activeGroup');
-          const storedActiveGroupID =
-            storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    const formData = new FormData();
+    formData.append('file', updatedProfilePicture);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+    formData.append('folder', 'organization_profiles');
 
-          return await updateGroupDetailsApi(storedActiveGroupID, {
-            grp_image: responseData.secure_url,
-          })
-            .then((responseData) => {
-              try {
-                dispatch(fetchGroupInfo(storedActiveGroupID));
-                // updated user alert
-                setIsError({
-                  isError: true,
-                  message: 'Organization image successfully added',
-                  type: 'success',
-                });
-                setUpdatedProfilePicture('');
-              } catch (error) {
-                console.log(error);
-              } finally {
-                setProfileUploading(false);
-              }
-            })
-            .catch((err) => {
-              // updated user failure alert
-              setIsError({
-                isError: true,
-                message: err.message,
-                type: 'error',
-              });
-              setUpdatedProfilePicture('');
-              setProfileUploading(false);
-            });
-        })
-        .catch((err) => {
-          // unable to save image error
-          setUpdatedProfilePicture('');
-          setProfileUploading(false);
-          setIsError({
-            isError: true,
-            message: err.message,
-            type: 'error',
-          });
+    setProfileUploading(true);
+
+    try {
+      // 1. Upload the image to Cloudinary
+      const responseData = await cloudinaryImageUpload(formData);
+
+      // 2. Update the orgData state with the new image URL
+      setOrgData((prev) => ({
+        ...prev,
+        grp_image: responseData.secure_url,
+      }));
+
+      // 3. Safely parse 'activeGroup' from localStorage
+      let activeGroupId = null;
+      const storedActiveGroup = localStorage.getItem('activeGroup');
+      if (storedActiveGroup) {
+        try {
+          const parsedGroup = JSON.parse(storedActiveGroup);
+          activeGroupId = parsedGroup?._id || null;
+        } catch (error) {
+          console.error(
+            'Error parsing "activeGroup" from localStorage:',
+            error,
+          );
+        }
+      }
+
+      // If there's no valid ID, stop here
+      if (!activeGroupId) {
+        setProfileUploading(false);
+        setIsError({
+          isError: true,
+          message: 'No valid group ID found in localStorage.',
+          type: 'error',
         });
+        return;
+      }
+
+      // 4. Update group details with the new image
+      try {
+        await updateGroupDetailsApi(activeGroupId, {
+          grp_image: responseData.secure_url,
+        });
+
+        // 5. Fetch updated group info
+        dispatch(fetchGroupInfo(activeGroupId));
+
+        // 6. Show success message
+        setIsError({
+          isError: true,
+          message: 'Organization image successfully added',
+          type: 'success',
+        });
+
+        // 7. Reset local states
+        setUpdatedProfilePicture('');
+      } catch (error) {
+        console.error('Error updating organization details:', error);
+        setIsError({
+          isError: true,
+          message: error.message,
+          type: 'error',
+        });
+        setUpdatedProfilePicture('');
+      } finally {
+        setProfileUploading(false);
+      }
+    } catch (error) {
+      // Handle any error from cloudinaryImageUpload
+      console.error('Error uploading to Cloudinary:', error);
+      setUpdatedProfilePicture('');
+      setProfileUploading(false);
+      setIsError({
+        isError: true,
+        message: error.message,
+        type: 'error',
+      });
     }
   };
 
   const deleteProfileImage = () => {
+    // Reset local states
     setUpdatedProfilePicture('');
-    setOrgData({ ...orgData, grp_image: '' });
+    setOrgData((prev) => ({ ...prev, grp_image: '' }));
 
+    // Safely retrieve and parse 'activeGroup'
+    let activeGroupId = null;
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    const storedActiveGroupID =
-      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    if (storedActiveGroup) {
+      try {
+        const parsedGroup = JSON.parse(storedActiveGroup);
+        activeGroupId = parsedGroup?._id || null;
+      } catch (error) {
+        console.error('Error parsing "activeGroup" from localStorage:', error);
+      }
+    }
 
-    updateGroupDetailsApi(storedActiveGroupID, { grp_image: '' })
-      .then((response) => {
+    // If no valid ID, we can’t proceed with API call
+    if (!activeGroupId) {
+      setIsError({
+        isError: true,
+        message: 'No valid group ID found in localStorage.',
+        type: 'error',
+      });
+      return;
+    }
+
+    // Update group details with an empty image
+    updateGroupDetailsApi(activeGroupId, { grp_image: '' })
+      .then(() => {
         try {
-          dispatch(fetchGroupInfo(storedActiveGroupID));
+          dispatch(fetchGroupInfo(activeGroupId));
           setShowDeleteProfileModal(false);
           setIsError({
             isError: true,
@@ -324,7 +400,7 @@ const OrganizationProfile = () => {
             type: 'success',
           });
         } catch (error) {
-          console.log(error);
+          console.log('Error fetching group info:', error);
         }
       })
       .catch((error) => {

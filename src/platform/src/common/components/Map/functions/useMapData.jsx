@@ -1,3 +1,4 @@
+// useMapData.jsx
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Supercluster from 'supercluster';
@@ -25,13 +26,7 @@ import {
 } from '../components/MapNodes';
 import { useWindowSize } from '@/lib/windowSize';
 
-const useMapData = ({
-  NodeType,
-  mapStyle,
-  pollutant,
-  setLoading,
-  setLoadingOthers,
-}) => {
+const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const indexRef = useRef(null);
@@ -41,7 +36,7 @@ const useMapData = ({
   const { width } = useWindowSize();
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
-  // Helper to create a map feature
+  // Create a map feature object
   const createFeature = useCallback(
     (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
       type: 'Feature',
@@ -62,7 +57,7 @@ const useMapData = ({
     [],
   );
 
-  // Helper to process forecast data
+  // Process forecast data
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData || !cityData.forecast?.daily) return null;
@@ -77,7 +72,7 @@ const useMapData = ({
     [pollutant],
   );
 
-  // Fetch and process WAQ data
+  // Fetch and process WAQ data with improved error handling
   const fetchAndProcessWaqData = useCallback(
     async (cities) => {
       setLoadingOthers(true);
@@ -124,10 +119,10 @@ const useMapData = ({
     [
       dispatch,
       createFeature,
-      getAQICategory,
       getForecastForPollutant,
       pollutant,
       setLoadingOthers,
+      getAQICategory,
     ],
   );
 
@@ -136,11 +131,9 @@ const useMapData = ({
     setLoading(true);
     try {
       const response = await getMapReadings();
-
       if (!response.success || !response.measurements?.length) {
         throw new Error('No valid map readings data found.');
       }
-
       const readingsFeatures = response.measurements
         .filter(
           (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
@@ -173,20 +166,18 @@ const useMapData = ({
     }
   }, [dispatch, createFeature, getAQICategory, pollutant, setLoading]);
 
-  // Fetch and process all data
+  // Fetch and process all data concurrently
   const fetchAndProcessData = useCallback(async () => {
     try {
-      // Fetch map readings data first
       await fetchAndProcessMapReadings();
-
-      // Fetch WAQI data in parallel without blocking
+      // Fetch WAQI data without blocking
       fetchAndProcessWaqData(AQI_FOR_CITIES);
     } catch (error) {
       console.error('Error processing data:', error);
     }
   }, [fetchAndProcessMapReadings, fetchAndProcessWaqData]);
 
-  // Function to get two most common AQIs in a cluster
+  // Get two most common AQIs in a cluster
   const getTwoMostCommonAQIs = useCallback((cluster) => {
     const leaves = indexRef.current.getLeaves(
       cluster.properties.cluster_id,
@@ -216,7 +207,7 @@ const useMapData = ({
       }));
   }, []);
 
-  // Cluster update logic
+  // Update clusters on map movement
   const clusterUpdate = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -237,8 +228,7 @@ const useMapData = ({
     markersRef.current = [];
 
     clusters.forEach((feature) => {
-      const el =
-        typeof document !== 'undefined' ? document.createElement('div') : null;
+      const el = document.createElement('div');
       el.style.cursor = 'pointer';
 
       if (!feature.properties.cluster) {
@@ -264,7 +254,6 @@ const useMapData = ({
           marker.togglePopup();
           el.style.zIndex = 1;
         });
-
         el.addEventListener('click', () => {
           if (selectedNode === feature.properties._id) return;
           dispatch(setSelectedNode(feature.properties._id));
@@ -283,7 +272,7 @@ const useMapData = ({
 
         markersRef.current.push(marker);
       } else {
-        el.zIndex = 444;
+        el.style.zIndex = 444;
         el.className =
           'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
         const mostCommonAQIs = getTwoMostCommonAQIs(feature);
@@ -310,23 +299,20 @@ const useMapData = ({
     getTwoMostCommonAQIs,
     selectedNode,
     dispatch,
-    mapStyle,
     width,
   ]);
 
-  // Initialize Supercluster and set up event listeners
+  // Initialize Supercluster and event listeners
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    // Initialize Supercluster
     const index = new Supercluster({
       radius: NodeType === 'Emoji' ? 40 : NodeType === 'Node' ? 60 : 80,
       maxZoom: 20,
     });
     indexRef.current = index;
 
-    // Load initial data into Supercluster
     const loadData = () => {
       const combinedData = [...(mapReadingsData || []), ...(waqData || [])];
       index.load(combinedData);
@@ -335,7 +321,6 @@ const useMapData = ({
 
     loadData();
 
-    // Event listeners for map movements
     map.on('zoomend', clusterUpdate);
     map.on('moveend', clusterUpdate);
 
@@ -346,10 +331,9 @@ const useMapData = ({
     };
   }, [mapReadingsData, waqData, clusterUpdate, NodeType]);
 
-  // Watch for data changes and update Supercluster
+  // Update Supercluster data on data changes
   useEffect(() => {
     if (!indexRef.current) return;
-
     const combinedData = [...(mapReadingsData || []), ...(waqData || [])];
     indexRef.current.load(combinedData);
     clusterUpdate();
