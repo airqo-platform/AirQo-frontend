@@ -149,7 +149,7 @@ const SiteCard = React.memo(
     // Render site name with truncation and tooltip
     const wrappedSiteName = useMemo(() => {
       const baseClasses =
-        'w-full max-w-[200px] lg:max-w-[150px] text-left overflow-hidden text-ellipsis whitespace-nowrap';
+  'w-full max-w-[200px] lg:max-w-[140px] text-left overflow-hidden text-ellipsis whitespace-nowrap ';
 
       if (isTruncated) {
         return (
@@ -218,7 +218,7 @@ const SiteCard = React.memo(
                 placement={windowWidth > 1024 ? 'top' : 'left'}
                 className="w-52"
               >
-                <div className="w-16 h-16 flex items-center justify-center">
+                <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-16 lg:h-16 xl:w-16 xl:h-16">
                   {AirQualityIcon && (
                     <AirQualityIcon
                       className="w-full h-full"
