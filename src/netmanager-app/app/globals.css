@@ -75,3 +75,17 @@
     @apply bg-background text-foreground;
   }
 }
+.country-scroll-bar {
+        overflow-x: auto;
+        overflow-y: hidden;
+        overflow-x:auto;
+        cursor: pointer;
+}
+.scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
