@@ -74,7 +74,7 @@ const MobilePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/MobileApp/mobile-header_cz3n6t.webp"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695567/website/photos/OurProducts/MobileApp/image7_fjjnl0.jpg"
               alt="Discover the quality of air around you"
               width={500}
               height={350}
