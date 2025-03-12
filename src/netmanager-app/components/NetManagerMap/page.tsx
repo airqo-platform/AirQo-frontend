@@ -22,7 +22,7 @@ import { any } from 'zod';
 import { useSites } from '@/core/hooks/useSites';
 
 
-const NetManagerMap = () => {
+const NetManagerMap = (mapboxApiAccessToken:string) => {
         // const userGroup = useAppSelector((state)=> state.user.userGroups);
           const activeGroup = useAppSelector((state) => state.user.activeGroup)
         // console.log(userGroup)

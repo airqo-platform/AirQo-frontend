@@ -3,20 +3,20 @@ import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Button from '../Button';
-import MenuBarIcon from '@/icons/menu_bar';
-import AirqoLogo from '@/icons/airqo_logo.svg';
+import MenuBarIcon from '@/public/icons/menu_bar';
+import AirqoLogo from '@/public/icons/airqo_logo.svg';
 import Spinner from '@/components/Spinner';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import UserIcon from '@/icons/Topbar/userIcon';
-import ChartIcon from '@/icons/Topbar/chartIcon';
+import SettingsIcon from '@/public/icons/SideBar/SettingsIcon';
+import UserIcon from '@/public/icons/Topbar/userIcon';
+import ChartIcon from '@/public/icons/Topbar/chartIcon';
 import CustomDropdown from '../Dropdowns/CustomDropdown';
 // import TopBarSearch from '../search/TopBarSearch';
-import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import { setOpenModal, setModalType } from '@/lib/services/downloadModal';
 import {
   setToggleDrawer,
   setSidebar,
-} from '@/lib/store/services/sideBar/SideBarSlice';
-import LogoutUser from '@/core/utils/LogoutUser';
+} from '@/lib/services/sideBar/SideBarSlice';
+import LogoutUser from '@/utils/LogoutUser';
 
 const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   const router = useRouter();

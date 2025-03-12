@@ -1,152 +1,172 @@
-import React, { useState } from 'react'
-import CountryList from "../CountryList"
-import { Input } from "../../../ui/input"
-import { Button } from '../../../ui/button';
-import {FetchSuggestions,UserClick} from '@/core/apis/MapData';
-type MapSideBarProps = {
-        token: string;
-        sessionToken:string;
-        countryData: any;
-        selectedCountry: any;
-        setSelectedCountry: (country: any) => void;
-        reset: () => void;
-        handleUserClick:(data: any)=>void;
-        siteDetails: any;
-      };
-const MapSideBar: React.FC<MapSideBarProps> = ({
-        token,
-        sessionToken,
-        countryData,
-        selectedCountry,
-        setSelectedCountry,
-        reset,
-        handleUserClick,
-        siteDetails,
-      })=> {
-                const [query, setQuery] = useState("");
-                const [locationId,setlocationId] =useState("")
-                const [suggestions, setSuggestions] = useState<any[]>([]);
-                
-        const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
-                const value = e.target.value;
-            setQuery(value);
-        
-            if (value.trim() === "") {
-              setSuggestions([]);
-              reset()
-              return;
-            }
-            const GetSuggestions=(latitude?: number, longitude?: number)=>{
-                if (!token || !sessionToken) {
-                  console.error('Missing required tokens');
-                         return;
-                }
-                FetchSuggestions(value, token, sessionToken, latitude, longitude)
-                  .then(data => {
-                    if (data) {
-                      console.log(data)
-                      setSuggestions(data);
-                    }
-                    console.log("Number of Suggesstions", suggestions.length)
-                  })
-                  .catch(error => {
-                    console.error("Error fetching suggestions:", error);
-                  });
-            }
-            const fetchUserLocation = () => {
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      const { latitude, longitude } = position.coords;
-                      console.log("User Location:", latitude, longitude);
-                      GetSuggestions(latitude, longitude);
-                    },
-                    (error) => {
-                      console.error("Error getting user location:", error);
-                      GetSuggestions(); 
-                    }
-                  );
-                } else {
-                  console.error("Geolocation is not supported by this browser.");
-                  GetSuggestions(); 
-                }
-              };
-              fetchUserLocation();
-        
-          }
-          //Retrieving The Location Clicked By The User
-          const handleLocationClick = (locationid: any) => {
-                UserClick(token?token:"",sessionToken?sessionToken:"",locationid)
-                .then(data => {
-                        console.log(data.features[0].geometry.coordinates)
-                        handleUserClick(data)
-                        })
-                        .catch(error => console.error("Error fetching location:", error));
-        
-          }
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  setCenter,
+  setZoom,
+  setOpenLocationDetails,
+  setSelectedLocation,
+  addSuggestedSites,
+  reSetMap,
+  setSelectedNode,
+  setSelectedWeeklyPrediction,
+  setMapLoading,
+} from '@/lib/map/MapSlice';
+import { addSearchTerm } from '@/lib/services/search/LocationSearchSlice';
+import {
+  fetchRecentMeasurementsData,
+  // clearMeasurementsData,
+} from '@/lib/services/deviceRegistry/RecentMeasurementsSlice';
+import { dailyPredictionsApi } from '@/core/apis/predict';
+import { capitalizeAllText } from '@/utils/strings';
+import { useWindowSize } from '@/lib/windowSize';
+import { getPlaceDetails } from '@/utils/getLocationGeomtry';
+import { getAutocompleteSuggestions } from '@/utils/AutocompleteSuggestions';
 
-  return (
-        <div className=' flex  flex-grow md:flex-grow-0  border rounded-lg  md:w-[24%]'>
-        <div className="flex flex-col border gap-2  p-1 rounded-lg w-full">
-                <div className="flex flex-col gap-3">
-                <h1 className="font-bold">Net Manager Map</h1>
-                <h1 className='text-gray-600'>Navigate air quality analytics with precision and actionable tips.</h1>
-                <div className="relative w-full">
-                    <Input
-                    placeholder="Search all locations" type="text"
-                    value={query}
-                    onChange={SearchSuggestions} name="Search" className="w-full pr-10" />
-                    
-                </div>
-                <div className='flex items-center overflow-hidden px-4 transition-all duration-300 ease-in-out'>
-                        <Button
-                        type="button"
-                         className='flex py-[3px] px-[10px] border-none rounded-xl mb-3 text-sm font-medium'
-                        >
-                                ALL
-                        </Button>
-                        <div className='flex scrollbar-hide overflow-x-auto gap-2 '>
-                                <CountryList
-                                data={countryData}
-                                selectedCountry={selectedCountry}
-                                setSelectedCountry={setSelectedCountry}
-                                siteDetails={siteDetails}
-                                />
-                        </div>
-                      
-                </div>
-                <div className="border border-secondary-neutral-light-100 " />
-                </div>
+import allCountries from '../../data/countries.json';
+import SearchField from '@/components/search/SearchField';
+import Button from '@/components/Button';
+import Toast from '../../../Toast';
+import LocationCards from './components/LocationCards';
+import CountryList from '../CountryList';
+import LocationAlertCard from './components/LocationAlertCard';
+import WeekPrediction from './components/Predictions';
+import PollutantCard from './components/PollutantCard';
+import {
+  renderNoResults,
+  renderLoadingSkeleton,
+  renderDefaultMessage,
+} from './components/Sections';
 
-                <div className='flex w-full '>
-                { suggestions.length > 0? (
-                        
-                <div
-                id="search-suggestions"
-                className='w-full'
-                >
-                {suggestions.map((item, index) => (
-                <div
-                key={index}
-                className="bg-white w-full border border-gray-300 mt-1 rounded-md shadow-md max-h-40 overflow-y-auto p-2 hover:bg-gray-200 cursor-pointer"
-                onClick={()=>handleLocationClick(item.mapbox_id)}
-                >
-                <h1 className='text'>{item.name}</h1>
-                <h1 className='text-gray-300' >{item.place_formatted}</h1>
-                </div>
-                ))}
-                </div>
-        ):(
-                <div  className="text-gray-500 bg-white w-full border border-gray-300 mt-1 rounded-md shadow-md max-h-40 overflow-y-auto p-2 hover:bg-gray-200 cursor-pointer">
-                        Type to see Suggestions...
-                </div>
-        )}
-                </div>
-                
-        </div>
+import ArrowLeftIcon from '@/public/icons/arrow_left.svg';
+import SidebarHeader from './components/SidebarHeader';
+import SearchResultsSkeleton from './components/SearchResultsSkeleton';
+import useGoogleMaps from '@/core/hooks/useGoogleMaps';
 
-</div>
-  )
+interface SiteDetails {
+  _id: string;
+  name: string;
+  country: string;
+  forecast?: any[];
+  description?: string;
+  search_name?: string;
+  location?: string;
 }
 
-export default MapSideBar
+interface MapSidebarProps {
+  siteDetails: SiteDetails[];
+  isAdmin?: boolean;
+}
+
+const MapSidebar: React.FC<MapSidebarProps> = ({ siteDetails, isAdmin = false }) => {
+  const dispatch = useDispatch();
+  const { width } = useWindowSize();
+
+  const [isFocused, setIsFocused] = useState(false);
+  const [countryData, setCountryData] = useState<SiteDetails[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SiteDetails | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setLoading] = useState(false);
+  const [weeklyPredictions, setWeeklyPredictions] = useState<any[]>([]);
+  const [error, setError] = useState<{ isError: boolean; message: string; type: string }>({
+    isError: false,
+    message: '',
+    type: '',
+  });
+
+//   const openLocationDetails = useSelector((state: any) => state.map.showLocationDetails);
+//   const selectedLocation = useSelector((state: any) => state.map.selectedLocation ?? null);
+//   const mapLoading = useSelector((state: any) => state.map.mapLoading);
+//   const measurementsLoading = useSelector((state: any) => state.recentMeasurements.status);
+//   const selectedWeeklyPrediction = useSelector((state: any) => state.map.selectedWeeklyPrediction);
+//   const reduxSearchTerm = useSelector((state: any) => state.locationSearch.searchTerm);
+//   const suggestedSites = useSelector((state: any) => state.map.suggestedSites);
+
+//   const isSearchFocused = isFocused || reduxSearchTerm.length > 0;
+  const googleMapsLoaded = useGoogleMaps(process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY);
+
+  const autoCompleteSessionToken = useMemo(() => {
+    if (googleMapsLoaded && window.google) {
+      return new window.google.maps.places.AutocompleteSessionToken();
+    }
+    return null;
+  }, [googleMapsLoaded]);
+
+  useEffect(() => {
+    if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+      const uniqueCountries = siteDetails.reduce<SiteDetails[]>((acc, site) => {
+        const country = allCountries.find((c) => c.country === site.country);
+        if (country && !acc.some((item) => item.country === site.country)) {
+          acc.push({ ...site, ...country });
+        }
+        return acc;
+      }, []);
+      setCountryData(uniqueCountries);
+    }
+  }, [siteDetails]);
+
+  useEffect(() => {
+    dispatch(setOpenLocationDetails(false));
+    dispatch(setSelectedLocation(null));
+    dispatch(addSearchTerm(''));
+    setIsFocused(false);
+  }, [dispatch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => dispatch(setMapLoading(false)), 2000);
+    return () => clearTimeout(timer);
+  }, [dispatch, 
+        // selectedLocation
+]);
+
+//   useEffect(() => {
+//     if (selectedLocation) {
+//       dispatch(fetchRecentMeasurementsData({ site_id: selectedLocation._id }))
+//         .unwrap()
+//         .then(() => fetchWeeklyPredictions())
+//         .catch((error) => {
+//           setError({ isError: true, message: 'Failed to fetch recent measurements', type: 'error' });
+//         });
+//     }
+//   }, [
+//         // selectedLocation,
+//          dispatch]);
+
+//   const fetchWeeklyPredictions = useCallback(async () => {
+//     if (!selectedLocation?._id) {
+//       setWeeklyPredictions([]);
+//       return;
+//     }
+//     setLoading(true);
+//     try {
+//       if (selectedLocation?.forecast && selectedLocation.forecast.length > 0) {
+//         setWeeklyPredictions(selectedLocation.forecast);
+//       } else {
+//         const response = await dailyPredictionsApi(selectedLocation._id);
+//         setWeeklyPredictions(response?.forecasts || []);
+//       }
+//     } catch (error) {
+//       setError({ isError: true, message: 'Failed to fetch weekly predictions', type: 'error' });
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [
+//         // selectedLocation
+// ]);
+
+  return (
+    <div className="w-full rounded-l-xl shadow-sm h-full bg-white overflow-y-auto lg:overflow-hidden">
+      {/* Sidebar Header */}
+      <SidebarHeader isAdmin={isAdmin} />
+      <SearchField showSearchResultsNumber={false} focus={false} />
+      <Button type="button" variant="filled" onClick={() => dispatch(reSetMap())}>
+        All
+      </Button>
+      <CountryList data={countryData} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} siteDetails={siteDetails} />
+      {error.isError && <Toast message={error.message} clearData={() => setError({ isError: false, message: '', type: '' })} type={error.type} timeout={3000} />}
+      {/* {selectedLocation && <WeekPrediction selectedSite={selectedLocation} weeklyPredictions={weeklyPredictions} loading={isLoading} />} */}
+    </div>
+  );
+};
+
+export default MapSidebar;
