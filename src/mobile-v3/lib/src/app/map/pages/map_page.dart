@@ -539,7 +539,7 @@ class _MapScreenState extends State<MapScreen>
                                                                         .w600,
                                                                 fontSize: 20,
                                                                 color: AppColors
-                                                                    .boldHeadlineColor)),
+                                                                    .darkTextSecondary)),
                                                         Row(children: [
                                                           Container(
                                                             decoration: BoxDecoration(
