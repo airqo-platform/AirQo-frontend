@@ -334,8 +334,7 @@ const DataDownload = ({ onClose }) => {
           category: 'Data Export',
           label: error.message,
         });
-        
-        console.error('Error downloading data:', error);
+
         setFormError(
           error.message ||
             'An error occurred while downloading. Please try again.',
