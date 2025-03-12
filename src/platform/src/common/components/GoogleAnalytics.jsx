@@ -1,6 +1,8 @@
 'use client';
 
 import Script from 'next/script';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { GA_MEASUREMENT_ID } from '@/core/hooks/useGoogleAnalytics';
 
 export default function GoogleAnalytics() {
