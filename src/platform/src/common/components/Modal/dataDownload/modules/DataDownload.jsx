@@ -169,7 +169,20 @@ const DataDownload = ({ onClose }) => {
    * @param {object} option - The selected option.
    */
   const handleOptionSelect = useCallback((id, option) => {
-    setFormData((prevData) => ({ ...prevData, [id]: option }));
+    setFormData((prevData) => {
+      // Special handling for duration
+      if (id === 'duration') {
+        return {
+          ...prevData,
+          duration: {
+            start: option.startDate,
+            end: option.endDate,
+          },
+        };
+      }
+      // Handle other fields normally
+      return { ...prevData, [id]: option };
+    });
   }, []);
 
   /**
@@ -198,19 +211,15 @@ const DataDownload = ({ onClose }) => {
 
       try {
         // Validate form data
-        if (
-          !formData.duration ||
-          !formData.duration.name?.start ||
-          !formData.duration.name?.end
-        ) {
+        if (!formData.duration?.start || !formData.duration?.end) {
           throw new Error(
             'Please select a valid duration with both start and end dates.',
           );
         }
 
         // Parse the start and end dates
-        const startDate = new Date(formData.duration.name.start);
-        const endDate = new Date(formData.duration.name.end);
+        const startDate = new Date(formData.duration.start);
+        const endDate = new Date(formData.duration.end);
 
         // Frequency-based duration limit validation
         const validateDuration = (frequency, startDate, endDate) => {
