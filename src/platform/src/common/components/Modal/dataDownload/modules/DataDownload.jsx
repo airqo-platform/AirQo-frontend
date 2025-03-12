@@ -23,6 +23,7 @@ import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { event } from '@/core/hooks/useGoogleAnalytics';
 
 /**
  * Header component for the Download Data modal.
@@ -270,6 +271,14 @@ const DataDownload = ({ onClose }) => {
 
         const response = await fetchData(apiData);
 
+        // Track successful download
+        event({
+          action: 'download_data',
+          category: 'Data Export',
+          label: `${formData.dataType.name} - ${formData.pollutant.name}`,
+          value: selectedSites.length,
+        });
+
         // Handle file download based on file type
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
@@ -319,6 +328,13 @@ const DataDownload = ({ onClose }) => {
         handleClearSelection();
         onClose();
       } catch (error) {
+        // Track error
+        event({
+          action: 'download_error',
+          category: 'Data Export',
+          label: error.message,
+        });
+        
         console.error('Error downloading data:', error);
         setFormError(
           error.message ||
