@@ -3,9 +3,19 @@ import { Metadata } from 'next';
 import GlossaryPage from '@/views/cleanairforum/glossary/GlossaryPage';
 
 export const metadata: Metadata = {
-  title: 'Glossary | Clean Air Forum',
+  title: 'Air Quality Terms & Definitions',
   description:
-    'Explore our glossary of key terms and pollutant types used at Clean Air Forum, providing clear definitions to help you better understand air quality management.',
+    'Understand key air quality terms, metrics, and terminology used at the Clean Air Forum. A comprehensive glossary for conference attendees and air quality professionals.',
+  keywords:
+    'air quality glossary, environmental terms, Clean Air Forum terminology, air pollution definitions, air quality metrics, environmental glossary',
+  alternates: {
+    canonical: 'https://airqo.net/clean-air-forum/glossary',
+  },
+  openGraph: {
+    title: 'Air Quality Terms & Definitions | Clean Air Forum 2024',
+    description:
+      'Comprehensive glossary of air quality terms and definitions for conference attendees.',
+  },
 };
 
 const Page = () => {

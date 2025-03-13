@@ -73,8 +73,8 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132447/website/photos/OurProducts/Monitor/monitor_ffky74.webp"
-              alt="Built in Africa"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg"
+              alt="Air quality monitor installation"
               width={500}
               height={350}
               style={{ objectFit: 'cover' }}
@@ -160,8 +160,8 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/section-2_byzxsz.webp"
-              alt="Mobile Monitoring"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869451/website/photos/OurProducts/Monitor/image21_bppqoe.jpg"
+              alt="Air quality monitor on a motorcycle"
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -305,16 +305,16 @@ const MonitorPage = () => {
 
           {/* Image Section */}
           <motion.div
-            className="mt-12 lg:mt-0 lg:ml-[300px] w-full"
+            className="mt-12 lg:mt-0 lg:ml-[300px] md:h-[480px] w-full"
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/activate_g6upn0.webp"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741870808/website/photos/OurProducts/Monitor/image14_agtyes.jpg"
               alt="Monitor Installation"
               width={500}
               height={400}
               style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
+              className="rounded-lg h-full w-full md:w-full"
             />
           </motion.div>
         </div>

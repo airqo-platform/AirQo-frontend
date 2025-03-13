@@ -6,11 +6,20 @@ import Footer from '@/components/layouts/Footer';
 import Navbar from '@/components/layouts/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Clean Air Network | AirQo Africa',
+  title: {
+    template: '%s | Clean Air Network - AirQo',
+    default: 'Clean Air Network | Advancing Air Quality in Africa',
+  },
   description:
-    'Join the Clean Air Network by AirQo, connecting stakeholders and promoting actions to improve air quality across Africa. Explore events, resources, and membership opportunities.',
+    "Join AirQo's Clean Air Network, a collaborative platform uniting researchers, policymakers, and communities to improve air quality across Africa. Access resources, events, and initiatives driving positive environmental change.",
   keywords:
-    'Clean Air Network, AirQo Africa, air quality network, air quality stakeholders, air pollution, environmental health, clean air Africa, air quality events, air quality resources, air quality membership',
+    'Clean Air Network, AirQo Africa, air quality initiatives, environmental collaboration, air pollution solutions, African air quality, environmental network, clean air advocacy, air quality stakeholders, environmental partnerships Africa',
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    'max-snippet': 170,
+  },
 };
 
 type CleanAirLayoutProps = {
