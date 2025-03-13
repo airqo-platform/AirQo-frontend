@@ -305,16 +305,16 @@ const MonitorPage = () => {
 
           {/* Image Section */}
           <motion.div
-            className="mt-12 lg:mt-0 lg:ml-[300px] w-full"
+            className="mt-12 lg:mt-0 lg:ml-[300px] md:h-[480px] w-full"
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/activate_g6upn0.webp"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741870808/website/photos/OurProducts/Monitor/image14_agtyes.jpg"
               alt="Monitor Installation"
               width={500}
               height={400}
               style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
+              className="rounded-lg h-full w-full md:w-full"
             />
           </motion.div>
         </div>
