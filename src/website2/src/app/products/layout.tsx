@@ -4,11 +4,14 @@ import React from 'react';
 import MainLayout from '@/components/layouts/MainLayout';
 
 export const metadata: Metadata = {
-  title: 'AirQo Products | Air Quality Solutions and Tools',
+  title: {
+    template: '%s | AirQo Products',
+    default: 'Air Quality Solutions and Tools | AirQo Products',
+  },
   description:
-    'Explore AirQo’s suite of products, including air quality analytics, APIs, calibration tools, mobile apps, and monitoring solutions. Discover tools to help monitor and improve air quality across Africa.',
+    "Explore AirQo's comprehensive suite of air quality products, including monitoring devices, analytics platforms, APIs, calibration tools, and mobile applications for African cities.",
   keywords:
-    'AirQo products, air quality analytics, air quality API, air quality calibration, air quality mobile app, air quality monitoring, AirQo tools, environmental solutions',
+    'AirQo products, air quality solutions, air monitoring tools, air quality technology, African air quality, pollution monitoring devices, environmental monitoring',
 };
 
 type ProductsLayoutProps = {
