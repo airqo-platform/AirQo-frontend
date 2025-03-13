@@ -34,8 +34,6 @@ const SidebarHeader = ({
 };
 
 SidebarHeader.propTypes = {
-  selectedTab: PropTypes.string,
-  handleSelectedTab: PropTypes.func,
   isAdmin: PropTypes.bool,
   isFocused: PropTypes.bool,
   handleHeaderClick: PropTypes.func,

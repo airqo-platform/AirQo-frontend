@@ -73,13 +73,31 @@ const UserLogin = () => {
         const preferencesResponse = await retryWithDelay(() =>
           dispatch(getIndividualUserPreferences({ identifier: user._id })),
         );
+
+        let activeGroup;
         if (preferencesResponse.payload.success) {
           const preferences = preferencesResponse.payload.preferences;
-          const activeGroup = preferences[0]?.group_id
-            ? user.groups.find((group) => group._id === preferences[0].group_id)
-            : user.groups.find((group) => group.grp_title === 'airqo');
-          localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+          // Try to get the group from the first preference if exists and valid
+          if (preferences.length > 0 && preferences[0].group_id) {
+            activeGroup = user.groups.find(
+              (group) => group._id === preferences[0].group_id,
+            );
+          }
         }
+        // Fallback to group with title 'airqo'
+        if (!activeGroup) {
+          activeGroup = user.groups.find(
+            (group) => group.grp_title.toLowerCase() === 'airqo',
+          );
+        }
+        // If still not set, throw an error to alert support
+        if (!activeGroup) {
+          throw new Error(
+            'No active group found. Contact support to add you to the AirQo Organisation',
+          );
+        }
+
+        localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
         dispatch(setUserInfo(user));
         dispatch(setSuccess(true));

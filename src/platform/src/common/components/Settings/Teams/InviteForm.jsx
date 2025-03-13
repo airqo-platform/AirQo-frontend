@@ -61,7 +61,8 @@ const TeamInviteForm = ({ open, closeModal }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (emails[0] === '') {
+    // Basic validation: check if the first email input is empty
+    if (!emails[0]) {
       setIsError({
         isError: true,
         message: 'Please enter an email',
@@ -71,45 +72,84 @@ const TeamInviteForm = ({ open, closeModal }) => {
     }
 
     setLoading(true);
+
+    // Check if all emails are valid
     const isValid = emails.every((email) => isValidEmail(email));
 
     if (isValid) {
-      try {
-        const activeGroup = JSON.parse(localStorage.getItem('activeGroup'));
-        if (!activeGroup) {
-          throw new Error('No active group found');
-        }
-        inviteUserToGroupTeam(activeGroup._id, emails)
-          .then((response) => {
-            setIsError({
-              isError: true,
-              message: response.message,
-              type: 'success',
-            });
-
-            setTimeout(() => {
-              setLoading(false);
-              setEmails(['']);
-              setEmailErrors([]);
-              closeModal();
-            }, 3000);
-          })
-          .catch((error) => {
-            setIsError({
-              isError: true,
-              message: error?.response?.data?.errors?.message,
-              type: 'error',
-            });
-            setLoading(false);
-          });
-      } catch (error) {
-        console.error(error);
+      // Safely retrieve and parse 'activeGroup' from localStorage
+      const storedActiveGroup = localStorage.getItem('activeGroup');
+      if (!storedActiveGroup) {
+        // If it's not found, handle accordingly
+        setIsError({
+          isError: true,
+          message: 'No active group found in localStorage',
+          type: 'error',
+        });
         setLoading(false);
         return;
       }
+
+      let activeGroup;
+      try {
+        activeGroup = JSON.parse(storedActiveGroup);
+      } catch (error) {
+        console.error('Error parsing "activeGroup" from localStorage:', error);
+        setIsError({
+          isError: true,
+          message: 'Invalid data in localStorage for "activeGroup"',
+          type: 'error',
+        });
+        // Optionally remove the invalid item to prevent repeated errors
+        // localStorage.removeItem('activeGroup');
+        setLoading(false);
+        return;
+      }
+
+      if (!activeGroup || !activeGroup._id) {
+        setIsError({
+          isError: true,
+          message: 'No valid active group found',
+          type: 'error',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Proceed with your invite action
+      inviteUserToGroupTeam(activeGroup._id, emails)
+        .then((response) => {
+          setIsError({
+            isError: true,
+            message: response.message,
+            type: 'success',
+          });
+
+          setTimeout(() => {
+            setLoading(false);
+            setEmails(['']);
+            setEmailErrors([]);
+            closeModal();
+          }, 3000);
+        })
+        .catch((error) => {
+          setIsError({
+            isError: true,
+            message:
+              error?.response?.data?.errors?.message || 'Something went wrong',
+            type: 'error',
+          });
+          setLoading(false);
+        });
     } else {
-      // Display an error message or handle invalid emails
+      // Handle invalid emails
+      setLoading(false);
       console.log('Invalid emails:', emailErrors);
+      setIsError({
+        isError: true,
+        message: 'One or more emails are invalid',
+        type: 'error',
+      });
     }
   };
 

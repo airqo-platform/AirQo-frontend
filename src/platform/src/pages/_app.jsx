@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import Loading from '@/components/Loader';
 import ErrorBoundary from './ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -32,14 +33,16 @@ function App({ Component, ...rest }) {
 
     // Invoke the function and clean up on unmount
     const cleanupDevTools = disableDevTools();
-
-    return cleanupDevTools;
+    return () => {
+      cleanupDevTools();
+    };
   }, []);
 
   return (
     <Provider store={store}>
       <PersistGate loading={<Loading />} persistor={store.__persistor}>
         <ErrorBoundary>
+          <GoogleAnalytics />
           <Component {...props.pageProps} />
         </ErrorBoundary>
         <Toaster expand={true} richColors />
