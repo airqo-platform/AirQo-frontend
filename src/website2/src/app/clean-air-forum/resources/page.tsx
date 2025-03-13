@@ -3,9 +3,19 @@ import { Metadata } from 'next';
 import ResourcesPage from '@/views/cleanairforum/resources/ResourcesPage';
 
 export const metadata: Metadata = {
-  title: 'Resources | Clean Air Forum | AirQo',
+  title: 'Conference Resources & Materials',
   description:
-    'Access comprehensive resources, presentations, and documents from Clean Air Forum to stay informed about the latest trends and innovations in air quality management.',
+    'Access presentations, papers, and materials from the Clean Air Forum. Download resources about air quality monitoring, research findings, and environmental solutions.',
+  keywords:
+    'Clean Air Forum resources, conference materials, presentation downloads, air quality research, environmental papers, forum documents',
+  alternates: {
+    canonical: 'https://airqo.net/clean-air-forum/resources',
+  },
+  openGraph: {
+    title: 'Conference Resources & Materials | Clean Air Forum 2024',
+    description:
+      "Download presentations and materials from Africa's premier air quality conference.",
+  },
 };
 
 const Page = () => {
