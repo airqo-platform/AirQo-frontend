@@ -20,6 +20,13 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
     }
 
     try {
+      // Show processing message
+      setToastMessage({
+        message: 'Generating screenshot...',
+        type: 'success',
+        bgColor: 'bg-blue-500',
+      });
+
       // Hide map controls before capture
       const controls = mapRef.current
         .getContainer()
@@ -117,7 +124,7 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
       link.click();
       document.body.removeChild(link);
 
-      // Success message and analytics
+      // Update toast with success message
       setToastMessage({
         message: 'Screenshot saved successfully',
         type: 'success',
