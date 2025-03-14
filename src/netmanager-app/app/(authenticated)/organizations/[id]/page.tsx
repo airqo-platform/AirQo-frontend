@@ -1,38 +1,57 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { Suspense } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OrganizationProfile } from "@/components/Organization/organization-profile";
-import { TeamMembers } from "@/components/Organization/team-members";
-import { OrganizationRoles } from "@/components/Organization/organization-roles";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeftIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { RouteGuard } from "@/components/route-guard";
+import type React from "react"
+
+import { Suspense } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { OrganizationProfile } from "@/components/Organization/organization-profile"
+import { TeamMembers } from "@/components/Organization/team-members"
+import { OrganizationRoles } from "@/components/Organization/organization-roles"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ArrowLeftIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { RouteGuard } from "@/components/route-guard"
+import { OrganizationSetupCard } from "@/components/Organization/organization-setup-card"
+import { useGroupsDetails } from "@/core/hooks/useGroups"
 
 const LoadingFallback = () => (
   <div className="space-y-4">
     <Skeleton className="h-8 w-3/4" />
     <Skeleton className="h-64 w-full" />
   </div>
-);
+)
 
 const TabContent = ({
   value,
   children,
 }: {
-  value: string;
-  children: React.ReactNode;
+  value: string
+  children: React.ReactNode
 }) => (
   <TabsContent value={value}>
     <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
   </TabsContent>
-);
+)
 
 const OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
-  const router = useRouter();
+  const router = useRouter()
+  const { group, isLoading } = useGroupsDetails(params.id)
+
+  // For demonstration purposes, we'll simulate the pending statuses
+  // In a real app, this would come from your API
+  const setupStatus =
+    !isLoading && group
+      ? {
+          sitesAssigned: group.hasSites || false,
+          devicesAssigned: group.hasDevices || false,
+          membersInvited: group.numberOfGroupUsers > 0,
+        }
+      : {
+          sitesAssigned: false,
+          devicesAssigned: false,
+          membersInvited: false,
+        }
 
   return (
     <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
@@ -46,8 +65,19 @@ const OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
           <ArrowLeftIcon className="h-4 w-4" />
           <span>Back to Organizations</span>
         </Button>
+
         {/* Organization Details */}
         <h1 className="text-3xl font-bold mb-6">Organization Details</h1>
+
+        {/* Setup Status Card - only shown if setup is incomplete */}
+        {!isLoading && group && (
+          <OrganizationSetupCard
+            organizationId={params.id}
+            organizationName={group.grp_title || "Organization"}
+            setupStatus={setupStatus}
+          />
+        )}
+
         <Tabs defaultValue="profile">
           <TabsList className="grid grid-cols-3">
             <TabsTrigger value="profile">Organization Profile</TabsTrigger>
@@ -66,7 +96,8 @@ const OrganizationDetailsPage = ({ params }: { params: { id: string } }) => {
         </Tabs>
       </div>
     </RouteGuard>
-  );
-};
+  )
+}
 
-export default OrganizationDetailsPage;
+export default OrganizationDetailsPage
+
