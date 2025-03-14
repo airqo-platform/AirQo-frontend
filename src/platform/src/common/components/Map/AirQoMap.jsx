@@ -18,6 +18,7 @@ import { mapStyles, mapDetails } from './data/constants';
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
+import CameraIcon from '@/icons/map/cameraIcon';
 import PropTypes from 'prop-types';
 import {
   useMapData,
@@ -28,6 +29,7 @@ import {
   IconButton,
   LoadingOverlay,
   useLocationBoundaries,
+  useMapScreenshot,
 } from './functions';
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
@@ -83,6 +85,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     selectedNode,
   );
   const shareLocation = useShareLocation(setToastMessage, mapRef);
+  const captureScreenshot = useMapScreenshot(mapRef, setToastMessage);
 
   // Clear data on unmount
   useEffect(() => {
@@ -294,6 +297,11 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
             onClick={shareLocation}
             title="Share Location"
             icon={<ShareIcon />}
+          />
+          <IconButton
+            onClick={captureScreenshot}
+            title="Capture Screenshot"
+            icon={<CameraIcon fillColor="black" width={32} height={32} />}
           />
         </div>
       )}
