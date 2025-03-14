@@ -235,7 +235,7 @@ export function CreateOrganizationDialog() {
   };
 
   const onInviteMembers = async (data: z.infer<typeof inviteMembersSchema>) => {
-    // const groupId = createOrgForm.getValues().grp_title
+
     try {
       for (const member of data.members) {
         await inviteUserToGroup(member.email);
