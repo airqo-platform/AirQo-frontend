@@ -121,6 +121,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           style: mapStyle,
           center: initialCenter,
           zoom: initialZoom,
+          preserveDrawingBuffer: true
         });
 
         mapRef.current = map;

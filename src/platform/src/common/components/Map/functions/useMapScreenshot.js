@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import html2canvas from 'html2canvas';
 import { event } from '@/core/hooks/useGoogleAnalytics';
+import html2canvas from 'html2canvas';
 
 /**
  * Hook for capturing and downloading map screenshots
@@ -20,8 +20,69 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
     }
 
     try {
-      // Find the map container element
+      // Hide map controls before capture
+      const controls = mapRef.current
+        .getContainer()
+        .querySelector('.mapboxgl-ctrl-container');
+      if (controls) {
+        controls.style.visibility = 'hidden';
+      }
+
+      // Force a map render and wait for all sources and layers to load
+      mapRef.current.triggerRepaint();
+      await new Promise((resolve) => {
+        const checkLoaded = () => {
+          if (!mapRef.current.loaded() || !mapRef.current.isStyleLoaded()) {
+            setTimeout(checkLoaded, 100);
+            return;
+          }
+          setTimeout(resolve, 500); // Extra delay to ensure everything is rendered
+        };
+        checkLoaded();
+      });
+
+      // Get the map container and canvas
       const mapContainer = mapRef.current.getContainer();
+      const mapCanvas = mapRef.current.getCanvas();
+
+      // Create a temporary canvas for the final image
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = mapCanvas.width;
+      tempCanvas.height = mapCanvas.height;
+      const ctx = tempCanvas.getContext('2d');
+
+      // Draw the map canvas first
+      ctx.drawImage(mapCanvas, 0, 0);
+
+      // Capture markers layer using html2canvas
+      const markersLayer = mapContainer.querySelector(
+        '.mapboxgl-canvas-container',
+      );
+      if (markersLayer) {
+        const markersImage = await html2canvas(markersLayer, {
+          backgroundColor: null,
+          logging: false,
+          scale: window.devicePixelRatio,
+          width: mapCanvas.width,
+          height: mapCanvas.height,
+          x: markersLayer.offsetLeft,
+          y: markersLayer.offsetTop,
+        });
+
+        // Draw markers on top of the map
+        ctx.drawImage(markersImage, 0, 0);
+      }
+
+      // Add watermark
+      ctx.font = '12px Arial';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillText('© AirQo | Mapbox', 10, tempCanvas.height - 10);
+
+      // Restore map controls
+      if (controls) {
+        controls.style.visibility = 'visible';
+      }
+
       // Show capture feedback
       const flashElement = document.createElement('div');
       flashElement.style.position = 'absolute';
@@ -36,7 +97,6 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
 
       mapContainer.appendChild(flashElement);
 
-      // Fade out the flash effect
       setTimeout(() => {
         flashElement.style.opacity = '0';
         setTimeout(() => {
@@ -44,52 +104,31 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
         }, 300);
       }, 100);
 
-      // Capture the map as canvas
-      const canvas = await html2canvas(mapContainer, {
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        scale: window.devicePixelRatio || 1,
-      });
-
-      // Add watermark and attribution
-      const ctx = canvas.getContext('2d');
-      ctx.font = '12px Arial';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillText('© AirQo | Mapbox', 10, canvas.height - 10);
-
-      // Convert to image and download
-      const image = canvas.toDataURL('image/png');
+      // Convert and download
+      const finalImage = tempCanvas.toDataURL('image/jpeg', 1.0);
       const link = document.createElement('a');
-      link.href = image;
-
-      // Create filename with date
-      const date = new Date();
-      const formattedDate = date.toISOString().split('T')[0];
-      const formattedTime = date
+      link.href = finalImage;
+      link.download = `airqo-map-${new Date().toISOString().split('T')[0]}-${new Date()
         .toTimeString()
         .split(' ')[0]
-        .replace(/:/g, '-');
-      link.download = `airqo-map-${formattedDate}-${formattedTime}.png`;
+        .replace(/:/g, '-')}.jpeg`;
 
-      // Trigger download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      // Track event in analytics
+      // Success message and analytics
+      setToastMessage({
+        message: 'Screenshot saved successfully',
+        type: 'success',
+        bgColor: 'bg-green-500',
+      });
+
       event({
         action: 'map_screenshot',
         category: 'Map Interaction',
         label: `Zoom: ${mapRef.current.getZoom().toFixed(1)}`,
         value: 1,
-      });
-
-      // Show success message
-      setToastMessage({
-        message: 'Screenshot saved successfully',
-        type: 'success',
-        bgColor: 'bg-green-500',
       });
     } catch (error) {
       setToastMessage({
@@ -98,7 +137,6 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
         bgColor: 'bg-red-500',
       });
 
-      // Track error
       event({
         action: 'map_screenshot_error',
         category: 'Error',
