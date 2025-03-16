@@ -35,22 +35,6 @@ const formatTitle = (title: string) => {
   return title.replace(/[_-]/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-type Organization = {
-  hasSites?: boolean;
-  hasDevices?: boolean;
-  numberOfGroupUsers: number;
-};
-
-interface Group {
-  _id: string;
-  grp_title: string;
-  grp_industry?: string;
-  grp_profile_picture?: string;
-  grp_country?: string;
-  createdAt?: string;
-  numberOfGroupUsers: number;
-}
-
 export function OrganizationList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -68,7 +52,7 @@ export function OrganizationList() {
     }
   }
 
-  const sortOrganizations = (orgsToSort: Group[]) => {
+  const sortOrganizations = (orgsToSort: any[]) => {
     return [...orgsToSort].sort((a, b) => {
       if (sortField === "createdAt") {
         const dateA = new Date(a.createdAt || 0).getTime()
@@ -85,7 +69,7 @@ export function OrganizationList() {
 
       if (typeof compareA === "string") {
         compareA = formatTitle(compareA).toLowerCase()
-        compareB = typeof compareB === "string" ? formatTitle(compareB).toLowerCase() : compareB.toString()
+        compareB = formatTitle(compareB).toLowerCase()
       }
 
       if (compareA < compareB) return sortOrder === "asc" ? -1 : 1
@@ -94,8 +78,7 @@ export function OrganizationList() {
     })
   }
 
-
-  const filteredOrganizations = groups.filter((org: Group) => org.grp_title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredOrganizations = groups.filter((org) => org.grp_title.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const sortedOrganizations = sortOrganizations(filteredOrganizations)
 
@@ -148,9 +131,8 @@ export function OrganizationList() {
   }
 
   // For demonstration purposes, we'll simulate the pending statuses
-  // In a real app, this would come from your AP
-
-  const getPendingStatuses = (org: Organization) => {
+  // In a real app, this would come from your API
+  const getPendingStatuses = (org: any) => {
     // These would normally be properties on your organization object
     // For this example, we're simulating them
     const hasSites = org.hasSites || false
@@ -164,8 +146,19 @@ export function OrganizationList() {
     }
   }
 
-  const renderPendingStatuses = (org: Organization) => {
-    const pendingStatuses = getPendingStatuses(org)
+  const renderPendingStatuses = (org: any) => {
+    // These would normally be properties on your organization object
+    // For this example, we're using the properties from your hooks
+    const hasSites = org.hasSites || false
+    const hasDevices = org.hasDevices || false
+    const hasMembers = org.numberOfGroupUsers > 0
+
+    const pendingStatuses = {
+      sites: !hasSites,
+      devices: !hasDevices,
+      members: !hasMembers,
+    }
+
     const pendingItems = []
 
     if (pendingStatuses.sites) {

@@ -15,6 +15,7 @@ import TimezoneSelect, { allTimezones } from "react-timezone-select"
 import countryList from "react-select-country-list"
 import { Textarea } from "@/components/ui/textarea"
 import { useCreateGroup } from "@/core/hooks/useGroups"
+import { useRouter } from "next/navigation"
 
 // Schema
 const createOrgSchema = z.object({
@@ -44,6 +45,7 @@ const industries = [
 export function CreateOrganizationDialog() {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
   const countries = countryList().getData()
 
   // Form
@@ -61,21 +63,25 @@ export function CreateOrganizationDialog() {
   })
 
   // API Hook
-  const { mutate: createGroup, isLoading: isCreatingGroup } = useCreateGroup()
+  const { mutateAsync: createGroup, isLoading: isCreatingGroup } = useCreateGroup()
 
   // Form submission handler
   const onCreateOrganization = async (data: z.infer<typeof createOrgSchema>) => {
     try {
-      createGroup(data, {
-        onSuccess: (response) => {
-          toast({
-            title: "Organization created",
-            description: `Successfully created organization: ${data.grp_title}. Please complete the setup by assigning sites, devices, and inviting team members.`,
-          })
-          setOpen(false)
-          form.reset()
-        },
+      const result = await createGroup(data as any)
+
+      toast({
+        title: "Organization created",
+        description: `Successfully created organization: ${data.grp_title}. Please complete the setup by assigning sites, devices, and inviting team members.`,
       })
+
+      setOpen(false)
+      form.reset()
+
+      // Optionally navigate to the new organization's page
+      if (result && result._id) {
+        router.push(`/organizations/${result._id}`)
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -242,7 +248,7 @@ export function CreateOrganizationDialog() {
                       <FormControl>
                         <Input type="url" placeholder="https://example.com/image.jpg" {...field} />
                       </FormControl>
-                      <FormDescription>Enter a URL for the organization&apos;s profile picture (optional)</FormDescription>
+                      <FormDescription>Enter a URL for the organization's profile picture (optional)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
