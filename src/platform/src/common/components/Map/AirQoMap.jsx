@@ -19,6 +19,7 @@ import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
 import CameraIcon from '@/icons/map/cameraIcon';
+import DotsVerticalIcon from '@/icons/map/dotsVerticalIcon';
 import PropTypes from 'prop-types';
 import {
   useMapData,
@@ -49,6 +50,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const [mapStyle, setMapStyle] = useState(
     'mapbox://styles/mapbox/streets-v11',
   );
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
 
   // Parse and validate URL parameters
   let latParam, lngParam, zmParam;
@@ -121,7 +123,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           style: mapStyle,
           center: initialCenter,
           zoom: initialZoom,
-          preserveDrawingBuffer: true
+          preserveDrawingBuffer: true,
         });
 
         mapRef.current = map;
@@ -267,6 +269,23 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [selectedNode]);
 
+  // Add this useEffect
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (controlsRef.current && !controlsRef.current.contains(event.target)) {
+        setIsControlsExpanded(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Add ref to the controls container
+  const controlsRef = useRef(null);
+
   return (
     <div className="relative w-full h-full">
       {/* Map Container */}
@@ -283,27 +302,85 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
       {/* Map Controls */}
       {(width >= 1024 || !selectedNode) && (
-        <div className="absolute top-4 right-0 z-40 flex flex-col gap-4">
-          <IconButton
-            onClick={() => setIsOpen(true)}
-            title="Map Layers"
-            icon={<LayerIcon />}
-          />
-          <IconButton
-            onClick={refreshMap}
-            title="Refresh Map"
-            icon={<RefreshIcon />}
-          />
-          <IconButton
-            onClick={shareLocation}
-            title="Share Location"
-            icon={<ShareIcon />}
-          />
-          <IconButton
-            onClick={captureScreenshot}
-            title="Capture Screenshot"
-            icon={<CameraIcon />}
-          />
+        <div className="absolute top-4 right-0 z-40">
+          {width >= 1024 ? (
+            // Desktop view - vertical stack
+            <div className="flex flex-col gap-4">
+              <IconButton
+                onClick={() => setIsOpen(true)}
+                title="Map Layers"
+                icon={<LayerIcon />}
+              />
+              <IconButton
+                onClick={refreshMap}
+                title="Refresh Map"
+                icon={<RefreshIcon />}
+              />
+              <IconButton
+                onClick={shareLocation}
+                title="Share Location"
+                icon={<ShareIcon />}
+              />
+              <IconButton
+                onClick={captureScreenshot}
+                title="Capture Screenshot"
+                icon={<CameraIcon />}
+              />
+            </div>
+          ) : (
+            // Mobile view - controls expand to the left
+            <div className="relative" ref={controlsRef}>
+              <div className="flex items-center">
+                {isControlsExpanded && (
+                  <div 
+                    className={`
+                      absolute right-full mr-2 rounded-lg shadow-lg p-2 flex gap-2 z-[20000]
+                      transform transition-all duration-200 ease-in-out
+                      ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
+                    `}
+                  >
+                    <IconButton
+                      onClick={() => {
+                        setIsOpen(true);
+                        setIsControlsExpanded(false);
+                      }}
+                      title="Map Layers"
+                      icon={<LayerIcon />}
+                    />
+                    <IconButton
+                      onClick={() => {
+                        refreshMap();
+                        setIsControlsExpanded(false);
+                      }}
+                      title="Refresh Map"
+                      icon={<RefreshIcon />}
+                    />
+                    <IconButton
+                      onClick={() => {
+                        shareLocation();
+                        setIsControlsExpanded(false);
+                      }}
+                      title="Share Location"
+                      icon={<ShareIcon />}
+                    />
+                    <IconButton
+                      onClick={() => {
+                        captureScreenshot();
+                        setIsControlsExpanded(false);
+                      }}
+                      title="Capture Screenshot"
+                      icon={<CameraIcon />}
+                    />
+                  </div>
+                )}
+                <IconButton
+                  onClick={() => setIsControlsExpanded(!isControlsExpanded)}
+                  title="Map Controls"
+                  icon={<DotsVerticalIcon />}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
