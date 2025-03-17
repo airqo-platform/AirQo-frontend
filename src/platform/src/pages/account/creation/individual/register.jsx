@@ -115,7 +115,7 @@ const IndividualAccountRegistration = () => {
         <p className="text-xl text-black-700 font-normal mt-3">
           Get access to air quality analytics across Africa
         </p>
-        <form 
+        <form
           onSubmit={handleSubmit}
           aria-label="Account registration form"
           noValidate
@@ -137,10 +137,7 @@ const IndividualAccountRegistration = () => {
           <div className="mt-6" role="group" aria-label="Name fields">
             <div className="flex flex-row justify-between">
               <div className="w-full">
-                <label 
-                  htmlFor="firstName"
-                  className="text-sm text-gray-500"
-                >
+                <label htmlFor="firstName" className="text-sm text-gray-500">
                   First name*
                 </label>
                 <div className="mt-2 w-11/12">
@@ -166,10 +163,7 @@ const IndividualAccountRegistration = () => {
                 </div>
               </div>
               <div className="w-full">
-                <label 
-                  htmlFor="lastName"
-                  className="text-sm text-gray-500"
-                >
+                <label htmlFor="lastName" className="text-sm text-gray-500">
                   Last name*
                 </label>
                 <div className="mt-2 w-full">
@@ -198,10 +192,7 @@ const IndividualAccountRegistration = () => {
           </div>
           <div className="mt-6">
             <div className="w-full">
-              <label 
-                htmlFor="email"
-                className="text-sm text-gray-500"
-              >
+              <label htmlFor="email" className="text-sm text-gray-500">
                 Email address*
               </label>
               <div className="mt-2 w-full">
@@ -217,12 +208,14 @@ const IndividualAccountRegistration = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500 ${
-                    email.length >= 3 && !email.includes('@') ? 'border-red-600' : ''
+                    email.length >= 3 && !email.includes('@')
+                      ? 'border-red-600'
+                      : ''
                   }`}
                   required
                 />
                 {email.length >= 3 && !email.includes('@') && (
-                  <div 
+                  <div
                     id="email-error"
                     className="flex flex-row items-start text-xs text-red-600 py-2"
                     role="alert"
@@ -236,10 +229,7 @@ const IndividualAccountRegistration = () => {
           </div>
           <div className="mt-6">
             <div className="w-full">
-              <label 
-                htmlFor="password"
-                className="text-sm text-gray-500"
-              >
+              <label htmlFor="password" className="text-sm text-gray-500">
                 Password*
               </label>
               <div className="mt-2 w-full relative">
@@ -264,7 +254,7 @@ const IndividualAccountRegistration = () => {
                   maxLength={'20'}
                   required
                 />
-                <span 
+                <span
                   id="password-requirements"
                   className="text-gray-400 text-sm"
                 >
@@ -274,16 +264,23 @@ const IndividualAccountRegistration = () => {
                   type="button"
                   onClick={showPassword}
                   className="absolute right-4 top-[25px] transform -translate-y-1/2 cursor-pointer"
-                  aria-label={passwordType === 'password' ? 'Show password' : 'Hide password'}
+                  aria-label={
+                    passwordType === 'password'
+                      ? 'Show password'
+                      : 'Hide password'
+                  }
                 >
                   {passwordType === 'password' ? (
                     <VisibilityOffIcon aria-hidden="true" />
                   ) : (
-                    <VisibilityOnIcon className="stroke-1 stroke-svg-green" aria-hidden="true" />
+                    <VisibilityOnIcon
+                      className="stroke-1 stroke-svg-green"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
                 {passwordWordErrors && (
-                  <div 
+                  <div
                     id="password-error"
                     className="flex flex-row items-start text-xs text-red-600 py-2"
                     role="alert"
