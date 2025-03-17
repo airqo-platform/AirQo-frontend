@@ -141,14 +141,26 @@ const UserLogin = () => {
           Get access to air quality analytics across Africa
         </p>
         {error && <Toast type="error" timeout={8000} message={error} />}
-        <form onSubmit={handleLogin} data-testid="login-form">
+        <form
+          onSubmit={handleLogin}
+          data-testid="login-form"
+          aria-label="Login form"
+          noValidate
+        >
           <div className="mt-6">
             <div className="w-full">
-              <div className="text-sm text-grey-300">Email Address</div>
+              <label htmlFor="email" className="text-sm text-grey-300">
+                Email Address
+              </label>
               <div className="mt-2 w-full">
                 <input
+                  id="email"
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   data-testid="username"
+                  aria-required="true"
+                  aria-label="Email address"
                   onChange={(e) =>
                     handleInputChange('userName', e.target.value)
                   }
@@ -161,28 +173,44 @@ const UserLogin = () => {
           </div>
           <div className="mt-6">
             <div className="w-full">
-              <div className="text-sm text-grey-300">Password</div>
+              <label htmlFor="password" className="text-sm text-grey-300">
+                Password
+              </label>
               <div className="mt-2 w-full relative">
                 <input
+                  id="password"
+                  type={passwordType}
+                  name="password"
+                  autoComplete="current-password"
                   data-testid="password"
+                  aria-required="true"
+                  aria-label="Password"
                   onChange={(e) =>
                     handleInputChange('password', e.target.value)
                   }
-                  type={passwordType}
                   placeholder="******"
                   className="input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500"
                   required
                 />
-                <div
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                <button
+                  type="button"
                   onClick={togglePasswordVisibility}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                  aria-label={
+                    passwordType === 'password'
+                      ? 'Show password'
+                      : 'Hide password'
+                  }
                 >
                   {passwordType === 'password' ? (
-                    <VisibilityOffIcon />
+                    <VisibilityOffIcon aria-hidden="true" />
                   ) : (
-                    <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
+                    <VisibilityOnIcon
+                      className="stroke-1 stroke-svg-green"
+                      aria-hidden="true"
+                    />
                   )}
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -192,6 +220,7 @@ const UserLogin = () => {
               className="w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950"
               type="submit"
               disabled={loading}
+              aria-label={loading ? 'Logging in...' : 'Login'}
             >
               {loading ? (
                 <Spinner data-testid="spinner" width={25} height={25} />
