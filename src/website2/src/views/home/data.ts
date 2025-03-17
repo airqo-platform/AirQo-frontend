@@ -15,36 +15,30 @@ export const partnerLogos = [Google, UsMission, Enabel, WorldBank, UN];
 export const accordionItems = {
   cities: [
     {
-      title: 'High Resolution Network',
-      content:
-        'We want cleaner air in all African cities. We leverage our understanding of the African context.',
+      titleKey: 'accordion.cities.highResolution.title',
+      contentKey: 'accordion.cities.highResolution.content',
     },
     {
-      title: 'Digital air quality platforms',
-      content:
-        'We empower decision-makers in African cities We increase access to air quality data evidence.',
+      titleKey: 'accordion.cities.digitalPlatforms.title',
+      contentKey: 'accordion.cities.digitalPlatforms.content',
     },
     {
-      title: 'Policy engagement',
-      content:
-        'We engage city authorities and government agencies We empower local leaders with air quality information.',
+      titleKey: 'accordion.cities.policyEngagement.title',
+      contentKey: 'accordion.cities.policyEngagement.content',
     },
   ],
   communities: [
     {
-      title: 'AirQommunity Champions',
-      content:
-        'A growing network of individual change makers Championing local leaders and demand action.',
+      titleKey: 'accordion.communities.champions.title',
+      contentKey: 'accordion.communities.champions.content',
     },
     {
-      title: 'Free Access To Air Quality Information',
-      content:
-        'We train individuals and communities Facilitating access to air quality information.',
+      titleKey: 'accordion.communities.freeAccess.title',
+      contentKey: 'accordion.communities.freeAccess.content',
     },
     {
-      title: 'AirQo Hosts',
-      content:
-        'We engage locals host our deployment activities We involve locals in our maintenance drives.',
+      titleKey: 'accordion.communities.hosts.title',
+      contentKey: 'accordion.communities.hosts.content',
     },
   ],
 };

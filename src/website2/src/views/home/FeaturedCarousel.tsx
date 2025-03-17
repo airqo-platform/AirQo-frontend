@@ -1,12 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
 import mainConfig from '@/configs/mainConfigs';
 import { useHighlights } from '@/hooks/useApiHooks';
+import { Link } from '@/navigation';
 
 const FeaturedCarousel = () => {
   const { data: highlights, isLoading } = useHighlights();

@@ -1,5 +1,6 @@
 "use client"
 
+
 import type React from "react"
 
 import { useState } from "react"
@@ -10,6 +11,7 @@ import { useAppSelector } from "@/core/redux/hooks"
 import { settings } from "@/core/apis/settings"
 import { useToast } from "@/components/ui/use-toast"
 import { Progress } from "@/components/ui/progress"
+
 import { Eye, EyeOff, CheckCircle, XCircle, Lock, ShieldCheck } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 
@@ -53,6 +55,7 @@ export default function PasswordEdit() {
         if (!value) {
           error = "New password is required"
         } else if (!passwordRegex.test(value)) {
+
           error = "Password must meet all requirements"
         }
         break
@@ -137,6 +140,7 @@ export default function PasswordEdit() {
   const togglePasswordVisibility = (field: "current" | "new" | "confirm") => {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }))
   }
+
 
   const renderPasswordStrength = () => {
     const strength = calculatePasswordStrength(passwords.newPassword)
