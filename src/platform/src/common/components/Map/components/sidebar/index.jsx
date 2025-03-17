@@ -13,10 +13,7 @@ import {
   setMapLoading,
 } from '@/lib/store/services/map/MapSlice';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-import {
-  fetchRecentMeasurementsData,
-  // clearMeasurementsData,
-} from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
+import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
 import { useWindowSize } from '@/lib/windowSize';
@@ -47,7 +44,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
 
-  // Local States
+  // Local state variables
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -56,12 +53,12 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [error, setError] = useState({ isError: false, message: '', type: '' });
 
-  // Redux Selectors
+  // Redux selectors
   const openLocationDetails = useSelector(
     (state) => state.map.showLocationDetails,
   );
   const selectedLocation = useSelector(
-    (state) => state?.map?.selectedLocation ?? null,
+    (state) => state.map.selectedLocation ?? null,
   );
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const measurementsLoading = useSelector(
@@ -76,12 +73,11 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const suggestedSites = useSelector((state) => state.map.suggestedSites);
 
   const isSearchFocused = isFocused || reduxSearchTerm.length > 0;
-
   const googleMapsLoaded = useGoogleMaps(
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
   );
 
-  // Memoized Autocomplete Session Token
+  // Memoized autocomplete session token
   const autoCompleteSessionToken = useMemo(() => {
     if (googleMapsLoaded && window.google) {
       return new window.google.maps.places.AutocompleteSessionToken();
@@ -89,9 +85,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return null;
   }, [googleMapsLoaded]);
 
-  /**
-   * Fetch Weekly Predictions
-   */
+  // Fetch weekly predictions
   const fetchWeeklyPredictions = useCallback(async () => {
     if (!selectedLocation?._id) {
       setWeeklyPredictions([]);
@@ -118,9 +112,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [selectedLocation]);
 
-  /**
-   * Initialize Country Data
-   */
+  // Initialize country data from siteDetails and country list
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
       const uniqueCountries = siteDetails.reduce((acc, site) => {
@@ -136,9 +128,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [siteDetails]);
 
-  /**
-   * Reset Map on Mount
-   */
+  // Reset map on mount
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
     dispatch(setSelectedLocation(null));
@@ -146,17 +136,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     setIsFocused(false);
   }, [dispatch]);
 
-  /**
-   * Handle Map Loading Indicator
-   */
+  // Handle map loading indicator
   useEffect(() => {
     const timer = setTimeout(() => dispatch(setMapLoading(false)), 2000);
     return () => clearTimeout(timer);
   }, [dispatch, selectedLocation]);
 
-  /**
-   * Update Selected Site and Fetch Measurements & Predictions
-   */
+  // Update selected site and fetch measurements and predictions
   useEffect(() => {
     if (selectedLocation) {
       dispatch(fetchRecentMeasurementsData({ site_id: selectedLocation._id }))
@@ -173,9 +159,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [selectedLocation, dispatch, fetchWeeklyPredictions]);
 
-  /**
-   * Handle Location Selection
-   */
+  // Handle location selection
   const handleLocationSelect = useCallback(
     async (data) => {
       try {
@@ -216,9 +200,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     [dispatch],
   );
 
-  /**
-   * Handle Search Functionality
-   */
+  // Handle search functionality
   const handleSearch = useCallback(async () => {
     if (!reduxSearchTerm || reduxSearchTerm.length <= 1) {
       setSearchResults([]);
@@ -238,7 +220,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         reduxSearchTerm,
         autoCompleteSessionToken,
       );
-
       if (predictions?.length) {
         setSearchResults(
           predictions.map(({ description, place_id }) => ({
@@ -257,9 +238,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [reduxSearchTerm, autoCompleteSessionToken, googleMapsLoaded]);
 
-  /**
-   * Handle Exit from Search or Details
-   */
+  // Handle exit from search or details view
   const handleExit = useCallback(() => {
     setIsFocused(false);
     dispatch(setOpenLocationDetails(false));
@@ -271,9 +250,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     dispatch(reSetMap());
   }, [dispatch]);
 
-  /**
-   * Handle Selection of All Sites
-   */
+  // Handle selection of all sites
   const handleAllSelection = useCallback(() => {
     setSelectedCountry(null);
     dispatch(reSetMap());
@@ -362,14 +339,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                 onSearch={handleSearch}
                 onClearSearch={handleExit}
                 focus={isSearchFocused}
-                showSearchResultsNumber={true}
+                showSearchResultsNumber
               />
             </div>
 
             {reduxSearchTerm === '' && (
               <div className="border border-secondary-neutral-light-100 mt-8" />
             )}
-
             {reduxSearchTerm && (
               <div
                 className={`border border-secondary-neutral-light-100 ${reduxSearchTerm.length > 0 ? 'mt-3' : ''}`}
@@ -429,7 +405,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                   }
                 </h3>
               </div>
-
               <div className="mx-4">
                 <WeekPrediction
                   selectedSite={selectedLocation}

@@ -32,36 +32,48 @@ const Settings = () => {
 
   useEffect(() => {
     setLoading(true);
+
     const storedActiveGroup = localStorage.getItem('activeGroup');
-    if (!storedActiveGroup) return setLoading(false);
+    if (!storedActiveGroup) {
+      setLoading(false);
+      return;
+    }
 
-    setUserGroup(JSON.parse(storedActiveGroup));
-    const activeGroupId =
-      storedActiveGroup && JSON.parse(storedActiveGroup)._id;
+    let parsedActiveGroup = null;
+    try {
+      parsedActiveGroup = JSON.parse(storedActiveGroup);
+    } catch (error) {
+      console.error('Error parsing "activeGroup" from localStorage:', error);
+
+      setLoading(false);
+      return;
+    }
+
+    // Now we have a valid parsedActiveGroup object
+    setUserGroup(parsedActiveGroup);
+
+    const activeGroupId = parsedActiveGroup?._id;
     const storedUserPermissions =
-      storedActiveGroup && JSON.parse(storedActiveGroup).role.role_permissions;
+      parsedActiveGroup?.role?.role_permissions || [];
 
-    if (storedUserPermissions && storedUserPermissions.length > 0) {
+    if (storedUserPermissions.length > 0) {
       setUserPermissions(storedUserPermissions);
     } else {
       setUserPermissions([]);
       dispatch(setChartTab(0));
     }
 
-    try {
-      getAssignedGroupMembers(activeGroupId)
-        .then((response) => {
-          setTeamMembers(response.group_members);
-        })
-        .catch((error) => {
-          console.error(`Error fetching user details: ${error}`);
-        });
-    } catch (error) {
-      console.error(`Error fetching user details: ${error}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [userInfo, preferences]);
+    getAssignedGroupMembers(activeGroupId)
+      .then((response) => {
+        setTeamMembers(response.group_members);
+      })
+      .catch((error) => {
+        console.error(`Error fetching user details: ${error}`);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [userInfo, preferences, dispatch]);
 
   return (
     <Layout topbarTitle={'Settings'} noBorderBottom pageTitle="Settings">

@@ -3,9 +3,19 @@ import { Metadata } from 'next';
 import EventsPage from '@/views/cleanAirNetwork/events/EventsPage';
 
 export const metadata: Metadata = {
-  title: 'Events | Clean Air Network | AirQo',
+  title: 'Network Events & Activities',
   description:
-    'Explore upcoming and past events hosted by Clean Air Network. Stay informed about conferences, webinars, and networking opportunities designed to advance clean air initiatives.',
+    'Explore upcoming Clean Air Network events, workshops, and activities. Join our community gatherings, training sessions, and collaborative initiatives for better air quality in Africa.',
+  keywords:
+    'Clean Air Network events, air quality workshops, environmental activities, network meetings, air quality training, environmental workshops Africa, clean air initiatives',
+  alternates: {
+    canonical: 'https://airqo.net/clean-air-network/events',
+  },
+  openGraph: {
+    title: 'Network Events & Activities | Clean Air Network',
+    description:
+      'Join our community events and activities focused on improving air quality across Africa.',
+  },
 };
 
 const Page = () => {

@@ -4,11 +4,14 @@ import React from 'react';
 import MainLayout from '@/components/layouts/MainLayout';
 
 export const metadata: Metadata = {
-  title: 'AirQo Solutions | Air Quality for African Cities and Communities',
+  title: {
+    template: '%s | AirQo Solutions',
+    default: 'Air Quality Solutions for African Cities and Communities',
+  },
   description:
-    'Discover AirQo’s solutions for improving air quality across African cities and communities. Explore our research, partnerships, and tools designed to address air pollution challenges in Africa.',
+    "Discover AirQo's comprehensive solutions for improving air quality across African cities and communities. Our research-backed approaches and partnerships address air pollution challenges throughout Africa.",
   keywords:
-    'AirQo solutions, air quality solutions, African cities air quality, community air quality, air quality research, air pollution solutions, environmental solutions Africa, clean air Africa, air quality projects',
+    'AirQo solutions, air quality solutions, African cities air quality, community air quality, air pollution solutions, environmental solutions Africa',
 };
 
 type SolutionsLayoutLayoutProps = {
