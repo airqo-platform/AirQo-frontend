@@ -302,7 +302,7 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
           <IconButton
             onClick={captureScreenshot}
             title="Capture Screenshot"
-            icon={<CameraIcon fillColor="black" width={32} height={32} />}
+            icon={<CameraIcon />}
           />
         </div>
       )}
