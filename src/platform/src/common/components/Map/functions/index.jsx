@@ -8,3 +8,4 @@ export {
   IconButton,
   LoadingOverlay,
 } from './useMapControls';
+export { default as useMapScreenshot } from './useMapScreenshot';
