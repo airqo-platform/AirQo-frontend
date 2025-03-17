@@ -41,21 +41,6 @@ class AppColors {
   // Accent colors
   static Color accentBlue = Color(0xFF0A46EB);         // Primary/700 - Deeper blue
   static Color buttonHighlight = Color(0xFF145FFF);    // Primary button color
-  
-  // Retaining original colors from the provided code
-  static Color backgroundColor = Color(0xffF9FAFB);
-  static Color backgroundColor2 = Color(0xffFAFAFA);
-  static Color borderColor2 = Color(0xffE1E7EC);
-  static Color highlightColor = Color(0xffF3F6F8);
-  static Color boldHeadlineColor = Color(0xff6F87A1);
-  static Color boldHeadlineColor2 = Color(0xff9EA3AA);
-  static Color boldHeadlineColor3 = Color(0xff7A7F87);
-  static Color boldHeadlineColor4 = Color(0xff2E2F33);
-  static Color highlightColor2 = Color(0xffE2E3E5);
-  static Color secondaryHeadlineColor = Color(0xff6F87A1);
-  static Color darkThemeBackground = Color(0xff1C1D20);
-  static Color secondaryHeadlineColor2 = Color(0xff60646C);
-  static Color secondaryHeadlineColor3 = Color(0xff7A7F87);
 }
 
 class AppTheme {
