@@ -77,7 +77,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: AppColors.boldHeadlineColor),
+                color: AppColors.textMedium),
           ),
           centerTitle: true,
         ),
@@ -272,7 +272,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   children: [
                                     Text("Already have an account?",
                                         style: TextStyle(
-                                            color: AppColors.boldHeadlineColor,
+                                            color: AppColors.textMedium,
                                             fontWeight: FontWeight.w500)),
                                     InkWell(
                                       onTap: () => Navigator.of(context).push(
@@ -343,7 +343,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 children: [
                                   Text("Can't see the email?",
                                       style: TextStyle(
-                                          color: AppColors.boldHeadlineColor,
+                                          color: AppColors.textMedium,
                                           fontWeight: FontWeight.w500)),
                                   InkWell(
                                     onTap: () => Navigator.of(context).push(

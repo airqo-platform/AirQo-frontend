@@ -427,7 +427,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           title: Text(
             'Add location',
             style: TextStyle(
-                color: AppColors.boldHeadlineColor,
+                color: AppColors.textMedium,
                 fontSize: 24,
                 fontWeight: FontWeight.w700),
           ),

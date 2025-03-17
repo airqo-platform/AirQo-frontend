@@ -37,7 +37,7 @@ class _KyaPageState extends State<KyaPage> {
                 style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.boldHeadlineColor),
+                    color: AppColors.textMedium),
               ),
               SizedBox(height: 8),
               Text(

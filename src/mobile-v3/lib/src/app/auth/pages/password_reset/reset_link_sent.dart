@@ -95,13 +95,13 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                   keyboardType: TextInputType.number,
                   animationType: AnimationType.fade,
                   hintCharacter: "0",
-                  //backgroundColor: AppColors.boldHeadlineColor4,
+                  //backgroundColor: AppColors.darkHighlight,
 
 
                   textStyle: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.boldHeadlineColor3
+                    color: AppColors.darkTextTertiary
 
                   ),
                   pinTheme: PinTheme(

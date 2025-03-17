@@ -25,7 +25,7 @@ class ResetSuccessPage extends StatelessWidget {
           style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.boldHeadlineColor2),
+              color: AppColors.darkTextSecondary),
         ),
         centerTitle: true,
 

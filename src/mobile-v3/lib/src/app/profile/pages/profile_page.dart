@@ -67,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     Text(
                                       "${firstName} ${lastName}",
                                       style: TextStyle(
-                                        color: AppColors.boldHeadlineColor,
+                                        color: AppColors.textMedium,
                                         fontSize: 24,
                                         fontWeight: FontWeight.w700,
                                       ),
