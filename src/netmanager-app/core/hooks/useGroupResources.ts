@@ -1,20 +1,25 @@
 import { useQuery } from "@tanstack/react-query"
 import { sites } from "../apis/sites"
 import { devices } from "../apis/devices"
-import { groupsApi } from "@/core/apis/organizations"
+import { groupsApi } from "../apis/organizations"
+import type { DevicesSummaryResponse } from "@/app/types/devices"
+import type { GroupResponse } from "@/app/types/groups"
 
-// Update the useGroupSites hook to check for group name matches
+/**
+ * Custom hook to fetch sites assigned to a specific group
+ * This hook checks if sites belong to a group by examining their groups array
+ */
 export const useGroupSites = (groupId: string) => {
   return useQuery({
     queryKey: ["group-sites", groupId],
     queryFn: async () => {
       try {
         // Get the group details to get the group name
-        const groupDetails = await groupsApi.getGroupDetailsApi(groupId)
+        const groupDetails = (await groupsApi.getGroupDetailsApi(groupId)) as GroupResponse
         const groupName = groupDetails?.group?.grp_title
 
         // First attempt: Try to use the direct API endpoint with group name
-        const response = await sites.getSitesByGroupApi(groupName || groupId)
+        const response = await sites.getSitesSummary("", groupName || "")
 
         // If we got sites directly from the API, return them
         if (response.sites && response.sites.length > 0) {
@@ -24,78 +29,21 @@ export const useGroupSites = (groupId: string) => {
           }
         }
 
-        // If the direct API returned no sites, fall back to the client-side filtering approach
-        const allSitesResponse = await sites.getAllSitesApi()
+        // If the direct API returned no sites, we need to check if there are any sites
+        // that reference this group by ID or name
+        // This would require fetching all sites and filtering, which may not be feasible
+        // depending on your data volume
 
-        // Filter sites that have the groupId or groupName in their groups array
-        const groupSites = allSitesResponse.sites.filter((site) => {
-          // Check if the site has the group in its groups array (by ID or name)
-          const siteHasGroup =
-            site.groups &&
-            (site.groups.includes(groupId) ||
-              site.groups.includes(groupName) ||
-              site.groups.some((group) => group === groupId || group === groupName))
-
-          // Also check if any of the site's devices belong to the group (by ID or name)
-          const siteDevicesHaveGroup =
-            site.devices &&
-            site.devices.some(
-              (device) =>
-                device.groups?.includes(groupId) ||
-                device.groups?.includes(groupName) ||
-                device.group === groupId ||
-                device.group === groupName,
-            )
-
-          return siteHasGroup || siteDevicesHaveGroup
-        })
-
+        // For now, we'll return what we have
         return {
-          sites: groupSites,
-          hasSites: groupSites.length > 0,
+          sites: [],
+          hasSites: false,
         }
       } catch (error) {
-        // If the direct API endpoint failed, fall back to the client-side filtering approach
-        try {
-          // Get the group details to get the group name
-          const groupDetails = await groupsApi.getGroupDetailsApi(groupId)
-          const groupName = groupDetails?.group?.grp_title
-
-          const allSitesResponse = await sites.getSitesSummary()
-
-          // Filter sites that have the groupId or groupName in their groups array
-          const groupSites = allSitesResponse.sites.filter((site) => {
-            // Check if the site has the group in its groups array (by ID or name)
-            const siteHasGroup =
-              site.groups &&
-              (site.groups.includes(groupId) ||
-                site.groups.includes(groupName) ||
-                site.groups.some((group) => group === groupId || group === groupName))
-
-            // Also check if any of the site's devices belong to the group (by ID or name)
-            const siteDevicesHaveGroup =
-              site.devices &&
-              site.devices.some(
-                (device) =>
-                  device.groups?.includes(groupId) ||
-                  device.groups?.includes(groupName) ||
-                  device.group === groupId ||
-                  device.group === groupName,
-              )
-
-            return siteHasGroup || siteDevicesHaveGroup
-          })
-
-          return {
-            sites: groupSites,
-            hasSites: groupSites.length > 0,
-          }
-        } catch (innerError) {
-          console.error("Failed to fetch sites:", innerError)
-          return {
-            sites: [],
-            hasSites: false,
-          }
+        console.error("Failed to fetch sites:", error)
+        return {
+          sites: [],
+          hasSites: false,
         }
       }
     },
@@ -104,18 +52,20 @@ export const useGroupSites = (groupId: string) => {
   })
 }
 
-// Update the useGroupDevices hook to check for group name matches
+/**
+ * Custom hook to fetch devices assigned to a specific group
+ */
 export const useGroupDevices = (groupId: string) => {
   return useQuery({
     queryKey: ["group-devices", groupId],
     queryFn: async () => {
       try {
         // Get the group details to get the group name
-        const groupDetails = await groupsApi.getGroupDetailsApi(groupId)
+        const groupDetails = (await groupsApi.getGroupDetailsApi(groupId)) as GroupResponse
         const groupName = groupDetails?.group?.grp_title
 
         // First attempt: Try to use the direct API endpoint with group name
-        const response = await devices.getDevicesByGroupApi(groupName || groupId)
+        const response = (await devices.getDevicesSummaryApi("", groupName || "")) as DevicesSummaryResponse
 
         // If we got devices directly from the API, return them
         if (response.devices && response.devices.length > 0) {
@@ -125,72 +75,21 @@ export const useGroupDevices = (groupId: string) => {
           }
         }
 
-        // If the direct API returned no devices, fall back to the client-side filtering approach
-        const allDevicesResponse = await devices.getAllDevicesApi()
+        // If the direct API returned no devices, we need to check if there are any devices
+        // that reference this group by ID or name
+        // This would require fetching all devices and filtering, which may not be feasible
+        // depending on your data volume
 
-        // Filter devices that have the groupId or groupName in their groups array
-        const groupDevices = allDevicesResponse.devices.filter((device) => {
-          // Check if the device has the group in its groups array (by ID or name)
-          const deviceHasGroup =
-            device.groups &&
-            (device.groups.includes(groupId) ||
-              device.groups.includes(groupName) ||
-              device.groups.some((group) => group === groupId || group === groupName))
-
-          // Also check if the device's site belongs to the group (by ID or name)
-          const deviceSiteHasGroup =
-            device.site &&
-            device.site.groups &&
-            (device.site.groups.includes(groupId) ||
-              device.site.groups.includes(groupName) ||
-              device.site.groups.some((group) => group === groupId || group === groupName))
-
-          return deviceHasGroup || deviceSiteHasGroup
-        })
-
+        // For now, we'll return what we have
         return {
-          devices: groupDevices,
-          hasDevices: groupDevices.length > 0,
+          devices: [],
+          hasDevices: false,
         }
       } catch (error) {
-        // If the direct API endpoint failed, fall back to the client-side filtering approach
-        try {
-          // Get the group details to get the group name
-          const groupDetails = await groupsApi.getGroupDetailsApi(groupId)
-          const groupName = groupDetails?.group?.grp_title
-
-          const allDevicesResponse = await device.getAllDevicesApi()
-
-          // Filter devices that have the groupId or groupName in their groups array
-          const groupDevices = allDevicesResponse.devices.filter((device) => {
-            // Check if the device has the group in its groups array (by ID or name)
-            const deviceHasGroup =
-              device.groups &&
-              (device.groups.includes(groupId) ||
-                device.groups.includes(groupName) ||
-                device.groups.some((group) => group === groupId || group === groupName))
-
-            // Also check if the device's site belongs to the group (by ID or name)
-            const deviceSiteHasGroup =
-              device.site &&
-              device.site.groups &&
-              (device.site.groups.includes(groupId) ||
-                device.site.groups.includes(groupName) ||
-                device.site.groups.some((group) => group === groupId || group === groupName))
-
-            return deviceHasGroup || deviceSiteHasGroup
-          })
-
-          return {
-            devices: groupDevices,
-            hasDevices: groupDevices.length > 0,
-          }
-        } catch (innerError) {
-          console.error("Failed to fetch devices:", innerError)
-          return {
-            devices: [],
-            hasDevices: false,
-          }
+        console.error("Failed to fetch devices:", error)
+        return {
+          devices: [],
+          hasDevices: false,
         }
       }
     },
@@ -210,7 +109,10 @@ export const useGroupResources = (groupId: string) => {
   // We can also get the group details to check for members
   const { data: groupData, isLoading: isLoadingGroup } = useQuery({
     queryKey: ["groupDetails", groupId],
-    queryFn: () => groupsApi.getGroupDetailsApi(groupId),
+    queryFn: async () => {
+      const response = (await groupsApi.getGroupDetailsApi(groupId)) as GroupResponse
+      return response
+    },
     enabled: !!groupId,
   })
 
@@ -220,14 +122,14 @@ export const useGroupResources = (groupId: string) => {
     isLoading,
     hasSites: sitesData?.hasSites || false,
     hasDevices: devicesData?.hasDevices || false,
-    hasMembers: groupData?.group?.numberOfGroupUsers > 0 || false,
+    hasMembers: (groupData?.group?.numberOfGroupUsers || 0) > 0,
     sites: sitesData?.sites || [],
     devices: devicesData?.devices || [],
     setupComplete:
       !isLoading &&
       (sitesData?.hasSites || false) &&
       (devicesData?.hasDevices || false) &&
-      (groupData?.group?.numberOfGroupUsers > 0 || false),
+      (groupData?.group?.numberOfGroupUsers || 0) > 0,
   }
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Search, Loader2, ArrowUpDown, Eye, Building2, Users, Filter, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { useGroups } from "@/core/hooks/useGroups"
+import { useOrganizationResources } from "@/core/hooks/useOrganizationResources"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -25,9 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useQueries } from "@tanstack/react-query"
-import { sitesApi } from "@/core/apis/sites"
-import { devicesApi } from "@/core/apis/devices"
+import type { Group } from "@/app/types/groups"
 
 const ITEMS_PER_PAGE = 8
 
@@ -44,145 +43,12 @@ export function OrganizationList() {
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
   const [viewMode, setViewMode] = useState<"table" | "grid">("table")
+
+  // Fetch groups
   const { groups, isLoading: isLoadingGroups, error } = useGroups()
-  const [groupResourceMap, setGroupResourceMap] = useState(new Map())
-  const [isLoadingResources, setIsLoadingResources] = useState(true)
 
-  // Fetch all sites and devices to determine which groups have resources
-  const [{ data: sitesData, isLoading: isLoadingSites }, { data: devicesData, isLoading: isLoadingDevices }] =
-    useQueries({
-      queries: [
-        {
-          queryKey: ["all-sites"],
-          queryFn: () => sitesApi.getAllSitesApi(),
-        },
-        {
-          queryKey: ["all-devices"],
-          queryFn: () => devicesApi.getAllDevicesApi(),
-        },
-      ],
-    })
-
-  // Process sites and devices data to build the resource map
-  useEffect(() => {
-    if (!isLoadingSites && !isLoadingDevices && sitesData && devicesData) {
-      const newMap = new Map()
-
-      // Initialize map for all groups
-      if (groups) {
-        groups.forEach((group) => {
-          newMap.set(group._id, { hasSites: false, hasDevices: false })
-        })
-      }
-
-      // Process sites
-      if (sitesData.sites) {
-        sitesData.sites.forEach((site: any) => {
-          // Check site's groups array
-          if (site.groups && Array.isArray(site.groups)) {
-            site.groups.forEach((groupIdentifier: string) => {
-              // Try to find a matching group by ID or title
-              const matchingGroup = groups.find((g) => g._id === groupIdentifier || g.grp_title === groupIdentifier)
-
-              if (matchingGroup) {
-                if (!newMap.has(matchingGroup._id)) {
-                  newMap.set(matchingGroup._id, { hasSites: false, hasDevices: false })
-                }
-
-                newMap.get(matchingGroup._id).hasSites = true
-              }
-            })
-          }
-
-          // Also check if any of the site's devices belong to a group
-          if (site.devices && Array.isArray(site.devices)) {
-            site.devices.forEach((device: any) => {
-              if (device.groups && Array.isArray(device.groups)) {
-                device.groups.forEach((groupIdentifier: string) => {
-                  const matchingGroup = groups.find((g) => g._id === groupIdentifier || g.grp_title === groupIdentifier)
-
-                  if (matchingGroup) {
-                    if (!newMap.has(matchingGroup._id)) {
-                      newMap.set(matchingGroup._id, { hasSites: false, hasDevices: false })
-                    }
-
-                    // This means the group has both sites and devices
-                    newMap.get(matchingGroup._id).hasSites = true
-                    newMap.get(matchingGroup._id).hasDevices = true
-                  }
-                })
-              } else if (device.group) {
-                // Some devices might have a single group property instead of an array
-                const matchingGroup = groups.find((g) => g._id === device.group || g.grp_title === device.group)
-
-                if (matchingGroup) {
-                  if (!newMap.has(matchingGroup._id)) {
-                    newMap.set(matchingGroup._id, { hasSites: false, hasDevices: false })
-                  }
-
-                  // This means the group has both sites and devices
-                  newMap.get(matchingGroup._id).hasSites = true
-                  newMap.get(matchingGroup._id).hasDevices = true
-                }
-              }
-            })
-          }
-        })
-      }
-
-      // Process devices
-      if (devicesData.devices) {
-        devicesData.devices.forEach((device: any) => {
-          // Check device's groups array
-          if (device.groups && Array.isArray(device.groups)) {
-            device.groups.forEach((groupIdentifier: string) => {
-              // Try to find a matching group by ID or title
-              const matchingGroup = groups.find((g) => g._id === groupIdentifier || g.grp_title === groupIdentifier)
-
-              if (matchingGroup) {
-                if (!newMap.has(matchingGroup._id)) {
-                  newMap.set(matchingGroup._id, { hasSites: false, hasDevices: false })
-                }
-
-                newMap.get(matchingGroup._id).hasDevices = true
-              }
-            })
-          } else if (device.group) {
-            // Some devices might have a single group property instead of an array
-            const matchingGroup = groups.find((g) => g._id === device.group || g.grp_title === device.group)
-
-            if (matchingGroup) {
-              if (!newMap.has(matchingGroup._id)) {
-                newMap.set(matchingGroup._id, { hasSites: false, hasDevices: false })
-              }
-
-              newMap.get(matchingGroup._id).hasDevices = true
-            }
-          }
-
-          // Also check if the device's site belongs to a group
-          if (device.site && device.site.groups && Array.isArray(device.site.groups)) {
-            device.site.groups.forEach((groupIdentifier: string) => {
-              const matchingGroup = groups.find((g) => g._id === groupIdentifier || g.grp_title === groupIdentifier)
-
-              if (matchingGroup) {
-                if (!newMap.has(matchingGroup._id)) {
-                  newMap.set(matchingGroup._id, { hasSites: false, hasDevices: false })
-                }
-
-                // This means the group has both sites and devices
-                newMap.get(matchingGroup._id).hasSites = true
-                newMap.get(matchingGroup._id).hasDevices = true
-              }
-            })
-          }
-        })
-      }
-
-      setGroupResourceMap(newMap)
-      setIsLoadingResources(false)
-    }
-  }, [sitesData, devicesData, isLoadingSites, isLoadingDevices, groups])
+  // Fetch resource status for all organizations
+  const { data: resourceMap, isLoading: isLoadingResources } = useOrganizationResources(groups)
 
   const isLoading = isLoadingGroups || isLoadingResources
 
@@ -195,7 +61,7 @@ export function OrganizationList() {
     }
   }
 
-  const sortOrganizations = (orgsToSort: any[]) => {
+  const sortOrganizations = (orgsToSort: Group[]) => {
     return [...orgsToSort].sort((a, b) => {
       if (sortField === "createdAt") {
         const dateA = new Date(a.createdAt || 0).getTime()
@@ -273,9 +139,9 @@ export function OrganizationList() {
       .substring(0, 2)
   }
 
-  const renderPendingStatuses = (org: any) => {
+  const renderPendingStatuses = (org: Group) => {
     // Get resource status from our map
-    const resourceStatus = groupResourceMap.get(org._id) || { hasSites: false, hasDevices: false }
+    const resourceStatus = resourceMap?.get(org._id) || { hasSites: false, hasDevices: false }
 
     // Check if the group has members
     const hasMembers = org.numberOfGroupUsers > 0

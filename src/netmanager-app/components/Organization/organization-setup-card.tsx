@@ -1,25 +1,38 @@
-import { Clock, AlertCircle, Globe, Laptop, Users } from "lucide-react"
+"use client"
+
+import { Clock, AlertCircle, Globe, Laptop, Users, Loader2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useGroupResources } from "@/core/hooks/useGroupResources"
 
 interface OrganizationSetupCardProps {
   organizationId: string
   organizationName: string
-  setupStatus: {
-    sitesAssigned: boolean
-    devicesAssigned: boolean
-    membersInvited: boolean
-  }
 }
 
-export function OrganizationSetupCard({ organizationId, organizationName, setupStatus }: OrganizationSetupCardProps) {
-  const { sitesAssigned, devicesAssigned, membersInvited } = setupStatus
+export function OrganizationSetupCard({ organizationId, organizationName }: OrganizationSetupCardProps) {
+  // Use our custom hook to determine if the organization has sites, devices, and members
+  const { hasSites, hasDevices, hasMembers, isLoading } = useGroupResources(organizationId)
 
-  const isSetupComplete = sitesAssigned && devicesAssigned && membersInvited
+  // If we're still loading the resource data, show a loading indicator
+  if (isLoading) {
+    return (
+      <Card className="border-l-4 border-l-amber-500 mb-6">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            <span>Checking organization setup status...</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
+  // If all setup tasks are complete, don't show the card
+  const isSetupComplete = hasSites && hasDevices && hasMembers
   if (isSetupComplete) {
-    return null // Don't show the card if setup is complete
+    return null
   }
 
   return (
@@ -33,7 +46,7 @@ export function OrganizationSetupCard({ organizationId, organizationName, setupS
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {!sitesAssigned && (
+          {!hasSites && (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-amber-500" />
@@ -47,7 +60,7 @@ export function OrganizationSetupCard({ organizationId, organizationName, setupS
             </div>
           )}
 
-          {!devicesAssigned && (
+          {!hasDevices && (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-amber-500" />
@@ -61,7 +74,7 @@ export function OrganizationSetupCard({ organizationId, organizationName, setupS
             </div>
           )}
 
-          {!membersInvited && (
+          {!hasMembers && (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-amber-500" />
