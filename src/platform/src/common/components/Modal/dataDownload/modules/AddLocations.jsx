@@ -7,23 +7,24 @@ import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
+import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
  * Header component for the Add Location modal.
  */
-const AddLocationHeader = () => {
-  return (
-    <h3
-      className="flex text-lg leading-6 font-medium text-gray-900"
-      id="modal-title"
-    >
-      Add Location
-    </h3>
-  );
-};
+const AddLocationHeader = () => (
+  <h3
+    className="flex text-lg leading-6 font-medium text-gray-900"
+    id="modal-title"
+  >
+    Add Location
+  </h3>
+);
 
+/**
+ * AddLocations component allows users to select locations for monitoring.
+ */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
 
@@ -39,14 +40,18 @@ const AddLocations = ({ onClose }) => {
   const [error, setError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  // Get active group
   const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
 
-  // Fetch sites summary data from Redux store
+  // Use the SWR hook to fetch sites data
   const {
-    sitesSummaryData,
-    loading,
+    data: sitesSummaryData,
+    isLoading: loading,
+    isError,
     error: fetchError,
-  } = useSelector((state) => state.sites);
+  } = useSitesSummary(groupTitle?.toLowerCase(), {
+    enabled: !!groupTitle,
+  });
 
   // Filter out only the online sites
   const filteredSites = useMemo(() => {
@@ -69,13 +74,6 @@ const AddLocations = ({ onClose }) => {
     }
   }, []);
 
-  // Fetch sites summary whenever groupTitle changes
-  useEffect(() => {
-    if (groupTitle) {
-      dispatch(fetchSitesSummary({ group: groupTitle }));
-    }
-  }, [dispatch, groupTitle]);
-
   // Extract selected site IDs from user preferences
   const selectedSiteIds = useMemo(() => {
     const firstPreference = preferencesData?.[0];
@@ -83,11 +81,12 @@ const AddLocations = ({ onClose }) => {
   }, [preferencesData]);
 
   /**
-   * Initialize selectedSites and sidebarSites only once, if the user
-   * currently has no local selection but the preferences have sites.
+   * Initialize selectedSites and sidebarSites once data is loaded,
+   * if the user currently has preferences but no local selection.
    */
   useEffect(() => {
     if (
+      !loading &&
       selectedSites.length === 0 &&
       selectedSiteIds.length > 0 &&
       filteredSites.length > 0
@@ -98,7 +97,7 @@ const AddLocations = ({ onClose }) => {
       setSelectedSites(initialSelectedSites);
       setSidebarSites(initialSelectedSites);
     }
-  }, [selectedSites, selectedSiteIds, filteredSites]);
+  }, [loading, selectedSites.length, selectedSiteIds, filteredSites]);
 
   /**
    * Clears all selected sites.
@@ -128,7 +127,7 @@ const AddLocations = ({ onClose }) => {
   /**
    * Custom filter function for DataTable.
    * When the active filter is "favorites", return only sites that are currently selected.
-   * Otherwise (for "sites"), return all data.
+   * Otherwise (for "all"), return all data.
    */
   const handleFilter = useCallback(
     (data, activeFilter) => {
@@ -147,7 +146,7 @@ const AddLocations = ({ onClose }) => {
    */
   const filters = useMemo(
     () => [
-      { key: 'sites', label: 'Sites' },
+      { key: 'all', label: 'All' },
       { key: 'favorites', label: 'Favorites' },
     ],
     [],
@@ -158,20 +157,18 @@ const AddLocations = ({ onClose }) => {
    */
   const columnsByFilter = useMemo(
     () => ({
-      sites: [
+      all: [
         {
-          key: 'location_name',
+          key: 'search_name',
           label: 'Location',
-          render: (item) => {
-            return (
-              <div className="flex items-center">
-                <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                  <LocationIcon width={16} height={16} fill="#9EA3AA" />
-                </span>
-                <span className="ml-2">{item.location_name}</span>
-              </div>
-            );
-          },
+          render: (item) => (
+            <div className="flex items-center">
+              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              </span>
+              <span className="ml-2">{item.search_name}</span>
+            </div>
+          ),
         },
         { key: 'city', label: 'City' },
         { key: 'country', label: 'Country' },
@@ -181,16 +178,14 @@ const AddLocations = ({ onClose }) => {
         {
           key: 'location_name',
           label: 'Location',
-          render: (item) => {
-            return (
-              <div className="flex items-center">
-                <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                  <LocationIcon width={16} height={16} fill="#9EA3AA" />
-                </span>
-                <span className="ml-2">{item.location_name}</span>
-              </div>
-            );
-          },
+          render: (item) => (
+            <div className="flex items-center">
+              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              </span>
+              <span className="ml-2">{item.location_name}</span>
+            </div>
+          ),
         },
         { key: 'city', label: 'City' },
         { key: 'country', label: 'Country' },
@@ -216,17 +211,21 @@ const AddLocations = ({ onClose }) => {
       setError('You can select up to 4 locations only');
       return;
     }
+
     setSubmitLoading(true);
+
     // Prepare selected_sites data (excluding grids, devices, airqlouds)
     const selectedSitesData = selectedSites.map((site) => {
       const { grids, devices, airqlouds, ...rest } = site;
       return rest;
     });
+
     const payload = {
       user_id: userID,
       group_id: activeGroupId,
       selected_sites: selectedSitesData,
     };
+
     dispatch(replaceUserPreferences(payload))
       .then(() => {
         onClose();
@@ -305,6 +304,7 @@ const AddLocations = ({ onClose }) => {
             setSelectedRows={setSelectedSites}
             clearSelectionTrigger={clearSelected}
             loading={loading}
+            error={isError}
             onToggleRow={handleToggleSite}
             filters={filters}
             columnsByFilter={columnsByFilter}
@@ -317,9 +317,9 @@ const AddLocations = ({ onClose }) => {
               'data_provider',
             ]}
           />
-          {fetchError && (
+          {isError && fetchError && (
             <p className="text-red-600 py-4 px-1 text-sm">
-              Error fetching data: {fetchError.message}
+              Error fetching data: {fetchError.message || 'Unknown error'}
             </p>
           )}
         </div>

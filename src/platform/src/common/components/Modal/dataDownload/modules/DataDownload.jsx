@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
@@ -7,7 +6,7 @@ import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
 import EditIcon from '@/icons/Analytics/EditIcon';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-
+import DeviceIcon from '@/icons/Analytics/deviceIcon';
 import DataTable from '../components/DataTable';
 import CustomFields from '../components/CustomFields';
 import Footer from '../components/Footer';
@@ -20,12 +19,16 @@ import {
 } from '../constants';
 
 import useDataDownload from '@/core/hooks/useDataDownload';
+import {
+  useSitesSummary,
+  useDeviceSummary,
+  useGridSummary,
+} from '@/core/hooks/analyticHooks';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
-import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
@@ -52,8 +55,12 @@ const getMimeType = (fileType) => {
   return mimeTypes[fileType] || 'application/octet-stream';
 };
 
+/**
+ * DataDownload component allows users to download air quality data
+ * with various filtering options.
+ */
 const DataDownload = ({ onClose }) => {
-  const dispatch = useDispatch();
+  // Get active group info
   const {
     id: activeGroupId,
     title: groupTitle,
@@ -61,28 +68,21 @@ const DataDownload = ({ onClose }) => {
     loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
 
-  const preferencesData = useSelector(
-    (state) => state.defaults.individual_preferences,
-  );
-  const {
-    sitesSummaryData,
-    loading,
-    error: fetchError,
-  } = useSelector((state) => state.sites);
+  const fetchData = useDataDownload();
 
-  // Local selection state for DataTable
+  // Local state
   const [selectedSites, setSelectedSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
-
-  // Form state
   const [formError, setFormError] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [edit, setEdit] = useState(false);
-
-  const fetchData = useDataDownload();
+  const [activeFilterKey, setActiveFilterKey] = useState('sites');
+  const [dataError, setDataError] = useState(null);
 
   // Prepare active group info
-  const activeGroup = { id: activeGroupId, name: groupTitle };
+  const activeGroup = useMemo(() => {
+    return { id: activeGroupId, name: groupTitle };
+  }, [activeGroupId, groupTitle]);
 
   // Organization options
   const ORGANIZATION_OPTIONS = useMemo(
@@ -94,10 +94,10 @@ const DataDownload = ({ onClose }) => {
     [groupList],
   );
 
-  // The main form data for exporting
+  // Form state
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
-    organization: activeGroup || ORGANIZATION_OPTIONS[0],
+    organization: null,
     dataType: DATA_TYPE_OPTIONS[0],
     pollutant: POLLUTANT_OPTIONS[0],
     duration: null,
@@ -105,33 +105,120 @@ const DataDownload = ({ onClose }) => {
     fileType: FILE_TYPE_OPTIONS[0],
   });
 
-  // Ensure the organization is set once org options are available
+  // Set initial organization once data is loaded
   useEffect(() => {
-    if (ORGANIZATION_OPTIONS.length > 0 && !formData.organization) {
+    if (!formData.organization && !isFetchingActiveGroup) {
       const airqoNetwork = ORGANIZATION_OPTIONS.find(
-        (group) => group.name.toLowerCase() === 'airqo',
+        (group) => group.name?.toLowerCase() === 'airqo',
       );
-      setFormData((prevData) => ({
-        ...prevData,
-        organization: activeGroup || airqoNetwork,
+      setFormData((prev) => ({
+        ...prev,
+        organization: activeGroup?.id
+          ? activeGroup
+          : airqoNetwork || ORGANIZATION_OPTIONS[0],
       }));
     }
-  }, [ORGANIZATION_OPTIONS, formData.organization, activeGroupId, groupTitle]);
+  }, [
+    isFetchingActiveGroup,
+    ORGANIZATION_OPTIONS,
+    activeGroup,
+    formData.organization,
+  ]);
 
-  // Fetch site summary for the chosen organization
+  // Fetch sites data
+  const {
+    data: sitesData,
+    isLoading: sitesLoading,
+    isError: sitesError,
+    error: sitesErrorMsg,
+    refresh: refreshSites,
+  } = useSitesSummary(formData.organization?.name?.toLowerCase(), {
+    enabled: !isFetchingActiveGroup && !!formData.organization?.name,
+  });
+
+  // Fetch devices data
+  const {
+    data: devicesData,
+    isLoading: devicesLoading,
+    isError: devicesError,
+    error: devicesErrorMsg,
+    refresh: refreshDevices,
+  } = useDeviceSummary(formData.organization?.name?.toLowerCase(), {
+    enabled: !isFetchingActiveGroup && !!formData.organization?.name,
+  });
+
+  // Fetch country grids data
+  const {
+    data: countriesData,
+    isLoading: countriesLoading,
+    isError: countriesError,
+    error: countriesErrorMsg,
+  } = useGridSummary('country', {
+    enabled: !isFetchingActiveGroup,
+  });
+
+  // Fetch city grids data
+  const {
+    data: citiesData,
+    isLoading: citiesLoading,
+    isError: citiesError,
+    error: citiesErrorMsg,
+  } = useGridSummary('city', {
+    enabled: !isFetchingActiveGroup,
+  });
+
+  // Update error state based on active filter
   useEffect(() => {
-    if (isFetchingActiveGroup) return;
-    if (formData.organization) {
-      dispatch(
-        fetchSitesSummary({
-          group: formData.organization.name.toLowerCase(),
-        }),
-      );
+    // Set error based on active filter
+    switch (activeFilterKey) {
+      case 'countries':
+        if (countriesError) {
+          setDataError(
+            countriesErrorMsg?.message || 'Error loading countries data',
+          );
+        } else {
+          setDataError(null);
+        }
+        break;
+      case 'cities':
+        if (citiesError) {
+          setDataError(citiesErrorMsg?.message || 'Error loading cities data');
+        } else {
+          setDataError(null);
+        }
+        break;
+      case 'devices':
+        if (devicesError) {
+          setDataError(
+            devicesErrorMsg?.message || 'Error loading devices data',
+          );
+        } else {
+          setDataError(null);
+        }
+        break;
+      case 'sites':
+      default:
+        if (sitesError) {
+          setDataError(sitesErrorMsg?.message || 'Error loading sites data');
+        } else {
+          setDataError(null);
+        }
+        break;
     }
-  }, [dispatch, formData.organization, isFetchingActiveGroup]);
+  }, [
+    activeFilterKey,
+    sitesError,
+    sitesErrorMsg,
+    devicesError,
+    devicesErrorMsg,
+    countriesError,
+    countriesErrorMsg,
+    citiesError,
+    citiesErrorMsg,
+  ]);
 
   /**
-   * Clears selection in both the table and form.
+   * Clear selection in both the table and form.
    */
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
@@ -139,11 +226,14 @@ const DataDownload = ({ onClose }) => {
 
     // Reset form data to defaults
     const airqoNetwork = ORGANIZATION_OPTIONS.find(
-      (group) => group.name.toLowerCase() === 'airqo',
+      (group) => group.name?.toLowerCase() === 'airqo',
     );
+
     setFormData({
       title: { name: 'Untitled Report' },
-      organization: activeGroup || airqoNetwork,
+      organization: activeGroup?.id
+        ? activeGroup
+        : airqoNetwork || ORGANIZATION_OPTIONS[0],
       dataType: DATA_TYPE_OPTIONS[0],
       pollutant: POLLUTANT_OPTIONS[0],
       duration: null,
@@ -152,24 +242,33 @@ const DataDownload = ({ onClose }) => {
     });
 
     setTimeout(() => setClearSelected(false), 0);
-  }, [ORGANIZATION_OPTIONS]);
+  }, [ORGANIZATION_OPTIONS, activeGroup]);
 
   /**
    * Update a form field (title, organization, etc.).
    */
-  const handleOptionSelect = useCallback((id, option) => {
-    setFormData((prevData) => ({ ...prevData, [id]: option }));
-  }, []);
+  const handleOptionSelect = useCallback(
+    (id, option) => {
+      setFormData((prevData) => ({ ...prevData, [id]: option }));
+
+      // Refresh data when organization changes
+      if (id === 'organization' && option?.name) {
+        refreshSites();
+        refreshDevices();
+      }
+    },
+    [refreshSites, refreshDevices],
+  );
 
   /**
    * Toggles the selection of a site in DataTable.
    */
-  const handleToggleSite = useCallback((site) => {
+  const handleToggleSite = useCallback((item) => {
     setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
+      const isSelected = prev.some((s) => s._id === item._id);
       return isSelected
-        ? prev.filter((s) => s._id !== site._id)
-        : [...prev, site];
+        ? prev.filter((s) => s._id !== item._id)
+        : [...prev, item];
     });
   }, []);
 
@@ -306,21 +405,68 @@ const DataDownload = ({ onClose }) => {
   );
 
   /**
-   * We only want two filters: "Sites" and "Favorites".
+   * Define the filter tabs
    */
   const filters = useMemo(
     () => [
+      { key: 'countries', label: 'Countries' },
+      { key: 'cities', label: 'Cities' },
       { key: 'sites', label: 'Sites' },
-      { key: 'favorites', label: 'Favorites' },
+      { key: 'devices', label: 'Devices' },
     ],
     [],
   );
 
   /**
-   * Show the same columns for both "Sites" and "Favorites".
+   * Define columns for each filter type
    */
   const columnsByFilter = useMemo(
     () => ({
+      countries: [
+        {
+          key: 'name',
+          label: 'Country',
+          render: (item) => (
+            <div className="flex items-center">
+              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                <WorldIcon width={16} height={16} fill="#9EA3AA" />
+              </span>
+              <span>{item.name || item.long_name || 'N/A'}</span>
+            </div>
+          ),
+        },
+        {
+          key: 'numberOfSites',
+          label: 'Number of Sites',
+          render: (item) => item.numberOfSites || item.sites?.length || 0,
+        },
+      ],
+      cities: [
+        {
+          key: 'name',
+          label: 'City',
+          render: (item) => (
+            <div className="flex items-center">
+              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              </span>
+              <span>{item.name || item.long_name || 'N/A'}</span>
+            </div>
+          ),
+        },
+        {
+          key: 'network',
+          label: 'Network',
+          render: (item) => (
+            <span className="capitalize">{item.network || 'N/A'}</span>
+          ),
+        },
+        {
+          key: 'numberOfSites',
+          label: 'Number of Sites',
+          render: (item) => item.numberOfSites || item.sites?.length || 0,
+        },
+      ],
       sites: [
         {
           key: 'search_name',
@@ -338,44 +484,117 @@ const DataDownload = ({ onClose }) => {
         { key: 'country', label: 'Country' },
         { key: 'data_provider', label: 'Owner' },
       ],
-      favorites: [
+      devices: [
         {
-          key: 'search_name',
-          label: 'Location',
+          key: 'name',
+          label: 'Device Name',
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+                <DeviceIcon width={16} height={16} />
               </span>
-              <span>{item.search_name || 'N/A'}</span>
+              <span>{item.name || item.long_name || 'N/A'}</span>
             </div>
           ),
         },
-        { key: 'city', label: 'City' },
-        { key: 'country', label: 'Country' },
-        { key: 'data_provider', label: 'Owner' },
+        {
+          key: 'status',
+          label: 'Status',
+          render: (item) => (
+            <span
+              className={`px-2 py-1 rounded-full text-xs ${
+                item.isOnline
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}
+            >
+              {item.isOnline ? 'Online' : 'Offline'}
+            </span>
+          ),
+        },
+        {
+          key: 'network',
+          label: 'Network',
+          render: (item) => (
+            <span className="capitalize">{item.network || 'N/A'}</span>
+          ),
+        },
+        {
+          key: 'category',
+          label: 'Category',
+          render: (item) => (
+            <span className="capitalize">{item.category || 'N/A'}</span>
+          ),
+        },
       ],
     }),
     [],
   );
 
   /**
-   * Custom filter callback:
-   * - "favorites": only show sites that appear in user preferences (selected_sites).
-   * - "sites": show all data.
+   * Generate search keys for each filter type
+   */
+  const searchKeysByFilter = useMemo(
+    () => ({
+      countries: ['name', 'long_name'],
+      cities: ['name', 'long_name', 'network'],
+      sites: [
+        'location_name',
+        'search_name',
+        'city',
+        'country',
+        'data_provider',
+      ],
+      devices: ['name', 'long_name', 'network', 'category', 'serial_number'],
+    }),
+    [],
+  );
+
+  /**
+   * Filter handler - this is called by the DataTable component
+   * Updates the activeFilterKey state and returns the appropriate data
    */
   const handleFilter = useCallback(
     (allData, activeFilter) => {
-      if (activeFilter.key === 'favorites') {
-        // Only show those in the preferences
-        const favorites =
-          preferencesData?.[0]?.selected_sites?.map((s) => s._id) || [];
-        return allData.filter((site) => favorites.includes(site._id));
+      // Update the active filter key
+      setActiveFilterKey(activeFilter.key);
+
+      // Return data based on filter type
+      switch (activeFilter.key) {
+        case 'countries':
+          return countriesData || [];
+        case 'cities':
+          return citiesData || [];
+        case 'devices':
+          return devicesData || [];
+        case 'sites':
+        default:
+          return sitesData || [];
       }
-      return allData;
     },
-    [preferencesData],
+    [countriesData, citiesData, devicesData, sitesData],
   );
+
+  // Determine loading state based on active filter
+  const isLoading = useMemo(() => {
+    switch (activeFilterKey) {
+      case 'countries':
+        return countriesLoading;
+      case 'cities':
+        return citiesLoading;
+      case 'devices':
+        return devicesLoading;
+      case 'sites':
+      default:
+        return sitesLoading;
+    }
+  }, [
+    activeFilterKey,
+    sitesLoading,
+    devicesLoading,
+    countriesLoading,
+    citiesLoading,
+  ]);
 
   return (
     <>
@@ -456,27 +675,22 @@ const DataDownload = ({ onClose }) => {
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           <DataTable
-            data={sitesSummaryData}
+            data={sitesData}
             selectedRows={selectedSites}
             setSelectedRows={setSelectedSites}
             clearSelectionTrigger={clearSelected}
-            loading={loading}
+            loading={isLoading}
+            error={dataError !== null}
             onToggleRow={handleToggleSite}
-            filters={filters}
             columnsByFilter={columnsByFilter}
+            filters={filters}
             onFilter={handleFilter}
-            searchKeys={[
-              'location_name',
-              'search_name',
-              'city',
-              'country',
-              'data_provider',
-            ]}
+            searchKeys={searchKeysByFilter[activeFilterKey]}
           />
-          {fetchError && (
-            <p className="text-red-600 py-4 px-1 text-sm">
-              Error fetching data: {fetchError.message}
-            </p>
+
+          {/* Display error message if there's an error */}
+          {dataError && (
+            <p className="text-red-600 py-2 px-1 text-sm">{dataError}</p>
           )}
         </div>
         <Footer
