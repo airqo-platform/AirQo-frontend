@@ -4,79 +4,114 @@ import { sites } from "@/core/apis/sites"
 import { devices } from "@/core/apis/devices"
 
 /**
- * Custom hook to efficiently fetch and manage organization resource status
- * This hook provides a map of organization IDs to their resource status (hasSites, hasDevices)
+ * Optimized custom hook to efficiently fetch and manage organization resource status
+ * This hook pre-fetches all data first, then processes it to determine resource status
  */
 export function useOrganizationResources(groups: Group[]) {
-  // Create a query to fetch resource status for all organizations at once
   return useQuery({
     queryKey: ["organization-resources", groups.map((g) => g._id).join(",")],
     queryFn: async () => {
       // Initialize the resource map
-      const resourceMap = new Map<string, { hasSites: boolean; hasDevices: boolean }>()
+      const resourceMap = new Map<string, { hasSites: boolean; hasDevices: boolean; hasMembers: boolean }>()
 
-      // Initialize map for all groups
+      // Initialize map for all groups/organizations
       groups.forEach((group) => {
-        resourceMap.set(group._id, { hasSites: false, hasDevices: false })
+        resourceMap.set(group._id, {
+          hasSites: false,
+          hasDevices: false,
+          hasMembers: group.numberOfGroupUsers > 0,
+        })
       })
 
-      // Batch fetch sites and devices in parallel
-      const [sitesResponses, devicesResponses] = await Promise.all([
-        // Fetch sites for all groups in parallel
-        Promise.all(
-          groups.map(async (group) => {
-            try {
-              const response = await sites.getSitesSummary("", group.grp_title || "")
-              return {
-                groupId: group._id,
-                groupTitle: group.grp_title,
-                sites: response.sites || [],
-              }
-            } catch (error) {
-              console.error(`Failed to fetch sites for group ${group.grp_title}:`, error)
-              return { groupId: group._id, groupTitle: group.grp_title, sites: [] }
-            }
-          }),
-        ),
-        // Fetch devices for all groups in parallel
-        Promise.all(
-          groups.map(async (group) => {
-            try {
-              const response = await devices.getDevicesSummaryApi("", group.grp_title || "")
-              return {
-                groupId: group._id,
-                groupTitle: group.grp_title,
-                devices: response.devices || [],
-              }
-            } catch (error) {
-              console.error(`Failed to fetch devices for group ${group.grp_title}:`, error)
-              return { groupId: group._id, groupTitle: group.grp_title, devices: [] }
-            }
-          }),
-        ),
-      ])
+      try {
+        // Fetch all data in a single batch
+        const [allSites, allDevices] = await Promise.all([
+          // Get all sites data in one call
+          sites.getAllSites(),
+          // Get all devices data in one call
+          devices.getAllDevices(),
+        ])
 
-      // Process sites data
-      sitesResponses.forEach((response) => {
-        if (response.sites.length > 0) {
-          const resourceStatus = resourceMap.get(response.groupId)
-          if (resourceStatus) {
-            resourceStatus.hasSites = true
+        // Create lookup maps for faster processing
+        const sitesByOrg = new Map()
+        const devicesByOrg = new Map()
+
+        // Process sites data
+        allSites.forEach((site) => {
+          const orgId = site.organizationId
+          if (!sitesByOrg.has(orgId)) {
+            sitesByOrg.set(orgId, [])
           }
-        }
-      })
+          sitesByOrg.get(orgId).push(site)
+        })
 
-      // Process devices data
-      devicesResponses.forEach((response) => {
-        if (response.devices.length > 0) {
-          const resourceStatus = resourceMap.get(response.groupId)
-          if (resourceStatus) {
-            resourceStatus.hasDevices = true
+        // Process devices data
+        allDevices.forEach((device) => {
+          const orgId = device.organizationId
+          if (!devicesByOrg.has(orgId)) {
+            devicesByOrg.set(orgId, [])
           }
-        }
-      })
+          devicesByOrg.get(orgId).push(device)
+        })
 
-      return resourceMap
+        // Update the resource map
+        groups.forEach((group) => {
+          const orgId = group._id
+          const hasSites = sitesByOrg.has(orgId) && sitesByOrg.get(orgId).length > 0
+          const hasDevices = devicesByOrg.has(orgId) && devicesByOrg.get(orgId).length > 0
+
+          resourceMap.set(orgId, {
+            hasSites,
+            hasDevices,
+            hasMembers: group.numberOfGroupUsers > 0,
+          })
+        })
+
+        return resourceMap
+      } catch (error) {
+        console.error("Failed to fetch resources:", error)
+
+        // If the batch approach fails, fall back to a simpler implementation
+        // that still reduces API calls compared to the original
+
+        try {
+          // Get all sites with their organization mapping
+          const allSitesData = await sites.getAllSitesSummary()
+
+          // Get all devices with their organization mapping
+          const allDevicesData = await devices.getAllDevicesSummary()
+
+          // Process the data to update the resource map
+          groups.forEach((group) => {
+            const groupId = group._id
+            const groupName = group.grp_title || ""
+
+            // Check if this group has any sites
+            const hasSites = allSitesData.some(
+              (site) =>
+                site.organizationId === groupId || site.organizationName?.toLowerCase() === groupName.toLowerCase(),
+            )
+
+            // Check if this group has any devices
+            const hasDevices = allDevicesData.some(
+              (device) =>
+                device.organizationId === groupId || device.organizationName?.toLowerCase() === groupName.toLowerCase(),
+            )
+
+            // Update the resource map
+            resourceMap.set(groupId, {
+              hasSites,
+              hasDevices,
+              hasMembers: group.numberOfGroupUsers > 0,
+            })
+          })
+        } catch (secondError) {
+          console.error("Secondary approach failed:", secondError)
+          // If both approaches fail, we'll return the default map with all values as false
+        }
+
+        return resourceMap
+      }
     },
     enabled: groups.length > 0,
     staleTime: 5 * 60 * 1000,
