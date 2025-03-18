@@ -10,3 +10,5 @@ export const SHARE_REPORT_URL = `${BASE_AUTH_URL}/users/emailReport`;
 export const SITES_SUMMARY_URL = `${BASE_AUTH_URL}/devices/sites/summary`;
 
 export const DEVICE_SUMMARY_URL = `${BASE_AUTH_URL}/devices/summary`;
+
+export const GRID_SUMMARY_URL = `${BASE_AUTH_URL}/devices/grids/summary`;
