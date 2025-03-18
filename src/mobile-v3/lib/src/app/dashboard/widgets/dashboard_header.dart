@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
 import '../../shared/widgets/page_padding.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 
 class DashboardHeader extends StatelessWidget {
   const DashboardHeader({super.key});
@@ -16,14 +17,16 @@ class DashboardHeader extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(height: 16),
         _buildGreeting(context),
-        Text(
-          "Today's Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).textTheme.headlineMedium?.color,
-          ),
-        ),
+    Text(
+  "Today's Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
+  style: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(context).brightness == Brightness.light
+      ? AppColors.textMedium  // Light mode color
+      : AppColors.darkTextSecondary,  // Dark mode color
+  ),
+),
         SizedBox(height: 16)
       ]),
     );

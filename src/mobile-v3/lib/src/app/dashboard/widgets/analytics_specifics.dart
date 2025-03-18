@@ -46,12 +46,12 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
-                            color: AppColors.boldHeadlineColor)),
+                            color: AppColors.textMedium)),
                     InkWell(
                       onTap: () => Navigator.pop(context),
                       child: Icon(
                         Icons.close,
-                        color: AppColors.boldHeadlineColor,
+                        color: AppColors.textMedium,
                       ),
                     )
                   ],
@@ -65,7 +65,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 20,
-                            color: AppColors.boldHeadlineColor)),
+                            color: AppColors.textMedium)),
                     Row(children: [
                       // Container(
                       //   decoration: BoxDecoration(

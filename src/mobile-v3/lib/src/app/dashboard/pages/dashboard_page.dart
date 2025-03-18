@@ -16,6 +16,7 @@ import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
 
+
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 

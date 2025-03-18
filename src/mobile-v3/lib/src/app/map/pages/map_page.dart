@@ -455,7 +455,7 @@ class _MapScreenState extends State<MapScreen>
                                                                 FontWeight.w600,
                                                             fontSize: 20,
                                                             color: AppColors
-                                                                .boldHeadlineColor)),
+                                                                .textMedium)),
                                                     Row(children: [
                                                       SizedBox(width: 8),
                                                     ])
@@ -539,12 +539,12 @@ class _MapScreenState extends State<MapScreen>
                                                                         .w600,
                                                                 fontSize: 20,
                                                                 color: AppColors
-                                                                    .darkTextSecondary)),
+                                                                    .textMedium)),
                                                         Row(children: [
                                                           Container(
                                                             decoration: BoxDecoration(
                                                                 color: AppColors
-                                                                    .highlightColor,
+                                                                    .lightHighlight,
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
@@ -563,7 +563,7 @@ class _MapScreenState extends State<MapScreen>
                                                                   Icons
                                                                       .arrow_back_ios,
                                                                   color: AppColors
-                                                                      .boldHeadlineColor,
+                                                                      .textMedium,
                                                                 ),
                                                               ),
                                                             ),
@@ -572,7 +572,7 @@ class _MapScreenState extends State<MapScreen>
                                                           Container(
                                                             decoration: BoxDecoration(
                                                                 color: AppColors
-                                                                    .highlightColor,
+                                                                    .lightHighlight,
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
@@ -585,7 +585,7 @@ class _MapScreenState extends State<MapScreen>
                                                                     .arrow_forward_ios,
                                                                 size: 20,
                                                                 color: AppColors
-                                                                    .boldHeadlineColor,
+                                                                    .textMedium,
                                                               ),
                                                             ),
                                                           )
@@ -657,12 +657,12 @@ class _MapScreenState extends State<MapScreen>
                                                                         .w600,
                                                                 fontSize: 20,
                                                                 color: AppColors
-                                                                    .boldHeadlineColor)),
+                                                                    .textMedium)),
                                                         Row(children: [
                                                           Container(
                                                             decoration: BoxDecoration(
                                                                 color: AppColors
-                                                                    .highlightColor,
+                                                                    .lightHighlight,
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
@@ -681,7 +681,7 @@ class _MapScreenState extends State<MapScreen>
                                                                   Icons
                                                                       .arrow_back_ios,
                                                                   color: AppColors
-                                                                      .boldHeadlineColor,
+                                                                      .textMedium,
                                                                 ),
                                                               ),
                                                             ),
@@ -690,7 +690,7 @@ class _MapScreenState extends State<MapScreen>
                                                           Container(
                                                             decoration: BoxDecoration(
                                                                 color: AppColors
-                                                                    .highlightColor,
+                                                                    .lightHighlight,
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
@@ -703,7 +703,7 @@ class _MapScreenState extends State<MapScreen>
                                                                     .arrow_forward_ios,
                                                                 size: 20,
                                                                 color: AppColors
-                                                                    .boldHeadlineColor,
+                                                                    .textMedium,
                                                               ),
                                                             ),
                                                           )
@@ -747,7 +747,7 @@ class _MapScreenState extends State<MapScreen>
                                                     fontSize: 24,
                                                     fontWeight: FontWeight.w700,
                                                     color: AppColors
-                                                        .boldHeadlineColor)),
+                                                        .textMedium)),
                                             Spacer(),
                                             if (isModalFull)
                                               IconButton(
@@ -979,7 +979,7 @@ class _MapScreenState extends State<MapScreen>
                                                                         ? AppColors
                                                                             .primaryColor
                                                                         : AppColors
-                                                                            .highlightColor),
+                                                                            .lightHighlight),
                                                                 child: Center(
                                                                   child: Text(
                                                                     "All",

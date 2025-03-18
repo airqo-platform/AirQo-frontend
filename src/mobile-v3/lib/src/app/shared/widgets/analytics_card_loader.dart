@@ -40,7 +40,7 @@ class AnalyticsCardLoader extends StatelessWidget {
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 20,
-                            color: AppColors.secondaryHeadlineColor))
+                            color: AppColors.textDark))
                   ]),
                 ]),
                 SizedBox(
@@ -54,7 +54,7 @@ class AnalyticsCardLoader extends StatelessWidget {
                 ),
               ],
             ),
-            Divider(color: AppColors.secondaryHeadlineColor),
+            Divider(color: AppColors.textDark),
             ShimmerText(
               width: 200,
               height: 20,
