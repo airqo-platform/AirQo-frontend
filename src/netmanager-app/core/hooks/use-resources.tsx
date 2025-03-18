@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from "../redux/hooks"
 import { setDevices } from "../redux/slices/devicesSlice"
 import { setSites } from "../redux/slices/sitesSlice"
 import type { RootState } from "../redux/store"
-import { useGroupsDetails } from "@/core/hooks/useGroups"
+import { useGroupsDetails } from "./useGroups"
 
 /**
  * Comprehensive hook for efficient resource management
@@ -88,7 +88,11 @@ export function useResources() {
                 if (groupId) {
                   const resourceStatus = newResourceMap.get(groupId)
                   if (resourceStatus) {
-                    resourceStatus.hasSites = true
+                    // Only mark as having sites if the site is actually assigned to this group
+                    // and not just associated with it
+                    if (site.organizationId === groupId || site.assignedToGroup === true) {
+                      resourceStatus.hasSites = true
+                    }
                   }
                 }
               })
@@ -102,7 +106,11 @@ export function useResources() {
                 if (groupId) {
                   const resourceStatus = newResourceMap.get(groupId)
                   if (resourceStatus) {
-                    resourceStatus.hasDevices = true
+                    // Only mark as having devices if the device is actually assigned to this group
+                    // and not just associated with it
+                    if (device.organizationId === groupId || device.assignedToGroup === true) {
+                      resourceStatus.hasDevices = true
+                    }
                   }
                 }
               })
