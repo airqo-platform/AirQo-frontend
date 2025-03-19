@@ -5,6 +5,7 @@ import {
   SITES_SUMMARY_URL,
   DEVICE_SUMMARY_URL,
   GRID_SUMMARY_URL,
+  ANALYTICS_URL,
 } from '../urls/analytics';
 import axios from 'axios';
 
@@ -154,5 +155,65 @@ export const getGridSummaryApi = async ({ admin_level = null }) => {
   } catch (error) {
     handleApiError(error, 'Error fetching grid summary');
     return { grids: [] };
+  }
+};
+
+/**
+ * Fetches analytics data from the API
+ * @param {Object} options - Request options
+ * @param {Object} options.body - Request body containing analytics parameters
+ * @returns {Promise<Object>} - Promise resolving to analytics data
+ */
+export const getAnalyticsDataApi = async ({ body }) => {
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30s timeout
+
+  try {
+    let response;
+
+    // Get token once before request
+    const token = localStorage.getItem('token');
+
+    if (process.env.NODE_ENV === 'development') {
+      // Use proxy endpoint in development mode
+      response = await axios.post('/api/proxy/analytics', body, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+        signal: abortController.signal,
+      });
+    } else {
+      // Use direct API endpoint in production mode with optimized config
+      response = await createAxiosInstance().post(ANALYTICS_URL, body, {
+        signal: abortController.signal,
+      });
+    }
+
+    // Clear timeout after successful response
+    clearTimeout(timeoutId);
+
+    // Validate and process response
+    if (response?.data?.status === 'success') {
+      return response.data.data || [];
+    }
+
+    if (response?.status === 'success' && Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    throw new Error(
+      response?.data?.message || 'Failed to fetch analytics data',
+    );
+  } catch (error) {
+    // Clear timeout to prevent memory leaks
+    clearTimeout(timeoutId);
+
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout. Please try again.');
+    }
+
+    handleApiError(error, 'Error fetching analytics data');
+    return [];
   }
 };

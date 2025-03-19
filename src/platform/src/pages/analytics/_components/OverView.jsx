@@ -20,12 +20,17 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { subDays } from 'date-fns';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
+import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
+/**
+ * Overview component for displaying analytics dashboards and charts
+ */
 const OverView = () => {
   const dispatch = useDispatch();
-  const isOpen = useSelector((state) => state.modal.openModal);
+
+  // Get global state from Redux
+  const isModalOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
   const { title: groupTitle } = useGetActiveGroup();
 
@@ -39,19 +44,42 @@ const OverView = () => {
     [],
   );
 
+  // Local state for date range
   const [dateRange, setDateRange] = useState(defaultDateRange);
 
-  // Fetch analytics data
-  const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
-    selectedSiteIds: chartData.chartSites,
-    dateRange: chartData.chartDataRange,
-    frequency: chartData.timeFrame,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organizationName || groupTitle,
-  });
+  // Fetch analytics data using the new SWR hook
+  const { allSiteData, chartLoading, isError, error, refetch } =
+    useAnalyticsData({
+      selectedSiteIds: chartData.chartSites,
+      dateRange: {
+        startDate: new Date(chartData.chartDataRange.startDate),
+        endDate: new Date(chartData.chartDataRange.endDate),
+      },
+      frequency: chartData.timeFrame,
+      pollutant: chartData.pollutionType,
+      organisationName: chartData.organizationName || groupTitle,
+    });
 
   // Reset chart data range to default when the component is unmounted
   useEffect(() => {
+    // Initialize chart data range when component mounts
+    if (!chartData.chartDataRange.startDate) {
+      const { startDate, endDate } = defaultDateRange;
+      const { startDateISO, endDateISO } = formatDateRangeToISO(
+        startDate,
+        endDate,
+      );
+
+      dispatch(
+        setChartDataRange({
+          startDate: startDateISO,
+          endDate: endDateISO,
+          label: defaultDateRange.label,
+        }),
+      );
+    }
+
+    // Reset chart data range to default when the component is unmounted
     return () => {
       const { startDate, endDate } = defaultDateRange;
       const { startDateISO, endDateISO } = formatDateRangeToISO(
@@ -67,8 +95,13 @@ const OverView = () => {
         }),
       );
     };
-  }, [dispatch, defaultDateRange]);
+  }, [dispatch, defaultDateRange, chartData.chartDataRange.startDate]);
 
+  /**
+   * Opens a modal of the specified type
+   * @param {string} type - Modal type ('addLocation' or 'download')
+   * @param {Array} ids - Optional array of IDs
+   */
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -77,26 +110,38 @@ const OverView = () => {
     [dispatch],
   );
 
+  /**
+   * Handles change in time frame selection
+   * @param {string} option - Selected time frame option
+   */
   const handleTimeFrameChange = useCallback(
     (option) => {
       if (chartData.timeFrame !== option) {
         dispatch(setTimeFrame(option));
-        refetch();
       }
     },
-    [dispatch, chartData.timeFrame, refetch],
+    [dispatch, chartData.timeFrame],
   );
 
+  /**
+   * Handles change in pollutant selection
+   * @param {string} pollutantId - ID of the selected pollutant
+   */
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       if (chartData.pollutionType !== pollutantId) {
         dispatch(setPollutant(pollutantId));
-        refetch();
       }
     },
-    [dispatch, chartData.pollutionType, refetch],
+    [dispatch, chartData.pollutionType],
   );
 
+  /**
+   * Handles change in date range selection
+   * @param {Date} startDate - Start date
+   * @param {Date} endDate - End date
+   * @param {string} label - Label for the date range
+   */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
       const { startDateISO, endDateISO } = formatDateRangeToISO(
@@ -113,10 +158,16 @@ const OverView = () => {
           label,
         }),
       );
-      refetch();
     },
-    [dispatch, refetch],
+    [dispatch],
   );
+
+  /**
+   * Closes the modal
+   */
+  const handleCloseModal = useCallback(() => {
+    dispatch(setOpenModal(false));
+  }, [dispatch]);
 
   return (
     <BorderlessContentBox>
@@ -219,7 +270,7 @@ const OverView = () => {
             id="air-pollution-line-chart"
             data={allSiteData}
             chartLoading={chartLoading}
-            error={error}
+            error={isError ? error : null}
             refetch={refetch}
           />
           {/* Bar Chart */}
@@ -230,14 +281,14 @@ const OverView = () => {
             id="air-pollution-bar-chart"
             data={allSiteData}
             chartLoading={chartLoading}
-            error={error}
+            error={isError ? error : null}
             refetch={refetch}
           />
         </div>
       </div>
 
       {/* Data Download Modal */}
-      <Modal isOpen={isOpen} onClose={() => dispatch(setOpenModal(false))} />
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
     </BorderlessContentBox>
   );
 };
