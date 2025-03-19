@@ -51,7 +51,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     super.initState();
     loggy.info('initState called');
 
-    selectedLocations = {};
     _initializeUserData();
 
     googlePlacesBloc = context.read<GooglePlacesBloc>()
@@ -61,35 +60,37 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     final dashboardBloc = context.read<DashboardBloc>();
     final currentState = dashboardBloc.state;
     loggy.info('Current dashboard state: ${currentState.runtimeType}');
+
     if (currentState is DashboardLoaded) {
       loggy.info('Dashboard already loaded, populating measurements');
       if (currentState.response.measurements != null) {
+        loggy.info(
+            'Found ${currentState.response.measurements!.length} measurements in loaded state');
         _populateMeasurements(currentState.response.measurements!);
-        // Don’t preselect here; wait for BlocListener
+
+        // IMPORTANT ADDITION: Pre-select existing locations from the current DashboardState
+        if (currentState.userPreferences != null &&
+            currentState.userPreferences!.selectedSites.isNotEmpty) {
+          final existingIds = currentState.userPreferences!.selectedSites
+              .map((site) => site.id)
+              .toSet();
+
+          loggy.info(
+              'Pre-selecting ${existingIds.length} existing locations from dashboard state');
+          setState(() {
+            selectedLocations = existingIds;
+          });
+        }
       } else {
+        loggy.warning('No measurements in loaded state');
         setState(() {
           isLoading = false;
           errorMessage = "No measurements available in loaded state";
         });
       }
     } else {
+      loggy.info('Dispatching LoadDashboard event');
       dashboardBloc.add(LoadDashboard());
-    }
-  }
-
-  void _syncSelectedLocations(DashboardLoaded state) {
-    if (state.userPreferences != null) {
-      final existingIds =
-          state.userPreferences!.selectedSites.map((site) => site.id).toSet();
-      loggy.info('Syncing selected locations: ${existingIds.length} found');
-      setState(() {
-        selectedLocations = existingIds;
-      });
-    } else {
-      loggy.info('No user preferences, resetting selected locations to empty');
-      setState(() {
-        selectedLocations = {};
-      });
     }
   }
 
@@ -390,23 +391,28 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   @override
   Widget build(BuildContext context) {
     loggy.debug('build method called');
+
     return BlocListener<DashboardBloc, DashboardState>(
       listener: (context, state) {
+        loggy.info('Dashboard state changed to ${state.runtimeType}');
+
         if (state is DashboardLoaded) {
+          loggy.info(
+              'Dashboard loaded with ${state.response.measurements?.length ?? 0} measurements');
+
           if (state.response.measurements != null) {
             _populateMeasurements(state.response.measurements!);
-            _syncSelectedLocations(state); // Sync here after state update
           } else {
+            loggy.warning('Dashboard loaded but measurements is null');
             setState(() {
               isLoading = false;
               errorMessage = "No measurements available";
             });
           }
         } else if (state is DashboardLoading) {
-          setState(() {
-            isLoading = true;
-          });
+          loggy.info('Dashboard is loading');
         } else if (state is DashboardLoadingError) {
+          loggy.error('Dashboard loading error: ${state.message}');
           setState(() {
             isLoading = false;
             errorMessage = state.message;

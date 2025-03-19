@@ -304,31 +304,23 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
     // Find the location name for the notification
     String locationName = "Location";
-    Measurement? matchedMeasurement;
-    SelectedSite? matchedSite;
-
     for (var m in selectedMeasurements) {
-      if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
-        matchedMeasurement = m;
+      if (m.id == id) {
         locationName = m.siteDetails?.name ?? "Location";
         break;
       }
     }
 
-    if (matchedMeasurement == null) {
-      for (var s in unmatchedSites) {
-        if (s.id == id) {
-          matchedSite = s; // Assigned here
-          locationName = s.name;
-          break;
-        }
+    for (var s in unmatchedSites) {
+      if (s.id == id) {
+        locationName = s.name;
+        break;
       }
     }
 
-    // Update local state
+    // Update measurements list
     setState(() {
-      selectedMeasurements.removeWhere(
-          (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id);
+      selectedMeasurements.removeWhere((m) => m.id == id);
       unmatchedSites.removeWhere((s) => s.id == id);
     });
 
@@ -337,14 +329,13 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       return;
     }
 
-    // Filter remaining site IDs from preferences
+    // Get all remaining site IDs
     final remainingSiteIds = widget.userPreferences!.selectedSites
         .where((site) => site.id != id)
         .map((site) => site.id)
         .toList();
 
-    loggy.info('Filtered preferences by name: $locationName');
-    loggy.info('Remaining IDs: $remainingSiteIds');
+    loggy.info('Updating preferences with remaining IDs: $remainingSiteIds');
 
     // Dispatch event to update preferences
     context

@@ -110,87 +110,124 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
     }
   }
 
+
   Future<void> _handleUpdateSelectedLocations(
-      List<String> locationIds, Emitter<DashboardState> emit) async {
-    if (state is! DashboardLoaded) return;
+    List<String> locationIds, Emitter<DashboardState> emit) async {
+  if (state is! DashboardLoaded) return;
 
-    try {
-      final currentState = state as DashboardLoaded;
-      final userId = await AuthHelper.getCurrentUserId();
+  try {
+    final currentState = state as DashboardLoaded;
+    final userId = await AuthHelper.getCurrentUserId();
 
-      if (userId == null) {
-        loggy.warning('Cannot update preferences: No user ID available');
-        return;
-      }
-
-      loggy.info(
-          'Updating selected locations for user $userId with ${locationIds.length} IDs');
-      for (final id in locationIds) {
-        loggy.info('Selected location ID: $id');
-      }
-
-      // Build selectedSites only from provided locationIds
-      List<Map<String, dynamic>> selectedSites = [];
-      for (final id in locationIds) {
-        Measurement? matchingMeasurement;
-        try {
-          matchingMeasurement = currentState.response.measurements?.firstWhere(
-            (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id,
-          );
-        } catch (e) {
-          // No matching measurement found
-          matchingMeasurement = null;
-        }
-
-        if (matchingMeasurement != null) {
-          double? latitude =
-              matchingMeasurement.siteDetails?.approximateLatitude ??
-                  matchingMeasurement.siteDetails?.siteCategory?.latitude;
-          double? longitude =
-              matchingMeasurement.siteDetails?.approximateLongitude ??
-                  matchingMeasurement.siteDetails?.siteCategory?.longitude;
-
-          selectedSites.add({
-            "_id": id,
-            "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
-            "search_name": matchingMeasurement.siteDetails?.searchName ??
-                matchingMeasurement.siteDetails?.name ??
-                'Unknown Location',
-            "latitude": latitude,
-            "longitude": longitude,
-            "createdAt": DateTime.now().toIso8601String(),
-          });
-          loggy.info(
-              'Added site: ${matchingMeasurement.siteDetails?.name} (ID: $id)');
-        } else {
-          loggy.warning('Could not find details for location ID: $id');
-        }
-      }
-
-      final Map<String, dynamic> requestBody = {
-        "user_id": userId,
-        "selected_sites": selectedSites,
-      };
-
-      loggy.info('Updating preferences with ${selectedSites.length} locations');
-      for (var site in selectedSites) {
-        loggy.info('Selected site: ${site["name"]} (ID: ${site["_id"]})');
-      }
-
-      final response = await preferencesRepo.replacePreference(requestBody);
-
-      if (response['success'] == true) {
-        loggy.info('Successfully updated preferences');
-        add(LoadUserPreferences());
-      } else {
-        loggy.warning('Failed to update preferences: ${response["message"]}');
-      }
-    } catch (e) {
-      loggy.error('Error updating preferences: $e');
+    if (userId == null) {
+      loggy.warning('Cannot update preferences: No user ID available');
+      return;
     }
+    
+    loggy.info('Updating selected locations for user $userId with ${locationIds.length} IDs');
+    for (final id in locationIds) {
+      loggy.info('Selected location ID: $id');
+    }
+
+    // Get existing preferences to merge with new selections
+    List<Map<String, dynamic>> selectedSites = [];
+    Set<String> existingSiteIds = {};
+
+    // If we have existing preferences, first include ALL existing sites
+    if (currentState.userPreferences != null) {
+      for (var site in currentState.userPreferences!.selectedSites) {
+        loggy.info('Including existing site ${site.name} (ID: ${site.id})');
+        selectedSites.add({
+          "_id": site.id,
+          "name": site.name,
+          "search_name": site.searchName ?? site.name,
+          "latitude": site.latitude,
+          "longitude": site.longitude,
+          "createdAt": DateTime.now().toIso8601String(),
+        });
+        existingSiteIds.add(site.id);
+      }
+    }
+
+    // Now add any new selections that weren't already in the existing preferences
+    for (final id in locationIds) {
+      // Skip if already included from existing preferences
+      if (existingSiteIds.contains(id)) {
+        continue;
+      }
+
+      // Try to find details for this new location
+      Measurement? matchingMeasurement;
+      
+      // First try direct ID match
+      matchingMeasurement = currentState.response.measurements
+          ?.where((m) => m.id == id).firstOrNull;
+      
+      // If not found, try siteId match
+      matchingMeasurement ??= currentState.response.measurements
+            ?.where((m) => m.siteId == id).firstOrNull;
+      
+      // If still not found, try siteDetails.id match
+      matchingMeasurement ??= currentState.response.measurements
+            ?.where((m) => m.siteDetails?.id == id).firstOrNull;
+
+      if (matchingMeasurement != null) {
+        loggy.info('Adding new location: ${matchingMeasurement.siteDetails?.name}');
+        
+        // Determine which coordinates to use (prioritize the most specific ones)
+        double? latitude = matchingMeasurement.siteDetails?.approximateLatitude;
+        double? longitude = matchingMeasurement.siteDetails?.approximateLongitude;
+        
+        if (latitude == null || longitude == null) {
+          latitude = matchingMeasurement.siteDetails?.siteCategory?.latitude;
+          longitude = matchingMeasurement.siteDetails?.siteCategory?.longitude;
+        }
+        
+        selectedSites.add({
+          "_id": id,
+          "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
+          "search_name": matchingMeasurement.siteDetails?.searchName ??
+              matchingMeasurement.siteDetails?.name ??
+              'Unknown Location',
+          "latitude": latitude,
+          "longitude": longitude,
+          "createdAt": DateTime.now().toIso8601String(),
+        });
+      } else {
+        loggy.warning('Could not find details for new location ID: $id');
+      }
+    }
+
+    // Prepare request body
+    final Map<String, dynamic> requestBody = {
+      "user_id": userId,
+      "selected_sites": selectedSites,
+    };
+
+    loggy.info(
+        'Updating preferences with ${selectedSites.length} locations');
+        
+    // Log the exact data being sent
+    for (var site in selectedSites) {
+      loggy.info('Selected site: ${site["name"]} (ID: ${site["_id"]})');
+    }
+    
+    final response = await preferencesRepo.replacePreference(requestBody);
+
+    if (response['success'] == true) {
+      loggy.info('Successfully updated preferences');
+      // Reload preferences to get the updated data
+      add(LoadUserPreferences());
+    } else {
+      loggy.warning('Failed to update preferences: ${response["message"]}');
+    }
+  } catch (e) {
+    loggy.error('Error updating preferences: $e');
   }
+}
 
   Future<void> _handleLoadUserPreferences(Emitter<DashboardState> emit) async {
+    // Only proceed if we have a loaded dashboard
     if (state is! DashboardLoaded) {
       loggy.warning('Cannot load preferences: Dashboard not in loaded state');
       return;
@@ -198,6 +235,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
     try {
       final currentState = state as DashboardLoaded;
+
+      // Get current user ID
       final userId = await AuthHelper.getCurrentUserId();
       if (userId == null) {
         loggy.info('No user ID available, skipping preferences load');
@@ -207,31 +246,45 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       loggy.info('Loading preferences for user: $userId');
       final response = await preferencesRepo.getUserPreferences(userId);
 
-      UserPreferencesModel? prefsData;
-      if (response['success'] == true) {
-        if (response['data'] != null &&
-            response['data'] is Map<String, dynamic>) {
-          prefsData = UserPreferencesModel.fromJson(response['data']);
-        } else {
-          prefsData = UserPreferencesModel(
-            id: '',
-            userId: userId,
-            selectedSites: [],
-          );
-          loggy.info('No preferences data found, initializing with 0 sites');
-        }
+      if (response['success'] == true && response['data'] != null) {
+        final prefsData = UserPreferencesModel.fromJson(response['data']);
+
         loggy.info(
             'Loaded preferences: ${prefsData.selectedSites.length} sites');
+
+        // Verify if the preferences contain sites
+        if (prefsData.selectedSites.isEmpty) {
+          loggy.info('Loaded preferences contain no selected sites');
+        } else {
+          // Log a sample of the loaded sites to verify data structure
+          for (int i = 0; i < min(prefsData.selectedSites.length, 3); i++) {
+            final site = prefsData.selectedSites[i];
+            loggy.info('Loaded site ${i + 1}: ${site.name} (ID: ${site.id})');
+          }
+        }
+
+        // Update the state with user preferences
         emit(
             DashboardLoaded(currentState.response, userPreferences: prefsData));
       } else if (response['auth_error'] == true) {
         loggy.warning('Authentication error when loading preferences');
+
+        // Notify the AuthBloc about the authentication error
+        // You can add code here to dispatch an event to the AuthBloc
+        // For example:
+        // context.read<AuthBloc>().add(AuthTokenExpired());
+
+        // For now, we'll just continue without user preferences
       } else {
         loggy
             .warning('Failed to load user preferences: ${response['message']}');
       }
     } catch (e) {
       loggy.error('Error loading user preferences: $e');
+      // Don't emit error state here, just log it
     }
   }
+
+  // Helper to get minimum of two integers
+  int min(int a, int b) => a < b ? a : b;
 }
