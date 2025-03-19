@@ -1,11 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Careers | Join the AirQo Team',
+  title: {
+    template: '%s | AirQo Careers',
+    default: 'Job Opportunities at AirQo',
+  },
   description:
-    'Explore career opportunities at AirQo and join us in improving air quality across Africa. See how you can contribute to our mission and make an impact.',
+    'Explore career opportunities at AirQo and join our mission to improve air quality across Africa.',
   keywords:
-    'AirQo careers, jobs at AirQo, air quality jobs, environmental jobs, AirQo team, work at AirQo',
+    'AirQo careers, air quality jobs, environmental careers, tech jobs Africa',
 };
 
 export default function CareersLayout({

@@ -30,6 +30,7 @@ import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { event } from '@/core/hooks/useGoogleAnalytics';
 
 /**
  * Header component for the Download Data modal.
@@ -392,7 +393,13 @@ const DataDownload = ({ onClose }) => {
         handleClearSelection();
         onClose();
       } catch (error) {
-        console.error('Error downloading data:', error);
+        // Track error
+        event({
+          action: 'download_error',
+          category: 'Data Export',
+          label: error.message,
+        });
+
         setFormError(
           error.message ||
             'An error occurred while downloading. Please try again.',

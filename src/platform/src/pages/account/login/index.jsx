@@ -73,13 +73,31 @@ const UserLogin = () => {
         const preferencesResponse = await retryWithDelay(() =>
           dispatch(getIndividualUserPreferences({ identifier: user._id })),
         );
+
+        let activeGroup;
         if (preferencesResponse.payload.success) {
           const preferences = preferencesResponse.payload.preferences;
-          const activeGroup = preferences[0]?.group_id
-            ? user.groups.find((group) => group._id === preferences[0].group_id)
-            : user.groups.find((group) => group.grp_title === 'airqo');
-          localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+          // Try to get the group from the first preference if exists and valid
+          if (preferences.length > 0 && preferences[0].group_id) {
+            activeGroup = user.groups.find(
+              (group) => group._id === preferences[0].group_id,
+            );
+          }
         }
+        // Fallback to group with title 'airqo'
+        if (!activeGroup) {
+          activeGroup = user.groups.find(
+            (group) => group.grp_title.toLowerCase() === 'airqo',
+          );
+        }
+        // If still not set, throw an error to alert support
+        if (!activeGroup) {
+          throw new Error(
+            'No active group found. Contact support to add you to the AirQo Organisation',
+          );
+        }
+
+        localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
         dispatch(setUserInfo(user));
         dispatch(setSuccess(true));
@@ -123,14 +141,26 @@ const UserLogin = () => {
           Get access to air quality analytics across Africa
         </p>
         {error && <Toast type="error" timeout={8000} message={error} />}
-        <form onSubmit={handleLogin} data-testid="login-form">
+        <form
+          onSubmit={handleLogin}
+          data-testid="login-form"
+          aria-label="Login form"
+          noValidate
+        >
           <div className="mt-6">
             <div className="w-full">
-              <div className="text-sm text-grey-300">Email Address</div>
+              <label htmlFor="email" className="text-sm text-grey-300">
+                Email Address
+              </label>
               <div className="mt-2 w-full">
                 <input
+                  id="email"
                   type="email"
+                  name="email"
+                  autoComplete="email"
                   data-testid="username"
+                  aria-required="true"
+                  aria-label="Email address"
                   onChange={(e) =>
                     handleInputChange('userName', e.target.value)
                   }
@@ -143,28 +173,44 @@ const UserLogin = () => {
           </div>
           <div className="mt-6">
             <div className="w-full">
-              <div className="text-sm text-grey-300">Password</div>
+              <label htmlFor="password" className="text-sm text-grey-300">
+                Password
+              </label>
               <div className="mt-2 w-full relative">
                 <input
+                  id="password"
+                  type={passwordType}
+                  name="password"
+                  autoComplete="current-password"
                   data-testid="password"
+                  aria-required="true"
+                  aria-label="Password"
                   onChange={(e) =>
                     handleInputChange('password', e.target.value)
                   }
-                  type={passwordType}
                   placeholder="******"
                   className="input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500"
                   required
                 />
-                <div
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                <button
+                  type="button"
                   onClick={togglePasswordVisibility}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                  aria-label={
+                    passwordType === 'password'
+                      ? 'Show password'
+                      : 'Hide password'
+                  }
                 >
                   {passwordType === 'password' ? (
-                    <VisibilityOffIcon />
+                    <VisibilityOffIcon aria-hidden="true" />
                   ) : (
-                    <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
+                    <VisibilityOnIcon
+                      className="stroke-1 stroke-svg-green"
+                      aria-hidden="true"
+                    />
                   )}
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -174,6 +220,7 @@ const UserLogin = () => {
               className="w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950"
               type="submit"
               disabled={loading}
+              aria-label={loading ? 'Logging in...' : 'Login'}
             >
               {loading ? (
                 <Spinner data-testid="spinner" width={25} height={25} />

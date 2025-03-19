@@ -66,6 +66,14 @@ const CustomFields = ({
 
   const handleSelect = useCallback(
     (option) => {
+      // Special handling for calendar dates
+      if (id === 'duration') {
+        setSelectedOption(option);
+        handleOptionSelect(id, option);
+        return;
+      }
+
+      // Normal handling for other fields
       const formattedOption = {
         ...option,
         name: formatFieldValue(option.name, id, textFormat),
@@ -93,7 +101,12 @@ const CustomFields = ({
       ) : useCalendar ? (
         <DatePicker
           customPopperStyle={{ left: '-7px' }}
-          onChange={(date) => handleSelect({ name: date })}
+          onChange={(dates) => {
+            handleSelect({
+              startDate: dates.startDate || dates.start,
+              endDate: dates.endDate || dates.end,
+            });
+          }}
         />
       ) : (
         <CustomDropdown

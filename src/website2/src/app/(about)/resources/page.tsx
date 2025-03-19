@@ -1,16 +1,45 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 import ResourcePage from '@/views/publications/ResourcePage';
 
 export const metadata: Metadata = {
-  title: 'Resources | Air Quality Data and Tools by AirQo',
+  title:
+    'Air Quality Resources & Publications | Research Data & Tools by AirQo',
   description:
-    'Access AirQo’s air quality data, research, and tools to help monitor and improve environmental health in Africa. Explore our datasets and resources.',
+    'Access comprehensive air quality resources including research papers, datasets, reports, and tools developed by AirQo to monitor and improve environmental health across African cities. Download publications and explore our open-source materials.',
   keywords:
-    'AirQo resources, air quality data, environmental data, air pollution, AirQo tools, air quality research, air quality reports',
+    'AirQo resources, air quality data, environmental datasets, air pollution research, AirQo tools, air quality publications, air quality reports, environmental research Africa, air monitoring resources, clean air research, air quality white papers, pollution data Africa, AirQo publications, environmental health resources',
+  alternates: {
+    canonical: 'https://airqo.net/resources',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://airqo.net/resources',
+    title: 'Air Quality Resources & Publications | AirQo',
+    description:
+      'Access comprehensive air quality resources including research papers, datasets, reports, and tools developed by AirQo for African cities.',
+    siteName: 'AirQo',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    'max-snippet': 170,
+    'max-image-preview': 'large',
+    'max-video-preview': -1,
+  },
+  category: 'Resources',
+  authors: [{ name: 'AirQo Research Team' }],
+  other: {
+    'revisit-after': '14 days',
+    'dc.publisher': 'AirQo',
+    'dc.language': 'en',
+    'dc.subject': 'Air Quality Resources, Environmental Data',
+    'dc.rights': 'Copyright AirQo, Some Rights Reserved',
+  },
 };
 
-const page = () => {
+const Page = () => {
   return (
     <div>
       <ResourcePage />
@@ -18,4 +47,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
