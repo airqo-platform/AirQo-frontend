@@ -316,13 +316,6 @@ const AddLocations = ({ onClose }) => {
               'data_provider',
             ]}
           />
-
-          {/* Show fetch error if any */}
-          {isError && fetchError && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
-              Error fetching data: {fetchError.message || 'Unknown error'}
-            </div>
-          )}
         </div>
         <Footer
           btnText={submitLoading ? 'Saving...' : 'Save'}

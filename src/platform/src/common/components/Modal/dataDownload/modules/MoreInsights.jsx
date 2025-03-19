@@ -517,12 +517,10 @@ const MoreInsights = () => {
   return (
     <div className="flex w-full h-full">
       {/* -------------------- Sidebar for Sites -------------------- */}
-      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-2 pb-14">
         <div className="text-sm text-gray-500 mb-4">
           <p>Click checkbox to toggle visibility</p>
-          <p className="text-xs mt-1 opacity-75">
-            Long press to remove site from data
-          </p>
+
           {/* Add button to load all sites */}
           {allSites.length > dataLoadingSites.length && (
             <button
