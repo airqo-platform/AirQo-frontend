@@ -122,77 +122,32 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       final headers = await _getHeaders();
 
-      // First, check if preferences already exist
-      loggy.info('Checking if preferences already exist');
-      final String getUserPrefsUrl = '$apiBaseUrl/users/preferences/$userId';
+      // Step 1: Reset preferences by sending an empty selected_sites list
+      final resetUrl = '$apiBaseUrl/users/preferences/$userId';
+      final resetPayload = {
+        "user_id": userId,
+        "selected_sites": [], // Clear all sites first
+      };
+      loggy.info('Resetting preferences at: $resetUrl');
+      final resetResponse = await http.put(
+        Uri.parse(resetUrl),
+        headers: headers,
+        body: jsonEncode(resetPayload),
+      );
+      loggy.info('Reset response status: ${resetResponse.statusCode}');
 
-      try {
-        final getUserResponse =
-            await http.get(Uri.parse(getUserPrefsUrl), headers: headers);
-
-        loggy.info(
-            'Get user preferences response status: ${getUserResponse.statusCode}');
-
-        if (getUserResponse.statusCode == 200) {
-          // Preferences exist, need to update them
-          loggy.info('Preferences exist, will update them');
-
-          try {
-            final prefsData = json.decode(getUserResponse.body);
-
-            if (prefsData['success'] == true && prefsData['data'] != null) {
-              // Extract the preference ID if available
-              final String? prefId = prefsData['data']['_id'];
-
-              if (prefId != null) {
-                // Update existing preferences by ID
-                final updateUrl = '$apiBaseUrl/users/preferences/$prefId';
-                loggy.info('Updating existing preferences with ID: $prefId');
-
-                final updateResponse = await http.put(Uri.parse(updateUrl),
-                    headers: headers, body: jsonEncode(data));
-
-                loggy.info(
-                    'Update response status: ${updateResponse.statusCode}');
-                loggy.info('Update response body: ${updateResponse.body}');
-
-                if (updateResponse.statusCode >= 200 &&
-                    updateResponse.statusCode < 300) {
-                  return json.decode(updateResponse.body);
-                }
-              }
-            }
-          } catch (e) {
-            loggy.error('Error parsing user preferences: $e');
-          }
-        }
-      } catch (e) {
-        loggy.error('Error checking existing preferences: $e');
+      if (resetResponse.statusCode < 200 || resetResponse.statusCode >= 300) {
+        loggy.warning('Failed to reset preferences: ${resetResponse.body}');
       }
 
-      // If we couldn't update existing preferences, try the patch method
-      final patchUrl = '$apiBaseUrl/users/preferences/update';
-      loggy.info('Trying to patch preferences at: $patchUrl');
-
-      final patchResponse = await http.patch(Uri.parse(patchUrl),
-          headers: headers, body: jsonEncode(data));
-
-      loggy.info('Patch response status: ${patchResponse.statusCode}');
-
-      if (patchResponse.statusCode >= 200 &&
-          patchResponse.statusCode < 300 &&
-          !patchResponse.body.trim().startsWith('<')) {
-        return json.decode(patchResponse.body);
-      }
-
-      // Try update endpoint with put method
-      final updateUrl = '$apiBaseUrl/users/preferences/update';
-      loggy.info('Trying to update preferences at: $updateUrl');
-
-      final updateResponse = await http.put(Uri.parse(updateUrl),
-          headers: headers, body: jsonEncode(data));
-
-      loggy.info('Update response status: ${updateResponse.statusCode}');
+      // Step 2: Send the actual update
+      loggy.info('Sending updated preferences to: $resetUrl');
+      final updateResponse = await http.put(
+        Uri.parse(resetUrl),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      loggy.info('User update response status: ${updateResponse.statusCode}');
 
       if (updateResponse.statusCode >= 200 &&
           updateResponse.statusCode < 300 &&
@@ -200,33 +155,15 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         return json.decode(updateResponse.body);
       }
 
-      // If all other methods fail, try one last approach - update by user ID
-      final userUpdateUrl = '$apiBaseUrl/users/preferences/$userId';
-      loggy.info('Trying direct update by user ID: $userUpdateUrl');
-
-      final userUpdateResponse = await http.put(Uri.parse(userUpdateUrl),
-          headers: headers, body: jsonEncode(data));
-
-      loggy.info(
-          'User update response status: ${userUpdateResponse.statusCode}');
-
-      if (userUpdateResponse.statusCode >= 200 &&
-          userUpdateResponse.statusCode < 300 &&
-          !userUpdateResponse.body.trim().startsWith('<')) {
-        return json.decode(userUpdateResponse.body);
-      }
-
-      // If we get here, we tried everything and nothing worked
       return {
         'success': false,
-        'message':
-            'Unable to update preferences. The preferences exist but could not be updated.'
+        'message': 'Failed to update preferences after reset attempt',
       };
     } catch (e) {
       loggy.error('Error replacing preferences: $e');
       return {
         'success': false,
-        'message': 'An error occurred: ${e.toString()}'
+        'message': 'An error occurred: ${e.toString()}',
       };
     }
   }
