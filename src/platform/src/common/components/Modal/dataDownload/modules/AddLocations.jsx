@@ -54,9 +54,26 @@ const AddLocations = ({ onClose }) => {
     enabled: !!groupTitle,
   });
 
-  // Filter out only the online sites
+  // FIXED: Filter sites more safely - don't rely just on isOnline property
   const filteredSites = useMemo(() => {
-    return (sitesSummaryData || []).filter((site) => site.isOnline === true);
+    if (!sitesSummaryData || !Array.isArray(sitesSummaryData)) return [];
+
+    // Check if isOnline property exists in the data
+    const hasIsOnlineProperty =
+      sitesSummaryData.length > 0 && 'isOnline' in sitesSummaryData[0];
+
+    if (hasIsOnlineProperty) {
+      // Filter by isOnline as before
+      const onlineSites = sitesSummaryData.filter(
+        (site) => site.isOnline === true,
+      );
+
+      // If we have online sites, return them, otherwise return all sites
+      return onlineSites.length > 0 ? onlineSites : sitesSummaryData;
+    }
+
+    // If isOnline property doesn't exist, just return all sites
+    return sitesSummaryData;
   }, [sitesSummaryData]);
 
   // Retrieve user ID from localStorage
@@ -85,19 +102,44 @@ const AddLocations = ({ onClose }) => {
    * if the user currently has preferences but no local selection.
    */
   useEffect(() => {
-    if (
-      !loading &&
-      selectedSites.length === 0 &&
-      selectedSiteIds.length > 0 &&
-      filteredSites.length > 0
-    ) {
-      const initialSelectedSites = filteredSites.filter((site) =>
-        selectedSiteIds.includes(site._id),
-      );
-      setSelectedSites(initialSelectedSites);
-      setSidebarSites(initialSelectedSites);
+    // FIXED: Added a log statement to debug initialization
+    console.log('Initializing sites with:', {
+      loading,
+      selectedSitesLength: selectedSites.length,
+      selectedSiteIdsLength: selectedSiteIds.length,
+      filteredSitesLength: filteredSites.length,
+    });
+
+    if (!loading && filteredSites.length > 0) {
+      // If we have user preferences, initialize selection based on them
+      if (selectedSites.length === 0 && selectedSiteIds.length > 0) {
+        const initialSelectedSites = filteredSites.filter((site) =>
+          selectedSiteIds.includes(site._id),
+        );
+
+        console.log(
+          'Setting initial selected sites:',
+          initialSelectedSites.length,
+        );
+
+        if (initialSelectedSites.length > 0) {
+          setSelectedSites(initialSelectedSites);
+          setSidebarSites(initialSelectedSites);
+        }
+      }
+      // If we have filteredSites but no selections at all, initialize sidebar with empty array
+      // to ensure the component knows data is available
+      else if (selectedSites.length === 0 && sidebarSites.length === 0) {
+        setSidebarSites([]);
+      }
     }
-  }, [loading, selectedSites.length, selectedSiteIds, filteredSites]);
+  }, [
+    loading,
+    selectedSites.length,
+    selectedSiteIds,
+    filteredSites,
+    sidebarSites.length,
+  ]);
 
   /**
    * Clears all selected sites.
@@ -113,15 +155,23 @@ const AddLocations = ({ onClose }) => {
    * Toggles the selection of a site.
    */
   const handleToggleSite = useCallback((site) => {
+    // FIXED: Added console log to debug toggle action
+    console.log('Toggling site:', site._id, site.search_name || site.name);
+
     setSelectedSites((prev) => {
       const isSelected = prev.some((s) => s._id === site._id);
       return isSelected
         ? prev.filter((s) => s._id !== site._id)
         : [...prev, site];
     });
+
     setSidebarSites((prev) => {
       const alreadyInSidebar = prev.some((s) => s._id === site._id);
-      return alreadyInSidebar ? prev : [...prev, site];
+      if (alreadyInSidebar) {
+        // If we're removing from selected, also remove from sidebar
+        return prev.filter((s) => s._id !== site._id);
+      }
+      return [...prev, site];
     });
   }, []);
 
@@ -152,47 +202,92 @@ const AddLocations = ({ onClose }) => {
   );
 
   /**
-   * Define column mappings for the DataTable.
+   * FIXED: Flexible column rendering to handle different data structures
    */
-  const columnsByFilter = useMemo(
-    () => ({
+  const columnsByFilter = useMemo(() => {
+    // Function to safely render location name based on available fields
+    const renderLocationName = (item) => {
+      const displayName =
+        item.search_name ||
+        item.name ||
+        item.location_name ||
+        'Unknown Location';
+
+      return (
+        <div className="flex items-center">
+          <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+            <LocationIcon width={16} height={16} fill="#9EA3AA" />
+          </span>
+          <span className="ml-2">{displayName}</span>
+        </div>
+      );
+    };
+
+    // Function to safely get field value with fallbacks
+    const getFieldWithFallback = (item, fields) => {
+      for (const field of fields) {
+        if (item[field]) return item[field];
+      }
+      return 'N/A';
+    };
+
+    return {
       all: [
         {
-          key: 'search_name',
+          key: 'name',
           label: 'Location',
-          render: (item) => (
-            <div className="flex items-center">
-              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                <LocationIcon width={16} height={16} fill="#9EA3AA" />
-              </span>
-              <span className="ml-2">{item.search_name}</span>
-            </div>
-          ),
+          render: renderLocationName,
         },
-        { key: 'city', label: 'City' },
-        { key: 'country', label: 'Country' },
-        { key: 'data_provider', label: 'Owner' },
+        {
+          key: 'city',
+          label: 'City',
+          render: (item) => getFieldWithFallback(item, ['city', 'address']),
+        },
+        {
+          key: 'country',
+          label: 'Country',
+          render: (item) => getFieldWithFallback(item, ['country']),
+        },
+        {
+          key: 'data_provider',
+          label: 'Owner',
+          render: (item) =>
+            getFieldWithFallback(item, [
+              'data_provider',
+              'owner',
+              'organization',
+            ]),
+        },
       ],
       favorites: [
         {
-          key: 'search_name',
+          key: 'name',
           label: 'Location',
-          render: (item) => (
-            <div className="flex items-center">
-              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                <LocationIcon width={16} height={16} fill="#9EA3AA" />
-              </span>
-              <span className="ml-2">{item.search_name}</span>
-            </div>
-          ),
+          render: renderLocationName,
         },
-        { key: 'city', label: 'City' },
-        { key: 'country', label: 'Country' },
-        { key: 'data_provider', label: 'Owner' },
+        {
+          key: 'city',
+          label: 'City',
+          render: (item) => getFieldWithFallback(item, ['city', 'address']),
+        },
+        {
+          key: 'country',
+          label: 'Country',
+          render: (item) => getFieldWithFallback(item, ['country']),
+        },
+        {
+          key: 'data_provider',
+          label: 'Owner',
+          render: (item) =>
+            getFieldWithFallback(item, [
+              'data_provider',
+              'owner',
+              'organization',
+            ]),
+        },
       ],
-    }),
-    [],
-  );
+    };
+  }, []);
 
   /**
    * Handles submission of the selected sites.
@@ -248,7 +343,7 @@ const AddLocations = ({ onClose }) => {
   }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
 
   /**
-   * Generates the sidebar content for selected sites.
+   * FIXED: Enhanced sidebar content generation with better handling of different site data structures
    */
   const sidebarSitesContent = useMemo(() => {
     if (loading) {
@@ -262,6 +357,27 @@ const AddLocations = ({ onClose }) => {
         </div>
       );
     }
+
+    // FIXED: Add a debug log to check sidebar sites state
+    console.log('Rendering sidebar with:', {
+      sidebarSitesLength: sidebarSites.length,
+      selectedSitesLength: selectedSites.length,
+      filteredSitesLength: filteredSites.length,
+    });
+
+    if (!filteredSites.length) {
+      return (
+        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start text-center items-center p-4">
+          <MdInfoOutline className="text-4xl mb-2" />
+          <p className="text-lg font-medium mb-1">No data available</p>
+          <p className="text-sm text-center">
+            The system couldn&apos;t retrieve location data. Please try again
+            later.
+          </p>
+        </div>
+      );
+    }
+
     if (sidebarSites.length === 0) {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start text-center items-center p-4">
@@ -273,16 +389,33 @@ const AddLocations = ({ onClose }) => {
         </div>
       );
     }
+
     return sidebarSites.map((site) => (
       <LocationCard
         key={site._id}
         site={site}
-        onToggle={handleToggleSite}
+        onToggle={() => handleToggleSite(site)}
         isLoading={false}
         isSelected={selectedSites.some((s) => s._id === site._id)}
       />
     ));
-  }, [sidebarSites, selectedSites, handleToggleSite, loading]);
+  }, [
+    sidebarSites,
+    selectedSites,
+    handleToggleSite,
+    loading,
+    filteredSites.length,
+  ]);
+
+  // FIXED: Add debug info about data availability
+  console.log('Component data state:', {
+    rawDataLength: sitesSummaryData?.length || 0,
+    filteredDataLength: filteredSites.length,
+    selectedLength: selectedSites.length,
+    sidebarLength: sidebarSites.length,
+    loading,
+    isError,
+  });
 
   return (
     <>
@@ -294,28 +427,50 @@ const AddLocations = ({ onClose }) => {
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          <DataTable
-            data={filteredSites}
-            selectedRows={selectedSites}
-            setSelectedRows={setSelectedSites}
-            clearSelectionTrigger={clearSelected}
-            loading={loading}
-            error={isError}
-            errorMessage={
-              fetchError?.message || 'Unable to fetch locations data.'
-            }
-            onToggleRow={handleToggleSite}
-            filters={filters}
-            columnsByFilter={columnsByFilter}
-            onFilter={handleFilter}
-            searchKeys={[
-              'location_name',
-              'search_name',
-              'city',
-              'country',
-              'data_provider',
-            ]}
-          />
+          {/* FIXED: Add better error/loading states for the DataTable */}
+          {isError ? (
+            <div className="bg-red-50 p-4 rounded border border-red-200 text-center">
+              <MdInfoOutline className="text-red-500 text-3xl mx-auto mb-2" />
+              <p className="text-red-800 font-medium">Error Loading Data</p>
+              <p className="text-red-600 text-sm mt-1">
+                {fetchError?.message || 'Unable to fetch locations data.'}
+              </p>
+            </div>
+          ) : filteredSites.length === 0 && !loading ? (
+            <div className="bg-blue-50 p-4 rounded border border-blue-200 text-center">
+              <MdInfoOutline className="text-blue-500 text-3xl mx-auto mb-2" />
+              <p className="text-blue-800 font-medium">No Locations Found</p>
+              <p className="text-blue-600 text-sm mt-1">
+                No locations are currently available for selection.
+              </p>
+            </div>
+          ) : (
+            <DataTable
+              data={filteredSites}
+              selectedRows={selectedSites}
+              setSelectedRows={setSelectedSites}
+              clearSelectionTrigger={clearSelected}
+              loading={loading}
+              error={isError}
+              errorMessage={
+                fetchError?.message || 'Unable to fetch locations data.'
+              }
+              onToggleRow={handleToggleSite}
+              filters={filters}
+              columnsByFilter={columnsByFilter}
+              onFilter={handleFilter}
+              searchKeys={[
+                'location_name',
+                'search_name',
+                'name',
+                'city',
+                'country',
+                'data_provider',
+                'owner',
+                'organization',
+              ]}
+            />
+          )}
         </div>
         <Footer
           btnText={submitLoading ? 'Saving...' : 'Save'}

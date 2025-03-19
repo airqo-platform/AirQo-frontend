@@ -312,6 +312,10 @@ const MoreInsights = () => {
     } catch (err) {
       console.error('Manual refresh failed:', err);
       setIsManualRefresh(false);
+      // Reset any stuck state that might prevent future refreshes
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
     }
   }, [refetch, isManualRefresh, isValidating]);
 
@@ -590,10 +594,18 @@ const MoreInsights = () => {
                 'Something went wrong loading the chart data.'}
           </p>
           <button
-            onClick={handleManualRefresh}
+            onClick={() => {
+              // Force set isManualRefresh to false in case it's stuck
+              setIsManualRefresh(false);
+              // Short timeout to ensure state is updated before trying again
+              setTimeout(() => {
+                handleManualRefresh();
+              }, 100);
+            }}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            disabled={isValidating}
           >
-            Try Again
+            {isValidating ? 'Refreshing...' : 'Try Again'}
           </button>
         </div>
       );
@@ -632,8 +644,9 @@ const MoreInsights = () => {
         <button
           onClick={handleManualRefresh}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+          disabled={isValidating}
         >
-          Retry
+          {isValidating ? 'Refreshing...' : 'Retry'}
         </button>
       </div>
     );
@@ -649,6 +662,7 @@ const MoreInsights = () => {
     frequency,
     chartData.pollutionType,
     handleManualRefresh,
+    setIsManualRefresh,
   ]);
 
   return (
