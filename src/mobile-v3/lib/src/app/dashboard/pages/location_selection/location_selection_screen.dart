@@ -50,28 +50,18 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   void initState() {
     super.initState();
     loggy.info('initState called');
-
     selectedLocations = {};
     _initializeUserData();
+    context.read<GooglePlacesBloc>().add(ResetGooglePlaces());
 
-    googlePlacesBloc = context.read<GooglePlacesBloc>()
-      ..add(ResetGooglePlaces());
-
-    loggy.info('Checking dashboard state');
     final dashboardBloc = context.read<DashboardBloc>();
     final currentState = dashboardBloc.state;
     loggy.info('Current dashboard state: ${currentState.runtimeType}');
-    if (currentState is DashboardLoaded) {
-      loggy.info('Dashboard already loaded, populating measurements');
-      if (currentState.response.measurements != null) {
-        _populateMeasurements(currentState.response.measurements!);
-        // Don’t preselect here; wait for BlocListener
-      } else {
-        setState(() {
-          isLoading = false;
-          errorMessage = "No measurements available in loaded state";
-        });
-      }
+
+    if (currentState is DashboardLoaded &&
+        currentState.response.measurements != null) {
+      _populateMeasurements(currentState.response.measurements!);
+      // Don’t preselect here; rely on BlocListener
     } else {
       dashboardBloc.add(LoadDashboard());
     }
@@ -389,13 +379,12 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
   @override
   Widget build(BuildContext context) {
-    loggy.debug('build method called');
     return BlocListener<DashboardBloc, DashboardState>(
       listener: (context, state) {
         if (state is DashboardLoaded) {
           if (state.response.measurements != null) {
             _populateMeasurements(state.response.measurements!);
-            _syncSelectedLocations(state); // Sync here after state update
+            _syncSelectedLocations(state);
           } else {
             setState(() {
               isLoading = false;

@@ -132,14 +132,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       // Build selectedSites only from provided locationIds
       List<Map<String, dynamic>> selectedSites = [];
       for (final id in locationIds) {
+        // Try to find a matching measurement or leave as null
         Measurement? matchingMeasurement;
-        try {
-          matchingMeasurement = currentState.response.measurements?.firstWhere(
-            (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id,
-          );
-        } catch (e) {
-          // No matching measurement found
-          matchingMeasurement = null;
+        if (currentState.response.measurements != null) {
+          for (var m in currentState.response.measurements!) {
+            if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
+              matchingMeasurement = m;
+              break;
+            }
+          }
         }
 
         if (matchingMeasurement != null) {
@@ -212,6 +213,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         if (response['data'] != null &&
             response['data'] is Map<String, dynamic>) {
           prefsData = UserPreferencesModel.fromJson(response['data']);
+        } else if (response['preferences'] is List &&
+            response['preferences'].isNotEmpty) {
+          prefsData =
+              UserPreferencesModel.fromJson(response['preferences'].first);
         } else {
           prefsData = UserPreferencesModel(
             id: '',
@@ -224,8 +229,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
             'Loaded preferences: ${prefsData.selectedSites.length} sites');
         emit(
             DashboardLoaded(currentState.response, userPreferences: prefsData));
-      } else if (response['auth_error'] == true) {
-        loggy.warning('Authentication error when loading preferences');
       } else {
         loggy
             .warning('Failed to load user preferences: ${response['message']}');

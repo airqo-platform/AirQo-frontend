@@ -302,30 +302,20 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   void _removeLocation(String id) {
     loggy.info('Removing location with ID: $id');
 
-    // Find the location name for the notification
     String locationName = "Location";
-    Measurement? matchedMeasurement;
-    SelectedSite? matchedSite;
-
     for (var m in selectedMeasurements) {
       if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
-        matchedMeasurement = m;
         locationName = m.siteDetails?.name ?? "Location";
         break;
       }
     }
-
-    if (matchedMeasurement == null) {
-      for (var s in unmatchedSites) {
-        if (s.id == id) {
-          matchedSite = s; // Assigned here
-          locationName = s.name;
-          break;
-        }
+    for (var s in unmatchedSites) {
+      if (s.id == id) {
+        locationName = s.name;
+        break;
       }
     }
 
-    // Update local state
     setState(() {
       selectedMeasurements.removeWhere(
           (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id);
@@ -337,7 +327,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       return;
     }
 
-    // Filter remaining site IDs from preferences
     final remainingSiteIds = widget.userPreferences!.selectedSites
         .where((site) => site.id != id)
         .map((site) => site.id)
@@ -346,12 +335,10 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     loggy.info('Filtered preferences by name: $locationName');
     loggy.info('Remaining IDs: $remainingSiteIds');
 
-    // Dispatch event to update preferences
-    context
-        .read<DashboardBloc>()
-        .add(UpdateSelectedLocations(remainingSiteIds));
+    final dashboardBloc = context.read<DashboardBloc>();
+    dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
+    dashboardBloc.add(LoadUserPreferences()); // Ensure state refreshes
 
-    // Show notification
     NotificationManager().showNotification(
       context,
       message: '"$locationName" has been removed from your places',
@@ -362,24 +349,18 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   void _navigateToLocationSelection() async {
     loggy.info('Navigating to location selection screen');
 
-    // Navigate to location selection screen
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const LocationSelectionScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const LocationSelectionScreen()),
     );
 
-    // If we get a result back, reload measurements
-    if (result != null) {
+    if (result != null && mounted) {
       loggy.info('Returned from location selection with result');
-
       setState(() {
         isLoading = true;
       });
-
-      // Force reload dashboard data to get fresh measurements and preferences
       context.read<DashboardBloc>().add(LoadDashboard());
+      // Wait for state to update via BlocListener, not synchronously
     }
   }
 
