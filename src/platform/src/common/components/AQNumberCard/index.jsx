@@ -72,7 +72,9 @@ const AQNumberCard = ({ className = '' }) => {
   if (isLoadingData) {
     return (
       <div
-        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${className}`}
+        aria-busy="true"
+        aria-label="Loading air quality data"
       >
         {Array.from({ length: MAX_CARDS }).map((_, index) => (
           <SkeletonCard key={`skeleton-${index}`} />
@@ -84,7 +86,7 @@ const AQNumberCard = ({ className = '' }) => {
   // Render cards grid
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}
+      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${className}`}
       data-testid="aq-number-card-grid"
     >
       {selectedSites.map((site) => (
@@ -98,8 +100,8 @@ const AQNumberCard = ({ className = '' }) => {
         />
       ))}
 
-      {/* Show "Add Location" card if there's room for more sites */}
-      {selectedSites.length < MAX_CARDS && (
+      {/* Show "Add Location" card if there's room for more sites or if no sites are selected */}
+      {(selectedSites.length < MAX_CARDS || selectedSites.length === 0) && (
         <AddLocationCard onOpenModal={handleOpenModal} />
       )}
     </div>
