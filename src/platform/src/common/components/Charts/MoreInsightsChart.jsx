@@ -188,6 +188,15 @@ const MoreInsightsChart = ({
   const DataComponent = chartType === 'line' ? Line : Bar;
 
   /**
+   * Handle refresh button click with debounce protection
+   */
+  const handleRefreshClick = useCallback(() => {
+    if (!isRefreshing && refreshChart) {
+      refreshChart();
+    }
+  }, [isRefreshing, refreshChart]);
+
+  /**
    * Render chart content based on state
    */
   const renderChart = useMemo(() => {
@@ -225,16 +234,17 @@ const MoreInsightsChart = ({
           <MdInfoOutline className="text-4xl mb-2" />
           <p className="text-lg font-medium mb-1">No Data Available</p>
           <p className="text-sm text-center mb-4">
-            There’s no data to display for the selected criteria. Try adjusting
-            your filters or refreshing the chart.
+            There&apos;s no data to display for the selected criteria. Try
+            adjusting your filters or refreshing the chart.
           </p>
           {refreshChart && (
             <button
-              onClick={refreshChart}
+              onClick={handleRefreshClick}
               disabled={isRefreshing}
               className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center ${
                 isRefreshing ? 'opacity-75 cursor-not-allowed' : ''
               }`}
+              aria-label="Refresh chart data"
             >
               {isRefreshing && (
                 <svg
@@ -242,6 +252,7 @@ const MoreInsightsChart = ({
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <circle
                     className="opacity-25"
@@ -402,6 +413,7 @@ const MoreInsightsChart = ({
     refreshChart,
     isRefreshing,
     aqStandard?.name,
+    handleRefreshClick,
   ]);
 
   return (

@@ -25,7 +25,8 @@ import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
-import { MdErrorOutline } from 'react-icons/md';
+import { MdErrorOutline, MdInfo } from 'react-icons/md';
+import { Refreshing, DoneRefreshed } from '../constants/svgs';
 
 /**
  * InSightsHeader Component
@@ -53,7 +54,11 @@ const MoreInsights = () => {
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
   const [isManualRefresh, setIsManualRefresh] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState(false);
   const refreshTimeoutRef = useRef(null);
+  const successTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const downloadControllerRef = useRef(null);
 
   // API hooks
   const fetchData = useDataDownload();
@@ -70,10 +75,10 @@ const MoreInsights = () => {
   /**
    * Data fetching and visibility states
    */
-  const [dataLoadingSites, setDataLoadingSites] = useState(() =>
+  const [dataLoadingSites, setDataLoadingSites] = useState(
     allSites.map((site) => site._id),
   );
-  const [visibleSites, setVisibleSites] = useState(() =>
+  const [visibleSites, setVisibleSites] = useState(
     allSites.map((site) => site._id),
   );
 
@@ -95,7 +100,7 @@ const MoreInsights = () => {
   const [dateRange, setDateRange] = useState(initialDateRange);
 
   /**
-   * Fetch analytics data using SWR hook
+   * Fetch analytics data using SWR hook with improved configuration
    */
   const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
     useAnalyticsData(
@@ -108,7 +113,7 @@ const MoreInsights = () => {
         chartType,
         frequency,
         pollutant: chartData.pollutionType,
-        organisationName: chartData.organisationName,
+        organisationName: chartData.organizationName,
       },
       {
         revalidateOnFocus: false,
@@ -129,24 +134,47 @@ const MoreInsights = () => {
             return;
           }
           console.error('Error fetching analytics data:', err);
+
+          // Clear refresh state if error occurs during refresh
+          if (isManualRefresh) {
+            setIsManualRefresh(false);
+          }
+        },
+        onSuccess: () => {
+          // If this was a manual refresh, show success message
+          if (isManualRefresh) {
+            setRefreshSuccess(true);
+            setIsManualRefresh(false);
+
+            // Clear success message after 3 seconds
+            if (successTimeoutRef.current) {
+              clearTimeout(successTimeoutRef.current);
+            }
+            successTimeoutRef.current = setTimeout(() => {
+              setRefreshSuccess(false);
+            }, 3000);
+          }
         },
       },
     );
 
-  // Clear manual refresh state after timeout
+  // Clean up timeouts on unmount
   useEffect(() => {
-    if (isManualRefresh && !isValidating) {
-      refreshTimeoutRef.current = setTimeout(() => {
-        setIsManualRefresh(false);
-      }, 3000);
-    }
-
     return () => {
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (downloadControllerRef.current) {
+        downloadControllerRef.current.abort();
+      }
     };
-  }, [isManualRefresh, isValidating]);
+  }, []);
 
   // Clear download error after timeout
   useEffect(() => {
@@ -159,17 +187,24 @@ const MoreInsights = () => {
   }, [downloadError]);
 
   /**
-   * Toggle site visibility in chart
+   * Toggle site visibility in chart.
+   * If it is the last visible site, prevent unchecking and show a warning notification.
    */
   const toggleSiteVisibility = useCallback((siteId) => {
     setVisibleSites((prev) => {
-      const isVisible = prev.includes(siteId);
-      // If trying to hide and this is the last visible site, prevent it
-      if (isVisible && prev.length <= 1) {
-        return prev;
+      // If the site is currently visible
+      if (prev.includes(siteId)) {
+        // Prevent unchecking if it is the only visible site
+        if (prev.length === 1) {
+          CustomToast({
+            message: 'At least one location must remain selected.',
+            type: 'warning',
+          });
+          return prev;
+        }
+        return prev.filter((id) => id !== siteId);
       }
-      // Toggle visibility state
-      return isVisible ? prev.filter((id) => id !== siteId) : [...prev, siteId];
+      return [...prev, siteId];
     });
   }, []);
 
@@ -259,24 +294,51 @@ const MoreInsights = () => {
   );
 
   /**
-   * Handle manual refresh
+   * Handle manual refresh with improved handling of aborts and state management
    */
-  const handleManualRefresh = useCallback(() => {
+  const handleManualRefresh = useCallback(async () => {
+    if (isManualRefresh || isValidating) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
     setIsManualRefresh(true);
-    setTimeout(() => {
-      refetch().catch((err) => {
-        console.error('Manual refresh failed:', err);
-        setTimeout(() => setIsManualRefresh(false), 1000);
-      });
-    }, 100);
-  }, [refetch]);
+    setRefreshSuccess(false);
+
+    try {
+      await refetch({ signal: abortControllerRef.current.signal });
+    } catch (err) {
+      console.error('Manual refresh failed:', err);
+      setIsManualRefresh(false);
+    }
+  }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Download data in CSV format
+   * Download data in CSV format with improved error handling.
+   * Only downloads data for visible (checked) sites.
    */
   const handleDataDownload = async () => {
+    // Check if there are any visible sites to download
+    if (visibleSites.length === 0) {
+      CustomToast({
+        message: 'Please select at least one site to download data.',
+        type: 'warning',
+      });
+      return;
+    }
+
     setDownloadLoading(true);
+
     try {
+      // Cancel any existing download request
+      if (downloadControllerRef.current) {
+        downloadControllerRef.current.abort();
+      }
+
+      downloadControllerRef.current = new AbortController();
+
       const { startDate, endDate } = dateRange;
       const formattedStartDate = format(
         parseISO(startDate),
@@ -286,10 +348,21 @@ const MoreInsights = () => {
         parseISO(endDate),
         "yyyy-MM-dd'T'00:00:00.000'Z'",
       );
+
+      // Using visible sites instead of all data loading sites
+      const sitesToDownload = visibleSites;
+
+      // Look up site names for the filename
+      const siteNames = sitesToDownload.map((siteId) => {
+        const site = allSites.find((s) => s._id === siteId);
+        return site ? site.name || 'Unknown' : 'Unknown';
+      });
+
+      // Create API request data
       const apiData = {
         startDateTime: formattedStartDate,
         endDateTime: formattedEndDate,
-        sites: dataLoadingSites,
+        sites: sitesToDownload, // Only download selected sites
         network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
         frequency: frequency,
@@ -297,20 +370,69 @@ const MoreInsights = () => {
         downloadType: 'csv',
         outputFormat: 'airqo-standard',
         minimum: true,
+        signal: downloadControllerRef.current.signal,
       };
+
+      // Set a timeout for the download
+      const downloadTimeout = setTimeout(() => {
+        setDownloadError(
+          'The download request is taking longer than expected. Please try again later.',
+        );
+        setDownloadLoading(false);
+      }, 30000); // 30-second timeout
+
+      // Fetch the data
       const data = await fetchData(apiData);
+      clearTimeout(downloadTimeout);
+
+      // Create descriptive filename
+      let fileName;
+      if (sitesToDownload.length === 1) {
+        // Single site
+        fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
+          parseISO(startDate),
+          'yyyy-MM-dd',
+        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+      } else if (sitesToDownload.length === allSites.length) {
+        // All sites
+        fileName = `all_sites_${chartData.pollutionType}_${format(
+          parseISO(startDate),
+          'yyyy-MM-dd',
+        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+      } else {
+        // Multiple sites
+        fileName = `${sitesToDownload.length}_selected_sites_${
+          chartData.pollutionType
+        }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(
+          parseISO(endDate),
+          'yyyy-MM-dd',
+        )}.csv`;
+      }
+
+      // Save the file
       const mimeType = 'text/csv;charset=utf-8;';
-      const fileName = `analytics_data_${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
       const blob = new Blob([data], { type: mimeType });
       saveAs(blob, fileName);
-      CustomToast();
+
+      CustomToast({
+        message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
+        type: 'success',
+      });
     } catch (error) {
       console.error('Error during download:', error);
-      setDownloadError(
-        'There was an error downloading the data. Please try again later.',
-      );
+
+      if (
+        error.name === 'AbortError' ||
+        error.message?.includes('aborted') ||
+        error.message?.includes('canceled')
+      ) {
+        setDownloadError('Download was canceled.');
+      } else {
+        setDownloadError(
+          error.message ||
+            'There was an error downloading the data. Please try again later.',
+        );
+      }
     } finally {
       setDownloadLoading(false);
     }
@@ -354,7 +476,8 @@ const MoreInsights = () => {
   );
 
   /**
-   * Generate sidebar content for site selection
+   * Generate sidebar content for site selection.
+   * The checkbox state is now controlled by `visibleSites`.
    */
   const allSitesContent = useMemo(() => {
     if (!Array.isArray(allSites) || allSites.length === 0) {
@@ -373,6 +496,7 @@ const MoreInsights = () => {
         site={site}
         onToggle={() => handleSiteClick(site._id, 'toggle')}
         onRemove={() => handleSiteClick(site._id, 'remove')}
+        // Use visibleSites for the checked state so the UI reflects the toggle properly
         isSelected={visibleSites.includes(site._id)}
         isVisible={visibleSites.includes(site._id)}
         isLoading={
@@ -388,7 +512,20 @@ const MoreInsights = () => {
   }, [allSites, dataLoadingSites, visibleSites, handleSiteClick, isValidating]);
 
   /**
-   * Refresh button component
+   * Button tooltip content for download
+   */
+  const downloadTooltipContent = useMemo(() => {
+    if (visibleSites.length === 0) {
+      return 'Please select at least one site to download data';
+    }
+    if (visibleSites.length === dataLoadingSites.length) {
+      return 'Download data for all selected sites';
+    }
+    return `Download data for ${visibleSites.length} checked site(s)`;
+  }, [visibleSites.length, dataLoadingSites.length]);
+
+  /**
+   * Refresh button component with improved state handling
    */
   const RefreshButton = useMemo(
     () => (
@@ -396,6 +533,7 @@ const MoreInsights = () => {
         <button
           onClick={handleManualRefresh}
           disabled={isValidating}
+          aria-label="Refresh data"
           className={`ml-2 p-2 rounded-md border border-gray-200 ${
             isValidating
               ? 'bg-gray-100 cursor-not-allowed'
@@ -408,6 +546,7 @@ const MoreInsights = () => {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <circle
                 className="opacity-25"
@@ -437,7 +576,6 @@ const MoreInsights = () => {
    */
   const chartContent = useMemo(() => {
     if (isError) {
-      // Enhanced error UI
       return (
         <div className="flex flex-col items-center justify-center h-[380px] space-y-3 bg-red-50 border border-red-200 rounded-md p-6 text-center">
           <MdErrorOutline className="text-red-500 text-4xl" />
@@ -486,7 +624,6 @@ const MoreInsights = () => {
       );
     }
 
-    // No data scenario
     return (
       <div className="w-full flex flex-col items-center justify-center h-[380px] space-y-3">
         <p className="text-gray-600 text-sm font-medium">
@@ -516,12 +653,18 @@ const MoreInsights = () => {
 
   return (
     <div className="flex w-full h-full">
-      {/* -------------------- Sidebar for Sites -------------------- */}
+      {/* Sidebar for Sites */}
       <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-2 pb-14">
         <div className="text-sm text-gray-500 mb-4">
-          <p>Click checkbox to toggle visibility</p>
-
-          {/* Add button to load all sites */}
+          <p className="flex items-center">
+            <span>Click checkbox to toggle visibility</span>
+            <Tooltip
+              content="Checked sites will be included in downloads"
+              className="ml-1"
+            >
+              <MdInfo className="text-blue-500" />
+            </Tooltip>
+          </p>
           {allSites.length > dataLoadingSites.length && (
             <button
               onClick={addAllSites}
@@ -534,13 +677,12 @@ const MoreInsights = () => {
         {allSitesContent}
       </div>
 
-      {/* -------------------- Main Content Area -------------------- */}
+      {/* Main Content Area */}
       <div className="bg-white relative w-full h-full">
         <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full w-full overflow-y-auto md:overflow-hidden">
-          {/* -------------------- Controls: Dropdowns and Actions -------------------- */}
+          {/* Controls: Dropdowns and Actions */}
           <div className="w-full flex flex-wrap gap-2 justify-between">
             <div className="space-x-2 flex items-center">
-              {/* Frequency Dropdown */}
               <CustomDropdown
                 btnText={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
                 dropdown
@@ -563,7 +705,6 @@ const MoreInsights = () => {
                 ))}
               </CustomDropdown>
 
-              {/* Date Range Picker */}
               <CustomCalendar
                 initialStartDate={new Date(dateRange.startDate)}
                 initialEndDate={new Date(dateRange.endDate)}
@@ -572,7 +713,6 @@ const MoreInsights = () => {
                 dropdown
               />
 
-              {/* Chart Type Dropdown */}
               <CustomDropdown
                 btnText={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 id="chartType"
@@ -592,61 +732,66 @@ const MoreInsights = () => {
                 ))}
               </CustomDropdown>
 
-              {/* Refresh Button */}
               {RefreshButton}
             </div>
 
-            {/* Actions: Download Data */}
             <div>
               <Tooltip
-                content="Download calibrated data in CSV format"
+                content={downloadTooltipContent}
                 className="w-auto text-center"
               >
                 <TabButtons
-                  btnText="Download Data"
+                  btnText={`Download ${
+                    visibleSites.length > 0
+                      ? `(${visibleSites.length})`
+                      : 'Data'
+                  }`}
                   Icon={<DownloadIcon width={16} height={17} color="white" />}
                   onClick={handleDataDownload}
-                  btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-2 rounded-xl"
+                  btnStyle={`${
+                    visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
+                  } text-white border ${
+                    visibleSites.length > 0
+                      ? 'border-blue-600'
+                      : 'border-gray-400'
+                  } px-3 py-2 rounded-xl`}
                   isLoading={downloadLoading}
-                  disabled={downloadLoading || chartLoading || isValidating}
+                  disabled={
+                    downloadLoading ||
+                    chartLoading ||
+                    isValidating ||
+                    visibleSites.length === 0
+                  }
                 />
               </Tooltip>
             </div>
           </div>
 
-          {/* -------------------- Download Error -------------------- */}
           {downloadError && (
             <div className="w-full flex items-center justify-start h-auto">
               <p className="text-red-500 font-semibold">{downloadError}</p>
             </div>
           )}
 
-          {/* -------------------- Chart Display -------------------- */}
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2 relative">
-            {/* Success Message After Refresh */}
-            {!isValidating && isManualRefresh && (
+            {refreshSuccess && !isValidating && (
               <div className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
-                <svg
-                  className="mr-2 h-4 w-4 text-green-600"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <DoneRefreshed />
                 <span className="text-sm font-medium">Data refreshed</span>
               </div>
             )}
 
-            {/* Chart Content based on loading/error states */}
+            {isManualRefresh && isValidating && (
+              <div className="absolute top-2 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm animate-pulse">
+                <Refreshing />
+                <span className="text-sm font-medium">Refreshing data...</span>
+              </div>
+            )}
+
             {chartContent}
           </div>
 
-          {/* Site visibility indicator */}
+          {/* Site visibility indicator with info about download */}
           {dataLoadingSites.length > visibleSites.length && (
             <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded flex items-center">
               <svg
@@ -654,6 +799,7 @@ const MoreInsights = () => {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
+                aria-hidden="true"
               >
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                 <path
@@ -663,13 +809,13 @@ const MoreInsights = () => {
                 />
               </svg>
               <span>
-                {dataLoadingSites.length - visibleSites.length} site(s) hidden.
-                Check the boxes in the sidebar to show them.
+                {dataLoadingSites.length - visibleSites.length} site(s) hidden
+                and will not be included in downloads. Check the boxes in the
+                sidebar to include them.
               </span>
             </div>
           )}
 
-          {/* -------------------- Air Quality Card -------------------- */}
           <AirQualityCard
             airQuality="--"
             pollutionSource="--"
