@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -15,13 +16,14 @@ class SettingsWidget extends StatefulWidget {
 
 class _SettingsWidgetState extends State<SettingsWidget> {
   String _appVersion = '';
-  bool _locationEnabled = true;
+  bool _locationEnabled = false;
   bool _notificationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _getAppVersion();
+    _checkLocationStatus();
   }
 
   Future<void> _getAppVersion() async {
@@ -29,6 +31,60 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     setState(() {
       _appVersion = '${packageInfo.version}(${packageInfo.buildNumber})';
     });
+  }
+
+  Future<void> _checkLocationStatus() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    setState(() {
+      _locationEnabled = serviceEnabled &&
+          permission != LocationPermission.denied &&
+          permission != LocationPermission.deniedForever;
+    });
+  }
+
+  Future<void> _toggleLocation(bool value) async {
+    if (value) {
+      // Enable location
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        // Prompt user to enable location services
+        bool openedSettings = await Geolocator.openLocationSettings();
+        if (!openedSettings) {
+          _showSnackBar('Please enable location services in settings.');
+          return;
+        }
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showSnackBar('Location permission denied.');
+          return;
+        } else if (permission == LocationPermission.deniedForever) {
+          _showSnackBar(
+              'Location permission permanently denied. Please enable it in settings.');
+          await Geolocator.openAppSettings();
+          return;
+        }
+      }
+    }
+
+    setState(() {
+      _locationEnabled = value;
+    });
+
+    // Optionally, start/stop location updates here if your app needs real-time location
+    print("Location setting: $_locationEnabled");
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   void _showLogoutConfirmation() {
@@ -52,45 +108,40 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   }
 
   Future<void> _handleLogout(BuildContext dialogContext) async {
-  Navigator.pop(dialogContext); // Close confirmation dialog
+    Navigator.pop(dialogContext); // Close confirmation dialog
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
-  );
-
-  try {
-    context.read<AuthBloc>().add(LogoutUser());
-
-    await for (final state in context.read<AuthBloc>().stream) {
-      if (state is GuestUser) {
-        Navigator.pop(context);
-
-        await Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => WelcomeScreen()),
-          (route) => false,
-        );
-        break;
-      } else if (state is AuthLoadingError) {
-        Navigator.pop(context);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.message)),
-        );
-        break;
-      }
-    }
-  } catch (e) {
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('An unexpected error occurred')),
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-  }
-}
 
+    try {
+      // Trigger logout event
+      context.read<AuthBloc>().add(LogoutUser());
+
+      // Listen to state changes
+      await for (final state in context.read<AuthBloc>().stream) {
+        if (state is GuestUser) {
+          Navigator.pop(context); // Close loading dialog
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+            (route) => false,
+          );
+          break;
+        } else if (state is AuthLoadingError) {
+          Navigator.pop(context); // Close loading dialog
+          _showSnackBar(state.message);
+          break;
+        }
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      _showSnackBar('An unexpected error occurred during logout');
+    }
+  }
 
   // void _showDeleteAccountDialog() {
   //   final TextEditingController passwordController = TextEditingController();
@@ -154,12 +205,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               switchValue: _locationEnabled,
               iconPath: "assets/images/shared/location_icon.svg",
               title: "Location",
-              onChanged: (value) {
-                setState(() {
-                  _locationEnabled = value;
-                });
-                print("Location setting: $value");
-              },
+              onChanged: _toggleLocation,
               description:
                   "AirQo to use your precise location to locate the Air Quality of your nearest location",
             ),
