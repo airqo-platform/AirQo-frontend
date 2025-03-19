@@ -483,7 +483,25 @@ const DataDownload = ({ onClose }) => {
               <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
                 <LocationIcon width={16} height={16} fill="#9EA3AA" />
               </span>
-              <span>{item.name || item.long_name || 'N/A'}</span>
+              <span>
+                {item.name
+                  .split('_')
+                  .map(
+                    (word) =>
+                      word.charAt(0).toUpperCase() +
+                      word.slice(1).toLowerCase(),
+                  )
+                  .join(' ') ||
+                  item.long_name
+                    .split('_')
+                    .map(
+                      (word) =>
+                        word.charAt(0).toUpperCase() +
+                        word.slice(1).toLowerCase(),
+                    )
+                    .join(' ') ||
+                  'N/A'}
+              </span>
             </div>
           ),
         },
