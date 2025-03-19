@@ -27,6 +27,7 @@ import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { Refreshing, DoneRefreshed } from '../constants/svgs';
+import InfoMessage from '../components/InfoMessage';
 
 /**
  * InSightsHeader Component
@@ -637,18 +638,21 @@ const MoreInsights = () => {
     }
 
     return (
-      <div className="w-full flex flex-col items-center justify-center h-[380px] space-y-3">
-        <p className="text-gray-600 text-sm font-medium">
-          No data available for the selected sites and time period.
-        </p>
-        <button
-          onClick={handleManualRefresh}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-          disabled={isValidating}
-        >
-          {isValidating ? 'Refreshing...' : 'Retry'}
-        </button>
-      </div>
+      <InfoMessage
+        title="No Data"
+        description="No data available for the selected sites and time period."
+        variant="info"
+        className="w-full h-full"
+        action={
+          <button
+            onClick={handleManualRefresh}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            disabled={isValidating}
+          >
+            {isValidating ? 'Refreshing...' : 'Retry'}
+          </button>
+        }
+      />
     );
   }, [
     isError,

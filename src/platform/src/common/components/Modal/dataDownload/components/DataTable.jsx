@@ -3,12 +3,12 @@ import {
   MdIndeterminateCheckBox,
   MdErrorOutline,
   MdRefresh,
-  MdInfoOutline,
 } from 'react-icons/md';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from '../../../search/TopBarSearch';
+import InfoMessage from './InfoMessage';
 
 /**
  * DataTable Props:
@@ -344,13 +344,11 @@ function DataTable({
         {loading && activeFilter ? (
           <TableLoadingSkeleton />
         ) : currentPageData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-8 space-y-2 text-gray-600">
-            <MdInfoOutline className="text-4xl" />
-            <p className="text-lg font-medium">No data available.</p>
-            <p className="text-sm text-gray-500">
-              Try adjusting your search or filter criteria.
-            </p>
-          </div>
+          <InfoMessage
+            title="No data available."
+            description="Try adjusting your search or filter criteria."
+            variant="info"
+          />
         ) : (
           <table className="w-full text-sm text-left text-gray-900">
             <thead className="border-b bg-gray-50 border-gray-200">

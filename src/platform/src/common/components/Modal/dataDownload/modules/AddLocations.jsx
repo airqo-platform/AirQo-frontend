@@ -9,7 +9,7 @@ import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import { MdInfoOutline } from 'react-icons/md';
+import InfoMessage from '../components/InfoMessage';
 
 /**
  * Header component for the Add Location modal.
@@ -367,26 +367,22 @@ const AddLocations = ({ onClose }) => {
 
     if (!filteredSites.length) {
       return (
-        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start text-center items-center p-4">
-          <MdInfoOutline className="text-4xl mb-2" />
-          <p className="text-lg font-medium mb-1">No data available</p>
-          <p className="text-sm text-center">
-            The system couldn&apos;t retrieve location data. Please try again
-            later.
-          </p>
-        </div>
+        <InfoMessage
+          title="No data available"
+          description="The system couldn't retrieve location data. Please try again
+            later."
+          variant="info"
+        />
       );
     }
 
     if (sidebarSites.length === 0) {
       return (
-        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start text-center items-center p-4">
-          <MdInfoOutline className="text-4xl mb-2" />
-          <p className="text-lg font-medium mb-1">No locations selected</p>
-          <p className="text-sm text-center">
-            Select a location from the table to add it here.
-          </p>
-        </div>
+        <InfoMessage
+          title="No locations selected"
+          description=" Select a location from the table to add it here."
+          variant="info"
+        />
       );
     }
 
@@ -429,21 +425,19 @@ const AddLocations = ({ onClose }) => {
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
           {/* FIXED: Add better error/loading states for the DataTable */}
           {isError ? (
-            <div className="bg-red-50 p-4 rounded border border-red-200 text-center">
-              <MdInfoOutline className="text-red-500 text-3xl mx-auto mb-2" />
-              <p className="text-red-800 font-medium">Error Loading Data</p>
-              <p className="text-red-600 text-sm mt-1">
-                {fetchError?.message || 'Unable to fetch locations data.'}
-              </p>
-            </div>
+            <InfoMessage
+              title="Error Loading Data"
+              description={
+                fetchError?.message || 'Unable to fetch locations data.'
+              }
+              variant="error"
+            />
           ) : filteredSites.length === 0 && !loading ? (
-            <div className="bg-blue-50 p-4 rounded border border-blue-200 text-center">
-              <MdInfoOutline className="text-blue-500 text-3xl mx-auto mb-2" />
-              <p className="text-blue-800 font-medium">No Locations Found</p>
-              <p className="text-blue-600 text-sm mt-1">
-                No locations are currently available for selection.
-              </p>
-            </div>
+            <InfoMessage
+              title="No Locations Found"
+              description="No locations are currently available for selection."
+              variant="info"
+            />
           ) : (
             <DataTable
               data={filteredSites}

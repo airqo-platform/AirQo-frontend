@@ -26,6 +26,7 @@ import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { useSelector } from 'react-redux';
 import { MdInfoOutline, MdRefresh } from 'react-icons/md';
+import InfoMessage from '../Modal/dataDownload/components/InfoMessage';
 
 /**
  * MoreInsightsChart Component
@@ -203,13 +204,13 @@ const MoreInsightsChart = ({
     // No sites selected
     if (selectedSiteIds.length === 0) {
       return (
-        <div className="flex flex-col justify-center items-center h-full p-4 text-gray-500">
-          <MdInfoOutline className="text-4xl mb-2" />
-          <p className="text-lg font-medium mb-1">No Sites Selected</p>
-          <p className="text-sm text-center">
-            Please select one or more sites to view the chart.
-          </p>
-        </div>
+        <InfoMessage
+          title="No Sites Selected"
+          description="
+            Please select one or more sites to view the chart."
+          variant="info"
+          className="w-full h-full flex justify-center items-center flex-col"
+        />
       );
     }
 
