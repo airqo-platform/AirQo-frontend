@@ -60,23 +60,27 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
     if (currentState is DashboardLoaded &&
         currentState.response.measurements != null) {
+      loggy.info('Dashboard already loaded, populating measurements');
       _populateMeasurements(currentState.response.measurements!);
-      // Don’t preselect here; rely on BlocListener
+      _syncSelectedLocations(currentState); // Sync immediately in initState
     } else {
       dashboardBloc.add(LoadDashboard());
     }
   }
 
   void _syncSelectedLocations(DashboardLoaded state) {
-    if (state.userPreferences != null) {
+    if (state.userPreferences != null &&
+        state.userPreferences!.selectedSites.isNotEmpty) {
       final existingIds =
           state.userPreferences!.selectedSites.map((site) => site.id).toSet();
-      loggy.info('Syncing selected locations: ${existingIds.length} found');
+      loggy.info(
+          'Syncing selected locations: ${existingIds.length} found - $existingIds');
       setState(() {
         selectedLocations = existingIds;
       });
     } else {
-      loggy.info('No user preferences, resetting selected locations to empty');
+      loggy.info(
+          'No user preferences or empty selected sites, resetting to empty');
       setState(() {
         selectedLocations = {};
       });
@@ -382,9 +386,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     return BlocListener<DashboardBloc, DashboardState>(
       listener: (context, state) {
         if (state is DashboardLoaded) {
+          loggy.info('BlocListener: DashboardLoaded received');
           if (state.response.measurements != null) {
             _populateMeasurements(state.response.measurements!);
-            _syncSelectedLocations(state);
+            _syncSelectedLocations(state); // Sync on every DashboardLoaded
           } else {
             setState(() {
               isLoading = false;
