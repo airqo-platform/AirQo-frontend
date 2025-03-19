@@ -6,6 +6,7 @@ import {
   DEVICE_SUMMARY_URL,
   GRID_SUMMARY_URL,
   ANALYTICS_URL,
+  DEVICES,
 } from '../urls/analytics';
 import axios from 'axios';
 
@@ -217,3 +218,13 @@ export const getAnalyticsDataApi = async ({ body }) => {
     return [];
   }
 };
+
+/**
+ * Fetches recent measurements data from the API
+ * @param {Object} params - Query parameters for the API request
+ * @returns {Promise<Object>} The recent measurements data
+ */
+export const getRecentMeasurements = (params) =>
+  createAxiosInstance(false)
+    .get(`${DEVICES}/readings/recent`, { params })
+    .then((response) => response.data);

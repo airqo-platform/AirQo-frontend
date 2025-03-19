@@ -4,6 +4,7 @@ import {
   getDeviceSummaryApi,
   getGridSummaryApi,
   getAnalyticsDataApi,
+  getRecentMeasurements,
 } from '../apis/Analytics';
 import { format } from 'date-fns';
 import { ANALYTICS_SWR_CONFIG, SWR_CONFIG } from '../swrConfigs';
@@ -189,5 +190,27 @@ export const useAnalyticsData = (params, options = {}) => {
     isError: !!error,
     error,
     refetch: mutate,
+  };
+};
+
+/**
+ * Hook for fetching and managing recent measurements data using SWR
+ * @param {Object} params - Query parameters for the request
+ * @param {Object} options - Additional SWR configuration options
+ * @returns {Object} SWR state and methods
+ */
+export const useRecentMeasurements = (params, options = {}) => {
+  const { data, error, isLoading, mutate } = useSWR(
+    params ? ['recent-measurements', params] : null,
+    () => getRecentMeasurements(params),
+    { ...SWR_CONFIG, ...options },
+  );
+
+  return {
+    data: data?.measurements || [],
+    isLoading,
+    isError: !!error,
+    error,
+    refresh: mutate,
   };
 };
