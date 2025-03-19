@@ -142,9 +142,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-define-polyfill-provider@npm:^0.6.3":
-  version: 0.6.3
-  resolution: "@babel/helper-define-polyfill-provider@npm:0.6.3"
+"@babel/helper-define-polyfill-provider@npm:^0.6.3, @babel/helper-define-polyfill-provider@npm:^0.6.4":
+  version: 0.6.4
+  resolution: "@babel/helper-define-polyfill-provider@npm:0.6.4"
   dependencies:
     "@babel/helper-compilation-targets": ^7.22.6
     "@babel/helper-plugin-utils": ^7.22.5
@@ -153,7 +153,7 @@ __metadata:
     resolve: ^1.14.2
   peerDependencies:
     "@babel/core": ^7.4.0 || ^8.0.0-0 <8.0.0
-  checksum: 710e6d8a5391736b9f53f09d0494575c2e03de199ad8d1349bc8e514cb85251ea1f1842c2ff44830849d482052ddb42ae931101002a87a263b12f649c2e57c01
+  checksum: bfbcb41f005ba11497b459cf801650af558b533f383b2f57034e9ccce592a0af699b585898deef93598ed3d9bd14502327e18dfc8a92a3db48b2a49ae2886f86
   languageName: node
   linkType: hard
 
@@ -3211,81 +3211,81 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-darwin-arm64@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-darwin-arm64@npm:1.2.1"
+"@unrs/rspack-resolver-binding-darwin-arm64@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-darwin-arm64@npm:1.2.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-darwin-x64@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-darwin-x64@npm:1.2.1"
+"@unrs/rspack-resolver-binding-darwin-x64@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-darwin-x64@npm:1.2.2"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-freebsd-x64@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-freebsd-x64@npm:1.2.1"
+"@unrs/rspack-resolver-binding-freebsd-x64@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-freebsd-x64@npm:1.2.2"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-linux-arm-gnueabihf@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-linux-arm-gnueabihf@npm:1.2.1"
+"@unrs/rspack-resolver-binding-linux-arm-gnueabihf@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-linux-arm-gnueabihf@npm:1.2.2"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-linux-arm64-gnu@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-linux-arm64-gnu@npm:1.2.1"
+"@unrs/rspack-resolver-binding-linux-arm64-gnu@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-linux-arm64-gnu@npm:1.2.2"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-linux-arm64-musl@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-linux-arm64-musl@npm:1.2.1"
+"@unrs/rspack-resolver-binding-linux-arm64-musl@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-linux-arm64-musl@npm:1.2.2"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-linux-x64-gnu@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-linux-x64-gnu@npm:1.2.1"
+"@unrs/rspack-resolver-binding-linux-x64-gnu@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-linux-x64-gnu@npm:1.2.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-linux-x64-musl@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-linux-x64-musl@npm:1.2.1"
+"@unrs/rspack-resolver-binding-linux-x64-musl@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-linux-x64-musl@npm:1.2.2"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-wasm32-wasi@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-wasm32-wasi@npm:1.2.1"
+"@unrs/rspack-resolver-binding-wasm32-wasi@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-wasm32-wasi@npm:1.2.2"
   dependencies:
     "@napi-rs/wasm-runtime": ^0.2.7
   conditions: cpu=wasm32
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-win32-arm64-msvc@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-win32-arm64-msvc@npm:1.2.1"
+"@unrs/rspack-resolver-binding-win32-arm64-msvc@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-win32-arm64-msvc@npm:1.2.2"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@unrs/rspack-resolver-binding-win32-x64-msvc@npm:1.2.1":
-  version: 1.2.1
-  resolution: "@unrs/rspack-resolver-binding-win32-x64-msvc@npm:1.2.1"
+"@unrs/rspack-resolver-binding-win32-x64-msvc@npm:1.2.2":
+  version: 1.2.2
+  resolution: "@unrs/rspack-resolver-binding-win32-x64-msvc@npm:1.2.2"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -3974,15 +3974,15 @@ __metadata:
   linkType: hard
 
 "babel-plugin-polyfill-corejs2@npm:^0.4.10":
-  version: 0.4.12
-  resolution: "babel-plugin-polyfill-corejs2@npm:0.4.12"
+  version: 0.4.13
+  resolution: "babel-plugin-polyfill-corejs2@npm:0.4.13"
   dependencies:
     "@babel/compat-data": ^7.22.6
-    "@babel/helper-define-polyfill-provider": ^0.6.3
+    "@babel/helper-define-polyfill-provider": ^0.6.4
     semver: ^6.3.1
   peerDependencies:
     "@babel/core": ^7.4.0 || ^8.0.0-0 <8.0.0
-  checksum: 6e6e6a8b85fec80a310ded2f5c151385e4ac59118909dd6a952e1025e4a478eb79dda45a5a6322cc2e598fd696eb07d4e2fa52418b4101f3dc370bdf8c8939ba
+  checksum: 553b64eb11bad2cfc220e94f1fb2449755b5c7d54886dca6d8053b13b6e910f349a38bbc75aafd610f88217699db499548919bb5df653d635b9cdeb39d34a68d
   languageName: node
   linkType: hard
 
@@ -3999,13 +3999,13 @@ __metadata:
   linkType: hard
 
 "babel-plugin-polyfill-regenerator@npm:^0.6.1":
-  version: 0.6.3
-  resolution: "babel-plugin-polyfill-regenerator@npm:0.6.3"
+  version: 0.6.4
+  resolution: "babel-plugin-polyfill-regenerator@npm:0.6.4"
   dependencies:
-    "@babel/helper-define-polyfill-provider": ^0.6.3
+    "@babel/helper-define-polyfill-provider": ^0.6.4
   peerDependencies:
     "@babel/core": ^7.4.0 || ^8.0.0-0 <8.0.0
-  checksum: d12696e6b3f280eb78fac551619ca4389262db62c7352cd54bf679d830df8b35596eef2de77cf00db6648eada1c99d49c4f40636dbc9c335a1e5420cfef96750
+  checksum: f4d4a803834ffa72713579d696586d8cc654c0025cbd5ec775fc5d37faa00381dcb80e5b97d4b16059443352653585596d87848b5590b1d8670c235408e73fb3
   languageName: node
   linkType: hard
 
@@ -8443,11 +8443,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^3.3.4, nanoid@npm:^3.3.8":
-  version: 3.3.10
-  resolution: "nanoid@npm:3.3.10"
+  version: 3.3.11
+  resolution: "nanoid@npm:3.3.11"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: fcc505b06a816c847d2ad4f5690893d4f9dc61863291d065b2b02d879be4ae60d09faf44f2c619ec08f732b627cf34f6d3dd2913e52d3fe287dedb0b84448c91
+  checksum: 3be20d8866a57a6b6d218e82549711c8352ed969f9ab3c45379da28f405363ad4c9aeb0b39e9abc101a529ca65a72ff9502b00bf74a912c4b64a9d62dfd26c29
   languageName: node
   linkType: hard
 
@@ -8493,11 +8493,11 @@ __metadata:
   linkType: hard
 
 "next-videos@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "next-videos@npm:1.4.1"
+  version: 1.5.0
+  resolution: "next-videos@npm:1.5.0"
   dependencies:
     file-loader: ^4.2.0
-  checksum: 25a1d0e57897e5908ed431e6094e9b0ca3a4f68d8c81b427bf24edbe2fca7c6c76bc62a20bfc3aab628f18935c2b500330a02fd9eb3c483bd30b2419cfd5d5a5
+  checksum: c9c6cbac8de08fe36c1fa91f32c3842a0fcf89cb5bfba0298f61ef436c270baf3b4d0c3afcaa8416277831759ad1ac0f60a976705937ffbebdbce134f156ebc1
   languageName: node
   linkType: hard
 
@@ -9344,13 +9344,13 @@ __metadata:
   linkType: hard
 
 "posthog-js@npm:^1.230.1":
-  version: 1.230.1
-  resolution: "posthog-js@npm:1.230.1"
+  version: 1.231.2
+  resolution: "posthog-js@npm:1.231.2"
   dependencies:
     core-js: ^3.38.1
     fflate: ^0.4.8
     preact: ^10.19.3
-    web-vitals: ^4.2.0
+    web-vitals: ^4.2.4
   peerDependencies:
     "@rrweb/types": 2.0.0-alpha.17
     rrweb-snapshot: 2.0.0-alpha.17
@@ -9359,7 +9359,7 @@ __metadata:
       optional: true
     rrweb-snapshot:
       optional: true
-  checksum: 3971ce5793c37e41877aa734e0e80b83cab136c375bf69f8d8715e600de33ec797abe2bd1112c1612634e6cd292792e30acf80b23248dbc20ca5c9529b706607
+  checksum: 8693f62633f1e9cf12e51dfaf7f1e3f3a15d911db33e3fb653373813123940ab85ca7190797934e614e77e234de35dfc252e22058f939381c6b1bb39bb3136e2
   languageName: node
   linkType: hard
 
@@ -9765,12 +9765,12 @@ __metadata:
   linkType: hard
 
 "react-tailwindcss-datepicker@npm:^1.4.2":
-  version: 1.7.4
-  resolution: "react-tailwindcss-datepicker@npm:1.7.4"
+  version: 1.7.3
+  resolution: "react-tailwindcss-datepicker@npm:1.7.3"
   peerDependencies:
     dayjs: ^1.11.12
-    react: ^17.0.2 || ^18.2.0 || ^19.0.0
-  checksum: a66a042c7756372388fc56dfc9f54128c96d999d8ab3b78a4ab644712cd79a529144cf7a5878ec4815a372f3bd43c0cb19cb209d9739aeeb5e06aca57dc30c36
+    react: ^17.0.2 || ^18.2.0
+  checksum: d8a40c952ddb7a85df4f0586da5400fcedaf5d58a097992bff354e93a879b29ca69ba93b7575f2028322279079874de81d52ebf96d96d5d96330082ac4f8d4d0
   languageName: node
   linkType: hard
 
@@ -10233,20 +10233,20 @@ __metadata:
   linkType: hard
 
 "rspack-resolver@npm:^1.1.0":
-  version: 1.2.1
-  resolution: "rspack-resolver@npm:1.2.1"
+  version: 1.2.2
+  resolution: "rspack-resolver@npm:1.2.2"
   dependencies:
-    "@unrs/rspack-resolver-binding-darwin-arm64": 1.2.1
-    "@unrs/rspack-resolver-binding-darwin-x64": 1.2.1
-    "@unrs/rspack-resolver-binding-freebsd-x64": 1.2.1
-    "@unrs/rspack-resolver-binding-linux-arm-gnueabihf": 1.2.1
-    "@unrs/rspack-resolver-binding-linux-arm64-gnu": 1.2.1
-    "@unrs/rspack-resolver-binding-linux-arm64-musl": 1.2.1
-    "@unrs/rspack-resolver-binding-linux-x64-gnu": 1.2.1
-    "@unrs/rspack-resolver-binding-linux-x64-musl": 1.2.1
-    "@unrs/rspack-resolver-binding-wasm32-wasi": 1.2.1
-    "@unrs/rspack-resolver-binding-win32-arm64-msvc": 1.2.1
-    "@unrs/rspack-resolver-binding-win32-x64-msvc": 1.2.1
+    "@unrs/rspack-resolver-binding-darwin-arm64": 1.2.2
+    "@unrs/rspack-resolver-binding-darwin-x64": 1.2.2
+    "@unrs/rspack-resolver-binding-freebsd-x64": 1.2.2
+    "@unrs/rspack-resolver-binding-linux-arm-gnueabihf": 1.2.2
+    "@unrs/rspack-resolver-binding-linux-arm64-gnu": 1.2.2
+    "@unrs/rspack-resolver-binding-linux-arm64-musl": 1.2.2
+    "@unrs/rspack-resolver-binding-linux-x64-gnu": 1.2.2
+    "@unrs/rspack-resolver-binding-linux-x64-musl": 1.2.2
+    "@unrs/rspack-resolver-binding-wasm32-wasi": 1.2.2
+    "@unrs/rspack-resolver-binding-win32-arm64-msvc": 1.2.2
+    "@unrs/rspack-resolver-binding-win32-x64-msvc": 1.2.2
   dependenciesMeta:
     "@unrs/rspack-resolver-binding-darwin-arm64":
       optional: true
@@ -10270,7 +10270,7 @@ __metadata:
       optional: true
     "@unrs/rspack-resolver-binding-win32-x64-msvc":
       optional: true
-  checksum: 9c0806f28ed6635bd569d02ed429c1baacb51e302eeddc6ca7dfef405c606b02dd85fe6b94b817d4d8ae9ee91fa70704f1ec2277bbe0b901d905f3021f2db8e8
+  checksum: de5f12410b81903448c8841a5617f74821cf87229c22c257c204f75bcd1e0ad6e87764c6be6f3462033495d7cac2efa39598be8a9795745a5cf5a1792c60e471
   languageName: node
   linkType: hard
 
@@ -11953,7 +11953,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:^4.2.0":
+"web-vitals@npm:^4.2.4":
   version: 4.2.4
   resolution: "web-vitals@npm:4.2.4"
   checksum: 5b3ffe1db33f23aebf8cc8560ac574401a95939baafde5841835c1bb1c01f9a2478442f319f77aa0d7914739fc2f6b020c5d5b128c16c5c77ca6be2f9dfbbde6
