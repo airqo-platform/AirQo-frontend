@@ -9,4 +9,4 @@ export const SITES_SUMMARY_URL = `${BASE_AUTH_URL}/devices/sites/summary`;
 export const DEVICE_SUMMARY_URL = `${BASE_AUTH_URL}/devices/summary`;
 export const GRID_SUMMARY_URL = `${BASE_AUTH_URL}/devices/grids/summary`;
 export const ANALYTICS_URL = `${BASE_AUTH_URL}/analytics/dashboard/chart/d3/data`;
-export const DEVICES = `${BASE_AUTH_URL}/devices`;
+export const DEVICE_READINGS_RECENT_URL = `${BASE_AUTH_URL}/devices/readings/recent`;
