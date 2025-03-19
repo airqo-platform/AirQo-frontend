@@ -166,54 +166,50 @@ export const getGridSummaryApi = async ({ admin_level = null }) => {
  * @returns {Promise<Object>} - Promise resolving to analytics data
  */
 export const getAnalyticsDataApi = async ({ body }) => {
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30s timeout
-
   try {
+    // Get auth token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authorization token is missing');
+    }
+
     let response;
 
-    // Get token once before request
-    const token = localStorage.getItem('token');
-
     if (process.env.NODE_ENV === 'development') {
-      // Use proxy endpoint in development mode
+      // Development environment - use proxy endpoint
       response = await axios.post('/api/proxy/analytics', body, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: token,
         },
-        signal: abortController.signal,
       });
     } else {
-      // Use direct API endpoint in production mode with optimized config
-      response = await createAxiosInstance().post(ANALYTICS_URL, body, {
-        signal: abortController.signal,
-      });
+      // Production environment - use direct API endpoint
+      response = await createAxiosInstance().post(ANALYTICS_URL, body);
     }
 
-    // Clear timeout after successful response
-    clearTimeout(timeoutId);
-
-    // Validate and process response
+    // Process response
     if (response?.data?.status === 'success') {
       return response.data.data || [];
     }
 
+    // Handle alternate success response format
     if (response?.status === 'success' && Array.isArray(response.data)) {
       return response.data;
     }
 
+    // Handle edge case where data is directly in response
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+
+    // No valid data found in response
     throw new Error(
       response?.data?.message || 'Failed to fetch analytics data',
     );
   } catch (error) {
-    // Clear timeout to prevent memory leaks
-    clearTimeout(timeoutId);
-
-    if (error.name === 'AbortError') {
-      throw new Error('Request timeout. Please try again.');
-    }
-
+    // Log error and re-throw for better debugging
+    console.error('Analytics API error:', error);
     handleApiError(error, 'Error fetching analytics data');
     return [];
   }

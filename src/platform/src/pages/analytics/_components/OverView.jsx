@@ -44,26 +44,47 @@ const OverView = () => {
     [],
   );
 
-  // Local state for date range
-  const [dateRange, setDateRange] = useState(defaultDateRange);
+  // Local state for date range - initialize with the value from Redux if available,
+  // otherwise use the default
+  const [dateRange, setDateRange] = useState(() => {
+    if (
+      chartData.chartDataRange.startDate &&
+      chartData.chartDataRange.endDate
+    ) {
+      return {
+        startDate: new Date(chartData.chartDataRange.startDate),
+        endDate: new Date(chartData.chartDataRange.endDate),
+        label: chartData.chartDataRange.label || 'Custom Range',
+      };
+    }
+    return defaultDateRange;
+  });
 
-  // Fetch analytics data using the new SWR hook
+  // Memoize the date range object for API calls to prevent unnecessary renders
+  const apiDateRange = useMemo(
+    () => ({
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    }),
+    [dateRange.startDate, dateRange.endDate],
+  );
+
+  // Fetch analytics data using the SWR hook with the memoized date range
   const { allSiteData, chartLoading, isError, error, refetch } =
     useAnalyticsData({
       selectedSiteIds: chartData.chartSites,
-      dateRange: {
-        startDate: new Date(chartData.chartDataRange.startDate),
-        endDate: new Date(chartData.chartDataRange.endDate),
-      },
+      dateRange: apiDateRange,
       frequency: chartData.timeFrame,
       pollutant: chartData.pollutionType,
       organisationName: chartData.organizationName || groupTitle,
     });
 
-  // Reset chart data range to default when the component is unmounted
+  // Initialize chart data range on component mount
   useEffect(() => {
-    // Initialize chart data range when component mounts
-    if (!chartData.chartDataRange.startDate) {
+    if (
+      !chartData.chartDataRange.startDate ||
+      !chartData.chartDataRange.endDate
+    ) {
       const { startDate, endDate } = defaultDateRange;
       const { startDateISO, endDateISO } = formatDateRangeToISO(
         startDate,
@@ -78,8 +99,10 @@ const OverView = () => {
         }),
       );
     }
+  }, [dispatch, defaultDateRange, chartData.chartDataRange]);
 
-    // Reset chart data range to default when the component is unmounted
+  // Reset chart data range to default when component unmounts
+  useEffect(() => {
     return () => {
       const { startDate, endDate } = defaultDateRange;
       const { startDateISO, endDateISO } = formatDateRangeToISO(
@@ -95,7 +118,7 @@ const OverView = () => {
         }),
       );
     };
-  }, [dispatch, defaultDateRange, chartData.chartDataRange.startDate]);
+  }, [dispatch, defaultDateRange]);
 
   /**
    * Opens a modal of the specified type
@@ -138,28 +161,47 @@ const OverView = () => {
 
   /**
    * Handles change in date range selection
+   * Updates both local state and Redux store
    * @param {Date} startDate - Start date
    * @param {Date} endDate - End date
    * @param {string} label - Label for the date range
    */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
+      // Validate dates before processing
+      if (!startDate || !endDate) {
+        console.error('Invalid date range selected');
+        return;
+      }
+
+      // Format dates for ISO storage in Redux
       const { startDateISO, endDateISO } = formatDateRangeToISO(
         startDate,
         endDate,
       );
 
-      setDateRange({ startDate, endDate, label });
+      // Update local state first for immediate UI reflection
+      setDateRange({
+        startDate,
+        endDate,
+        label: label || 'Custom Range',
+      });
 
+      // Then update Redux store for persistence
       dispatch(
         setChartDataRange({
           startDate: startDateISO,
           endDate: endDateISO,
-          label,
+          label: label || 'Custom Range',
         }),
       );
+
+      // Force refetch data with new date range
+      setTimeout(() => {
+        refetch();
+      }, 0);
     },
-    [dispatch],
+    [dispatch, refetch],
   );
 
   /**
@@ -168,6 +210,9 @@ const OverView = () => {
   const handleCloseModal = useCallback(() => {
     dispatch(setOpenModal(false));
   }, [dispatch]);
+
+  // Determine whether to show loading state for charts
+  const isChartLoading = chartLoading || (!allSiteData && !isError);
 
   return (
     <BorderlessContentBox>
@@ -210,6 +255,7 @@ const OverView = () => {
               onChange={handleDateChange}
               className="-left-24 md:left-14 lg:left-[70px] top-11"
               dropdown
+              data-testid="date-range-picker"
             />
 
             {/* Pollutant Dropdown */}
@@ -269,9 +315,10 @@ const OverView = () => {
             height={380}
             id="air-pollution-line-chart"
             data={allSiteData}
-            chartLoading={chartLoading}
+            chartLoading={isChartLoading}
             error={isError ? error : null}
             refetch={refetch}
+            dateRange={apiDateRange}
           />
           {/* Bar Chart */}
           <ChartContainer
@@ -280,9 +327,10 @@ const OverView = () => {
             height={380}
             id="air-pollution-bar-chart"
             data={allSiteData}
-            chartLoading={chartLoading}
+            chartLoading={isChartLoading}
             error={isError ? error : null}
             refetch={refetch}
+            dateRange={apiDateRange}
           />
         </div>
       </div>

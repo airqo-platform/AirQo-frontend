@@ -20,7 +20,7 @@ export const ANALYTICS_SWR_CONFIG = {
   refreshInterval: 0,
   shouldRetryOnError: true,
   errorRetryCount: 3,
-  dedupingInterval: 5000,
+  dedupingInterval: 10000,
   keepPreviousData: true,
   focusThrottleInterval: 10000,
 };

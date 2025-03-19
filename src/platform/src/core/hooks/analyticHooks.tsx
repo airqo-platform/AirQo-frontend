@@ -11,15 +11,25 @@ import { ANALYTICS_SWR_CONFIG, SWR_CONFIG } from '../swrConfigs';
 
 // Util Methods
 /**
- * Format date to API required format with memoization capability
- * @param {Date} date - Date to format
- * @returns {string} - Formatted date string
+ * Format date to API required format
+ * @param {Date|string} date - Date to format
+ * @returns {string|null} - Formatted date string or null if date is invalid
  */
 const formatDate = (date) => {
   if (!date) return null;
-  // Ensure we're working with a Date object
-  const dateObj = date instanceof Date ? date : new Date(date);
-  return format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+  try {
+    // Ensure we're working with a Date object
+    const dateObj = date instanceof Date ? date : new Date(date);
+
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) return null;
+
+    return format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return null;
+  }
 };
 
 /**
@@ -35,7 +45,7 @@ const getAnalyticsKey = (params) => {
     frequency,
     pollutant,
     organisationName,
-  } = params;
+  } = params || {};
 
   // Skip fetch if essential parameters are missing
   if (
@@ -46,13 +56,21 @@ const getAnalyticsKey = (params) => {
     return null;
   }
 
+  const startDateFormatted = formatDate(dateRange.startDate);
+  const endDateFormatted = formatDate(dateRange.endDate);
+
+  // Skip fetch if dates couldn't be formatted properly
+  if (!startDateFormatted || !endDateFormatted) {
+    return null;
+  }
+
   // Optimize key generation for better cache hits
   return [
     'analytics',
     // Sort site IDs to ensure consistent cache keys regardless of order
     JSON.stringify([...selectedSiteIds].sort()),
-    formatDate(dateRange.startDate),
-    formatDate(dateRange.endDate),
+    startDateFormatted,
+    endDateFormatted,
     chartType || 'line',
     frequency || 'daily',
     pollutant || 'pm2_5',
@@ -139,16 +157,19 @@ export const useGridSummary = (admin_level = null, options = {}) => {
  * @returns {Object} - SWR response with data, loading and error states
  */
 export const useAnalyticsData = (params, options = {}) => {
+  // Use default values if params are undefined
+  const safeParams = params || {};
+
   const {
     selectedSiteIds = [],
     dateRange = { startDate: new Date(), endDate: new Date() },
     chartType = 'line',
     frequency = 'daily',
     pollutant = 'pm2_5',
-    organisationName,
-  } = params;
+    organisationName = '',
+  } = safeParams;
 
-  // Generate cache key
+  // Generate cache key for SWR
   const swrKey = getAnalyticsKey({
     selectedSiteIds,
     dateRange,
@@ -158,35 +179,43 @@ export const useAnalyticsData = (params, options = {}) => {
     organisationName,
   });
 
-  // Use SWR with optimized fetcher
+  // Use SWR for data fetching with caching
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
     async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Authorization token missing');
+      try {
+        // Prepare request body with formatted dates
+        const startDateFormatted = formatDate(dateRange.startDate);
+        const endDateFormatted = formatDate(dateRange.endDate);
+
+        if (!startDateFormatted || !endDateFormatted) {
+          throw new Error('Invalid date range');
+        }
+
+        const requestBody = {
+          sites: selectedSiteIds,
+          startDate: startDateFormatted,
+          endDate: endDateFormatted,
+          chartType,
+          frequency,
+          pollutant,
+          organisation_name: organisationName,
+        };
+
+        const result = await getAnalyticsDataApi({ body: requestBody });
+        return result;
+      } catch (error) {
+        console.error('Error in analytics data fetcher:', error);
+        throw error; // Re-throw to let SWR handle error state
       }
-
-      // Prepare request body with formatted dates
-      const requestBody = {
-        sites: selectedSiteIds,
-        startDate: formatDate(dateRange.startDate),
-        endDate: formatDate(dateRange.endDate),
-        chartType,
-        frequency,
-        pollutant,
-        organisation_name: organisationName,
-      };
-
-      return await getAnalyticsDataApi({ body: requestBody });
     },
     { ...ANALYTICS_SWR_CONFIG, ...options },
   );
 
   return {
-    allSiteData: data || [],
+    allSiteData: Array.isArray(data) ? data : [],
     chartLoading: isLoading,
-    isValidating, // Added to show background refresh status
+    isValidating,
     isError: !!error,
     error,
     refetch: mutate,
