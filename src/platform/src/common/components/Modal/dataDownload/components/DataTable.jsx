@@ -8,7 +8,7 @@ import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from '../../../search/TopBarSearch';
-import InfoMessage from './InfoMessage';
+import InfoMessage from '../../../Messages/InfoMessage';
 
 /**
  * DataTable Props:

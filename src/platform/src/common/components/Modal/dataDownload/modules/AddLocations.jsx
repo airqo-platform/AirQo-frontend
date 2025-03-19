@@ -9,7 +9,7 @@ import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import InfoMessage from '../components/InfoMessage';
+import InfoMessage from '../../../Messages/InfoMessage';
 
 /**
  * Header component for the Add Location modal.

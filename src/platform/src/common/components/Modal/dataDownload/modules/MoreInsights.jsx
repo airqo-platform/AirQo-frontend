@@ -27,7 +27,7 @@ import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { Refreshing, DoneRefreshed } from '../constants/svgs';
-import InfoMessage from '../components/InfoMessage';
+import InfoMessage from '../../../Messages/InfoMessage';
 
 /**
  * InSightsHeader Component
