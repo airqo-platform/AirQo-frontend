@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { MdErrorOutline, MdHelpOutline } from 'react-icons/md';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
@@ -78,12 +79,8 @@ const DataDownload = ({ onClose }) => {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [edit, setEdit] = useState(false);
   const [activeFilterKey, setActiveFilterKey] = useState('sites');
-  const [dataError, setDataError] = useState(null);
-
-  // Prepare active group info
-  const activeGroup = useMemo(() => {
-    return { id: activeGroupId, name: groupTitle };
-  }, [activeGroupId, groupTitle]);
+  const [filterErrors, setFilterErrors] = useState({});
+  const [showHelp, setShowHelp] = useState(false);
 
   // Organization options
   const ORGANIZATION_OPTIONS = useMemo(
@@ -94,6 +91,11 @@ const DataDownload = ({ onClose }) => {
       })) || [],
     [groupList],
   );
+
+  // Prepare active group info
+  const activeGroup = useMemo(() => {
+    return { id: activeGroupId, name: groupTitle };
+  }, [activeGroupId, groupTitle]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -154,6 +156,7 @@ const DataDownload = ({ onClose }) => {
     isLoading: countriesLoading,
     isError: countriesError,
     error: countriesErrorMsg,
+    refresh: refreshCountries,
   } = useGridSummary('country', {
     enabled: !isFetchingActiveGroup,
   });
@@ -164,50 +167,45 @@ const DataDownload = ({ onClose }) => {
     isLoading: citiesLoading,
     isError: citiesError,
     error: citiesErrorMsg,
+    refresh: refreshCities,
   } = useGridSummary('city', {
     enabled: !isFetchingActiveGroup,
   });
 
-  // Update error state based on active filter
+  // Update filter errors state based on API responses
   useEffect(() => {
-    // Set error based on active filter
-    switch (activeFilterKey) {
-      case 'countries':
-        if (countriesError) {
-          setDataError(
-            countriesErrorMsg?.message || 'Error loading countries data',
-          );
-        } else {
-          setDataError(null);
-        }
-        break;
-      case 'cities':
-        if (citiesError) {
-          setDataError(citiesErrorMsg?.message || 'Error loading cities data');
-        } else {
-          setDataError(null);
-        }
-        break;
-      case 'devices':
-        if (devicesError) {
-          setDataError(
-            devicesErrorMsg?.message || 'Error loading devices data',
-          );
-        } else {
-          setDataError(null);
-        }
-        break;
-      case 'sites':
-      default:
-        if (sitesError) {
-          setDataError(sitesErrorMsg?.message || 'Error loading sites data');
-        } else {
-          setDataError(null);
-        }
-        break;
+    const newFilterErrors = { ...filterErrors };
+
+    if (sitesError) {
+      newFilterErrors.sites =
+        sitesErrorMsg?.message || 'Error loading sites data';
+    } else {
+      delete newFilterErrors.sites;
     }
+
+    if (devicesError) {
+      newFilterErrors.devices =
+        devicesErrorMsg?.message || 'Error loading devices data';
+    } else {
+      delete newFilterErrors.devices;
+    }
+
+    if (countriesError) {
+      newFilterErrors.countries =
+        countriesErrorMsg?.message || 'Error loading countries data';
+    } else {
+      delete newFilterErrors.countries;
+    }
+
+    if (citiesError) {
+      newFilterErrors.cities =
+        citiesErrorMsg?.message || 'Error loading cities data';
+    } else {
+      delete newFilterErrors.cities;
+    }
+
+    setFilterErrors(newFilterErrors);
   }, [
-    activeFilterKey,
     sitesError,
     sitesErrorMsg,
     devicesError,
@@ -216,6 +214,7 @@ const DataDownload = ({ onClose }) => {
     countriesErrorMsg,
     citiesError,
     citiesErrorMsg,
+    filterErrors,
   ]);
 
   /**
@@ -272,6 +271,33 @@ const DataDownload = ({ onClose }) => {
         : [...prev, item];
     });
   }, []);
+
+  /**
+   * Retry loading data for a specific filter
+   */
+  const handleRetryLoad = useCallback(
+    (filterKey) => {
+      switch (filterKey) {
+        case 'countries':
+          refreshCountries();
+          break;
+        case 'cities':
+          refreshCities();
+          break;
+        case 'devices':
+          refreshDevices();
+          break;
+        case 'sites':
+        default:
+          refreshSites();
+          break;
+      }
+
+      // Set active filter to the one being refreshed
+      setActiveFilterKey(filterKey);
+    },
+    [refreshCountries, refreshCities, refreshDevices, refreshSites],
+  );
 
   /**
    * Download button handler
@@ -563,10 +589,8 @@ const DataDownload = ({ onClose }) => {
    */
   const handleFilter = useCallback(
     (allData, activeFilter) => {
-      // Update the active filter key
       setActiveFilterKey(activeFilter.key);
 
-      // Return data based on filter type
       switch (activeFilter.key) {
         case 'countries':
           return countriesData || [];
@@ -603,6 +627,23 @@ const DataDownload = ({ onClose }) => {
     citiesLoading,
   ]);
 
+  // Count how many filters have errors
+  const errorCount = Object.keys(filterErrors).length;
+
+  // Help tooltip content
+  const helpTooltip = (
+    <div className="absolute right-4 top-12 w-64 p-3 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-sm">
+      <h4 className="font-medium mb-2">Using Filters</h4>
+      <p className="text-gray-600 mb-2">
+        If one filter tab shows an error, you can still use the other filters to
+        select data.
+      </p>
+      <p className="text-gray-600">
+        Click the retry button to attempt reloading data for a specific filter.
+      </p>
+    </div>
+  );
+
   return (
     <>
       {/* Section 1: Form */}
@@ -611,13 +652,18 @@ const DataDownload = ({ onClose }) => {
         onSubmit={handleSubmit}
       >
         {/* Edit Title Button */}
-        <button
-          type="button"
-          className={`absolute top-8 right-6 ${edit ? 'text-blue-600' : ''}`}
-          onClick={() => setEdit(!edit)}
-        >
-          {edit ? 'Done' : <EditIcon />}
-        </button>
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="text-lg font-medium">Download Settings</h4>
+          <button
+            type="button"
+            className={`text-sm text-blue-600 ${
+              edit ? 'font-semibold' : 'opacity-80'
+            }`}
+            onClick={() => setEdit(!edit)}
+          >
+            {edit ? 'Done' : <EditIcon />}
+          </button>
+        </div>
 
         {/* Custom Fields */}
         <CustomFields
@@ -676,29 +722,62 @@ const DataDownload = ({ onClose }) => {
           defaultOption={formData.fileType}
           handleOptionSelect={handleOptionSelect}
         />
+
+        {/* Display form error if any */}
+        {formError && (
+          <div className="p-3 mt-2 text-red-700 bg-red-50 border border-red-200 rounded-md text-sm">
+            {formError}
+          </div>
+        )}
       </form>
 
       {/* Section 2: Data Table and Footer */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
+          {/* Filter error notification */}
+          {errorCount > 0 && (
+            <div className="mb-4 flex items-start justify-between px-4 py-3 bg-amber-50 border-l-4 border-amber-400 rounded-md">
+              <div className="flex">
+                <MdErrorOutline className="text-amber-500 text-lg mr-2 mt-0.5" />
+                <div>
+                  <p className="text-amber-800 font-medium">
+                    {errorCount === 1
+                      ? '1 filter has an error'
+                      : `${errorCount} filters have errors`}
+                  </p>
+                  <p className="text-amber-700 text-sm">
+                    You can still use other filters to select your data.
+                  </p>
+                </div>
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  className="p-1 hover:bg-amber-100 rounded-full"
+                  onClick={() => setShowHelp(!showHelp)}
+                  aria-label="Show help"
+                >
+                  <MdHelpOutline className="text-amber-600" />
+                </button>
+                {showHelp && helpTooltip}
+              </div>
+            </div>
+          )}
+
           <DataTable
             data={sitesData}
             selectedRows={selectedSites}
             setSelectedRows={setSelectedSites}
             clearSelectionTrigger={clearSelected}
             loading={isLoading}
-            error={dataError !== null}
+            error={false} // We handle partial errors via filterErrors
             onToggleRow={handleToggleSite}
             columnsByFilter={columnsByFilter}
             filters={filters}
             onFilter={handleFilter}
             searchKeys={searchKeysByFilter[activeFilterKey]}
+            onRetry={handleRetryLoad}
           />
-
-          {/* Display error message if there's an error */}
-          {dataError && (
-            <p className="text-red-600 py-2 px-1 text-sm">{dataError}</p>
-          )}
         </div>
         <Footer
           setError={setFormError}

@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { MdIndeterminateCheckBox } from 'react-icons/md';
+import {
+  MdIndeterminateCheckBox,
+  MdErrorOutline,
+  MdRefresh,
+  MdInfoOutline,
+} from 'react-icons/md';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
@@ -17,12 +22,14 @@ import TopBarSearch from '../../../search/TopBarSearch';
  * - filters (Array): Filter definitions.
  * - onFilter (Function): (allData, activeFilter) => filteredData.
  * - loading (Boolean): Whether to show a loading skeleton.
- * - error (Boolean): If true, shows an error fallback.
+ * - error (Boolean): If true, shows a global error fallback.
+ * - errorMessage (String): Error message to display in the global fallback.
+ * - onRetry (Function): Function to call when the user clicks "Try Again" in the error fallback.
  * - itemsPerPage (Number): Defaults to 6.
  * - selectedRows (Array): Currently selected items.
  * - setSelectedRows (Function): Sets the selectedRows array.
  * - clearSelectionTrigger (any): Changing this resets selectedRows.
- * - onToggleRow (Function): Called when a checkbox is toggled.
+ * - onToggleRow (Function): Called when a checkbox is toggled. If omitted, the default row toggle logic is used.
  * - searchKeys (Array): Keys used by Fuse.js for searching. Defaults to ['name'].
  */
 function DataTable({
@@ -33,6 +40,8 @@ function DataTable({
   onFilter = null,
   loading = false,
   error = false,
+  errorMessage = 'Something went wrong. Please try again.',
+  onRetry = null,
   itemsPerPage = 6,
   selectedRows = [],
   setSelectedRows = () => {},
@@ -45,6 +54,7 @@ function DataTable({
   const [indeterminate, setIndeterminate] = useState(false);
   const [activeFilter, setActiveFilter] = useState(filters[0] || null);
   const [searchResults, setSearchResults] = useState([]);
+  const [filterErrors, setFilterErrors] = useState({});
 
   /**
    * Deduplicate data by _id (if present)
@@ -53,7 +63,7 @@ function DataTable({
     if (!Array.isArray(data)) return [];
     const seen = new Set();
     return data.filter((item) => {
-      if (!item._id || seen.has(item._id)) return false;
+      if (!item || !item._id || seen.has(item._id)) return false;
       seen.add(item._id);
       return true;
     });
@@ -74,13 +84,33 @@ function DataTable({
   const filteredData = useMemo(() => {
     let result = [...uniqueData];
     if (onFilter && activeFilter) {
-      result = onFilter(uniqueData, activeFilter);
+      try {
+        const filteredResult = onFilter(uniqueData, activeFilter);
+        if (Array.isArray(filteredResult)) {
+          result = filteredResult;
+          // Clear error for this filter if it was previously set
+          if (filterErrors[activeFilter.key]) {
+            setFilterErrors((prev) => ({
+              ...prev,
+              [activeFilter.key]: null,
+            }));
+          }
+        }
+      } catch (err) {
+        console.error(`Filter error for ${activeFilter.key}:`, err);
+        setFilterErrors((prev) => ({
+          ...prev,
+          [activeFilter.key]: err.message || 'Error applying filter',
+        }));
+      }
     }
+
+    // If there are search results, they override the filtered data
     if (searchResults.length > 0) {
       result = searchResults.map((r) => r.item);
     }
     return result;
-  }, [uniqueData, onFilter, activeFilter, searchResults]);
+  }, [uniqueData, onFilter, activeFilter, searchResults, filterErrors]);
 
   /**
    * Determine effective columns:
@@ -188,12 +218,65 @@ function DataTable({
   }, []);
 
   /**
-   * Error fallback
+   * Handle switching filter tabs
    */
-  if (error) {
+  const handleFilterChange = (filterDef) => {
+    setActiveFilter(filterDef);
+    setCurrentPage(1);
+  };
+
+  /**
+   * Filter-specific error message
+   */
+  const renderFilterError = () => {
+    const errorText = filterErrors[activeFilter?.key];
+    if (errorText) {
+      return (
+        <div className="flex flex-col items-start p-4 mb-4 space-y-2 bg-red-50 border-l-4 border-red-500 rounded-md">
+          <div className="flex items-center space-x-2">
+            <MdErrorOutline className="text-red-500 text-2xl" />
+            <p className="text-red-700 font-semibold text-sm">
+              Unable to load {activeFilter?.label || 'data'}
+            </p>
+          </div>
+          <p className="text-sm text-red-600">{errorText}</p>
+          {onRetry && (
+            <button
+              onClick={() => onRetry(activeFilter.key)}
+              className="inline-flex items-center px-3 py-1.5 space-x-2 text-xs text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            >
+              <MdRefresh size={16} />
+              <span>Retry Loading</span>
+            </button>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  /**
+   * Global error fallback
+   */
+  if (error && !activeFilter) {
     return (
-      <div className="p-4 text-red-600 text-center">
-        <p>Something went wrong. Please try again later.</p>
+      <div className="flex flex-col items-center justify-center p-6 space-y-4 bg-red-50 border border-red-200 rounded-lg text-center">
+        <MdErrorOutline className="text-red-500 text-6xl" />
+        <h3 className="text-xl font-semibold text-red-800">
+          Oops! Something went wrong.
+        </h3>
+        <p className="text-red-700 text-sm max-w-sm">
+          {errorMessage || 'Unable to load data.'}
+        </p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center px-4 py-2 space-x-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <MdRefresh size={18} />
+            <span>Try Again</span>
+          </button>
+        )}
       </div>
     );
   }
@@ -201,35 +284,41 @@ function DataTable({
   /**
    * Loading skeleton
    */
-  if (loading) {
+  if (loading && !activeFilter) {
     return <TableLoadingSkeleton />;
   }
 
   return (
     <div className="space-y-4">
       {/* Filters + Search */}
-      <div className="flex flex-wrap items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between mb-2">
         {/* Filter Buttons */}
         <div className="flex gap-2">
           {filters.map((filterDef) => {
             const isActive = activeFilter?.key === filterDef.key;
+            const hasError = !!filterErrors[filterDef.key];
+
             return (
               <button
                 key={filterDef.key}
                 type="button"
-                onClick={() => {
-                  setActiveFilter(filterDef);
-                  setCurrentPage(1);
-                }}
-                className={`px-4 py-2 shadow rounded-xl text-sm font-medium border transition-colors
+                onClick={() => handleFilterChange(filterDef)}
+                className={`px-4 py-2 shadow rounded-xl text-sm font-medium border transition-colors relative
                   ${
                     isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                      ? hasError
+                        ? 'bg-red-600 text-white'
+                        : 'bg-blue-600 text-white'
+                      : hasError
+                        ? 'bg-white text-red-700 border-red-300 hover:bg-red-50'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                   }
                 `}
               >
                 {filterDef.label}
+                {hasError && !isActive && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
               </button>
             );
           })}
@@ -241,16 +330,26 @@ function DataTable({
             onSearch={handleSearch}
             onClearSearch={handleClearSearch}
             fuseOptions={{ keys: searchKeys, threshold: 0.3 }}
-            placeholder="Search location..."
+            placeholder="Search..."
           />
         </div>
       </div>
 
-      {/* Table */}
+      {/* Filter-specific error message (if any) */}
+      {renderFilterError()}
+
+      {/* Main Table Container */}
       <div className="relative overflow-x-auto border border-gray-200 rounded-lg bg-white">
-        {currentPageData.length === 0 ? (
-          <div className="p-4 text-center text-gray-700">
-            No data available.
+        {/* Show a loading skeleton if we're actively loading and do have an active filter */}
+        {loading && activeFilter ? (
+          <TableLoadingSkeleton />
+        ) : currentPageData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 space-y-2 text-gray-600">
+            <MdInfoOutline className="text-4xl" />
+            <p className="text-lg font-medium">No data available.</p>
+            <p className="text-sm text-gray-500">
+              Try adjusting your search or filter criteria.
+            </p>
           </div>
         ) : (
           <table className="w-full text-sm text-left text-gray-900">
@@ -318,7 +417,6 @@ function DataTable({
                       let cellContent;
                       if (col.render && typeof col.render === 'function') {
                         try {
-                          // Pass item and index to the render function for custom formatting.
                           cellContent = col.render(item, idx);
                         } catch (err) {
                           console.error(
@@ -348,8 +446,8 @@ function DataTable({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-end items-center">
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-end items-center mt-2">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}

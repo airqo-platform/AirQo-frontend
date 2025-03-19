@@ -9,11 +9,12 @@ import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { MdInfoOutline } from 'react-icons/md';
 
 /**
  * Header component for the Add Location modal.
  */
-const AddLocationHeader = () => (
+export const AddLocationHeader = () => (
   <h3
     className="flex text-lg leading-6 font-medium text-gray-900"
     id="modal-title"
@@ -64,7 +65,6 @@ const AddLocations = ({ onClose }) => {
     if (!storedUser) {
       return null;
     }
-
     try {
       const parsedUser = JSON.parse(storedUser);
       return parsedUser?._id ?? null;
@@ -105,6 +105,7 @@ const AddLocations = ({ onClose }) => {
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
     setSelectedSites([]);
+    setSidebarSites([]);
     setTimeout(() => setClearSelected(false), 0);
   }, []);
 
@@ -126,8 +127,6 @@ const AddLocations = ({ onClose }) => {
 
   /**
    * Custom filter function for DataTable.
-   * When the active filter is "favorites", return only sites that are currently selected.
-   * Otherwise (for "all"), return all data.
    */
   const handleFilter = useCallback(
     (data, activeFilter) => {
@@ -176,14 +175,14 @@ const AddLocations = ({ onClose }) => {
       ],
       favorites: [
         {
-          key: 'location_name',
+          key: 'search_name',
           label: 'Location',
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
                 <LocationIcon width={16} height={16} fill="#9EA3AA" />
               </span>
-              <span className="ml-2">{item.location_name}</span>
+              <span className="ml-2">{item.search_name}</span>
             </div>
           ),
         },
@@ -200,21 +199,21 @@ const AddLocations = ({ onClose }) => {
    */
   const handleSubmit = useCallback(() => {
     if (selectedSites.length === 0) {
-      setError('No locations selected');
+      setError('No locations selected.');
       return;
     }
     if (!userID) {
-      setError('User not found');
+      setError('User not found.');
       return;
     }
     if (selectedSites.length > 4) {
-      setError('You can select up to 4 locations only');
+      setError('You can select up to 4 locations only.');
       return;
     }
 
     setSubmitLoading(true);
 
-    // Prepare selected_sites data (excluding grids, devices, airqlouds)
+    // Prepare selected_sites data
     const selectedSitesData = selectedSites.map((site) => {
       const { grids, devices, airqlouds, ...rest } = site;
       return rest;
@@ -240,7 +239,7 @@ const AddLocations = ({ onClose }) => {
         dispatch(setRefreshChart(true));
       })
       .catch((err) => {
-        setError('Failed to update preferences');
+        setError('Failed to update preferences.');
         console.error(err);
       })
       .finally(() => {
@@ -253,27 +252,24 @@ const AddLocations = ({ onClose }) => {
    */
   const sidebarSitesContent = useMemo(() => {
     if (loading) {
+      // Show a placeholder skeleton or spinner
       return (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <LocationCard
-              key={index}
-              site={{}}
-              onToggle={handleToggleSite}
-              isLoading={loading}
-              isSelected={false}
-            />
-          ))}
+        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
         </div>
       );
     }
     if (sidebarSites.length === 0) {
       return (
-        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
-          <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
-            <LocationIcon width={20} height={20} fill="#9EA3AA" />
-          </span>
-          No locations selected
+        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start text-center items-center p-4">
+          <MdInfoOutline className="text-4xl mb-2" />
+          <p className="text-lg font-medium mb-1">No locations selected</p>
+          <p className="text-sm text-center">
+            Select a location from the table to add it here.
+          </p>
         </div>
       );
     }
@@ -282,7 +278,7 @@ const AddLocations = ({ onClose }) => {
         key={site._id}
         site={site}
         onToggle={handleToggleSite}
-        isLoading={loading}
+        isLoading={false}
         isSelected={selectedSites.some((s) => s._id === site._id)}
       />
     ));
@@ -305,6 +301,9 @@ const AddLocations = ({ onClose }) => {
             clearSelectionTrigger={clearSelected}
             loading={loading}
             error={isError}
+            errorMessage={
+              fetchError?.message || 'Unable to fetch locations data.'
+            }
             onToggleRow={handleToggleSite}
             filters={filters}
             columnsByFilter={columnsByFilter}
@@ -317,10 +316,12 @@ const AddLocations = ({ onClose }) => {
               'data_provider',
             ]}
           />
+
+          {/* Show fetch error if any */}
           {isError && fetchError && (
-            <p className="text-red-600 py-4 px-1 text-sm">
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
               Error fetching data: {fetchError.message || 'Unknown error'}
-            </p>
+            </div>
           )}
         </div>
         <Footer
@@ -338,5 +339,4 @@ const AddLocations = ({ onClose }) => {
   );
 };
 
-export { AddLocationHeader };
 export default AddLocations;

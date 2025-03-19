@@ -25,11 +25,12 @@ import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
+import { MdErrorOutline } from 'react-icons/md';
 
 /**
  * InSightsHeader Component
  */
-const InSightsHeader = () => (
+export const InSightsHeader = () => (
   <h3
     className="flex text-lg leading-6 font-medium text-gray-900"
     id="modal-title"
@@ -94,7 +95,7 @@ const MoreInsights = () => {
   const [dateRange, setDateRange] = useState(initialDateRange);
 
   /**
-   * Fetch analytics data using SWR hook with optimized configuration
+   * Fetch analytics data using SWR hook
    */
   const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
     useAnalyticsData(
@@ -158,17 +159,15 @@ const MoreInsights = () => {
   }, [downloadError]);
 
   /**
-   * Toggle site visibility in chart and checkbox state
+   * Toggle site visibility in chart
    */
   const toggleSiteVisibility = useCallback((siteId) => {
     setVisibleSites((prev) => {
       const isVisible = prev.includes(siteId);
-
       // If trying to hide and this is the last visible site, prevent it
       if (isVisible && prev.length <= 1) {
         return prev;
       }
-
       // Toggle visibility state
       return isVisible ? prev.filter((id) => id !== siteId) : [...prev, siteId];
     });
@@ -197,7 +196,6 @@ const MoreInsights = () => {
       if (dataLoadingSites.length <= 1) {
         return false;
       }
-
       setDataLoadingSites((prev) => prev.filter((id) => id !== siteId));
       setVisibleSites((prev) => prev.filter((id) => id !== siteId));
       return true;
@@ -210,13 +208,11 @@ const MoreInsights = () => {
    */
   const addMultipleSites = useCallback((siteIds) => {
     if (!Array.isArray(siteIds) || siteIds.length === 0) return false;
-
     setDataLoadingSites((prev) => {
       const newSites = siteIds.filter((id) => !prev.includes(id));
       if (newSites.length === 0) return prev;
       return [...prev, ...newSites];
     });
-
     setVisibleSites((prev) => {
       const newVisible = [...prev];
       siteIds.forEach((id) => {
@@ -226,12 +222,11 @@ const MoreInsights = () => {
       });
       return newVisible;
     });
-
     return true;
   }, []);
 
   /**
-   * Function to add all available sites at once
+   * Add all available sites at once
    */
   const addAllSites = useCallback(() => {
     const allSiteIds = allSites.map((site) => site._id);
@@ -239,23 +234,20 @@ const MoreInsights = () => {
   }, [allSites, addMultipleSites]);
 
   /**
-   * Handle site click actions (toggle visibility or remove)
+   * Handle site click actions (toggle or remove)
    */
   const handleSiteClick = useCallback(
     (siteId, action = 'toggle') => {
       if (!dataLoadingSites.includes(siteId)) {
         return addDataLoadingSite(siteId);
       }
-
       if (action === 'toggle') {
         toggleSiteVisibility(siteId);
         return false;
       }
-
       if (action === 'remove') {
         return removeDataLoadingSite(siteId);
       }
-
       return false;
     },
     [
@@ -267,11 +259,10 @@ const MoreInsights = () => {
   );
 
   /**
-   * Handle manual refresh with error handling
+   * Handle manual refresh
    */
   const handleManualRefresh = useCallback(() => {
     setIsManualRefresh(true);
-
     setTimeout(() => {
       refetch().catch((err) => {
         console.error('Manual refresh failed:', err);
@@ -285,7 +276,6 @@ const MoreInsights = () => {
    */
   const handleDataDownload = async () => {
     setDownloadLoading(true);
-
     try {
       const { startDate, endDate } = dateRange;
       const formattedStartDate = format(
@@ -296,7 +286,6 @@ const MoreInsights = () => {
         parseISO(endDate),
         "yyyy-MM-dd'T'00:00:00.000'Z'",
       );
-
       const apiData = {
         startDateTime: formattedStartDate,
         endDateTime: formattedEndDate,
@@ -309,13 +298,12 @@ const MoreInsights = () => {
         outputFormat: 'airqo-standard',
         minimum: true,
       };
-
       const data = await fetchData(apiData);
-
       const mimeType = 'text/csv;charset=utf-8;';
-      const fileName = `analytics_data_${new Date().toISOString().slice(0, 10)}.csv`;
+      const fileName = `analytics_data_${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv`;
       const blob = new Blob([data], { type: mimeType });
-
       saveAs(blob, fileName);
       CustomToast();
     } catch (error) {
@@ -379,7 +367,6 @@ const MoreInsights = () => {
         </div>
       );
     }
-
     return allSites.map((site) => (
       <LocationCard
         key={site._id}
@@ -405,7 +392,7 @@ const MoreInsights = () => {
    */
   const RefreshButton = useMemo(
     () => (
-      <Tooltip content={'Refresh data'} className="w-auto text-center">
+      <Tooltip content="Refresh data" className="w-auto text-center">
         <button
           onClick={handleManualRefresh}
           disabled={isValidating}
@@ -446,13 +433,18 @@ const MoreInsights = () => {
   );
 
   /**
-   * Determine chart content based on loading and error states
+   * Determine chart content based on loading/error states
    */
   const chartContent = useMemo(() => {
     if (isError) {
+      // Enhanced error UI
       return (
-        <div className="w-full flex flex-col items-center justify-center h-[380px]">
-          <p className="text-red-500 font-semibold mb-2">
+        <div className="flex flex-col items-center justify-center h-[380px] space-y-3 bg-red-50 border border-red-200 rounded-md p-6 text-center">
+          <MdErrorOutline className="text-red-500 text-4xl" />
+          <h3 className="text-red-800 text-lg font-semibold">
+            Oops! Something went wrong.
+          </h3>
+          <p className="text-sm text-red-600 max-w-md mx-auto">
             {error?.message?.includes('canceled') ||
             error?.message?.includes('aborted')
               ? 'Request was canceled. The server might be taking too long to respond.'
@@ -461,7 +453,7 @@ const MoreInsights = () => {
           </p>
           <button
             onClick={handleManualRefresh}
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
           >
             Try Again
           </button>
@@ -494,14 +486,15 @@ const MoreInsights = () => {
       );
     }
 
+    // No data scenario
     return (
-      <div className="w-full flex flex-col items-center justify-center h-[380px]">
-        <p className="text-gray-500 font-medium mb-2">
+      <div className="w-full flex flex-col items-center justify-center h-[380px] space-y-3">
+        <p className="text-gray-600 text-sm font-medium">
           No data available for the selected sites and time period.
         </p>
         <button
           onClick={handleManualRefresh}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
         >
           Retry
         </button>
@@ -522,7 +515,7 @@ const MoreInsights = () => {
   ]);
 
   return (
-    <>
+    <div className="flex w-full h-full">
       {/* -------------------- Sidebar for Sites -------------------- */}
       <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
         <div className="text-sm text-gray-500 mb-4">
@@ -530,7 +523,6 @@ const MoreInsights = () => {
           <p className="text-xs mt-1 opacity-75">
             Long press to remove site from data
           </p>
-
           {/* Add button to load all sites */}
           {allSites.length > dataLoadingSites.length && (
             <button
@@ -546,7 +538,7 @@ const MoreInsights = () => {
 
       {/* -------------------- Main Content Area -------------------- */}
       <div className="bg-white relative w-full h-full">
-        <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-auto md:overflow-hidden">
+        <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full w-full overflow-y-auto md:overflow-hidden">
           {/* -------------------- Controls: Dropdowns and Actions -------------------- */}
           <div className="w-full flex flex-wrap gap-2 justify-between">
             <div className="space-x-2 flex items-center">
@@ -609,7 +601,7 @@ const MoreInsights = () => {
             {/* Actions: Download Data */}
             <div>
               <Tooltip
-                content={'Download calibrated data in CSV format'}
+                content="Download calibrated data in CSV format"
                 className="w-auto text-center"
               >
                 <TabButtons
@@ -688,9 +680,8 @@ const MoreInsights = () => {
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export { InSightsHeader };
 export default MoreInsights;
