@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { useSelector } from 'react-redux';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -11,11 +17,11 @@ import useDataDownload from '@/core/hooks/useDataDownload';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-// import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { subDays, format, parseISO } from 'date-fns';
+import RefreshIcon from '@/icons/map/refreshIcon';
+import { format, parseISO } from 'date-fns';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
-import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
+import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
@@ -33,23 +39,26 @@ const InSightsHeader = () => (
 );
 
 /**
- * MoreInsights Component
+ * MoreInsights Component - Advanced analytics dashboard
  */
 const MoreInsights = () => {
-  // const dispatch = useDispatch();
+  // Redux state
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
-  // Local state for download functionality
+  // Local state
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
+  const [frequency, setFrequency] = useState('daily');
+  const [chartType, setChartType] = useState('line');
+  const [isManualRefresh, setIsManualRefresh] = useState(false);
+  const refreshTimeoutRef = useRef(null);
 
-  // Use the hook to fetch data
+  // API hooks
   const fetchData = useDataDownload();
 
   /**
-   * Ensure `allSites` is an array.
-   * If `modalData` is undefined, null, or not an array, default to an empty array.
+   * Ensure `allSites` is an array
    */
   const allSites = useMemo(() => {
     if (Array.isArray(modalData)) return modalData;
@@ -58,29 +67,21 @@ const MoreInsights = () => {
   }, [modalData]);
 
   /**
-   * Local state to manage selected sites.
-   * Initializes with all sites selected by default.
+   * Data fetching and visibility states
    */
-  const [selectedSites, setSelectedSites] = useState(() => [...allSites]);
-
-  /**
-   * Extract site IDs from selected sites for API requests.
-   */
-  const selectedSiteIds = useMemo(
-    () => selectedSites.map((site) => site._id),
-    [selectedSites],
+  const [dataLoadingSites, setDataLoadingSites] = useState(() =>
+    allSites.map((site) => site._id),
+  );
+  const [visibleSites, setVisibleSites] = useState(() =>
+    allSites.map((site) => site._id),
   );
 
-  // State variables for frequency, chart type, and date range
-  const [frequency, setFrequency] = useState('daily');
-  const [chartType, setChartType] = useState('line');
-
   /**
-   * Initialize date range to last 7 days.
+   * Initialize date range to last 7 days
    */
   const initialDateRange = useMemo(() => {
     const { startDateISO, endDateISO } = formatDateRangeToISO(
-      subDays(new Date(), 7),
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       new Date(),
     );
     return {
@@ -93,62 +94,60 @@ const MoreInsights = () => {
   const [dateRange, setDateRange] = useState(initialDateRange);
 
   /**
-   * Fetch analytics data using custom hook.
-   * Dependencies: selectedSiteIds, dateRange, chartType, frequency, pollutant, organisationName
+   * Fetch analytics data using SWR hook with optimized configuration
    */
-  const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
-    selectedSiteIds,
-    dateRange,
-    chartType,
-    frequency,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organisationName,
-  });
-
-  // State for managing the SkeletonLoader visibility
-  const [showSkeleton, setShowSkeleton] = useState(chartLoading);
-
-  /**
-   * Handles refetching data when a parameter changes.
-   */
-  const handleParameterChange = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
-  /**
-   * Handles toggling of site selection.
-   * Adds or removes a site from the selectedSites state.
-   *
-   * @param {string} siteId - The ID of the site to toggle.
-   */
-  const toggleSiteSelection = useCallback(
-    (siteId) => {
-      setSelectedSites((prevSelected) => {
-        const isSelected = prevSelected.some((site) => site._id === siteId);
-        if (isSelected) {
-          return prevSelected.filter((site) => site._id !== siteId);
-        } else {
-          const siteToAdd = allSites.find((site) => site._id === siteId);
-          if (siteToAdd) {
-            return [...prevSelected, siteToAdd];
+  const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
+    useAnalyticsData(
+      {
+        selectedSiteIds: dataLoadingSites,
+        dateRange: {
+          startDate: new Date(dateRange.startDate),
+          endDate: new Date(dateRange.endDate),
+        },
+        chartType,
+        frequency,
+        pollutant: chartData.pollutionType,
+        organisationName: chartData.organisationName,
+      },
+      {
+        revalidateOnFocus: false,
+        dedupingInterval: 10000,
+        revalidateIfStale: false,
+        revalidateOnReconnect: false,
+        errorRetryCount: 3,
+        errorRetryInterval: 3000,
+        focusThrottleInterval: 10000,
+        loadingTimeout: 30000,
+        onError: (err) => {
+          if (
+            err.name === 'AbortError' ||
+            err.message?.includes('aborted') ||
+            err.message?.includes('canceled')
+          ) {
+            console.log('Request aborted, this is expected behavior');
+            return;
           }
-          return prevSelected;
-        }
-      });
-    },
-    [allSites],
-  );
+          console.error('Error fetching analytics data:', err);
+        },
+      },
+    );
 
-  /**
-   * Effect to refetch data when selectedSites changes.
-   */
+  // Clear manual refresh state after timeout
   useEffect(() => {
-    handleParameterChange();
-  }, [selectedSites, handleParameterChange]);
+    if (isManualRefresh && !isValidating) {
+      refreshTimeoutRef.current = setTimeout(() => {
+        setIsManualRefresh(false);
+      }, 3000);
+    }
 
-  /**
-   * Hide download error after 5 seconds.
-   */
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [isManualRefresh, isValidating]);
+
+  // Clear download error after timeout
   useEffect(() => {
     if (downloadError) {
       const timer = setTimeout(() => {
@@ -159,53 +158,130 @@ const MoreInsights = () => {
   }, [downloadError]);
 
   /**
-   * Effect to manage SkeletonLoader visibility with delay.
+   * Toggle site visibility in chart and checkbox state
    */
-  useEffect(() => {
-    let timer;
-    if (chartLoading) {
-      setShowSkeleton(true);
-    } else {
-      timer = setTimeout(() => {
-        setShowSkeleton(false);
-      }, 4000);
-    }
+  const toggleSiteVisibility = useCallback((siteId) => {
+    setVisibleSites((prev) => {
+      const isVisible = prev.includes(siteId);
 
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [chartLoading]);
+      // If trying to hide and this is the last visible site, prevent it
+      if (isVisible && prev.length <= 1) {
+        return prev;
+      }
+
+      // Toggle visibility state
+      return isVisible ? prev.filter((id) => id !== siteId) : [...prev, siteId];
+    });
+  }, []);
 
   /**
-   * Generates the content for all sites in the sidebar.
-   * Displays sites with their selection status.
+   * Add a site to load data for
    */
-  const allSitesContent = useMemo(() => {
-    if (!Array.isArray(allSites) || allSites.length === 0) {
-      return (
-        <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
-          <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
-            <LocationIcon width={20} height={20} fill="#9EA3AA" />
-          </span>
-          No locations available
-        </div>
-      );
-    }
-
-    return allSites.map((site) => (
-      <LocationCard
-        key={site._id}
-        site={site}
-        onToggle={() => toggleSiteSelection(site._id)}
-        isSelected={selectedSites.some((s) => s._id === site._id)}
-        isLoading={false}
-        disableToggle={selectedSites.length === 1}
-      />
-    ));
-  }, [allSites, selectedSites, toggleSiteSelection]);
+  const addDataLoadingSite = useCallback(
+    (siteId) => {
+      if (!dataLoadingSites.includes(siteId)) {
+        setDataLoadingSites((prev) => [...prev, siteId]);
+        setVisibleSites((prev) => [...prev, siteId]);
+        return true; // Data reload will happen
+      }
+      return false; // No data reload needed
+    },
+    [dataLoadingSites],
+  );
 
   /**
-   * Handles data download with default CSV format.
+   * Remove a site from data loading
+   */
+  const removeDataLoadingSite = useCallback(
+    (siteId) => {
+      if (dataLoadingSites.length <= 1) {
+        return false;
+      }
+
+      setDataLoadingSites((prev) => prev.filter((id) => id !== siteId));
+      setVisibleSites((prev) => prev.filter((id) => id !== siteId));
+      return true;
+    },
+    [dataLoadingSites],
+  );
+
+  /**
+   * Add multiple sites to data loading at once
+   */
+  const addMultipleSites = useCallback((siteIds) => {
+    if (!Array.isArray(siteIds) || siteIds.length === 0) return false;
+
+    setDataLoadingSites((prev) => {
+      const newSites = siteIds.filter((id) => !prev.includes(id));
+      if (newSites.length === 0) return prev;
+      return [...prev, ...newSites];
+    });
+
+    setVisibleSites((prev) => {
+      const newVisible = [...prev];
+      siteIds.forEach((id) => {
+        if (!newVisible.includes(id)) {
+          newVisible.push(id);
+        }
+      });
+      return newVisible;
+    });
+
+    return true;
+  }, []);
+
+  /**
+   * Function to add all available sites at once
+   */
+  const addAllSites = useCallback(() => {
+    const allSiteIds = allSites.map((site) => site._id);
+    return addMultipleSites(allSiteIds);
+  }, [allSites, addMultipleSites]);
+
+  /**
+   * Handle site click actions (toggle visibility or remove)
+   */
+  const handleSiteClick = useCallback(
+    (siteId, action = 'toggle') => {
+      if (!dataLoadingSites.includes(siteId)) {
+        return addDataLoadingSite(siteId);
+      }
+
+      if (action === 'toggle') {
+        toggleSiteVisibility(siteId);
+        return false;
+      }
+
+      if (action === 'remove') {
+        return removeDataLoadingSite(siteId);
+      }
+
+      return false;
+    },
+    [
+      dataLoadingSites,
+      toggleSiteVisibility,
+      addDataLoadingSite,
+      removeDataLoadingSite,
+    ],
+  );
+
+  /**
+   * Handle manual refresh with error handling
+   */
+  const handleManualRefresh = useCallback(() => {
+    setIsManualRefresh(true);
+
+    setTimeout(() => {
+      refetch().catch((err) => {
+        console.error('Manual refresh failed:', err);
+        setTimeout(() => setIsManualRefresh(false), 1000);
+      });
+    }, 100);
+  }, [refetch]);
+
+  /**
+   * Download data in CSV format
    */
   const handleDataDownload = async () => {
     setDownloadLoading(true);
@@ -224,7 +300,7 @@ const MoreInsights = () => {
       const apiData = {
         startDateTime: formattedStartDate,
         endDateTime: formattedEndDate,
-        sites: selectedSiteIds,
+        sites: dataLoadingSites,
         network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
         frequency: frequency,
@@ -237,7 +313,7 @@ const MoreInsights = () => {
       const data = await fetchData(apiData);
 
       const mimeType = 'text/csv;charset=utf-8;';
-      const fileName = `analytics_data_${new Date().toISOString()}.csv`;
+      const fileName = `analytics_data_${new Date().toISOString().slice(0, 10)}.csv`;
       const blob = new Blob([data], { type: mimeType });
 
       saveAs(blob, fileName);
@@ -253,31 +329,219 @@ const MoreInsights = () => {
   };
 
   /**
-   * Handles opening the modal with the specified type, ids, and data.
-   * Utilizes Redux actions for state management.
+   * Date range change handler
    */
-  // const handleOpenModal = useCallback(
-  //   (type, ids = [], data = null) => {
-  //     dispatch(setModalType({ type, ids, data }));
-  //     dispatch(setOpenModal(true));
-  //   },
-  //   [dispatch]
-  // );
+  const handleDateChange = useCallback((start, end, label) => {
+    if (start && end) {
+      setDateRange({
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        label,
+      });
+    }
+  }, []);
+
+  /**
+   * Frequency change handler
+   */
+  const handleFrequencyChange = useCallback(
+    (option) => {
+      if (frequency !== option) {
+        setFrequency(option);
+      }
+    },
+    [frequency],
+  );
+
+  /**
+   * Chart type change handler
+   */
+  const handleChartTypeChange = useCallback(
+    (option) => {
+      if (chartType !== option) {
+        setChartType(option);
+      }
+    },
+    [chartType],
+  );
+
+  /**
+   * Generate sidebar content for site selection
+   */
+  const allSitesContent = useMemo(() => {
+    if (!Array.isArray(allSites) || allSites.length === 0) {
+      return (
+        <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
+          <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
+            <LocationIcon width={20} height={20} fill="#9EA3AA" />
+          </span>
+          No locations available
+        </div>
+      );
+    }
+
+    return allSites.map((site) => (
+      <LocationCard
+        key={site._id}
+        site={site}
+        onToggle={() => handleSiteClick(site._id, 'toggle')}
+        onRemove={() => handleSiteClick(site._id, 'remove')}
+        isSelected={visibleSites.includes(site._id)}
+        isVisible={visibleSites.includes(site._id)}
+        isLoading={
+          isValidating &&
+          dataLoadingSites.includes(site._id) &&
+          !visibleSites.includes(site._id)
+        }
+        disableToggle={
+          dataLoadingSites.length <= 1 && dataLoadingSites.includes(site._id)
+        }
+      />
+    ));
+  }, [allSites, dataLoadingSites, visibleSites, handleSiteClick, isValidating]);
+
+  /**
+   * Refresh button component
+   */
+  const RefreshButton = useMemo(
+    () => (
+      <Tooltip content={'Refresh data'} className="w-auto text-center">
+        <button
+          onClick={handleManualRefresh}
+          disabled={isValidating}
+          className={`ml-2 p-2 rounded-md border border-gray-200 ${
+            isValidating
+              ? 'bg-gray-100 cursor-not-allowed'
+              : 'hover:bg-gray-100'
+          } transition-colors flex items-center`}
+        >
+          {isValidating && isManualRefresh ? (
+            <svg
+              className="animate-spin h-5 w-5 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            <RefreshIcon width={20} height={20} />
+          )}
+        </button>
+      </Tooltip>
+    ),
+    [isValidating, isManualRefresh, handleManualRefresh],
+  );
+
+  /**
+   * Determine chart content based on loading and error states
+   */
+  const chartContent = useMemo(() => {
+    if (isError) {
+      return (
+        <div className="w-full flex flex-col items-center justify-center h-[380px]">
+          <p className="text-red-500 font-semibold mb-2">
+            {error?.message?.includes('canceled') ||
+            error?.message?.includes('aborted')
+              ? 'Request was canceled. The server might be taking too long to respond.'
+              : error?.message ||
+                'Something went wrong loading the chart data.'}
+          </p>
+          <button
+            onClick={handleManualRefresh}
+            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+
+    if (
+      chartLoading ||
+      (isValidating && dataLoadingSites.length > 0 && !allSiteData?.length)
+    ) {
+      return <SkeletonLoader width="100%" height={380} />;
+    }
+
+    if (allSiteData?.length > 0) {
+      return (
+        <MoreInsightsChart
+          data={allSiteData}
+          selectedSites={dataLoadingSites}
+          visibleSiteIds={visibleSites}
+          chartType={chartType}
+          frequency={frequency}
+          width="100%"
+          height={380}
+          id="air-quality-chart"
+          pollutantType={chartData.pollutionType}
+          refreshChart={handleManualRefresh}
+          isRefreshing={isValidating && isManualRefresh}
+        />
+      );
+    }
+
+    return (
+      <div className="w-full flex flex-col items-center justify-center h-[380px]">
+        <p className="text-gray-500 font-medium mb-2">
+          No data available for the selected sites and time period.
+        </p>
+        <button
+          onClick={handleManualRefresh}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }, [
+    isError,
+    error,
+    chartLoading,
+    isValidating,
+    dataLoadingSites,
+    allSiteData,
+    visibleSites,
+    chartType,
+    frequency,
+    chartData.pollutionType,
+    handleManualRefresh,
+  ]);
 
   return (
     <>
       {/* -------------------- Sidebar for Sites -------------------- */}
       <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+        <div className="text-sm text-gray-500 mb-4">
+          <p>Click checkbox to toggle visibility</p>
+          <p className="text-xs mt-1 opacity-75">
+            Long press to remove site from data
+          </p>
+
+          {/* Add button to load all sites */}
+          {allSites.length > dataLoadingSites.length && (
+            <button
+              onClick={addAllSites}
+              className="mt-3 px-3 py-1.5 bg-blue-50 text-blue-600 rounded text-xs font-medium hover:bg-blue-100 transition-colors w-full"
+            >
+              Load all {allSites.length} sites
+            </button>
+          )}
+        </div>
         {allSitesContent}
-        {/* Add Location Button */}
-        {/* {!chartLoading && (
-          <button
-            onClick={() => handleOpenModal('moreSights')}
-            className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
-          >
-            + Add location
-          </button>
-        )} */}
       </div>
 
       {/* -------------------- Main Content Area -------------------- */}
@@ -285,7 +549,7 @@ const MoreInsights = () => {
         <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-auto md:overflow-hidden">
           {/* -------------------- Controls: Dropdowns and Actions -------------------- */}
           <div className="w-full flex flex-wrap gap-2 justify-between">
-            <div className="space-x-2 flex">
+            <div className="space-x-2 flex items-center">
               {/* Frequency Dropdown */}
               <CustomDropdown
                 btnText={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
@@ -296,12 +560,7 @@ const MoreInsights = () => {
                 {TIME_OPTIONS.map((option) => (
                   <span
                     key={option}
-                    onClick={() => {
-                      if (frequency !== option) {
-                        setFrequency(option);
-                        handleParameterChange();
-                      }
-                    }}
+                    onClick={() => handleFrequencyChange(option)}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -318,16 +577,7 @@ const MoreInsights = () => {
               <CustomCalendar
                 initialStartDate={new Date(dateRange.startDate)}
                 initialEndDate={new Date(dateRange.endDate)}
-                onChange={(start, end, label) => {
-                  if (start && end) {
-                    setDateRange({
-                      startDate: start.toISOString(),
-                      endDate: end.toISOString(),
-                      label,
-                    });
-                    handleParameterChange();
-                  }
-                }}
+                onChange={handleDateChange}
                 className="-left-10 md:left-16 top-11"
                 dropdown
               />
@@ -341,12 +591,7 @@ const MoreInsights = () => {
                 {CHART_TYPE.map((option) => (
                   <span
                     key={option.id}
-                    onClick={() => {
-                      if (chartType !== option.id) {
-                        setChartType(option.id);
-                        handleParameterChange();
-                      }
-                    }}
+                    onClick={() => handleChartTypeChange(option.id)}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -356,6 +601,9 @@ const MoreInsights = () => {
                   </span>
                 ))}
               </CustomDropdown>
+
+              {/* Refresh Button */}
+              {RefreshButton}
             </div>
 
             {/* Actions: Download Data */}
@@ -370,7 +618,7 @@ const MoreInsights = () => {
                   onClick={handleDataDownload}
                   btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-2 rounded-xl"
                   isLoading={downloadLoading}
-                  disabled={downloadLoading || chartLoading}
+                  disabled={downloadLoading || chartLoading || isValidating}
                 />
               </Tooltip>
             </div>
@@ -384,41 +632,59 @@ const MoreInsights = () => {
           )}
 
           {/* -------------------- Chart Display -------------------- */}
-          <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            {error ? (
-              <div className="w-full flex flex-col items-center justify-center h-[380px]">
-                <p className="text-red-500 font-semibold mb-2">
-                  Something went wrong. Please try again.
-                </p>
-                <button
-                  onClick={refetch}
-                  className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          <div className="w-full h-auto border rounded-xl border-grey-150 p-2 relative">
+            {/* Success Message After Refresh */}
+            {!isValidating && isManualRefresh && (
+              <div className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
+                <svg
+                  className="mr-2 h-4 w-4 text-green-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
-                  Try Again
-                </button>
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm font-medium">Data refreshed</span>
               </div>
-            ) : showSkeleton ? (
-              <SkeletonLoader width="100%" height={380} />
-            ) : (
-              <MoreInsightsChart
-                data={allSiteData}
-                selectedSites={selectedSiteIds}
-                chartType={chartType}
-                frequency={frequency}
-                width="100%"
-                height={380}
-                id="air-quality-chart"
-                pollutantType={chartData.pollutionType}
-              />
             )}
+
+            {/* Chart Content based on loading/error states */}
+            {chartContent}
           </div>
+
+          {/* Site visibility indicator */}
+          {dataLoadingSites.length > visibleSites.length && (
+            <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded flex items-center">
+              <svg
+                className="h-4 w-4 mr-2 text-blue-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fillRule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>
+                {dataLoadingSites.length - visibleSites.length} site(s) hidden.
+                Check the boxes in the sidebar to show them.
+              </span>
+            </div>
+          )}
 
           {/* -------------------- Air Quality Card -------------------- */}
           <AirQualityCard
             airQuality="--"
             pollutionSource="--"
             pollutant={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-            isLoading={chartLoading}
+            isLoading={chartLoading || isValidating}
           />
         </div>
       </div>
