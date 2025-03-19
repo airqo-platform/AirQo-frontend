@@ -185,7 +185,7 @@ export const getAnalyticsDataApi = async ({ body }) => {
       });
     } else {
       // Production environment - use direct API endpoint
-      response = await createAxiosInstance().post(ANALYTICS_URL, body);
+      response = await createAxiosInstance(false).post(ANALYTICS_URL, body);
     }
 
     // Process response
