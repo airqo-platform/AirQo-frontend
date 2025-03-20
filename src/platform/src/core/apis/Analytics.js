@@ -64,7 +64,7 @@ export const getSitesSummaryApi = async ({ group }) => {
       });
     } else {
       // Use direct API endpoint in production mode
-      response = await createAxiosInstance(false).get(SITES_SUMMARY_URL, {
+      response = await createAxiosInstance().get(SITES_SUMMARY_URL, {
         params: { group },
       });
     }
@@ -103,7 +103,7 @@ export const getDeviceSummaryApi = async ({ group = null }) => {
       });
     } else {
       // Use direct API endpoint in production mode
-      response = await createAxiosInstance(false).get(DEVICE_SUMMARY_URL, {
+      response = await createAxiosInstance().get(DEVICE_SUMMARY_URL, {
         params,
       });
     }
@@ -185,7 +185,7 @@ export const getAnalyticsDataApi = async ({ body }) => {
       });
     } else {
       // Production environment - use direct API endpoint
-      response = await createAxiosInstance(false).post(ANALYTICS_URL, body);
+      response = await createAxiosInstance().post(ANALYTICS_URL, body);
     }
 
     // Process response
