@@ -91,31 +91,6 @@ export default async function RootLayout({
         <meta name="robots" content="index, follow" />
         <meta name="apple-mobile-web-app-title" content="AirQo" />
 
-        {/* Real Favicon Generator / Favicon + App Icons */}
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png" />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="192x192"
-          href="/web-app-manifest-192x192.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="512x512"
-          href="/web-app-manifest-512x512.png"
-        />
-        <link rel="icon" type="image/png" href="/icon.png" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-
-        {/* Windows / MS Tiles */}
-        <meta name="msapplication-TileColor" content="#ffffff" />
-        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
-
-        {/* Manifest */}
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ffffff" />
-
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content={siteUrl} />
