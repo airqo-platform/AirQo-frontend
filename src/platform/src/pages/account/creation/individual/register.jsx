@@ -25,7 +25,7 @@ const IndividualAccountRegistration = () => {
   const [passwordType, setPasswordType] = useState('password');
   const [passwordWordErrors, setPasswordWordErrors] = useState(false);
   let passwordRegex = new RegExp(
-    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$',
+    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$'
   );
 
   const dispatch = useDispatch();
@@ -110,12 +110,16 @@ const IndividualAccountRegistration = () => {
     >
       <div className="w-full">
         <h2 className="text-3xl text-black-700 font-medium">
-          Let's get started
+          Let&apos;s get started
         </h2>
         <p className="text-xl text-black-700 font-normal mt-3">
           Get access to air quality analytics across Africa
         </p>
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+          aria-label="Account registration form"
+          noValidate
+        >
           {creationErrors.state && (
             <Toast
               type={'error'}
@@ -130,48 +134,78 @@ const IndividualAccountRegistration = () => {
             />
           )}
 
-          <div className="mt-6">
+          <div className="mt-6" role="group" aria-label="Name fields">
             <div className="flex flex-row justify-between">
               <div className="w-full">
-                <div className="text-sm text-gray-500">First name*</div>
+                <label htmlFor="firstName" className="text-sm text-gray-500">
+                  First name*
+                </label>
                 <div className="mt-2 w-11/12">
                   <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    aria-required="true"
+                    aria-invalid={firstName.length > 0 && firstName.length < 3}
+                    aria-describedby="firstName-hint"
+                    placeholder="Enter your name"
                     onChange={(e) => {
                       setFirstName(e.target.value);
                     }}
-                    type="text"
-                    placeholder="Enter your name"
                     className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                     pattern="[A-Za-z]{3,}"
                     required
                   />
+                  <span id="firstName-hint" className="sr-only">
+                    First name must contain at least 3 letters
+                  </span>
                 </div>
               </div>
               <div className="w-full">
-                <div className="text-sm text-gray-500">Last name*</div>
+                <label htmlFor="lastName" className="text-sm text-gray-500">
+                  Last name*
+                </label>
                 <div className="mt-2 w-full">
                   <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                    aria-required="true"
+                    aria-invalid={lastName.length > 0 && lastName.length < 2}
+                    aria-describedby="lastName-hint"
+                    placeholder="Enter your name"
                     onChange={(e) => {
                       setLastName(e.target.value);
                     }}
-                    type="text"
-                    placeholder="Enter your name"
                     className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
                     pattern="[A-Za-z]{2,}"
                     required
                   />
+                  <span id="lastName-hint" className="sr-only">
+                    Last name must contain at least 2 letters
+                  </span>
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-6">
             <div className="w-full">
-              <div className="text-sm text-gray-500">Email address*</div>
+              <label htmlFor="email" className="text-sm text-gray-500">
+                Email address*
+              </label>
               <div className="mt-2 w-full">
                 <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  aria-required="true"
+                  aria-invalid={email.length >= 3 && !email.includes('@')}
+                  aria-describedby="email-error"
                   value={email || ''}
                   onChange={(e) => setEmail(e.target.value)}
-                  type="email"
                   placeholder="Enter your email"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500 ${
                     email.length >= 3 && !email.includes('@')
@@ -181,8 +215,12 @@ const IndividualAccountRegistration = () => {
                   required
                 />
                 {email.length >= 3 && !email.includes('@') && (
-                  <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                    <HintIcon className="w-8 h-8" />
+                  <div
+                    id="email-error"
+                    className="flex flex-row items-start text-xs text-red-600 py-2"
+                    role="alert"
+                  >
+                    <HintIcon className="w-8 h-8" aria-hidden="true" />
                     <span>Please provide a valid email address!</span>
                   </div>
                 )}
@@ -191,43 +229,67 @@ const IndividualAccountRegistration = () => {
           </div>
           <div className="mt-6">
             <div className="w-full">
-              <div className="text-sm text-gray-500">Password*</div>
+              <label htmlFor="password" className="text-sm text-gray-500">
+                Password*
+              </label>
               <div className="mt-2 w-full relative">
                 <input
+                  id="password"
+                  name="password"
+                  type={passwordType}
+                  autoComplete="new-password"
+                  aria-required="true"
+                  aria-invalid={passwordWordErrors}
+                  aria-describedby="password-requirements password-error"
                   onChange={(e) => {
                     setPassword(e.target.value);
                     validatePassword(e.target.value);
                   }}
-                  pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$"
-                  minLength={'6'}
-                  maxLength={'20'}
-                  type={passwordType}
                   placeholder="Create password"
                   className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500 focus:${
                     passwordWordErrors && 'border-red-600'
                   } ${passwordWordErrors && 'border-red-600'}`}
+                  pattern="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$"
+                  minLength="8"
+                  maxLength="20"
                   required
                 />
-                <span className="text-gray-400 text-sm">
+                <span
+                  id="password-requirements"
+                  className="text-gray-400 text-sm"
+                >
                   Must be at least 8 characters
                 </span>
-                <div
-                  className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer"
+                <button
+                  type="button"
                   onClick={showPassword}
+                  className="absolute right-4 top-[25px] transform -translate-y-1/2 cursor-pointer"
+                  aria-label={
+                    passwordType === 'password'
+                      ? 'Show password'
+                      : 'Hide password'
+                  }
                 >
                   {passwordType === 'password' ? (
-                    <VisibilityOffIcon />
+                    <VisibilityOffIcon aria-hidden="true" />
                   ) : (
-                    <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
+                    <VisibilityOnIcon
+                      className="stroke-1 stroke-svg-green"
+                      aria-hidden="true"
+                    />
                   )}
-                </div>
+                </button>
                 {passwordWordErrors && (
-                  <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                    <HintIcon className="w-8 h-8 mr-2" />{' '}
+                  <div
+                    id="password-error"
+                    className="flex flex-row items-start text-xs text-red-600 py-2"
+                    role="alert"
+                  >
+                    <HintIcon className="w-8 h-8 mr-2" aria-hidden="true" />
                     <span>
-                      Password must be more than 6 characters and contain an
-                      uppercase letter(A-Z), lowercase letter(a-z), a
-                      number(0-9) and special character(#?!@$%^&.*,)
+                      Password must be at least 8 characters and contain an
+                      uppercase letter (A-Z), lowercase letter (a-z), a
+                      number (0-9) and special character (#?!@$%^&)
                     </span>
                   </div>
                 )}

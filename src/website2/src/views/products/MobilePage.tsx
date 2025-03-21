@@ -74,7 +74,7 @@ const MobilePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/MobileApp/mobile-header_cz3n6t.webp"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695567/website/photos/OurProducts/MobileApp/image7_fjjnl0.jpg"
               alt="Discover the quality of air around you"
               width={500}
               height={350}
@@ -145,16 +145,16 @@ const MobilePage = () => {
 
           {/* Image Section */}
           <motion.div
-            className="relative mt-12 lg:mt-0 lg:ml-[300px] w-full"
+            className="relative mt-12 lg:mt-0 lg:ml-[300px] md:h-[500px] w-full"
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-1_x2ppgk.webp"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695590/website/photos/OurProducts/MobileApp/image25_htllpb.jpg"
               alt="Personalized air quality alerts"
               width={741}
-              height={540}
+              height={400}
               style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
+              className="rounded-lg h-full w-full md:w-full"
             />
 
             <div className="w-[200px] h-[200px] absolute -right-24 top-40">

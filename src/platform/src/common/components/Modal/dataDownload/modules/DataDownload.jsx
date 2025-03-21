@@ -23,6 +23,7 @@ import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
 import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { event } from '@/core/hooks/useGoogleAnalytics';
 
 /**
  * Header component for the Download Data modal.
@@ -169,7 +170,20 @@ const DataDownload = ({ onClose }) => {
    * @param {object} option - The selected option.
    */
   const handleOptionSelect = useCallback((id, option) => {
-    setFormData((prevData) => ({ ...prevData, [id]: option }));
+    setFormData((prevData) => {
+      // Special handling for duration
+      if (id === 'duration') {
+        return {
+          ...prevData,
+          duration: {
+            start: option.startDate,
+            end: option.endDate,
+          },
+        };
+      }
+      // Handle other fields normally
+      return { ...prevData, [id]: option };
+    });
   }, []);
 
   /**
@@ -198,19 +212,15 @@ const DataDownload = ({ onClose }) => {
 
       try {
         // Validate form data
-        if (
-          !formData.duration ||
-          !formData.duration.name?.start ||
-          !formData.duration.name?.end
-        ) {
+        if (!formData.duration?.start || !formData.duration?.end) {
           throw new Error(
             'Please select a valid duration with both start and end dates.',
           );
         }
 
         // Parse the start and end dates
-        const startDate = new Date(formData.duration.name.start);
-        const endDate = new Date(formData.duration.name.end);
+        const startDate = new Date(formData.duration.start);
+        const endDate = new Date(formData.duration.end);
 
         // Frequency-based duration limit validation
         const validateDuration = (frequency, startDate, endDate) => {
@@ -261,6 +271,14 @@ const DataDownload = ({ onClose }) => {
 
         const response = await fetchData(apiData);
 
+        // Track successful download
+        event({
+          action: 'download_data',
+          category: 'Data Export',
+          label: `${formData.dataType.name} - ${formData.pollutant.name}`,
+          value: selectedSites.length,
+        });
+
         // Handle file download based on file type
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
@@ -310,7 +328,13 @@ const DataDownload = ({ onClose }) => {
         handleClearSelection();
         onClose();
       } catch (error) {
-        console.error('Error downloading data:', error);
+        // Track error
+        event({
+          action: 'download_error',
+          category: 'Data Export',
+          label: error.message,
+        });
+
         setFormError(
           error.message ||
             'An error occurred while downloading. Please try again.',
