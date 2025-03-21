@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import Button from '../Button';
+import Button from '../NetManagerMap/components/Button';
 import MenuBarIcon from '@/public/icons/menu_bar';
 import AirqoLogo from '@/public/icons/airqo_logo.svg';
 import Spinner from '@/components/Spinner';

@@ -16,7 +16,7 @@ import {
   getYear,
 } from 'date-fns';
 import CalendarIcon from '@/public/icons/Analytics/calendarIcon';
-import TabButtons from '../Button/TabButtons';
+import TabButtons from '../NetManagerMap/components/Button/TabButtons';
 import Calendar from './Calendar';
 import useOutsideClick  from '@/core/hooks/useOutsideClick';
  

@@ -12,6 +12,7 @@ export function useMapData() {
         const fetchData = async () => {
       try {
         const res = await GetAirQuoData();
+        
         console.log("Fetched Data:", res); 
 
         if (!res){

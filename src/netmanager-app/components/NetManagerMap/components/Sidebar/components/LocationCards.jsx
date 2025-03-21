@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { capitalizeAllText } from '@/utils/strings';
 import LocationIcon from '@/public/icons/LocationIcon';
-import Button from '@/components/Button';
+import Button from '@/components/NetManagerMap/components/Button';
 
 /**
  * Helper function to format description

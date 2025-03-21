@@ -12,9 +12,9 @@ import { useWindowSize } from '@/lib/windowSize';
 const Index = () => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
-  const gridsDataSummary = useSelector((state) => state.grids.gridsDataSummary?.grids) || [];
-  const preferences = useSelector((state) => state.grids.gridsDataSummary?.grids) || [];
-  const selectedNode = useSelector((state) => state.grids.gridsDataSummary?.grids) || [];
+  const gridsDataSummary = useSelector((state: any) => state.grids.gridsDataSummary?.grids) || [];
+  const preferences = useSelector((state: any) => state.grids.gridsDataSummary?.grids) || [];
+  const selectedNode = useSelector((state: any) => state.grids.gridsDataSummary?.grids) || [];
 
   const [siteDetails, setSiteDetails] = useState([]);
   const [pollutant] = useState('pm2_5');
@@ -87,36 +87,18 @@ const Index = () => {
     }
   }, []);
 
-  // Responsive layout based on screen size
-  const sidebarClassName =
-    width < 1024
-      ? `${selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'}`
-      : 'h-full min-w-[380px] lg:w-[470px]';
 
-  const mapClassName =
-    width < 1024
-      ? `${selectedNode ? 'h-[30%]' : 'h-full w-full'}`
-      : 'h-full w-full';
 
   return (
-    <Layout noTopNav={width < 1024}>
-      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 transition-all duration-500 ease-in-out">
         <div
-          className={`${sidebarClassName} transition-all duration-500 ease-in-out`}
-        >
-          <Sidebar siteDetails={siteDetails} isAdmin={isAdmin} />
-        </div>
-        <div
-          className={`${mapClassName} transition-all duration-500 ease-in-out`}
-        >
-          <NetManagerMap
-            mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-            customStyle="flex-grow h-full w-full relative bg-[#e6e4e0]"
-            pollutant={pollutant}
-          />
-        </div>
+        className={` transition-all duration-500 ease-in-out `}
+      >
+        <NetManagerMap
+          mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+          customStyle="flex-grow h-full w-full relative bg-[#e6e4e0]"
+          pollutant={pollutant}
+        />
       </div>
-    </Layout>
   );
 };
 

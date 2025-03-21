@@ -13,18 +13,20 @@ const SearchField = ({
 }) => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 //   const reduxSearchTerm = useSelector(
 //     (state) => state.locationSearch.searchTerm,
 //   );
 
   useEffect(() => {
     if (focus) {
-      inputRef.current.focus();
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   }, [focus]);
 
-  const handleSearch = (searchEvent) => {
+  const handleSearch = (searchEvent: { target: { value: any; }; }) => {
     try {
       const searchValue = searchEvent.target.value;
       setSearchTerm(searchValue);
@@ -44,24 +46,24 @@ const SearchField = ({
   return (
     <>
       <div className="relative w-full flex items-center justify-center">
-        <div className="absolute left-0 flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline">
-          {/* <SearchIcon /> */}
+      <div className="absolute left-0 flex items-center justify-center pl-3 bg-white  h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline">
+          <SearchIcon />
         </div>
         <input
           ref={inputRef}
           placeholder="Search villages, cities or country"
-          className="input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12 ml-0 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500"
+          className="input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12 ml-16 rounded-lg bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500"
         //   value={reduxSearchTerm}
           onChange={handleSearch}
         />
-        {/* {reduxSearchTerm && (
+        {searchTerm && (
           <span
             className="absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer"
             onClick={clearSearch}
           >
-            <CloseIcon />
+            <CloseIcon width={50} height={50} fill={undefined} strokeWidth={undefined} />
           </span>
-        )} */}
+        )}
       </div>
 
       {/* {showSearchResultsNumber &&

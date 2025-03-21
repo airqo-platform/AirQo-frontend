@@ -6,7 +6,7 @@ import {AIRQUO_DATA,MAP_BOX_SUGGESTIONS,MAP_BOX_SEARCH} from "../urls"
 
 export const GetAirQuoData = async () =>{
         try {
-                if(token){
+                if(AirQoToken){
                         const response = await axios.get(`${AIRQUO_DATA}?token=${AirQoToken}`);
                 const data = response.data;
                 return data;
@@ -22,9 +22,9 @@ export const GetAirQuoData = async () =>{
         }
 }
 
-export  const FetchSuggestions=async(value:string,access_token:string,sessionToken:string,latitude?: number, longitude?: number):Promise<any[] | void>=>{
+export  const FetchSuggestions=async(value:string,sessionToken:string,latitude?: number, longitude?: number):Promise<any[] | void>=>{
         
-        if (!access_token) {
+        if (!token) {
                 console.log("Missing Map Box Access Token");
                 return;
         }
@@ -32,7 +32,7 @@ export  const FetchSuggestions=async(value:string,access_token:string,sessionTok
         if (latitude !== undefined && longitude !== undefined) {
                 try{
                 const proximityParam = `${longitude},${latitude}`;
-                const response = await axios.get(`${MAP_BOX_SUGGESTIONS}?q=${value.toLowerCase()}&access_token=${access_token}&proximity=${proximityParam}&session_token=${sessionToken}`)
+                const response = await axios.get(`${MAP_BOX_SUGGESTIONS}?q=${value.toLowerCase()}&access_token=${token}&proximity=${proximityParam}&session_token=${sessionToken}`)
                 const data = await response.data;
                 
                 console.log("data :",data.suggestions)

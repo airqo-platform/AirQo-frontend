@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ShortLeftArrow from '@/public/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/public/icons/Analytics/shortRightArrow';
-import Button from '../../Button';
+import Button from '../../NetManagerMap/components/Button';
 import { format } from 'date-fns';
 
 /**

@@ -3,11 +3,14 @@ import PropTypes from 'prop-types';
 import CloseIcon from '@/public/icons/close_icon';
 import TabSelector from './TabSelector';
 
-const SidebarHeader = ({
-  isAdmin,
-  isFocused,
-  handleHeaderClick = () => {},
-}) => {
+interface SidebarHeaderProps {
+  isAdmin: boolean;
+  isFocused?: boolean;
+  handleHeaderClick?: () => void;
+}
+
+const SidebarHeader= ({isAdmin,isFocused,handleHeaderClick = () => {},
+}:SidebarHeaderProps) => {
   return (
     <div>
       <div className="w-full flex justify-between items-center">
@@ -19,7 +22,7 @@ const SidebarHeader = ({
             onClick={handleHeaderClick}
             className="focus:outline-none border rounded-xl hover:cursor-pointer p-2 hidden md:block"
           >
-            <CloseIcon />
+            <CloseIcon width={20} height={20} fill={undefined} strokeWidth={undefined} />
           </button>
         )}
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import WarningCircleIcon from '@/public/icons/Common/warning_circle';
 import InfoCircleIcon from '@/public/icons/Common/info_circle.svg';
-import Button from '@/components/Button';
+import Button from '@/components/NetManagerMap/components/Button';
 
 const Toast = ({
   message,

@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useAppSelector } from '@/core/redux/hooks';
 import { Transition, TransitionChild } from '@headlessui/react';
 import Close from '@/public/icons/close_icon';
 import PropTypes from 'prop-types';
@@ -13,7 +14,7 @@ import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
 
 const Modal = ({ isOpen, onClose }) => {
-  const modalType = useSelector((state) => state.modal.modalType.type);
+  const modalType = useAppSelector((state) => state.modal.modalType.type);
 
   const renderHeader = () => {
     switch (modalType) {

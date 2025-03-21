@@ -5,7 +5,7 @@ import { isValid, format, isSameDay } from 'date-fns';
 import { getAQIcon, images } from '../../MapNodes';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedWeeklyPrediction } from '@/lib/map/MapSlice';
-import Button from '@/components/Button';
+import Button from '@/components/NetManagerMap/components/Button';
 import Calendar from '@/components/Calendar/Calendar';
 import Spinner from '@/components/Spinner';
 import { useOutsideClick } from '@/core/hooks/useOutsideClick';

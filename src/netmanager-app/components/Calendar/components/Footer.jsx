@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
-import Button from '../../Button';
+import Button from '../../NetManagerMap/components/Button';
 
 /**
  * Footer component contains Cancel and Apply buttons with date inputs for larger screens.

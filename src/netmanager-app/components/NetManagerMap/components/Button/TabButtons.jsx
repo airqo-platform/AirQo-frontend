@@ -1,7 +1,7 @@
 import React from 'react';
-import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
+import ChevronDownIcon from '@/public/icons/Common/chevron_downIcon';
 import PropTypes from 'prop-types';
-import Spinner from '../Spinner';
+import Spinner from '../../../Spinner';
 
 /**
  * TabButtons Component

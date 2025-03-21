@@ -5,7 +5,13 @@ import PropTypes from 'prop-types';
  * TabSelector
  * @description Tab selector component
  */
-const TabSelector = ({ defaultTab, tabs, setSelectedTab }) => {
+interface TabSelectorProps {
+  defaultTab: string;
+  tabs: string[];
+  setSelectedTab: (tab: string) => void;
+}
+
+const TabSelector: React.FC<TabSelectorProps> = ({ defaultTab, tabs, setSelectedTab }) => {
   const [selectedTab, setSelectedTabLocal] = useState(defaultTab);
 
   // Ensure defaultTab is part of the tabs array
@@ -45,10 +51,6 @@ const TabSelector = ({ defaultTab, tabs, setSelectedTab }) => {
   );
 };
 
-TabSelector.propTypes = {
-  defaultTab: PropTypes.string.isRequired,
-  tabs: PropTypes.arrayOf(PropTypes.string).isRequired,
-  setSelectedTab: PropTypes.func.isRequired,
-};
+
 
 export default TabSelector;

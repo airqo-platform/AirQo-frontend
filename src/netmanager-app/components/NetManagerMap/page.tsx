@@ -20,6 +20,7 @@ import MapSideBar from './components/Sidebar/page';
 import allCountries from './data/countries.json'
 import { any } from 'zod';
 import { useSites } from '@/core/hooks/useSites';
+import { GetAirQuoData } from '@/core/apis/MapData';
 
 
 const NetManagerMap = (mapboxApiAccessToken:string) => {
@@ -43,7 +44,8 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
         const [sessionToken, setSessionToken] = useState<string | null>(null);
         const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
         const {MapData, Error, Loading} = useMapData()
-        console.log("Map Data : ",MapData)
+        const isAdmin = true
+        // console.log("Map Data : ",MapData)
         // const gridsDataSummary = useAppSelector((state) => state.grids) || [];
         const { sites, isLoading, error } = useSites();
         console.log("GridsData Summary: ",  sites);
@@ -156,9 +158,10 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
       mapRef.current.on('load', async () => {
         if (mapRef.current) {
 
-                try {
+                try { const data = await GetAirQuoData()
+                        console.log("data : " ,data)
                         setAirdata(true)
-                        const geojsonData = ConvertToGeojson(MapData);
+                        const geojsonData = ConvertToGeojson(data);
                         console.log('GeoJson Data : ',geojsonData)
 
                         mapRef.current.addSource('data', {
@@ -291,15 +294,18 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
   return (
         <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 
 
+        <div className='h-full min-w-[380px] lg:w-[470px]'>
        <MapSideBar 
-                handleUserClick={handleUserClick}
+                // handleUserClick={handleUserClick}
                 reset={()=>HandleReset()} 
-                token={token?token:""} 
-                sessionToken={sessionToken?sessionToken:""} 
-                countryData={countryData} selectedCountry={selectedCountry} 
-                setSelectedCountry={setSelectedCountry} 
+                // token={token?token:""} 
+                // sessionToken={sessionToken?sessionToken:""} 
+                // countryData={countryData} selectedCountry={selectedCountry} 
+                // setSelectedCountry={setSelectedCountry} 
+                isAdmin={isAdmin}
                 siteDetails={siteDetails} 
                 />
+                </div>
       
        { (  loading || !airdata) &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
           <div

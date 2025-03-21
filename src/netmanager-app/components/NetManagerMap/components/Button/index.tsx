@@ -1,6 +1,22 @@
 import React from 'react';
 
-const Button = ({
+type ButtonProps = {
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+  path?: string;
+  children?: React.ReactNode;
+  dataTestId?: string;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  variant?: 'filled' | 'outlined' | 'text' | 'disabled' | 'primaryText';
+  color?: string;
+  bgColor?: string;
+  Icon?: React.ComponentType<{ className?: string }>;
+  paddingStyles?: string;
+  [key: string]: any;
+};
+
+const Button: React.FC<ButtonProps> = ({
   onClick,
   className = '',
   path,
