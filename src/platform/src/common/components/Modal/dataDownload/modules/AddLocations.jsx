@@ -7,27 +7,24 @@ import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { fetchSitesSummary } from '@/lib/store/services/sitesSummarySlice';
+import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import InfoMessage from '../../../Messages/InfoMessage';
 
 /**
  * Header component for the Add Location modal.
- * Includes a back button that opens another modal.
  */
-const AddLocationHeader = () => {
-  return (
-    <h3
-      className="flex text-lg leading-6 font-medium text-gray-900"
-      id="modal-title"
-    >
-      Add Location
-    </h3>
-  );
-};
+export const AddLocationHeader = () => (
+  <h3
+    className="flex text-lg leading-6 font-medium text-gray-900"
+    id="modal-title"
+  >
+    Add Location
+  </h3>
+);
 
 /**
- * Main component for adding locations.
- * Allows users to select sites and updates their preferences accordingly.
+ * AddLocations component allows users to select locations for monitoring.
  */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
@@ -44,27 +41,47 @@ const AddLocations = ({ onClose }) => {
   const [error, setError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  // Get active group
   const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
 
-  // Fetch sites summary data using custom hook
+  // Use the SWR hook to fetch sites data
   const {
-    sitesSummaryData,
-    loading,
+    data: sitesSummaryData,
+    isLoading: loading,
+    isError,
     error: fetchError,
-  } = useSelector((state) => state.sites);
+  } = useSitesSummary(groupTitle?.toLowerCase(), {
+    enabled: !!groupTitle,
+  });
 
-  // filter out sites that are online online_status=online from sitesSummaryData use memo
+  // FIXED: Filter sites more safely - don't rely just on isOnline property
   const filteredSites = useMemo(() => {
-    return (sitesSummaryData || []).filter((site) => site.isOnline === true);
+    if (!sitesSummaryData || !Array.isArray(sitesSummaryData)) return [];
+
+    // Check if isOnline property exists in the data
+    const hasIsOnlineProperty =
+      sitesSummaryData.length > 0 && 'isOnline' in sitesSummaryData[0];
+
+    if (hasIsOnlineProperty) {
+      // Filter by isOnline as before
+      const onlineSites = sitesSummaryData.filter(
+        (site) => site.isOnline === true,
+      );
+
+      // If we have online sites, return them, otherwise return all sites
+      return onlineSites.length > 0 ? onlineSites : sitesSummaryData;
+    }
+
+    // If isOnline property doesn't exist, just return all sites
+    return sitesSummaryData;
   }, [sitesSummaryData]);
 
-  // Retrieve user ID from localStorage and memoize it
+  // Retrieve user ID from localStorage
   const userID = useMemo(() => {
     const storedUser = localStorage.getItem('loggedUser');
     if (!storedUser) {
       return null;
     }
-
     try {
       const parsedUser = JSON.parse(storedUser);
       return parsedUser?._id ?? null;
@@ -74,15 +91,6 @@ const AddLocations = ({ onClose }) => {
     }
   }, []);
 
-  /**
-   * Fetch sites summary whenever the selected organization changes.
-   */
-  useEffect(() => {
-    if (groupTitle) {
-      dispatch(fetchSitesSummary({ group: groupTitle }));
-    }
-  }, [dispatch, groupTitle]);
-
   // Extract selected site IDs from user preferences
   const selectedSiteIds = useMemo(() => {
     const firstPreference = preferencesData?.[0];
@@ -90,18 +98,48 @@ const AddLocations = ({ onClose }) => {
   }, [preferencesData]);
 
   /**
-   * Populate selectedSites based on selectedSiteIds and fetched filteredSites.
-   * Also initializes sidebarSites with the initially selected sites.
+   * Initialize selectedSites and sidebarSites once data is loaded,
+   * if the user currently has preferences but no local selection.
    */
   useEffect(() => {
-    if (filteredSites && selectedSiteIds.length) {
-      const initialSelectedSites = filteredSites.filter((site) =>
-        selectedSiteIds.includes(site._id),
-      );
-      setSelectedSites(initialSelectedSites);
-      setSidebarSites(initialSelectedSites);
+    // FIXED: Added a log statement to debug initialization
+    console.log('Initializing sites with:', {
+      loading,
+      selectedSitesLength: selectedSites.length,
+      selectedSiteIdsLength: selectedSiteIds.length,
+      filteredSitesLength: filteredSites.length,
+    });
+
+    if (!loading && filteredSites.length > 0) {
+      // If we have user preferences, initialize selection based on them
+      if (selectedSites.length === 0 && selectedSiteIds.length > 0) {
+        const initialSelectedSites = filteredSites.filter((site) =>
+          selectedSiteIds.includes(site._id),
+        );
+
+        console.log(
+          'Setting initial selected sites:',
+          initialSelectedSites.length,
+        );
+
+        if (initialSelectedSites.length > 0) {
+          setSelectedSites(initialSelectedSites);
+          setSidebarSites(initialSelectedSites);
+        }
+      }
+      // If we have filteredSites but no selections at all, initialize sidebar with empty array
+      // to ensure the component knows data is available
+      else if (selectedSites.length === 0 && sidebarSites.length === 0) {
+        setSidebarSites([]);
+      }
     }
-  }, [filteredSites, selectedSiteIds]);
+  }, [
+    loading,
+    selectedSites.length,
+    selectedSiteIds,
+    filteredSites,
+    sidebarSites.length,
+  ]);
 
   /**
    * Clears all selected sites.
@@ -109,64 +147,168 @@ const AddLocations = ({ onClose }) => {
   const handleClearSelection = useCallback(() => {
     setClearSelected(true);
     setSelectedSites([]);
-    // Reset clearSelected flag in the next tick
+    setSidebarSites([]);
     setTimeout(() => setClearSelected(false), 0);
   }, []);
 
   /**
    * Toggles the selection of a site.
-   * Adds to selectedSites and sidebarSites if selected.
-   * Removes from selectedSites but retains in sidebarSites if unselected.
    */
-  const handleToggleSite = useCallback(
-    (site) => {
-      setSelectedSites((prev) => {
-        const isSelected = prev.some((s) => s._id === site._id);
-        if (isSelected) {
-          // Remove from selectedSites
-          return prev.filter((s) => s._id !== site._id);
-        } else {
-          // Add to selectedSites
-          return [...prev, site];
-        }
-      });
+  const handleToggleSite = useCallback((site) => {
+    // FIXED: Added console log to debug toggle action
+    console.log('Toggling site:', site._id, site.search_name || site.name);
 
-      setSidebarSites((prev) => {
-        const alreadyInSidebar = prev.some((s) => s._id === site._id);
-        if (!alreadyInSidebar) {
-          return [...prev, site];
-        }
-        return prev;
-      });
+    setSelectedSites((prev) => {
+      const isSelected = prev.some((s) => s._id === site._id);
+      return isSelected
+        ? prev.filter((s) => s._id !== site._id)
+        : [...prev, site];
+    });
+
+    setSidebarSites((prev) => {
+      const alreadyInSidebar = prev.some((s) => s._id === site._id);
+      if (alreadyInSidebar) {
+        // If we're removing from selected, also remove from sidebar
+        return prev.filter((s) => s._id !== site._id);
+      }
+      return [...prev, site];
+    });
+  }, []);
+
+  /**
+   * Custom filter function for DataTable.
+   */
+  const handleFilter = useCallback(
+    (data, activeFilter) => {
+      if (activeFilter.key === 'favorites') {
+        return data.filter((site) =>
+          selectedSites.some((s) => s._id === site._id),
+        );
+      }
+      return data;
     },
-    [setSelectedSites, setSidebarSites],
+    [selectedSites],
   );
 
   /**
-   * Handles the submission of selected sites.
-   * Dispatches the replaceUserPreferences action with the formatted payload.
+   * Define filters for the DataTable.
+   */
+  const filters = useMemo(
+    () => [
+      { key: 'all', label: 'All' },
+      { key: 'favorites', label: 'Favorites' },
+    ],
+    [],
+  );
+
+  /**
+   * FIXED: Flexible column rendering to handle different data structures
+   */
+  const columnsByFilter = useMemo(() => {
+    // Function to safely render location name based on available fields
+    const renderLocationName = (item) => {
+      const displayName =
+        item.search_name ||
+        item.name ||
+        item.location_name ||
+        'Unknown Location';
+
+      return (
+        <div className="flex items-center">
+          <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+            <LocationIcon width={16} height={16} fill="#9EA3AA" />
+          </span>
+          <span className="ml-2">{displayName}</span>
+        </div>
+      );
+    };
+
+    // Function to safely get field value with fallbacks
+    const getFieldWithFallback = (item, fields) => {
+      for (const field of fields) {
+        if (item[field]) return item[field];
+      }
+      return 'N/A';
+    };
+
+    return {
+      all: [
+        {
+          key: 'name',
+          label: 'Location',
+          render: renderLocationName,
+        },
+        {
+          key: 'city',
+          label: 'City',
+          render: (item) => getFieldWithFallback(item, ['city', 'address']),
+        },
+        {
+          key: 'country',
+          label: 'Country',
+          render: (item) => getFieldWithFallback(item, ['country']),
+        },
+        {
+          key: 'data_provider',
+          label: 'Owner',
+          render: (item) =>
+            getFieldWithFallback(item, [
+              'data_provider',
+              'owner',
+              'organization',
+            ]),
+        },
+      ],
+      favorites: [
+        {
+          key: 'name',
+          label: 'Location',
+          render: renderLocationName,
+        },
+        {
+          key: 'city',
+          label: 'City',
+          render: (item) => getFieldWithFallback(item, ['city', 'address']),
+        },
+        {
+          key: 'country',
+          label: 'Country',
+          render: (item) => getFieldWithFallback(item, ['country']),
+        },
+        {
+          key: 'data_provider',
+          label: 'Owner',
+          render: (item) =>
+            getFieldWithFallback(item, [
+              'data_provider',
+              'owner',
+              'organization',
+            ]),
+        },
+      ],
+    };
+  }, []);
+
+  /**
+   * Handles submission of the selected sites.
    */
   const handleSubmit = useCallback(() => {
     if (selectedSites.length === 0) {
-      setError('No locations selected');
+      setError('No locations selected.');
       return;
     }
-
     if (!userID) {
-      setError('User not found');
+      setError('User not found.');
       return;
     }
-
-    // if the locations are more than 4, show an error message
     if (selectedSites.length > 4) {
-      setError('You can select up to 4 locations only');
+      setError('You can select up to 4 locations only.');
       return;
     }
 
-    // Start the loading state for submission
     setSubmitLoading(true);
 
-    // Prepare selected_sites by excluding grids, devices, and airqlouds
+    // Prepare selected_sites data
     const selectedSitesData = selectedSites.map((site) => {
       const { grids, devices, airqlouds, ...rest } = site;
       return rest;
@@ -178,7 +320,6 @@ const AddLocations = ({ onClose }) => {
       selected_sites: selectedSitesData,
     };
 
-    // Dispatch the Redux action to replace user preferences
     dispatch(replaceUserPreferences(payload))
       .then(() => {
         onClose();
@@ -193,44 +334,55 @@ const AddLocations = ({ onClose }) => {
         dispatch(setRefreshChart(true));
       })
       .catch((err) => {
-        setError('Failed to update preferences');
+        setError('Failed to update preferences.');
         console.error(err);
       })
       .finally(() => {
         setSubmitLoading(false);
       });
-  }, [selectedSites, userID, dispatch, onClose]);
+  }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
 
   /**
-   * Generates the content for the sidebar.
-   * Displays only the sites that have been selected at least once.
-   * Each card reflects its current selection status.
+   * FIXED: Enhanced sidebar content generation with better handling of different site data structures
    */
   const sidebarSitesContent = useMemo(() => {
     if (loading) {
+      // Show a placeholder skeleton or spinner
       return (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <LocationCard
-              key={index}
-              site={{}}
-              onToggle={handleToggleSite}
-              isLoading={loading}
-              isSelected={false}
-            />
-          ))}
+        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
         </div>
+      );
+    }
+
+    // FIXED: Add a debug log to check sidebar sites state
+    console.log('Rendering sidebar with:', {
+      sidebarSitesLength: sidebarSites.length,
+      selectedSitesLength: selectedSites.length,
+      filteredSitesLength: filteredSites.length,
+    });
+
+    if (!filteredSites.length) {
+      return (
+        <InfoMessage
+          title="No data available"
+          description="The system couldn't retrieve location data. Please try again
+            later."
+          variant="info"
+        />
       );
     }
 
     if (sidebarSites.length === 0) {
       return (
-        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
-          <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
-            <LocationIcon width={20} height={20} fill="#9EA3AA" />
-          </span>
-          No locations selected
-        </div>
+        <InfoMessage
+          title="No locations selected"
+          description=" Select a location from the table to add it here."
+          variant="info"
+        />
       );
     }
 
@@ -238,16 +390,32 @@ const AddLocations = ({ onClose }) => {
       <LocationCard
         key={site._id}
         site={site}
-        onToggle={handleToggleSite}
-        isLoading={loading}
+        onToggle={() => handleToggleSite(site)}
+        isLoading={false}
         isSelected={selectedSites.some((s) => s._id === site._id)}
       />
     ));
-  }, [sidebarSites, selectedSites, handleToggleSite, loading]);
+  }, [
+    sidebarSites,
+    selectedSites,
+    handleToggleSite,
+    loading,
+    filteredSites.length,
+  ]);
+
+  // FIXED: Add debug info about data availability
+  console.log('Component data state:', {
+    rawDataLength: sitesSummaryData?.length || 0,
+    filteredDataLength: filteredSites.length,
+    selectedLength: selectedSites.length,
+    sidebarLength: sidebarSites.length,
+    loading,
+    isError,
+  });
 
   return (
     <>
-      {/* Selected Sites Sidebar */}
+      {/* Sidebar for Selected Sites */}
       <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto md:border-r relative space-y-3 px-4 pt-5 pb-14">
         {sidebarSitesContent}
       </div>
@@ -255,19 +423,47 @@ const AddLocations = ({ onClose }) => {
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          <DataTable
-            data={filteredSites}
-            selectedSites={selectedSites}
-            setSelectedSites={setSelectedSites}
-            clearSites={clearSelected}
-            selectedSiteIds={selectedSiteIds}
-            loading={loading}
-            onToggleSite={handleToggleSite}
-          />
-          {fetchError && (
-            <p className="text-red-600 py-4 px-1 text-sm">
-              Error fetching data: {fetchError.message}
-            </p>
+          {/* FIXED: Add better error/loading states for the DataTable */}
+          {isError ? (
+            <InfoMessage
+              title="Error Loading Data"
+              description={
+                fetchError?.message || 'Unable to fetch locations data.'
+              }
+              variant="error"
+            />
+          ) : filteredSites.length === 0 && !loading ? (
+            <InfoMessage
+              title="No Locations Found"
+              description="No locations are currently available for selection."
+              variant="info"
+            />
+          ) : (
+            <DataTable
+              data={filteredSites}
+              selectedRows={selectedSites}
+              setSelectedRows={setSelectedSites}
+              clearSelectionTrigger={clearSelected}
+              loading={loading}
+              error={isError}
+              errorMessage={
+                fetchError?.message || 'Unable to fetch locations data.'
+              }
+              onToggleRow={handleToggleSite}
+              filters={filters}
+              columnsByFilter={columnsByFilter}
+              onFilter={handleFilter}
+              searchKeys={[
+                'location_name',
+                'search_name',
+                'name',
+                'city',
+                'country',
+                'data_provider',
+                'owner',
+                'organization',
+              ]}
+            />
           )}
         </div>
         <Footer
@@ -285,5 +481,4 @@ const AddLocations = ({ onClose }) => {
   );
 };
 
-export { AddLocationHeader };
 export default AddLocations;

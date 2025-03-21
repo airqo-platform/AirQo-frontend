@@ -68,7 +68,7 @@ const StandardsMenu = () => {
       onMouseLeave={() => setIsOpen(false)}
     >
       <button
-        className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+        className="flex justify-between text-left items-center w-full px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >

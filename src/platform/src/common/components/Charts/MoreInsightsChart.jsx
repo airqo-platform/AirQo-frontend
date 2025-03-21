@@ -13,7 +13,6 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
-
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -22,32 +21,22 @@ import {
   CustomReferenceLabel,
   colors,
 } from './components';
-
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { useSelector } from 'react-redux';
+import { MdInfoOutline, MdRefresh } from 'react-icons/md';
+import InfoMessage from '../Messages/InfoMessage';
 
 /**
  * MoreInsightsChart Component
  *
  * Renders a responsive chart (line or bar) based on the provided data and configurations.
- * Displays user-friendly messages when no sites are selected or when there's no data to display.
- *
- * @param {object} props - Component properties.
- * @param {Array} props.data - Array of data points for the chart.
- * @param {Array} props.selectedSites - Array of selected site IDs or site objects.
- * @param {string} props.chartType - Type of chart ('line' or 'bar').
- * @param {string} props.frequency - Frequency of data points (e.g., 'daily', 'weekly').
- * @param {string|number} props.width - Width of the chart container.
- * @param {string|number} props.height - Height of the chart container.
- * @param {string} props.id - HTML ID for the chart container.
- * @param {string} props.pollutantType - Type of pollutant (e.g., 'pm2_5', 'pm10').
- * @param {Function} props.refreshChart - Function to refresh chart data.
  */
 const MoreInsightsChart = ({
   data = [],
   selectedSites = [],
+  visibleSiteIds = [],
   chartType = 'line',
   frequency = 'daily',
   width = '100%',
@@ -55,60 +44,69 @@ const MoreInsightsChart = ({
   id,
   pollutantType,
   refreshChart,
+  isRefreshing = false,
 }) => {
   const [activeIndex, setActiveIndex] = useState(null);
-
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
 
   /**
-   * Processes raw chart data by validating dates and organizing data by time and site.
-   *
-   * @param {Array} data - Raw data array.
-   * @param {Array} selectedSiteIds - Array of selected site IDs.
-   * @returns {object} Processed data including sorted data and site ID to name mapping.
+   * Determine which site IDs to display in the chart
    */
-  const processChartData = useCallback((data, selectedSiteIds) => {
+  const effectiveVisibleSiteIds = useMemo(() => {
+    if (visibleSiteIds && visibleSiteIds.length > 0) {
+      return visibleSiteIds;
+    }
+    // Extract IDs from selectedSites if they're objects
+    if (selectedSites && selectedSites.length > 0) {
+      if (typeof selectedSites[0] === 'object') {
+        return selectedSites
+          .map((site) => site._id || site.id || site.site_id)
+          .filter(Boolean);
+      }
+      return selectedSites;
+    }
+    return [];
+  }, [selectedSites, visibleSiteIds]);
+
+  /**
+   * Process raw chart data
+   */
+  const processChartData = useCallback((rawData, selectedSiteIds) => {
+    if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+      return { sortedData: [], siteIdToName: {} };
+    }
+
     const combinedData = {};
     const siteIdToName = {};
 
-    data.forEach((dataPoint) => {
-      const { site_id, name, value, time } = dataPoint;
-
-      // Verify that site_id and name exist
-      if (!site_id || !name) {
-        console.warn(`Data point missing site_id or name:`, dataPoint);
-        return;
+    // Build site ID to name mapping
+    rawData.forEach((dataPoint) => {
+      const { site_id, name } = dataPoint;
+      if (site_id && name && selectedSiteIds.includes(site_id)) {
+        siteIdToName[site_id] = name;
       }
+    });
 
-      // Build site ID to name mapping
-      siteIdToName[site_id] = name;
+    // Combine data points
+    rawData.forEach((dataPoint) => {
+      const { site_id, value, time } = dataPoint;
+      // Skip invalid or unselected sites
+      if (!site_id || value === undefined || !time) return;
+      if (!selectedSiteIds.includes(site_id)) return;
 
-      // Only include data points from selected sites
-      if (!selectedSiteIds.includes(site_id)) {
-        return;
-      }
-
-      // Parse and validate the time using the utility function
       const date = parseAndValidateISODate(time);
-      if (!date) {
-        console.warn(`Invalid date format for time: ${time}`);
-        return;
-      }
-
-      // Use formatted time as key
+      if (!date) return;
       const formattedTime = date.toISOString();
 
       if (!combinedData[formattedTime]) {
         combinedData[formattedTime] = { time: formattedTime };
       }
-
-      // Assign value to the corresponding site_id
       combinedData[formattedTime][site_id] = value;
     });
 
-    // Convert the combined data object to an array and sort it by time
+    // Convert to array & sort by time
     const sortedData = Object.values(combinedData).sort(
       (a, b) => new Date(a.time) - new Date(b.time),
     );
@@ -117,67 +115,53 @@ const MoreInsightsChart = ({
   }, []);
 
   /**
-   * Ensures selectedSites is an array of site IDs.
-   * If selectedSites contains objects, it maps them to their respective IDs.
-   *
-   * @returns {Array} Array of selected site IDs.
+   * Normalize selected sites to always be an array of IDs
    */
   const selectedSiteIds = useMemo(() => {
     if (!selectedSites || selectedSites.length === 0) return [];
-
-    // If selectedSites is an array of objects, map to IDs
     if (typeof selectedSites[0] === 'object') {
       return selectedSites
-        .map((site) => site.site_id || site.id)
+        .map((site) => site._id || site.id || site.site_id)
         .filter(Boolean);
     }
-
-    // Assume selectedSites is already an array of IDs
     return selectedSites;
   }, [selectedSites]);
 
   /**
-   * Memoized processed chart data.
+   * Memoized processed chart data
    */
   const { sortedData: chartData, siteIdToName } = useMemo(() => {
-    if (!data || data.length === 0) return { sortedData: [], siteIdToName: {} };
     return processChartData(data, selectedSiteIds);
   }, [data, selectedSiteIds, processChartData]);
 
   /**
-   * Unique data keys for plotting, which are site IDs.
+   * Extract unique data keys (site IDs) for plotting, filtered by visibility
    */
   const dataKeys = useMemo(() => {
     if (chartData.length === 0) return [];
-    // Extract all unique keys excluding 'time'
-    const keys = new Set();
+    const allKeys = new Set();
     chartData.forEach((item) => {
       Object.keys(item).forEach((key) => {
-        if (key !== 'time') keys.add(key);
+        if (key !== 'time') allKeys.add(key);
       });
     });
-    return Array.from(keys);
-  }, [chartData]);
+    return Array.from(allKeys).filter((key) =>
+      effectiveVisibleSiteIds.includes(key),
+    );
+  }, [chartData, effectiveVisibleSiteIds]);
 
   /**
-   * Memoized WHO standard value based on pollutant type.
+   * WHO standard value
    */
   const WHO_STANDARD_VALUE = useMemo(
-    () => aqStandard.value[pollutantType] || 0,
+    () => aqStandard?.value?.[pollutantType] || 0,
     [pollutantType, aqStandard],
   );
 
   /**
-   * Handler to reset the active index when the mouse leaves a data point.
+   * Mouse event handlers
    */
   const handleMouseLeave = useCallback(() => setActiveIndex(null), []);
-
-  /**
-   * Determines the color of the line or bar based on the active index.
-   *
-   * @param {number} index - Index of the data series.
-   * @returns {string} Color code.
-   */
   const getColor = useCallback(
     (index) =>
       activeIndex === null || index === activeIndex
@@ -187,66 +171,92 @@ const MoreInsightsChart = ({
   );
 
   /**
-   * Determines which chart component and data component to use based on the 'chartType' prop.
+   * Calculate step for X-axis labels
+   */
+  const calculateStep = useCallback(() => {
+    const minLabelWidth = 25; // Minimum width needed per label
+    if (containerWidth <= 0 || chartData.length === 0) return 1;
+    const maxLabels = Math.floor(containerWidth / minLabelWidth);
+    return Math.max(1, Math.ceil(chartData.length / maxLabels));
+  }, [containerWidth, chartData.length]);
+
+  const step = useMemo(() => calculateStep(), [calculateStep]);
+
+  /**
+   * Chart component types
    */
   const ChartComponent = chartType === 'line' ? LineChart : BarChart;
   const DataComponent = chartType === 'line' ? Line : Bar;
 
   /**
-   * Calculate step based on container width and number of ticks.
-   * Assumes each label requires a minimum width.
-   *
-   * @returns {number} Step value for X-axis labels.
+   * Handle refresh button click with debounce protection
    */
-  const calculateStep = useCallback(() => {
-    const minLabelWidth = 25;
-    if (containerWidth === 0) return 1;
-    const maxLabels = Math.floor(containerWidth / minLabelWidth);
-    const step = Math.ceil(chartData.length / maxLabels);
-    return step;
-  }, [containerWidth, chartData.length]);
+  const handleRefreshClick = useCallback(() => {
+    if (!isRefreshing && refreshChart) {
+      refreshChart();
+    }
+  }, [isRefreshing, refreshChart]);
 
   /**
-   * Memoized step for labels.
-   */
-  const step = useMemo(() => calculateStep(), [calculateStep]);
-
-  /**
-   * Render the chart or appropriate messages based on state.
+   * Render chart content based on state
    */
   const renderChart = useMemo(() => {
-    // If no sites are selected, prompt the user to select sites.
+    // No sites selected
     if (selectedSiteIds.length === 0) {
       return (
-        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500 p-4">
-          <p className="text-lg font-medium mb-2">No Sites Selected</p>
-          <p className="text-sm mb-4 text-center">
-            Please select one or more sites to view the chart.
+        <InfoMessage
+          title="No Sites Selected"
+          description="
+            Please select one or more sites to view the chart."
+          variant="info"
+          className="w-full h-full flex justify-center items-center flex-col"
+        />
+      );
+    }
+
+    // All sites hidden
+    if (effectiveVisibleSiteIds.length === 0) {
+      return (
+        <div className="flex flex-col justify-center items-center h-full p-4 text-gray-500">
+          <MdInfoOutline className="text-4xl mb-2" />
+          <p className="text-lg font-medium mb-1">All Sites Hidden</p>
+          <p className="text-sm text-center">
+            All sites are currently hidden. Click on a site in the sidebar to
+            show it on the chart.
           </p>
         </div>
       );
     }
 
-    // If there is no data to display for the selected sites, inform the user.
+    // No data
     if (chartData.length === 0) {
       return (
-        <div className="w-full flex flex-col justify-center items-center h-full text-gray-500 p-4">
-          <p className="text-lg font-medium mb-2">No Data Available</p>
-          <p className="text-sm mb-4 text-center">
-            There’s no data to display for the selected criteria. Try adjusting
-            your filters or refreshing the chart.
-          </p>
-          <button
-            onClick={refreshChart}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Refresh Chart
-          </button>
-        </div>
+        <InfoMessage
+          title="No Data Available"
+          description=" There's no data to display for the selected criteria. Try
+            adjusting your filters or refreshing the chart."
+          variant="info"
+          className="w-full h-full flex justify-center items-center flex-col"
+          action={
+            refreshChart && (
+              <button
+                onClick={handleRefreshClick}
+                disabled={isRefreshing}
+                className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center ${
+                  isRefreshing ? 'opacity-75 cursor-not-allowed' : ''
+                }`}
+                aria-label="Refresh chart data"
+              >
+                <MdRefresh className="h-5 w-5 mr-1" />
+                Refresh Chart
+              </button>
+            )
+          }
+        />
       );
     }
 
-    // If data is available, render the chart.
+    // Render the actual chart
     return (
       <ResponsiveContainer width={width} height={height}>
         <ChartComponent
@@ -349,11 +359,11 @@ const MoreInsightsChart = ({
             />
           ))}
 
-          {/* Reference Line */}
-          {WHO_STANDARD_VALUE && (
+          {/* Reference Line for WHO Standard */}
+          {WHO_STANDARD_VALUE > 0 && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}
-              label={<CustomReferenceLabel name={aqStandard.name} />}
+              label={<CustomReferenceLabel name={aqStandard?.name || 'WHO'} />}
               ifOverflow="extendDomain"
               stroke="red"
               strokeOpacity={1}
@@ -365,7 +375,7 @@ const MoreInsightsChart = ({
     );
   }, [
     selectedSiteIds.length,
-    selectedSiteIds,
+    effectiveVisibleSiteIds.length,
     chartData,
     chartType,
     width,
@@ -377,15 +387,16 @@ const MoreInsightsChart = ({
     pollutantType,
     WHO_STANDARD_VALUE,
     dataKeys,
-    renderCustomizedLegend,
     frequency,
     siteIdToName,
     refreshChart,
-    aqStandard.name,
+    isRefreshing,
+    aqStandard?.name,
+    handleRefreshClick,
   ]);
 
   return (
-    <div id={id} ref={containerRef} className="w-auto h-full pt-4">
+    <div id={id} ref={containerRef} className="w-auto h-full pt-4 relative">
       {renderChart}
     </div>
   );

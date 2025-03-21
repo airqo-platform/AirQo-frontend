@@ -1,9 +1,32 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
+
+// UI Components
+import Button from '@/components/Button';
+import SearchField from '@/components/search/SearchField';
+import Toast from '../../../Toast'; // Adjust path if needed
+import SearchResultsSkeleton from './components/SearchResultsSkeleton'; // Adjust path if needed
+
+// Child Components / Utils
+import SidebarHeader from './components/SidebarHeader';
+import CountryList from './components/CountryList';
+import LocationCards from './components/LocationCards';
+import WeekPrediction from './components/Predictions';
+import PollutantCard from './components/PollutantCard';
+import LocationAlertCard from './components/LocationAlertCard';
 import {
-  setCenter,
-  setZoom,
+  renderNoResults,
+  renderLoadingSkeleton,
+  renderDefaultMessage,
+} from './components/Sections';
+
+// Icons & Assets
+import ArrowLeftIcon from '@/icons/arrow_left.svg';
+
+// Hooks & Redux
+import { useWindowSize } from '@/lib/windowSize';
+import {
   setOpenLocationDetails,
   setSelectedLocation,
   addSuggestedSites,
@@ -11,40 +34,25 @@ import {
   setSelectedNode,
   setSelectedWeeklyPrediction,
   setMapLoading,
+  setCenter,
+  setZoom,
 } from '@/lib/store/services/map/MapSlice';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
-import { fetchRecentMeasurementsData } from '@/lib/store/services/deviceRegistry/RecentMeasurementsSlice';
+import useGoogleMaps from '@/core/hooks/useGoogleMaps';
+import { useRecentMeasurements } from '@/core/hooks/analyticHooks';
+
+// APIs & Utils
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
-import { useWindowSize } from '@/lib/windowSize';
 import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
-
 import allCountries from '../../data/countries.json';
-import SearchField from '@/components/search/SearchField';
-import Button from '@/components/Button';
-import Toast from '../../../Toast';
-import LocationCards from './components/LocationCards';
-import CountryList from './components/CountryList';
-import LocationAlertCard from './components/LocationAlertCard';
-import WeekPrediction from './components/Predictions';
-import PollutantCard from './components/PollutantCard';
-import {
-  renderNoResults,
-  renderLoadingSkeleton,
-  renderDefaultMessage,
-} from './components/Sections';
-
-import ArrowLeftIcon from '@/icons/arrow_left.svg';
-import SidebarHeader from './components/SidebarHeader';
-import SearchResultsSkeleton from './components/SearchResultsSkeleton';
-import useGoogleMaps from '@/core/hooks/useGoogleMaps';
 
 const MapSidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
 
-  // Local state variables
+  // Local state
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -61,23 +69,22 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     (state) => state.map.selectedLocation ?? null,
   );
   const mapLoading = useSelector((state) => state.map.mapLoading);
-  const measurementsLoading = useSelector(
-    (state) => state.recentMeasurements.status,
-  );
-  const selectedWeeklyPrediction = useSelector(
-    (state) => state.map.selectedWeeklyPrediction,
-  );
   const reduxSearchTerm = useSelector(
     (state) => state.locationSearch.searchTerm,
   );
   const suggestedSites = useSelector((state) => state.map.suggestedSites);
+
+  // Reintroduce selectedWeeklyPrediction from Redux
+  const selectedWeeklyPrediction = useSelector(
+    (state) => state.map.selectedWeeklyPrediction,
+  );
 
   const isSearchFocused = isFocused || reduxSearchTerm.length > 0;
   const googleMapsLoaded = useGoogleMaps(
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
   );
 
-  // Memoized autocomplete session token
+  // Google Maps session token for auto-complete
   const autoCompleteSessionToken = useMemo(() => {
     if (googleMapsLoaded && window.google) {
       return new window.google.maps.places.AutocompleteSessionToken();
@@ -85,23 +92,29 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return null;
   }, [googleMapsLoaded]);
 
-  // Fetch weekly predictions
+  // Only destructure the isLoading property from the SWR hook to avoid unused variable errors
+  const { isLoading: measurementsLoading } = useRecentMeasurements(
+    selectedLocation ? { site_id: selectedLocation._id } : null,
+  );
+
+  /**
+   * Fetch weekly predictions for the selected location
+   */
   const fetchWeeklyPredictions = useCallback(async () => {
     if (!selectedLocation?._id) {
       setWeeklyPredictions([]);
       return;
     }
-
     setLoading(true);
     try {
-      if (selectedLocation?.forecast && selectedLocation.forecast.length > 0) {
+      if (selectedLocation?.forecast?.length > 0) {
         setWeeklyPredictions(selectedLocation.forecast);
       } else {
         const response = await dailyPredictionsApi(selectedLocation._id);
         setWeeklyPredictions(response?.forecasts || []);
       }
-    } catch (error) {
-      console.error('Failed to fetch weekly predictions:', error);
+    } catch (err) {
+      console.error('Failed to fetch weekly predictions:', err);
       setError({
         isError: true,
         message: 'Failed to fetch weekly predictions',
@@ -112,7 +125,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [selectedLocation]);
 
-  // Initialize country data from siteDetails and country list
+  /**
+   * Initialize country data from siteDetails
+   */
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
       const uniqueCountries = siteDetails.reduce((acc, site) => {
@@ -128,7 +143,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [siteDetails]);
 
-  // Reset map on mount
+  /**
+   * Reset map on mount
+   */
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
     dispatch(setSelectedLocation(null));
@@ -136,30 +153,26 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     setIsFocused(false);
   }, [dispatch]);
 
-  // Handle map loading indicator
+  /**
+   * Map loading indicator
+   */
   useEffect(() => {
     const timer = setTimeout(() => dispatch(setMapLoading(false)), 2000);
     return () => clearTimeout(timer);
   }, [dispatch, selectedLocation]);
 
-  // Update selected site and fetch measurements and predictions
+  /**
+   * When a location is selected, fetch weekly predictions
+   */
   useEffect(() => {
     if (selectedLocation) {
-      dispatch(fetchRecentMeasurementsData({ site_id: selectedLocation._id }))
-        .unwrap()
-        .then(() => fetchWeeklyPredictions())
-        .catch((error) => {
-          console.error('Failed to fetch recent measurements:', error);
-          setError({
-            isError: true,
-            message: 'Failed to fetch recent measurements',
-            type: 'error',
-          });
-        });
+      fetchWeeklyPredictions();
     }
-  }, [selectedLocation, dispatch, fetchWeeklyPredictions]);
+  }, [selectedLocation, fetchWeeklyPredictions]);
 
-  // Handle location selection
+  /**
+   * Handle location selection
+   */
   const handleLocationSelect = useCallback(
     async (data) => {
       try {
@@ -188,8 +201,8 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
         dispatch(setSelectedLocation(updatedData));
-      } catch (error) {
-        console.error('Failed to select location:', error);
+      } catch (err) {
+        console.error('Failed to select location:', err);
         setError({
           isError: true,
           message: 'Failed to select location',
@@ -200,18 +213,18 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     [dispatch],
   );
 
-  // Handle search functionality
+  /**
+   * Handle search functionality
+   */
   const handleSearch = useCallback(async () => {
     if (!reduxSearchTerm || reduxSearchTerm.length <= 1) {
       setSearchResults([]);
       return;
     }
-
     if (!googleMapsLoaded || !autoCompleteSessionToken) {
       console.error('Google Maps API is not loaded yet.');
       return;
     }
-
     setLoading(true);
     setIsFocused(true);
 
@@ -230,15 +243,17 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       } else {
         setSearchResults([]);
       }
-    } catch (error) {
-      console.error('Search failed:', error);
+    } catch (err) {
+      console.error('Search failed:', err);
       setSearchResults([]);
     } finally {
       setLoading(false);
     }
   }, [reduxSearchTerm, autoCompleteSessionToken, googleMapsLoaded]);
 
-  // Handle exit from search or details view
+  /**
+   * Handle exit from search or details view
+   */
   const handleExit = useCallback(() => {
     setIsFocused(false);
     dispatch(setOpenLocationDetails(false));
@@ -250,7 +265,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     dispatch(reSetMap());
   }, [dispatch]);
 
-  // Handle selection of all sites
+  /**
+   * Handle selection of all sites
+   */
   const handleAllSelection = useCallback(() => {
     setSelectedCountry(null);
     dispatch(reSetMap());
@@ -261,10 +278,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   }, [dispatch, siteDetails]);
 
   return (
-    <div className="w-full rounded-l-xl shadow-sm h-full bg-white overflow-y-auto lg:overflow-hidden">
+    // Full-height sidebar, left-aligned text, relative positioning
+    <div className="relative w-full h-full rounded-l-xl shadow-sm bg-white overflow-y-auto lg:overflow-hidden text-left">
       {/* Sidebar Header Section */}
       <div
-        className={`${!isSearchFocused && !openLocationDetails ? 'space-y-4' : 'hidden'} pt-4`}
+        className={`${
+          !isSearchFocused && !openLocationDetails ? 'space-y-4' : 'hidden'
+        } pt-4`}
       >
         <div className="px-4">
           <SidebarHeader isAdmin={isAdmin} />
@@ -275,7 +295,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <div onClick={() => setIsFocused(true)} className="mt-5 px-4">
               <SearchField showSearchResultsNumber={false} focus={false} />
             </div>
-            <div className="flex items-center mt-5 overflow-hidden px-4 py-2 transition-all duration-300 ease-in-out">
+            <div className="flex items-center mt-5 overflow-hidden px-4 py-2 transition-all duration-300 ease-in-out justify-start">
               <Button
                 type="button"
                 variant="filled"
@@ -311,7 +331,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                 <span className="font-medium text-secondary-neutral-dark-400 text-sm">
                   Sort by:
                 </span>
-                <select className="rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
+                <select className="rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
                   <option value="custom">Suggested</option>
                 </select>
               </div>
@@ -348,7 +368,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             )}
             {reduxSearchTerm && (
               <div
-                className={`border border-secondary-neutral-light-100 ${reduxSearchTerm.length > 0 ? 'mt-3' : ''}`}
+                className={`border border-secondary-neutral-light-100 ${
+                  reduxSearchTerm.length > 0 ? 'mt-3' : ''
+                }`}
               />
             )}
 
@@ -417,7 +439,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <div className="border border-secondary-neutral-light-100 my-5" />
 
             <div
-              className={`mx-4 mb-5 ${width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''} flex flex-col gap-4`}
+              className={`mx-4 mb-5 ${
+                width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
+              } flex flex-col gap-4`}
             >
               <PollutantCard
                 selectedSite={selectedLocation}

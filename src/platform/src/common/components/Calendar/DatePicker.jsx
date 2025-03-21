@@ -1,5 +1,4 @@
-// DatePicker.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import { usePopper } from 'react-popper';
 import { Transition } from '@headlessui/react';
@@ -8,15 +7,23 @@ import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import TabButtons from '../Button/TabButtons';
 
 /**
- * DatePicker component integrates the Calendar and manages its visibility.
+ * DatePicker component that integrates Calendar with react-popper.
+ * It manages its open/close state and renders the calendar in a popper with an arrow.
  */
-const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
+const DatePicker = ({
+  customPopperStyle = {},
+  alignment = 'left',
+  onChange,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState(null);
   const [popperElement, setPopperElement] = useState(null);
+  const [arrowElement, setArrowElement] = useState(null);
+
   const [selectedDate, setSelectedDate] = useState({ start: null, end: null });
   const popperRef = useRef(null);
 
+  // Configure react-popper
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: alignment === 'right' ? 'bottom-end' : 'bottom-start',
     modifiers: [
@@ -38,41 +45,64 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
       },
       { name: 'computeStyles', options: { adaptive: false } },
       { name: 'eventListeners', options: { scroll: true, resize: true } },
-      { name: 'arrow', options: { padding: 8 } },
+      {
+        name: 'arrow',
+        options: {
+          element: arrowElement, // attach arrow element
+          padding: 8,
+        },
+      },
     ],
   });
 
-  const handleToggle = () => {
+  /**
+   * Toggles the calendar's open/close state.
+   */
+  const toggleOpen = useCallback(() => {
     setIsOpen((prev) => !prev);
-  };
+  }, []);
 
-  const handleValueChange = (newValue) => {
-    setSelectedDate(newValue);
-    onChange(newValue);
-  };
+  /**
+   * Called whenever the user selects a date range in the Calendar.
+   */
+  const handleValueChange = useCallback(
+    (newValue) => {
+      setSelectedDate(newValue);
+      onChange?.(newValue);
+    },
+    [onChange],
+  );
 
-  const handleClickOutside = (event) => {
-    if (
-      popperRef.current &&
-      !popperRef.current.contains(event.target) &&
-      !referenceElement.contains(event.target)
-    ) {
-      setIsOpen(false);
-    }
-  };
+  /**
+   * Closes the popper when clicking outside of it.
+   */
+  const handleClickOutside = useCallback(
+    (event) => {
+      if (
+        popperRef.current &&
+        !popperRef.current.contains(event.target) &&
+        referenceElement &&
+        !referenceElement.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    },
+    [referenceElement],
+  );
 
+  // Attach/detach outside click handler
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, referenceElement]);
+  }, [isOpen, handleClickOutside]);
 
+  // Format the selected date range for display
   const formattedStartDate = selectedDate.start
     ? format(selectedDate.start, 'MMM d, yyyy')
     : '';
@@ -86,12 +116,13 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
 
   return (
     <div className="relative">
+      {/* The button that toggles the calendar */}
       <TabButtons
         Icon={<CalendarIcon />}
         btnText={btnText}
         tabButtonClass="w-full"
         dropdown
-        onClick={handleToggle}
+        onClick={toggleOpen}
         id="datePicker"
         type="button"
         btnStyle="w-full bg-white border-gray-750 px-4 py-2"
@@ -99,6 +130,8 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
       />
+
+      {/* Transition for the popper (calendar container) */}
       <Transition
         show={isOpen}
         enter="ease-out duration-300"
@@ -107,7 +140,6 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
         leave="ease-in duration-200"
         leaveFrom="opacity-100 translate-y-0 sm:scale-100"
         leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        className="absolute z-50"
       >
         <div
           ref={(node) => {
@@ -116,7 +148,24 @@ const DatePicker = ({ customPopperStyle, alignment, onChange }) => {
           }}
           style={{ ...styles.popper, ...customPopperStyle }}
           {...attributes.popper}
+          className="z-50"
         >
+          {/* The arrow element for popper */}
+          <div
+            ref={setArrowElement}
+            style={{
+              ...styles.arrow,
+              width: 0,
+              height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderBottom: '6px solid white',
+              position: 'absolute',
+            }}
+            {...attributes.arrow}
+          />
+          {/* Calendar container with reduced height */}
+
           <Calendar
             showTwoCalendars={false}
             handleValueChange={handleValueChange}

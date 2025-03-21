@@ -12,8 +12,6 @@ export const GRID_LOCATIONS_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/grids`;
 
 export const SITES_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 
-export const ANALYTICS_URL = `${BASE_DEVICE_REGISTRY_URL}/analytics/dashboard/chart/d3/data`;
-
 export const READINGS_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/readings/map`;
 
 export const NEAREST_SITE_URL = `${BASE_DEVICE_REGISTRY_URL}/devices/sites/nearest`;

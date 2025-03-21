@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json yarn.lock* ./
-RUN yarn install --frozen-lockfile --production; 
+RUN yarn install --production; 
 
 
 # Rebuild the source code only when needed
