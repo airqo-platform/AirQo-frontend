@@ -17,11 +17,11 @@ class LocationSearchBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: 'Search Villages, Cities or Countries',
-          hintStyle: TextStyle(color: Colors.grey[400]),
+          hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
           prefixIcon: Padding(
             padding: const EdgeInsets.all(11.0),
             child: SvgPicture.asset(
@@ -31,7 +31,7 @@ class LocationSearchBar extends StatelessWidget {
             ),
           ),
           filled: true,
-          fillColor: Colors.grey[900],
+          fillColor: Theme.of(context).highlightColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,

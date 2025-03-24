@@ -61,7 +61,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 const SizedBox(height: 16),
                 Text(
                   "Loading locations...",
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               ],
             ),
@@ -89,7 +89,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 const SizedBox(height: 16),
                 Text(
                   errorMsg,
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -133,7 +133,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
               return Center(
                 child: Text(
                   "No matching locations found",
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               );
             }
@@ -144,13 +144,20 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      "Air Quality Monitoring Locations",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.headlineSmall?.color,
+                      ),
+                    ),
                   ),
                   ...localSearchResults
                       .map((measurement) => Column(
                             children: [
                               ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Colors.grey[800],
+                                  backgroundColor: Theme.of(context).highlightColor,
                                   child: SvgPicture.asset(
                                     "assets/images/shared/location_pin.svg",
                                   ),
@@ -160,13 +167,13 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                       measurement.siteDetails?.town ??
                                       measurement.siteDetails?.locationName ??
                                       "Unknown Location",
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                                 ),
                                 subtitle: Text(
                                   measurement.siteDetails?.name ??
                                       measurement.siteDetails?.formattedName ??
                                       "",
-                                  style: TextStyle(color: Colors.grey[600]),
+                                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
                                 ),
                                 trailing: Checkbox(
                                   value: selectedLocations
@@ -180,13 +187,14 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                             ? AppColors.primaryColor
                                             : Colors.transparent,
                                   ),
-                                  side: BorderSide(color: Colors.grey[600]!),
+                                  checkColor: Colors.white,
+                                  side: BorderSide(color: Theme.of(context).dividerColor),
                                 ),
                                 onTap: () =>
                                     onViewDetails(measurement: measurement),
                               ),
                               if (measurement != localSearchResults.last)
-                                const Divider(indent: 50),
+                                Divider(indent: 50),
                             ],
                           ))
                       .toList(),
@@ -201,8 +209,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     child: Text(
                       "Other Locations",
                       style: TextStyle(
-                        color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.headlineSmall?.color,
                       ),
                     ),
                   ),
@@ -238,13 +246,14 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   "assets/images/shared/empty_state.svg",
                   height: 100,
                   width: 100,
+                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   currentFilter == "All"
                       ? "No locations available"
                       : "No locations found in $currentFilter",
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
@@ -269,7 +278,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
 
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.grey[800],
+                backgroundColor: Theme.of(context).highlightColor,
                 child: SvgPicture.asset(
                   "assets/images/shared/location_pin.svg",
                 ),
@@ -279,13 +288,13 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     measurement.siteDetails?.town ??
                     measurement.siteDetails?.locationName ??
                     "Unknown Location",
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
               subtitle: Text(
                 measurement.siteDetails?.name ??
                     measurement.siteDetails?.formattedName ??
                     "",
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
               ),
               trailing: Checkbox(
                 value: isSelected,
@@ -297,7 +306,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       ? AppColors.primaryColor
                       : Colors.transparent,
                 ),
-                side: BorderSide(color: Colors.grey[600]!),
+                checkColor: Colors.white,
+                side: BorderSide(color: Theme.of(context).dividerColor),
               ),
               onTap: () => onViewDetails(measurement: measurement),
             );
