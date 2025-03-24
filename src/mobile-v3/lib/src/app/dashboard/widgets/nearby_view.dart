@@ -23,7 +23,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   Position? _userPosition;
   List<MapEntry<Measurement, double>> _nearbyMeasurementsWithDistance = [];
   static const int _maxNearbyLocations = 4;
-  static const double _defaultSearchRadius = 50.0; // 50km radius
+  static const double _defaultSearchRadius = 5.0;
 
   @override
   void initState() {
@@ -497,7 +497,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     return InkWell(
       onTap: () => _showAnalyticsDetails(measurement),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).highlightColor,
           borderRadius: BorderRadius.circular(12),
