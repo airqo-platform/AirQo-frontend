@@ -104,7 +104,7 @@ class AnalyticsCard extends StatelessWidget {
             // Using a container with top and bottom padding instead of Divider for better visual appearance
             Container(
               height: 1,
-              margin: EdgeInsets.symmetric(horizontal: 16),
+              //margin: EdgeInsets.symmetric(horizontal: 16),
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.black
                   : Colors.white,
