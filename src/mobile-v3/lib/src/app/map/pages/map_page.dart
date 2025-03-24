@@ -419,7 +419,7 @@ class _MapScreenState extends State<MapScreen>
                                                     SizedBox(),
                                                     Text(
                                                         currentDetails!
-                                                            .siteDetails!.name!,
+                                                            .siteDetails!.searchName!,
                                                         style: TextStyle(
                                                             color: Color(
                                                                 0xff9EA3AA),
@@ -501,7 +501,7 @@ class _MapScreenState extends State<MapScreen>
                                                         Text(
                                                             measurement
                                                                 .siteDetails!
-                                                                .name!,
+                                                                .searchName!,
                                                             style: TextStyle(
                                                                 color: Color(
                                                                     0xff9EA3AA),
@@ -899,7 +899,7 @@ class _MapScreenState extends State<MapScreen>
                                                                   "",
                                                               subTitle: measurement
                                                                       .siteDetails!
-                                                                      .name ??
+                                                                      .searchName ??
                                                                   "",
                                                             ),
                                                           );
@@ -1098,7 +1098,7 @@ class _MapScreenState extends State<MapScreen>
                                                                     "Unknown City",
                                                                 subTitle: measurement
                                                                         .siteDetails
-                                                                        ?.name ??
+                                                                        ?.searchName ??
                                                                     "Unknown Location",
                                                               ),
                                                             );
