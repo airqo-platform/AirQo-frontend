@@ -49,7 +49,7 @@ class AuthImpl extends AuthRepository {
   @override
   Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {
     Response registerResponse = await http.post(
-        Uri.parse("https://api.airqo.net/api/v2/users"),
+        Uri.parse("{{https://api.airqo.net/}}api/v2/users/register"),
         body: registerInputModelToJson(model),
         headers: {"Accept": "*/*", "Content-Type": "application/json"});
 
