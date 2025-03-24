@@ -375,24 +375,33 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       },
       child: Stack(
         children: [
-          Column(
-            children: [
-              if (isLoading)
-                _buildLoadingState()
-              else if (selectedMeasurements.isEmpty && unmatchedSites.isEmpty)
-                _buildEmptyState()
-              else ...[
-                // Show matched measurements with analytics cards
-                ...selectedMeasurements
-                    .map((measurement) => SwipeableAnalyticsCard(
-                          measurement: measurement,
-                          onRemove: _removeLocation,
-                        )),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: Column(
+              children: [
+                if (isLoading)
+                  _buildLoadingState()
+                else if (selectedMeasurements.isEmpty && unmatchedSites.isEmpty)
+                  _buildEmptyState()
+                else ...[
+                  // Show matched measurements with analytics cards
+                  ...selectedMeasurements
+                      .map((measurement) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: SwipeableAnalyticsCard(
+                              measurement: measurement,
+                              onRemove: _removeLocation,
+                            ),
+                          )),
 
-                // Show basic cards for unmatched sites
-                ...unmatchedSites.map((site) => _buildUnmatchedSiteCard(site)),
+                  // Show basic cards for unmatched sites
+                  ...unmatchedSites.map((site) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildUnmatchedSiteCard(site),
+                      )),
+                ],
               ],
-            ],
+            ),
           ),
         ],
       ),
@@ -416,7 +425,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         _removeLocation(site.id);
       },
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(

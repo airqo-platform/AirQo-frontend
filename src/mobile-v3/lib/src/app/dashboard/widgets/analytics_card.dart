@@ -19,8 +19,22 @@ class AnalyticsCard extends StatelessWidget {
               measurement: measurement,
             );
           }),
+      // Add a borderRadius to the InkWell for the ripple effect to be rounded
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        color: Theme.of(context).highlightColor,
+        // Add decoration instead of just setting a color
+        decoration: BoxDecoration(
+          color: Theme.of(context).highlightColor,
+          borderRadius: BorderRadius.circular(16), // Add rounded corners
+          // Optional: You can also add a subtle shadow
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -87,11 +101,14 @@ class AnalyticsCard extends StatelessWidget {
                 ],
               ),
             ),
-            Divider(
-                thickness: .5,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white),
+            // Using a container with top and bottom padding instead of Divider for better visual appearance
+            Container(
+              height: 1,
+              //margin: EdgeInsets.symmetric(horizontal: 16),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : Colors.white,
+            ),
             Padding(
               padding: const EdgeInsets.only(
                   left: 16, right: 16, bottom: 16, top: 4),

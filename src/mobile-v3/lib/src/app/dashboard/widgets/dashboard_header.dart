@@ -57,7 +57,7 @@ class DashboardHeader extends StatelessWidget {
 
   Widget _buildDefaultGreeting(BuildContext context) {
     return Text(
-      "Hi, 👋🏼",
+      "Hi, 👋",
       style: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.w700,

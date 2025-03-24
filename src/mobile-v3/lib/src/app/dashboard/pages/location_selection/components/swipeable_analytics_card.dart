@@ -32,16 +32,15 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
   void _showAnalyticsDetails() {
     // If we're in delete mode, don't show details
     if (_isDeleteVisible || _dragOffset < 0) return;
-    
+
     showBottomSheet(
-      backgroundColor: Colors.transparent,
-      context: context,
-      builder: (context) {
-        return AnalyticsDetails(
-          measurement: widget.measurement,
-        );
-      }
-    );
+        backgroundColor: Colors.transparent,
+        context: context,
+        builder: (context) {
+          return AnalyticsDetails(
+            measurement: widget.measurement,
+          );
+        });
   }
 
   @override
@@ -128,7 +127,18 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
             offset: Offset(_dragOffset, 0),
             child: Container(
               key: _cardKey,
-              color: Theme.of(context).highlightColor,
+              decoration: BoxDecoration(
+                color: Theme.of(context).highlightColor,
+                borderRadius:
+                    BorderRadius.circular(16.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -146,7 +156,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
                                 children: [
                                   Row(
                                     children: [
-                                      SvgPicture.asset(Theme.of(context).brightness ==
+                                      SvgPicture.asset(Theme.of(context)
+                                                  .brightness ==
                                               Brightness.light
                                           ? "assets/images/shared/pm_rating_white.svg"
                                           : 'assets/images/shared/pm_rating.svg'),
@@ -154,7 +165,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
                                       Text(
                                         " PM2.5",
                                         style: TextStyle(
-                                          color: Theme.of(context).textTheme.headlineSmall?.color,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headlineSmall
+                                              ?.color,
                                         ),
                                       ),
                                     ],
@@ -168,22 +182,26 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
                                       style: TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 40,
-                                          color: Theme.of(context).textTheme.headlineLarge?.color
-                                      ),
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headlineLarge
+                                              ?.color),
                                     ),
                                     Text(" μg/m³",
                                         style: TextStyle(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 20,
-                                            color: Theme.of(context).textTheme.headlineLarge?.color
-                                        )
-                                    )
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .headlineLarge
+                                                ?.color))
                                   ]),
                                 ]),
                             SizedBox(
                               child: Center(
                                 child: SvgPicture.asset(
-                                  getAirQualityIcon(widget.measurement, widget.measurement.pm25!.value!),
+                                  getAirQualityIcon(widget.measurement,
+                                      widget.measurement.pm25!.value!),
                                   height: 96,
                                   width: 96,
                                 ),
@@ -209,18 +227,24 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
                             style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w700,
-                                color: Theme.of(context).textTheme.headlineSmall?.color
-                            )
-                        ),
-                        Text(widget.measurement.healthTips != null && widget.measurement.healthTips!.isNotEmpty 
-                              ? widget.measurement.healthTips![0].description ?? "Air quality information"
-                              : "Air quality information",
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.color)),
+                        Text(
+                            widget.measurement.healthTips != null &&
+                                    widget.measurement.healthTips!.isNotEmpty
+                                ? widget.measurement.healthTips![0]
+                                        .description ??
+                                    "Air quality information"
+                                : "Air quality information",
                             style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
-                                color: Theme.of(context).textTheme.headlineMedium?.color
-                            )
-                        )
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.color))
                       ],
                     ),
                   ),
