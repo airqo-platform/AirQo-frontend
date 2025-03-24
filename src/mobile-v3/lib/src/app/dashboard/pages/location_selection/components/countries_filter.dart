@@ -39,10 +39,12 @@ class CountriesFilter extends StatelessWidget {
             selected: currentFilter == "All",
             onSelected: (_) => onResetFilter(),
             label: const Text("All"),
-            backgroundColor: Colors.grey[900],
+            backgroundColor: Theme.of(context).highlightColor,
             selectedColor: AppColors.primaryColor,
             labelStyle: TextStyle(
-              color: currentFilter == "All" ? Colors.white : Colors.grey[400],
+              color: currentFilter == "All" 
+                  ? Colors.white 
+                  : Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
           ...countries.map((country) => Padding(

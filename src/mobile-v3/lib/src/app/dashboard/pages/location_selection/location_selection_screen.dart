@@ -164,10 +164,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       loggy.error('Stack trace: ${StackTrace.current}');
     }
   }
-// 2. Modification to the location_selection_screen.dart file
-// File: src/mobile-v3/lib/src/app/dashboard/pages/location_selection/location_selection_screen.dart
 
-// Update the _saveSelectedLocations method in the LocationSelectionScreen
   Future<void> _saveSelectedLocations() async {
     loggy.info(
         'Save button pressed with ${selectedLocations.length} selected locations');
@@ -408,20 +405,20 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           title: Text(
             'Add location',
             style: TextStyle(
-                color: AppColors.boldHeadlineColor,
+                color: Theme.of(context).textTheme.headlineLarge?.color,
                 fontSize: 24,
                 fontWeight: FontWeight.w700),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: Icon(Icons.close, color: Theme.of(context).textTheme.headlineLarge?.color),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -461,7 +458,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             child: Text(
               'All locations',
               style: TextStyle(
-                color: Colors.grey[400],
+                color: Theme.of(context).textTheme.headlineMedium?.color,
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
               ),

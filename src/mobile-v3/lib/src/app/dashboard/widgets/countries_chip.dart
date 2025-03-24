@@ -35,10 +35,9 @@ class CountriesChip extends StatelessWidget {
             children: [
               Text(countryModel.flag + countryModel.countryName,
                   style: TextStyle(
-                      color: current ||
-                              Theme.of(context).brightness == Brightness.dark
+                      color: current 
                           ? Colors.white
-                          : Colors.black,
+                          : Theme.of(context).textTheme.bodyLarge?.color,
                       fontSize: fontSize,
                       fontWeight: FontWeight.w500)),
             ],
