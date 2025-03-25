@@ -70,7 +70,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
                   return ShimmerContainer(
                     height: _getResponsiveHeight(context),
                     borderRadius: 22,
-                    width: constraints.maxWidth / 8, // Divide by 8 to leave some spacing
+                    width: constraints.maxWidth / 8,
                   );
                 }),
               );

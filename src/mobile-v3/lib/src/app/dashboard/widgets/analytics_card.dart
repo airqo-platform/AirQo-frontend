@@ -1,6 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class AnalyticsCard extends StatelessWidget {
   final Measurement measurement;
 
-  const AnalyticsCard(this.measurement);
+  const AnalyticsCard(this.measurement, {super.key});
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -20,8 +19,22 @@ class AnalyticsCard extends StatelessWidget {
               measurement: measurement,
             );
           }),
+      // Add a borderRadius to the InkWell for the ripple effect to be rounded
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        color: Theme.of(context).highlightColor,
+        // Add decoration instead of just setting a color
+        decoration: BoxDecoration(
+          color: Theme.of(context).highlightColor,
+          borderRadius: BorderRadius.circular(16), // Add rounded corners
+          // Optional: You can also add a subtle shadow
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -88,11 +101,14 @@ class AnalyticsCard extends StatelessWidget {
                 ],
               ),
             ),
-            Divider(
-                thickness: .5,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white),
+            // Using a container with top and bottom padding instead of Divider for better visual appearance
+            Container(
+              height: 1,
+              //margin: EdgeInsets.symmetric(horizontal: 16),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : Colors.white,
+            ),
             Padding(
               padding: const EdgeInsets.only(
                   left: 16, right: 16, bottom: 16, top: 4),
