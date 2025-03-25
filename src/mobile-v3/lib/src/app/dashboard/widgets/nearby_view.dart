@@ -21,7 +21,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   Position? _userPosition;
   List<MapEntry<Measurement, double>> _nearbyMeasurementsWithDistance = [];
   static const int _maxNearbyLocations = 4;
-  static const double _defaultSearchRadius = 5.0;
+  static const double _defaultSearchRadius = 10.0;
 
   @override
   void initState() {
