@@ -142,7 +142,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       final headers = await _getHeaders();
 
       // Step 1: Reset preferences by sending an empty selected_sites list
-      final resetUrl = '$apiBaseUrl/api/v2/users/preferences/$userId';
+      final resetUrl = '$apiBaseUrl/users/preferences/$userId';
       final resetPayload = {
         "user_id": userId,
         "selected_sites": [], // Clear all sites first
@@ -205,7 +205,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       // Attempt rollback if we have a backup and the reset was successful
       if (resetSucceeded && oldPreferencesData != null) {
         final headers = await _getHeaders();
-        final resetUrl = '$apiBaseUrl/api/v2/users/preferences/$userId';
+        final resetUrl = '$apiBaseUrl/users/preferences/$userId';
         return await _attemptRollback(
             userId, oldPreferencesData, headers, resetUrl);
       }
