@@ -449,7 +449,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       final measurement = entry.key;
                       final distance = entry.value;
 
-                      return NearbyMeasurementCard(measurement: measurement, distanceKm: distance);
+                      return NearbyMeasurementCard(measurement: measurement, distance: distance);
                     },
                   ),
                 ),

@@ -1,39 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
-import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:loggy/loggy.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
+import 'package:flutter_svg/svg.dart';
 
-class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
+class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
   final Measurement measurement;
-  final double? distanceKm;
-  
+  final double distance;
+  final Function(Measurement)? onTap;
+
   const NearbyMeasurementCard({
     super.key,
     required this.measurement,
-    this.distanceKm,
+    required this.distance,
+    this.onTap,
   });
-  
-  void _showAnalyticsDetails(BuildContext context) {
+
+  void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
     showBottomSheet(
-      backgroundColor: Colors.transparent,
-      context: context,
-      builder: (context) {
-        return AnalyticsDetails(
-          measurement: measurement,
-        );
-      }
-    );
+        backgroundColor: Colors.transparent,
+        context: context,
+        builder: (context) {
+          return AnalyticsDetails(
+            measurement: measurement,
+          );
+        });
   }
+
+  // Helper method to get a description of the location
+  String _getLocationDescription(Measurement measurement) {
+    final siteDetails = measurement.siteDetails;
+    if (siteDetails == null) return "Unknown location";
+
+    // Try to build a meaningful location string
+    final List<String> locationParts = [];
+
+    if (siteDetails.city != null && siteDetails.city!.isNotEmpty) {
+      locationParts.add(siteDetails.city!);
+    } else if (siteDetails.town != null && siteDetails.town!.isNotEmpty) {
+      locationParts.add(siteDetails.town!);
+    }
+
+    if (siteDetails.region != null && siteDetails.region!.isNotEmpty) {
+      locationParts.add(siteDetails.region!);
+    } else if (siteDetails.county != null && siteDetails.county!.isNotEmpty) {
+      locationParts.add(siteDetails.county!);
+    }
+
+    if (siteDetails.country != null && siteDetails.country!.isNotEmpty) {
+      locationParts.add(siteDetails.country!);
+    }
+
+    return locationParts.isNotEmpty
+        ? locationParts.join(", ")
+        : siteDetails.locationName ??
+            siteDetails.formattedName ??
+            "Unknown location";
+  }
+
+  // Helper method to get color based on AQI category
+  Color _getAqiColor(Measurement measurement) {
+    if (measurement.aqiColor != null) {
+      // Try to parse the color from the API response
+      try {
+        final colorStr = measurement.aqiColor!.replaceAll('#', '');
+        return Color(int.parse('0xFF$colorStr'));
+      } catch (e) {
+        loggy.warning('Failed to parse AQI color: ${measurement.aqiColor}');
+      }
+    }
+
+    // Fallback based on category
+    switch (measurement.aqiCategory?.toLowerCase() ?? '') {
+      case 'good':
+        return Colors.green;
+      case 'moderate':
+        return Colors.yellow.shade700;
+      case 'unhealthy for sensitive groups':
+      case 'u4sg':
+        return Colors.orange;
+      case 'unhealthy':
+        return Colors.red;
+      case 'very unhealthy':
+        return Colors.purple;
+      case 'hazardous':
+        return Colors.brown;
+      default:
+        return AppColors.primaryColor;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => _showAnalyticsDetails(context),
+      onTap: () => _showAnalyticsDetails(context, measurement),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).highlightColor,
           borderRadius: BorderRadius.circular(12),
@@ -70,7 +135,10 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                 Text(
                                   " PM2.5",
                                   style: TextStyle(
-                                    color: Theme.of(context).textTheme.headlineSmall?.color,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.color,
                                   ),
                                 ),
                               ],
@@ -84,31 +152,35 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                 style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 36,
-                                    color: Theme.of(context).textTheme.headlineLarge?.color
-                                ),
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge
+                                        ?.color),
                               ),
                               Text(" μg/m³",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 18,
-                                      color: Theme.of(context).textTheme.headlineLarge?.color
-                                  )
-                              )
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .headlineLarge
+                                          ?.color))
                             ]),
                           ]),
                       SizedBox(
                         child: Center(
-                          child: measurement.pm25?.value != null 
-                            ? SvgPicture.asset(
-                                getAirQualityIcon(measurement, measurement.pm25!.value!),
-                                height: 86,
-                                width: 86,
-                              )
-                            : Icon(
-                                Icons.help_outline,
-                                size: 60,
-                                color: Colors.grey,
-                              ),
+                          child: measurement.pm25?.value != null
+                              ? SvgPicture.asset(
+                                  getAirQualityIcon(
+                                      measurement, measurement.pm25!.value!),
+                                  height: 86,
+                                  width: 86,
+                                )
+                              : Icon(
+                                  Icons.help_outline,
+                                  size: 60,
+                                  color: Colors.grey,
+                                ),
                         ),
                       ),
                     ],
@@ -135,11 +207,15 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              measurement.siteDetails?.name ?? "Unknown Location",
+                              measurement.siteDetails?.name ??
+                                  "Unknown Location",
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: Theme.of(context).textTheme.headlineSmall?.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.color,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -155,10 +231,14 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                 SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
-                                    _getLocationDescription(),
+                                    _getLocationDescription(measurement),
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.color
+                                          ?.withOpacity(0.7),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -166,36 +246,36 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                 ),
                               ],
                             ),
-                            if (distanceKm != null) ...[
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.near_me,
-                                    size: 14,
+                            SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.near_me,
+                                  size: 14,
+                                  color: AppColors.primaryColor,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  "${distance.toStringAsFixed(1)} km away",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                     color: AppColors.primaryColor,
                                   ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    "${distanceKm!.toStringAsFixed(1)} km away",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
                       Column(
                         children: [
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: _getAqiColor().withOpacity(0.15),
+                              color:
+                                  _getAqiColor(measurement).withOpacity(0.15),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
@@ -203,7 +283,7 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: _getAqiColor(),
+                                color: _getAqiColor(measurement),
                               ),
                             ),
                           ),
@@ -211,10 +291,12 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                       ),
                     ],
                   ),
-                  if (measurement.healthTips != null && measurement.healthTips!.isNotEmpty) ...[
+                  if (measurement.healthTips != null &&
+                      measurement.healthTips!.isNotEmpty) ...[
                     SizedBox(height: 12),
                     Text(
-                      measurement.healthTips![0].description ?? "No health tips available",
+                      measurement.healthTips![0].description ??
+                          "No health tips available",
                       style: TextStyle(
                         fontSize: 14,
                         fontStyle: FontStyle.italic,
@@ -231,66 +313,5 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
         ),
       ),
     );
-  }
-  
-  // Helper method to get a description of the location
-  String _getLocationDescription() {
-    final siteDetails = measurement.siteDetails;
-    if (siteDetails == null) return "Unknown location";
-    
-    // Try to build a meaningful location string
-    final List<String> locationParts = [];
-    
-    if (siteDetails.city != null && siteDetails.city!.isNotEmpty) {
-      locationParts.add(siteDetails.city!);
-    } else if (siteDetails.town != null && siteDetails.town!.isNotEmpty) {
-      locationParts.add(siteDetails.town!);
-    }
-    
-    if (siteDetails.region != null && siteDetails.region!.isNotEmpty) {
-      locationParts.add(siteDetails.region!);
-    } else if (siteDetails.county != null && siteDetails.county!.isNotEmpty) {
-      locationParts.add(siteDetails.county!);
-    }
-    
-    if (siteDetails.country != null && siteDetails.country!.isNotEmpty) {
-      locationParts.add(siteDetails.country!);
-    }
-    
-    return locationParts.isNotEmpty 
-        ? locationParts.join(", ") 
-        : siteDetails.locationName ?? siteDetails.formattedName ?? "Unknown location";
-  }
-  
-  // Helper method to get color based on AQI category
-  Color _getAqiColor() {
-    if (measurement.aqiColor != null) {
-      // Try to parse the color from the API response
-      try {
-        final colorStr = measurement.aqiColor!.replaceAll('#', '');
-        return Color(int.parse('0xFF$colorStr'));
-      } catch (e) {
-        loggy.warning('Failed to parse AQI color: ${measurement.aqiColor}');
-      }
-    }
-    
-    // Fallback based on category
-    switch (measurement.aqiCategory?.toLowerCase() ?? '') {
-      case 'good':
-        return Colors.green;
-      case 'moderate':
-        return Colors.yellow.shade700;
-      case 'unhealthy for sensitive groups':
-      case 'u4sg':
-        return Colors.orange;
-      case 'unhealthy':
-        return Colors.red;
-      case 'very unhealthy':
-        return Colors.purple;
-      case 'hazardous':
-        return Colors.brown;
-      default:
-        return AppColors.primaryColor;
-    }
   }
 }
