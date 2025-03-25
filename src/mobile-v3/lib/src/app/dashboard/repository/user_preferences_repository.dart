@@ -116,29 +116,56 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   @override
   Future<Map<String, dynamic>> replacePreference(
       Map<String, dynamic> data) async {
+    final userId = data['user_id'];
+    loggy.info('Replacing preferences for user ID: $userId');
+
+    Map<String, dynamic>? oldPreferencesData;
+    bool resetSucceeded = false;
+
     try {
-      final userId = data['user_id'];
-      loggy.info('Replacing preferences for user ID: $userId');
+      // Step 0: Get a backup of the current preferences before making changes
+      final currentPrefsResponse = await getUserPreferences(userId);
+      if (currentPrefsResponse['success'] == true) {
+        if (currentPrefsResponse['data'] != null &&
+            currentPrefsResponse['data'] is Map<String, dynamic>) {
+          oldPreferencesData =
+              Map<String, dynamic>.from(currentPrefsResponse['data']);
+          loggy.info('Backed up current preferences before update');
+        } else if (currentPrefsResponse['preferences'] is List &&
+            currentPrefsResponse['preferences'].isNotEmpty) {
+          oldPreferencesData = Map<String, dynamic>.from(
+              currentPrefsResponse['preferences'].first);
+          loggy.info('Backed up current preferences from preferences list');
+        }
+      }
 
       final headers = await _getHeaders();
 
       // Step 1: Reset preferences by sending an empty selected_sites list
-      final resetUrl = '$apiBaseUrl/users/preferences/$userId';
+      final resetUrl = '$apiBaseUrl/api/v2/users/preferences/$userId';
       final resetPayload = {
         "user_id": userId,
         "selected_sites": [], // Clear all sites first
       };
+
       loggy.info('Resetting preferences at: $resetUrl');
       final resetResponse = await http.put(
         Uri.parse(resetUrl),
         headers: headers,
         body: jsonEncode(resetPayload),
       );
+
       loggy.info('Reset response status: ${resetResponse.statusCode}');
 
       if (resetResponse.statusCode < 200 || resetResponse.statusCode >= 300) {
         loggy.warning('Failed to reset preferences: ${resetResponse.body}');
+        return {
+          'success': false,
+          'message': 'Failed to reset preferences',
+        };
       }
+
+      resetSucceeded = true;
 
       // Step 2: Send the actual update
       loggy.info('Sending updated preferences to: $resetUrl');
@@ -147,23 +174,95 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         headers: headers,
         body: jsonEncode(data),
       );
+
       loggy.info('User update response status: ${updateResponse.statusCode}');
 
       if (updateResponse.statusCode >= 200 &&
           updateResponse.statusCode < 300 &&
           !updateResponse.body.trim().startsWith('<')) {
-        return json.decode(updateResponse.body);
+        final result = json.decode(updateResponse.body);
+        loggy.info('Successfully updated preferences');
+        return result;
+      }
+
+      // If we reach here, the update failed but reset succeeded
+      loggy.error('Failed to update preferences after reset');
+
+      // Attempt rollback if we have a backup and the reset was successful
+      if (resetSucceeded && oldPreferencesData != null) {
+        return await _attemptRollback(
+            userId, oldPreferencesData, headers, resetUrl);
       }
 
       return {
         'success': false,
-        'message': 'Failed to update preferences after reset attempt',
+        'message':
+            'Failed to update preferences after reset, and rollback was not possible',
       };
     } catch (e) {
       loggy.error('Error replacing preferences: $e');
+
+      // Attempt rollback if we have a backup and the reset was successful
+      if (resetSucceeded && oldPreferencesData != null) {
+        final headers = await _getHeaders();
+        final resetUrl = '$apiBaseUrl/api/v2/users/preferences/$userId';
+        return await _attemptRollback(
+            userId, oldPreferencesData, headers, resetUrl);
+      }
+
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',
+      };
+    }
+  }
+
+// Helper method to attempt rollback to old preferences
+  Future<Map<String, dynamic>> _attemptRollback(
+      String userId,
+      Map<String, dynamic> oldPreferencesData,
+      Map<String, String> headers,
+      String resetUrl) async {
+    try {
+      loggy.info('Attempting to rollback to previous preferences');
+
+      // Prepare rollback data
+      final rollbackPayload = {
+        "user_id": userId,
+        "selected_sites": oldPreferencesData['selected_sites'] ?? [],
+      };
+
+      final rollbackResponse = await http.put(
+        Uri.parse(resetUrl),
+        headers: headers,
+        body: jsonEncode(rollbackPayload),
+      );
+
+      if (rollbackResponse.statusCode >= 200 &&
+          rollbackResponse.statusCode < 300) {
+        loggy.info('Rollback successful');
+        return {
+          'success': false,
+          'message':
+              'Failed to update preferences, but successfully rolled back to previous state',
+          'rolled_back': true
+        };
+      } else {
+        loggy.error('Failed to rollback preferences: ${rollbackResponse.body}');
+        return {
+          'success': false,
+          'message':
+              'Failed to update preferences and rollback failed. Your saved locations may be temporarily unavailable.',
+          'rolled_back': false
+        };
+      }
+    } catch (e) {
+      loggy.error('Error during rollback: $e');
+      return {
+        'success': false,
+        'message':
+            'Critical error: Could not update preferences or restore previous state. Please try again later.',
+        'rolled_back': false
       };
     }
   }
