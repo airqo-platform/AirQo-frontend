@@ -78,14 +78,44 @@
 .country-scroll-bar {
         overflow-x: auto;
         overflow-y: hidden;
-        overflow-x:auto;
         cursor: pointer;
-}
-.scrollbar-hide::-webkit-scrollbar {
+    }
+    
+    /* Hide the scrollbar by default */
+    .country-scroll-bar::-webkit-scrollbar {
+        height: 4px;
         display: none;
-      }
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+    }
+    
+    /* Show the scrollbar when the element is hovered */
+    .country-scroll-bar:hover::-webkit-scrollbar {
+        height: 4px;
+        display: block;
+    }
+
+    .sidebar-scroll-bar {
+        overflow-y: auto;
+        overflow-x: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    /* Hide the scrollbar by default */
+    .sidebar-scroll-bar::-webkit-scrollbar {
+        height: 4px;
+        display: none;
+    }
+    
+    /* Show the scrollbar when the element is hovered */
+    .sidebar-scroll-bar:hover::-webkit-scrollbar {
+        height: 4px;
+        display: block;
+    }
+    
+/* Remove Focus Border from search Input */
+input:focus {
+        border-color: transparent;
+        box-shadow: none !important;
+        outline: none !important;
       }
 

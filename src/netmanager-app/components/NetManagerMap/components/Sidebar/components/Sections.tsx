@@ -9,8 +9,9 @@ export const renderLoadingSkeleton = () => (
     {Array.from({ length: 6 }).map((_, index) => (
       <div
         key={index}
-        className="bg-secondary-neutral-dark-50 rounded-xl w-full h-16"
-      />
+        className="bg-secondary-neutral-dark-50 border rounded-xl w-full h-16">
+                loading  locations
+      </div>
     ))}
   </div>
 );
@@ -21,7 +22,7 @@ export const renderLoadingSkeleton = () => (
 export const renderNoResults = (hasSearched = false) => (
   <div className="flex flex-col justify-start items-center h-full w-full pt-8 px-6">
     <div className="p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5">
-      <LocationIcon fill="#9EA3AA" />
+      <LocationIcon fill="#9EA3AA" width={20} height={20} strokeWidth={undefined} />
     </div>
     <div className="my-4 text-center">
       {hasSearched ? (
@@ -53,7 +54,7 @@ export const renderNoResults = (hasSearched = false) => (
 export const renderDefaultMessage = () => (
   <div className="flex flex-col justify-center items-center h-full w-full pt-8 px-6">
     <div className="p-5 rounded-full bg-secondary-neutral-light-50 border border-secondary-neutral-light-25 mb-2.5">
-      <LocationIcon fill="#9EA3AA" />
+      <LocationIcon fill="#9EA3AA" width={20} height={20} strokeWidth={undefined} />
     </div>
     <div className="my-4 text-center">
       <div className="text-secondary-neutral-dark-700 text-base font-medium mb-1">

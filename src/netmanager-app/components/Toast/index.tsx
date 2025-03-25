@@ -3,7 +3,18 @@ import WarningCircleIcon from '@/public/icons/Common/warning_circle';
 import InfoCircleIcon from '@/public/icons/Common/info_circle.svg';
 import Button from '@/components/NetManagerMap/components/Button';
 
-const Toast = ({
+interface ToastProps {
+  message: string;
+  type?: 'info' | 'error' | 'success';
+  timeout?: number;
+  dataTestId?: string;
+  size?: 'sm' | 'lg';
+  clearData?: () => void;
+  bgColor?: string;
+  position?: 'center' | 'top' | 'bottom';
+}
+
+const Toast: React.FC<ToastProps> = ({
   message,
   type = 'info',
   timeout = 5000,
@@ -43,7 +54,7 @@ const Toast = ({
   const getIcon = () => {
     switch (type) {
       case 'error':
-        return <WarningCircleIcon fillcolor="#FFF" />;
+        return <WarningCircleIcon fillColor="#FFF" />;
       case 'info':
         return <InfoCircleIcon fill="#FFF" className="w-6 h-6" />;
       default:

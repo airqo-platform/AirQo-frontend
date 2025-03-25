@@ -24,10 +24,10 @@ export const GetAirQuoData = async () =>{
 
 export  const FetchSuggestions=async(value:string,sessionToken:string,latitude?: number, longitude?: number):Promise<any[] | void>=>{
         
-        if (!token) {
-                console.log("Missing Map Box Access Token");
-                return;
-        }
+        // if (!token) {
+        //         console.log("Missing Map Box Access Token");
+        //         return;
+        // }
         
         if (latitude !== undefined && longitude !== undefined) {
                 try{
@@ -44,7 +44,7 @@ export  const FetchSuggestions=async(value:string,sessionToken:string,latitude?:
                         
                         }
                         catch(error){
-                                // console.error("Error fetching suggestions:", error);
+                                console.error("Error fetching suggestions:", error);
                         }
                 }}
 export const UserClick = async(access_token:string,sessionToken:string,locationid: string,)=>{

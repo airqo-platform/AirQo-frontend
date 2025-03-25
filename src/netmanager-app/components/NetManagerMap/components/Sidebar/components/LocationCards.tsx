@@ -7,7 +7,7 @@ import Button from '@/components/NetManagerMap/components/Button';
 /**
  * Helper function to format description
  */
-const formatDescription = (description) => {
+const formatDescription = (description: string) => {
   if (!description) return '';
   const parts = description.split(',');
   return parts.length > 1 ? parts.slice(1).join(',').trim() : description;
@@ -16,7 +16,7 @@ const formatDescription = (description) => {
 /**
  * Helper function to format region
  */
-const formatRegion = (region) => {
+const formatRegion = (region: string) => {
   if (!region) return '';
   const parts = region.split(',');
   return parts.length > 1 ? parts.slice(1).join(',').trim() : region;
@@ -26,7 +26,25 @@ const formatRegion = (region) => {
  * LocationCards component
  * @description A component that displays location cards
  */
-const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
+interface LocationCardProps {
+  searchResults: Array<{
+    _id?: string;
+    place_id?: string;
+    description?: string;
+    search_name?: string;
+    region?: string;
+  }>;
+  isLoading: boolean;
+  handleLocationSelect: (location: {
+    _id?: string;
+    place_id?: string;
+    description?: string;
+    search_name?: string;
+    region?: string;
+  }) => void;
+}
+
+const LocationCards: React.FC<LocationCardProps> = ({ searchResults, isLoading, handleLocationSelect }) => {
   // Ensure the required data and functions are valid
   if (
     !Array.isArray(searchResults) ||
@@ -73,7 +91,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
         {visibleResults.map((grid) => {
           const description = grid?.description
             ? capitalizeAllText(formatDescription(grid?.description))
-            : capitalizeAllText(formatRegion(grid?.region));
+            : capitalizeAllText(formatRegion(grid?.region || ''));
           const title = capitalizeAllText(
             grid?.place_id
               ? grid.description?.split(',')[0]
@@ -95,7 +113,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                 </span>
               </div>
               <div className="p-2 rounded-full bg-secondary-neutral-light-50">
-                <LocationIcon fill="#9EA3AA" />
+                <LocationIcon fill="#9EA3AA" width={20} height={20} strokeWidth={undefined} />
               </div>
             </div>
           );
@@ -115,20 +133,6 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
       </div>
     )
   );
-};
-
-LocationCards.propTypes = {
-  searchResults: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string,
-      place_id: PropTypes.string,
-      description: PropTypes.string,
-      search_name: PropTypes.string,
-      region: PropTypes.string,
-    }),
-  ).isRequired,
-  isLoading: PropTypes.bool.isRequired,
-  handleLocationSelect: PropTypes.func.isRequired,
 };
 
 export default LocationCards;

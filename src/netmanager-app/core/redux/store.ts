@@ -8,6 +8,9 @@ import clientsRudcer from "./slices/clientsSlice";
 import groupsReducer from "./slices/groupsSlice";
 import teamReducer from "./slices/teamSlice";
 import groupDetailsReducer from "./slices/groupDetailsSlice";
+import mapReducer from "./slices/mapslice";
+import locationSearchSlice  from "./slices/search/LocationSearchSlice";
+import recentMeasurementsSlice  from "./slices/RecentMeasurementsSlice";
 
 
 export const store = configureStore({
@@ -21,6 +24,10 @@ export const store = configureStore({
     groups: groupsReducer,
     team: teamReducer,
     groupDetailsReducer: groupDetailsReducer,
+    map:mapReducer,
+    locationSearch:locationSearchSlice,
+    recentMeasurementReducer:recentMeasurementsSlice
+
 
   },
 });

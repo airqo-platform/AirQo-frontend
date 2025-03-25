@@ -4,7 +4,7 @@ import Button from './Button'
 import {
   setLocation,
   addSuggestedSites,
-} from '@/lib/map/MapSlice';
+} from '@/core/redux/slices/mapslice';
 
 /**
  * CountryList
@@ -62,7 +62,7 @@ const CountryList = ({
   }
 
   return (
-    <div className="flex space-x-2 ml-2 mb-2 ">
+    <div className="flex space-x-2 ml-2 mb-2">
       {sortedData.map((country, index) => {
         // Check if country and flag properties exist
         if (!country || !country.flag) {

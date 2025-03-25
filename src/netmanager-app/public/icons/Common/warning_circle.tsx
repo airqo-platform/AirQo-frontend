@@ -1,4 +1,4 @@
-const WarningCircleIcon = ({ fillColor, exclamationColor }) => (
+const WarningCircleIcon = ({ fillColor, exclamationColor }: { fillColor?: string; exclamationColor?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill={fillColor || 'none'}

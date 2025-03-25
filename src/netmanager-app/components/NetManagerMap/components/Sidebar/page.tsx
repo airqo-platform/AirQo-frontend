@@ -12,12 +12,10 @@ import {
   setSelectedNode,
   setSelectedWeeklyPrediction,
   setMapLoading,
-} from '@/lib/map/MapSlice';
+} from '@/core/redux/slices/mapslice';
 import { addSearchTerm } from '@/lib/services/search/LocationSearchSlice';
 import {
-  fetchRecentMeasurementsData,
-  // clearMeasurementsData,
-} from '@/lib/services/deviceRegistry/RecentMeasurementsSlice';
+  fetchRecentMeasurementsData,clearMeasurementsData,} from '@/core/redux/slices/RecentMeasurementsSlice';
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/utils/strings';
 import { useWindowSize } from '@/lib/windowSize';
@@ -44,6 +42,7 @@ import SidebarHeader from './components/SidebarHeader';
 import SearchResultsSkeleton from './components/SearchResultsSkeleton';
 import useGoogleMaps from '@/core/hooks/useGoogleMaps';
 import { Value } from '@radix-ui/react-select';
+
 
 interface SiteDetails {
   _id: string;
@@ -87,16 +86,17 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
     type: '',
   });
 
-//   const openLocationDetails = useAppSelector((state: any) => state.map.showLocationDetails);
-//   const selectedLocation = useAppSelector((state: any) => state. .map.selectedLocation ?? null);
-//   const mapLoading = useSelector((state: any) => state.map.mapLoading);
-//   const measurementsLoading = useSelector((state: any) => state.recentMeasurements.status);
-//   const selectedWeeklyPrediction = useSelector((state: any) => state.map.selectedWeeklyPrediction);
-//   const reduxSearchTerm = useSelector((state: any) => state.locationSearch.searchTerm);
-//   const suggestedSites = useSelector((state: any) => state.map.suggestedSites);
+  const openLocationDetails = useAppSelector((state: any) => state.map.showLocationDetails);
+  const selectedLocation = useAppSelector((state: any) => state.map.selectedLocation ?? null);
+  const mapLoading = useAppSelector((state: any) => state.map.mapLoading);
+  const measurementsLoading = useAppSelector((state: any) => state.recentMeasurementReducer.status);
+  const selectedWeeklyPrediction = useAppSelector((state: any) => state.map.selectedWeeklyPrediction);
+  const reduxSearchTerm = useAppSelector((state: any) => state.locationSearch.searchTerm);
+  const suggestedSites = useAppSelector((state: any) => state.map.suggestedSites);
+  console.log("Suggested Sites",suggestedSites)
+  const storedToken = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2FjYjIwZGU3NTVlMzAwMTNhMzYxNzUiLCJmaXJzdE5hbWUiOiJBa2F0d2lqdWthIiwibGFzdE5hbWUiOiJFbGlhIiwidXNlck5hbWUiOiJlbGlhYWtqdHJucUBnbWFpbC5jb20iLCJlbWFpbCI6ImVsaWFha2p0cm5xQGdtYWlsLmNvbSIsIm9yZ2FuaXphdGlvbiI6ImFpcnFvIiwibG9uZ19vcmdhbml6YXRpb24iOiJhaXJxbyIsInByaXZpbGVnZSI6InVzZXIiLCJjb3VudHJ5IjpudWxsLCJwcm9maWxlUGljdHVyZSI6bnVsbCwicGhvbmVOdW1iZXIiOm51bGwsImNyZWF0ZWRBdCI6IjIwMjUtMDItMTIgMTQ6Mzc6MDEiLCJ1cGRhdGVkQXQiOiIyMDI1LTAyLTEyIDE0OjM3OjAxIiwicmF0ZUxpbWl0IjpudWxsLCJsYXN0TG9naW4iOiIyMDI1LTAyLTE3VDAzOjM5OjM5LjQwNVoiLCJpYXQiOjE3Mzk3NjM1Nzl9.HQPoN-SKm2wq6wVLEGBp1aa-1gJEoI2oRODFnUlp-Zg";
 
-  const isSearchFocused = isFocused
-//   ||  reduxSearchTerm.length > 0;
+  const isSearchFocused = isFocused ||  reduxSearchTerm.length > 0;
   const googleMapsLoaded = useGoogleMaps(process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY);
   const handleAllSelection = useCallback(() => {
         setSelectedCountry(null);
@@ -118,55 +118,46 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
         dispatch(reSetMap());
       }, [dispatch]);
       
-
-//       Handle Search Functionality
-const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
-        const value = e.target.value;
-    setQuery(value);
-
-    if (value.trim() === "") {
-      setSuggestions([]);
-      reset()
-      return;
-    }
-    const GetSuggestions=(latitude?: number, longitude?: number)=>{
-        if (!token || !sessionToken) {
-          console.error('Missing required tokens');
-                 return;
-        }
-        FetchSuggestions(value, sessionToken, latitude, longitude)
-          .then(data => {
-            if (data) {
-              console.log(data)
-              setSuggestions(data);
+        const handleLocationSelect = useCallback(
+          async (data: { place_id: any; geometry: { coordinates: any[]; }; approximate_latitude: any; approximate_longitude: any; }) => {
+            try {
+              let updatedData = data;
+              let latitude, longitude;
+      
+              if (data?.place_id) {
+                const placeDetails = await getPlaceDetails(data.place_id);
+                if (placeDetails.latitude && placeDetails.longitude) {
+                  updatedData = { ...updatedData, ...placeDetails };
+                  ({ latitude, longitude } = placeDetails);
+                } else {
+                  throw new Error('Geolocation details are missing');
+                }
+              } else {
+                latitude =
+                  data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
+                longitude =
+                  data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
+              }
+      
+              if (!latitude || !longitude) {
+                throw new Error('Location coordinates are missing');
+              }
+      
+              dispatch(setCenter({ latitude, longitude }));
+              dispatch(setZoom(11));
+              dispatch(setSelectedLocation(updatedData));
+            } catch (error) {
+              console.error('Failed to select location:', error);
+              setError({
+                isError: true,
+                message: 'Failed to select location',
+                type: 'error',
+              });
             }
-            console.log("Number of Suggesstions", suggestions.length)
-          })
-          .catch(error => {
-            console.error("Error fetching suggestions:", error);
-          });
-    }
-    const fetchUserLocation = () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              console.log("User Location:", latitude, longitude);
-              GetSuggestions(latitude, longitude);
-            },
-            (error) => {
-              console.error("Error getting user location:", error);
-              GetSuggestions(); 
-            }
-          );
-        } else {
-          console.error("Geolocation is not supported by this browser.");
-          GetSuggestions(); 
-        }
-      };
-      fetchUserLocation();
+          },
+          [dispatch],
+        );
 
-  }
 
   const autoCompleteSessionToken = useMemo(() => {
     if (googleMapsLoaded && window.google) {
@@ -174,6 +165,45 @@ const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
     }
     return null;
   }, [googleMapsLoaded]);
+
+  //       Handle Search Functionality
+  const handleSearch = useCallback(async () => {
+        if (!reduxSearchTerm || reduxSearchTerm.length <= 1) {
+          setSearchResults([]);
+          return;
+        }
+    
+        if (!googleMapsLoaded || !autoCompleteSessionToken) {
+          console.error('Google Maps API is not loaded yet.');
+          return;
+        }
+    
+        setLoading(true);
+        setIsFocused(true);
+    
+        try {
+          const predictions = await FetchSuggestions( reduxSearchTerm,
+                sessionToken=storedToken
+          );
+          console.log("SUGS",predictions)
+    
+          if (predictions?.length) {
+            setSearchResults(
+              predictions.map(({ description, place_id }: { description: string; place_id: string }) => ({
+                description,
+                place_id,
+              })),
+            );
+          } else {
+            setSearchResults([]);
+          }
+        } catch (error) {
+          console.error('Search failed:', error);
+          setSearchResults([]);
+        } finally {
+          setLoading(false);
+        }
+      }, [reduxSearchTerm, autoCompleteSessionToken, googleMapsLoaded]);
 
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
@@ -199,43 +229,43 @@ const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
     const timer = setTimeout(() => dispatch(setMapLoading(false)), 2000);
     return () => clearTimeout(timer);
   }, [dispatch, 
-        // selectedLocation
+        selectedLocation
 ]);
 
-//   useEffect(() => {
-//     if (selectedLocation) {
-//       dispatch(fetchRecentMeasurementsData({ site_id: selectedLocation._id }))
-//         .unwrap()
-//         .then(() => fetchWeeklyPredictions())
-//         .catch((error) => {
-//           setError({ isError: true, message: 'Failed to fetch recent measurements', type: 'error' });
-//         });
-//     }
-//   }, [
-//         // selectedLocation,
-//          dispatch]);
+  useEffect(() => {
+    if (selectedLocation) {
+      dispatch(fetchRecentMeasurementsData({ site_id: selectedLocation._id }))
+        .unwrap()
+        .then(() => fetchWeeklyPredictions())
+        .catch((error: any) => {
+          setError({ isError: true, message: 'Failed to fetch recent measurements', type: 'error' });
+        });
+    }
+  }, [
+        selectedLocation,
+         dispatch]);
 
-//   const fetchWeeklyPredictions = useCallback(async () => {
-//     if (!selectedLocation?._id) {
-//       setWeeklyPredictions([]);
-//       return;
-//     }
-//     setLoading(true);
-//     try {
-//       if (selectedLocation?.forecast && selectedLocation.forecast.length > 0) {
-//         setWeeklyPredictions(selectedLocation.forecast);
-//       } else {
-//         const response = await dailyPredictionsApi(selectedLocation._id);
-//         setWeeklyPredictions(response?.forecasts || []);
-//       }
-//     } catch (error) {
-//       setError({ isError: true, message: 'Failed to fetch weekly predictions', type: 'error' });
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, [
-//         // selectedLocation
-// ]);
+  const fetchWeeklyPredictions = useCallback(async () => {
+    if (!selectedLocation?._id) {
+      setWeeklyPredictions([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      if (selectedLocation?.forecast && selectedLocation.forecast.length > 0) {
+        setWeeklyPredictions(selectedLocation.forecast);
+      } else {
+        const response = await dailyPredictionsApi(selectedLocation._id);
+        setWeeklyPredictions(response?.forecasts || []);
+      }
+    } catch (error) {
+      setError({ isError: true, message: 'Failed to fetch weekly predictions', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [
+        selectedLocation
+]);
 
   return (
     <div className="  w-full rounded-l-xl shadow-sm h-full  left-0  overflow-y-auto lg:overflow-hidden">
@@ -243,9 +273,12 @@ const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
         <div
               className={` pt-4 `}
             >
-              <div className="px-4">
-                <SidebarHeader isAdmin={isAdmin} isFocused={isFocused} />
-              </div>
+                {!isSearchFocused &&(
+                        <div className="px-4">
+                        <SidebarHeader isAdmin={isAdmin} isFocused={isFocused} />
+                      </div>
+                )}
+              
               {!isAdmin && <hr />}
               {!isSearchFocused && (
                 <>
@@ -274,32 +307,35 @@ const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
                 </>
               )}
             </div>
-                      {/* Search Results Section */}
-                      {isSearchFocused && (
+
+                                {/* Search Results Section */}
+                                {isSearchFocused &&  !openLocationDetails && (
                         <div className="flex flex-col h-dvh pt-4 w-auto">
-                          <div className="flex flex-col gap-5 px-4">
+                        <div className="flex flex-col gap-5 px-4">
                             <SidebarHeader
                               isAdmin={isAdmin}
                               isFocused={isSearchFocused}
                               handleHeaderClick={handleExit}
                             />
                             <SearchField
-                            value={query}
-                              onSearch={SearchSuggestions}
+                              onSearch={handleSearch}
                               onClearSearch={handleExit}
                               focus={isSearchFocused}
                               showSearchResultsNumber={true}
                             />
                           </div>
               
+                          {reduxSearchTerm === '' && (
+                        <div className="border border-secondary-neutral-light-100 mt-8" />
+                        )}
+
+                        {reduxSearchTerm && (
+                                <div
+                                        className={`border border-secondary-neutral-light-100 ${reduxSearchTerm.length > 0 ? 'mt-3' : ''}`}
+                                />
+                        )}
               
-                          {suggestions && (
-                            <div
-                              className={`border border-secondary-neutral-light-100 ${suggestions.length > 0 ? 'mt-3' : ''}`}
-                            />
-                          )}
-              
-                          {suggestions === '' ? (
+                          {reduxSearchTerm === '' ? (
                             renderNoResults(false)
                           ) : error.isError ? (
                             <Toast
@@ -314,20 +350,113 @@ const SearchSuggestions=(e: React.ChangeEvent<HTMLInputElement>)=>{
                               position="bottom"
                             />
                           ) : isLoading &&
-                          suggestions.length === 0 &&
+                          searchResults.length === 0 &&
                             measurementsLoading ? (
                             <SearchResultsSkeleton />
-                          ) : suggestions.length === 0 && !isLoading ? (
+                          ) : searchResults.length === 0 && !isLoading ? (
                             renderNoResults(true)
                           ) : (
                             <LocationCards
-                              searchResults={suggestions}
+                              searchResults={searchResults}
                               isLoading={isLoading}
-                              handleLocationSelect={handleLocationSelect}
+                              handleLocationSelect={(location) => {
+                                const adaptedLocation = {
+                                  place_id: location.place_id,
+                                  geometry: { coordinates: [] },
+                                  approximate_latitude: null,
+                                  approximate_longitude: null,
+                                  ...location,
+                                };
+                                handleLocationSelect(adaptedLocation);
+                              }}
                             />
                           )}
                         </div>
                       )}
+
+              <div className="sidebar-scroll-bar">
+                    {/* Suggested locations */}
+                    { !suggestedSites || suggestedSites.length === 0 ?(
+                      renderLoadingSkeleton()
+                    )  : !isSearchFocused &&
+                    !openLocationDetails &&
+                    suggestedSites.length > 0 ?  (
+                      <>
+                        <div className="flex justify-between items-center mt-4 px-4">
+                          <div className="flex gap-1">
+                            <span className="font-medium text-secondary-neutral-dark-400 text-sm">
+                              Sort by:
+                            </span>
+                            <select className="rounded-md m-0 p-0 text-sm text-center font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
+                              <option value="custom">Suggested</option>
+                            </select>
+                          </div>
+                        </div>
+                        <LocationCards
+                          searchResults={searchResults}
+                          isLoading={isLoading}
+                          handleLocationSelect={()=>{handleLocationSelect}}
+                        />
+                      </>
+                    ) : (
+                      !isSearchFocused && !openLocationDetails && renderDefaultMessage()
+                    )}
+            
+
+            
+                    {/* Selected Site Details */}
+                    {selectedLocation && !mapLoading && (
+                      <div>
+                        <div className="pt-6 pb-5">
+                          <div className="flex items-center gap-2 text-black-800 mb-4 mx-4">
+                            <Button
+                              paddingStyles="p-0"
+                              onClick={handleExit}
+                              variant="text"
+                              type="button"
+                            >
+                              <ArrowLeftIcon />
+                            </Button>
+                            <h3 className="text-xl font-medium leading-7">
+                              {
+                                capitalizeAllText(
+                                  selectedLocation?.description ||
+                                    selectedLocation?.search_name ||
+                                    selectedLocation?.location,
+                                )?.split(',')[0]
+                              }
+                            </h3>
+                          </div>
+            
+                          <div className="mx-4">
+                            <WeekPrediction
+                              selectedSite={selectedLocation}
+                              weeklyPredictions={weeklyPredictions}
+                              loading={isLoading}
+                            />
+                          </div>
+                        </div>
+            
+                        <div className="border border-secondary-neutral-light-100 my-5" />
+            
+                        <div
+                          className={`mx-4 mb-5 ${width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''} flex flex-col gap-4`}
+                        >
+                          <PollutantCard
+                            selectedSite={selectedLocation}
+                            selectedWeeklyPrediction={selectedWeeklyPrediction}
+                          />
+                          <LocationAlertCard
+                            title="Air Quality Alerts"
+                            selectedSite={selectedLocation}
+                            selectedWeeklyPrediction={selectedWeeklyPrediction}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                      
       {/* {selectedLocation && <WeekPrediction selectedSite={selectedLocation} weeklyPredictions={weeklyPredictions} loading={isLoading} />} */}
     </div>
   );

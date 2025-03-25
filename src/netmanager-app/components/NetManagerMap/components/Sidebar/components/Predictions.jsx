@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { isValid, format, isSameDay } from 'date-fns';
 import { getAQIcon, images } from '../../MapNodes';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSelectedWeeklyPrediction } from '@/lib/map/MapSlice';
+import { setSelectedWeeklyPrediction } from '@/core/redux/slices/mapslice';
 import Button from '@/components/NetManagerMap/components/Button';
 import Calendar from '@/components/Calendar/Calendar';
 import Spinner from '@/components/Spinner';
