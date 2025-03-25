@@ -89,9 +89,12 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          String firstName =
-              userState.model.users[0].firstName[0].toUpperCase();
-          String lastName = userState.model.users[0].lastName[0].toUpperCase();
+          String firstName = userState.model.users[0].firstName.isNotEmpty
+              ? userState.model.users[0].firstName[0].toUpperCase()
+              : " ";
+          String lastName = userState.model.users[0].lastName.isNotEmpty
+            ? userState.model.users[0].lastName[0].toUpperCase()
+            : " ";
           return GestureDetector(
             onTap: () {
               // Navigate to profile page
