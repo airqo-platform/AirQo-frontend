@@ -109,7 +109,7 @@ const ExplorePage = () => {
                 <div className="bg-gray-100 rounded-t-lg w-full h-full flex justify-center items-center mb-4">
                   <div className="relative w-32 h-32">
                     <Image
-                      src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728918806/website/photos/explore/discover-air-quality_opodxi.svg"
+                      src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png"
                       alt="AirQo App"
                       layout="fill"
                       objectFit="contain"
