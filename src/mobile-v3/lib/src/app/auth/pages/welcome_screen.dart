@@ -145,29 +145,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ),
                     SizedBox(height: 18),
-                    InkWell(
-                      onTap: () => context.read<AuthBloc>().add(UseAsGuest()),
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Continue as guest ",
-                              style: TextStyle(
-                                color: Theme.of(context).textTheme.headlineLarge?.color,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SvgPicture.asset(
-                              'assets/icons/chevron-right.svg',
-                              height: 16.0,
-                              width: 16.0,
-                              color: Theme.of(context).textTheme.headlineLarge?.color,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // InkWell(
+                    //   onTap: () => context.read<AuthBloc>().add(UseAsGuest()),
+                    //   child: Center(
+                    //     child: Row(
+                    //       mainAxisAlignment: MainAxisAlignment.center,
+                    //       children: [
+                    //         Text(
+                    //           "Continue as guest ",
+                    //           style: TextStyle(
+                    //             color: Theme.of(context).textTheme.headlineLarge?.color,
+                    //             fontWeight: FontWeight.w500,
+                    //           ),
+                    //         ),
+                    //         SvgPicture.asset(
+                    //           'assets/icons/chevron-right.svg',
+                    //           height: 16.0,
+                    //           width: 16.0,
+                    //           color: Theme.of(context).textTheme.headlineLarge?.color,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

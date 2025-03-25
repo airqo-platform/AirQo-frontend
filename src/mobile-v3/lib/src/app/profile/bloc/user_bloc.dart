@@ -8,20 +8,40 @@ part 'user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository repository;
+  
   UserBloc(this.repository) : super(UserInitial()) {
-    on<UserEvent>((event, emit) async {
-      if (event is LoadUser) {
-        emit(UserLoading());
+    on<LoadUser>(_onLoadUser);
+    on<UpdateUser>(_onUpdateUser);
+  }
 
-        try {
-          ProfileResponseModel model = await this.repository.loadUserProfile();
+  Future<void> _onLoadUser(LoadUser event, Emitter<UserState> emit) async {
+    emit(UserLoading());
 
-          emit(UserLoaded(model));
-        } catch (e) {
-          print(e.toString());
-          emit(UserLoadingError(e.toString()));
-        }
-      }
-    });
+    try {
+      ProfileResponseModel model = await repository.loadUserProfile();
+      emit(UserLoaded(model));
+    } catch (e) {
+      print(e.toString());
+      emit(UserLoadingError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateUser(UpdateUser event, Emitter<UserState> emit) async {
+    emit(UserUpdating());
+
+    try {
+      ProfileResponseModel model = await repository.updateUserProfile(
+        firstName: event.firstName,
+        lastName: event.lastName,
+        email: event.email,
+      );
+      
+      emit(UserUpdateSuccess(model));
+      // Also emit UserLoaded state to update the UI
+      emit(UserLoaded(model));
+    } catch (e) {
+      print(e.toString());
+      emit(UserUpdateError(e.toString()));
+    }
   }
 }

@@ -1,4 +1,4 @@
-import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart'; 
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -35,10 +35,9 @@ class CountriesChip extends StatelessWidget {
             children: [
               Text(countryModel.flag + countryModel.countryName,
                   style: TextStyle(
-                      color: current ||
-                              Theme.of(context).brightness == Brightness.dark
+                      color: current 
                           ? Colors.white
-                          : Colors.black,
+                          : Theme.of(context).textTheme.bodyLarge?.color,
                       fontSize: fontSize,
                       fontWeight: FontWeight.w500)),
             ],

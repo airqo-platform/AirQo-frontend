@@ -15,10 +15,36 @@ final class UserLoaded extends UserState {
   final ProfileResponseModel model;
 
   const UserLoaded(this.model);
+  
+  @override
+  List<Object> get props => [model];
 }
 
 final class UserLoadingError extends UserState {
   final String message;
 
   const UserLoadingError(this.message);
+  
+  @override
+  List<Object> get props => [message];
+}
+
+final class UserUpdating extends UserState {}
+
+final class UserUpdateSuccess extends UserState {
+  final ProfileResponseModel model;
+
+  const UserUpdateSuccess(this.model);
+  
+  @override
+  List<Object> get props => [model];
+}
+
+final class UserUpdateError extends UserState {
+  final String message;
+
+  const UserUpdateError(this.message);
+  
+  @override
+  List<Object> get props => [message];
 }

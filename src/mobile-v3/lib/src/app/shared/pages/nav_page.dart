@@ -1,7 +1,6 @@
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -56,28 +55,18 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
               ),
               label: ""),
           BottomNavigationBarItem(
-              icon: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Container(
-                  height: 54,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        "assets/icons/airqo_map.svg",
-                        height: 20,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        "AirQo Map",
-                        style: TextStyle(color: Colors.white),
-                      )
-                    ],
+              icon: Column(
+                children: [
+                  SvgPicture.asset(
+                    "assets/icons/search_icon.svg",
+                    height: 20,
                   ),
-                  decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(198)),
-                ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Search",
+                    style: TextStyle(fontSize: 12),
+                  )
+                ],
               ),
               label: ""),
           BottomNavigationBarItem(

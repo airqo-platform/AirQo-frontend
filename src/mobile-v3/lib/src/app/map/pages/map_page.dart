@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -303,7 +303,7 @@ class _MapScreenState extends State<MapScreen>
                         zoom: 6,
                       ),
                       markers: markers.toSet()),
-                  Container(
+                  SizedBox(
                       height: MediaQuery.of(context).size.height,
                       width: MediaQuery.of(context).size.width,
                       child: Column(
@@ -320,6 +320,13 @@ class _MapScreenState extends State<MapScreen>
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Color(0xff3E4147)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(44),
+                                      ),
                                       // width: 56,
                                       // height: 300,
                                       child: Column(
@@ -352,13 +359,6 @@ class _MapScreenState extends State<MapScreen>
                                                   )),
                                             );
                                           }).toList()),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Color(0xff3E4147)
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(44),
-                                      ),
                                     ),
                                     Spacer(),
                                     Container(
@@ -419,7 +419,7 @@ class _MapScreenState extends State<MapScreen>
                                                     SizedBox(),
                                                     Text(
                                                         currentDetails!
-                                                            .siteDetails!.name!,
+                                                            .siteDetails!.searchName!,
                                                         style: TextStyle(
                                                             color: Color(
                                                                 0xff9EA3AA),
@@ -501,7 +501,7 @@ class _MapScreenState extends State<MapScreen>
                                                         Text(
                                                             measurement
                                                                 .siteDetails!
-                                                                .name!,
+                                                                .searchName!,
                                                             style: TextStyle(
                                                                 color: Color(
                                                                     0xff9EA3AA),
@@ -899,7 +899,7 @@ class _MapScreenState extends State<MapScreen>
                                                                   "",
                                                               subTitle: measurement
                                                                       .siteDetails!
-                                                                      .name ??
+                                                                      .searchName ??
                                                                   "",
                                                             ),
                                                           );
@@ -943,55 +943,6 @@ class _MapScreenState extends State<MapScreen>
                                                 ],
                                               );
                                             }
-                                            // } else if (placesState
-                                            //     is SearchLoaded) {
-                                            //   if (placesState.response
-                                            //       .predictions.isEmpty) {
-                                            //     return Center(
-                                            //       child: Text(
-                                            //         "No results found",
-                                            //         style: TextStyle(
-                                            //             fontSize: 18,
-                                            //             fontWeight:
-                                            //                 FontWeight.w500,
-                                            //             color: AppColors
-                                            //                 .boldHeadlineColor),
-                                            //       ),
-                                            //     );
-                                            //   }
-                                            //   return ListView.separated(
-                                            //       separatorBuilder:
-                                            //           (context, index) {
-                                            //         return Divider(
-                                            //           indent: 50,
-                                            //         );
-                                            //       },
-                                            //       padding:
-                                            //           const EdgeInsets.only(),
-                                            //       shrinkWrap: true,
-                                            //       itemCount: placesState
-                                            //           .response
-                                            //           .predictions
-                                            //           .length,
-                                            //       itemBuilder:
-                                            //           (context, index) {
-                                            //         Prediction prediction =
-                                            //             placesState.response
-                                            //                 .predictions[index];
-
-                                            //         return GestureDetector(
-                                            //           onTap: () => viewDetails(
-                                            //               placeName: prediction
-                                            //                   .description),
-                                            //           child: LocationDisplayWidget(
-                                            //               title: prediction
-                                            //                   .description,
-                                            //               subTitle: prediction
-                                            //                   .structuredFormatting
-                                            //                   .mainText),
-                                            //         );
-                                            //       });
-                                            // }
                                             return Expanded(
                                               child: Column(
                                                 crossAxisAlignment:
@@ -1147,7 +1098,7 @@ class _MapScreenState extends State<MapScreen>
                                                                     "Unknown City",
                                                                 subTitle: measurement
                                                                         .siteDetails
-                                                                        ?.name ??
+                                                                        ?.searchName ??
                                                                     "Unknown Location",
                                                               ),
                                                             );
