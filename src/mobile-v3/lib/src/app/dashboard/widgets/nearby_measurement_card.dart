@@ -9,13 +9,11 @@ import 'package:flutter_svg/svg.dart';
 class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
   final Measurement measurement;
   final double distance;
-  final Function(Measurement)? onTap;
 
   const NearbyMeasurementCard({
     super.key,
     required this.measurement,
     required this.distance,
-    this.onTap,
   });
 
   void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
