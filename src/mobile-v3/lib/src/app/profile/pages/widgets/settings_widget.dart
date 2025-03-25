@@ -55,6 +55,11 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           _showSnackBar('Please enable location services in settings.');
           return;
         }
+        // Recheck if the service was enabled after settings
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          return;
+        }
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
@@ -85,7 +90,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   }
 
   void _showLogoutConfirmation() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -149,7 +153,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return SingleChildScrollView(
       child: Padding(
