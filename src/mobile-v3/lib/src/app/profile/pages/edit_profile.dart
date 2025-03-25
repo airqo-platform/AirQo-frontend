@@ -302,7 +302,7 @@ class _EditProfileState extends State<EditProfile> {
                         style: TextStyle(
                           color: _formChanged
                               ? AppColors.primaryColor
-                              : subtitleColor.withOpacity(0.5),
+                              : subtitleColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
                         ),

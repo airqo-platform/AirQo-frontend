@@ -6,7 +6,6 @@ import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:airqo/src/meta/utils/colors.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -81,55 +80,29 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.primaryColor,
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
   void _showLogoutConfirmation() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final dialogBgColor = isDarkMode ? AppColors.highlightColor : Colors.white;
-    final textColor = isDarkMode ? Colors.white : AppColors.boldHeadlineColor4;
-    final subtitleColor = isDarkMode 
-        ? AppColors.secondaryHeadlineColor2 
-        : AppColors.secondaryHeadlineColor;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: dialogBgColor,
-        title: Text(
-          'Confirm Logout',
-          style: TextStyle(
-            color: textColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to log out?',
-          style: TextStyle(
-            color: subtitleColor,
-          ),
-        ),
+        title: Text('Confirm Logout'),
+        content: Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: subtitleColor,
-              ),
-            ),
+            child: Text('Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
             ),
             onPressed: () => _handleLogout(dialogContext),
-            child: const Text('Log Out'),
+            child: Text('Log Out'),
           ),
         ],
       ),
@@ -143,11 +116,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primaryColor,
-        ),
-      ),
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
@@ -181,46 +150,23 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    
-    // Theme-based colors
-    final textColor = isDarkMode ? Colors.white : AppColors.boldHeadlineColor4;
-    final subtitleColor = isDarkMode 
-        ? Colors.grey[400] 
-        : AppColors.secondaryHeadlineColor;
-    final makerereTextColor = isDarkMode 
-        ? Colors.white 
-        : AppColors.boldHeadlineColor4;
-    final appVersionColor = isDarkMode
-        ? Colors.grey[400]
-        : AppColors.secondaryHeadlineColor;
-    final cardBgColor = isDarkMode
-        ? AppColors.highlightColor
-        : Colors.white;
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: screenHeight * 0.02),
 
             // Location Setting
-            Card(
-              margin: EdgeInsets.only(bottom: 16),
-              elevation: isDarkMode ? 0 : 2,
-              color: cardBgColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: SettingsTile(
-                switchValue: _locationEnabled,
-                iconPath: "assets/images/shared/location_icon.svg",
-                title: "Location",
-                onChanged: _toggleLocation,
-                description:
-                    "AirQo to use your precise location to locate the Air Quality of your nearest location",
-              ),
+            SettingsTile(
+              switchValue: _locationEnabled,
+              iconPath: "assets/images/shared/location_icon.svg",
+              title: "Location",
+              onChanged: _toggleLocation,
+              description:
+                  "AirQo to use your precise location to locate the Air Quality of your nearest location",
             ),
 
             // Logout Button
@@ -229,30 +175,22 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  minimumSize: Size.fromHeight(screenHeight * 0.065),
-                  elevation: isDarkMode ? 0 : 3,
-                  shadowColor: Colors.red.withOpacity(0.3),
+                  minimumSize: Size.fromHeight(screenHeight * 0.07),
                 ),
                 onPressed: _showLogoutConfirmation,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.logout,
-                      size: 18,
-                      color: Colors.white,
-                    ),
+                    Icon(Icons.logout, color: Colors.white, size: 20),
                     SizedBox(width: 10),
                     Text(
                       "Log out",
                       style: TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -266,42 +204,32 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             Center(
               child: Column(
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isDarkMode ? Colors.black : AppColors.highlightColor,
-                    ),
-                    child: SvgPicture.asset(
-                      "assets/images/shared/logo.svg",
-                      height: screenHeight * 0.05,
-                    ),
+                  SvgPicture.asset(
+                    "assets/images/shared/logo.svg",
+                    height: screenHeight * 0.05,
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.01),
                   Text(
                     _appVersion,
                     style: TextStyle(
-                      color: appVersionColor,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
                       fontSize: 12,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
+                  SizedBox(height: screenHeight * 0.01),
                   Text(
                     "A PROJECT BY",
                     style: TextStyle(
-                      color: subtitleColor,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
                       fontSize: 12,
-                      letterSpacing: 1.2,
                     ),
                   ),
-                  SizedBox(height: 4),
                   Text(
                     "Makerere University".toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: makerereTextColor,
-                      letterSpacing: 1.0,
+                      fontSize: 20,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
                 ],
