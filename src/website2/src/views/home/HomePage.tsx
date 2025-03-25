@@ -103,7 +103,7 @@ const HomePage = () => {
           description="Visualize hourly air quality information with a single click, over our growing network across African cities"
           buttonText="View more"
           buttonLink="https://analytics.airqo.net/map"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728178762/website/photos/mapHome_rq49ql.png"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png"
           reverse={false}
           backgroundColor="bg-[#EDF3FF]"
           subtitleColor="text-black"
