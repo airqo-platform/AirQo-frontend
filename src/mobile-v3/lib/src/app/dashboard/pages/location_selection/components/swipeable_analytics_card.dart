@@ -201,7 +201,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> {
                               child: Center(
                                 child: SvgPicture.asset(
                                   getAirQualityIcon(widget.measurement,
-                                      widget.measurement.pm25!.value!),
+                                      widget.measurement.pm25?.value?? 0),
                                   height: 96,
                                   width: 96,
                                 ),

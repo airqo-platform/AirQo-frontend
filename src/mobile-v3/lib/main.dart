@@ -35,7 +35,8 @@ void main() async {
   await Hive.initFlutter();
 
   // Initialize Loggy before runApp
-  AppLoggySetup.init(isDevelopment: true); // Set to false for production
+  const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
+  AppLoggySetup.init(isDevelopment: !kReleaseMode);
 
   await dotenv.load(fileName: ".env.prod");
 
@@ -121,17 +122,6 @@ class AirqoMobile extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
-            // theme: isLightTheme ? ThemeData(
-            //     splashColor: Colors.transparent,
-            //     highlightColor: Colors.transparent,
-            //     fontFamily: "Inter",
-            //     useMaterial3: true,
-            //     appBarTheme: AppBarTheme(
-            //         scrolledUnderElevation: 0,
-            //         elevation: 0,
-            //         backgroundColor: Theme.of(context).scaffoldBackgroundColor),
-            //     scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            //     brightness: Brightness.light),
             title: "AirQo",
             home: Decider(),
           );
@@ -141,65 +131,12 @@ class AirqoMobile extends StatelessWidget {
   }
 }
 
-// class Decider extends StatefulWidget {
-//   @override
-//   _DeciderState createState() => _DeciderState();
-// }
 
-// class _DeciderState extends State<Decider> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
-//       builder: (context, connectivityState) {
-//         logDebug('Current connectivity state: $connectivityState');
-//         return Stack(
-//           children: [
-//             FutureBuilder<String?>(
-//               future: HiveRepository.getData('token', HiveBoxNames.authBox),
-//
-//               builder: (context, snapshot) {
-//
-//
-//                 // Handle loading state
-//                 if (snapshot.connectionState == ConnectionState.waiting) {
-//                   return Scaffold(
-//                     body: const Center(child: CircularProgressIndicator()),
-//                   );
-//                 }
-//                 if (snapshot.connectionState == ConnectionState.done) {
-//                   if (!snapshot.hasData) {
-//                     return WelcomeScreen();
-//                   } else {
-//                     return NavPage();
-//                   }
-//                 } else {
-//                   return Scaffold(body: Center(child: Text('An Error occured.')));
-//                 }
-//               },
-//             ),
-//             if (connectivityState is ConnectivityOffline)
-//               Positioned(
-//                 top: 0,
-//                 left: 0,
-//                 right: 0,
-//                 child: NoInternetBanner(
-//                   onClose: () {
-//                     logInfo('No internet connection banner dismissed');
-//                     context
-//                         .read<ConnectivityBloc>()
-//                         .add(ConnectivityBannerDismissed());
-//                   },
-//                 ),
-//               ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-// }
 class Decider extends StatefulWidget {
+  const Decider({super.key});
+
   @override
-  _DeciderState createState() => _DeciderState();
+  State<Decider> createState() => _DeciderState();
 }
 
 class _DeciderState extends State<Decider> {
