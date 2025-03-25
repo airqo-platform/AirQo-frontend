@@ -16,7 +16,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
   description = 'Discover the quality of air you are breathing',
   appStoreLink = '#',
   googlePlayLink = '#',
-  mockupImage = 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071559/website/photos/wrapper_aum5qm.png',
+  mockupImage = 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
 }) => {
   return (
     <section className="w-full ">
