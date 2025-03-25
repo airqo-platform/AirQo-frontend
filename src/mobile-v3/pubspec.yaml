@@ -58,6 +58,10 @@ dependencies:
   jwt_decoder: ^2.0.1
   pin_code_fields: ^8.0.1
   package_info_plus: ^8.1.3
+  dotted_border: ^2.1.0
+  loggy: ^2.0.3
+  permission_handler: ^11.4.0
+  geolocator: ^13.0.2
 
 
 dev_dependencies:

@@ -13,7 +13,7 @@ class PasswordResetInitial extends PasswordResetState {
 }
 
 class PasswordResetLoading extends PasswordResetState {
-  const PasswordResetLoading({String? email}) : super(email: email); // Optional email
+  const PasswordResetLoading({String? email}) : super(email: email);
 }
 
 class PasswordResetSuccess extends PasswordResetState {
@@ -29,10 +29,10 @@ class PasswordResetError extends PasswordResetState {
   final String message;
 
   const PasswordResetError({String? email, required this.message})
-      : super(email: email); // Optional email
+      : super(email: email); 
 
   @override
-  List<Object?> get props => [email, message]; // Nullable email
+  List<Object?> get props => [email, message]; 
 }
 
 class PasswordResetVerified extends PasswordResetState {
