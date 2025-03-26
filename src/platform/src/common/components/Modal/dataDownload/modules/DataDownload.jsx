@@ -1,10 +1,6 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-} from 'react';
+'use client';
+
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
@@ -389,141 +385,6 @@ const DataDownload = ({ onClose }) => {
     [refreshCountries, refreshCities, refreshDevices, refreshSites],
   );
 
-  /**
-   * Format CSV data to ensure proper structure
-   * Handles the specific formatting issues observed in production data
-   * where the API returns CSV with incorrect line breaks and commas
-   *
-   * @param {string|object} data - The API response data
-   * @returns {string} Properly formatted CSV data
-   */
-  const formatCSVData = (data) => {
-    console.log('Formatting CSV data, type:', typeof data);
-
-    // If data is undefined or null, return empty string
-    if (!data) {
-      console.error('No data received from API');
-      return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
-    }
-
-    // Create a variable to hold our CSV string
-    let csvContent = '';
-
-    // Handle different response types
-    if (typeof data === 'string') {
-      csvContent = data;
-
-      // Remove 'resp' prefix if exists
-      if (csvContent.startsWith('resp')) {
-        csvContent = csvContent.substring(4);
-      }
-
-      // Check if we already have a properly formatted CSV
-      if (
-        csvContent.includes('\n') &&
-        csvContent.split('\n')[0].includes(',') &&
-        csvContent.split('\n').length > 1
-      ) {
-        return csvContent;
-      }
-
-      // Handle the specific formatting issue seen in the example
-      // The API returns CSV with headers and values separated by newlines instead of commas
-
-      // First, ensure we have standard headers
-      const standardHeaders =
-        'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name';
-
-      // Check if the data starts with headers
-      if (csvContent.trim().startsWith('datetime')) {
-        // Split by commas and check if we're dealing with malformed CSV
-        // where each field is on a new line rather than comma-separated
-        const parts = csvContent.split(',');
-
-        if (parts.length >= 6) {
-          // First 6 items should be headers
-          const headers = parts.slice(0, 6).join(',');
-
-          // Handle the rest of the content - it needs to be properly arranged into rows
-          const restOfContent = parts.slice(6).join(',');
-
-          // Process the content to fix formatting issues
-          // The content appears to have values on separate lines that should be in one row
-
-          // Split by newlines and spaces that appear before dates
-          const formattedContent = restOfContent
-            .replace(/\s+(\d{4}-\d{2}-\d{2})/g, '\n$1') // Add newlines before dates
-            .replace(/\s+([^,\n"]*),/g, ',$1,') // Fix commas between fields
-            .replace(/,,+/g, ',') // Remove double commas
-            .replace(/,\s+/g, ',') // Remove spaces after commas
-            .replace(/\n\s+/g, '\n') // Remove spaces after newlines
-            .trim();
-
-          // Combine headers with formatted content
-          return `${headers}\n${formattedContent}`;
-        }
-      }
-
-      // If we can't properly format it using the approach above,
-      // try another approach based on the specific pattern observed in the example
-
-      // Extract values that appear to be separated by newlines or multiple spaces
-      const values = csvContent
-        .split(/[\n\r]+|\s{2,}/)
-        .filter((item) => item.trim());
-
-      // Group values into rows of 6 items (assuming 6 columns)
-      const rows = [];
-      let currentRow = [];
-
-      for (let i = 0; i < values.length; i++) {
-        const value = values[i].trim();
-
-        // Skip empty values
-        if (!value) continue;
-
-        // Add to current row
-        currentRow.push(value);
-
-        // When we have 6 values, add the row and start a new one
-        if (currentRow.length === 6) {
-          rows.push(currentRow.join(','));
-          currentRow = [];
-        }
-      }
-
-      // If there are remaining values in the current row, add them
-      if (currentRow.length > 0) {
-        rows.push(currentRow.join(','));
-      }
-
-      // Combine with standard headers
-      return standardHeaders + '\n' + rows.join('\n');
-    } else if (typeof data === 'object' && data !== null) {
-      // Handle object responses
-      if (data.data && typeof data.data === 'string') {
-        // If data.data is a string, recursively format it
-        return formatCSVData(data.data);
-      } else if (Array.isArray(data.data)) {
-        // If data.data is an array, convert to CSV
-        try {
-          const headers = Object.keys(data.data[0] || {}).join(',');
-          const rows = data.data
-            .map((row) => Object.values(row).join(','))
-            .join('\n');
-          return headers ? `${headers}\n${rows}` : '';
-        } catch (error) {
-          console.error('Error converting array to CSV:', error);
-          return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
-        }
-      }
-    }
-
-    // If we couldn't format the data, return empty CSV with headers
-    console.error('Unable to format CSV data:', typeof data);
-    return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
-  };
-
   // Handle download submission with simplified direct handling
   const handleSubmit = useCallback(
     async (e) => {
@@ -649,31 +510,35 @@ const DataDownload = ({ onClose }) => {
               if (typeof response === 'string') {
                 console.log(
                   'CSV Raw response preview:',
-                  response.substring(0, 100),
+                  response.substring(0, 200),
                 );
               }
 
-              // Format the CSV data using our new function
-              const formattedCSV = formatCSVData(response);
+              // For CSV, we need to handle the response directly without parsing
+              let csvData = response;
 
-              // Log the formatted data for debugging
-              console.log(
-                'Formatted CSV preview:',
-                formattedCSV.substring(0, 100),
-              );
-
-              // Ensure we have data before saving
+              // If response is an object with data property, extract it
               if (
-                !formattedCSV ||
-                formattedCSV.trim() === '' ||
-                formattedCSV ===
-                  'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n'
+                typeof response === 'object' &&
+                response !== null &&
+                response.data
               ) {
-                throw new Error('No data available for the selected criteria');
+                csvData = response.data;
               }
 
-              // Save the formatted CSV file
-              saveAs(new Blob([formattedCSV], { type: mimeType }), fileName);
+              // If we have a string, use it directly - the API is already returning CSV format
+              if (typeof csvData === 'string') {
+                // Check if the CSV data is valid
+                if (csvData.trim() && csvData.includes(',')) {
+                  saveAs(new Blob([csvData], { type: mimeType }), fileName);
+                } else {
+                  throw new Error(
+                    'No data available for the selected criteria',
+                  );
+                }
+              } else {
+                throw new Error('Invalid CSV data format received from server');
+              }
             } catch (error) {
               console.error('CSV processing error:', error);
               throw new Error(

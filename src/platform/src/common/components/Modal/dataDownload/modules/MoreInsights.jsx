@@ -1,10 +1,6 @@
-import React, {
-  useState,
-  useMemo,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react';
+'use client';
+
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -322,98 +318,7 @@ const MoreInsights = () => {
   }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Format CSV data to ensure proper structure
-   *
-   * This function handles the specific formatting issues observed in production data
-   * where lines might be split incorrectly with newlines and commas
-   */
-  const formatCSVData = (data) => {
-    if (!data || typeof data !== 'string') {
-      return '';
-    }
-
-    // First, check if it's already well-formatted CSV with proper newlines
-    if (data.includes('\n') && data.split('\n')[0].includes(',')) {
-      return data;
-    }
-
-    // Replace any 'resp' prefix if it exists
-    if (data.startsWith('resp')) {
-      data = data.substring(4);
-    }
-
-    // Fix the formatting issues in the CSV data
-    try {
-      // First, split by commas to get the headers
-      const parts = data.split(',');
-
-      if (parts.length >= 6) {
-        // Extract the headers (first 6 items should be headers)
-        const headers = parts.slice(0, 6).join(',');
-
-        // Get the rest of the content
-        const content = parts.slice(6).join(',');
-
-        // If headers don't contain the expected field names, use default headers
-        const defaultHeaders =
-          'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name';
-        const finalHeaders = headers.includes('datetime')
-          ? headers
-          : defaultHeaders;
-
-        // Now parse the content, assuming each row has 6 fields
-        // This regex finds patterns like "value1 value2 value3 value4 value5 value6"
-        const contentRows = [];
-        let currentRow = [];
-        let quoteOpen = false;
-
-        // Process each part of the content to rebuild the rows
-        content.split(/\s+/).forEach((part) => {
-          if (part.includes('"') && !quoteOpen) {
-            quoteOpen = true;
-            currentRow.push(part);
-          } else if (part.includes('"') && quoteOpen) {
-            quoteOpen = false;
-            currentRow.push(part);
-            if (currentRow.length === 6) {
-              contentRows.push(currentRow.join(','));
-              currentRow = [];
-            }
-          } else if (quoteOpen) {
-            currentRow.push(part);
-          } else {
-            currentRow.push(part);
-            if (currentRow.length === 6) {
-              contentRows.push(currentRow.join(','));
-              currentRow = [];
-            }
-          }
-        });
-
-        // If there are leftover parts in currentRow, add them as a final row
-        if (currentRow.length > 0) {
-          contentRows.push(currentRow.join(','));
-        }
-
-        // Rebuild the CSV with proper newlines
-        return `${finalHeaders}\n${contentRows.join('\n')}`;
-      }
-
-      // If we can't parse it cleanly, return it as is but with proper newlines
-      // between what appear to be rows
-      return data.replace(/(\d{4}-\d{2}-\d{2})/g, '\n$1').trim();
-    } catch (error) {
-      console.error('Error formatting CSV data:', error);
-      // If all else fails, just return the data as-is but ensure it has the headers
-      if (!data.includes('datetime')) {
-        return `datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n${data}`;
-      }
-      return data;
-    }
-  };
-
-  /**
-   * Download data in CSV format with improved data formatting.
+   * Download data in CSV format with improved data handling.
    * Only downloads data for visible (checked) sites.
    */
   const handleDataDownload = async () => {
@@ -485,42 +390,54 @@ const MoreInsights = () => {
       const response = await fetchData(apiData);
       clearTimeout(downloadTimeout);
 
-      // Process the response
-      let csvContent = '';
+      // Log the response for debugging
+      console.log('CSV download response type:', typeof response);
+
+      // Process the response based on its type
+      let csvData = '';
 
       if (typeof response === 'string') {
-        // Direct string response (common in production)
-        csvContent = response;
+        // Direct string response - use it directly
+        csvData = response;
+
+        // Remove 'resp' prefix if it exists
+        if (csvData.startsWith('resp')) {
+          csvData = csvData.substring(4);
+        }
+
+        console.log('CSV string response preview:', csvData.substring(0, 100));
       } else if (typeof response === 'object' && response !== null) {
-        // Object response (common in development)
+        // Object response - extract the data property if it exists
         if (response.data && typeof response.data === 'string') {
-          csvContent = response.data;
+          csvData = response.data;
+          console.log('CSV object.data preview:', csvData.substring(0, 100));
         } else if (Array.isArray(response.data)) {
           // Convert array to CSV
           const headers = Object.keys(response.data[0] || {}).join(',');
           const rows = response.data
             .map((row) => Object.values(row).join(','))
             .join('\n');
-          csvContent = headers ? `${headers}\n${rows}` : '';
-        } else if (response.message && typeof response.message === 'string') {
-          csvContent = response.message;
+          csvData = headers ? `${headers}\n${rows}` : '';
         } else {
-          // If nothing else works, stringify the object
+          // If we can't extract data, stringify the object
           try {
-            csvContent = JSON.stringify(response);
-            csvContent = `data_json\n${csvContent}`;
+            csvData = JSON.stringify(response);
+            throw new Error('Invalid CSV data format received from server');
           } catch (e) {
-            console.error('Failed to stringify response:', e);
+            console.error('Failed to process response:', e);
+            throw new Error('Failed to process the data from the server');
           }
         }
       }
 
-      // Format the CSV data to fix any issues
-      const formattedCSV = formatCSVData(csvContent);
-
       // Ensure we actually have some content
-      if (!formattedCSV || formattedCSV.trim() === '') {
+      if (!csvData || csvData.trim() === '') {
         throw new Error('No data was returned from the server');
+      }
+
+      // Validate that we have CSV data with headers and at least one row
+      if (!csvData.includes(',')) {
+        throw new Error('Invalid CSV format received from server');
       }
 
       // Create descriptive filename
@@ -541,15 +458,12 @@ const MoreInsights = () => {
         // Multiple sites
         fileName = `${sitesToDownload.length}_selected_sites_${
           chartData.pollutionType
-        }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(
-          parseISO(endDate),
-          'yyyy-MM-dd',
-        )}.csv`;
+        }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
       }
 
       // Save the file with proper encoding
       const mimeType = 'text/csv;charset=utf-8;';
-      const blob = new Blob([formattedCSV], { type: mimeType });
+      const blob = new Blob([csvData], { type: mimeType });
       saveAs(blob, fileName);
 
       CustomToast({
@@ -895,16 +809,10 @@ const MoreInsights = () => {
                 className="w-auto text-center"
               >
                 <TabButtons
-                  btnText={`Download ${
-                    visibleSites.length > 0
-                      ? `(${visibleSites.length})`
-                      : 'Data'
-                  }`}
+                  btnText={`Download ${visibleSites.length > 0 ? `(${visibleSites.length})` : 'Data'}`}
                   Icon={<DownloadIcon width={16} height={17} color="white" />}
                   onClick={handleDataDownload}
-                  btnStyle={`${
-                    visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
-                  } text-white border ${
+                  btnStyle={`${visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'} text-white border ${
                     visibleSites.length > 0
                       ? 'border-blue-600'
                       : 'border-gray-400'
