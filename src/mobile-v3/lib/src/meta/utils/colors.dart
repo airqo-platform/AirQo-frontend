@@ -26,6 +26,11 @@ class AppColors {
   static Color dividerColordark = Color(0xff3E4147);
   static Color dividerColorlight = Color(0xffE1E7EC);
   static Color boldHeadlineColor5 = Color(0xff3F4B5F);
+  static Color pmcolorlight = Color(0xff9EB0C2);
+  static Color secondaryHeadlineColor4 = Color(0xff6F87A1);
+  static Color navigationlight = Color(0xff485972);
+
+
 }
 
 class AppTheme {
