@@ -118,8 +118,16 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
             child: CircleAvatar(
               radius: 24,
-              backgroundColor: Theme.of(context).highlightColor,
-              child: Center(child: Text("$firstName$lastName")),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
+              child: Center(
+                  child: Text(
+                "$firstName$lastName",
+                style: TextStyle(
+                  color: AppColors.navigationlight,
+                ),
+              )),
             ),
           );
         } else if (userState is UserLoadingError) {
