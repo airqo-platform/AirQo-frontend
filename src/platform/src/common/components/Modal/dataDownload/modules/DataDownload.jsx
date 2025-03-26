@@ -52,8 +52,7 @@ export const DownloadDataHeader = () => (
   </h3>
 );
 
-// Constants for selection limits
-const MAX_SELECTIONS = 10;
+// Filter type constants
 const FILTER_TYPES = {
   COUNTRIES: 'countries',
   CITIES: 'cities',
@@ -341,7 +340,7 @@ const DataDownload = ({ onClose }) => {
     [refreshSites, refreshDevices, clearSelections],
   );
 
-  // Toggle item selection with validation and UX feedback
+  // Toggle item selection with no limit
   const handleToggleItem = useCallback(
     (item) => {
       // For countries and cities, only allow one selection
@@ -364,17 +363,10 @@ const DataDownload = ({ onClose }) => {
         return;
       }
 
-      // For sites and devices, check max limit
+      // For sites and devices, allow unlimited selections
       const isSelected = selectedItems.some((s) => s._id === item._id);
-      if (!isSelected && selectedItems.length >= MAX_SELECTIONS) {
-        setFormError(
-          `You cannot select more than ${MAX_SELECTIONS} ${activeFilterKey}`,
-        );
-        setMessageType(MESSAGE_TYPES.ERROR);
-        return;
-      }
 
-      // Update selection
+      // Update selection without any limit
       setSelectedItems((prev) =>
         isSelected ? prev.filter((s) => s._id !== item._id) : [...prev, item],
       );
@@ -403,6 +395,168 @@ const DataDownload = ({ onClose }) => {
     [refreshCountries, refreshCities, refreshDevices, refreshSites],
   );
 
+  /**
+   * Process CSV data with enhanced handling for various response formats
+   * @param {any} response - API response which could be string or object
+   * @returns {string} Properly formatted CSV data
+   */
+  const processCSVData = (response) => {
+    // Track processing steps for debugging
+    console.log('Processing CSV data, type:', typeof response);
+
+    // Handle CSV response - could be string or object
+    let csvData = response;
+
+    // If it's an object with a data property, try to convert it
+    if (typeof response === 'object' && response !== null) {
+      console.log('Response is an object, checking properties');
+
+      if (response.data && typeof response.data === 'string') {
+        console.log('Found string data property');
+        csvData = response.data;
+      } else if (response.message && typeof response.message === 'string') {
+        console.log('Found string message property');
+        csvData = response.message;
+      } else if (Array.isArray(response.data)) {
+        console.log('Found array data property, converting to CSV');
+        // Try to convert object to CSV
+        try {
+          const headers = Object.keys(response.data[0] || {}).join(',');
+          const rows = response.data
+            .map((row) => Object.values(row).join(','))
+            .join('\n');
+          csvData = headers ? `${headers}\n${rows}` : '';
+        } catch (error) {
+          console.error('CSV conversion error:', error);
+          throw new Error('Error converting data to CSV format');
+        }
+      } else {
+        console.log('Unknown object format, attempting JSON stringify');
+        try {
+          // Last resort: try to stringify the object
+          const jsonString = JSON.stringify(response);
+          throw new Error(
+            `Invalid CSV data format received: ${jsonString.substring(0, 100)}...`,
+          );
+        } catch (e) {
+          console.error('JSON stringify error:', e);
+          throw new Error('Invalid CSV data format received');
+        }
+      }
+    }
+
+    // If it's a string, clean it up - handle 'resp' prefix
+    if (typeof csvData === 'string') {
+      console.log('Processing string CSV data');
+
+      // Remove 'resp' prefix if it exists
+      if (csvData.startsWith('resp')) {
+        console.log('Removing resp prefix');
+        csvData = csvData.substring(4);
+      }
+
+      // Handle the case where the response is HTML or contains invalid characters
+      if (csvData.includes('<html') || csvData.includes('<!DOCTYPE')) {
+        console.error('Received HTML instead of CSV');
+        throw new Error('Server returned HTML instead of CSV data');
+      }
+
+      // Check that it looks like CSV
+      if (!csvData.includes(',')) {
+        console.error(
+          'Data does not contain commas:',
+          csvData.substring(0, 100),
+        );
+        throw new Error('Invalid CSV format received');
+      }
+
+      // Ensure we have header row
+      const firstLine = csvData.split('\n')[0];
+      if (
+        !firstLine.includes('datetime') &&
+        !firstLine.includes('device_name')
+      ) {
+        console.log('Adding CSV header row');
+        csvData = `datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n${csvData}`;
+      }
+
+      console.log('CSV data processed successfully');
+      return csvData;
+    }
+
+    console.error('Failed to process CSV data');
+    throw new Error('Invalid CSV data format received');
+  };
+
+  // Process JSON data
+  const processJSONData = (response) => {
+    let jsonData;
+
+    try {
+      // Handle different response formats
+      if (typeof response === 'string') {
+        try {
+          // Try to parse JSON string
+          jsonData = JSON.parse(response);
+        } catch (error) {
+          console.error('JSON parse error:', error);
+          throw new Error('Invalid JSON data received');
+        }
+      } else if (typeof response === 'object' && response !== null) {
+        // Use response object directly
+        jsonData = response;
+      } else {
+        throw new Error('Invalid JSON data received');
+      }
+
+      // Extract the data array if it exists
+      return jsonData.data || jsonData;
+    } catch (error) {
+      console.error('JSON processing error:', error);
+      throw error;
+    }
+  };
+
+  // Process PDF data
+  const processPDFData = (response) => {
+    let pdfData = [];
+
+    try {
+      // Process different response formats
+      if (typeof response === 'string') {
+        try {
+          // Try to parse as JSON
+          const parsedData = JSON.parse(response);
+          pdfData = parsedData.data || [];
+        } catch (error) {
+          // If not valid JSON, try to parse as CSV
+          console.error('JSON parse error:', error);
+          const lines = response.split('\n');
+          if (lines.length > 1) {
+            const headers = lines[0].split(',');
+            pdfData = lines
+              .slice(1)
+              .filter(Boolean)
+              .map((line) => {
+                const values = line.split(',');
+                return headers.reduce((obj, header, i) => {
+                  obj[header] = values[i];
+                  return obj;
+                }, {});
+              });
+          }
+        }
+      } else if (typeof response === 'object' && response !== null) {
+        pdfData = response.data || [];
+      }
+
+      return pdfData;
+    } catch (error) {
+      console.error('PDF data processing error:', error);
+      throw new Error('Error processing data for PDF generation');
+    }
+  };
+
   // Handle download submission with comprehensive error handling
   const handleSubmit = useCallback(
     async (e) => {
@@ -424,7 +578,9 @@ const DataDownload = ({ onClose }) => {
         }
 
         if (!selectedItems.length) {
-          throw new Error('Please select at least one location');
+          throw new Error(
+            'Please select at least one location to download data from',
+          );
         }
 
         const startDate = new Date(formData.duration.name.start);
@@ -432,7 +588,7 @@ const DataDownload = ({ onClose }) => {
 
         // Validate date range
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-          throw new Error('Invalid date selection. Please try again');
+          throw new Error('Invalid date selection. Please choose valid dates');
         }
 
         if (startDate >= endDate) {
@@ -471,7 +627,7 @@ const DataDownload = ({ onClose }) => {
         ) {
           if (!siteAndDeviceIds?.site_ids?.length) {
             throw new Error(
-              `No sites found for the selected ${
+              `No monitoring sites found for the selected ${
                 activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'
               }`,
             );
@@ -509,91 +665,80 @@ const DataDownload = ({ onClose }) => {
         }
 
         // Make API call with comprehensive error handling
-        const response = await fetchData(apiData).catch((error) => {
-          // Ignore aborted requests
-          if (error.name === 'AbortError') {
-            throw new Error('Request was cancelled');
-          }
+        let response = await fetchData(apiData);
 
-          // Handle common HTTP errors with user-friendly messages
-          if (error.response?.status === 500) {
-            throw new Error(
-              'Server error. The selected data may be too large. Please try fewer locations or a smaller date range',
-            );
-          }
-          if (error.response?.status === 504) {
-            throw new Error(
-              'Request timeout. Please try a smaller date range or fewer locations',
-            );
-          }
-          if (error.response?.status === 404) {
-            throw new Error('No data found for your selection');
-          }
-          if (error.response?.status === 400) {
-            throw new Error(
-              'Invalid request parameters. Please check your selections',
-            );
-          }
-          if (error.message === 'Network Error') {
-            throw new Error(
-              'Network connection issue. Please check your internet connection',
-            );
-          }
-
-          // Default error message
-          throw error;
-        });
-
-        // Process and download the file based on file type
+        // Set file name and extension
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
-        const fileName = `${formData.title.name || 'Data'}.${fileExtension}`;
+        const fileName = `${formData.title.name || 'Air_Quality_Data'}.${fileExtension}`;
 
+        // Process and download the file based on file type with proper error handling
         if (fileExtension === 'csv') {
-          if (typeof response !== 'string') {
-            throw new Error('Invalid CSV data format received');
-          }
-          saveAs(new Blob([response], { type: mimeType }), fileName);
-        } else if (fileExtension === 'json') {
-          if (!response.data) {
-            throw new Error('Invalid JSON data received');
-          }
-          const json = JSON.stringify(response.data, null, 2);
-          saveAs(new Blob([json], { type: mimeType }), fileName);
-        } else if (fileExtension === 'pdf') {
-          const pdfData = response.data || [];
-          const doc = new jsPDF();
-
-          if (pdfData.length === 0) {
-            doc.text('No data available to display', 10, 10);
-          } else {
-            const tableColumn = Object.keys(pdfData[0]);
-            const tableRows = pdfData.map((row) =>
-              tableColumn.map((col) =>
-                row[col] !== undefined ? row[col] : '---',
-              ),
+          try {
+            const csvData = processCSVData(response);
+            saveAs(new Blob([csvData], { type: mimeType }), fileName);
+          } catch (error) {
+            console.error('CSV processing error:', error);
+            throw new Error(
+              'Error processing CSV data. Please try again or select a different file format.',
             );
-
-            doc.autoTable({
-              head: [tableColumn],
-              body: tableRows,
-              styles: { fontSize: 8 },
-              headStyles: { fillColor: [22, 160, 133] },
-              theme: 'striped',
-              margin: { top: 20 },
-            });
           }
+        } else if (fileExtension === 'json') {
+          try {
+            const jsonData = processJSONData(response);
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            saveAs(new Blob([jsonString], { type: mimeType }), fileName);
+          } catch (error) {
+            console.error('JSON processing error:', error);
+            throw new Error(
+              'Error processing JSON data. Please try again or select a different file format.',
+            );
+          }
+        } else if (fileExtension === 'pdf') {
+          try {
+            const pdfData = processPDFData(response);
+            const doc = new jsPDF();
 
-          doc.save(fileName);
+            if (pdfData.length === 0) {
+              doc.text('No data available to display', 10, 10);
+            } else {
+              const tableColumn = Object.keys(pdfData[0]);
+              const tableRows = pdfData.map((row) =>
+                tableColumn.map((col) =>
+                  row[col] !== undefined ? row[col] : '---',
+                ),
+              );
+
+              doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [22, 160, 133] },
+                theme: 'striped',
+                margin: { top: 20 },
+              });
+            }
+
+            doc.save(fileName);
+          } catch (error) {
+            console.error('PDF processing error:', error);
+            throw new Error(
+              'Error generating PDF. Please try again or select a different file format.',
+            );
+          }
         } else {
-          throw new Error('Unsupported file type');
+          throw new Error(
+            'Unsupported file format. Please select CSV, JSON, or PDF.',
+          );
         }
 
         // Success handling
-        CustomToast(); // Show success toast notification
-        handleClearSelection(); // Reset the form
-        onClose(); // Close the modal
+        CustomToast();
+        handleClearSelection();
+        onClose();
       } catch (error) {
+        console.error('Download error:', error);
+
         // Skip analytics tracking for aborted requests
         if (error.name !== 'AbortError') {
           // Log error to analytics
@@ -605,7 +750,10 @@ const DataDownload = ({ onClose }) => {
         }
 
         // Set user-friendly error message
-        setFormError(error.message || 'An error occurred. Please try again');
+        setFormError(
+          error.message ||
+            'An error occurred while downloading the data. Please try again.',
+        );
         setMessageType(MESSAGE_TYPES.ERROR);
       } finally {
         setDownloadLoading(false);
@@ -834,7 +982,7 @@ const DataDownload = ({ onClose }) => {
 
     if (selectedItems.length === 0) {
       return {
-        message: 'Select locations to continue',
+        message: 'Select at least one location to continue',
         type: MESSAGE_TYPES.INFO,
       };
     }
@@ -928,21 +1076,23 @@ const DataDownload = ({ onClose }) => {
       {/* Data Table Section */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {/* Selection info - keeping basic selection info but removing error UI */}
+          {/* Selection info with improved messaging */}
           {selectedItems.length > 0 && (
-            <div className="mb-4 flex justify-between items-center px-4 py-2 bg-blue-50 border-l-4 border-blue-400 rounded-md">
+            <div className="mb-4 flex justify-between items-center px-4 py-2 capitalize bg-blue-50 border-l-4 border-blue-400 rounded-md">
               <div className="text-blue-800 text-sm">
                 {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
-                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected`
+                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
                   : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
-                    ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected`
+                    ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
                     : `${selectedItems.length} ${
                         selectedItems.length === 1
                           ? activeFilterKey === FILTER_TYPES.SITES
-                            ? 'site'
+                            ? 'monitoring site'
                             : 'device'
-                          : activeFilterKey
-                      } selected`}
+                          : activeFilterKey === FILTER_TYPES.SITES
+                            ? 'monitoring sites'
+                            : 'devices'
+                      } selected for data download`}
               </div>
               <button
                 onClick={clearSelections}
@@ -955,14 +1105,14 @@ const DataDownload = ({ onClose }) => {
             </div>
           )}
 
-          {/* Selection guidance - keeping this helpful info */}
+          {/* Selection guidance - improved messaging */}
           {selectedItems.length === 0 && (
             <div className="mb-4 px-4 py-2 bg-blue-50 border-l-4 border-blue-400 rounded-md">
               <p className="text-blue-800 text-sm">
                 {activeFilterKey === FILTER_TYPES.COUNTRIES ||
                 activeFilterKey === FILTER_TYPES.CITIES
-                  ? `You can select one ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} at a time`
-                  : `You can select up to ${MAX_SELECTIONS} ${activeFilterKey}`}
+                  ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
+                  : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
               </p>
             </div>
           )}
@@ -984,7 +1134,7 @@ const DataDownload = ({ onClose }) => {
           />
         </div>
 
-        {/* Footer - now handles all error display */}
+        {/* Footer - handles all error display */}
         <Footer
           setError={setFormError}
           messageType={footerInfo.type}

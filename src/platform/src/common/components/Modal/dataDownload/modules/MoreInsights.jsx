@@ -321,7 +321,7 @@ const MoreInsights = () => {
   }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Download data in CSV format with improved error handling.
+   * Download data in CSV format with improved error handling and data processing.
    * Only downloads data for visible (checked) sites.
    */
   const handleDataDownload = async () => {
@@ -335,6 +335,7 @@ const MoreInsights = () => {
     }
 
     setDownloadLoading(true);
+    setDownloadError(null);
 
     try {
       // Cancel any existing download request
@@ -380,15 +381,81 @@ const MoreInsights = () => {
 
       // Set a timeout for the download
       const downloadTimeout = setTimeout(() => {
-        setDownloadError(
-          'The download request is taking longer than expected. Please try again later.',
-        );
-        setDownloadLoading(false);
-      }, 30000); // 30-second timeout
+        if (downloadControllerRef.current) {
+          downloadControllerRef.current.abort();
+          setDownloadError(
+            'The download request is taking longer than expected. Please try again later.',
+          );
+          setDownloadLoading(false);
+        }
+      }, 30000);
 
       // Fetch the data
-      const data = await fetchData(apiData);
+      const response = await fetchData(apiData);
       clearTimeout(downloadTimeout);
+
+      // Process the CSV data to ensure it's properly formatted
+      let csvData = response;
+
+      // Handle different response formats
+      if (typeof response === 'object' && response !== null) {
+        // If it's an object with a data property that's a string
+        if (response.data && typeof response.data === 'string') {
+          csvData = response.data;
+        }
+        // If it's an object with a data property that's an array
+        else if (Array.isArray(response.data)) {
+          // Convert object to CSV
+          const headers = Object.keys(response.data[0] || {}).join(',');
+          const rows = response.data
+            .map((row) => Object.values(row).join(','))
+            .join('\n');
+          csvData = headers ? `${headers}\n${rows}` : '';
+        }
+        // If it's an object with a message property
+        else if (response.message && typeof response.message === 'string') {
+          csvData = response.message;
+        }
+        // If it's just an object, convert to JSON and then to CSV
+        else {
+          console.warn(
+            'Unexpected response format, attempting conversion:',
+            response,
+          );
+          try {
+            const jsonString = JSON.stringify(response);
+            csvData = `data_json\n${jsonString}`;
+          } catch (e) {
+            console.error('Error converting response to JSON:', e);
+            throw new Error('Could not process response data format');
+          }
+        }
+      }
+
+      // If we still don't have string data, try to convert what we have
+      if (typeof csvData !== 'string') {
+        throw new Error('Invalid data format received');
+      }
+
+      // Clean up the CSV data
+      // Remove 'resp' prefix if it exists
+      if (csvData.startsWith('resp')) {
+        csvData = csvData.substring(4);
+      }
+
+      // Fix any missing newlines at the beginning
+      if (
+        csvData.trim() &&
+        !csvData.startsWith('datetime') &&
+        !csvData.startsWith('\n')
+      ) {
+        csvData = `datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n${csvData}`;
+      }
+
+      // Ensure we have valid CSV format
+      if (!csvData.includes(',')) {
+        throw new Error('Invalid CSV format received');
+      }
 
       // Create descriptive filename
       let fileName;
@@ -414,9 +481,9 @@ const MoreInsights = () => {
         )}.csv`;
       }
 
-      // Save the file
+      // Save the file with proper encoding
       const mimeType = 'text/csv;charset=utf-8;';
-      const blob = new Blob([data], { type: mimeType });
+      const blob = new Blob([csvData], { type: mimeType });
       saveAs(blob, fileName);
 
       CustomToast({
@@ -442,7 +509,6 @@ const MoreInsights = () => {
       setDownloadLoading(false);
     }
   };
-
   /**
    * Date range change handler
    */
