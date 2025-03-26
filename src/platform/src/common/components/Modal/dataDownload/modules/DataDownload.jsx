@@ -505,16 +505,11 @@ const DataDownload = ({ onClose }) => {
           // Direct handling of different file types with minimal processing
           if (fileExtension === 'csv') {
             try {
-              // Log the raw response for debugging
-              console.log('CSV Raw response type:', typeof response);
-              if (typeof response === 'string') {
-                console.log(
-                  'CSV Raw response preview:',
-                  response.substring(0, 200),
-                );
-              }
+              // Log the raw response for debugging in production
+              console.log('CSV RAW RESPONSE (DataDownload):', response);
+              console.log('CSV response type:', typeof response);
 
-              // For CSV, we need to handle the response directly without parsing
+              // For CSV, just use what the API returns directly
               let csvData = response;
 
               // If response is an object with data property, extract it
@@ -524,26 +519,16 @@ const DataDownload = ({ onClose }) => {
                 response.data
               ) {
                 csvData = response.data;
+                console.log('Using response.data, type:', typeof csvData);
               }
 
-              // If we have a string, use it directly - the API is already returning CSV format
-              if (typeof csvData === 'string') {
-                // Check if the CSV data is valid
-                if (csvData.trim() && csvData.includes(',')) {
-                  saveAs(new Blob([csvData], { type: mimeType }), fileName);
-                } else {
-                  throw new Error(
-                    'No data available for the selected criteria',
-                  );
-                }
-              } else {
-                throw new Error('Invalid CSV data format received from server');
-              }
+              // Create and download the blob without converting or reformatting
+              const blob = new Blob([csvData], { type: mimeType });
+              console.log('CSV Blob created with size:', blob.size);
+              saveAs(blob, fileName);
             } catch (error) {
-              console.error('CSV processing error:', error);
-              throw new Error(
-                'Error processing CSV data. Please try again or select a different file format.',
-              );
+              console.error('CSV download error:', error);
+              throw new Error('Error saving CSV data. Please try again.');
             }
           } else if (fileExtension === 'json') {
             // JSON handling

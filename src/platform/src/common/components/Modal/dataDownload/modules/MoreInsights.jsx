@@ -390,55 +390,9 @@ const MoreInsights = () => {
       const response = await fetchData(apiData);
       clearTimeout(downloadTimeout);
 
-      // Log the response for debugging
-      console.log('CSV download response type:', typeof response);
-
-      // Process the response based on its type
-      let csvData = '';
-
-      if (typeof response === 'string') {
-        // Direct string response - use it directly
-        csvData = response;
-
-        // Remove 'resp' prefix if it exists
-        if (csvData.startsWith('resp')) {
-          csvData = csvData.substring(4);
-        }
-
-        console.log('CSV string response preview:', csvData.substring(0, 100));
-      } else if (typeof response === 'object' && response !== null) {
-        // Object response - extract the data property if it exists
-        if (response.data && typeof response.data === 'string') {
-          csvData = response.data;
-          console.log('CSV object.data preview:', csvData.substring(0, 100));
-        } else if (Array.isArray(response.data)) {
-          // Convert array to CSV
-          const headers = Object.keys(response.data[0] || {}).join(',');
-          const rows = response.data
-            .map((row) => Object.values(row).join(','))
-            .join('\n');
-          csvData = headers ? `${headers}\n${rows}` : '';
-        } else {
-          // If we can't extract data, stringify the object
-          try {
-            csvData = JSON.stringify(response);
-            throw new Error('Invalid CSV data format received from server');
-          } catch (e) {
-            console.error('Failed to process response:', e);
-            throw new Error('Failed to process the data from the server');
-          }
-        }
-      }
-
-      // Ensure we actually have some content
-      if (!csvData || csvData.trim() === '') {
-        throw new Error('No data was returned from the server');
-      }
-
-      // Validate that we have CSV data with headers and at least one row
-      if (!csvData.includes(',')) {
-        throw new Error('Invalid CSV format received from server');
-      }
+      // Log the response for debugging in production
+      console.log('CSV RAW RESPONSE (MoreInsights):', response);
+      console.log('CSV response type:', typeof response);
 
       // Create descriptive filename
       let fileName;
@@ -461,9 +415,19 @@ const MoreInsights = () => {
         }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
       }
 
-      // Save the file with proper encoding
+      // Handle the response directly - just use what we get from the API
+      let csvData = response;
+
+      // If response is an object with data property, extract it
+      if (typeof response === 'object' && response !== null && response.data) {
+        csvData = response.data;
+        console.log('Using response.data, type:', typeof csvData);
+      }
+
+      // Save the file directly without processing
       const mimeType = 'text/csv;charset=utf-8;';
       const blob = new Blob([csvData], { type: mimeType });
+      console.log('CSV Blob created with size:', blob.size);
       saveAs(blob, fileName);
 
       CustomToast({
