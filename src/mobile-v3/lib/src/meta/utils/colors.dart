@@ -29,6 +29,7 @@ class AppColors {
   static Color pmcolorlight = Color(0xff9EB0C2);
   static Color secondaryHeadlineColor4 = Color(0xff6F87A1);
   static Color navigationlight = Color(0xff485972);
+  static Color darkHighlight = Color(0xFF2E2F33);      // Darker highlight for cards in dark theme
 
 
 }
