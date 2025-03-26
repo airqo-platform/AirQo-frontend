@@ -30,7 +30,7 @@ const useDataDownload = () => {
       } else {
         // Use exportDataApi in production
         const response = await exportDataApi(data);
-        return response.data;
+        return response;
       }
     } catch (error) {
       console.error('Error fetching data:', error);
