@@ -321,7 +321,7 @@ const MoreInsights = () => {
   }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Download data in CSV format with improved error handling and data processing.
+   * Download data in CSV format with simplified error handling.
    * Only downloads data for visible (checked) sites.
    */
   const handleDataDownload = async () => {
@@ -376,7 +376,6 @@ const MoreInsights = () => {
         downloadType: 'csv',
         outputFormat: 'airqo-standard',
         minimum: true,
-        signal: downloadControllerRef.current.signal,
       };
 
       // Set a timeout for the download
@@ -394,67 +393,31 @@ const MoreInsights = () => {
       const response = await fetchData(apiData);
       clearTimeout(downloadTimeout);
 
-      // Process the CSV data to ensure it's properly formatted
-      let csvData = response;
+      // Simplified CSV handling
+      let csvContent = '';
 
-      // Handle different response formats
-      if (typeof response === 'object' && response !== null) {
-        // If it's an object with a data property that's a string
-        if (response.data && typeof response.data === 'string') {
-          csvData = response.data;
+      if (typeof response === 'string') {
+        // Direct string response (common in production)
+        csvContent = response;
+
+        // Remove 'resp' prefix if it exists
+        if (csvContent.startsWith('resp')) {
+          csvContent = csvContent.substring(4);
         }
-        // If it's an object with a data property that's an array
-        else if (Array.isArray(response.data)) {
-          // Convert object to CSV
+      } else if (typeof response === 'object' && response !== null) {
+        // Object response (common in development)
+        if (response.data && typeof response.data === 'string') {
+          csvContent = response.data;
+        } else if (Array.isArray(response.data)) {
+          // Convert array to CSV
           const headers = Object.keys(response.data[0] || {}).join(',');
           const rows = response.data
             .map((row) => Object.values(row).join(','))
             .join('\n');
-          csvData = headers ? `${headers}\n${rows}` : '';
+          csvContent = headers ? `${headers}\n${rows}` : '';
+        } else if (response.message && typeof response.message === 'string') {
+          csvContent = response.message;
         }
-        // If it's an object with a message property
-        else if (response.message && typeof response.message === 'string') {
-          csvData = response.message;
-        }
-        // If it's just an object, convert to JSON and then to CSV
-        else {
-          console.warn(
-            'Unexpected response format, attempting conversion:',
-            response,
-          );
-          try {
-            const jsonString = JSON.stringify(response);
-            csvData = `data_json\n${jsonString}`;
-          } catch (e) {
-            console.error('Error converting response to JSON:', e);
-            throw new Error('Could not process response data format');
-          }
-        }
-      }
-
-      // If we still don't have string data, try to convert what we have
-      if (typeof csvData !== 'string') {
-        throw new Error('Invalid data format received');
-      }
-
-      // Clean up the CSV data
-      // Remove 'resp' prefix if it exists
-      if (csvData.startsWith('resp')) {
-        csvData = csvData.substring(4);
-      }
-
-      // Fix any missing newlines at the beginning
-      if (
-        csvData.trim() &&
-        !csvData.startsWith('datetime') &&
-        !csvData.startsWith('\n')
-      ) {
-        csvData = `datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n${csvData}`;
-      }
-
-      // Ensure we have valid CSV format
-      if (!csvData.includes(',')) {
-        throw new Error('Invalid CSV format received');
       }
 
       // Create descriptive filename
@@ -483,7 +446,9 @@ const MoreInsights = () => {
 
       // Save the file with proper encoding
       const mimeType = 'text/csv;charset=utf-8;';
-      const blob = new Blob([csvData], { type: mimeType });
+
+      // No complex validation logic - just save what we have
+      const blob = new Blob([csvContent], { type: mimeType });
       saveAs(blob, fileName);
 
       CustomToast({
@@ -501,14 +466,17 @@ const MoreInsights = () => {
         setDownloadError('Download was canceled.');
       } else {
         setDownloadError(
-          error.message ||
-            'There was an error downloading the data. Please try again later.',
+          'There was an error downloading the data. Please try again later.',
         );
       }
     } finally {
       setDownloadLoading(false);
+      if (downloadControllerRef.current) {
+        downloadControllerRef.current = null;
+      }
     }
   };
+
   /**
    * Date range change handler
    */
