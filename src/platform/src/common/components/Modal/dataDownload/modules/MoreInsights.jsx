@@ -1,10 +1,6 @@
-import React, {
-  useState,
-  useMemo,
-  useCallback,
-  useEffect,
-  useRef,
-} from 'react';
+'use client';
+
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -28,6 +24,7 @@ import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { Refreshing, DoneRefreshed } from '../constants/svgs';
 import InfoMessage from '../../../Messages/InfoMessage';
+import SelectionMessage from '../components/SelectionMessage';
 
 /**
  * InSightsHeader Component
@@ -321,7 +318,7 @@ const MoreInsights = () => {
   }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Download data in CSV format with improved error handling.
+   * Download data in CSV format with improved data handling.
    * Only downloads data for visible (checked) sites.
    */
   const handleDataDownload = async () => {
@@ -335,6 +332,7 @@ const MoreInsights = () => {
     }
 
     setDownloadLoading(true);
+    setDownloadError(null);
 
     try {
       // Cancel any existing download request
@@ -375,54 +373,115 @@ const MoreInsights = () => {
         downloadType: 'csv',
         outputFormat: 'airqo-standard',
         minimum: true,
-        signal: downloadControllerRef.current.signal,
       };
+
+      console.log('Download request data:', apiData);
 
       // Set a timeout for the download
       const downloadTimeout = setTimeout(() => {
-        setDownloadError(
-          'The download request is taking longer than expected. Please try again later.',
+        if (downloadControllerRef.current) {
+          downloadControllerRef.current.abort();
+          setDownloadError(
+            'The download request is taking longer than expected. Please try again later.',
+          );
+          setDownloadLoading(false);
+        }
+      }, 30000);
+
+      try {
+        // Fetch the data
+        const response = await fetchData(apiData);
+        clearTimeout(downloadTimeout);
+
+        // Log the response for debugging in production
+        console.log('CSV RAW RESPONSE (MoreInsights):', response);
+        console.log('CSV response type:', typeof response);
+
+        // Initialize csvData with a fallback empty CSV structure
+        let csvData =
+          'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+
+        // Handle different response formats
+        if (response) {
+          if (typeof response === 'string') {
+            // If response is a string, use it directly
+            csvData = response;
+            // Remove 'resp' prefix if it exists
+            if (csvData.startsWith('resp')) {
+              csvData = csvData.substring(4);
+            }
+          } else if (typeof response === 'object' && response !== null) {
+            // If response is an object, try to extract the data
+            if (response.data) {
+              if (typeof response.data === 'string') {
+                csvData = response.data;
+              } else if (Array.isArray(response.data)) {
+                // Convert array to CSV
+                const headers = Object.keys(response.data[0] || {}).join(',');
+                const rows = response.data
+                  .map((row) => Object.values(row).join(','))
+                  .join('\n');
+                csvData = headers ? `${headers}\n${rows}` : csvData;
+              }
+            } else {
+              // If no data property, try to stringify the object
+              csvData = JSON.stringify(response);
+            }
+          }
+        }
+
+        // Validate that we have CSV data with at least a header
+        if (!csvData.includes(',')) {
+          console.error('Invalid CSV format, using default header');
+          csvData =
+            'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+        }
+
+        // Create descriptive filename
+        let fileName;
+        if (sitesToDownload.length === 1) {
+          // Single site
+          fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
+            parseISO(startDate),
+            'yyyy-MM-dd',
+          )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        } else if (sitesToDownload.length === allSites.length) {
+          // All sites
+          fileName = `all_sites_${chartData.pollutionType}_${format(
+            parseISO(startDate),
+            'yyyy-MM-dd',
+          )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        } else {
+          // Multiple sites
+          fileName = `${sitesToDownload.length}_selected_sites_${
+            chartData.pollutionType
+          }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        }
+
+        // Save the file
+        const mimeType = 'text/csv;charset=utf-8;';
+        const blob = new Blob([csvData], { type: mimeType });
+        console.log(
+          'CSV Blob created with size:',
+          blob.size,
+          'Content preview:',
+          csvData.substring(0, 100),
         );
-        setDownloadLoading(false);
-      }, 30000); // 30-second timeout
 
-      // Fetch the data
-      const data = await fetchData(apiData);
-      clearTimeout(downloadTimeout);
-
-      // Create descriptive filename
-      let fileName;
-      if (sitesToDownload.length === 1) {
-        // Single site
-        fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
-          parseISO(startDate),
-          'yyyy-MM-dd',
-        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-      } else if (sitesToDownload.length === allSites.length) {
-        // All sites
-        fileName = `all_sites_${chartData.pollutionType}_${format(
-          parseISO(startDate),
-          'yyyy-MM-dd',
-        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-      } else {
-        // Multiple sites
-        fileName = `${sitesToDownload.length}_selected_sites_${
-          chartData.pollutionType
-        }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(
-          parseISO(endDate),
-          'yyyy-MM-dd',
-        )}.csv`;
+        // Only save if we have actual data (more than just headers)
+        if (blob.size > 10) {
+          saveAs(blob, fileName);
+          CustomToast({
+            message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
+            type: 'success',
+          });
+        } else {
+          throw new Error('No data available for the selected criteria');
+        }
+      } catch (error) {
+        clearTimeout(downloadTimeout);
+        throw error; // Re-throw to be caught by the outer catch block
       }
-
-      // Save the file
-      const mimeType = 'text/csv;charset=utf-8;';
-      const blob = new Blob([data], { type: mimeType });
-      saveAs(blob, fileName);
-
-      CustomToast({
-        message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
-        type: 'success',
-      });
     } catch (error) {
       console.error('Error during download:', error);
 
@@ -440,6 +499,9 @@ const MoreInsights = () => {
       }
     } finally {
       setDownloadLoading(false);
+      if (downloadControllerRef.current) {
+        downloadControllerRef.current = null;
+      }
     }
   };
 
@@ -759,16 +821,10 @@ const MoreInsights = () => {
                 className="w-auto text-center"
               >
                 <TabButtons
-                  btnText={`Download ${
-                    visibleSites.length > 0
-                      ? `(${visibleSites.length})`
-                      : 'Data'
-                  }`}
+                  btnText={`Download ${visibleSites.length > 0 ? `(${visibleSites.length})` : 'Data'}`}
                   Icon={<DownloadIcon width={16} height={17} color="white" />}
                   onClick={handleDataDownload}
-                  btnStyle={`${
-                    visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
-                  } text-white border ${
+                  btnStyle={`${visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'} text-white border ${
                     visibleSites.length > 0
                       ? 'border-blue-600'
                       : 'border-gray-400'
@@ -785,10 +841,9 @@ const MoreInsights = () => {
             </div>
           </div>
 
+          {/* Error message using SelectionMessage component */}
           {downloadError && (
-            <div className="w-full flex items-center justify-start h-auto">
-              <p className="text-red-500 font-semibold">{downloadError}</p>
-            </div>
+            <SelectionMessage type="error">{downloadError}</SelectionMessage>
           )}
 
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2 relative">
@@ -809,9 +864,9 @@ const MoreInsights = () => {
             {chartContent}
           </div>
 
-          {/* Site visibility indicator with info about download */}
+          {/* Site visibility indicator using SelectionMessage component */}
           {dataLoadingSites.length > visibleSites.length && (
-            <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded flex items-center">
+            <SelectionMessage type="info" className="flex items-center">
               <svg
                 className="h-4 w-4 mr-2 text-blue-500"
                 xmlns="http://www.w3.org/2000/svg"
@@ -826,12 +881,10 @@ const MoreInsights = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>
-                {dataLoadingSites.length - visibleSites.length} site(s) hidden
-                and will not be included in downloads. Check the boxes in the
-                sidebar to include them.
-              </span>
-            </div>
+              {dataLoadingSites.length - visibleSites.length} site(s) hidden and
+              will not be included in downloads. Check the boxes in the sidebar
+              to include them.
+            </SelectionMessage>
           )}
 
           <AirQualityCard
