@@ -77,18 +77,18 @@ class ViewSelector extends StatelessWidget {
           color: isSelected
               ? AppColors.primaryColor
               : Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[800]
-                  : Colors.grey[300],
+                  ? AppColors.darkHighlight
+                  : AppColors.lightHighlight,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
           style: TextStyle(
             color: isSelected
-                ? Colors.white
+                ? AppColors.darkTextPrimary
                 : Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black87,
+                    ? AppColors.darkTextPrimary
+                    : AppColors.textDarkest,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -111,8 +111,8 @@ class ViewSelector extends StatelessWidget {
           color: isSelected
               ? AppColors.primaryColor
               : Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[800]
-                  : Colors.grey[300],
+                  ? AppColors.darkHighlight
+                  : AppColors.lightHighlight,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Row(
@@ -123,10 +123,10 @@ class ViewSelector extends StatelessWidget {
               name,
               style: TextStyle(
                 color: isSelected
-                    ? Colors.white
+                    ? AppColors.darkTextPrimary
                     : Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black87,
+                        ? AppColors.darkTextPrimary
+                        : AppColors.textDarkest,
                 fontWeight: FontWeight.w500,
               ),
             ),
