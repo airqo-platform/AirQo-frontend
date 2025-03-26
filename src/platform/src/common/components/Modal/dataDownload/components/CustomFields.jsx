@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '../../../Dropdowns/CustomDropdown';
 import DatePicker from '../../../Calendar/DatePicker';
 
 /**
- * Formats the name by replacing underscores and hyphens with spaces and adjusting case.
+ * Formats a string by replacing underscores/hyphens with spaces and adjusting its case.
  */
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return name;
@@ -13,11 +13,6 @@ const formatName = (name, textFormat = 'lowercase') => {
   return textFormat === 'uppercase' ? formatted.toUpperCase() : formatted;
 };
 
-/**
- * Defines the rules for formatting the field value based on the field id.
- * Removes hyphens and formats in uppercase for display
- * Retains hyphens in the stored value
- */
 const FIELD_FORMAT_RULES = {
   organization: {
     display: (value) => {
@@ -50,7 +45,7 @@ const formatFieldValue = (value, fieldId, textFormat, display = false) => {
 
 /**
  * CustomFields Component
- * Renders different types of input fields based on props.
+ * Renders different types of input fields based on the props.
  */
 const CustomFields = ({
   field = false,
@@ -65,13 +60,27 @@ const CustomFields = ({
   defaultOption,
   textFormat = 'lowercase',
 }) => {
-  const [selectedOption, setSelectedOption] = useState(
-    defaultOption || (options.length > 0 ? options[0] : { id: '', name: '' }),
-  );
+  // Use a ref to prevent unnecessary rerenders due to defaultOption changes
+  const prevDefaultOptionRef = useRef(null);
 
-  /**
-   * Handles the selection of an option.
-   */
+  const initialOption =
+    defaultOption || (options.length > 0 ? options[0] : { id: '', name: '' });
+  const [selectedOption, setSelectedOption] = useState(initialOption);
+
+  // Update selectedOption when defaultOption changes
+  // Use JSON.stringify for deep comparison to prevent infinite loops
+  useEffect(() => {
+    if (!defaultOption) return;
+
+    const currentOptionStr = JSON.stringify(defaultOption);
+    const prevOptionStr = JSON.stringify(prevDefaultOptionRef.current);
+
+    if (currentOptionStr !== prevOptionStr) {
+      setSelectedOption(defaultOption);
+      prevDefaultOptionRef.current = defaultOption;
+    }
+  }, [defaultOption]);
+
   const handleSelect = useCallback(
     (option) => {
       // Special handling for calendar dates
@@ -93,29 +102,26 @@ const CustomFields = ({
   );
 
   return (
-    <div className="w-full h-auto flex flex-col gap-2 justify-start">
-      <label className="w-[280px] h-auto p-0 m-0 text-[#7A7F87]">{title}</label>
-
+    <div className="w-full flex flex-col gap-2">
+      <label className="w-[280px] text-[#7A7F87]">{title}</label>
       {field ? (
         <input
-          className="bg-transparent text-[16px] font-medium leading-6 p-0 m-0 w-full h-auto border-none"
+          type="text"
+          name={id}
+          className="bg-transparent text-[16px] font-medium leading-6 w-full border-none p-0 m-0"
           value={formatFieldValue(selectedOption.name, id, textFormat, true)}
           onChange={(e) =>
             handleSelect({ ...selectedOption, name: e.target.value })
           }
-          type="text"
-          name={id}
           disabled={!edit}
         />
       ) : useCalendar ? (
         <DatePicker
           customPopperStyle={{ left: '-7px' }}
           onChange={(dates) => {
-            handleSelect({
-              startDate: dates.startDate || dates.start,
-              endDate: dates.endDate || dates.end
-            });
+            handleSelect(dates);
           }}
+          initialValue={selectedOption}
         />
       ) : (
         <CustomDropdown
@@ -144,9 +150,7 @@ const CustomFields = ({
               <span className="flex items-center space-x-2">
                 <span>{formatName(option.name, textFormat)}</span>
               </span>
-              {selectedOption.id === option.id && (
-                <CheckIcon fill={'#145FFF'} />
-              )}
+              {selectedOption.id === option.id && <CheckIcon fill="#145FFF" />}
             </span>
           ))}
         </CustomDropdown>
@@ -160,8 +164,8 @@ CustomFields.propTypes = {
   title: PropTypes.string.isRequired,
   options: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      id: PropTypes.string,
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     }),
   ),
   id: PropTypes.string.isRequired,
@@ -172,7 +176,7 @@ CustomFields.propTypes = {
   handleOptionSelect: PropTypes.func.isRequired,
   defaultOption: PropTypes.shape({
     id: PropTypes.string,
-    name: PropTypes.string,
+    name: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   textFormat: PropTypes.oneOf(['uppercase', 'lowercase']),
 };
