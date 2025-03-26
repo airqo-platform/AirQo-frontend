@@ -10,7 +10,7 @@ import '../../profile/bloc/user_bloc.dart';
 import '../../shared/widgets/loading_widget.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const DashboardAppBar({super.key});
+  const DashboardAppBar({super.key}); 
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);

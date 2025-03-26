@@ -8,7 +8,7 @@ class AppColors {
   // static Color highlightColor = Color(0xff2E2F33);
   // static Color boldHeadlineColor = Color(0xff9EA3AA);
   // static Color secondaryHeadlineColor = Color(0xff60646C);
-   //#FAFAFA #E1E7EC
+  //#FAFAFA #E1E7EC
   static Color primaryColor = Color(0xff145FFF);
   static Color backgroundColor2 = Color(0xffFAFAFA);
   static Color borderColor2 = Color(0xffE1E7EC);
@@ -18,15 +18,14 @@ class AppColors {
   static Color boldHeadlineColor2 = Color(0xff9EA3AA);
   static Color boldHeadlineColor3 = Color(0xff7A7F87);
   static Color boldHeadlineColor4 = Color(0xff2E2F33);
-  static Color highlightColor2= Color(0xffE2E3E5);
+  static Color highlightColor2 = Color(0xffE2E3E5);
   static Color secondaryHeadlineColor = Color(0xff6F87A1);
-  static Color darkThemeBackground= Color(0xff1C1D20);
+  static Color darkThemeBackground = Color(0xff1C1D20);
   static Color secondaryHeadlineColor2 = Color(0xff60646C);
   static Color secondaryHeadlineColor3 = Color(0xff7A7F87);
   static Color dividerColordark = Color(0xff3E4147);
   static Color dividerColorlight = Color(0xffE1E7EC);
-
-
+  static Color boldHeadlineColor5 = Color(0xff3F4B5F);
 }
 
 class AppTheme {
@@ -54,9 +53,7 @@ class AppTheme {
       headlineSmall: TextStyle(
         color: const Color(0xff000000),
       ),
-      titleMedium:TextStyle(
-          color: const Color(0xff000000)
-      ) ,
+      titleMedium: TextStyle(color: const Color(0xff000000)),
       titleLarge: TextStyle(
           fontSize: 40, fontWeight: FontWeight.w700, color: Colors.black),
     ),
@@ -86,9 +83,7 @@ class AppTheme {
       headlineSmall: TextStyle(
         color: const Color(0xff7A7F87),
       ),
-      titleMedium:TextStyle(
-        color: const Color(0xffE2E3E5)
-      ) ,
+      titleMedium: TextStyle(color: const Color(0xffE2E3E5)),
       titleLarge: TextStyle(
           fontSize: 40, fontWeight: FontWeight.w700, color: Colors.white),
     ),
