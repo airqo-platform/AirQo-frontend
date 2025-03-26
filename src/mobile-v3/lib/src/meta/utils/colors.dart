@@ -23,6 +23,9 @@ class AppColors {
   static Color darkThemeBackground= Color(0xff1C1D20);
   static Color secondaryHeadlineColor2 = Color(0xff60646C);
   static Color secondaryHeadlineColor3 = Color(0xff7A7F87);
+  static Color dividerColordark = Color(0xff3E4147);
+  static Color dividerColorlight = Color(0xffE1E7EC);
+
 
 }
 
