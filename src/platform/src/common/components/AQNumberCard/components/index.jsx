@@ -164,21 +164,20 @@ const SiteCard = memo(
         type="button"
       >
         <div className="w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl p-4 sm:p-5 h-auto min-h-[180px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
-          {/* Header Section */}
-          {/* Header Section - Using absolute positioning to prevent overlap */}
-          <div className="relative pb-2">
-            <div className="pr-12">
+          {/* Header Section - Fixed to prevent overflow */}
+          <div className="flex justify-between items-start gap-2 pb-2 mb-2">
+            <div className="min-w-0 flex-grow">
               {siteNameWithTooltip}
               {siteCountryWithTooltip}
             </div>
-            <div className="absolute right-0 top-0">
+            <div className="flex-shrink-0">
               <TrendIndicator trendData={trendData} />
             </div>
           </div>
 
           {/* Content Section */}
-          <div className="flex justify-between items-center mt-auto pt-4">
-            <div className="flex flex-col text-left min-w-0">
+          <div className="flex justify-between items-center mt-auto pt-2">
+            <div className="flex flex-col text-left min-w-0 max-w-[60%]">
               <div className="text-gray-800 text-3xl font-bold truncate">
                 {measurementValue}
               </div>
@@ -192,7 +191,7 @@ const SiteCard = memo(
               placement={windowWidth > WINDOW_BREAKPOINT ? 'top' : 'left'}
               className="w-52"
             >
-              <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center ml-2">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center">
                 <AirQualityIcon className="w-full h-full" aria-hidden="true" />
               </div>
             </Tooltip>
