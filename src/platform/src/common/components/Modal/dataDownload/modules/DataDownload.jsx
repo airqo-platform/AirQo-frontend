@@ -672,7 +672,7 @@ const DataDownload = ({ onClose }) => {
           key: 'name',
           label: 'Country',
           render: (item) => (
-            <div className="flex items-center">
+            <div className="flex items-center capitalize">
               <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
                 <WorldIcon width={16} height={16} fill="#9EA3AA" />
               </span>
@@ -743,7 +743,7 @@ const DataDownload = ({ onClose }) => {
           key: 'name',
           label: 'Device Name',
           render: (item) => (
-            <div className="flex items-center">
+            <div className="flex items-center capitalize">
               <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
                 <DeviceIcon width={16} height={16} />
               </span>
