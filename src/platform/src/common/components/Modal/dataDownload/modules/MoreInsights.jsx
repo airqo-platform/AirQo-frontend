@@ -28,6 +28,7 @@ import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { Refreshing, DoneRefreshed } from '../constants/svgs';
 import InfoMessage from '../../../Messages/InfoMessage';
+import SelectionMessage from '../components/SelectionMessage';
 
 /**
  * InSightsHeader Component
@@ -321,7 +322,98 @@ const MoreInsights = () => {
   }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Download data in CSV format with simplified error handling.
+   * Format CSV data to ensure proper structure
+   *
+   * This function handles the specific formatting issues observed in production data
+   * where lines might be split incorrectly with newlines and commas
+   */
+  const formatCSVData = (data) => {
+    if (!data || typeof data !== 'string') {
+      return '';
+    }
+
+    // First, check if it's already well-formatted CSV with proper newlines
+    if (data.includes('\n') && data.split('\n')[0].includes(',')) {
+      return data;
+    }
+
+    // Replace any 'resp' prefix if it exists
+    if (data.startsWith('resp')) {
+      data = data.substring(4);
+    }
+
+    // Fix the formatting issues in the CSV data
+    try {
+      // First, split by commas to get the headers
+      const parts = data.split(',');
+
+      if (parts.length >= 6) {
+        // Extract the headers (first 6 items should be headers)
+        const headers = parts.slice(0, 6).join(',');
+
+        // Get the rest of the content
+        const content = parts.slice(6).join(',');
+
+        // If headers don't contain the expected field names, use default headers
+        const defaultHeaders =
+          'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name';
+        const finalHeaders = headers.includes('datetime')
+          ? headers
+          : defaultHeaders;
+
+        // Now parse the content, assuming each row has 6 fields
+        // This regex finds patterns like "value1 value2 value3 value4 value5 value6"
+        const contentRows = [];
+        let currentRow = [];
+        let quoteOpen = false;
+
+        // Process each part of the content to rebuild the rows
+        content.split(/\s+/).forEach((part) => {
+          if (part.includes('"') && !quoteOpen) {
+            quoteOpen = true;
+            currentRow.push(part);
+          } else if (part.includes('"') && quoteOpen) {
+            quoteOpen = false;
+            currentRow.push(part);
+            if (currentRow.length === 6) {
+              contentRows.push(currentRow.join(','));
+              currentRow = [];
+            }
+          } else if (quoteOpen) {
+            currentRow.push(part);
+          } else {
+            currentRow.push(part);
+            if (currentRow.length === 6) {
+              contentRows.push(currentRow.join(','));
+              currentRow = [];
+            }
+          }
+        });
+
+        // If there are leftover parts in currentRow, add them as a final row
+        if (currentRow.length > 0) {
+          contentRows.push(currentRow.join(','));
+        }
+
+        // Rebuild the CSV with proper newlines
+        return `${finalHeaders}\n${contentRows.join('\n')}`;
+      }
+
+      // If we can't parse it cleanly, return it as is but with proper newlines
+      // between what appear to be rows
+      return data.replace(/(\d{4}-\d{2}-\d{2})/g, '\n$1').trim();
+    } catch (error) {
+      console.error('Error formatting CSV data:', error);
+      // If all else fails, just return the data as-is but ensure it has the headers
+      if (!data.includes('datetime')) {
+        return `datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n${data}`;
+      }
+      return data;
+    }
+  };
+
+  /**
+   * Download data in CSV format with improved data formatting.
    * Only downloads data for visible (checked) sites.
    */
   const handleDataDownload = async () => {
@@ -393,17 +485,12 @@ const MoreInsights = () => {
       const response = await fetchData(apiData);
       clearTimeout(downloadTimeout);
 
-      // Simplified CSV handling
+      // Process the response
       let csvContent = '';
 
       if (typeof response === 'string') {
         // Direct string response (common in production)
         csvContent = response;
-
-        // Remove 'resp' prefix if it exists
-        if (csvContent.startsWith('resp')) {
-          csvContent = csvContent.substring(4);
-        }
       } else if (typeof response === 'object' && response !== null) {
         // Object response (common in development)
         if (response.data && typeof response.data === 'string') {
@@ -417,7 +504,23 @@ const MoreInsights = () => {
           csvContent = headers ? `${headers}\n${rows}` : '';
         } else if (response.message && typeof response.message === 'string') {
           csvContent = response.message;
+        } else {
+          // If nothing else works, stringify the object
+          try {
+            csvContent = JSON.stringify(response);
+            csvContent = `data_json\n${csvContent}`;
+          } catch (e) {
+            console.error('Failed to stringify response:', e);
+          }
         }
+      }
+
+      // Format the CSV data to fix any issues
+      const formattedCSV = formatCSVData(csvContent);
+
+      // Ensure we actually have some content
+      if (!formattedCSV || formattedCSV.trim() === '') {
+        throw new Error('No data was returned from the server');
       }
 
       // Create descriptive filename
@@ -446,9 +549,7 @@ const MoreInsights = () => {
 
       // Save the file with proper encoding
       const mimeType = 'text/csv;charset=utf-8;';
-
-      // No complex validation logic - just save what we have
-      const blob = new Blob([csvContent], { type: mimeType });
+      const blob = new Blob([formattedCSV], { type: mimeType });
       saveAs(blob, fileName);
 
       CustomToast({
@@ -466,7 +567,8 @@ const MoreInsights = () => {
         setDownloadError('Download was canceled.');
       } else {
         setDownloadError(
-          'There was an error downloading the data. Please try again later.',
+          error.message ||
+            'There was an error downloading the data. Please try again later.',
         );
       }
     } finally {
@@ -819,10 +921,9 @@ const MoreInsights = () => {
             </div>
           </div>
 
+          {/* Error message using SelectionMessage component */}
           {downloadError && (
-            <div className="w-full flex items-center justify-start h-auto">
-              <p className="text-red-500 font-semibold">{downloadError}</p>
-            </div>
+            <SelectionMessage type="error">{downloadError}</SelectionMessage>
           )}
 
           <div className="w-full h-auto border rounded-xl border-grey-150 p-2 relative">
@@ -843,9 +944,9 @@ const MoreInsights = () => {
             {chartContent}
           </div>
 
-          {/* Site visibility indicator with info about download */}
+          {/* Site visibility indicator using SelectionMessage component */}
           {dataLoadingSites.length > visibleSites.length && (
-            <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded flex items-center">
+            <SelectionMessage type="info" className="flex items-center">
               <svg
                 className="h-4 w-4 mr-2 text-blue-500"
                 xmlns="http://www.w3.org/2000/svg"
@@ -860,12 +961,10 @@ const MoreInsights = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>
-                {dataLoadingSites.length - visibleSites.length} site(s) hidden
-                and will not be included in downloads. Check the boxes in the
-                sidebar to include them.
-              </span>
-            </div>
+              {dataLoadingSites.length - visibleSites.length} site(s) hidden and
+              will not be included in downloads. Check the boxes in the sidebar
+              to include them.
+            </SelectionMessage>
           )}
 
           <AirQualityCard

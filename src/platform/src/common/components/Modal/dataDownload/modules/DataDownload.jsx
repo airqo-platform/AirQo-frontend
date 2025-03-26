@@ -38,6 +38,7 @@ import CustomToast from '../../../Toast/CustomToast';
 import { format } from 'date-fns';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { event } from '@/core/hooks/useGoogleAnalytics';
+import SelectionMessage from '../components/SelectionMessage';
 
 /**
  * Header component for the Download Data modal.
@@ -388,6 +389,141 @@ const DataDownload = ({ onClose }) => {
     [refreshCountries, refreshCities, refreshDevices, refreshSites],
   );
 
+  /**
+   * Format CSV data to ensure proper structure
+   * Handles the specific formatting issues observed in production data
+   * where the API returns CSV with incorrect line breaks and commas
+   *
+   * @param {string|object} data - The API response data
+   * @returns {string} Properly formatted CSV data
+   */
+  const formatCSVData = (data) => {
+    console.log('Formatting CSV data, type:', typeof data);
+
+    // If data is undefined or null, return empty string
+    if (!data) {
+      console.error('No data received from API');
+      return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+    }
+
+    // Create a variable to hold our CSV string
+    let csvContent = '';
+
+    // Handle different response types
+    if (typeof data === 'string') {
+      csvContent = data;
+
+      // Remove 'resp' prefix if exists
+      if (csvContent.startsWith('resp')) {
+        csvContent = csvContent.substring(4);
+      }
+
+      // Check if we already have a properly formatted CSV
+      if (
+        csvContent.includes('\n') &&
+        csvContent.split('\n')[0].includes(',') &&
+        csvContent.split('\n').length > 1
+      ) {
+        return csvContent;
+      }
+
+      // Handle the specific formatting issue seen in the example
+      // The API returns CSV with headers and values separated by newlines instead of commas
+
+      // First, ensure we have standard headers
+      const standardHeaders =
+        'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name';
+
+      // Check if the data starts with headers
+      if (csvContent.trim().startsWith('datetime')) {
+        // Split by commas and check if we're dealing with malformed CSV
+        // where each field is on a new line rather than comma-separated
+        const parts = csvContent.split(',');
+
+        if (parts.length >= 6) {
+          // First 6 items should be headers
+          const headers = parts.slice(0, 6).join(',');
+
+          // Handle the rest of the content - it needs to be properly arranged into rows
+          const restOfContent = parts.slice(6).join(',');
+
+          // Process the content to fix formatting issues
+          // The content appears to have values on separate lines that should be in one row
+
+          // Split by newlines and spaces that appear before dates
+          const formattedContent = restOfContent
+            .replace(/\s+(\d{4}-\d{2}-\d{2})/g, '\n$1') // Add newlines before dates
+            .replace(/\s+([^,\n"]*),/g, ',$1,') // Fix commas between fields
+            .replace(/,,+/g, ',') // Remove double commas
+            .replace(/,\s+/g, ',') // Remove spaces after commas
+            .replace(/\n\s+/g, '\n') // Remove spaces after newlines
+            .trim();
+
+          // Combine headers with formatted content
+          return `${headers}\n${formattedContent}`;
+        }
+      }
+
+      // If we can't properly format it using the approach above,
+      // try another approach based on the specific pattern observed in the example
+
+      // Extract values that appear to be separated by newlines or multiple spaces
+      const values = csvContent
+        .split(/[\n\r]+|\s{2,}/)
+        .filter((item) => item.trim());
+
+      // Group values into rows of 6 items (assuming 6 columns)
+      const rows = [];
+      let currentRow = [];
+
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i].trim();
+
+        // Skip empty values
+        if (!value) continue;
+
+        // Add to current row
+        currentRow.push(value);
+
+        // When we have 6 values, add the row and start a new one
+        if (currentRow.length === 6) {
+          rows.push(currentRow.join(','));
+          currentRow = [];
+        }
+      }
+
+      // If there are remaining values in the current row, add them
+      if (currentRow.length > 0) {
+        rows.push(currentRow.join(','));
+      }
+
+      // Combine with standard headers
+      return standardHeaders + '\n' + rows.join('\n');
+    } else if (typeof data === 'object' && data !== null) {
+      // Handle object responses
+      if (data.data && typeof data.data === 'string') {
+        // If data.data is a string, recursively format it
+        return formatCSVData(data.data);
+      } else if (Array.isArray(data.data)) {
+        // If data.data is an array, convert to CSV
+        try {
+          const headers = Object.keys(data.data[0] || {}).join(',');
+          const rows = data.data
+            .map((row) => Object.values(row).join(','))
+            .join('\n');
+          return headers ? `${headers}\n${rows}` : '';
+        } catch (error) {
+          console.error('Error converting array to CSV:', error);
+          return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+        }
+      }
+    }
+
+    // If we couldn't format the data, return empty CSV with headers
+    console.error('Unable to format CSV data:', typeof data);
+    return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+  };
+
   // Handle download submission with simplified direct handling
   const handleSubmit = useCallback(
     async (e) => {
@@ -507,33 +643,43 @@ const DataDownload = ({ onClose }) => {
 
           // Direct handling of different file types with minimal processing
           if (fileExtension === 'csv') {
-            // Simplified CSV handling
-            let csvContent = '';
-
-            if (typeof response === 'string') {
-              // Direct string response (common in production)
-              csvContent = response;
-
-              // Remove 'resp' prefix if it exists
-              if (csvContent.startsWith('resp')) {
-                csvContent = csvContent.substring(4);
+            try {
+              // Log the raw response for debugging
+              console.log('CSV Raw response type:', typeof response);
+              if (typeof response === 'string') {
+                console.log(
+                  'CSV Raw response preview:',
+                  response.substring(0, 100),
+                );
               }
-            } else if (typeof response === 'object' && response !== null) {
-              // Object response (common in development)
-              if (response.data && typeof response.data === 'string') {
-                csvContent = response.data;
-              } else if (Array.isArray(response.data)) {
-                // Convert array to CSV
-                const headers = Object.keys(response.data[0] || {}).join(',');
-                const rows = response.data
-                  .map((row) => Object.values(row).join(','))
-                  .join('\n');
-                csvContent = headers ? `${headers}\n${rows}` : '';
+
+              // Format the CSV data using our new function
+              const formattedCSV = formatCSVData(response);
+
+              // Log the formatted data for debugging
+              console.log(
+                'Formatted CSV preview:',
+                formattedCSV.substring(0, 100),
+              );
+
+              // Ensure we have data before saving
+              if (
+                !formattedCSV ||
+                formattedCSV.trim() === '' ||
+                formattedCSV ===
+                  'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n'
+              ) {
+                throw new Error('No data available for the selected criteria');
               }
+
+              // Save the formatted CSV file
+              saveAs(new Blob([formattedCSV], { type: mimeType }), fileName);
+            } catch (error) {
+              console.error('CSV processing error:', error);
+              throw new Error(
+                'Error processing CSV data. Please try again or select a different file format.',
+              );
             }
-
-            // Save the file
-            saveAs(new Blob([csvContent], { type: mimeType }), fileName);
           } else if (fileExtension === 'json') {
             // JSON handling
             let jsonData;
@@ -959,45 +1105,33 @@ const DataDownload = ({ onClose }) => {
       {/* Data Table Section */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {/* Selection info with improved messaging */}
+          {/* Selection info with SelectionMessage component */}
           {selectedItems.length > 0 && (
-            <div className="mb-4 flex justify-between items-center px-4 py-2 bg-blue-50 border-l-4 border-blue-400 rounded-md">
-              <div className="text-blue-800 text-sm">
-                {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
-                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
-                  : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
-                    ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
-                    : `${selectedItems.length} ${
-                        selectedItems.length === 1
-                          ? activeFilterKey === FILTER_TYPES.SITES
-                            ? 'monitoring site'
-                            : 'device'
-                          : activeFilterKey === FILTER_TYPES.SITES
-                            ? 'monitoring sites'
-                            : 'devices'
-                      } selected for data download`}
-              </div>
-              <button
-                onClick={clearSelections}
-                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
-                aria-label="Clear selections"
-                type="button"
-              >
-                Clear
-              </button>
-            </div>
+            <SelectionMessage type="info" onClear={clearSelections}>
+              {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
+                ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
+                : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
+                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
+                  : `${selectedItems.length} ${
+                      selectedItems.length === 1
+                        ? activeFilterKey === FILTER_TYPES.SITES
+                          ? 'monitoring site'
+                          : 'device'
+                        : activeFilterKey === FILTER_TYPES.SITES
+                          ? 'monitoring sites'
+                          : 'devices'
+                    } selected for data download`}
+            </SelectionMessage>
           )}
 
-          {/* Selection guidance - improved messaging */}
+          {/* Selection guidance with SelectionMessage component */}
           {selectedItems.length === 0 && (
-            <div className="mb-4 px-4 py-2 bg-blue-50 border-l-4 border-blue-400 rounded-md">
-              <p className="text-blue-800 text-sm">
-                {activeFilterKey === FILTER_TYPES.COUNTRIES ||
-                activeFilterKey === FILTER_TYPES.CITIES
-                  ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
-                  : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
-              </p>
-            </div>
+            <SelectionMessage type="info">
+              {activeFilterKey === FILTER_TYPES.COUNTRIES ||
+              activeFilterKey === FILTER_TYPES.CITIES
+                ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
+                : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
+            </SelectionMessage>
           )}
 
           {/* Data table */}
