@@ -10,7 +10,7 @@ import '../../profile/bloc/user_bloc.dart';
 import '../../shared/widgets/loading_widget.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const DashboardAppBar({super.key}); 
+  const DashboardAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -37,27 +37,28 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _buildThemeToggle(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
-   return GestureDetector(
-    onTap: () {
-      print("Toggling theme. Current isDarkMode: $isDarkMode");
-      
-      // Try without named parameter - it might be a positional parameter
-      themeBloc.add(ToggleTheme(true));
-    },
-    child: CircleAvatar(
-      radius: 24,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? AppColors.darkHighlight
-          : AppColors.lightHighlight,
-      child: Center(
-        child: SvgPicture.asset(
-          isDarkMode
-              ? "assets/images/dashboard/Dark_icon.svg" 
-              : "assets/images/dashboard/Light_icon.svg",
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () {
+        print("Toggling theme. Current isDarkMode: $isDarkMode");
+
+        // Try without named parameter - it might be a positional parameter
+        themeBloc.add(ToggleTheme(true));
+      },
+      child: CircleAvatar(
+        radius: 24,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkHighlight
+            : AppColors.lightHighlight,
+        child: Center(
+          child: SvgPicture.asset(
+            isDarkMode
+                ? "assets/images/dashboard/Dark_icon.svg"
+                : "assets/images/dashboard/Light_icon.svg",
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildUserAvatar(BuildContext context) {
@@ -104,8 +105,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? userState.model.users[0].firstName[0].toUpperCase()
               : " ";
           String lastName = userState.model.users[0].lastName.isNotEmpty
-            ? userState.model.users[0].lastName[0].toUpperCase()
-            : " ";
+              ? userState.model.users[0].lastName[0].toUpperCase()
+              : " ";
           return GestureDetector(
             onTap: () {
               // Navigate to profile page
