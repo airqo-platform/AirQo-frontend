@@ -10,3 +10,5 @@ export const DEVICE_SUMMARY_URL = `${BASE_AUTH_URL}/devices/summary`;
 export const GRID_SUMMARY_URL = `${BASE_AUTH_URL}/devices/grids/summary`;
 export const ANALYTICS_URL = `${BASE_AUTH_URL}/analytics/dashboard/chart/d3/data`;
 export const DEVICE_READINGS_RECENT_URL = `${BASE_AUTH_URL}/devices/readings/recent`;
+
+export const GENERATE_SITE_AND_DEVICE_IDS = `${BASE_AUTH_URL}/devices/grids`;

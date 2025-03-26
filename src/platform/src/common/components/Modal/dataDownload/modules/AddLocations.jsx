@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DataTable from '../components/DataTable';
@@ -10,6 +16,13 @@ import { getIndividualUserPreferences } from '@/lib/store/services/account/UserD
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import InfoMessage from '../../../Messages/InfoMessage';
+
+// Message types for footer component
+const MESSAGE_TYPES = {
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+};
 
 /**
  * Header component for the Add Location modal.
@@ -28,6 +41,7 @@ export const AddLocationHeader = () => (
  */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
+  const errorTimeoutRef = useRef(null);
 
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(
@@ -39,7 +53,9 @@ const AddLocations = ({ onClose }) => {
   const [sidebarSites, setSidebarSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
+  const [messageType, setMessageType] = useState(MESSAGE_TYPES.INFO);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // Get active group
   const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
@@ -54,7 +70,7 @@ const AddLocations = ({ onClose }) => {
     enabled: !!groupTitle,
   });
 
-  // FIXED: Filter sites more safely - don't rely just on isOnline property
+  // Filter sites more safely - don't rely just on isOnline property
   const filteredSites = useMemo(() => {
     if (!sitesSummaryData || !Array.isArray(sitesSummaryData)) return [];
 
@@ -102,24 +118,11 @@ const AddLocations = ({ onClose }) => {
    * if the user currently has preferences but no local selection.
    */
   useEffect(() => {
-    // FIXED: Added a log statement to debug initialization
-    console.log('Initializing sites with:', {
-      loading,
-      selectedSitesLength: selectedSites.length,
-      selectedSiteIdsLength: selectedSiteIds.length,
-      filteredSitesLength: filteredSites.length,
-    });
-
     if (!loading && filteredSites.length > 0) {
       // If we have user preferences, initialize selection based on them
       if (selectedSites.length === 0 && selectedSiteIds.length > 0) {
         const initialSelectedSites = filteredSites.filter((site) =>
           selectedSiteIds.includes(site._id),
-        );
-
-        console.log(
-          'Setting initial selected sites:',
-          initialSelectedSites.length,
         );
 
         if (initialSelectedSites.length > 0) {
@@ -141,6 +144,29 @@ const AddLocations = ({ onClose }) => {
     sidebarSites.length,
   ]);
 
+  // Handle automatic error clearing after 2 seconds
+  useEffect(() => {
+    if (error) {
+      // Clear any existing timeout
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+
+      // Set new timeout to clear error after 2 seconds
+      errorTimeoutRef.current = setTimeout(() => {
+        setError('');
+        errorTimeoutRef.current = null;
+      }, 2000);
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [error]);
+
   /**
    * Clears all selected sites.
    */
@@ -149,31 +175,53 @@ const AddLocations = ({ onClose }) => {
     setSelectedSites([]);
     setSidebarSites([]);
     setTimeout(() => setClearSelected(false), 0);
+    setStatusMessage('');
+    setError('');
   }, []);
 
   /**
    * Toggles the selection of a site.
    */
-  const handleToggleSite = useCallback((site) => {
-    // FIXED: Added console log to debug toggle action
-    console.log('Toggling site:', site._id, site.search_name || site.name);
+  const handleToggleSite = useCallback(
+    (site) => {
+      setSelectedSites((prev) => {
+        const isSelected = prev.some((s) => s._id === site._id);
 
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
-      return isSelected
-        ? prev.filter((s) => s._id !== site._id)
-        : [...prev, site];
-    });
+        // Check for maximum selection limit (4 sites)
+        if (!isSelected && prev.length >= 4) {
+          setError('You can select up to 4 locations only.');
+          setMessageType(MESSAGE_TYPES.ERROR);
+          return prev;
+        }
 
-    setSidebarSites((prev) => {
-      const alreadyInSidebar = prev.some((s) => s._id === site._id);
-      if (alreadyInSidebar) {
-        // If we're removing from selected, also remove from sidebar
-        return prev.filter((s) => s._id !== site._id);
-      }
-      return [...prev, site];
-    });
-  }, []);
+        return isSelected
+          ? prev.filter((s) => s._id !== site._id)
+          : [...prev, site];
+      });
+
+      setSidebarSites((prev) => {
+        const alreadyInSidebar = prev.some((s) => s._id === site._id);
+        if (alreadyInSidebar) {
+          // If we're removing from selected, also remove from sidebar
+          return prev.filter((s) => s._id !== site._id);
+        }
+
+        // Check for maximum selection limit
+        if (
+          selectedSites.some((s) => s._id === site._id) ||
+          selectedSites.length < 4
+        ) {
+          return [...prev, site];
+        }
+
+        return prev;
+      });
+
+      // Clear any error message when making a selection
+      setError('');
+    },
+    [selectedSites],
+  );
 
   /**
    * Custom filter function for DataTable.
@@ -202,7 +250,7 @@ const AddLocations = ({ onClose }) => {
   );
 
   /**
-   * FIXED: Flexible column rendering to handle different data structures
+   * Flexible column rendering to handle different data structures
    */
   const columnsByFilter = useMemo(() => {
     // Function to safely render location name based on available fields
@@ -295,18 +343,25 @@ const AddLocations = ({ onClose }) => {
   const handleSubmit = useCallback(() => {
     if (selectedSites.length === 0) {
       setError('No locations selected.');
+      setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
+
     if (!userID) {
       setError('User not found.');
+      setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
+
     if (selectedSites.length > 4) {
       setError('You can select up to 4 locations only.');
+      setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
 
     setSubmitLoading(true);
+    setStatusMessage('Saving your preferences...');
+    setMessageType(MESSAGE_TYPES.INFO);
 
     // Prepare selected_sites data
     const selectedSitesData = selectedSites.map((site) => {
@@ -335,15 +390,17 @@ const AddLocations = ({ onClose }) => {
       })
       .catch((err) => {
         setError('Failed to update preferences.');
+        setMessageType(MESSAGE_TYPES.ERROR);
         console.error(err);
       })
       .finally(() => {
         setSubmitLoading(false);
+        setStatusMessage('');
       });
   }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
 
   /**
-   * FIXED: Enhanced sidebar content generation with better handling of different site data structures
+   * Enhanced sidebar content generation with better handling of different site data structures
    */
   const sidebarSitesContent = useMemo(() => {
     if (loading) {
@@ -358,19 +415,11 @@ const AddLocations = ({ onClose }) => {
       );
     }
 
-    // FIXED: Add a debug log to check sidebar sites state
-    console.log('Rendering sidebar with:', {
-      sidebarSitesLength: sidebarSites.length,
-      selectedSitesLength: selectedSites.length,
-      filteredSitesLength: filteredSites.length,
-    });
-
     if (!filteredSites.length) {
       return (
         <InfoMessage
           title="No data available"
-          description="The system couldn't retrieve location data. Please try again
-            later."
+          description="The system couldn't retrieve location data. Please try again later."
           variant="info"
         />
       );
@@ -380,7 +429,7 @@ const AddLocations = ({ onClose }) => {
       return (
         <InfoMessage
           title="No locations selected"
-          description=" Select a location from the table to add it here."
+          description="Select a location from the table to add it here."
           variant="info"
         />
       );
@@ -403,15 +452,18 @@ const AddLocations = ({ onClose }) => {
     filteredSites.length,
   ]);
 
-  // FIXED: Add debug info about data availability
-  console.log('Component data state:', {
-    rawDataLength: sitesSummaryData?.length || 0,
-    filteredDataLength: filteredSites.length,
-    selectedLength: selectedSites.length,
-    sidebarLength: sidebarSites.length,
-    loading,
-    isError,
-  });
+  // Get the footer message and message type
+  const footerInfo = useMemo(() => {
+    if (error) {
+      return { message: error, type: MESSAGE_TYPES.ERROR };
+    }
+
+    if (statusMessage) {
+      return { message: statusMessage, type: messageType };
+    }
+
+    return { message: '', type: MESSAGE_TYPES.INFO };
+  }, [error, statusMessage, messageType]);
 
   return (
     <>
@@ -423,7 +475,6 @@ const AddLocations = ({ onClose }) => {
       {/* Main Content Area */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {/* FIXED: Add better error/loading states for the DataTable */}
           {isError ? (
             <InfoMessage
               title="Error Loading Data"
@@ -469,12 +520,14 @@ const AddLocations = ({ onClose }) => {
         <Footer
           btnText={submitLoading ? 'Saving...' : 'Save'}
           setError={setError}
-          errorMessage={error}
-          selectedSites={selectedSites}
+          message={footerInfo.message}
+          messageType={footerInfo.type}
+          selectedItems={selectedSites}
           handleClearSelection={handleClearSelection}
           handleSubmit={handleSubmit}
           onClose={onClose}
           loading={submitLoading}
+          disabled={submitLoading}
         />
       </div>
     </>

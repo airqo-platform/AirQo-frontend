@@ -7,6 +7,7 @@ import {
   GRID_SUMMARY_URL,
   ANALYTICS_URL,
   DEVICE_READINGS_RECENT_URL,
+  GENERATE_SITE_AND_DEVICE_IDS,
 } from '../urls/analytics';
 import axios from 'axios';
 
@@ -208,8 +209,6 @@ export const getAnalyticsDataApi = async ({ body }) => {
       response?.data?.message || 'Failed to fetch analytics data',
     );
   } catch (error) {
-    // Log error and re-throw for better debugging
-    console.error('Analytics API error:', error);
     handleApiError(error, 'Error fetching analytics data');
     return [];
   }
@@ -224,3 +223,22 @@ export const getRecentMeasurements = (params) =>
   createAxiosInstance(false)
     .get(DEVICE_READINGS_RECENT_URL, { params })
     .then((response) => response.data);
+
+/**
+ * Generates site and device IDs
+ * @param {Object} grid_id - Grid ID for which site and device IDs are to be generated based in the url query parameters
+ * @returns {Promise<Object>} The generated site and device IDs
+ */
+export const generateSiteAndDeviceIds = (grid_id) => {
+  if (!grid_id) {
+    return Promise.reject(new Error('Grid ID is required'));
+  }
+
+  return createAxiosInstance(false)
+    .get(`${GENERATE_SITE_AND_DEVICE_IDS}/${grid_id}/generate`)
+    .then((response) => response.data)
+    .catch((error) => {
+      handleApiError(error, 'Error generating site and device IDs');
+      return {};
+    });
+};

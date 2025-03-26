@@ -1,5 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { MdErrorOutline, MdHelpOutline } from 'react-icons/md';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
@@ -24,6 +29,7 @@ import {
   useSitesSummary,
   useDeviceSummary,
   useGridSummary,
+  useSiteAndDeviceIds,
 } from '@/core/hooks/analyticHooks';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -35,6 +41,7 @@ import { event } from '@/core/hooks/useGoogleAnalytics';
 
 /**
  * Header component for the Download Data modal.
+ * Explicitly exported to prevent "undefined component" errors.
  */
 export const DownloadDataHeader = () => (
   <h3
@@ -45,9 +52,23 @@ export const DownloadDataHeader = () => (
   </h3>
 );
 
-/**
- * Helper function to map file types to MIME types.
- */
+// Constants for selection limits
+const MAX_SELECTIONS = 10;
+const FILTER_TYPES = {
+  COUNTRIES: 'countries',
+  CITIES: 'cities',
+  SITES: 'sites',
+  DEVICES: 'devices',
+};
+
+// Message types for footer component
+const MESSAGE_TYPES = {
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+};
+
+// MIME type mapping with fallback
 const getMimeType = (fileType) => {
   const mimeTypes = {
     csv: 'text/csv;charset=utf-8;',
@@ -62,27 +83,33 @@ const getMimeType = (fileType) => {
  * with various filtering options.
  */
 const DataDownload = ({ onClose }) => {
+  // Initialize refs to prevent infinite loops and handle requests
+  const initialLoadRef = useRef(false);
+  const abortControllerRef = useRef(null);
+  const previousFilterRef = useRef(null);
+  const errorTimeoutRef = useRef(null);
+
   // Get active group info
   const {
     id: activeGroupId,
     title: groupTitle,
     groupList,
-    loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
-
   const fetchData = useDataDownload();
 
-  // Local state
-  const [selectedSites, setSelectedSites] = useState([]);
+  // Core state
+  const [selectedItems, setSelectedItems] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [formError, setFormError] = useState('');
+  const [messageType, setMessageType] = useState(MESSAGE_TYPES.INFO);
+  const [statusMessage, setStatusMessage] = useState('');
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [filterErrors, setFilterErrors] = useState({});
   const [edit, setEdit] = useState(false);
   const [activeFilterKey, setActiveFilterKey] = useState('sites');
-  const [filterErrors, setFilterErrors] = useState({});
-  const [showHelp, setShowHelp] = useState(false);
+  const [selectedGridId, setSelectedGridId] = useState(null);
 
-  // Organization options
+  // Organization options derived from group list
   const ORGANIZATION_OPTIONS = useMemo(
     () =>
       groupList?.map((group) => ({
@@ -92,12 +119,13 @@ const DataDownload = ({ onClose }) => {
     [groupList],
   );
 
-  // Prepare active group info
-  const activeGroup = useMemo(() => {
-    return { id: activeGroupId, name: groupTitle };
-  }, [activeGroupId, groupTitle]);
+  // Active group info for organization selection
+  const activeGroup = useMemo(
+    () => ({ id: activeGroupId, name: groupTitle }),
+    [activeGroupId, groupTitle],
+  );
 
-  // Form state
+  // Form state with defaults
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
     organization: null,
@@ -108,27 +136,14 @@ const DataDownload = ({ onClose }) => {
     fileType: FILE_TYPE_OPTIONS[0],
   });
 
-  // Set initial organization once data is loaded
-  useEffect(() => {
-    if (!formData.organization && !isFetchingActiveGroup) {
-      const airqoNetwork = ORGANIZATION_OPTIONS.find(
-        (group) => group.name?.toLowerCase() === 'airqo',
-      );
-      setFormData((prev) => ({
-        ...prev,
-        organization: activeGroup?.id
-          ? activeGroup
-          : airqoNetwork || ORGANIZATION_OPTIONS[0],
-      }));
-    }
-  }, [
-    isFetchingActiveGroup,
-    ORGANIZATION_OPTIONS,
-    activeGroup,
-    formData.organization,
-  ]);
+  // Use the SiteAndDeviceIds hook with proper error handling
+  const {
+    data: siteAndDeviceIds,
+    isLoading: isLoadingSiteIds,
+    isError: isSiteIdsError,
+  } = useSiteAndDeviceIds(selectedGridId);
 
-  // Fetch sites data
+  // Data fetching hooks with dependencies
   const {
     data: sitesData,
     isLoading: sitesLoading,
@@ -136,10 +151,9 @@ const DataDownload = ({ onClose }) => {
     error: sitesErrorMsg,
     refresh: refreshSites,
   } = useSitesSummary(formData.organization?.name?.toLowerCase(), {
-    enabled: !isFetchingActiveGroup && !!formData.organization?.name,
+    enabled: !!formData.organization?.name,
   });
 
-  // Fetch devices data
   const {
     data: devicesData,
     isLoading: devicesLoading,
@@ -147,64 +161,85 @@ const DataDownload = ({ onClose }) => {
     error: devicesErrorMsg,
     refresh: refreshDevices,
   } = useDeviceSummary(formData.organization?.name?.toLowerCase(), {
-    enabled: !isFetchingActiveGroup && !!formData.organization?.name,
+    enabled: !!formData.organization?.name,
   });
 
-  // Fetch country grids data
   const {
     data: countriesData,
     isLoading: countriesLoading,
     isError: countriesError,
     error: countriesErrorMsg,
     refresh: refreshCountries,
-  } = useGridSummary('country', {
-    enabled: !isFetchingActiveGroup,
-  });
+  } = useGridSummary('country');
 
-  // Fetch city grids data
   const {
     data: citiesData,
     isLoading: citiesLoading,
     isError: citiesError,
     error: citiesErrorMsg,
     refresh: refreshCities,
-  } = useGridSummary('city', {
-    enabled: !isFetchingActiveGroup,
-  });
+  } = useGridSummary('city');
 
-  // Update filter errors state based on API responses
+  // Handle automatic error clearing after 2 seconds
   useEffect(() => {
-    const newFilterErrors = { ...filterErrors };
+    if (formError) {
+      // Clear any existing timeout
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
 
-    if (sitesError) {
-      newFilterErrors.sites =
-        sitesErrorMsg?.message || 'Error loading sites data';
-    } else {
-      delete newFilterErrors.sites;
+      // Set new timeout to clear error after 2 seconds
+      errorTimeoutRef.current = setTimeout(() => {
+        setFormError('');
+        errorTimeoutRef.current = null;
+      }, 2000);
     }
 
-    if (devicesError) {
-      newFilterErrors.devices =
-        devicesErrorMsg?.message || 'Error loading devices data';
-    } else {
-      delete newFilterErrors.devices;
-    }
+    // Cleanup timeout on unmount
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [formError]);
 
-    if (countriesError) {
-      newFilterErrors.countries =
-        countriesErrorMsg?.message || 'Error loading countries data';
-    } else {
-      delete newFilterErrors.countries;
-    }
+  // Set initial organization once data is loaded
+  useEffect(() => {
+    if (
+      !initialLoadRef.current &&
+      !formData.organization &&
+      ORGANIZATION_OPTIONS.length > 0
+    ) {
+      const airqoNetwork = ORGANIZATION_OPTIONS.find(
+        (group) => group.name?.toLowerCase() === 'airqo',
+      );
 
-    if (citiesError) {
-      newFilterErrors.cities =
-        citiesErrorMsg?.message || 'Error loading cities data';
-    } else {
-      delete newFilterErrors.cities;
-    }
+      setFormData((prev) => ({
+        ...prev,
+        organization: activeGroup?.id
+          ? activeGroup
+          : airqoNetwork || ORGANIZATION_OPTIONS[0],
+      }));
 
-    setFilterErrors(newFilterErrors);
+      initialLoadRef.current = true;
+    }
+  }, [ORGANIZATION_OPTIONS, activeGroup, formData.organization]);
+
+  // Update filter errors for UI feedback
+  useEffect(() => {
+    const errors = {};
+
+    if (sitesError)
+      errors.sites = sitesErrorMsg?.message || 'Error loading sites';
+    if (devicesError)
+      errors.devices = devicesErrorMsg?.message || 'Error loading devices';
+    if (countriesError)
+      errors.countries =
+        countriesErrorMsg?.message || 'Error loading countries';
+    if (citiesError)
+      errors.cities = citiesErrorMsg?.message || 'Error loading cities';
+
+    setFilterErrors(errors);
   }, [
     sitesError,
     sitesErrorMsg,
@@ -214,15 +249,64 @@ const DataDownload = ({ onClose }) => {
     countriesErrorMsg,
     citiesError,
     citiesErrorMsg,
-    filterErrors,
   ]);
 
-  /**
-   * Clear selection in both the table and form.
-   */
-  const handleClearSelection = useCallback(() => {
+  // Handle site IDs fetching status with UX feedback
+  useEffect(() => {
+    if (!selectedGridId) {
+      setStatusMessage('');
+      return;
+    }
+
+    if (isLoadingSiteIds) {
+      setStatusMessage('Preparing location data...');
+      setMessageType(MESSAGE_TYPES.INFO);
+    } else if (isSiteIdsError) {
+      setStatusMessage('Error loading data. Please try again.');
+      setMessageType(MESSAGE_TYPES.ERROR);
+    } else if (siteAndDeviceIds?.site_ids?.length) {
+      setStatusMessage('Ready to download');
+      setMessageType(MESSAGE_TYPES.INFO);
+    } else if (siteAndDeviceIds?.site_ids?.length === 0) {
+      setStatusMessage('No data available for this selection');
+      setMessageType(MESSAGE_TYPES.WARNING);
+    }
+  }, [selectedGridId, isLoadingSiteIds, isSiteIdsError, siteAndDeviceIds]);
+
+  // Handle filter tab changes and clear selections
+  useEffect(() => {
+    if (
+      previousFilterRef.current &&
+      previousFilterRef.current !== activeFilterKey
+    ) {
+      clearSelections();
+    }
+    previousFilterRef.current = activeFilterKey;
+  }, [activeFilterKey]);
+
+  // Cancel any pending requests on unmount or when component re-renders
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Clear selections without resetting form data
+  const clearSelections = useCallback(() => {
+    setSelectedItems([]);
+    setSelectedGridId(null);
+    setStatusMessage('');
+    setFormError('');
     setClearSelected(true);
-    setSelectedSites([]);
+    setTimeout(() => setClearSelected(false), 0);
+  }, []);
+
+  // Reset everything including form data
+  const handleClearSelection = useCallback(() => {
+    clearSelections();
 
     // Reset form data to defaults
     const airqoNetwork = ORGANIZATION_OPTIONS.find(
@@ -240,100 +324,130 @@ const DataDownload = ({ onClose }) => {
       frequency: FREQUENCY_OPTIONS[0],
       fileType: FILE_TYPE_OPTIONS[0],
     });
+  }, [ORGANIZATION_OPTIONS, activeGroup, clearSelections]);
 
-    setTimeout(() => setClearSelected(false), 0);
-  }, [ORGANIZATION_OPTIONS, activeGroup]);
-
-  /**
-   * Update a form field (title, organization, etc.).
-   */
+  // Handle form field updates
   const handleOptionSelect = useCallback(
     (id, option) => {
-      setFormData((prevData) => ({ ...prevData, [id]: option }));
+      setFormData((prev) => ({ ...prev, [id]: option }));
 
       // Refresh data when organization changes
       if (id === 'organization' && option?.name) {
         refreshSites();
         refreshDevices();
+        clearSelections();
       }
     },
-    [refreshSites, refreshDevices],
+    [refreshSites, refreshDevices, clearSelections],
   );
 
-  /**
-   * Toggles the selection of a site in DataTable.
-   */
-  const handleToggleSite = useCallback((item) => {
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === item._id);
-      return isSelected
-        ? prev.filter((s) => s._id !== item._id)
-        : [...prev, item];
-    });
-  }, []);
+  // Toggle item selection with validation and UX feedback
+  const handleToggleItem = useCallback(
+    (item) => {
+      // For countries and cities, only allow one selection
+      if (
+        activeFilterKey === FILTER_TYPES.COUNTRIES ||
+        activeFilterKey === FILTER_TYPES.CITIES
+      ) {
+        const isSelected = selectedItems.some((s) => s._id === item._id);
 
-  /**
-   * Retry loading data for a specific filter
-   */
-  const handleRetryLoad = useCallback(
-    (filterKey) => {
-      switch (filterKey) {
-        case 'countries':
-          refreshCountries();
-          break;
-        case 'cities':
-          refreshCities();
-          break;
-        case 'devices':
-          refreshDevices();
-          break;
-        case 'sites':
-        default:
-          refreshSites();
-          break;
+        if (isSelected) {
+          // Deselect
+          setSelectedItems([]);
+          setSelectedGridId(null);
+          setStatusMessage('');
+        } else {
+          // Select new item
+          setSelectedItems([item]);
+          setSelectedGridId(item._id);
+        }
+        return;
       }
 
-      // Set active filter to the one being refreshed
+      // For sites and devices, check max limit
+      const isSelected = selectedItems.some((s) => s._id === item._id);
+      if (!isSelected && selectedItems.length >= MAX_SELECTIONS) {
+        setFormError(
+          `You cannot select more than ${MAX_SELECTIONS} ${activeFilterKey}`,
+        );
+        setMessageType(MESSAGE_TYPES.ERROR);
+        return;
+      }
+
+      // Update selection
+      setSelectedItems((prev) =>
+        isSelected ? prev.filter((s) => s._id !== item._id) : [...prev, item],
+      );
+
+      setFormError('');
+    },
+    [activeFilterKey, selectedItems],
+  );
+
+  // Retry loading data for a specific filter
+  const handleRetryLoad = useCallback(
+    (filterKey) => {
+      const refreshMap = {
+        [FILTER_TYPES.COUNTRIES]: refreshCountries,
+        [FILTER_TYPES.CITIES]: refreshCities,
+        [FILTER_TYPES.DEVICES]: refreshDevices,
+        [FILTER_TYPES.SITES]: refreshSites,
+      };
+
+      if (refreshMap[filterKey]) {
+        refreshMap[filterKey]();
+      }
+
       setActiveFilterKey(filterKey);
     },
     [refreshCountries, refreshCities, refreshDevices, refreshSites],
   );
 
-  /**
-   * Download button handler
-   */
+  // Handle download submission with comprehensive error handling
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
+
+      // Create abort controller for this request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
       setDownloadLoading(true);
       setFormError('');
 
       try {
-        // Validate date range
-        if (
-          !formData.duration ||
-          !formData.duration.name?.start ||
-          !formData.duration.name?.end
-        ) {
-          throw new Error(
-            'Please select a valid duration with both start and end dates.',
-          );
+        // Validate form data
+        if (!formData.duration?.name?.start || !formData.duration?.name?.end) {
+          throw new Error('Please select a valid date range');
+        }
+
+        if (!selectedItems.length) {
+          throw new Error('Please select at least one location');
         }
 
         const startDate = new Date(formData.duration.name.start);
         const endDate = new Date(formData.duration.name.end);
 
-        // Duration constraints for hourly/daily
-        const validateDuration = (frequency, sDate, eDate) => {
-          const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000;
-          const oneYearInMs = 12 * 30 * 24 * 60 * 60 * 1000;
-          const durationMs = eDate - sDate;
-          if (frequency === 'hourly' && durationMs > sixMonthsInMs) {
-            return 'For hourly frequency, the duration cannot exceed 6 months.';
+        // Validate date range
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error('Invalid date selection. Please try again');
+        }
+
+        if (startDate >= endDate) {
+          throw new Error('Start date must be before end date');
+        }
+
+        // Duration validation based on frequency
+        const validateDuration = (frequency, start, end) => {
+          const diffMs = end - start;
+          const sixMonthsMs = 180 * 24 * 60 * 60 * 1000;
+
+          if (frequency === 'hourly' && diffMs > sixMonthsMs) {
+            return 'For hourly data, please limit your selection to 6 months';
           }
-          if (frequency === 'daily' && durationMs > oneYearInMs) {
-            return 'For daily frequency, the duration cannot exceed 1 year.';
-          }
+
           return null;
         };
 
@@ -347,16 +461,34 @@ const DataDownload = ({ onClose }) => {
           throw new Error(durationError);
         }
 
-        // At least one location
-        if (selectedSites.length === 0) {
-          throw new Error('Please select at least one location.');
+        // Prepare payload based on selected filter type
+        let siteIds = [];
+        let deviceNames = [];
+
+        if (
+          activeFilterKey === FILTER_TYPES.COUNTRIES ||
+          activeFilterKey === FILTER_TYPES.CITIES
+        ) {
+          if (!siteAndDeviceIds?.site_ids?.length) {
+            throw new Error(
+              `No sites found for the selected ${
+                activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'
+              }`,
+            );
+          }
+          siteIds = siteAndDeviceIds.site_ids;
+        } else if (activeFilterKey === FILTER_TYPES.SITES) {
+          siteIds = selectedItems.map((site) => site._id);
+        } else if (activeFilterKey === FILTER_TYPES.DEVICES) {
+          deviceNames = selectedItems.map(
+            (device) => device.name || device.long_name,
+          );
         }
 
-        // Prepare data for the API
+        // API request data with proper organization naming
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-          sites: selectedSites.map((site) => site._id),
           network: formData.organization.name,
           datatype:
             formData.dataType.name.toLowerCase() === 'calibrated data'
@@ -369,30 +501,71 @@ const DataDownload = ({ onClose }) => {
           minimum: true,
         };
 
-        // Make API call
-        const response = await fetchData(apiData);
+        // Add the appropriate selection parameters based on filter type
+        if (activeFilterKey === FILTER_TYPES.DEVICES) {
+          apiData.device_names = deviceNames;
+        } else {
+          apiData.sites = siteIds;
+        }
 
-        // Build filename and MIME
+        // Make API call with comprehensive error handling
+        const response = await fetchData(apiData).catch((error) => {
+          // Ignore aborted requests
+          if (error.name === 'AbortError') {
+            throw new Error('Request was cancelled');
+          }
+
+          // Handle common HTTP errors with user-friendly messages
+          if (error.response?.status === 500) {
+            throw new Error(
+              'Server error. The selected data may be too large. Please try fewer locations or a smaller date range',
+            );
+          }
+          if (error.response?.status === 504) {
+            throw new Error(
+              'Request timeout. Please try a smaller date range or fewer locations',
+            );
+          }
+          if (error.response?.status === 404) {
+            throw new Error('No data found for your selection');
+          }
+          if (error.response?.status === 400) {
+            throw new Error(
+              'Invalid request parameters. Please check your selections',
+            );
+          }
+          if (error.message === 'Network Error') {
+            throw new Error(
+              'Network connection issue. Please check your internet connection',
+            );
+          }
+
+          // Default error message
+          throw error;
+        });
+
+        // Process and download the file based on file type
         const fileExtension = formData.fileType.name.toLowerCase();
         const mimeType = getMimeType(fileExtension);
-        const fileName = `${formData.title.name}.${fileExtension}`;
+        const fileName = `${formData.title.name || 'Data'}.${fileExtension}`;
 
-        // Download logic
         if (fileExtension === 'csv') {
           if (typeof response !== 'string') {
-            throw new Error('Invalid CSV data format.');
+            throw new Error('Invalid CSV data format received');
           }
-          const blob = new Blob([response], { type: mimeType });
-          saveAs(blob, fileName);
+          saveAs(new Blob([response], { type: mimeType }), fileName);
         } else if (fileExtension === 'json') {
+          if (!response.data) {
+            throw new Error('Invalid JSON data received');
+          }
           const json = JSON.stringify(response.data, null, 2);
-          const blob = new Blob([json], { type: mimeType });
-          saveAs(blob, fileName);
+          saveAs(new Blob([json], { type: mimeType }), fileName);
         } else if (fileExtension === 'pdf') {
           const pdfData = response.data || [];
           const doc = new jsPDF();
+
           if (pdfData.length === 0) {
-            doc.text('No data available to display.', 10, 10);
+            doc.text('No data available to display', 10, 10);
           } else {
             const tableColumn = Object.keys(pdfData[0]);
             const tableRows = pdfData.map((row) =>
@@ -400,6 +573,7 @@ const DataDownload = ({ onClose }) => {
                 row[col] !== undefined ? row[col] : '---',
               ),
             );
+
             doc.autoTable({
               head: [tableColumn],
               body: tableRows,
@@ -409,50 +583,88 @@ const DataDownload = ({ onClose }) => {
               margin: { top: 20 },
             });
           }
+
           doc.save(fileName);
         } else {
-          throw new Error('Unsupported file type.');
+          throw new Error('Unsupported file type');
         }
 
-        // Success
-        CustomToast();
-        handleClearSelection();
-        onClose();
+        // Success handling
+        CustomToast(); // Show success toast notification
+        handleClearSelection(); // Reset the form
+        onClose(); // Close the modal
       } catch (error) {
-        // Track error
-        event({
-          action: 'download_error',
-          category: 'Data Export',
-          label: error.message,
-        });
+        // Skip analytics tracking for aborted requests
+        if (error.name !== 'AbortError') {
+          // Log error to analytics
+          event({
+            action: 'download_error',
+            category: 'Data Export',
+            label: error.message || 'Unknown error',
+          });
+        }
 
-        setFormError(
-          error.message ||
-            'An error occurred while downloading. Please try again.',
-        );
+        // Set user-friendly error message
+        setFormError(error.message || 'An error occurred. Please try again');
+        setMessageType(MESSAGE_TYPES.ERROR);
       } finally {
         setDownloadLoading(false);
+        if (abortControllerRef.current) {
+          abortControllerRef.current = null;
+        }
       }
     },
-    [formData, selectedSites, handleClearSelection, fetchData, onClose],
+    [
+      formData,
+      selectedItems,
+      activeFilterKey,
+      siteAndDeviceIds,
+      fetchData,
+      handleClearSelection,
+      onClose,
+    ],
   );
 
-  /**
-   * Define the filter tabs
-   */
+  // Define filter tabs
   const filters = useMemo(
     () => [
-      { key: 'countries', label: 'Countries' },
-      { key: 'cities', label: 'Cities' },
-      { key: 'sites', label: 'Sites' },
-      { key: 'devices', label: 'Devices' },
+      { key: FILTER_TYPES.COUNTRIES, label: 'Countries' },
+      { key: FILTER_TYPES.CITIES, label: 'Cities' },
+      { key: FILTER_TYPES.SITES, label: 'Sites' },
+      { key: FILTER_TYPES.DEVICES, label: 'Devices' },
     ],
     [],
   );
 
-  /**
-   * Define columns for each filter type
-   */
+  // Get data for current filter tab with proper null handling
+  const currentFilterData = useMemo(() => {
+    const dataMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesData || [],
+      [FILTER_TYPES.CITIES]: citiesData || [],
+      [FILTER_TYPES.DEVICES]: devicesData || [],
+      [FILTER_TYPES.SITES]: sitesData || [],
+    };
+    return dataMap[activeFilterKey] || [];
+  }, [activeFilterKey, countriesData, citiesData, devicesData, sitesData]);
+
+  // Get loading state for current filter
+  const isLoading = useMemo(() => {
+    const loadingMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesLoading,
+      [FILTER_TYPES.CITIES]: citiesLoading,
+      [FILTER_TYPES.DEVICES]: devicesLoading,
+      [FILTER_TYPES.SITES]: sitesLoading,
+    };
+    return loadingMap[activeFilterKey] || false;
+  }, [
+    activeFilterKey,
+    countriesLoading,
+    citiesLoading,
+    devicesLoading,
+    sitesLoading,
+  ]);
+
+  // Columns config for each filter type
   const columnsByFilter = useMemo(
     () => ({
       countries: [
@@ -484,23 +696,14 @@ const DataDownload = ({ onClose }) => {
                 <LocationIcon width={16} height={16} fill="#9EA3AA" />
               </span>
               <span>
-                {item.name
+                {(item.name || item.long_name || '')
                   .split('_')
                   .map(
                     (word) =>
                       word.charAt(0).toUpperCase() +
                       word.slice(1).toLowerCase(),
                   )
-                  .join(' ') ||
-                  item.long_name
-                    .split('_')
-                    .map(
-                      (word) =>
-                        word.charAt(0).toUpperCase() +
-                        word.slice(1).toLowerCase(),
-                    )
-                    .join(' ') ||
-                  'N/A'}
+                  .join(' ') || 'N/A'}
               </span>
             </div>
           ),
@@ -582,9 +785,7 @@ const DataDownload = ({ onClose }) => {
     [],
   );
 
-  /**
-   * Generate search keys for each filter type
-   */
+  // Search keys for each filter type
   const searchKeysByFilter = useMemo(
     () => ({
       countries: ['name', 'long_name'],
@@ -601,89 +802,66 @@ const DataDownload = ({ onClose }) => {
     [],
   );
 
-  /**
-   * Filter handler - this is called by the DataTable component
-   * Updates the activeFilterKey state and returns the appropriate data
-   */
+  // Handle filter tab changes
   const handleFilter = useCallback(
-    (allData, activeFilter) => {
-      setActiveFilterKey(activeFilter.key);
-
-      switch (activeFilter.key) {
-        case 'countries':
-          return countriesData || [];
-        case 'cities':
-          return citiesData || [];
-        case 'devices':
-          return devicesData || [];
-        case 'sites':
-        default:
-          return sitesData || [];
+    (_, activeFilter) => {
+      if (activeFilter?.key) {
+        setActiveFilterKey(activeFilter.key);
+        setFormError('');
       }
+      return currentFilterData;
     },
-    [countriesData, citiesData, devicesData, sitesData],
+    [currentFilterData],
   );
 
-  // Determine loading state based on active filter
-  const isLoading = useMemo(() => {
-    switch (activeFilterKey) {
-      case 'countries':
-        return countriesLoading;
-      case 'cities':
-        return citiesLoading;
-      case 'devices':
-        return devicesLoading;
-      case 'sites':
-      default:
-        return sitesLoading;
+  // Duration guidance based on frequency
+  const durationGuidance = useMemo(() => {
+    if (formData.frequency?.name?.toLowerCase() === 'hourly') {
+      return 'For hourly data, limit selection to 6 months';
     }
-  }, [
-    activeFilterKey,
-    sitesLoading,
-    devicesLoading,
-    countriesLoading,
-    citiesLoading,
-  ]);
+    return null;
+  }, [formData.frequency]);
 
-  // Count how many filters have errors
-  const errorCount = Object.keys(filterErrors).length;
+  // Get the footer message and message type
+  const footerInfo = useMemo(() => {
+    if (formError) {
+      return { message: formError, type: MESSAGE_TYPES.ERROR };
+    }
 
-  // Help tooltip content
-  const helpTooltip = (
-    <div className="absolute right-4 top-12 w-64 p-3 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-sm">
-      <h4 className="font-medium mb-2">Using Filters</h4>
-      <p className="text-gray-600 mb-2">
-        If one filter tab shows an error, you can still use the other filters to
-        select data.
-      </p>
-      <p className="text-gray-600">
-        Click the retry button to attempt reloading data for a specific filter.
-      </p>
-    </div>
-  );
+    if (statusMessage) {
+      return { message: statusMessage, type: messageType };
+    }
+
+    if (selectedItems.length === 0) {
+      return {
+        message: 'Select locations to continue',
+        type: MESSAGE_TYPES.INFO,
+      };
+    }
+
+    return { message: '', type: MESSAGE_TYPES.INFO };
+  }, [formError, statusMessage, messageType, selectedItems.length]);
 
   return (
     <>
-      {/* Section 1: Form */}
+      {/* Settings Panel */}
       <form
         className="w-auto h-auto md:w-[280px] md:h-[658px] relative bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
         onSubmit={handleSubmit}
       >
-        {/* Edit Title Button */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-3">
           <h4 className="text-lg font-medium">Download Settings</h4>
           <button
             type="button"
-            className={`text-sm text-blue-600 ${
-              edit ? 'font-semibold' : 'opacity-80'
-            }`}
+            className={`text-sm text-blue-600 ${edit ? 'font-semibold' : 'opacity-80'}`}
             onClick={() => setEdit(!edit)}
           >
             {edit ? 'Done' : <EditIcon />}
           </button>
         </div>
 
-        {/* Custom Fields */}
+        {/* Form Fields */}
         <CustomFields
           field
           title="Title"
@@ -724,6 +902,11 @@ const DataDownload = ({ onClose }) => {
           defaultOption={formData.duration}
           handleOptionSelect={handleOptionSelect}
         />
+        {durationGuidance && (
+          <div className="text-xs text-blue-600 -mt-2 ml-1">
+            {durationGuidance}
+          </div>
+        )}
         <CustomFields
           title="Frequency"
           options={FREQUENCY_OPTIONS}
@@ -740,72 +923,79 @@ const DataDownload = ({ onClose }) => {
           defaultOption={formData.fileType}
           handleOptionSelect={handleOptionSelect}
         />
-
-        {/* Display form error if any */}
-        {formError && (
-          <div className="p-3 mt-2 text-red-700 bg-red-50 border border-red-200 rounded-md text-sm">
-            {formError}
-          </div>
-        )}
       </form>
 
-      {/* Section 2: Data Table and Footer */}
+      {/* Data Table Section */}
       <div className="bg-white relative w-full h-auto">
         <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {/* Filter error notification */}
-          {errorCount > 0 && (
-            <div className="mb-4 flex items-start justify-between px-4 py-3 bg-amber-50 border-l-4 border-amber-400 rounded-md">
-              <div className="flex">
-                <MdErrorOutline className="text-amber-500 text-lg mr-2 mt-0.5" />
-                <div>
-                  <p className="text-amber-800 font-medium">
-                    {errorCount === 1
-                      ? '1 filter has an error'
-                      : `${errorCount} filters have errors`}
-                  </p>
-                  <p className="text-amber-700 text-sm">
-                    You can still use other filters to select your data.
-                  </p>
-                </div>
+          {/* Selection info - keeping basic selection info but removing error UI */}
+          {selectedItems.length > 0 && (
+            <div className="mb-4 flex justify-between items-center px-4 py-2 bg-blue-50 border-l-4 border-blue-400 rounded-md">
+              <div className="text-blue-800 text-sm">
+                {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
+                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected`
+                  : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
+                    ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected`
+                    : `${selectedItems.length} ${
+                        selectedItems.length === 1
+                          ? activeFilterKey === FILTER_TYPES.SITES
+                            ? 'site'
+                            : 'device'
+                          : activeFilterKey
+                      } selected`}
               </div>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="p-1 hover:bg-amber-100 rounded-full"
-                  onClick={() => setShowHelp(!showHelp)}
-                  aria-label="Show help"
-                >
-                  <MdHelpOutline className="text-amber-600" />
-                </button>
-                {showHelp && helpTooltip}
-              </div>
+              <button
+                onClick={clearSelections}
+                className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                aria-label="Clear selections"
+                type="button"
+              >
+                Clear
+              </button>
             </div>
           )}
 
+          {/* Selection guidance - keeping this helpful info */}
+          {selectedItems.length === 0 && (
+            <div className="mb-4 px-4 py-2 bg-blue-50 border-l-4 border-blue-400 rounded-md">
+              <p className="text-blue-800 text-sm">
+                {activeFilterKey === FILTER_TYPES.COUNTRIES ||
+                activeFilterKey === FILTER_TYPES.CITIES
+                  ? `You can select one ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} at a time`
+                  : `You can select up to ${MAX_SELECTIONS} ${activeFilterKey}`}
+              </p>
+            </div>
+          )}
+
+          {/* Data table */}
           <DataTable
-            data={sitesData}
-            selectedRows={selectedSites}
-            setSelectedRows={setSelectedSites}
+            data={currentFilterData}
+            selectedRows={selectedItems}
+            setSelectedRows={setSelectedItems}
             clearSelectionTrigger={clearSelected}
             loading={isLoading}
-            error={false} // We handle partial errors via filterErrors
-            onToggleRow={handleToggleSite}
+            error={!!filterErrors[activeFilterKey]}
+            onToggleRow={handleToggleItem}
             columnsByFilter={columnsByFilter}
             filters={filters}
             onFilter={handleFilter}
             searchKeys={searchKeysByFilter[activeFilterKey]}
-            onRetry={handleRetryLoad}
+            onRetry={() => handleRetryLoad(activeFilterKey)}
           />
         </div>
+
+        {/* Footer - now handles all error display */}
         <Footer
           setError={setFormError}
-          errorMessage={formError}
-          selectedSites={selectedSites}
+          messageType={footerInfo.type}
+          message={footerInfo.message}
+          selectedItems={selectedItems}
           handleClearSelection={handleClearSelection}
           handleSubmit={handleSubmit}
           onClose={onClose}
           btnText={downloadLoading ? 'Downloading...' : 'Download'}
           loading={downloadLoading}
+          disabled={isLoadingSiteIds || downloadLoading}
         />
       </div>
     </>

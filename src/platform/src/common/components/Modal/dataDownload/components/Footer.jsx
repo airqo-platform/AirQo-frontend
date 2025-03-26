@@ -1,49 +1,83 @@
 import React, { useEffect } from 'react';
 import Button from '../../../Button';
 
+const MESSAGE_TYPES = {
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+};
+
+/**
+ * Footer component for the data download modal
+ * Provides user feedback and action buttons
+ */
 const Footer = ({
-  errorMessage,
+  message = '',
+  messageType = MESSAGE_TYPES.INFO,
   setError,
-  selectedSites = [],
+  selectedItems = [],
   handleClearSelection,
   handleSubmit,
   onClose,
   btnText = 'Download',
   loading = false,
+  disabled = false,
 }) => {
-  // Clear the error message after 5 seconds
+  // Auto-clear error messages after 8 seconds
   useEffect(() => {
-    if (errorMessage) {
-      const timer = setTimeout(() => setError(''), 5000);
+    if (message && messageType === MESSAGE_TYPES.ERROR) {
+      const timer = setTimeout(() => setError(''), 8000);
       return () => clearTimeout(timer);
     }
-  }, [errorMessage, setError]);
+  }, [message, messageType, setError]);
+
+  // Get appropriate text color based on message type
+  const getMessageStyles = () => {
+    switch (messageType) {
+      case MESSAGE_TYPES.ERROR:
+        return 'text-red-600';
+      case MESSAGE_TYPES.WARNING:
+        return 'text-amber-600';
+      case MESSAGE_TYPES.INFO:
+      default:
+        return 'text-blue-600';
+    }
+  };
+
+  // Get message content for the footer
+  const getMessageContent = () => {
+    // If there's a message, show it with appropriate styling
+    if (message) {
+      return <span className={getMessageStyles()}>{message}</span>;
+    }
+
+    // Default state based on selection count
+    if (selectedItems?.length === 0) {
+      return 'Select locations to continue';
+    }
+
+    return (
+      <div>
+        <span className="text-blue-600">
+          {`${selectedItems?.length} ${
+            selectedItems?.length === 1 ? 'location' : 'locations'
+          } selected`}
+        </span>
+        <button
+          type="button"
+          className="ml-2 text-blue-600 hover:text-blue-800"
+          onClick={handleClearSelection}
+        >
+          Clear
+        </button>
+      </div>
+    );
+  };
 
   return (
-    <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between">
-      {/* Error message or selected locations info */}
-      <div className="text-sm leading-5 font-normal">
-        {errorMessage ? (
-          <span className="text-red-600">{errorMessage}</span>
-        ) : selectedSites?.length === 0 ? (
-          'Select locations to continue'
-        ) : (
-          <div>
-            <span className="text-blue-600">
-              {`${selectedSites?.length} ${
-                selectedSites?.length === 1 ? 'location' : 'locations'
-              } selected`}
-            </span>
-            <button
-              type="button"
-              className="ml-2"
-              onClick={handleClearSelection}
-            >
-              Clear
-            </button>
-          </div>
-        )}
-      </div>
+    <div className="bg-gray-50 absolute bottom-0 right-0 w-full px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between border-t border-gray-200">
+      {/* Message area */}
+      <div className="text-sm leading-5 font-normal">{getMessageContent()}</div>
 
       {/* Action buttons */}
       <div className="flex sm:flex-row-reverse gap-2">
@@ -51,12 +85,17 @@ const Footer = ({
           type="button"
           variant="filled"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || disabled || selectedItems.length === 0}
+          className={
+            loading || disabled || selectedItems.length === 0
+              ? 'opacity-70 cursor-not-allowed'
+              : ''
+          }
         >
           {loading ? (
             <div className="flex items-center gap-2">
               <span className="animate-spin w-4 h-4 border-2 border-t-transparent border-white rounded-full"></span>
-              <span>{btnText}</span>{' '}
+              <span>{btnText}</span>
             </div>
           ) : (
             btnText
@@ -67,6 +106,7 @@ const Footer = ({
           variant="outlined"
           onClick={onClose}
           disabled={loading}
+          className={loading ? 'opacity-70 cursor-not-allowed' : ''}
         >
           Cancel
         </Button>

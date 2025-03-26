@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '../../../Dropdowns/CustomDropdown';
@@ -60,9 +60,26 @@ const CustomFields = ({
   defaultOption,
   textFormat = 'lowercase',
 }) => {
+  // Use a ref to prevent unnecessary rerenders due to defaultOption changes
+  const prevDefaultOptionRef = useRef(null);
+
   const initialOption =
     defaultOption || (options.length > 0 ? options[0] : { id: '', name: '' });
   const [selectedOption, setSelectedOption] = useState(initialOption);
+
+  // Update selectedOption when defaultOption changes
+  // Use JSON.stringify for deep comparison to prevent infinite loops
+  useEffect(() => {
+    if (!defaultOption) return;
+
+    const currentOptionStr = JSON.stringify(defaultOption);
+    const prevOptionStr = JSON.stringify(prevDefaultOptionRef.current);
+
+    if (currentOptionStr !== prevOptionStr) {
+      setSelectedOption(defaultOption);
+      prevDefaultOptionRef.current = defaultOption;
+    }
+  }, [defaultOption]);
 
   const handleSelect = useCallback(
     (option) => {
@@ -102,11 +119,9 @@ const CustomFields = ({
         <DatePicker
           customPopperStyle={{ left: '-7px' }}
           onChange={(dates) => {
-            handleSelect({
-              startDate: dates.startDate || dates.start,
-              endDate: dates.endDate || dates.end,
-            });
+            handleSelect(dates);
           }}
+          initialValue={selectedOption}
         />
       ) : (
         <CustomDropdown
@@ -149,8 +164,8 @@ CustomFields.propTypes = {
   title: PropTypes.string.isRequired,
   options: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      id: PropTypes.string,
+      name: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     }),
   ),
   id: PropTypes.string.isRequired,
@@ -161,7 +176,7 @@ CustomFields.propTypes = {
   handleOptionSelect: PropTypes.func.isRequired,
   defaultOption: PropTypes.shape({
     id: PropTypes.string,
-    name: PropTypes.string,
+    name: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   textFormat: PropTypes.oneOf(['uppercase', 'lowercase']),
 };

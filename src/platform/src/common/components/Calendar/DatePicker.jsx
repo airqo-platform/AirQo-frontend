@@ -14,13 +14,22 @@ const DatePicker = ({
   customPopperStyle = {},
   alignment = 'left',
   onChange,
+  initialValue = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState(null);
   const [popperElement, setPopperElement] = useState(null);
   const [arrowElement, setArrowElement] = useState(null);
 
-  const [selectedDate, setSelectedDate] = useState({ start: null, end: null });
+  // Use ref to track previous initialValue to prevent unnecessary state updates
+  const prevInitialValueRef = useRef(null);
+
+  // Initialize with provided initialValue if available
+  const [selectedDate, setSelectedDate] = useState({
+    start: initialValue?.name?.start || null,
+    end: initialValue?.name?.end || null,
+  });
+
   const popperRef = useRef(null);
 
   // Configure react-popper
@@ -64,11 +73,29 @@ const DatePicker = ({
 
   /**
    * Called whenever the user selects a date range in the Calendar.
+   * Formats the date structure to match what CustomFields expects.
    */
   const handleValueChange = useCallback(
     (newValue) => {
+      // Update local state
       setSelectedDate(newValue);
-      onChange?.(newValue);
+
+      // Only trigger onChange if both dates are selected or dates have changed
+      if (newValue.start || newValue.end) {
+        // Transform the date structure to match what CustomFields expects
+        const formattedDates = {
+          name: {
+            start: newValue.start,
+            end: newValue.end,
+          },
+        };
+        onChange?.(formattedDates);
+      }
+
+      // Close the calendar after selection is complete
+      if (newValue.start && newValue.end) {
+        setTimeout(() => setIsOpen(false), 300);
+      }
     },
     [onChange],
   );
@@ -90,6 +117,31 @@ const DatePicker = ({
     [referenceElement],
   );
 
+  // Update the selected date if initialValue changes externally
+  // Use JSON.stringify comparison and refs to prevent infinite loops
+  useEffect(() => {
+    if (!initialValue) return;
+
+    const currentValueStr = JSON.stringify({
+      start: initialValue?.name?.start,
+      end: initialValue?.name?.end,
+    });
+
+    const prevValueStr = JSON.stringify(prevInitialValueRef.current);
+
+    if (currentValueStr !== prevValueStr) {
+      setSelectedDate({
+        start: initialValue?.name?.start || null,
+        end: initialValue?.name?.end || null,
+      });
+
+      prevInitialValueRef.current = {
+        start: initialValue?.name?.start,
+        end: initialValue?.name?.end,
+      };
+    }
+  }, [initialValue]);
+
   // Attach/detach outside click handler
   useEffect(() => {
     if (isOpen) {
@@ -103,16 +155,30 @@ const DatePicker = ({
   }, [isOpen, handleClickOutside]);
 
   // Format the selected date range for display
-  const formattedStartDate = selectedDate.start
-    ? format(selectedDate.start, 'MMM d, yyyy')
-    : '';
-  const formattedEndDate = selectedDate.end
-    ? format(selectedDate.end, 'MMM d, yyyy')
-    : '';
-  const btnText =
-    selectedDate.start && selectedDate.end
-      ? `${formattedStartDate} - ${formattedEndDate}`
-      : 'Select Date Range';
+  const getFormattedDateText = useCallback(() => {
+    if (!selectedDate.start && !selectedDate.end) {
+      return 'Select Date Range';
+    }
+
+    const formattedStartDate = selectedDate.start
+      ? format(new Date(selectedDate.start), 'MMM d, yyyy')
+      : '';
+
+    const formattedEndDate = selectedDate.end
+      ? format(new Date(selectedDate.end), 'MMM d, yyyy')
+      : '';
+
+    if (selectedDate.start && selectedDate.end) {
+      return `${formattedStartDate} - ${formattedEndDate}`;
+    } else if (selectedDate.start) {
+      return `${formattedStartDate} - Select end date`;
+    } else {
+      return `Select start date - ${formattedEndDate}`;
+    }
+  }, [selectedDate]);
+
+  // Get formatted button text
+  const btnText = getFormattedDateText();
 
   return (
     <div className="relative">
@@ -164,11 +230,12 @@ const DatePicker = ({
             }}
             {...attributes.arrow}
           />
-          {/* Calendar container with reduced height */}
 
+          {/* Calendar container */}
           <Calendar
             showTwoCalendars={false}
             handleValueChange={handleValueChange}
+            initialValue={selectedDate}
             closeDatePicker={() => setIsOpen(false)}
           />
         </div>

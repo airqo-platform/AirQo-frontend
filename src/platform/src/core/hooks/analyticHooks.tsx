@@ -5,6 +5,7 @@ import {
   getGridSummaryApi,
   getAnalyticsDataApi,
   getRecentMeasurements,
+  generateSiteAndDeviceIds,
 } from '../apis/Analytics';
 import { format } from 'date-fns';
 import { ANALYTICS_SWR_CONFIG, SWR_CONFIG } from '../swrConfigs';
@@ -237,6 +238,27 @@ export const useRecentMeasurements = (params, options = {}) => {
 
   return {
     data: data?.measurements || [],
+    isLoading,
+    isError: !!error,
+    error,
+    refresh: mutate,
+  };
+};
+
+/**
+ * Hook for generating site and device IDs for a given grid ID
+ * @param {string} grid_id - Grid ID
+ * @returns {Object} SWR response with data, loading and error states
+ */
+export const useSiteAndDeviceIds = (grid_id) => {
+  const { data, error, isLoading, mutate } = useSWR(
+    grid_id ? ['site-and-device-ids', grid_id] : null,
+    () => generateSiteAndDeviceIds(grid_id),
+    { ...SWR_CONFIG },
+  );
+
+  return {
+    data: data?.sites_and_devices || [],
     isLoading,
     isError: !!error,
     error,
