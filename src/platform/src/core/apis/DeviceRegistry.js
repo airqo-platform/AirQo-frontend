@@ -1,7 +1,6 @@
 import createAxiosInstance from './axiosConfig';
 import {
   SITES_URL,
-  ANALYTICS_URL,
   READINGS_URL,
   DEVICES,
   GRID_LOCATIONS_URL,
@@ -32,54 +31,6 @@ export const getSiteSummaryDetails = async () => {
 export const getGirdsSummaryDetails = async () => {
   const response = await createAxiosInstance().get(`${GRIDS_SUMMARY_URL}`);
   return response.data;
-};
-
-export const getAnalyticsData = async ({ body, timeout = 180000, signal }) => {
-  try {
-    const response = await createAxiosInstance().post(ANALYTICS_URL, body, {
-      timeout: timeout,
-      signal,
-    });
-    return response.data;
-  } catch (error) {
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('Analytics request timed out. Please try again.');
-    }
-    if (error.name === 'CanceledError') {
-      console.log('Analytics request was canceled.');
-      return; // or handle as needed
-    }
-    throw error;
-  }
-};
-
-export const getRecentMeasurements = async ({
-  params,
-  timeout = 180000,
-  signal,
-}) => {
-  try {
-    const response = await createAxiosInstance(false).get(
-      `${DEVICES}/readings/recent`,
-      {
-        params,
-        timeout: timeout,
-        signal,
-      },
-    );
-    return response.data;
-  } catch (error) {
-    if (error.code === 'ECONNABORTED') {
-      throw new Error(
-        'Recent measurements request timed out. Please try again.',
-      );
-    }
-    if (error.name === 'CanceledError') {
-      console.log('Recent measurements request was canceled.');
-      return; // or handle as needed
-    }
-    throw error;
-  }
 };
 
 export const verifyCohortID = async (cohortID) => {

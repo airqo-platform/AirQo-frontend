@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { useSelector } from 'react-redux';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
@@ -11,19 +17,22 @@ import useDataDownload from '@/core/hooks/useDataDownload';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
-// import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { subDays, format, parseISO } from 'date-fns';
+import RefreshIcon from '@/icons/map/refreshIcon';
+import { format, parseISO } from 'date-fns';
 import { saveAs } from 'file-saver';
 import CustomToast from '../../../Toast/CustomToast';
-import useFetchAnalyticsData from '@/core/hooks/useFetchAnalyticsData';
+import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
+import { MdErrorOutline, MdInfo } from 'react-icons/md';
+import { Refreshing, DoneRefreshed } from '../constants/svgs';
+import InfoMessage from '../../../Messages/InfoMessage';
 
 /**
  * InSightsHeader Component
  */
-const InSightsHeader = () => (
+export const InSightsHeader = () => (
   <h3
     className="flex text-lg leading-6 font-medium text-gray-900"
     id="modal-title"
@@ -33,23 +42,30 @@ const InSightsHeader = () => (
 );
 
 /**
- * MoreInsights Component
+ * MoreInsights Component - Advanced analytics dashboard
  */
 const MoreInsights = () => {
-  // const dispatch = useDispatch();
+  // Redux state
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
-  // Local state for download functionality
+  // Local state
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
+  const [frequency, setFrequency] = useState('daily');
+  const [chartType, setChartType] = useState('line');
+  const [isManualRefresh, setIsManualRefresh] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState(false);
+  const refreshTimeoutRef = useRef(null);
+  const successTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const downloadControllerRef = useRef(null);
 
-  // Use the hook to fetch data
+  // API hooks
   const fetchData = useDataDownload();
 
   /**
-   * Ensure `allSites` is an array.
-   * If `modalData` is undefined, null, or not an array, default to an empty array.
+   * Ensure `allSites` is an array
    */
   const allSites = useMemo(() => {
     if (Array.isArray(modalData)) return modalData;
@@ -58,29 +74,21 @@ const MoreInsights = () => {
   }, [modalData]);
 
   /**
-   * Local state to manage selected sites.
-   * Initializes with all sites selected by default.
+   * Data fetching and visibility states
    */
-  const [selectedSites, setSelectedSites] = useState(() => [...allSites]);
-
-  /**
-   * Extract site IDs from selected sites for API requests.
-   */
-  const selectedSiteIds = useMemo(
-    () => selectedSites.map((site) => site._id),
-    [selectedSites],
+  const [dataLoadingSites, setDataLoadingSites] = useState(
+    allSites.map((site) => site._id),
+  );
+  const [visibleSites, setVisibleSites] = useState(
+    allSites.map((site) => site._id),
   );
 
-  // State variables for frequency, chart type, and date range
-  const [frequency, setFrequency] = useState('daily');
-  const [chartType, setChartType] = useState('line');
-
   /**
-   * Initialize date range to last 7 days.
+   * Initialize date range to last 7 days
    */
   const initialDateRange = useMemo(() => {
     const { startDateISO, endDateISO } = formatDateRangeToISO(
-      subDays(new Date(), 7),
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       new Date(),
     );
     return {
@@ -93,62 +101,83 @@ const MoreInsights = () => {
   const [dateRange, setDateRange] = useState(initialDateRange);
 
   /**
-   * Fetch analytics data using custom hook.
-   * Dependencies: selectedSiteIds, dateRange, chartType, frequency, pollutant, organisationName
+   * Fetch analytics data using SWR hook with improved configuration
    */
-  const { allSiteData, chartLoading, error, refetch } = useFetchAnalyticsData({
-    selectedSiteIds,
-    dateRange,
-    chartType,
-    frequency,
-    pollutant: chartData.pollutionType,
-    organisationName: chartData.organisationName,
-  });
-
-  // State for managing the SkeletonLoader visibility
-  const [showSkeleton, setShowSkeleton] = useState(chartLoading);
-
-  /**
-   * Handles refetching data when a parameter changes.
-   */
-  const handleParameterChange = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
-  /**
-   * Handles toggling of site selection.
-   * Adds or removes a site from the selectedSites state.
-   *
-   * @param {string} siteId - The ID of the site to toggle.
-   */
-  const toggleSiteSelection = useCallback(
-    (siteId) => {
-      setSelectedSites((prevSelected) => {
-        const isSelected = prevSelected.some((site) => site._id === siteId);
-        if (isSelected) {
-          return prevSelected.filter((site) => site._id !== siteId);
-        } else {
-          const siteToAdd = allSites.find((site) => site._id === siteId);
-          if (siteToAdd) {
-            return [...prevSelected, siteToAdd];
+  const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
+    useAnalyticsData(
+      {
+        selectedSiteIds: dataLoadingSites,
+        dateRange: {
+          startDate: new Date(dateRange.startDate),
+          endDate: new Date(dateRange.endDate),
+        },
+        chartType,
+        frequency,
+        pollutant: chartData.pollutionType,
+        organisationName: chartData.organizationName,
+      },
+      {
+        revalidateOnFocus: false,
+        dedupingInterval: 10000,
+        revalidateIfStale: false,
+        revalidateOnReconnect: false,
+        errorRetryCount: 3,
+        errorRetryInterval: 3000,
+        focusThrottleInterval: 10000,
+        loadingTimeout: 30000,
+        onError: (err) => {
+          if (
+            err.name === 'AbortError' ||
+            err.message?.includes('aborted') ||
+            err.message?.includes('canceled')
+          ) {
+            console.log('Request aborted, this is expected behavior');
+            return;
           }
-          return prevSelected;
-        }
-      });
-    },
-    [allSites],
-  );
+          console.error('Error fetching analytics data:', err);
 
-  /**
-   * Effect to refetch data when selectedSites changes.
-   */
+          // Clear refresh state if error occurs during refresh
+          if (isManualRefresh) {
+            setIsManualRefresh(false);
+          }
+        },
+        onSuccess: () => {
+          // If this was a manual refresh, show success message
+          if (isManualRefresh) {
+            setRefreshSuccess(true);
+            setIsManualRefresh(false);
+
+            // Clear success message after 3 seconds
+            if (successTimeoutRef.current) {
+              clearTimeout(successTimeoutRef.current);
+            }
+            successTimeoutRef.current = setTimeout(() => {
+              setRefreshSuccess(false);
+            }, 3000);
+          }
+        },
+      },
+    );
+
+  // Clean up timeouts on unmount
   useEffect(() => {
-    handleParameterChange();
-  }, [selectedSites, handleParameterChange]);
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (downloadControllerRef.current) {
+        downloadControllerRef.current.abort();
+      }
+    };
+  }, []);
 
-  /**
-   * Hide download error after 5 seconds.
-   */
+  // Clear download error after timeout
   useEffect(() => {
     if (downloadError) {
       const timer = setTimeout(() => {
@@ -159,26 +188,301 @@ const MoreInsights = () => {
   }, [downloadError]);
 
   /**
-   * Effect to manage SkeletonLoader visibility with delay.
+   * Toggle site visibility in chart.
+   * If it is the last visible site, prevent unchecking and show a warning notification.
    */
-  useEffect(() => {
-    let timer;
-    if (chartLoading) {
-      setShowSkeleton(true);
-    } else {
-      timer = setTimeout(() => {
-        setShowSkeleton(false);
-      }, 4000);
-    }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [chartLoading]);
+  const toggleSiteVisibility = useCallback((siteId) => {
+    setVisibleSites((prev) => {
+      // If the site is currently visible
+      if (prev.includes(siteId)) {
+        // Prevent unchecking if it is the only visible site
+        if (prev.length === 1) {
+          CustomToast({
+            message: 'At least one location must remain selected.',
+            type: 'warning',
+          });
+          return prev;
+        }
+        return prev.filter((id) => id !== siteId);
+      }
+      return [...prev, siteId];
+    });
+  }, []);
 
   /**
-   * Generates the content for all sites in the sidebar.
-   * Displays sites with their selection status.
+   * Add a site to load data for
+   */
+  const addDataLoadingSite = useCallback(
+    (siteId) => {
+      if (!dataLoadingSites.includes(siteId)) {
+        setDataLoadingSites((prev) => [...prev, siteId]);
+        setVisibleSites((prev) => [...prev, siteId]);
+        return true; // Data reload will happen
+      }
+      return false; // No data reload needed
+    },
+    [dataLoadingSites],
+  );
+
+  /**
+   * Remove a site from data loading
+   */
+  const removeDataLoadingSite = useCallback(
+    (siteId) => {
+      if (dataLoadingSites.length <= 1) {
+        return false;
+      }
+      setDataLoadingSites((prev) => prev.filter((id) => id !== siteId));
+      setVisibleSites((prev) => prev.filter((id) => id !== siteId));
+      return true;
+    },
+    [dataLoadingSites],
+  );
+
+  /**
+   * Add multiple sites to data loading at once
+   */
+  const addMultipleSites = useCallback((siteIds) => {
+    if (!Array.isArray(siteIds) || siteIds.length === 0) return false;
+    setDataLoadingSites((prev) => {
+      const newSites = siteIds.filter((id) => !prev.includes(id));
+      if (newSites.length === 0) return prev;
+      return [...prev, ...newSites];
+    });
+    setVisibleSites((prev) => {
+      const newVisible = [...prev];
+      siteIds.forEach((id) => {
+        if (!newVisible.includes(id)) {
+          newVisible.push(id);
+        }
+      });
+      return newVisible;
+    });
+    return true;
+  }, []);
+
+  /**
+   * Add all available sites at once
+   */
+  const addAllSites = useCallback(() => {
+    const allSiteIds = allSites.map((site) => site._id);
+    return addMultipleSites(allSiteIds);
+  }, [allSites, addMultipleSites]);
+
+  /**
+   * Handle site click actions (toggle or remove)
+   */
+  const handleSiteClick = useCallback(
+    (siteId, action = 'toggle') => {
+      if (!dataLoadingSites.includes(siteId)) {
+        return addDataLoadingSite(siteId);
+      }
+      if (action === 'toggle') {
+        toggleSiteVisibility(siteId);
+        return false;
+      }
+      if (action === 'remove') {
+        return removeDataLoadingSite(siteId);
+      }
+      return false;
+    },
+    [
+      dataLoadingSites,
+      toggleSiteVisibility,
+      addDataLoadingSite,
+      removeDataLoadingSite,
+    ],
+  );
+
+  /**
+   * Handle manual refresh with improved handling of aborts and state management
+   */
+  const handleManualRefresh = useCallback(async () => {
+    if (isManualRefresh || isValidating) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+    setIsManualRefresh(true);
+    setRefreshSuccess(false);
+
+    try {
+      await refetch({ signal: abortControllerRef.current.signal });
+    } catch (err) {
+      console.error('Manual refresh failed:', err);
+      setIsManualRefresh(false);
+      // Reset any stuck state that might prevent future refreshes
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    }
+  }, [refetch, isManualRefresh, isValidating]);
+
+  /**
+   * Download data in CSV format with improved error handling.
+   * Only downloads data for visible (checked) sites.
+   */
+  const handleDataDownload = async () => {
+    // Check if there are any visible sites to download
+    if (visibleSites.length === 0) {
+      CustomToast({
+        message: 'Please select at least one site to download data.',
+        type: 'warning',
+      });
+      return;
+    }
+
+    setDownloadLoading(true);
+
+    try {
+      // Cancel any existing download request
+      if (downloadControllerRef.current) {
+        downloadControllerRef.current.abort();
+      }
+
+      downloadControllerRef.current = new AbortController();
+
+      const { startDate, endDate } = dateRange;
+      const formattedStartDate = format(
+        parseISO(startDate),
+        "yyyy-MM-dd'T'00:00:00.000'Z'",
+      );
+      const formattedEndDate = format(
+        parseISO(endDate),
+        "yyyy-MM-dd'T'00:00:00.000'Z'",
+      );
+
+      // Using visible sites instead of all data loading sites
+      const sitesToDownload = visibleSites;
+
+      // Look up site names for the filename
+      const siteNames = sitesToDownload.map((siteId) => {
+        const site = allSites.find((s) => s._id === siteId);
+        return site ? site.name || 'Unknown' : 'Unknown';
+      });
+
+      // Create API request data
+      const apiData = {
+        startDateTime: formattedStartDate,
+        endDateTime: formattedEndDate,
+        sites: sitesToDownload, // Only download selected sites
+        network: chartData.organizationName,
+        pollutants: [chartData.pollutionType],
+        frequency: frequency,
+        datatype: 'calibrated',
+        downloadType: 'csv',
+        outputFormat: 'airqo-standard',
+        minimum: true,
+        signal: downloadControllerRef.current.signal,
+      };
+
+      // Set a timeout for the download
+      const downloadTimeout = setTimeout(() => {
+        setDownloadError(
+          'The download request is taking longer than expected. Please try again later.',
+        );
+        setDownloadLoading(false);
+      }, 30000); // 30-second timeout
+
+      // Fetch the data
+      const data = await fetchData(apiData);
+      clearTimeout(downloadTimeout);
+
+      // Create descriptive filename
+      let fileName;
+      if (sitesToDownload.length === 1) {
+        // Single site
+        fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
+          parseISO(startDate),
+          'yyyy-MM-dd',
+        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+      } else if (sitesToDownload.length === allSites.length) {
+        // All sites
+        fileName = `all_sites_${chartData.pollutionType}_${format(
+          parseISO(startDate),
+          'yyyy-MM-dd',
+        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+      } else {
+        // Multiple sites
+        fileName = `${sitesToDownload.length}_selected_sites_${
+          chartData.pollutionType
+        }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(
+          parseISO(endDate),
+          'yyyy-MM-dd',
+        )}.csv`;
+      }
+
+      // Save the file
+      const mimeType = 'text/csv;charset=utf-8;';
+      const blob = new Blob([data], { type: mimeType });
+      saveAs(blob, fileName);
+
+      CustomToast({
+        message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('Error during download:', error);
+
+      if (
+        error.name === 'AbortError' ||
+        error.message?.includes('aborted') ||
+        error.message?.includes('canceled')
+      ) {
+        setDownloadError('Download was canceled.');
+      } else {
+        setDownloadError(
+          error.message ||
+            'There was an error downloading the data. Please try again later.',
+        );
+      }
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
+
+  /**
+   * Date range change handler
+   */
+  const handleDateChange = useCallback((start, end, label) => {
+    if (start && end) {
+      setDateRange({
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        label,
+      });
+    }
+  }, []);
+
+  /**
+   * Frequency change handler
+   */
+  const handleFrequencyChange = useCallback(
+    (option) => {
+      if (frequency !== option) {
+        setFrequency(option);
+      }
+    },
+    [frequency],
+  );
+
+  /**
+   * Chart type change handler
+   */
+  const handleChartTypeChange = useCallback(
+    (option) => {
+      if (chartType !== option) {
+        setChartType(option);
+      }
+    },
+    [chartType],
+  );
+
+  /**
+   * Generate sidebar content for site selection.
+   * The checkbox state is now controlled by `visibleSites`.
    */
   const allSitesContent = useMemo(() => {
     if (!Array.isArray(allSites) || allSites.length === 0) {
@@ -191,102 +495,212 @@ const MoreInsights = () => {
         </div>
       );
     }
-
     return allSites.map((site) => (
       <LocationCard
         key={site._id}
         site={site}
-        onToggle={() => toggleSiteSelection(site._id)}
-        isSelected={selectedSites.some((s) => s._id === site._id)}
-        isLoading={false}
-        disableToggle={selectedSites.length === 1}
+        onToggle={() => handleSiteClick(site._id, 'toggle')}
+        onRemove={() => handleSiteClick(site._id, 'remove')}
+        // Use visibleSites for the checked state so the UI reflects the toggle properly
+        isSelected={visibleSites.includes(site._id)}
+        isVisible={visibleSites.includes(site._id)}
+        isLoading={
+          isValidating &&
+          dataLoadingSites.includes(site._id) &&
+          !visibleSites.includes(site._id)
+        }
+        disableToggle={
+          dataLoadingSites.length <= 1 && dataLoadingSites.includes(site._id)
+        }
       />
     ));
-  }, [allSites, selectedSites, toggleSiteSelection]);
+  }, [allSites, dataLoadingSites, visibleSites, handleSiteClick, isValidating]);
 
   /**
-   * Handles data download with default CSV format.
+   * Button tooltip content for download
    */
-  const handleDataDownload = async () => {
-    setDownloadLoading(true);
-
-    try {
-      const { startDate, endDate } = dateRange;
-      const formattedStartDate = format(
-        parseISO(startDate),
-        "yyyy-MM-dd'T'00:00:00.000'Z'",
-      );
-      const formattedEndDate = format(
-        parseISO(endDate),
-        "yyyy-MM-dd'T'00:00:00.000'Z'",
-      );
-
-      const apiData = {
-        startDateTime: formattedStartDate,
-        endDateTime: formattedEndDate,
-        sites: selectedSiteIds,
-        network: chartData.organizationName,
-        pollutants: [chartData.pollutionType],
-        frequency: frequency,
-        datatype: 'calibrated',
-        downloadType: 'csv',
-        outputFormat: 'airqo-standard',
-        minimum: true,
-      };
-
-      const data = await fetchData(apiData);
-
-      const mimeType = 'text/csv;charset=utf-8;';
-      const fileName = `analytics_data_${new Date().toISOString()}.csv`;
-      const blob = new Blob([data], { type: mimeType });
-
-      saveAs(blob, fileName);
-      CustomToast();
-    } catch (error) {
-      console.error('Error during download:', error);
-      setDownloadError(
-        'There was an error downloading the data. Please try again later.',
-      );
-    } finally {
-      setDownloadLoading(false);
+  const downloadTooltipContent = useMemo(() => {
+    if (visibleSites.length === 0) {
+      return 'Please select at least one site to download data';
     }
-  };
+    if (visibleSites.length === dataLoadingSites.length) {
+      return 'Download data for all selected sites';
+    }
+    return `Download data for ${visibleSites.length} checked site(s)`;
+  }, [visibleSites.length, dataLoadingSites.length]);
 
   /**
-   * Handles opening the modal with the specified type, ids, and data.
-   * Utilizes Redux actions for state management.
+   * Refresh button component with improved state handling
    */
-  // const handleOpenModal = useCallback(
-  //   (type, ids = [], data = null) => {
-  //     dispatch(setModalType({ type, ids, data }));
-  //     dispatch(setOpenModal(true));
-  //   },
-  //   [dispatch]
-  // );
+  const RefreshButton = useMemo(
+    () => (
+      <Tooltip content="Refresh data" className="w-auto text-center">
+        <button
+          onClick={handleManualRefresh}
+          disabled={isValidating}
+          aria-label="Refresh data"
+          className={`ml-2 p-2 rounded-md border border-gray-200 ${
+            isValidating
+              ? 'bg-gray-100 cursor-not-allowed'
+              : 'hover:bg-gray-100'
+          } transition-colors flex items-center`}
+        >
+          {isValidating && isManualRefresh ? (
+            <svg
+              className="animate-spin h-5 w-5 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            <RefreshIcon width={20} height={20} />
+          )}
+        </button>
+      </Tooltip>
+    ),
+    [isValidating, isManualRefresh, handleManualRefresh],
+  );
+
+  /**
+   * Determine chart content based on loading/error states
+   */
+  const chartContent = useMemo(() => {
+    if (isError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[380px] space-y-3 bg-red-50 border border-red-200 rounded-md p-6 text-center">
+          <MdErrorOutline className="text-red-500 text-4xl" />
+          <h3 className="text-red-800 text-lg font-semibold">
+            Oops! Something went wrong.
+          </h3>
+          <p className="text-sm text-red-600 max-w-md mx-auto">
+            {error?.message?.includes('canceled') ||
+            error?.message?.includes('aborted')
+              ? 'Request was canceled. The server might be taking too long to respond.'
+              : error?.message ||
+                'Something went wrong loading the chart data.'}
+          </p>
+          <button
+            onClick={() => {
+              // Force set isManualRefresh to false in case it's stuck
+              setIsManualRefresh(false);
+              // Short timeout to ensure state is updated before trying again
+              setTimeout(() => {
+                handleManualRefresh();
+              }, 100);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            disabled={isValidating}
+          >
+            {isValidating ? 'Refreshing...' : 'Try Again'}
+          </button>
+        </div>
+      );
+    }
+
+    if (
+      chartLoading ||
+      (isValidating && dataLoadingSites.length > 0 && !allSiteData?.length)
+    ) {
+      return <SkeletonLoader width="100%" height={380} />;
+    }
+
+    if (allSiteData?.length > 0) {
+      return (
+        <MoreInsightsChart
+          data={allSiteData}
+          selectedSites={dataLoadingSites}
+          visibleSiteIds={visibleSites}
+          chartType={chartType}
+          frequency={frequency}
+          width="100%"
+          height={380}
+          id="air-quality-chart"
+          pollutantType={chartData.pollutionType}
+          refreshChart={handleManualRefresh}
+          isRefreshing={isValidating && isManualRefresh}
+        />
+      );
+    }
+
+    return (
+      <InfoMessage
+        title="No Data"
+        description="No data available for the selected sites and time period."
+        variant="info"
+        className="w-full h-full"
+        action={
+          <button
+            onClick={handleManualRefresh}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            disabled={isValidating}
+          >
+            {isValidating ? 'Refreshing...' : 'Retry'}
+          </button>
+        }
+      />
+    );
+  }, [
+    isError,
+    error,
+    chartLoading,
+    isValidating,
+    dataLoadingSites,
+    allSiteData,
+    visibleSites,
+    chartType,
+    frequency,
+    chartData.pollutionType,
+    handleManualRefresh,
+    setIsManualRefresh,
+  ]);
 
   return (
-    <>
-      {/* -------------------- Sidebar for Sites -------------------- */}
-      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+    <div className="flex w-full h-full">
+      {/* Sidebar for Sites */}
+      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-2 pb-14">
+        <div className="text-sm text-gray-500 mb-4">
+          <p className="flex items-center">
+            <span>Click checkbox to toggle visibility</span>
+            <Tooltip
+              content="Checked sites will be included in downloads"
+              className="ml-1"
+            >
+              <MdInfo className="text-blue-500" />
+            </Tooltip>
+          </p>
+          {allSites.length > dataLoadingSites.length && (
+            <button
+              onClick={addAllSites}
+              className="mt-3 px-3 py-1.5 bg-blue-50 text-blue-600 rounded text-xs font-medium hover:bg-blue-100 transition-colors w-full"
+            >
+              Load all {allSites.length} sites
+            </button>
+          )}
+        </div>
         {allSitesContent}
-        {/* Add Location Button */}
-        {/* {!chartLoading && (
-          <button
-            onClick={() => handleOpenModal('moreSights')}
-            className="bg-blue-50 w-full rounded-xl px-2 py-4 h-[70px] flex justify-center items-center text-blue-500 transition-transform transform hover:scale-95"
-          >
-            + Add location
-          </button>
-        )} */}
       </div>
 
-      {/* -------------------- Main Content Area -------------------- */}
+      {/* Main Content Area */}
       <div className="bg-white relative w-full h-full">
-        <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full overflow-y-auto md:overflow-hidden">
-          {/* -------------------- Controls: Dropdowns and Actions -------------------- */}
+        <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full w-full overflow-y-auto md:overflow-hidden">
+          {/* Controls: Dropdowns and Actions */}
           <div className="w-full flex flex-wrap gap-2 justify-between">
-            <div className="space-x-2 flex">
-              {/* Frequency Dropdown */}
+            <div className="space-x-2 flex items-center">
               <CustomDropdown
                 btnText={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
                 dropdown
@@ -296,12 +710,7 @@ const MoreInsights = () => {
                 {TIME_OPTIONS.map((option) => (
                   <span
                     key={option}
-                    onClick={() => {
-                      if (frequency !== option) {
-                        setFrequency(option);
-                        handleParameterChange();
-                      }
-                    }}
+                    onClick={() => handleFrequencyChange(option)}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -314,25 +723,14 @@ const MoreInsights = () => {
                 ))}
               </CustomDropdown>
 
-              {/* Date Range Picker */}
               <CustomCalendar
                 initialStartDate={new Date(dateRange.startDate)}
                 initialEndDate={new Date(dateRange.endDate)}
-                onChange={(start, end, label) => {
-                  if (start && end) {
-                    setDateRange({
-                      startDate: start.toISOString(),
-                      endDate: end.toISOString(),
-                      label,
-                    });
-                    handleParameterChange();
-                  }
-                }}
+                onChange={handleDateChange}
                 className="-left-10 md:left-16 top-11"
                 dropdown
               />
 
-              {/* Chart Type Dropdown */}
               <CustomDropdown
                 btnText={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 id="chartType"
@@ -341,12 +739,7 @@ const MoreInsights = () => {
                 {CHART_TYPE.map((option) => (
                   <span
                     key={option.id}
-                    onClick={() => {
-                      if (chartType !== option.id) {
-                        setChartType(option.id);
-                        handleParameterChange();
-                      }
-                    }}
+                    onClick={() => handleChartTypeChange(option.id)}
                     className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
                       chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
                     }`}
@@ -356,75 +749,101 @@ const MoreInsights = () => {
                   </span>
                 ))}
               </CustomDropdown>
+
+              {RefreshButton}
             </div>
 
-            {/* Actions: Download Data */}
             <div>
               <Tooltip
-                content={'Download calibrated data in CSV format'}
+                content={downloadTooltipContent}
                 className="w-auto text-center"
               >
                 <TabButtons
-                  btnText="Download Data"
+                  btnText={`Download ${
+                    visibleSites.length > 0
+                      ? `(${visibleSites.length})`
+                      : 'Data'
+                  }`}
                   Icon={<DownloadIcon width={16} height={17} color="white" />}
                   onClick={handleDataDownload}
-                  btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-2 rounded-xl"
+                  btnStyle={`${
+                    visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
+                  } text-white border ${
+                    visibleSites.length > 0
+                      ? 'border-blue-600'
+                      : 'border-gray-400'
+                  } px-3 py-2 rounded-xl`}
                   isLoading={downloadLoading}
-                  disabled={downloadLoading || chartLoading}
+                  disabled={
+                    downloadLoading ||
+                    chartLoading ||
+                    isValidating ||
+                    visibleSites.length === 0
+                  }
                 />
               </Tooltip>
             </div>
           </div>
 
-          {/* -------------------- Download Error -------------------- */}
           {downloadError && (
             <div className="w-full flex items-center justify-start h-auto">
               <p className="text-red-500 font-semibold">{downloadError}</p>
             </div>
           )}
 
-          {/* -------------------- Chart Display -------------------- */}
-          <div className="w-full h-auto border rounded-xl border-grey-150 p-2">
-            {error ? (
-              <div className="w-full flex flex-col items-center justify-center h-[380px]">
-                <p className="text-red-500 font-semibold mb-2">
-                  Something went wrong. Please try again.
-                </p>
-                <button
-                  onClick={refetch}
-                  className="mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                >
-                  Try Again
-                </button>
+          <div className="w-full h-auto border rounded-xl border-grey-150 p-2 relative">
+            {refreshSuccess && !isValidating && (
+              <div className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
+                <DoneRefreshed />
+                <span className="text-sm font-medium">Data refreshed</span>
               </div>
-            ) : showSkeleton ? (
-              <SkeletonLoader width="100%" height={380} />
-            ) : (
-              <MoreInsightsChart
-                data={allSiteData}
-                selectedSites={selectedSiteIds}
-                chartType={chartType}
-                frequency={frequency}
-                width="100%"
-                height={380}
-                id="air-quality-chart"
-                pollutantType={chartData.pollutionType}
-              />
             )}
+
+            {isManualRefresh && isValidating && (
+              <div className="absolute top-2 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm animate-pulse">
+                <Refreshing />
+                <span className="text-sm font-medium">Refreshing data...</span>
+              </div>
+            )}
+
+            {chartContent}
           </div>
 
-          {/* -------------------- Air Quality Card -------------------- */}
+          {/* Site visibility indicator with info about download */}
+          {dataLoadingSites.length > visibleSites.length && (
+            <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded flex items-center">
+              <svg
+                className="h-4 w-4 mr-2 text-blue-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fillRule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>
+                {dataLoadingSites.length - visibleSites.length} site(s) hidden
+                and will not be included in downloads. Check the boxes in the
+                sidebar to include them.
+              </span>
+            </div>
+          )}
+
           <AirQualityCard
             airQuality="--"
             pollutionSource="--"
             pollutant={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-            isLoading={chartLoading}
+            isLoading={chartLoading || isValidating}
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export { InSightsHeader };
 export default MoreInsights;

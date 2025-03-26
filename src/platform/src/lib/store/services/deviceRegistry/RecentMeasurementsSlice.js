@@ -1,47 +1,41 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getRecentMeasurements } from '@/core/apis/DeviceRegistry';
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   measurements: [],
-  status: 'idle',
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
 };
 
-export const fetchRecentMeasurementsData = createAsyncThunk(
-  '/get/measurements/recent',
-  async (params, { signal }) => {
-    const response = await getRecentMeasurements({ ...params, signal });
-    return response.measurements;
-  },
-);
-
-export const recentMeasurementsSlice = createSlice({
+const recentMeasurementsSlice = createSlice({
   name: 'recentMeasurements',
   initialState,
   reducers: {
     setRecentMeasurementsData: (state, action) => {
       state.measurements = action.payload;
+      state.status = 'succeeded';
+      state.error = null;
     },
     clearMeasurementsData: (state) => {
       state.measurements = [];
+      state.status = 'idle';
+      state.error = null;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchRecentMeasurementsData.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(fetchRecentMeasurementsData.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.measurements = action.payload;
-      })
-      .addCase(fetchRecentMeasurementsData.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.error;
-      });
+    // Optionally, you can add actions to update status or error if needed.
+    setRecentMeasurementsLoading: (state) => {
+      state.status = 'loading';
+      state.error = null;
+    },
+    setRecentMeasurementsError: (state, action) => {
+      state.error = action.payload;
+      state.status = 'failed';
+    },
   },
 });
 
-export const { setRecentMeasurementsData, clearMeasurementsData } =
-  recentMeasurementsSlice.actions;
+export const {
+  setRecentMeasurementsData,
+  clearMeasurementsData,
+  setRecentMeasurementsLoading,
+  setRecentMeasurementsError,
+} = recentMeasurementsSlice.actions;
 export default recentMeasurementsSlice.reducer;
