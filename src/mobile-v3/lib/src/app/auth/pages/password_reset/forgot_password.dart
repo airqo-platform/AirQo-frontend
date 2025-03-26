@@ -94,13 +94,6 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                   child: SizedBox(
                     child: Column(
                       children: [
-                        Text("Forgot Your Password?",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).textTheme.titleMedium?.color
-                        ),
-                        ),
                         SizedBox(
                           height: 12,
                         ),
