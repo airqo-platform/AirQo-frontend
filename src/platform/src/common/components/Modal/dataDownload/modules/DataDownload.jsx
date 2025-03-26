@@ -114,6 +114,20 @@ const DataDownload = ({ onClose }) => {
     [groupList],
   );
 
+  // Filter data type options based on active filter
+  const filteredDataTypeOptions = useMemo(() => {
+    // Hide Raw Data option for Countries and Cities filters
+    if (
+      activeFilterKey === FILTER_TYPES.COUNTRIES ||
+      activeFilterKey === FILTER_TYPES.CITIES
+    ) {
+      return DATA_TYPE_OPTIONS.filter(
+        (option) => option.name.toLowerCase() !== 'raw data',
+      );
+    }
+    return DATA_TYPE_OPTIONS;
+  }, [activeFilterKey]);
+
   // Active group info for organization selection
   const activeGroup = useMemo(
     () => ({ id: activeGroupId, name: groupTitle }),
@@ -272,6 +286,21 @@ const DataDownload = ({ onClose }) => {
       previousFilterRef.current !== activeFilterKey
     ) {
       clearSelections();
+
+      // If switching to Countries or Cities and Raw Data is selected, switch to Calibrated Data
+      if (
+        (activeFilterKey === FILTER_TYPES.COUNTRIES ||
+          activeFilterKey === FILTER_TYPES.CITIES) &&
+        formData.dataType.name.toLowerCase() === 'raw data'
+      ) {
+        setFormData((prev) => ({
+          ...prev,
+          dataType:
+            DATA_TYPE_OPTIONS.find(
+              (opt) => opt.name.toLowerCase() === 'calibrated data',
+            ) || DATA_TYPE_OPTIONS[0],
+        }));
+      }
     }
     previousFilterRef.current = activeFilterKey;
   }, [activeFilterKey]);
@@ -509,23 +538,42 @@ const DataDownload = ({ onClose }) => {
               console.log('CSV RAW RESPONSE (DataDownload):', response);
               console.log('CSV response type:', typeof response);
 
-              // For CSV, just use what the API returns directly
-              let csvData = response;
+              // The API returns CSV data directly, so we can use it as is
+              let csvData;
 
-              // If response is an object with data property, extract it
-              if (
+              if (typeof response === 'string') {
+                // If response is a string, use it directly
+                csvData = response;
+                // Remove 'resp' prefix if it exists
+                if (csvData.startsWith('resp')) {
+                  csvData = csvData.substring(4);
+                }
+              } else if (
                 typeof response === 'object' &&
                 response !== null &&
                 response.data
               ) {
-                csvData = response.data;
-                console.log('Using response.data, type:', typeof csvData);
+                // If response is an object with data property, use that
+                csvData =
+                  typeof response.data === 'string'
+                    ? response.data
+                    : JSON.stringify(response.data);
+              } else {
+                // Fallback to empty CSV with headers
+                csvData =
+                  'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+                console.error('Invalid response format from API');
               }
 
-              // Create and download the blob without converting or reformatting
+              // Create and download the blob
               const blob = new Blob([csvData], { type: mimeType });
               console.log('CSV Blob created with size:', blob.size);
-              saveAs(blob, fileName);
+
+              if (blob.size > 10) {
+                saveAs(blob, fileName);
+              } else {
+                throw new Error('No data available for the selected criteria');
+              }
             } catch (error) {
               console.error('CSV download error:', error);
               throw new Error('Error saving CSV data. Please try again.');
@@ -908,11 +956,15 @@ const DataDownload = ({ onClose }) => {
         />
         <CustomFields
           title="Data type"
-          options={DATA_TYPE_OPTIONS}
+          options={filteredDataTypeOptions}
           id="dataType"
           icon={<CalibrateIcon />}
           defaultOption={formData.dataType}
           handleOptionSelect={handleOptionSelect}
+          disabled={
+            activeFilterKey === FILTER_TYPES.COUNTRIES ||
+            activeFilterKey === FILTER_TYPES.CITIES
+          }
         />
         <CustomFields
           title="Pollutant"

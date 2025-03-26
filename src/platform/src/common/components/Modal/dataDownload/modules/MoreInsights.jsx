@@ -375,6 +375,8 @@ const MoreInsights = () => {
         minimum: true,
       };
 
+      console.log('Download request data:', apiData);
+
       // Set a timeout for the download
       const downloadTimeout = setTimeout(() => {
         if (downloadControllerRef.current) {
@@ -386,54 +388,100 @@ const MoreInsights = () => {
         }
       }, 30000);
 
-      // Fetch the data
-      const response = await fetchData(apiData);
-      clearTimeout(downloadTimeout);
+      try {
+        // Fetch the data
+        const response = await fetchData(apiData);
+        clearTimeout(downloadTimeout);
 
-      // Log the response for debugging in production
-      console.log('CSV RAW RESPONSE (MoreInsights):', response);
-      console.log('CSV response type:', typeof response);
+        // Log the response for debugging in production
+        console.log('CSV RAW RESPONSE (MoreInsights):', response);
+        console.log('CSV response type:', typeof response);
 
-      // Create descriptive filename
-      let fileName;
-      if (sitesToDownload.length === 1) {
-        // Single site
-        fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
-          parseISO(startDate),
-          'yyyy-MM-dd',
-        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-      } else if (sitesToDownload.length === allSites.length) {
-        // All sites
-        fileName = `all_sites_${chartData.pollutionType}_${format(
-          parseISO(startDate),
-          'yyyy-MM-dd',
-        )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-      } else {
-        // Multiple sites
-        fileName = `${sitesToDownload.length}_selected_sites_${
-          chartData.pollutionType
-        }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        // Initialize csvData with a fallback empty CSV structure
+        let csvData =
+          'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+
+        // Handle different response formats
+        if (response) {
+          if (typeof response === 'string') {
+            // If response is a string, use it directly
+            csvData = response;
+            // Remove 'resp' prefix if it exists
+            if (csvData.startsWith('resp')) {
+              csvData = csvData.substring(4);
+            }
+          } else if (typeof response === 'object' && response !== null) {
+            // If response is an object, try to extract the data
+            if (response.data) {
+              if (typeof response.data === 'string') {
+                csvData = response.data;
+              } else if (Array.isArray(response.data)) {
+                // Convert array to CSV
+                const headers = Object.keys(response.data[0] || {}).join(',');
+                const rows = response.data
+                  .map((row) => Object.values(row).join(','))
+                  .join('\n');
+                csvData = headers ? `${headers}\n${rows}` : csvData;
+              }
+            } else {
+              // If no data property, try to stringify the object
+              csvData = JSON.stringify(response);
+            }
+          }
+        }
+
+        // Validate that we have CSV data with at least a header
+        if (!csvData.includes(',')) {
+          console.error('Invalid CSV format, using default header');
+          csvData =
+            'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+        }
+
+        // Create descriptive filename
+        let fileName;
+        if (sitesToDownload.length === 1) {
+          // Single site
+          fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
+            parseISO(startDate),
+            'yyyy-MM-dd',
+          )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        } else if (sitesToDownload.length === allSites.length) {
+          // All sites
+          fileName = `all_sites_${chartData.pollutionType}_${format(
+            parseISO(startDate),
+            'yyyy-MM-dd',
+          )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        } else {
+          // Multiple sites
+          fileName = `${sitesToDownload.length}_selected_sites_${
+            chartData.pollutionType
+          }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+        }
+
+        // Save the file
+        const mimeType = 'text/csv;charset=utf-8;';
+        const blob = new Blob([csvData], { type: mimeType });
+        console.log(
+          'CSV Blob created with size:',
+          blob.size,
+          'Content preview:',
+          csvData.substring(0, 100),
+        );
+
+        // Only save if we have actual data (more than just headers)
+        if (blob.size > 10) {
+          saveAs(blob, fileName);
+          CustomToast({
+            message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
+            type: 'success',
+          });
+        } else {
+          throw new Error('No data available for the selected criteria');
+        }
+      } catch (error) {
+        clearTimeout(downloadTimeout);
+        throw error; // Re-throw to be caught by the outer catch block
       }
-
-      // Handle the response directly - just use what we get from the API
-      let csvData = response;
-
-      // If response is an object with data property, extract it
-      if (typeof response === 'object' && response !== null && response.data) {
-        csvData = response.data;
-        console.log('Using response.data, type:', typeof csvData);
-      }
-
-      // Save the file directly without processing
-      const mimeType = 'text/csv;charset=utf-8;';
-      const blob = new Blob([csvData], { type: mimeType });
-      console.log('CSV Blob created with size:', blob.size);
-      saveAs(blob, fileName);
-
-      CustomToast({
-        message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
-        type: 'success',
-      });
     } catch (error) {
       console.error('Error during download:', error);
 
