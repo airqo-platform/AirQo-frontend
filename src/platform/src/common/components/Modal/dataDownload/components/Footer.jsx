@@ -65,7 +65,7 @@ const Footer = ({
         </span>
         <button
           type="button"
-          className="ml-2 text-blue-600 hover:text-blue-800"
+          className="ml-2 hover:text-red-600"
           onClick={handleClearSelection}
         >
           Clear
