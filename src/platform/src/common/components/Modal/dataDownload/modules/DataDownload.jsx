@@ -706,7 +706,7 @@ const DataDownload = ({ onClose }) => {
       { key: FILTER_TYPES.COUNTRIES, label: 'Countries' },
       { key: FILTER_TYPES.CITIES, label: 'Cities' },
       { key: FILTER_TYPES.SITES, label: 'Sites' },
-      // { key: FILTER_TYPES.DEVICES, label: 'Devices' },
+      { key: FILTER_TYPES.DEVICES, label: 'Devices' },
     ],
     [],
   );
