@@ -638,4 +638,4 @@ const DeployDevice = () => {
   );
 };
 
-export default withPermission(DeployDevice, 'DEPLOY_AIRQO_DEVICES');
+export default DeployDevice;
