@@ -189,25 +189,28 @@ const DataDownload = ({ onClose }) => {
     refresh: refreshCities,
   } = useGridSummary('city');
 
-  // Handle automatic error clearing after 2 seconds
-  useEffect(() => {
-    if (formError) {
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
-      }
+  // Enhanced error handling - reset error messages after 2 seconds
+  const resetErrorAfterDelay = useCallback((error) => {
+    setFormError(error);
 
-      errorTimeoutRef.current = setTimeout(() => {
-        setFormError('');
-        errorTimeoutRef.current = null;
-      }, 2000);
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
     }
 
+    errorTimeoutRef.current = setTimeout(() => {
+      setFormError('');
+      errorTimeoutRef.current = null;
+    }, 2000);
+  }, []);
+
+  // Handle automatic error clearing after 2 seconds
+  useEffect(() => {
     return () => {
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
       }
     };
-  }, [formError]);
+  }, []);
 
   // Set initial organization once data is loaded
   useEffect(() => {
@@ -312,6 +315,10 @@ const DataDownload = ({ onClose }) => {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
       }
+
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -414,7 +421,42 @@ const DataDownload = ({ onClose }) => {
     [refreshCountries, refreshCities, refreshDevices, refreshSites],
   );
 
-  // Handle download submission with simplified direct handling
+  // Enhanced validation function to check duration is selected
+  const validateFormData = useCallback((formData, selectedItems) => {
+    if (!formData.duration?.name?.start || !formData.duration?.name?.end) {
+      return 'Please select a valid date range';
+    }
+
+    if (!selectedItems.length) {
+      return 'Please select at least one location to download data from';
+    }
+
+    const startDate = new Date(formData.duration.name.start);
+    const endDate = new Date(formData.duration.name.end);
+
+    // Validate date range
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return 'Invalid date selection. Please choose valid dates';
+    }
+
+    if (startDate >= endDate) {
+      return 'Start date must be before end date';
+    }
+
+    // Duration validation based on frequency
+    const frequencyLower = formData.frequency.name.toLowerCase();
+    if (frequencyLower === 'hourly') {
+      const diffMs = endDate - startDate;
+      const sixMonthsMs = 180 * 24 * 60 * 60 * 1000; // 180 days in milliseconds
+      if (diffMs > sixMonthsMs) {
+        return 'For hourly data, please limit your selection to 6 months';
+      }
+    }
+
+    return null; // No errors
+  }, []);
+
+  // Handle download submission with improved validation and error handling
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -429,40 +471,14 @@ const DataDownload = ({ onClose }) => {
       setFormError('');
 
       try {
-        // Validate form data
-        if (!formData.duration?.name?.start || !formData.duration?.name?.end) {
-          throw new Error('Please select a valid date range');
-        }
-
-        if (!selectedItems.length) {
-          throw new Error(
-            'Please select at least one location to download data from',
-          );
+        // Enhanced validation with specific error messages
+        const validationError = validateFormData(formData, selectedItems);
+        if (validationError) {
+          throw new Error(validationError);
         }
 
         const startDate = new Date(formData.duration.name.start);
         const endDate = new Date(formData.duration.name.end);
-
-        // Validate date range
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-          throw new Error('Invalid date selection. Please choose valid dates');
-        }
-
-        if (startDate >= endDate) {
-          throw new Error('Start date must be before end date');
-        }
-
-        // Duration validation based on frequency
-        const frequencyLower = formData.frequency.name.toLowerCase();
-        if (frequencyLower === 'hourly') {
-          const diffMs = endDate - startDate;
-          const sixMonthsMs = 180 * 24 * 60 * 60 * 1000;
-          if (diffMs > sixMonthsMs) {
-            throw new Error(
-              'For hourly data, please limit your selection to 6 months',
-            );
-          }
-        }
 
         // Prepare payload based on selected filter type
         let siteIds = [];
@@ -498,7 +514,7 @@ const DataDownload = ({ onClose }) => {
               ? 'calibrated'
               : 'raw',
           pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
-          frequency: frequencyLower,
+          frequency: formData.frequency.name.toLowerCase(),
           downloadType: formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
@@ -515,7 +531,7 @@ const DataDownload = ({ onClose }) => {
         const timeoutId = setTimeout(() => {
           if (abortControllerRef.current) {
             abortControllerRef.current.abort();
-            setFormError('Request timed out. Please try again later.');
+            resetErrorAfterDelay('Request timed out. Please try again later.');
             setMessageType(MESSAGE_TYPES.ERROR);
             setDownloadLoading(false);
           }
@@ -534,10 +550,6 @@ const DataDownload = ({ onClose }) => {
           // Direct handling of different file types with minimal processing
           if (fileExtension === 'csv') {
             try {
-              // Log the raw response for debugging in production
-              console.log('CSV RAW RESPONSE (DataDownload):', response);
-              console.log('CSV response type:', typeof response);
-
               // The API returns CSV data directly, so we can use it as is
               let csvData;
 
@@ -567,7 +579,6 @@ const DataDownload = ({ onClose }) => {
 
               // Create and download the blob
               const blob = new Blob([csvData], { type: mimeType });
-              console.log('CSV Blob created with size:', blob.size);
 
               if (blob.size > 10) {
                 saveAs(blob, fileName);
@@ -676,8 +687,8 @@ const DataDownload = ({ onClose }) => {
           });
         }
 
-        // Set user-friendly error message
-        setFormError(
+        // Set user-friendly error message that will auto-clear after 2 seconds
+        resetErrorAfterDelay(
           error.message ||
             'An error occurred while downloading the data. Please try again.',
         );
@@ -697,6 +708,8 @@ const DataDownload = ({ onClose }) => {
       fetchData,
       handleClearSelection,
       onClose,
+      validateFormData,
+      resetErrorAfterDelay,
     ],
   );
 
@@ -706,7 +719,7 @@ const DataDownload = ({ onClose }) => {
       { key: FILTER_TYPES.COUNTRIES, label: 'Countries' },
       { key: FILTER_TYPES.CITIES, label: 'Cities' },
       { key: FILTER_TYPES.SITES, label: 'Sites' },
-      // { key: FILTER_TYPES.DEVICES, label: 'Devices' },
+      { key: FILTER_TYPES.DEVICES, label: 'Devices' },
     ],
     [],
   );
@@ -914,8 +927,36 @@ const DataDownload = ({ onClose }) => {
       };
     }
 
-    return { message: '', type: MESSAGE_TYPES.INFO };
-  }, [formError, statusMessage, messageType, selectedItems.length]);
+    if (!formData.duration) {
+      return {
+        message: 'Please select a date range before downloading',
+        type: MESSAGE_TYPES.WARNING,
+      };
+    }
+
+    return { message: 'Ready to download', type: MESSAGE_TYPES.INFO };
+  }, [
+    formError,
+    statusMessage,
+    messageType,
+    selectedItems.length,
+    formData.duration,
+  ]);
+
+  // Check if download button should be disabled
+  const isDownloadDisabled = useMemo(() => {
+    return (
+      isLoadingSiteIds ||
+      downloadLoading ||
+      !formData.duration ||
+      selectedItems.length === 0
+    );
+  }, [
+    isLoadingSiteIds,
+    downloadLoading,
+    formData.duration,
+    selectedItems.length,
+  ]);
 
   return (
     <>
@@ -978,9 +1019,12 @@ const DataDownload = ({ onClose }) => {
           title="Duration"
           id="duration"
           useCalendar
+          required={true}
+          requiredText={`${!formData.duration ? 'please select a date range' : ''}`}
           defaultOption={formData.duration}
           handleOptionSelect={handleOptionSelect}
         />
+
         {durationGuidance && (
           <div className="text-xs text-blue-600 -mt-2 ml-1">
             {durationGuidance}
@@ -1064,7 +1108,7 @@ const DataDownload = ({ onClose }) => {
           onClose={onClose}
           btnText={downloadLoading ? 'Downloading...' : 'Download'}
           loading={downloadLoading}
-          disabled={isLoadingSiteIds || downloadLoading}
+          disabled={isDownloadDisabled}
         />
       </div>
     </>
