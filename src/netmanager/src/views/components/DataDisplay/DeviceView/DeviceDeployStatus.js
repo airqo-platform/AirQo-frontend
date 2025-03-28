@@ -183,7 +183,7 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const classes = useStyles();
   const feedKeys = Object.keys(
     omit(recentFeed, 'isCache', 'created_at', 'errors', 'success', 'message')
-  );
+  ).filter(key => sensorFeedNameMapper[key]);
   const [elapsedDurationSeconds, elapsedDurationMapper] = getElapsedDurationMapper(
     recentFeed.created_at
   );
@@ -239,7 +239,7 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
               <div style={senorListStyle} key={index}>
                 {isValidSensorValue(
                   recentFeed[key],
-                  sensorFeedNameMapper[key] || defaultSensorRange
+                  sensorFeedNameMapper[key]
                 ) ? (
                   <span style={spanStyle}>
                     <CheckBoxIcon
@@ -254,7 +254,7 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
                   </Tooltip>
                 )}
                 <span style={spanStyle}>
-                  {(sensorFeedNameMapper[key] && sensorFeedNameMapper[key].label) || key}{' '}
+                  {sensorFeedNameMapper[key].label}
                 </span>
                 <Tooltip arrow title={recentFeed[key]}>
                   <span style={spanStyle}>{recentFeed[key]}</span>
