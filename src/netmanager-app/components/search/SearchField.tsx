@@ -3,7 +3,7 @@ import SearchIcon from '@/public/icons/Common/search_md.svg';
 import { useDispatch } from 'react-redux';
 import { addSearchTerm } from '@/lib/services/search/LocationSearchSlice';
 import CloseIcon from '@/public/icons/close_icon';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '@/core/redux/hooks';
 
 const SearchField = ({
   onSearch = () => {},
@@ -14,9 +14,9 @@ const SearchField = ({
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-//   const reduxSearchTerm = useSelector(
-//     (state) => state.locationSearch.searchTerm,
-//   );
+  const reduxSearchTerm = useAppSelector(
+    (state) => state.locationSearch.searchTerm,
+  );
 
   useEffect(() => {
     if (focus) {
@@ -53,7 +53,7 @@ const SearchField = ({
           ref={inputRef}
           placeholder="Search villages, cities or country"
           className="input pl-10 text-sm text-secondary-neutral-light-800 w-full h-12  rounded-lg bg-white  "
-        //   value={reduxSearchTerm}
+          value={reduxSearchTerm}
           onChange={handleSearch}
         />
         {searchTerm && (
@@ -66,7 +66,7 @@ const SearchField = ({
         )}
       </div>
 
-      {/* {showSearchResultsNumber &&
+      {showSearchResultsNumber &&
         reduxSearchTerm &&
         (reduxSearchTerm.length < 2 ? (
           <div className="bg-secondary-neutral-dark-50 rounded-lg w-full h-5" />
@@ -77,7 +77,7 @@ const SearchField = ({
               "{reduxSearchTerm}"
             </span>
           </p>
-        ))} */}
+        ))}
     </>
   );
 };

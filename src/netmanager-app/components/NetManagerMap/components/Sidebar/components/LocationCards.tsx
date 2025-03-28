@@ -29,15 +29,17 @@ const formatRegion = (region: string) => {
 interface LocationCardProps {
   searchResults: Array<{
     _id?: string;
-    place_id?: string;
-    description?: string;
-    search_name?: string;
+    mapbox_id?: string;
+    full_address?: string;
+    name?: string;
     region?: string;
+    address?:string;
+    place_formatted?:string;
   }>;
   isLoading: boolean;
   handleLocationSelect: (location: {
     _id?: string;
-    place_id?: string;
+    mapbox_id?: string;
     description?: string;
     search_name?: string;
     region?: string;
@@ -59,7 +61,7 @@ const LocationCards: React.FC<LocationCardProps> = ({ searchResults, isLoading, 
   const visibleResults = useMemo(() => {
     const uniqueIds = new Set();
     const uniqueSearchResults = searchResults.filter((result) => {
-      const id = result._id || result.place_id;
+      const id = result._id || result.mapbox_id;
       if (!id || uniqueIds.has(id)) return false;
       uniqueIds.add(id);
       return true;
@@ -89,18 +91,14 @@ const LocationCards: React.FC<LocationCardProps> = ({ searchResults, isLoading, 
     visibleResults.length > 0 && (
       <div className="sidebar-scroll-bar pb-[350px] h-dvh flex flex-col gap-4 my-5 px-4">
         {visibleResults.map((grid) => {
-          const description = grid?.description
-            ? capitalizeAllText(formatDescription(grid?.description))
-            : capitalizeAllText(formatRegion(grid?.region || ''));
-          const title = capitalizeAllText(
-            grid?.place_id
-              ? grid.description?.split(',')[0]
-              : grid?.search_name?.split(',')[0],
+          const description = grid?.place_formatted?capitalizeAllText(formatDescription(grid?.place_formatted)): capitalizeAllText(formatRegion(grid?.place_formatted || ''));
+
+          const title = capitalizeAllText(grid?.name?.split(',')[0],
           );
 
           return (
             <div
-              key={grid?._id || grid?.place_id}
+              key={grid?._id || grid?.mapbox_id}
               className="flex justify-between items-center text-sm w-full hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm cursor-pointer"
               onClick={() => handleLocationSelect(grid)}
             >

@@ -19,6 +19,7 @@ import {
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/utils/strings';
 import { useWindowSize } from '@/lib/windowSize';
+import {ConvertToGeojson} from '@/lib/utils';
 import { getPlaceDetails } from '@/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/utils/AutocompleteSuggestions';
 import {FetchSuggestions } from '@/core/apis/MapData';
@@ -94,10 +95,11 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
   const reduxSearchTerm = useAppSelector((state: any) => state.locationSearch.searchTerm);
   const suggestedSites = useAppSelector((state: any) => state.map.suggestedSites);
   console.log("Suggested Sites",suggestedSites)
-  const storedToken = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2FjYjIwZGU3NTVlMzAwMTNhMzYxNzUiLCJmaXJzdE5hbWUiOiJBa2F0d2lqdWthIiwibGFzdE5hbWUiOiJFbGlhIiwidXNlck5hbWUiOiJlbGlhYWtqdHJucUBnbWFpbC5jb20iLCJlbWFpbCI6ImVsaWFha2p0cm5xQGdtYWlsLmNvbSIsIm9yZ2FuaXphdGlvbiI6ImFpcnFvIiwibG9uZ19vcmdhbml6YXRpb24iOiJhaXJxbyIsInByaXZpbGVnZSI6InVzZXIiLCJjb3VudHJ5IjpudWxsLCJwcm9maWxlUGljdHVyZSI6bnVsbCwicGhvbmVOdW1iZXIiOm51bGwsImNyZWF0ZWRBdCI6IjIwMjUtMDItMTIgMTQ6Mzc6MDEiLCJ1cGRhdGVkQXQiOiIyMDI1LTAyLTEyIDE0OjM3OjAxIiwicmF0ZUxpbWl0IjpudWxsLCJsYXN0TG9naW4iOiIyMDI1LTAyLTE3VDAzOjM5OjM5LjQwNVoiLCJpYXQiOjE3Mzk3NjM1Nzl9.HQPoN-SKm2wq6wVLEGBp1aa-1gJEoI2oRODFnUlp-Zg";
 
   const isSearchFocused = isFocused ||  reduxSearchTerm.length > 0;
   const googleMapsLoaded = useGoogleMaps(process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY);
+  const SessionToken= localStorage.getItem("token" );
+
   const handleAllSelection = useCallback(() => {
         setSelectedCountry(null);
         dispatch(reSetMap());
@@ -183,15 +185,16 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
     
         try {
           const predictions = await FetchSuggestions( reduxSearchTerm,
-                sessionToken=storedToken
+                sessionToken=SessionToken||""
           );
           console.log("SUGS",predictions)
     
           if (predictions?.length) {
             setSearchResults(
-              predictions.map(({ description, place_id }: { description: string; place_id: string }) => ({
-                description,
-                place_id,
+              predictions.map(({ name,place_formatted, mapbox_id }: { name: string; place_formatted:string;mapbox_id: string }) => ({
+                name,
+                mapbox_id,
+                place_formatted
               })),
             );
           } else {
@@ -359,16 +362,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
                             <LocationCards
                               searchResults={searchResults}
                               isLoading={isLoading}
-                              handleLocationSelect={(location) => {
-                                const adaptedLocation = {
-                                  place_id: location.place_id,
-                                  geometry: { coordinates: [] },
-                                  approximate_latitude: null,
-                                  approximate_longitude: null,
-                                  ...location,
-                                };
-                                handleLocationSelect(adaptedLocation);
-                              }}
+                              handleLocationSelect={()=>{handleLocationSelect}}
                             />
                           )}
                         </div>

@@ -22,20 +22,13 @@ export const GetAirQuoData = async () =>{
         }
 }
 
-export  const FetchSuggestions=async(value:string,sessionToken:string,latitude?: number, longitude?: number):Promise<any[] | void>=>{
-        
-        // if (!token) {
-        //         console.log("Missing Map Box Access Token");
-        //         return;
-        // }
-        
-        if (latitude !== undefined && longitude !== undefined) {
-                try{
-                const proximityParam = `${longitude},${latitude}`;
-                const response = await axios.get(`${MAP_BOX_SUGGESTIONS}?q=${value.toLowerCase()}&access_token=${token}&proximity=${proximityParam}&session_token=${sessionToken}`)
+export  const FetchSuggestions=async(value:string,sessionToken:string,):Promise<any[] | void>=>{
+        try{
+                const response = await axios.get(`${MAP_BOX_SUGGESTIONS}?q=${value.toLowerCase()}&access_token=${token}&session_token=${sessionToken}`)
                 const data = await response.data;
                 
-                console.log("data :",data.suggestions)
+                console.log("data :",data)
+                
                  if (data.suggestions) {
                         return data.suggestions;
                                 }else{
@@ -46,7 +39,7 @@ export  const FetchSuggestions=async(value:string,sessionToken:string,latitude?:
                         catch(error){
                                 console.error("Error fetching suggestions:", error);
                         }
-                }}
+                }
 export const UserClick = async(access_token:string,sessionToken:string,locationid: string,)=>{
         if (!access_token) {
                 console.log("Missing Access Token");
