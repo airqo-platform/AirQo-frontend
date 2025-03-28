@@ -16,7 +16,6 @@ import {
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
-import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
 
 const MAX_RETRIES = 3;
@@ -50,6 +49,7 @@ const UserLogin = () => {
       setErrorState('');
 
       try {
+        // Get JWT token from login endpoint
         const { token } = await retryWithDelay(() =>
           postUserLoginDetails(userData),
         );
@@ -57,50 +57,31 @@ const UserLogin = () => {
         localStorage.setItem('token', token);
         const decoded = jwt_decode(token);
 
+        // Get user details with token
         const response = await retryWithDelay(() =>
           getUserDetails(decoded._id, token),
         );
         const user = response.users[0];
 
-        if (!user.groups[0]?.grp_title) {
+        // Validate that user has at least one group
+        if (!user.groups || user.groups.length === 0) {
           throw new Error(
             'Server error. Contact support to add you to the AirQo Organisation',
           );
         }
 
+        // Store user in localStorage
         localStorage.setItem('loggedUser', JSON.stringify(user));
 
-        const preferencesResponse = await retryWithDelay(() =>
-          dispatch(getIndividualUserPreferences({ identifier: user._id })),
-        );
-
-        let activeGroup;
-        if (preferencesResponse.payload.success) {
-          const preferences = preferencesResponse.payload.preferences;
-          // Try to get the group from the first preference if exists and valid
-          if (preferences.length > 0 && preferences[0].group_id) {
-            activeGroup = user.groups.find(
-              (group) => group._id === preferences[0].group_id,
-            );
-          }
-        }
-        // Fallback to group with title 'airqo'
-        if (!activeGroup) {
-          activeGroup = user.groups.find(
-            (group) => group.grp_title.toLowerCase() === 'airqo',
-          );
-        }
-        // If still not set, throw an error to alert support
-        if (!activeGroup) {
-          throw new Error(
-            'No active group found. Contact support to add you to the AirQo Organisation',
-          );
-        }
-
+        // Set active group from the first group in the groups array
+        const activeGroup = user.groups[0];
         localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
+        // Update Redux state
         dispatch(setUserInfo(user));
         dispatch(setSuccess(true));
+
+        // Redirect to home page
         router.push('/Home');
       } catch (error) {
         dispatch(setSuccess(false));
@@ -108,7 +89,7 @@ const UserLogin = () => {
           error.response?.data?.message ||
           (error.response?.status === 401
             ? 'Invalid credentials. Please check your email and password.'
-            : 'Something went wrong, please try again');
+            : error.message || 'Something went wrong, please try again');
         dispatch(setError(errorMessage));
         setErrorState(errorMessage);
       } finally {
@@ -124,9 +105,12 @@ const UserLogin = () => {
     );
   }, []);
 
-  const handleInputChange = (key, value) => {
-    dispatch(setUserData({ key, value }));
-  };
+  const handleInputChange = useCallback(
+    (key, value) => {
+      dispatch(setUserData({ key, value }));
+    },
+    [dispatch],
+  );
 
   return (
     <AccountPageLayout
