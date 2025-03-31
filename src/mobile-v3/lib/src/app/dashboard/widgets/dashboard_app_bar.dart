@@ -3,7 +3,7 @@ import 'package:airqo/src/app/profile/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:airqo/src/meta/utils/colors.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../other/theme/bloc/theme_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
@@ -37,13 +37,25 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _buildThemeToggle(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
-      onTap: () => themeBloc.add(ToggleTheme(true)),
+      onTap: () {
+        print("Toggling theme. Current isDarkMode: $isDarkMode");
+
+        // Try without named parameter - it might be a positional parameter
+        themeBloc.add(ToggleTheme(true));
+      },
       child: CircleAvatar(
         radius: 24,
-        backgroundColor: Theme.of(context).highlightColor,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkHighlight
+            : AppColors.lightHighlight,
         child: Center(
-          child: SvgPicture.asset("assets/images/dashboard/theme_toggle.svg"),
+          child: SvgPicture.asset(
+            isDarkMode
+                ? "assets/images/dashboard/Dark_icon.svg"
+                : "assets/images/dashboard/Light_icon.svg",
+          ),
         ),
       ),
     );
@@ -93,8 +105,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               ? userState.model.users[0].firstName[0].toUpperCase()
               : " ";
           String lastName = userState.model.users[0].lastName.isNotEmpty
-            ? userState.model.users[0].lastName[0].toUpperCase()
-            : " ";
+              ? userState.model.users[0].lastName[0].toUpperCase()
+              : " ";
           return GestureDetector(
             onTap: () {
               // Navigate to profile page
@@ -106,8 +118,16 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
             child: CircleAvatar(
               radius: 24,
-              backgroundColor: Theme.of(context).highlightColor,
-              child: Center(child: Text("$firstName$lastName")),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
+              child: Center(
+                  child: Text(
+                "$firstName$lastName",
+                style: TextStyle(
+                  color: AppColors.navigationlight,
+                ),
+              )),
             ),
           );
         } else if (userState is UserLoadingError) {
