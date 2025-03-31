@@ -98,9 +98,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
 
         {/* Left side - can add logo or breadcrumbs here */}
         <div className="flex items-center gap-2">
-          {!isMobileView && (
-            <Image src="/images/airqo_logo.svg" alt="AirQo Logo" width={32} height={32} className="h-8 w-auto" />
-          )}
         </div>
 
         {/* Right side - actions */}
