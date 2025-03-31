@@ -46,12 +46,16 @@ export default function LoginPage() {
         onSuccess: () => {
           router.push("/")
         },
-        onError: (error: any) => {
+        onError: (error: { message?: string }) => {
           setError(error?.message || "Invalid email or password. Please try again.")
         },
       })
-    } catch (error: any) {
-      setError(error?.message || "An unexpected error occurred. Please try again.")
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message || "An unexpected error occurred. Please try again.")
+      } else {
+        setError("An unexpected error occurred. Please try again.")
+      }
     }
   }
 
@@ -61,10 +65,10 @@ export default function LoginPage() {
         <div className="flex flex-col items-center justify-center space-y-2 text-center">
           <div className="mb-4 rounded-full bg-primary/10 p-2">
             <Image
-              src="/placeholder.svg?height=80&width=80"
+              src="/images/airqo_logo.svg"
               alt="Logo"
-              width={80}
-              height={80}
+              width={50}
+              height={50}
               className="rounded-full"
             />
           </div>
@@ -144,24 +148,13 @@ export default function LoginPage() {
               <Separator className="flex-1" />
             </div>
             <div className="text-center text-sm">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href={signUpUrl} className="font-medium text-primary hover:underline">
                 Create an account
               </Link>
             </div>
           </CardFooter>
         </Card>
-
-        <p className="text-center text-xs text-muted-foreground">
-          By signing in, you agree to our{" "}
-          <Link href="/terms" className="underline underline-offset-2 hover:text-primary">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="underline underline-offset-2 hover:text-primary">
-            Privacy Policy
-          </Link>
-        </p>
       </div>
     </div>
   )
