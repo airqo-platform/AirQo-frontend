@@ -198,7 +198,6 @@ export function ResourceAssignmentPage({ organizationId, organizationName }: Res
     }
   }
 
-  // Define columns for sites table
   const siteColumns = [
     {
       id: "select",
