@@ -63,12 +63,13 @@ export function CreateOrganizationDialog() {
   })
 
   // API Hook
-  const { mutateAsync: createGroup, isLoading: isCreatingGroup } = useCreateGroup()
+  const { mutateAsync: createGroup, status } = useCreateGroup()
+  const isCreatingGroup = status === "pending"
 
   // Form submission handler
   const onCreateOrganization = async (data: z.infer<typeof createOrgSchema>) => {
     try {
-      const result = await createGroup(data as any)
+      const result = await createGroup(data as any )
 
       toast({
         title: "Organization created",

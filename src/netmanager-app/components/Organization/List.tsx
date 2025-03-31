@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Loader2, ArrowUpDown, Eye, Building2, Globe, Users, Plus, Filter } from "lucide-react"
+import { Search, Loader2, ArrowUpDown, Eye, Building2, Globe, Users, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -23,7 +23,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import type { Group } from "@/app/types/groups"
+import { Group } from "@/app/types/groups"
+import { CreateOrganizationDialog } from "./create-organization-dialog"
 
 const ITEMS_PER_PAGE = 8
 
@@ -83,7 +84,9 @@ export function GroupList() {
     })
   }
 
-  const filteredGroups = groups.filter((group: Group) => group.grp_title.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredGroups = groups.filter((group: Group) =>
+    group.grp_title.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   const sortedGroups = sortGroups(filteredGroups)
 
@@ -140,7 +143,7 @@ export function GroupList() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading groups...</p>
+          <p className="text-sm text-muted-foreground">Loading organizations...</p>
         </div>
       </div>
     )
@@ -163,13 +166,11 @@ export function GroupList() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center">
-            <Building2 className="mr-2 h-6 w-6 text-primary" /> Groups
+            <Building2 className="mr-2 h-6 w-6 text-primary" /> Organizations
           </h1>
-          <p className="text-muted-foreground mt-1">Manage your organization groups</p>
+          <p className="text-muted-foreground mt-1">Manage your organizations</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> Create Group
-        </Button>
+        <CreateOrganizationDialog />
       </div>
 
       <div className="bg-card rounded-lg border shadow-sm">
@@ -179,7 +180,7 @@ export function GroupList() {
               <div className="relative w-full sm:w-auto max-w-sm">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search groups..."
+                  placeholder="Search organizations..."
                   className="pl-8 w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -300,17 +301,13 @@ export function GroupList() {
                     <TableCell colSpan={4} className="text-center py-10">
                       <div className="flex flex-col items-center justify-center">
                         <Building2 className="h-10 w-10 text-muted-foreground mb-3" />
-                        <p className="text-muted-foreground font-medium">No groups found</p>
+                        <p className="text-muted-foreground font-medium">No organizations found</p>
                         <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                           {searchQuery
                             ? `No results for "${searchQuery}". Try adjusting your search or filters.`
-                            : "Try creating a new group to get started."}
+                            : "Try creating a new organization to get started."}
                         </p>
-                        {!searchQuery && (
-                          <Button className="mt-4">
-                            <Plus className="mr-2 h-4 w-4" /> Create Group
-                          </Button>
-                        )}
+                        {!searchQuery && <CreateOrganizationDialog />}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -354,7 +351,7 @@ export function GroupList() {
                 </CardContent>
                 <CardFooter className="pt-2">
                   <Button asChild variant="default" className="w-full">
-                    <Link href={`/groups/${group._id}`}>
+                    <Link href={`/organizations/${group._id}`}>
                       <Eye className="mr-2 h-4 w-4" /> View Details
                     </Link>
                   </Button>
@@ -366,16 +363,16 @@ export function GroupList() {
               <div className="col-span-full flex items-center justify-center p-10 border rounded-lg">
                 <div className="flex flex-col items-center justify-center">
                   <Building2 className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground font-medium">No groups found</p>
+                  <p className="text-muted-foreground font-medium">No organizations found</p>
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
                     {searchQuery
                       ? `No results for "${searchQuery}". Try adjusting your search or filters.`
-                      : "Try creating a new group to get started."}
+                      : "Try creating a new organization to get started."}
                   </p>
                   {!searchQuery && (
-                    <Button className="mt-4">
-                      <Plus className="mr-2 h-4 w-4" /> Create Group
-                    </Button>
+                    <div className="mt-4">
+                      <CreateOrganizationDialog />
+                    </div>
                   )}
                 </div>
               </div>
@@ -386,7 +383,7 @@ export function GroupList() {
         {sortedGroups.length > 0 && (
           <div className="p-4 border-t flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
-              Showing {startIndex + 1}-{Math.min(endIndex, sortedGroups.length)} of {sortedGroups.length} groups
+              Showing {startIndex + 1}-{Math.min(endIndex, sortedGroups.length)} of {sortedGroups.length} organizations
             </div>
             <Pagination>
               <PaginationContent>
