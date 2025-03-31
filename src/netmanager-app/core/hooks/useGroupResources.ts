@@ -3,25 +3,15 @@ import { sites } from "@/core/apis/sites"
 import { devices } from "@/core/apis/devices"
 import { groupsApi } from "@/core/apis/organizations"
 import type { GroupResponse } from "@/app/types/groups"
+import { useAppSelector } from "../redux/hooks";
 
 /**
- * Combined hook to get all resources for an organization/group
- * This optimized version leverages cached data when possible
+ * Hook to determine if a group has sites, devices, and members assigned
+ * Uses the specific API endpoints for getting sites and devices by group name
  */
 export const useGroupResources = (groupId: string) => {
-  // Query to get all resources data (this could be pre-fetched by useOrganizationResources)
-  const { data: allResourcesData, isLoading: isLoadingAllResources } = useQuery({
-    queryKey: ["all-resources"],
-    queryFn: async () => {
-      const [allSites, allDevices] = await Promise.all([sites.getSitesSummary(), devices.getAllDevices()])
-
-      return { allSites, allDevices }
-    },
-    // This could be disabled if we know the data is already loaded by useOrganizationResources
-    staleTime: 5 * 60 * 1000,
-  })
-
-  // Get the group details
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  // First, get the group details to get the group title
   const { data: groupData, isLoading: isLoadingGroup } = useQuery({
     queryKey: ["groupDetails", groupId],
     queryFn: async () => {
@@ -31,40 +21,69 @@ export const useGroupResources = (groupId: string) => {
     enabled: !!groupId,
   })
 
-  // Filter the pre-fetched data for this specific group
-  const filteredData = useQuery({
-    queryKey: ["filtered-resources", groupId],
-    queryFn: () => {
-      if (!allResourcesData) return { sites: [], devices: [] }
+  // Get the group title from the group data
+  const groupTitle = groupData?.group?.grp_title || ""
+  const networkId = activeNetwork?.net_name || ""
 
-      const { allSites, allDevices } = allResourcesData
+  // Query to get sites for this specific group using the getSitesSummary API
+  const { data: sitesData, isLoading: isLoadingSites } = useQuery({
+    queryKey: ["sites-summary", networkId, groupTitle],
+    queryFn: async () => {
+      try {
+        // Use the specific API to get sites for this group
+        const response = await sites.getSitesSummary(networkId, groupTitle)
 
-      // Filter sites for this group
-      const sites = allSites.filter((site) => site.organizationId === groupId)
-
-      // Filter devices for this group
-      const devices = allDevices.filter((device) => device.organizationId === groupId)
-
-      return { sites, devices }
+        return {
+          hasSites: Array.isArray(response.sites) && response.sites.length > 0,
+          sites: response.sites || [],
+        }
+      } catch (error) {
+        console.error(`Failed to fetch sites for group ${groupTitle}:`, error)
+        return { hasSites: false, sites: [] }
+      }
     },
-    enabled: !!allResourcesData && !!groupId,
-    // This is a derived query from existing data, so it's very fast
-    staleTime: 5 * 60 * 1000,
+    enabled: !!groupTitle, // Only run this query if we have the group title
   })
 
-  const isLoading = isLoadingAllResources || isLoadingGroup || filteredData.isLoading
+  // Query to get devices for this specific group using the getDevicesSummaryApi
+  const { data: devicesData, isLoading: isLoadingDevices } = useQuery({
+    queryKey: ["devices-summary", networkId, groupTitle],
+    queryFn: async () => {
+      try {
+        // Use the specific API to get devices for this group
+        const response = await devices.getDevicesSummaryApi(networkId, groupTitle)
+
+        return {
+          hasDevices: Array.isArray(response.devices) && response.devices.length > 0,
+          devices: response.devices || [],
+        }
+      } catch (error) {
+        console.error(`Failed to fetch devices for group ${groupTitle}:`, error)
+        return { hasDevices: false, devices: [] }
+      }
+    },
+    enabled: !!groupTitle, // Only run this query if we have the group title
+  })
+
+  const isLoading = isLoadingGroup || isLoadingSites || isLoadingDevices
 
   return {
     isLoading,
-    hasSites: (filteredData.data?.sites?.length || 0) > 0,
-    hasDevices: (filteredData.data?.devices?.length || 0) > 0,
+    // Boolean flags indicating if resources are assigned to this group
+    hasSites: sitesData?.hasSites || false,
+    hasDevices: devicesData?.hasDevices || false,
     hasMembers: (groupData?.group?.numberOfGroupUsers || 0) > 0,
-    sites: filteredData.data?.sites || [],
-    devices: filteredData.data?.devices || [],
+
+    // Raw data in case it's needed
+    sites: sitesData?.sites || [],
+    devices: devicesData?.devices || [],
+    group: groupData?.group,
+
+    // Overall setup status
     setupComplete:
       !isLoading &&
-      (filteredData.data?.sites?.length || 0) > 0 &&
-      (filteredData.data?.devices?.length || 0) > 0 &&
+      (sitesData?.hasSites || false) &&
+      (devicesData?.hasDevices || false) &&
       (groupData?.group?.numberOfGroupUsers || 0) > 0,
   }
 }

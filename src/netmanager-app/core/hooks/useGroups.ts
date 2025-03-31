@@ -116,8 +116,8 @@ export const useAssignDevicesToGroup = () => {
       groups: string[];
     }) => groupsApi.assignDevicesToGroupApi(deviceIds, groups),
     onSuccess: () => {
-      queryClient.invalidateQueries(["groups"]);
-      queryClient.invalidateQueries(["devices"]);
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(
@@ -142,8 +142,8 @@ export const useAssignSitesToGroup = () => {
       groups: string[];
     }) => groupsApi.assignSitesToGroupApi(siteIds, groups),
     onSuccess: () => {
-      queryClient.invalidateQueries(["groups"]);
-      queryClient.invalidateQueries(["sites"]);
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(
