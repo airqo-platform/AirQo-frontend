@@ -1,5 +1,4 @@
-// useMapData.jsx
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Supercluster from 'supercluster';
 import axios from 'axios';
@@ -61,9 +60,10 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData || !cityData.forecast?.daily) return null;
-      const dailyForecast = cityData.forecast.daily;
       const forecastDataArray =
-        pollutant === 'pm2_5' ? dailyForecast.pm25 : dailyForecast.pm10;
+        pollutant === 'pm2_5'
+          ? cityData.forecast.daily.pm25
+          : cityData.forecast.daily.pm10;
       return forecastDataArray?.map((forecastData) => ({
         [pollutant]: forecastData.avg,
         time: forecastData.day,
@@ -72,61 +72,149 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
     [pollutant],
   );
 
-  // Fetch and process WAQ data with improved error handling
-  const fetchAndProcessWaqData = useCallback(
-    async (cities) => {
-      setLoadingOthers(true);
-      try {
-        const responses = await Promise.allSettled(
-          cities.map((city) => axios.get(`/api/proxy?city=${city}`)),
-        );
-        const fulfilledResponses = responses.filter(
-          (response) =>
-            response.status === 'fulfilled' && response.value?.data?.data?.city,
-        );
+  // Get two most common AQIs in a cluster
+  const getTwoMostCommonAQIs = useCallback((cluster) => {
+    if (!indexRef.current) return [];
 
-        const waqFeatures = fulfilledResponses
-          .map((response) => {
-            const cityData = response.value.data.data;
-            const waqiPollutant = pollutant === 'pm2_5' ? 'pm25' : pollutant;
-            const aqi = getAQICategory(
-              pollutant,
-              cityData.iaqi[waqiPollutant]?.v,
+    const leaves = indexRef.current.getLeaves(
+      cluster.properties.cluster_id,
+      Infinity,
+    );
+
+    const aqiCounts = {};
+    leaves.forEach((leaf) => {
+      const aqi = leaf.properties.airQuality;
+      aqiCounts[aqi] = (aqiCounts[aqi] || 0) + 1;
+    });
+
+    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
+    const mostCommonAQIs =
+      sortedAQIs.length > 1
+        ? sortedAQIs.slice(0, 2)
+        : [sortedAQIs[0], sortedAQIs[0]];
+
+    const topAQICategories = mostCommonAQIs.map((aqi) => aqi[0]);
+
+    return leaves
+      .filter((leaf) => topAQICategories.includes(leaf.properties.airQuality))
+      .map((leaf) => ({
+        aqi: leaf.properties.aqi,
+        pm2_5: leaf.properties.pm2_5,
+        pm10: leaf.properties.pm10,
+        no2: leaf.properties.no2,
+      }));
+  }, []);
+
+  // Update clusters on map movement
+  const clusterUpdate = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !indexRef.current) return;
+
+    try {
+      const zoom = map.getZoom();
+      const bounds = map.getBounds();
+      const bbox = [
+        bounds.getWest(),
+        bounds.getSouth(),
+        bounds.getEast(),
+        bounds.getNorth(),
+      ];
+
+      const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
+
+      // Remove existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
+      clusters.forEach((feature) => {
+        const el = document.createElement('div');
+        el.style.cursor = 'pointer';
+
+        if (!feature.properties.cluster) {
+          // Single marker
+          el.style.zIndex = '1';
+          el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
+
+          const popup = new mapboxgl.Popup({
+            offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
+            closeButton: false,
+            maxWidth: 'none',
+            className: 'my-custom-popup hidden md:block',
+          }).setHTML(createPopupHTML({ feature, images }));
+
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .setPopup(popup)
+            .addTo(map);
+
+          el.addEventListener('mouseenter', () => {
+            marker.togglePopup();
+            el.style.zIndex = '9999';
+          });
+
+          el.addEventListener('mouseleave', () => {
+            marker.togglePopup();
+            el.style.zIndex = '1';
+          });
+
+          el.addEventListener('click', () => {
+            if (selectedNode === feature.properties._id) return;
+
+            dispatch(setSelectedNode(feature.properties._id));
+            dispatch(setSelectedWeeklyPrediction(null));
+            dispatch(setMapLoading(true));
+            dispatch(setOpenLocationDetails(true));
+            dispatch(setSelectedLocation(feature.properties));
+            dispatch(
+              setCenter({
+                latitude: feature.geometry.coordinates[1],
+                longitude: feature.geometry.coordinates[0],
+              }),
             );
-            return createFeature(
-              cityData.idx,
-              cityData.city.name,
-              [cityData.city.geo[1], cityData.city.geo[0]],
-              aqi,
-              cityData.iaqi.no2?.v,
-              cityData.iaqi.pm10?.v,
-              cityData.iaqi.pm25?.v,
-              cityData.time.iso,
-              getForecastForPollutant(cityData),
-            );
-          })
-          .filter(Boolean);
+            dispatch(setZoom(15));
+          });
 
-        dispatch(setWaqData(waqFeatures));
-        return waqFeatures;
-      } catch (error) {
-        console.error('Error fetching WAQI data:', error);
-        return [];
-      } finally {
-        setLoadingOthers(false);
-      }
-    },
-    [
-      dispatch,
-      createFeature,
-      getForecastForPollutant,
-      pollutant,
-      setLoadingOthers,
-      getAQICategory,
-    ],
-  );
+          markersRef.current.push(marker);
+        } else {
+          // Cluster marker
+          el.style.zIndex = '444';
+          el.className =
+            'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
 
-  // Fetch and process map readings data
+          const mostCommonAQIs = getTwoMostCommonAQIs(feature);
+          feature.properties.aqi = mostCommonAQIs;
+
+          el.innerHTML = createClusterNode({ feature, NodeType });
+
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(feature.geometry.coordinates)
+            .addTo(map);
+
+          el.addEventListener('click', () => {
+            map.flyTo({
+              center: feature.geometry.coordinates,
+              zoom: zoom + 2,
+            });
+          });
+
+          markersRef.current.push(marker);
+        }
+      });
+    } catch (error) {
+      console.error('Error updating clusters:', error);
+    }
+  }, [
+    NodeType,
+    getTwoMostCommonAQIs,
+    createPopupHTML,
+    UnclusteredNode,
+    createClusterNode,
+    selectedNode,
+    dispatch,
+    width,
+  ]);
+
+  // Fetch map readings data - primary data source (fast loading)
   const fetchAndProcessMapReadings = useCallback(async () => {
     setLoading(true);
     try {
@@ -134,6 +222,7 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
       if (!response.success || !response.measurements?.length) {
         throw new Error('No valid map readings data found.');
       }
+
       const readingsFeatures = response.measurements
         .filter(
           (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
@@ -164,143 +253,120 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
     } finally {
       setLoading(false);
     }
-  }, [dispatch, createFeature, getAQICategory, pollutant, setLoading]);
+  }, [dispatch, createFeature, pollutant, setLoading, getAQICategory]);
 
-  // Fetch and process all data concurrently
+  // Fetch WAQ data - secondary data source (collect all data before updating map)
+  const fetchAndProcessWaqData = useCallback(
+    async (cities) => {
+      if (!cities || !cities.length) return [];
+
+      setLoadingOthers(true);
+      try {
+        // Process in batches to avoid overwhelming the API
+        const batchSize = 5;
+        const batches = [];
+        let allWaqFeatures = [];
+
+        for (let i = 0; i < cities.length; i += batchSize) {
+          batches.push(cities.slice(i, i + batchSize));
+        }
+
+        // Process all batches and collect results
+        for (const batch of batches) {
+          const batchPromises = batch.map((city) =>
+            axios
+              .get(`/api/proxy?city=${city}`)
+              .then((response) => {
+                const cityData = response.data?.data;
+                if (!cityData?.city) return null;
+
+                const waqiPollutant =
+                  pollutant === 'pm2_5' ? 'pm25' : pollutant;
+                const aqi = getAQICategory(
+                  pollutant,
+                  cityData.iaqi[waqiPollutant]?.v,
+                );
+
+                return createFeature(
+                  cityData.idx,
+                  cityData.city.name,
+                  [cityData.city.geo[1], cityData.city.geo[0]],
+                  aqi,
+                  cityData.iaqi.no2?.v,
+                  cityData.iaqi.pm10?.v,
+                  cityData.iaqi.pm25?.v,
+                  cityData.time.iso,
+                  getForecastForPollutant(cityData),
+                );
+              })
+              .catch((error) => {
+                console.error(
+                  `Failed to fetch WAQ data for city: ${error.message}`,
+                );
+                return null;
+              }),
+          );
+
+          const batchResults = await Promise.all(batchPromises);
+          const validResults = batchResults.filter(Boolean);
+
+          if (validResults.length > 0) {
+            allWaqFeatures = [...allWaqFeatures, ...validResults];
+          }
+        }
+
+        // Only update map once with all WAQ data
+        if (allWaqFeatures.length > 0) {
+          dispatch(setWaqData(allWaqFeatures));
+
+          // Update the map with combined data
+          if (indexRef.current) {
+            const combinedData = [
+              ...(mapReadingsData || []),
+              ...allWaqFeatures,
+            ];
+            indexRef.current.load(combinedData);
+            clusterUpdate();
+          }
+        }
+
+        return allWaqFeatures;
+      } catch (error) {
+        console.error('Error fetching WAQI data:', error);
+        return [];
+      } finally {
+        setLoadingOthers(false);
+      }
+    },
+    [
+      dispatch,
+      createFeature,
+      getForecastForPollutant,
+      pollutant,
+      setLoadingOthers,
+      getAQICategory,
+      mapReadingsData,
+      clusterUpdate,
+    ],
+  );
+
+  // Two-phase loading strategy - load map readings first, then WAQ data
   const fetchAndProcessData = useCallback(async () => {
     try {
-      await fetchAndProcessMapReadings();
-      // Fetch WAQI data without blocking
+      // Phase 1: Load map readings first (fast)
+      const readingsData = await fetchAndProcessMapReadings();
+
+      if (readingsData.length > 0 && indexRef.current) {
+        indexRef.current.load(readingsData);
+        clusterUpdate();
+      }
+
+      // Phase 2: Load WAQ data without blocking (slower)
       fetchAndProcessWaqData(AQI_FOR_CITIES);
     } catch (error) {
       console.error('Error processing data:', error);
     }
   }, [fetchAndProcessMapReadings, fetchAndProcessWaqData]);
-
-  // Get two most common AQIs in a cluster
-  const getTwoMostCommonAQIs = useCallback((cluster) => {
-    const leaves = indexRef.current.getLeaves(
-      cluster.properties.cluster_id,
-      Infinity,
-    );
-    const aqiCounts = leaves.reduce((acc, leaf) => {
-      const aqi = leaf.properties.airQuality;
-      acc[aqi] = (acc[aqi] || 0) + 1;
-      return acc;
-    }, {});
-    const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
-    const mostCommonAQIs =
-      sortedAQIs.length > 1
-        ? sortedAQIs.slice(0, 2)
-        : [sortedAQIs[0], sortedAQIs[0]];
-    return leaves
-      .filter((leaf) =>
-        mostCommonAQIs
-          .map((aqi) => aqi[0])
-          .includes(leaf.properties.airQuality),
-      )
-      .map((leaf) => ({
-        aqi: leaf.properties.aqi,
-        pm2_5: leaf.properties.pm2_5,
-        pm10: leaf.properties.pm10,
-        no2: leaf.properties.no2,
-      }));
-  }, []);
-
-  // Update clusters on map movement
-  const clusterUpdate = useCallback(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const zoom = map.getZoom();
-    const bounds = map.getBounds();
-    const bbox = [
-      bounds.getWest(),
-      bounds.getSouth(),
-      bounds.getEast(),
-      bounds.getNorth(),
-    ];
-
-    const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
-
-    // Remove existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    clusters.forEach((feature) => {
-      const el = document.createElement('div');
-      el.style.cursor = 'pointer';
-
-      if (!feature.properties.cluster) {
-        el.style.zIndex = 1;
-        el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
-        const popup = new mapboxgl.Popup({
-          offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
-          closeButton: false,
-          maxWidth: 'none',
-          className: 'my-custom-popup hidden md:block',
-        }).setHTML(createPopupHTML({ feature, images }));
-
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat(feature.geometry.coordinates)
-          .setPopup(popup)
-          .addTo(map);
-
-        el.addEventListener('mouseenter', () => {
-          marker.togglePopup();
-          el.style.zIndex = 9999;
-        });
-        el.addEventListener('mouseleave', () => {
-          marker.togglePopup();
-          el.style.zIndex = 1;
-        });
-        el.addEventListener('click', () => {
-          if (selectedNode === feature.properties._id) return;
-          dispatch(setSelectedNode(feature.properties._id));
-          dispatch(setSelectedWeeklyPrediction(null));
-          dispatch(setMapLoading(true));
-          dispatch(setOpenLocationDetails(true));
-          dispatch(setSelectedLocation(feature.properties));
-          dispatch(
-            setCenter({
-              latitude: feature.geometry.coordinates[1],
-              longitude: feature.geometry.coordinates[0],
-            }),
-          );
-          dispatch(setZoom(15));
-        });
-
-        markersRef.current.push(marker);
-      } else {
-        el.style.zIndex = 444;
-        el.className =
-          'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-        const mostCommonAQIs = getTwoMostCommonAQIs(feature);
-        feature.properties.aqi = mostCommonAQIs;
-
-        el.innerHTML = createClusterNode({ feature, NodeType });
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat(feature.geometry.coordinates)
-          .addTo(map);
-        el.addEventListener('click', () => {
-          map.flyTo({
-            center: feature.geometry.coordinates,
-            zoom: zoom + 2,
-          });
-        });
-        markersRef.current.push(marker);
-      }
-    });
-  }, [
-    NodeType,
-    createPopupHTML,
-    UnclusteredNode,
-    createClusterNode,
-    getTwoMostCommonAQIs,
-    selectedNode,
-    dispatch,
-    width,
-  ]);
 
   // Initialize Supercluster and event listeners
   useEffect(() => {
@@ -313,31 +379,27 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
     });
     indexRef.current = index;
 
-    const loadData = () => {
-      const combinedData = [...(mapReadingsData || []), ...(waqData || [])];
+    // Load initial data from store if available
+    const combinedData = [...(mapReadingsData || []), ...(waqData || [])];
+    if (combinedData.length > 0) {
       index.load(combinedData);
       clusterUpdate();
-    };
+    }
 
-    loadData();
+    // Set up event listeners for map movement
+    const handleZoomEnd = () => clusterUpdate();
+    const handleMoveEnd = () => clusterUpdate();
 
-    map.on('zoomend', clusterUpdate);
-    map.on('moveend', clusterUpdate);
+    map.on('zoomend', handleZoomEnd);
+    map.on('moveend', handleMoveEnd);
 
     return () => {
-      map.off('zoomend', clusterUpdate);
-      map.off('moveend', clusterUpdate);
+      map.off('zoomend', handleZoomEnd);
+      map.off('moveend', handleMoveEnd);
       markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
     };
   }, [mapReadingsData, waqData, clusterUpdate, NodeType]);
-
-  // Update Supercluster data on data changes
-  useEffect(() => {
-    if (!indexRef.current) return;
-    const combinedData = [...(mapReadingsData || []), ...(waqData || [])];
-    indexRef.current.load(combinedData);
-    clusterUpdate();
-  }, [mapReadingsData, waqData, clusterUpdate]);
 
   return {
     mapRef,
