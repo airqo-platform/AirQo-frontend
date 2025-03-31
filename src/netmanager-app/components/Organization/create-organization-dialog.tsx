@@ -249,7 +249,7 @@ export function CreateOrganizationDialog() {
                       <FormControl>
                         <Input type="url" placeholder="https://example.com/image.jpg" {...field} />
                       </FormControl>
-                      <FormDescription>Enter a URL for the organization's profile picture (optional)</FormDescription>
+                      <FormDescription>Enter a URL for the organization&#39;s profile picture (optional)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
