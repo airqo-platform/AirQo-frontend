@@ -118,17 +118,6 @@ export function ResourceAssignmentPage({ organizationId, organizationName }: Res
     device.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  // Handle selection of sites
-//   const handleSiteSelection = (siteId: string) => {
-//     setSelectedSites((prev) => (prev.includes(siteId) ? prev.filter((id) => id !== siteId) : [...prev, siteId]))
-//   }
-
-//   // Handle selection of devices
-//   const handleDeviceSelection = (deviceId: string) => {
-//     setSelectedDevices((prev) => (prev.includes(deviceId) ? prev.filter((id) => id !== deviceId) : [...prev, deviceId]))
-//   }
-
-  // Handle select all for the current filtered list
   const handleSelectAll = () => {
     if (activeTab === "sites") {
       const availableSiteIds = filteredSites.filter((site: Site) => !site.isAssigned).map((site) => site.id)
