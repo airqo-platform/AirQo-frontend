@@ -5,11 +5,49 @@ import { BOUNDARY_URL } from '../data/constants';
 const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
   const zoomHandlerRef = useRef(null);
   const activeRequestRef = useRef(null);
+  const hasLayerRef = useRef(false);
 
   useEffect(() => {
     if (!mapRef.current || !mapData.location?.country) return;
 
     const map = mapRef.current;
+
+    // Safely check if a layer exists
+    const layerExists = (layerId) => {
+      try {
+        return map.isStyleLoaded() && map.getLayer(layerId);
+      } catch (err) {
+        console.error('Error checking layer existence:', err);
+        return false;
+      }
+    };
+
+    // Safely check if a source exists
+    const sourceExists = (sourceId) => {
+      try {
+        return map.isStyleLoaded() && map.getSource(sourceId);
+      } catch (err) {
+        console.error('Error checking source existence:', err);
+        return false;
+      }
+    };
+
+    // Safely remove existing boundaries
+    const removeBoundaries = () => {
+      try {
+        if (layerExists('location-boundaries')) {
+          map.removeLayer('location-boundaries');
+        }
+
+        if (sourceExists('location-boundaries')) {
+          map.removeSource('location-boundaries');
+        }
+
+        hasLayerRef.current = false;
+      } catch (err) {
+        console.error('Error removing boundaries:', err);
+      }
+    };
 
     // Cancel any previous request
     if (activeRequestRef.current) {
@@ -26,15 +64,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
       setLoading(true);
 
       // Remove existing boundaries
-      ['location-boundaries'].forEach((layerId) => {
-        if (map.getLayer(layerId)) {
-          map.removeLayer(layerId);
-        }
-      });
-
-      if (map.getSource('location-boundaries')) {
-        map.removeSource('location-boundaries');
-      }
+      removeBoundaries();
 
       // Prepare query string
       const queryString = mapData.location.city
@@ -59,23 +89,56 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
           throw new Error('No boundary data found');
         }
 
+        // Wait for style to be loaded before adding layers
+        const waitForStyleLoaded = () => {
+          return new Promise((resolve) => {
+            if (map.isStyleLoaded()) {
+              resolve();
+              return;
+            }
+
+            const styleDataListener = () => {
+              if (map.isStyleLoaded()) {
+                map.off('styledata', styleDataListener);
+                resolve();
+              }
+            };
+
+            map.on('styledata', styleDataListener);
+          });
+        };
+
+        await waitForStyleLoaded();
+
+        // Double-check map is still valid
+        if (!mapRef.current) return;
+
         // Add boundary to map
         const boundaryData = data[0].geojson;
-        map.addSource('location-boundaries', {
-          type: 'geojson',
-          data: boundaryData,
-        });
 
-        map.addLayer({
-          id: 'location-boundaries',
-          type: 'fill',
-          source: 'location-boundaries',
-          paint: {
-            'fill-color': '#0000FF',
-            'fill-opacity': 0.2,
-            'fill-outline-color': '#0000FF',
-          },
-        });
+        // Only add source if it doesn't already exist
+        if (!sourceExists('location-boundaries')) {
+          map.addSource('location-boundaries', {
+            type: 'geojson',
+            data: boundaryData,
+          });
+        }
+
+        // Only add layer if it doesn't already exist
+        if (!layerExists('location-boundaries')) {
+          map.addLayer({
+            id: 'location-boundaries',
+            type: 'fill',
+            source: 'location-boundaries',
+            paint: {
+              'fill-color': '#0000FF',
+              'fill-opacity': 0.2,
+              'fill-outline-color': '#0000FF',
+            },
+          });
+
+          hasLayerRef.current = true;
+        }
 
         // Fly to boundary location
         const { lat, lon } = data[0];
@@ -89,14 +152,19 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
 
         // Add zoom handler to adjust opacity
         const zoomHandler = () => {
-          const zoom = map.getZoom();
-          const opacity = zoom > 10 ? 0 : 0.2;
-          if (map.getLayer('location-boundaries')) {
-            map.setPaintProperty(
-              'location-boundaries',
-              'fill-opacity',
-              opacity,
-            );
+          try {
+            const zoom = map.getZoom();
+            const opacity = zoom > 10 ? 0 : 0.2;
+
+            if (layerExists('location-boundaries')) {
+              map.setPaintProperty(
+                'location-boundaries',
+                'fill-opacity',
+                opacity,
+              );
+            }
+          } catch (err) {
+            console.error('Error in zoom handler:', err);
           }
         };
 
@@ -111,22 +179,40 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
       }
     };
 
+    // Handle style changes
+    const handleStyleData = () => {
+      // If we had a layer before the style changed and the style is now loaded,
+      // we need to re-add our layer
+      if (hasLayerRef.current && map.isStyleLoaded()) {
+        // Delay slightly to ensure style is fully processed
+        setTimeout(() => {
+          if (mapRef.current) {
+            fetchLocationBoundaries();
+          }
+        }, 100);
+      }
+    };
+
+    // Listen for style changes
+    map.on('styledata', handleStyleData);
+
+    // Initial fetch
     fetchLocationBoundaries();
 
+    // Cleanup
     return () => {
       if (activeRequestRef.current) {
         activeRequestRef.current.cancel('Component unmounted');
       }
 
-      if (map && zoomHandlerRef.current) {
-        map.off('zoomend', zoomHandlerRef.current);
-      }
+      if (mapRef.current) {
+        mapRef.current.off('styledata', handleStyleData);
 
-      if (map && map.getLayer('location-boundaries')) {
-        map.removeLayer('location-boundaries');
-        if (map.getSource('location-boundaries')) {
-          map.removeSource('location-boundaries');
+        if (zoomHandlerRef.current) {
+          mapRef.current.off('zoomend', zoomHandlerRef.current);
         }
+
+        removeBoundaries();
       }
     };
   }, [mapData.location, mapRef, setLoading]);
