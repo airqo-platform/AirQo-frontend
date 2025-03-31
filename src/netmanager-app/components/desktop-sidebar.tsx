@@ -194,7 +194,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             </h2>
             <ul className="space-y-2">
               <li>
-                <NavItem href="/analytics" icon={BarChart2} label="Analytics" />
+                <NavItem 
+                  href="/analytics" 
+                  icon={BarChart2} 
+                  label="Analytics" 
+                />
               </li>
               <li>
                 <NavItem href="/network-map" icon={MapIcon} label="Network Map" />
