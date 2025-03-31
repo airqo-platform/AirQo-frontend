@@ -56,16 +56,18 @@ export default function LoginPage() {
         onSuccess: () => {
           router.push("/");
         },
-        onError: (error: any) => {
+        onError: (error: { message?: string }) => {
           setError(
             error?.message || "Invalid email or password. Please try again."
           );
         },
       });
-    } catch (error: any) {
-      setError(
-        error?.message || "An unexpected error occurred. Please try again."
-      );
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message || "An unexpected error occurred. Please try again.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   }
 
