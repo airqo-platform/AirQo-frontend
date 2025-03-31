@@ -32,10 +32,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const currentUser = useAppSelector((state) => state.user.userDetails)
 
   useEffect(() => {
-    // Check system preference on initial load
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-    setDarkMode(document.documentElement.classList.contains("dark") || prefersDark)
-
     if (darkMode) {
       document.documentElement.classList.add("dark")
     } else {
@@ -102,7 +98,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
 
         {/* Right side - actions */}
         <div className="flex items-center gap-1 md:gap-2">
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
@@ -112,9 +108,9 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
               </TooltipTrigger>
               <TooltipContent>Help & Resources</TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> */}
 
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -158,7 +154,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
                 <Link href="/notifications">View all notifications</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
 
           <DropdownMenu>
             <TooltipProvider>
@@ -241,12 +237,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
                 <Link href="/profile" className="flex items-center gap-2">
                   <UserCircle className="h-4 w-4" />
                   Profile Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Account Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleDarkMode} className="flex items-center gap-2">
