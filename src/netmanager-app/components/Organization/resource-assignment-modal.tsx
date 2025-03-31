@@ -35,7 +35,6 @@ interface ResourceAssignmentModalProps {
 export function ResourceAssignmentModal({
   open,
   onOpenChange,
-  organizationId,
   organizationName,
   availableSites,
   availableDevices,
