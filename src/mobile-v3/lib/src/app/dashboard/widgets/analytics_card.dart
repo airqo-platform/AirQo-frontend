@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -106,8 +107,8 @@ class AnalyticsCard extends StatelessWidget {
               height: 1,
               //margin: EdgeInsets.symmetric(horizontal: 16),
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : Colors.white,
+                  ? AppColors.dividerColordark
+                  : AppColors.dividerColorlight,
             ),
             Padding(
               padding: const EdgeInsets.only(

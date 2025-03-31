@@ -144,13 +144,13 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text(
-                      "Air Quality Monitoring Locations",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.headlineSmall?.color,
-                      ),
-                    ),
+                    // child: Text(
+                    //   "Air Quality Monitoring Locations",
+                    //   style: TextStyle(
+                    //     fontWeight: FontWeight.bold,
+                    //     color: Theme.of(context).textTheme.headlineSmall?.color,
+                    //   ),
+                    // ),
                   ),
                   ...localSearchResults
                       .map((measurement) => Column(
