@@ -65,22 +65,22 @@ export function ResourceAssignmentPage({ organizationId, organizationName }: Res
 
   // Fetch sites already assigned to this organization
   const { data: assignedSitesData, isLoading: isLoadingAssignedSites } = useQuery({
-    queryKey: ["sites-summary", networkId, organizationName],
+    queryKey: ["sites-summary", networkId],
     queryFn: async () => {
-      const response = await sites.getSitesSummary(networkId, organizationName)
+      const response = await sites.getSitesApi(networkId)
       return response.sites || []
     },
-    enabled: !!networkId && !!organizationName,
+    enabled: !!networkId,
   })
 
   // Fetch devices already assigned to this organization
   const { data: assignedDevicesData, isLoading: isLoadingAssignedDevices } = useQuery({
-    queryKey: ["devices-summary", networkId, organizationName],
+    queryKey: ["devices-summary", networkId],
     queryFn: async () => {
-      const response = await devices.getDevicesSummaryApi(networkId, organizationName)
+      const response = await devices.getDevicesApi(networkId)
       return response.devices || []
     },
-    enabled: !!networkId && !!organizationName,
+    enabled: !!networkId,
   })
 
   const { mutate: assignSites, isPending: isAssigningSites } = useAssignSitesToGroup()
@@ -119,14 +119,14 @@ export function ResourceAssignmentPage({ organizationId, organizationName }: Res
   )
 
   // Handle selection of sites
-  const handleSiteSelection = (siteId: string) => {
-    setSelectedSites((prev) => (prev.includes(siteId) ? prev.filter((id) => id !== siteId) : [...prev, siteId]))
-  }
+//   const handleSiteSelection = (siteId: string) => {
+//     setSelectedSites((prev) => (prev.includes(siteId) ? prev.filter((id) => id !== siteId) : [...prev, siteId]))
+//   }
 
-  // Handle selection of devices
-  const handleDeviceSelection = (deviceId: string) => {
-    setSelectedDevices((prev) => (prev.includes(deviceId) ? prev.filter((id) => id !== deviceId) : [...prev, deviceId]))
-  }
+//   // Handle selection of devices
+//   const handleDeviceSelection = (deviceId: string) => {
+//     setSelectedDevices((prev) => (prev.includes(deviceId) ? prev.filter((id) => id !== deviceId) : [...prev, deviceId]))
+//   }
 
   // Handle select all for the current filtered list
   const handleSelectAll = () => {

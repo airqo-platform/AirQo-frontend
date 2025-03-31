@@ -26,7 +26,7 @@ export const useGroupResources = (groupId: string) => {
   const networkId = activeNetwork?.net_name || ""
 
   // Query to get sites for this specific group using the getSitesSummary API
-  const { data: sitesData, isLoading: isLoadingSites } = useQuery({
+  const { data: sitesData, isLoading: isLoadingSites, refetch: refetchSites } = useQuery({
     queryKey: ["sites-summary", networkId, groupTitle],
     queryFn: async () => {
       try {
@@ -46,7 +46,7 @@ export const useGroupResources = (groupId: string) => {
   })
 
   // Query to get devices for this specific group using the getDevicesSummaryApi
-  const { data: devicesData, isLoading: isLoadingDevices } = useQuery({
+  const { data: devicesData, isLoading: isLoadingDevices, refetch: refetchDevices } = useQuery({
     queryKey: ["devices-summary", networkId, groupTitle],
     queryFn: async () => {
       try {
@@ -67,6 +67,11 @@ export const useGroupResources = (groupId: string) => {
 
   const isLoading = isLoadingGroup || isLoadingSites || isLoadingDevices
 
+  const refetch = () => {
+    refetchSites()
+    refetchDevices()
+  }
+
   return {
     isLoading,
     // Boolean flags indicating if resources are assigned to this group
@@ -79,6 +84,7 @@ export const useGroupResources = (groupId: string) => {
     devices: devicesData?.devices || [],
     group: groupData?.group,
 
+    refetch,
     // Overall setup status
     setupComplete:
       !isLoading &&

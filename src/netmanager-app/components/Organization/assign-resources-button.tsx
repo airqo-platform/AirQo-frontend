@@ -8,8 +8,8 @@ import { useQuery } from "@tanstack/react-query"
 import { sites } from "@/core/apis/sites"
 import { devices } from "@/core/apis/devices"
 import { useAppSelector } from "@/core/redux/hooks"
-import { Globe, Laptop } from "lucide-react"
-import { Site } from "@/app/types/sites"
+import { Globe, Laptop, Loader2 } from "lucide-react"
+import type { Site } from "@/app/types/sites"
 
 interface AssignResourcesButtonProps {
   organizationId: string
@@ -34,32 +34,33 @@ export function AssignResourcesButton({
 }: AssignResourcesButtonProps) {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
   const networkId = activeNetwork?.net_name || ""
 
   // Fetch all available sites
-  const { data: sitesData, } = useQuery({
+  const { data: sitesData, isLoading: isLoadingSites } = useQuery({
     queryKey: ["all-sites", networkId],
     queryFn: async () => {
-      const response = await sites.getSitesSummary(networkId, organizationName)
+      const response = await sites.getSitesApi(networkId)
       return response.sites || []
     },
     enabled: !!networkId && isModalOpen && (resourceType === "sites" || resourceType === "both"),
   })
 
   // Fetch all available devices
-  const { data: devicesData } = useQuery({
+  const { data: devicesData, isLoading: isLoadingDevices } = useQuery({
     queryKey: ["all-devices", networkId],
     queryFn: async () => {
-      const response = await devices.getDevicesSummaryApi(networkId, organizationName)
+      const response = await devices.getDevicesApi(networkId)
       return response.devices || []
     },
     enabled: !!networkId && isModalOpen && (resourceType === "devices" || resourceType === "both"),
   })
 
   // Fetch sites already assigned to this organization
-  const { data: assignedSitesData } = useQuery({
+  const { data: assignedSitesData, isLoading: isLoadingAssignedSites } = useQuery({
     queryKey: ["sites-summary", networkId, organizationName],
     queryFn: async () => {
       const response = await sites.getSitesSummary(networkId, organizationName)
@@ -69,7 +70,7 @@ export function AssignResourcesButton({
   })
 
   // Fetch devices already assigned to this organization
-  const { data: assignedDevicesData } = useQuery({
+  const { data: assignedDevicesData, isLoading: isLoadingAssignedDevices } = useQuery({
     queryKey: ["devices-summary", networkId, organizationName],
     queryFn: async () => {
       const response = await devices.getDevicesSummaryApi(networkId, organizationName)
@@ -79,10 +80,14 @@ export function AssignResourcesButton({
       !!networkId && !!organizationName && isModalOpen && (resourceType === "devices" || resourceType === "both"),
   })
 
-  // Prepare site data with assignment status
+  // Prepare site data with assignment status - handle the case where assignedSitesData is not an array
   const availableSites =
     sitesData?.map((site: Site) => {
-    const isAssigned: boolean = assignedSitesData?.some((assignedSite: { id: string }) => assignedSite.id === site._id) || false
+      // Check if assignedSitesData is an array before using .some()
+      const isAssigned = Array.isArray(assignedSitesData)
+        ? assignedSitesData.some((assignedSite: { id: string }) => assignedSite.id === site._id)
+        : false
+
       return {
         id: site._id,
         name: site.name,
@@ -90,10 +95,14 @@ export function AssignResourcesButton({
       }
     }) || []
 
-  // Prepare device data with assignment status
+  // Prepare device data with assignment status - handle the case where assignedDevicesData is not an array
   const availableDevices =
     devicesData?.map((device) => {
-      const isAssigned = assignedDevicesData?.some((assignedDevice) => assignedDevice._id === device._id)
+      // Check if assignedDevicesData is an array before using .some()
+      const isAssigned = Array.isArray(assignedDevicesData)
+        ? assignedDevicesData.some((assignedDevice) => assignedDevice._id === device._id)
+        : false
+
       return {
         id: device._id,
         name: device.name,
@@ -101,9 +110,14 @@ export function AssignResourcesButton({
       }
     }) || []
 
+  // Track overall loading state
+  const isDataLoading = isLoadingSites || isLoadingDevices || isLoadingAssignedSites || isLoadingAssignedDevices
+
   const handleClick = () => {
+    setIsLoading(true)
     if (useModal) {
       setIsModalOpen(true)
+      setIsLoading(false)
     } else {
       router.push(`/organizations/${organizationId}/assign-resources`)
     }
@@ -125,12 +139,19 @@ export function AssignResourcesButton({
 
   return (
     <>
-      <Button variant={variant} size={size} onClick={handleClick}>
-        {children || (
+      <Button variant={variant} size={size} onClick={handleClick} disabled={isLoading}>
+        {isLoading ? (
           <>
-            {buttonIcon}
-            {buttonText}
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading...
           </>
+        ) : (
+          children || (
+            <>
+              {buttonIcon}
+              {buttonText}
+            </>
+          )
         )}
       </Button>
 
@@ -148,6 +169,7 @@ export function AssignResourcesButton({
             setIsModalOpen(false)
           }}
           initialTab={resourceType === "sites" ? "sites" : resourceType === "devices" ? "devices" : undefined}
+          isLoading={isDataLoading}
         />
       )}
     </>

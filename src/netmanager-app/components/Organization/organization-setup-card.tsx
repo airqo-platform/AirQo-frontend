@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useGroupResources } from "@/core/hooks/useGroupResources"
 import { AssignResourcesButton } from "./assign-resources-button"
-import { useAppSelector } from "@/core/redux/hooks"
 
 interface OrganizationSetupCardProps {
   organizationId: string
@@ -16,7 +15,6 @@ interface OrganizationSetupCardProps {
 export function OrganizationSetupCard({ organizationId, organizationName }: OrganizationSetupCardProps) {
   // Use our hook to determine if the organization has sites, devices, and members assigned
   const { hasSites, hasDevices, hasMembers, isLoading, sites, devices, refetch } = useGroupResources(organizationId)
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
 
   // If we're still loading the resource data, show a loading indicator
   if (isLoading) {
@@ -78,7 +76,10 @@ export function OrganizationSetupCard({ organizationId, organizationName }: Orga
             useModal={true}
             resourceType="sites"
             onSuccess={() => refetch()}
-          />
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Sites
+          </AssignResourcesButton>
           <AssignResourcesButton
             organizationId={organizationId}
             organizationName={organizationName}
@@ -87,7 +88,10 @@ export function OrganizationSetupCard({ organizationId, organizationName }: Orga
             useModal={true}
             resourceType="devices"
             onSuccess={() => refetch()}
-          />
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Devices
+          </AssignResourcesButton>
           <Button asChild size="sm" variant="outline">
             <Link href={`/organizations/${organizationId}/members`}>
               <Users className="mr-2 h-4 w-4" /> Manage Members

@@ -17,9 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAssignDevicesToGroup, useAssignSitesToGroup } from "@/core/hooks/useGroups"
-// import { useQuery } from "@tanstack/react-query"
-// import { sites } from "@/core/apis/sites"
-// import { devices } from "@/core/apis/devices"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ResourceAssignmentModalProps {
   open: boolean
@@ -31,6 +29,7 @@ interface ResourceAssignmentModalProps {
   onSuccess?: () => void
   networkId: string
   initialTab?: "sites" | "devices"
+  isLoading?: boolean
 }
 
 export function ResourceAssignmentModal({
@@ -42,6 +41,7 @@ export function ResourceAssignmentModal({
   availableDevices,
   onSuccess,
   initialTab = "sites",
+  isLoading = false,
 }: ResourceAssignmentModalProps) {
   const [activeTab, setActiveTab] = useState<"sites" | "devices">(initialTab)
   const [searchQuery, setSearchQuery] = useState("")
@@ -93,7 +93,7 @@ export function ResourceAssignmentModal({
   const handleAssign = () => {
     if (activeTab === "sites" && selectedSites.length > 0) {
       assignSites(
-        { siteIds: selectedSites, groups: [organizationId] },
+        { siteIds: selectedSites, groups: [organizationName] },
         {
           onSuccess: () => {
             setSelectedSites([])
@@ -103,7 +103,7 @@ export function ResourceAssignmentModal({
       )
     } else if (activeTab === "devices" && selectedDevices.length > 0) {
       assignDevices(
-        { deviceIds: selectedDevices, groups: [organizationId] },
+        { deviceIds: selectedDevices, groups: [organizationName] },
         {
           onSuccess: () => {
             setSelectedDevices([])
@@ -124,26 +124,17 @@ export function ResourceAssignmentModal({
     onOpenChange(open)
   }
 
-  // Update the useQuery hooks to use the correct parameters
-  // For sites already assigned to this organization
-//   const { data: assignedSitesData } = useQuery({
-//     queryKey: ["sites-summary", networkId, organizationName],
-//     queryFn: async () => {
-//       const response = await sites.getSitesSummary(networkId, organizationName)
-//       return response.sites || []
-//     },
-//     enabled: !!networkId && !!organizationName && open,
-//   })
-
-//   // For devices already assigned to this organization
-//   const { data: assignedDevicesData } = useQuery({
-//     queryKey: ["devices-summary", networkId, organizationName],
-//     queryFn: async () => {
-//       const response = await devices.getDevicesSummaryApi(networkId, organizationName)
-//       return response.devices || []
-//     },
-//     enabled: !!networkId && !!organizationName && open,
-//   })
+  // Render loading skeletons
+  const renderSkeletons = () => (
+    <div className="space-y-2">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="flex items-center gap-2 p-3 border rounded-lg">
+          <Skeleton className="h-4 w-4 rounded" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -162,6 +153,7 @@ export function ResourceAssignmentModal({
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                disabled={isLoading}
               />
               {searchQuery && (
                 <Button
@@ -169,13 +161,14 @@ export function ResourceAssignmentModal({
                   size="sm"
                   className="absolute right-1 top-1 h-7 w-7 p-0"
                   onClick={() => setSearchQuery("")}
+                  disabled={isLoading}
                 >
                   <X className="h-4 w-4" />
                   <span className="sr-only">Clear</span>
                 </Button>
               )}
             </div>
-            <Button variant="outline" size="sm" onClick={handleSelectAll}>
+            <Button variant="outline" size="sm" onClick={handleSelectAll} disabled={isLoading}>
               {activeTab === "sites" &&
               selectedSites.length === filteredSites.filter((s) => !s.assigned).length &&
               filteredSites.some((s) => !s.assigned)
@@ -195,7 +188,7 @@ export function ResourceAssignmentModal({
             onValueChange={(value) => setActiveTab(value as "sites" | "devices")}
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="sites">
+              <TabsTrigger value="sites" disabled={isLoading}>
                 Sites
                 {selectedSites.length > 0 && (
                   <Badge variant="secondary" className="ml-2">
@@ -203,7 +196,7 @@ export function ResourceAssignmentModal({
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="devices">
+              <TabsTrigger value="devices" disabled={isLoading}>
                 Devices
                 {selectedDevices.length > 0 && (
                   <Badge variant="secondary" className="ml-2">
@@ -215,7 +208,9 @@ export function ResourceAssignmentModal({
 
             <TabsContent value="sites" className="mt-4">
               <ScrollArea className="h-[300px] rounded-md border p-4">
-                {filteredSites.length === 0 ? (
+                {isLoading ? (
+                  renderSkeletons()
+                ) : filteredSites.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-muted-foreground">
                     {searchQuery ? "No sites match your search" : "No sites available"}
                   </div>
@@ -258,7 +253,9 @@ export function ResourceAssignmentModal({
 
             <TabsContent value="devices" className="mt-4">
               <ScrollArea className="h-[300px] rounded-md border p-4">
-                {filteredDevices.length === 0 ? (
+                {isLoading ? (
+                  renderSkeletons()
+                ) : filteredDevices.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-muted-foreground">
                     {searchQuery ? "No devices match your search" : "No devices available"}
                   </div>
@@ -308,6 +305,7 @@ export function ResourceAssignmentModal({
           <Button
             onClick={handleAssign}
             disabled={
+              isLoading ||
               (activeTab === "sites" && selectedSites.length === 0) ||
               (activeTab === "devices" && selectedDevices.length === 0) ||
               isPending
