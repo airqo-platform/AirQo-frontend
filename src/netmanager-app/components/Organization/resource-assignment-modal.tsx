@@ -114,7 +114,6 @@ export function ResourceAssignmentModal({
     }
   }
 
-  // Reset selections when closing the modal
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setSelectedSites([])
