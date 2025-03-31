@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { useAuth } from "@/core/hooks/users"
-import { Loader2, Lock, Mail } from "lucide-react"
+import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 
 const loginSchema = z.object({
@@ -25,6 +25,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading } = useAuth()
 
   // Get URLs from environment variables
@@ -63,16 +64,15 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center justify-center space-y-2 text-center">
-          <div className="mb-4 rounded-full bg-primary/10 p-2">
+          <div className="mb-4">
             <Image
               src="/images/airqo_logo.svg"
               alt="Logo"
               width={50}
               height={50}
-              className="rounded-full"
             />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome back to Netmanager</h1>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
         </div>
 
@@ -114,7 +114,23 @@ export default function LoginPage() {
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
+                          <Input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="••••••••" 
+                            className="pl-10 pr-10" 
+                            {...field} 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage />
