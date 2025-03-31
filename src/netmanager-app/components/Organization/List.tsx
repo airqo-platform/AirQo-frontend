@@ -288,7 +288,7 @@ export function GroupList() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/groups/${group._id}`}>
+                        <Link href={`/organizations/${group._id}`}>
                           <Eye className="mr-2 h-4 w-4" /> View
                         </Link>
                       </Button>
