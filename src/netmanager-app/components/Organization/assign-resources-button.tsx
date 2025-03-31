@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ResourceAssignmentModal } from "./resource-assignment-modal"
@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query"
 import { sites } from "@/core/apis/sites"
 import { devices } from "@/core/apis/devices"
 import { useAppSelector } from "@/core/redux/hooks"
+import { Globe, Laptop } from "lucide-react"
 import { Site } from "@/app/types/sites"
 
 interface AssignResourcesButtonProps {
@@ -17,6 +18,8 @@ interface AssignResourcesButtonProps {
   size?: "default" | "sm" | "lg" | "icon"
   useModal?: boolean
   onSuccess?: () => void
+  resourceType?: "sites" | "devices" | "both"
+  children?: ReactNode
 }
 
 export function AssignResourcesButton({
@@ -26,6 +29,8 @@ export function AssignResourcesButton({
   size = "default",
   useModal = true,
   onSuccess,
+  resourceType = "both",
+  children,
 }: AssignResourcesButtonProps) {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -34,23 +39,23 @@ export function AssignResourcesButton({
   const networkId = activeNetwork?.net_name || ""
 
   // Fetch all available sites
-  const { data: sitesData } = useQuery({
+  const { data: sitesData, } = useQuery({
     queryKey: ["all-sites", networkId],
     queryFn: async () => {
       const response = await sites.getSitesSummary(networkId, organizationName)
       return response.sites || []
     },
-    enabled: !!networkId && isModalOpen,
+    enabled: !!networkId && isModalOpen && (resourceType === "sites" || resourceType === "both"),
   })
 
   // Fetch all available devices
-  const { data: devicesData, } = useQuery({
+  const { data: devicesData } = useQuery({
     queryKey: ["all-devices", networkId],
     queryFn: async () => {
       const response = await devices.getDevicesSummaryApi(networkId, organizationName)
       return response.devices || []
     },
-    enabled: !!networkId && isModalOpen,
+    enabled: !!networkId && isModalOpen && (resourceType === "devices" || resourceType === "both"),
   })
 
   // Fetch sites already assigned to this organization
@@ -60,7 +65,7 @@ export function AssignResourcesButton({
       const response = await sites.getSitesSummary(networkId, organizationName)
       return response.sites || []
     },
-    enabled: !!networkId && !!organizationName && isModalOpen,
+    enabled: !!networkId && !!organizationName && isModalOpen && (resourceType === "sites" || resourceType === "both"),
   })
 
   // Fetch devices already assigned to this organization
@@ -70,13 +75,14 @@ export function AssignResourcesButton({
       const response = await devices.getDevicesSummaryApi(networkId, organizationName)
       return response.devices || []
     },
-    enabled: !!networkId && !!organizationName && isModalOpen,
+    enabled:
+      !!networkId && !!organizationName && isModalOpen && (resourceType === "devices" || resourceType === "both"),
   })
 
   // Prepare site data with assignment status
   const availableSites =
     sitesData?.map((site: Site) => {
-    const isAssigned: boolean = assignedSitesData?.some((assignedSite: { _id: string }) => assignedSite._id === site._id) || false
+    const isAssigned: boolean = assignedSitesData?.some((assignedSite: { id: string }) => assignedSite.id === site._id) || false
       return {
         id: site._id,
         name: site.name,
@@ -103,10 +109,29 @@ export function AssignResourcesButton({
     }
   }
 
+  // Determine button text and icon based on resource type
+  let buttonText = "Assign Resources"
+  let buttonIcon = null
+
+  if (!children) {
+    if (resourceType === "sites") {
+      buttonText = "Assign Sites"
+      buttonIcon = <Globe className="mr-2 h-4 w-4" />
+    } else if (resourceType === "devices") {
+      buttonText = "Assign Devices"
+      buttonIcon = <Laptop className="mr-2 h-4 w-4" />
+    }
+  }
+
   return (
     <>
       <Button variant={variant} size={size} onClick={handleClick}>
-        Assign Resources
+        {children || (
+          <>
+            {buttonIcon}
+            {buttonText}
+          </>
+        )}
       </Button>
 
       {useModal && (
@@ -115,13 +140,14 @@ export function AssignResourcesButton({
           onOpenChange={setIsModalOpen}
           organizationId={organizationId}
           organizationName={organizationName}
-          networkId={networkId}
           availableSites={availableSites}
           availableDevices={availableDevices}
+          networkId={networkId}
           onSuccess={() => {
             onSuccess?.()
             setIsModalOpen(false)
           }}
+          initialTab={resourceType === "sites" ? "sites" : resourceType === "devices" ? "devices" : undefined}
         />
       )}
     </>

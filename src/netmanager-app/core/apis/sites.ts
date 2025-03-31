@@ -35,6 +35,19 @@ export const sites = {
       );
     }
   },
+  getSitesApi: async (networkId: string) => {
+    try {
+      const response = await axiosInstance.get(
+        `${SITES_MGT_URL}/summary?network=${networkId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch sites summary"
+      );
+    }
+  },
   createSite: async (data: {
     name: string;
     latitude: string;

@@ -30,6 +30,7 @@ interface ResourceAssignmentModalProps {
   availableDevices: Array<{ id: string; name: string; assigned?: boolean }>
   onSuccess?: () => void
   networkId: string
+  initialTab?: "sites" | "devices"
 }
 
 export function ResourceAssignmentModal({
@@ -40,8 +41,9 @@ export function ResourceAssignmentModal({
   availableSites,
   availableDevices,
   onSuccess,
+  initialTab = "sites",
 }: ResourceAssignmentModalProps) {
-  const [activeTab, setActiveTab] = useState<"sites" | "devices">("sites")
+  const [activeTab, setActiveTab] = useState<"sites" | "devices">(initialTab)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSites, setSelectedSites] = useState<string[]>([])
   const [selectedDevices, setSelectedDevices] = useState<string[]>([])
@@ -71,14 +73,14 @@ export function ResourceAssignmentModal({
   // Handle select all for the current filtered list
   const handleSelectAll = () => {
     if (activeTab === "sites") {
-      const allSiteIds = filteredSites.map((site) => site.id)
+      const allSiteIds = filteredSites.filter((site) => !site.assigned).map((site) => site.id)
       if (selectedSites.length === allSiteIds.length) {
         setSelectedSites([])
       } else {
         setSelectedSites(allSiteIds)
       }
     } else {
-      const allDeviceIds = filteredDevices.map((device) => device.id)
+      const allDeviceIds = filteredDevices.filter((device) => !device.assigned).map((device) => device.id)
       if (selectedDevices.length === allDeviceIds.length) {
         setSelectedDevices([])
       } else {
@@ -133,7 +135,7 @@ export function ResourceAssignmentModal({
 //     enabled: !!networkId && !!organizationName && open,
 //   })
 
-  // For devices already assigned to this organization
+//   // For devices already assigned to this organization
 //   const { data: assignedDevicesData } = useQuery({
 //     queryKey: ["devices-summary", networkId, organizationName],
 //     queryFn: async () => {
@@ -174,19 +176,21 @@ export function ResourceAssignmentModal({
               )}
             </div>
             <Button variant="outline" size="sm" onClick={handleSelectAll}>
-              {activeTab === "sites" && selectedSites.length === filteredSites.length && filteredSites.length > 0
+              {activeTab === "sites" &&
+              selectedSites.length === filteredSites.filter((s) => !s.assigned).length &&
+              filteredSites.some((s) => !s.assigned)
                 ? "Deselect All"
                 : "Select All"}
               {activeTab === "devices" &&
-              selectedDevices.length === filteredDevices.length &&
-              filteredDevices.length > 0
+              selectedDevices.length === filteredDevices.filter((d) => !d.assigned).length &&
+              filteredDevices.some((d) => !d.assigned)
                 ? "Deselect All"
                 : "Select All"}
             </Button>
           </div>
 
           <Tabs
-            defaultValue="sites"
+            defaultValue={initialTab}
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as "sites" | "devices")}
           >
@@ -222,17 +226,20 @@ export function ResourceAssignmentModal({
                         key={site.id}
                         className={`flex items-center justify-between rounded-lg border p-3 ${
                           selectedSites.includes(site.id) ? "border-primary bg-primary/5" : ""
-                        }`}
+                        } ${site.assigned ? "opacity-60" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <Checkbox
                             id={`site-${site.id}`}
                             checked={selectedSites.includes(site.id)}
                             onCheckedChange={() => handleSiteSelection(site.id)}
+                            disabled={site.assigned}
                           />
                           <label
                             htmlFor={`site-${site.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                              site.assigned ? "cursor-not-allowed" : "cursor-pointer"
+                            }`}
                           >
                             {site.name}
                           </label>
@@ -262,17 +269,20 @@ export function ResourceAssignmentModal({
                         key={device.id}
                         className={`flex items-center justify-between rounded-lg border p-3 ${
                           selectedDevices.includes(device.id) ? "border-primary bg-primary/5" : ""
-                        }`}
+                        } ${device.assigned ? "opacity-60" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <Checkbox
                             id={`device-${device.id}`}
                             checked={selectedDevices.includes(device.id)}
                             onCheckedChange={() => handleDeviceSelection(device.id)}
+                            disabled={device.assigned}
                           />
                           <label
                             htmlFor={`device-${device.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                              device.assigned ? "cursor-not-allowed" : "cursor-pointer"
+                            }`}
                           >
                             {device.name}
                           </label>

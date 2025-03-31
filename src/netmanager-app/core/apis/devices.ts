@@ -38,4 +38,18 @@ export const devices = {
       );
     }
   },
+
+  getDevicesApi: async (networkId: string,) => {
+    try {
+      const response = await axiosInstance.get<DevicesSummaryResponse>(
+        `${DEVICES_MGT_URL}/summary?network=${networkId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch devices summary"
+      );
+    }
+  },
 };

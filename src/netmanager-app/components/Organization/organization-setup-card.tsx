@@ -1,10 +1,12 @@
 "use client"
 
-import { Clock, AlertCircle, Globe, Laptop, Users, Loader2, CheckCircle } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Clock, AlertCircle, Users, Loader2, CheckCircle, PlusCircle } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useGroupResources } from "@/core/hooks/useGroupResources"
+import { AssignResourcesButton } from "./assign-resources-button"
+import { useAppSelector } from "@/core/redux/hooks"
 
 interface OrganizationSetupCardProps {
   organizationId: string
@@ -13,7 +15,8 @@ interface OrganizationSetupCardProps {
 
 export function OrganizationSetupCard({ organizationId, organizationName }: OrganizationSetupCardProps) {
   // Use our hook to determine if the organization has sites, devices, and members assigned
-  const { hasSites, hasDevices, hasMembers, isLoading, sites, devices } = useGroupResources(organizationId)
+  const { hasSites, hasDevices, hasMembers, isLoading, sites, devices, refetch } = useGroupResources(organizationId)
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
 
   // If we're still loading the resource data, show a loading indicator
   if (isLoading) {
@@ -66,6 +69,31 @@ export function OrganizationSetupCard({ organizationId, organizationName }: Orga
             </div>
           </div>
         </CardContent>
+        <CardFooter className="flex justify-end gap-2 pt-2 pb-4">
+          <AssignResourcesButton
+            organizationId={organizationId}
+            organizationName={organizationName}
+            variant="outline"
+            size="sm"
+            useModal={true}
+            resourceType="sites"
+            onSuccess={() => refetch()}
+          />
+          <AssignResourcesButton
+            organizationId={organizationId}
+            organizationName={organizationName}
+            variant="outline"
+            size="sm"
+            useModal={true}
+            resourceType="devices"
+            onSuccess={() => refetch()}
+          />
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/organizations/${organizationId}/members`}>
+              <Users className="mr-2 h-4 w-4" /> Manage Members
+            </Link>
+          </Button>
+        </CardFooter>
       </Card>
     )
   }
@@ -81,47 +109,84 @@ export function OrganizationSetupCard({ organizationId, organizationName }: Orga
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {!hasSites && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {hasSites ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
                 <Clock className="h-5 w-5 text-amber-500" />
-                <span>Assign Sites</span>
-              </div>
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/organizations/${organizationId}/sites`}>
-                  <Globe className="mr-2 h-4 w-4" /> Assign Sites
-                </Link>
-              </Button>
+              )}
+              <span>
+                {hasSites ? (
+                  <span className="flex items-center">
+                    Sites Assigned <span className="ml-2 text-sm text-muted-foreground">({sites.length} sites)</span>
+                  </span>
+                ) : (
+                  "Assign Sites"
+                )}
+              </span>
             </div>
-          )}
+            <AssignResourcesButton
+              organizationId={organizationId}
+              organizationName={organizationName}
+              variant="outline"
+              size="sm"
+              useModal={true}
+              resourceType="sites"
+              onSuccess={() => refetch()}
+            >
+              {hasSites && <PlusCircle className="mr-2 h-4 w-4" />}
+              {hasSites ? "Add Sites" : "Assign Sites"}
+            </AssignResourcesButton>
+          </div>
 
-          {!hasDevices && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {hasDevices ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
                 <Clock className="h-5 w-5 text-amber-500" />
-                <span>Assign Devices</span>
-              </div>
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/organizations/${organizationId}/devices`}>
-                  <Laptop className="mr-2 h-4 w-4" /> Assign Devices
-                </Link>
-              </Button>
+              )}
+              <span>
+                {hasDevices ? (
+                  <span className="flex items-center">
+                    Devices Assigned{" "}
+                    <span className="ml-2 text-sm text-muted-foreground">({devices.length} devices)</span>
+                  </span>
+                ) : (
+                  "Assign Devices"
+                )}
+              </span>
             </div>
-          )}
+            <AssignResourcesButton
+              organizationId={organizationId}
+              organizationName={organizationName}
+              variant="outline"
+              size="sm"
+              useModal={true}
+              resourceType="devices"
+              onSuccess={() => refetch()}
+            >
+              {hasDevices && <PlusCircle className="mr-2 h-4 w-4" />}
+              {hasDevices ? "Add Devices" : "Assign Devices"}
+            </AssignResourcesButton>
+          </div>
 
-          {!hasMembers && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {hasMembers ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
                 <Clock className="h-5 w-5 text-amber-500" />
-                <span>Invite Team Members</span>
-              </div>
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/organizations/${organizationId}/members`}>
-                  <Users className="mr-2 h-4 w-4" /> Invite Members
-                </Link>
-              </Button>
+              )}
+              <span>{hasMembers ? "Team Members Added" : "Invite Team Members"}</span>
             </div>
-          )}
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/organizations/${organizationId}/members`}>
+                <Users className="mr-2 h-4 w-4" /> {hasMembers ? "Manage Members" : "Invite Members"}
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
