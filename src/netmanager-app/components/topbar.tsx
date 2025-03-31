@@ -3,8 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, Settings, Bell, HelpCircle, ChevronDown } from "lucide-react"
+import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -17,7 +16,6 @@ import {
 import { useAuth } from "@/core/hooks/users"
 import { useAppSelector } from "@/core/redux/hooks"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
