@@ -28,8 +28,8 @@ export default function LoginPage() {
   const { login, isLoading } = useAuth()
 
   // Get URLs from environment variables
-  const forgotPasswordUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL
-  const signUpUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL
+  const forgotPasswordUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || ""
+  const signUpUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || ""
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
