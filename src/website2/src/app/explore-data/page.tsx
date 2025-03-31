@@ -1,6 +1,4 @@
-import React from 'react';
-
-import ExplorePage from './ExplorePage';
+import ExplorePage from '@/views/ExplorePage';
 
 const page = () => {
   return (

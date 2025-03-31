@@ -1,23 +1,20 @@
-import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
-import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
-import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
-import 'package:airqo/src/app/dashboard/widgets/dashboard_loading.dart';
-import 'package:airqo/src/app/other/theme/bloc/theme_bloc.dart';
-import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
-import 'package:airqo/src/app/shared/pages/error_page.dart';
-import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
-import 'package:airqo/src/app/shared/widgets/page_padding.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_sticky_header/flutter_sticky_header.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 
-import '../../profile/pages/guest_profile page.dart';
-import '../../profile/pages/profile_page.dart';
-import '../models/airquality_response.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../profile/bloc/user_bloc.dart';
+import '../../shared/pages/error_page.dart';
+import '../bloc/dashboard/dashboard_bloc.dart';
+import '../widgets/dashboard_app_bar.dart';
+import '../widgets/dashboard_header.dart';
+import '../widgets/dashboard_loading.dart';
+import '../widgets/measurements_list.dart';
+import '../widgets/my_places_view.dart';
+import '../widgets/nearby_view.dart';
+import '../widgets/view_selector.dart';
+import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -26,385 +23,140 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
-  DashboardBloc? dashboardBloc;
-  UserBloc? userBloc;
-  ThemeBloc? themeBloc;
-  AuthBloc? authBloc;
-
-  List<Measurement> filteredMeasurements = [];
-  String currentFilter = "All";
+class _DashboardPageState extends State<DashboardPage> with UiLoggy {
+  DashboardView currentView = DashboardView.myPlaces;
+  String? selectedCountry;
 
   @override
   void initState() {
-    dashboardBloc = context.read<DashboardBloc>()..add(LoadDashboard());
-
-    themeBloc = context.read<ThemeBloc>();
-
-    userBloc = context.read<UserBloc>()..add(LoadUser());
+    super.initState();
+    loggy.info('Initializing DashboardPage');
+    
+    // Load dashboard data which will also load preferences
+    context.read<DashboardBloc>().add(LoadDashboard());
+    context.read<UserBloc>().add(LoadUser());
 
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthInitial || authState is GuestUser) {
-      // Only set guest mode if no user is authenticated
+      loggy.info('Using guest account');
       context.read<AuthBloc>().add(UseAsGuest());
+    } else {
+      loggy.info('User is already authenticated');
     }
-    super.initState();
   }
 
-  void filterByCountry(String country, List<Measurement> measurements) {
+  void setView(DashboardView view, {String? country}) {
     setState(() {
-      filteredMeasurements = measurements.where((measurement) {
-        if (measurement.siteDetails != null) {
-          return measurement.siteDetails!.country == country;
-        }
-        return false;
-      }).toList();
-
-      currentFilter = country;
-    });
-  }
-
-  void resetFilter() {
-    setState(() {
-      filteredMeasurements = [];
-      currentFilter = "All";
+      currentView = view;
+      selectedCountry = country;
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    List<CountryModel> countries = [
-      CountryModel("🇺🇬", "Uganda"),
-      CountryModel("🇰🇪", "Kenya"),
-      CountryModel("🇧🇮", "Burundi"),
-      CountryModel("🇬🇭", "Ghana"),
-      CountryModel("🇳🇬", "Nigeria"),
-      CountryModel("🇨🇲", "Cameroon"),
-      CountryModel("🇿🇦", "South Africa"),
-      CountryModel("🇲🇿", "Mozambique"),
-    ];
-    return Scaffold(
-      appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: null,
-          title: Row(
-            children: [
-              SvgPicture.asset(
-                "assets/images/shared/logo.svg",
-              ),
-              Spacer(),
-              GestureDetector(
-                onTap: () => themeBloc!.add(ToggleTheme(true)),
-                child: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Theme.of(context).highlightColor,
-                  child: Center(
-                    child: SvgPicture.asset(
-                        "assets/images/dashboard/theme_toggle.svg"),
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-              GestureDetector(
-                // onTap: () {
-                //   final authState = context.read<AuthBloc>().state;
-                //   if (authState is GuestUser) {
-                    
-                //     Navigator.of(context).push(
-                //       MaterialPageRoute(
-                //         builder: (context) => GuestProfilePage(),
-                //       ),
-                //     );
-                //   } else {
-                //     // Navigate to the regular profile page
-                //     Navigator.of(context).push(
-                //       MaterialPageRoute(
-                //         builder: (context) => ProfilePage(),
-                //       ),
-                //     );
-                //   }
-                // },
-                  child: BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, authState) {
-                      if (authState is GuestUser) {
-                        // Display default avatar for guest users
-                        return Container(
-                          //margin: const EdgeInsets.symmetric(horizontal: 20),
-                          child: CircleAvatar(
-                            backgroundColor: Theme.of(context).highlightColor,
-
-                            child: Center(
-                              child: SvgPicture.asset(
-                                  "assets/icons/user_icon.svg",
-                              height:22,
-                                width: 22,
-                              ),
-                            ),
-                            radius: 24,
-                          ),
-                        );
-                      } else {
-                        return BlocBuilder<UserBloc, UserState>(
-                          builder: (context, userState) {
-                            if (userState is UserLoaded) {
-                              String firstName = userState.model.users[0].firstName[0].toUpperCase();
-                              String lastName = userState.model.users[0].lastName[0].toUpperCase();
-                              return CircleAvatar(
-                                child: Center(child: Text("${firstName}${lastName}")),
-                                radius: 24,
-                                backgroundColor: Theme.of(context).highlightColor,
-                              );
-                            } else if (userState is UserLoadingError) {
-                              return Container(); // Handle error state (optional)
-                            } else {
-                              return ShimmerContainer(
-                                height: 44,
-                                borderRadius: 1000,
-                                width: 44,
-                              );
-                            }
-                          },
-                        );
-                      }
-                    },
-                  )
-
-              ),
-              SizedBox(width: 8),
-            ],
-          )),
-      body: PagePadding(
-        padding: 0,
-        child: CustomScrollView(
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: DashboardAppBar(),
+    body: Stack(
+      children: [
+        CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
-              child: PagePadding(
-                padding: 16,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 16),
-                      BlocBuilder<AuthBloc, AuthState>(
-                        builder: (context, authState) {
-                          if (authState is AuthLoading) {
-
-                            return Text(
-                              "Hi, 👋🏼",
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).textTheme.headlineLarge?.color,
-                              ),
-                            );
-                          }
-
-                          if (authState is GuestUser) {
-                            return Text(
-                              "Hi, Guest 👋🏼",
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).textTheme.headlineLarge?.color,
-                              ),
-                            );
-                          }
-
-                          if (authState is AuthLoaded) {
-                            return BlocBuilder<UserBloc, UserState>(
-                              builder: (context, userState) {
-                                if (userState is UserLoaded) {
-                                  return Text(
-                                    "Hi ${userState.model.users[0].firstName} 👋🏼",
-                                    style: TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w700,
-                                      color: Theme.of(context).textTheme.headlineLarge?.color,
-                                    ),
-                                  );
-                                }
-                                return Text(
-                                  "Hi, 👋🏼",
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w700,
-                                    color: Theme.of(context).textTheme.headlineLarge?.color,
-                                  ),
-                                );
-                              },
-                            );
-                          }
-
-                          // Handle error state
-                          if (authState is AuthLoadingError) {
-                            return Text(
-                              "Hi, 👋🏼",
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).textTheme.headlineLarge?.color,
-                              ),
-                            );
-                          }
-
-                          // Default fallback
-                          return Text(
-                            "Hi, 👋🏼",
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).textTheme.headlineLarge?.color,
-                            ),
-                          );
-                        },
-                      ),
-
-                      Text(
-                        "Today’s Air Quality • ${DateFormat.MMMMd().format(DateTime.now())}",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).textTheme.headlineMedium?.color,
-                        ),
-                      ),
-                      SizedBox(height: 4)
-                    ]),
+              child: DashboardHeader(),
+            ),
+            SliverToBoxAdapter(
+              child: ViewSelector(
+                currentView: currentView,
+                selectedCountry: selectedCountry,
+                onViewChanged: setView,
               ),
             ),
-            SliverStickyHeader(
-              header: PagePadding(
-                padding: 0,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BlocBuilder<DashboardBloc, DashboardState>(
-                      builder: (context, state) {
-                        if (state is DashboardLoaded) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            width: double.infinity,
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            height: 55,
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 8, top: 4),
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => resetFilter(),
-                                      child: Container(
-                                        height: 48,
-                                        width: 51,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                            color: currentFilter == "All"
-                                                ? AppColors.primaryColor
-                                                : Theme.of(context)
-                                                    .highlightColor),
-                                        child: Center(
-                                          child: Text("All",
-                                              style: TextStyle(
-                                                  color: currentFilter ==
-                                                              "All" ||
-                                                          Theme.of(context)
-                                                                  .brightness ==
-                                                              Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.black)),
-                                        ),
-                                      ),
-                                    ),
-                                    ListView.builder(
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: countries.length,
-                                        itemBuilder: (context, index) {
-                                          return CountriesChip(
-                                              current: currentFilter ==
-                                                  countries[index].countryName,
-                                              onTap: () => filterByCountry(
-                                                  countries[index].countryName,
-                                                  state.response.measurements!),
-                                              countryModel: countries[index]);
-                                        })
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        } else if (state is DashboardLoading) {
-                          return CountriesChipsLoading();
-                        }
-
-                        return Container();
-                      },
-                    ),
-                    SizedBox(
-                      height: 4,
-                    )
-                  ],
-                ),
-              ),
-              sliver: SliverToBoxAdapter(
-                  child: Column(
-                children: [
-                  BlocBuilder<DashboardBloc, DashboardState>(
-                    builder: (context, state) {
-                      if (state is DashboardLoaded) {
-                        return Builder(builder: (context) {
-                          if (filteredMeasurements.length != 0) {
-                            return ListView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: filteredMeasurements.length,
-                                shrinkWrap: true,
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 16),
-                                    child: AnalyticsCard(
-                                        filteredMeasurements[index]),
-                                  );
-                                });
-                          }
-                          return ListView.builder(
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: 5,
-                              shrinkWrap: true,
-                              itemBuilder: (context, index) {
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  child: AnalyticsCard(
-                                      state.response.measurements![index]),
-                                );
-                              });
-                        });
-                      } else if (state is DashboardLoadingError) {
-                        return SizedBox(
-                          child: Column(
-                              children: [SizedBox(height: 24), ErrorPage()]),
-                        );
-                      } else if (state is DashboardLoading) {
-                        return DashboardLoadingPage();
-                      }
-
-                      return Text("");
-                    },
-                  ),
-                ],
-              )),
+            SliverToBoxAdapter(
+              child: _buildContentForCurrentView(),
             ),
           ],
         ),
-      ),
-    );
-  }
+        
+        // Only show FAB when in My Places view
+        if (currentView == DashboardView.myPlaces)
+          Positioned(
+            right: 20,
+            bottom: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LocationSelectionScreen(),
+                  ),
+                ).then((value) {
+                  if (value != null) {
+                    // Force reload dashboard data
+                    context.read<DashboardBloc>().add(LoadDashboard());
+                  }
+                });
+              },
+              backgroundColor: AppColors.primaryColor,
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+          ),
+      ],
+    ),
+  );
 }
 
-class CountryModel {
-  final String flag;
-  final String countryName;
-
-  const CountryModel(this.flag, this.countryName);
+  Widget _buildContentForCurrentView() {
+    switch (currentView) {
+      case DashboardView.myPlaces:
+        return BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoaded) {
+              loggy.info('Dashboard loaded with preferences: ${state.userPreferences != null}');
+              if (state.userPreferences != null) {
+                loggy.info('User has ${state.selectedLocationIds.length} selected locations');
+              }
+              
+              return MyPlacesView(
+                userPreferences: state.userPreferences,
+              );
+            } else if (state is DashboardLoading) {
+              return DashboardLoadingPage();
+            } else if (state is DashboardLoadingError) {
+              return ErrorPage();
+            }
+            return Container();
+          },
+        );
+      case DashboardView.nearby:
+        return NearbyView();
+      case DashboardView.country:
+        return BlocBuilder<DashboardBloc, DashboardState>(
+            builder: (context, state) {
+          if (state is DashboardLoaded) {
+            final countryMeasurements = state.response.measurements!
+                .where((m) => m.siteDetails?.country == selectedCountry)
+                .toList();
+            return MeasurementsList(measurements: countryMeasurements);
+          } else if (state is DashboardLoading) {
+            return DashboardLoadingPage();
+          } else {
+            return ErrorPage();
+          }
+        });
+      default: // DashboardView.all
+        return BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoaded) {
+              return MeasurementsList(
+                measurements: state.response.measurements!.take(5).toList(),
+              );
+            } else if (state is DashboardLoading) {
+              return DashboardLoadingPage();
+            } else if (state is DashboardLoadingError) {
+              return ErrorPage();
+            }
+            return Container();
+          },
+        );
+    }
+  }
 }

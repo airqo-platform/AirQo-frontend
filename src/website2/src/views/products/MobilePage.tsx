@@ -196,7 +196,7 @@ const MobilePage = () => {
             />
             <div className="absolute -left-24 top-40 w-[328px] h-[260px]">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-2-calendar_onibdg.webp"
+                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png"
                 alt="Real-time and forecast"
                 fill
                 style={{ objectFit: 'cover' }}
@@ -287,7 +287,6 @@ const MobilePage = () => {
         description="Discover the quality of air you are breathing"
         appStoreLink="https://apps.apple.com/ug/app/airqo-air-quality/id1337573091"
         googlePlayLink="https://play.google.com/store/apps/details?id=com.airqo.app"
-        mockupImage="https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071559/website/photos/wrapper_aum5qm.png"
       />
     </div>
   );
