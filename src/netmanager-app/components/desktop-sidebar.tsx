@@ -294,10 +294,18 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                     </CollapsibleTrigger>
                     <CollapsibleContent className={`ml-6 space-y-2 ${isSidebarCollapsed ? "hidden" : "block"}`}>
                       <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
-                        <NavItem href="/devices/overview" icon={BarChart2} label="Overview" />
+                        <NavItem 
+                          href="/devices/overview" 
+                          icon={BarChart2} 
+                          label="Overview" 
+                        />
                       </PermissionGuard>
                       <PermissionGuard permission="DEPLOY_AIRQO_DEVICES">
-                        <NavItem href="/devices/deploy" icon={PlusCircle} label="Deploy Device" />
+                        <NavItem 
+                          href="/devices/deploy" 
+                          icon={PlusCircle} 
+                          label="Deploy Device" 
+                        />
                       </PermissionGuard>
                       <PermissionGuard permission="VIEW_NETWORK_UPTIME">
                         <NavItem href="/devices/monitoring" icon={MonitorSmartphone} label="Monitoring" />
