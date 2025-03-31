@@ -44,20 +44,18 @@ class ViewSelector extends StatelessWidget {
           SizedBox(width: 8),
 
           // Country filters - only show when in All view
-          ...CountryRepository.countries
-              .map((country) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _buildCountryButton(
-                      context,
-                      flag: country.flag,
-                      name: country.countryName,
-                      isSelected: currentView == DashboardView.country &&
-                          selectedCountry == country.countryName,
-                      onTap: () => onViewChanged(DashboardView.country,
-                          country: country.countryName),
-                    ),
-                  ))
-              ,
+          ...CountryRepository.countries.map((country) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _buildCountryButton(
+                  context,
+                  flag: country.flag,
+                  name: country.countryName,
+                  isSelected: currentView == DashboardView.country &&
+                      selectedCountry == country.countryName,
+                  onTap: () => onViewChanged(DashboardView.country,
+                      country: country.countryName),
+                ),
+              )),
         ],
       ),
     );
@@ -77,8 +75,8 @@ class ViewSelector extends StatelessWidget {
           color: isSelected
               ? AppColors.primaryColor
               : Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[800]
-                  : Colors.grey[300],
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
@@ -111,8 +109,8 @@ class ViewSelector extends StatelessWidget {
           color: isSelected
               ? AppColors.primaryColor
               : Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[800]
-                  : Colors.grey[300],
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Row(
