@@ -4,7 +4,7 @@ import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
 enum DashboardView { all, myPlaces, nearby, country }
 
-class ViewSelector extends StatelessWidget {
+class ViewSelector extends StatefulWidget {
   final DashboardView currentView;
   final String? selectedCountry;
   final Function(DashboardView view, {String? country}) onViewChanged;
@@ -17,6 +17,52 @@ class ViewSelector extends StatelessWidget {
   });
 
   @override
+  State<ViewSelector> createState() => _ViewSelectorState();
+}
+
+class _ViewSelectorState extends State<ViewSelector> {
+  // Keys to control the tooltips
+  final GlobalKey _myPlacesTooltipKey = GlobalKey<TooltipState>();
+  final GlobalKey _nearbyTooltipKey = GlobalKey<TooltipState>();
+  
+  @override
+  void initState() {
+    super.initState();
+    _triggerTooltipOnViewChange();
+  }
+
+  @override
+  void didUpdateWidget(ViewSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentView != widget.currentView) {
+      _triggerTooltipOnViewChange();
+    }
+  }
+
+  void _triggerTooltipOnViewChange() {
+    // Wait for the widget to be fully built before showing tooltip
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.currentView == DashboardView.myPlaces) {
+        final dynamic tooltipState = _myPlacesTooltipKey.currentState;
+        tooltipState?.ensureTooltipVisible();
+        
+        // Auto-hide after 2 seconds
+        Future.delayed(Duration(seconds: 2), () {
+          tooltipState?.deactivate();
+        });
+      } else if (widget.currentView == DashboardView.nearby) {
+        final dynamic tooltipState = _nearbyTooltipKey.currentState;
+        tooltipState?.ensureTooltipVisible();
+        
+        // Auto-hide after 2 seconds
+        Future.delayed(Duration(seconds: 2), () {
+          tooltipState?.deactivate();
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 44,
@@ -26,27 +72,49 @@ class ViewSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           // My Places Button with Tooltip
-          _buildTooltipWrapper(
-            context,
-            tooltip: "View air quality data for locations you've saved",
+          Tooltip(
+            key: _myPlacesTooltipKey,
+            message: "View air quality data for locations you've saved",
+            preferBelow: true,
+            verticalOffset: 20,
+            showDuration: Duration(seconds: 2),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
             child: _buildViewButton(
               context,
               label: "My Places",
-              isSelected: currentView == DashboardView.myPlaces,
-              onTap: () => onViewChanged(DashboardView.myPlaces),
+              isSelected: widget.currentView == DashboardView.myPlaces,
+              onTap: () => widget.onViewChanged(DashboardView.myPlaces),
             ),
           ),
           SizedBox(width: 8),
 
           // Nearby Button with Tooltip
-          _buildTooltipWrapper(
-            context,
-            tooltip: "Show air quality data for locations close to you",
+          Tooltip(
+            key: _nearbyTooltipKey,
+            message: "Show air quality data for locations close to you",
+            preferBelow: true,
+            verticalOffset: 20,
+            showDuration: Duration(seconds: 2),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
             child: _buildViewButton(
               context,
               label: "Nearby",
-              isSelected: currentView == DashboardView.nearby,
-              onTap: () => onViewChanged(DashboardView.nearby),
+              isSelected: widget.currentView == DashboardView.nearby,
+              onTap: () => widget.onViewChanged(DashboardView.nearby),
             ),
           ),
           SizedBox(width: 8),
@@ -58,38 +126,14 @@ class ViewSelector extends StatelessWidget {
                   context,
                   flag: country.flag,
                   name: country.countryName,
-                  isSelected: currentView == DashboardView.country &&
-                      selectedCountry == country.countryName,
-                  onTap: () => onViewChanged(DashboardView.country,
+                  isSelected: widget.currentView == DashboardView.country &&
+                      widget.selectedCountry == country.countryName,
+                  onTap: () => widget.onViewChanged(DashboardView.country,
                       country: country.countryName),
                 ),
               )),
         ],
       ),
-    );
-  }
-
-  // New method to wrap widgets with a tooltip
-  Widget _buildTooltipWrapper(
-    BuildContext context, {
-    required String tooltip,
-    required Widget child,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white24
-            : Colors.black87,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      textStyle: TextStyle(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white
-            : Colors.white,
-        fontSize: 12,
-      ),
-      child: child,
     );
   }
 
