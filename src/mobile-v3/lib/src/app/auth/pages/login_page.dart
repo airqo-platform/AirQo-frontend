@@ -102,17 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                             label: "Email*",
                             controller: emailController),
                         SizedBox(height: 16),
-                        // Modified password field with visibility toggle
-                        TextFormField(
-                          controller: passwordController,
-                          obscureText: !_isPasswordVisible,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "This field cannot be blank.";
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
+                        FormFieldWidget(
                             prefixIcon: Container(
                               padding: const EdgeInsets.all(13.5),
                               child: SvgPicture.asset(
@@ -133,11 +123,16 @@ class _LoginPageState extends State<LoginPage> {
                                 });
                               },
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "This field cannot be blank.";
+                              }
+                              return null;
+                            },
                             hintText: "Enter your password",
-                            labelText: "Password",
-                            border: OutlineInputBorder(),
-                          ),
-                        )
+                            label: "Password",
+                            isPassword: !_isPasswordVisible, // Toggle password visibility
+                            controller: passwordController)
                       ],
                     ),
                   ),
