@@ -6,7 +6,7 @@ import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
 import RadioIcon from '@/icons/SideBar/radioIcon';
 import Spinner from '@/components/Spinner';
 import Button from '../Button';
-import { updateUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
@@ -30,40 +30,28 @@ const OrganizationDropdown = () => {
 
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
 
-  // Filter active groups
   const activeGroups = useMemo(
     () => groupList.filter((group) => group && group.status === 'ACTIVE'),
     [groupList],
   );
 
-  // Initialize active group if missing
   useEffect(() => {
-    // If we're still fetching, do nothing yet
     if (isFetchingActiveGroup) return;
 
     const storedGroup = localStorage.getItem('activeGroup');
     if (storedGroup) {
       try {
-        // Attempt to parse the stored group
         const defaultGroup = JSON.parse(storedGroup);
-
-        // Check if defaultGroup and its properties exist
         if (defaultGroup && defaultGroup.grp_title) {
           dispatch(setOrganizationName(defaultGroup.grp_title));
         } else {
-          // If the stored data is missing expected fields, remove it
           localStorage.removeItem('activeGroup');
-          console.warn(
-            'activeGroup in localStorage is missing grp_title, removing it...',
-          );
         }
       } catch (error) {
-        // If JSON parsing fails, remove the invalid item
-        console.error('Error parsing activeGroup from localStorage:', error);
         localStorage.removeItem('activeGroup');
+        console.error('Error parsing stored group:', error);
       }
     } else if (!activeGroupId && activeGroups.length > 0) {
-      // No activeGroup in localStorage, so pick the first available group
       const defaultGroup = activeGroups[0];
       localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
       if (defaultGroup && defaultGroup.grp_title) {
@@ -74,15 +62,14 @@ const OrganizationDropdown = () => {
 
   const handleUpdatePreferences = useCallback(
     async (group) => {
-      if (!group?._id) {
-        console.warn('Invalid group data');
-        return;
-      }
+      if (!group?._id) return;
+
       setLoading(true);
       setSelectedGroupId(group._id);
+
       try {
         await dispatch(
-          updateUserPreferences({
+          replaceUserPreferences({
             user_id: userID,
             group_id: group._id,
           }),
@@ -97,19 +84,13 @@ const OrganizationDropdown = () => {
     [dispatch, userID],
   );
 
-  const handleDropdownSelect = useCallback(
-    (group) => {
-      if (group?._id !== activeGroupId) {
-        // Immediately update organization name
-        dispatch(setOrganizationName(group.grp_title));
-        localStorage.setItem('activeGroup', JSON.stringify(group));
-
-        // Dispatch preferences update asynchronously
-        handleUpdatePreferences(group);
-      }
-    },
-    [activeGroupId, handleUpdatePreferences, dispatch],
-  );
+  const handleDropdownSelect = (group) => {
+    if (group?._id !== activeGroupId) {
+      dispatch(setOrganizationName(group.grp_title));
+      localStorage.setItem('activeGroup', JSON.stringify(group));
+      handleUpdatePreferences(group);
+    }
+  };
 
   if (!activeGroupId || groupList.length === 0) {
     return null;
@@ -131,7 +112,6 @@ const OrganizationDropdown = () => {
             }`}
           >
             <div className="flex items-center gap-3">
-              {/* Organization Icon in place of abbreviation */}
               <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
                 <GoOrganization className="text-slate-600 text-lg" />
               </div>
@@ -150,42 +130,47 @@ const OrganizationDropdown = () => {
       }
       sidebar={true}
       id="organization-dropdown"
+      dropDownClass="max-h-[260px] overflow-y-auto custom-scrollbar w-full"
+      customPopperStyle={{
+        width: isCollapsed ? 'auto' : '100%',
+        maxWidth: isCollapsed ? '240px' : 'none',
+      }}
     >
       {groupList.map((group) => (
         <button
           key={group?._id}
           onClick={() => handleDropdownSelect(group)}
-          className={`w-full h-11 px-3.5 rounded-xl py-2.5 mb-[0.5rem] inline-flex items-center justify-between ${
+          className={`w-full h-11 px-3.5 rounded-lg py-2.5 mb-2 flex items-center justify-between ${
             activeGroupId === group._id
               ? 'bg-[#EBF5FF] text-blue-600'
               : 'hover:bg-gray-100'
           }`}
+          disabled={loading && selectedGroupId === group._id}
         >
-          <div className="flex items-center gap-2">
-            {/* Organization Icon */}
-            <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-8 h-8 bg-yellow-200 flex-shrink-0 flex items-center justify-center rounded-full">
               <GoOrganization className="text-slate-600 text-lg" />
             </div>
             <div
-              className="text-sm font-medium truncate max-w-[150px]"
+              className="text-sm font-medium truncate"
               title={cleanGroupName(group.grp_title)}
             >
-              {cleanGroupName(group.grp_title).length > 14
-                ? `${cleanGroupName(group.grp_title).substring(0, 15)}...`
-                : cleanGroupName(group.grp_title)}
+              {cleanGroupName(group.grp_title)}
             </div>
           </div>
-          {loading && selectedGroupId === group._id ? (
-            <Spinner width={16} height={16} />
-          ) : activeGroupId === group._id ? (
-            <RadioIcon />
-          ) : (
-            <input type="radio" className="border-[#C4C7CB]" readOnly />
-          )}
+          <div className="flex-shrink-0 ml-2">
+            {loading && selectedGroupId === group._id ? (
+              <Spinner width={16} height={16} />
+            ) : activeGroupId === group._id ? (
+              <RadioIcon />
+            ) : (
+              <input type="radio" className="border-[#C4C7CB]" readOnly />
+            )}
+          </div>
         </button>
       ))}
     </CustomDropdown>
   );
 };
 
-export default OrganizationDropdown;
+export default React.memo(OrganizationDropdown);

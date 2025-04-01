@@ -59,6 +59,9 @@ const CustomFields = ({
   handleOptionSelect,
   defaultOption,
   textFormat = 'lowercase',
+  required = false,
+  requiredText = '',
+  className = '',
 }) => {
   // Use a ref to prevent unnecessary rerenders due to defaultOption changes
   const prevDefaultOptionRef = useRef(null);
@@ -102,8 +105,29 @@ const CustomFields = ({
   );
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      <label className="w-[280px] text-[#7A7F87]">{title}</label>
+    <div className={`w-full flex flex-col gap-2 ${className}`}>
+      <div className="flex flex-col">
+        <label className="w-[280px] text-[#7A7F87] flex items-center">
+          {title}
+          {required && (
+            <span
+              className="text-red-500 ml-1 font-medium"
+              aria-label="required field"
+            >
+              *
+            </span>
+          )}
+        </label>
+        {required && requiredText && (
+          <span
+            className="text-xs text-red-500 mt-0.5"
+            aria-label="required field description"
+          >
+            {requiredText}
+          </span>
+        )}
+      </div>
+
       {field ? (
         <input
           type="text"
@@ -114,6 +138,8 @@ const CustomFields = ({
             handleSelect({ ...selectedOption, name: e.target.value })
           }
           disabled={!edit}
+          required={required}
+          aria-required={required}
         />
       ) : useCalendar ? (
         <DatePicker
@@ -122,6 +148,9 @@ const CustomFields = ({
             handleSelect(dates);
           }}
           initialValue={selectedOption}
+          required={required}
+          aria-required={required}
+          className={required && !selectedOption?.name ? 'border-red-300' : ''}
         />
       ) : (
         <CustomDropdown
@@ -138,6 +167,8 @@ const CustomFields = ({
           customPopperStyle={{ left: '-7px' }}
           dropDownClass="w-full"
           textFormat={textFormat}
+          required={required}
+          aria-required={required}
         >
           {options.map((option) => (
             <span
@@ -179,6 +210,9 @@ CustomFields.propTypes = {
     name: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   textFormat: PropTypes.oneOf(['uppercase', 'lowercase']),
+  required: PropTypes.bool,
+  requiredText: PropTypes.string,
+  className: PropTypes.string,
 };
 
 export default CustomFields;

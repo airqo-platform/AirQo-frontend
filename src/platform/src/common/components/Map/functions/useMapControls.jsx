@@ -1,4 +1,3 @@
-// useMapControls.jsx
 import React, { useCallback } from 'react';
 import GeoIcon from '@/icons/map/gpsIcon';
 import PlusIcon from '@/icons/map/plusIcon';
@@ -34,7 +33,6 @@ export class CustomZoomControl {
       }
     });
 
-    // Append buttons and separator to the container
     this.container.append(
       this.zoomInButton,
       this.createSeparator(),
@@ -61,11 +59,7 @@ export class CustomZoomControl {
     button.appendChild(div);
 
     const root = createRoot(div);
-    if (component) {
-      root.render(React.cloneElement(component));
-    } else {
-      console.error(`${title} icon component is missing.`);
-    }
+    root.render(component ? React.cloneElement(component) : null);
 
     button.addEventListener('click', onClick);
     return button;
@@ -79,9 +73,7 @@ export class CustomZoomControl {
 
   onAdd(map) {
     this.map = map;
-    if (this.map) {
-      this.map.on('moveend', this.updateUrlWithMapState);
-    }
+    this.map.on('moveend', this.updateUrlWithMapState.bind(this));
     return this.container;
   }
 
@@ -96,7 +88,7 @@ export class CustomZoomControl {
       url.searchParams.set('lat', center.lat.toFixed(4));
       url.searchParams.set('lng', center.lng.toFixed(4));
       url.searchParams.set('zm', zoom.toFixed(2));
-      window.history.pushState({}, '', url);
+      window.history.replaceState({}, '', url);
     } catch (error) {
       console.error('Error updating URL:', error);
     }
@@ -104,11 +96,9 @@ export class CustomZoomControl {
 
   onRemove() {
     if (this.map) {
-      this.map.off('moveend', this.updateUrlWithMapState);
+      this.map.off('moveend', this.updateUrlWithMapState.bind(this));
     }
-    if (this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container);
-    }
+    this.container.remove();
     this.map = null;
   }
 }
@@ -149,11 +139,7 @@ export class CustomGeolocateControl {
     button.appendChild(div);
 
     const root = createRoot(div);
-    if (component) {
-      root.render(React.cloneElement(component));
-    } else {
-      console.error(`${title} icon component is missing.`);
-    }
+    root.render(component ? React.cloneElement(component) : null);
 
     button.addEventListener('click', onClick);
     return button;
@@ -165,9 +151,7 @@ export class CustomGeolocateControl {
   }
 
   onRemove() {
-    if (this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container);
-    }
+    this.container.remove();
     this.map = null;
   }
 
@@ -208,27 +192,31 @@ export class CustomGeolocateControl {
         speed: 1,
       });
 
+      // Add user's location marker
       new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map);
 
-      if (!this.map.getSource('circle-source')) {
+      // Create or update location radius circle
+      const geoJsonData = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [longitude, latitude],
+            },
+          },
+        ],
+      };
+
+      if (this.map.getSource('circle-source')) {
+        this.map.getSource('circle-source').setData(geoJsonData);
+      } else {
         this.map.addSource('circle-source', {
           type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates: [longitude, latitude],
-                },
-              },
-            ],
-          },
+          data: geoJsonData,
         });
-      }
 
-      if (!this.map.getLayer('circle-layer')) {
         this.map.addLayer({
           id: 'circle-layer',
           type: 'circle',
@@ -253,7 +241,7 @@ export class CustomGeolocateControl {
         });
       }
     } catch (error) {
-      console.error('Error updating map on geolocation success:', error);
+      console.error('Error updating map with geolocation:', error);
     }
   }
 
@@ -277,32 +265,32 @@ export const useRefreshMap = (
 ) =>
   useCallback(() => {
     const map = mapRef.current;
-    if (map) {
-      try {
-        const originalStyle =
-          map.getStyle().sprite.split('/').slice(0, -1).join('/') +
-          '/style.json';
-        map.setStyle(originalStyle);
-        setToastMessage({
-          message: 'Map refreshed successfully',
-          type: 'success',
-          bgColor: 'bg-blue-600',
-        });
-      } catch (error) {
-        console.error('Error refreshing the map:', error);
-        setToastMessage({
-          message: 'Failed to refresh the map',
-          type: 'error',
-          bgColor: 'bg-red-600',
-        });
-      }
+    if (!map) {
+      setToastMessage({
+        message: 'Map reference is not available.',
+        type: 'error',
+        bgColor: 'bg-red-600',
+      });
+      return;
+    }
+
+    try {
+      const originalStyle =
+        map.getStyle().sprite.split('/').slice(0, -1).join('/') + '/style.json';
+      map.setStyle(originalStyle);
+      setToastMessage({
+        message: 'Map refreshed successfully',
+        type: 'success',
+        bgColor: 'bg-blue-600',
+      });
 
       if (selectedNode) {
         dispatch(setSelectedNode(null));
       }
-    } else {
+    } catch (error) {
+      console.error('Error refreshing the map:', error);
       setToastMessage({
-        message: 'Map reference is not available.',
+        message: 'Failed to refresh the map',
         type: 'error',
         bgColor: 'bg-red-600',
       });
@@ -312,8 +300,8 @@ export const useRefreshMap = (
 /**
  * Share the current map location by copying the URL with updated parameters.
  */
-export const useShareLocation = (setToastMessage, mapRef) => {
-  return useCallback(async () => {
+export const useShareLocation = (setToastMessage, mapRef) =>
+  useCallback(async () => {
     const map = mapRef.current;
     if (!map) {
       setToastMessage({
@@ -325,15 +313,6 @@ export const useShareLocation = (setToastMessage, mapRef) => {
     }
 
     try {
-      if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-        setToastMessage({
-          message: 'This feature is only available in the browser.',
-          type: 'error',
-          bgColor: 'bg-red-600',
-        });
-        return;
-      }
-
       const center = map.getCenter();
       const zoom = map.getZoom();
       const currentUrl = new URL(window.location.href);
@@ -342,7 +321,6 @@ export const useShareLocation = (setToastMessage, mapRef) => {
       url.searchParams.set('lat', center.lat.toFixed(4));
       url.searchParams.set('lng', center.lng.toFixed(4));
       url.searchParams.set('zm', zoom.toFixed(2));
-
       const shareUrl = url.toString();
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -361,42 +339,30 @@ export const useShareLocation = (setToastMessage, mapRef) => {
         textArea.focus();
         textArea.select();
 
-        try {
-          const successful = document.execCommand('copy');
-          if (successful) {
-            setToastMessage({
-              message: 'Location URL copied to clipboard!',
-              type: 'success',
-              bgColor: 'bg-blue-600',
-            });
-          } else {
-            throw new Error('Copy command was unsuccessful');
-          }
-        } catch (err) {
-          console.error('Fallback copy failed:', err);
+        const successful = document.execCommand('copy');
+        if (successful) {
           setToastMessage({
-            message: 'Failed to copy location URL.',
-            type: 'error',
-            bgColor: 'bg-red-600',
+            message: 'Location URL copied to clipboard!',
+            type: 'success',
+            bgColor: 'bg-blue-600',
           });
-        } finally {
-          document.body.removeChild(textArea);
+        } else {
+          throw new Error('Copy command was unsuccessful');
         }
+        document.body.removeChild(textArea);
       }
     } catch (error) {
       console.error('Error sharing location:', error);
       setToastMessage({
-        message: 'An unexpected error occurred.',
+        message: 'Failed to copy location URL',
         type: 'error',
         bgColor: 'bg-red-600',
       });
     }
   }, [mapRef, setToastMessage]);
-};
 
 /**
- * IconButton
- * Reusable button component with customizable icons
+ * IconButton - Reusable button component with customizable icons
  */
 export const IconButton = ({ onClick, title, icon }) => (
   <button
@@ -409,13 +375,12 @@ export const IconButton = ({ onClick, title, icon }) => (
 );
 
 /**
- * LoadingOverlay
- * Display a loading overlay centered on the screen
+ * LoadingOverlay - Display a loading overlay centered on the screen
  */
-export const LoadingOverlay = ({ children, size }) => (
+export const LoadingOverlay = ({ children, size = 70 }) => (
   <div className="absolute inset-0 flex items-center justify-center z-[10000]">
     <div
-      className={`bg-white w-[${size}px] h-[${size}px] flex justify-center items-center rounded-md shadow-md p-3`}
+      className={`bg-white w-${size} h-${size} flex justify-center items-center rounded-md shadow-md p-3`}
     >
       {children}
     </div>
