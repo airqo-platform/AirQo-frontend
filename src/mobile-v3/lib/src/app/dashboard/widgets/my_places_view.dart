@@ -299,6 +299,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
+
   void _removeLocation(String id) {
     loggy.info('Removing location with ID: $id');
 
@@ -327,17 +328,28 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       return;
     }
 
+    // Create a list of remaining site IDs, carefully filtering out only the one we want to remove
     final remainingSiteIds = widget.userPreferences!.selectedSites
         .where((site) => site.id != id)
         .map((site) => site.id)
         .toList();
 
-    loggy.info('Filtered preferences by name: $locationName');
-    loggy.info('Remaining IDs: $remainingSiteIds');
+    loggy.info('Removing location: $locationName (ID: $id)');
+    loggy.info(
+        'Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
 
-    final dashboardBloc = context.read<DashboardBloc>();
-    dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
-    dashboardBloc.add(LoadUserPreferences()); // Ensure state refreshes
+    // Only proceed with update if we have the user preferences
+    if (remainingSiteIds.isNotEmpty || widget.userPreferences != null) {
+      final dashboardBloc = context.read<DashboardBloc>();
+      dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
+
+      // Wait a moment before loading preferences to ensure update has time to process
+      Future.delayed(Duration(milliseconds: 300), () {
+        if (mounted) {
+          dashboardBloc.add(LoadUserPreferences());
+        }
+      });
+    }
 
     NotificationManager().showNotification(
       context,
@@ -376,7 +388,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
             child: Column(
               children: [
                 if (isLoading)
@@ -385,14 +397,13 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                   _buildEmptyState()
                 else ...[
                   // Show matched measurements with analytics cards
-                  ...selectedMeasurements
-                      .map((measurement) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: SwipeableAnalyticsCard(
-                              measurement: measurement,
-                              onRemove: _removeLocation,
-                            ),
-                          )),
+                  ...selectedMeasurements.map((measurement) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: SwipeableAnalyticsCard(
+                          measurement: measurement,
+                          onRemove: _removeLocation,
+                        ),
+                      )),
 
                   // Show basic cards for unmatched sites
                   ...unmatchedSites.map((site) => Padding(
