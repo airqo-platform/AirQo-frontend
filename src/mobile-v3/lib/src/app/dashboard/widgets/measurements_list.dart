@@ -16,11 +16,9 @@ class MeasurementsList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: measurements.length,
       shrinkWrap: true,
+      padding: EdgeInsets.zero, // Remove any default padding
       itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-          child: AnalyticsCard(measurements[index]),
-        );
+        return AnalyticsCard(measurements[index]);
       }
     );
   }

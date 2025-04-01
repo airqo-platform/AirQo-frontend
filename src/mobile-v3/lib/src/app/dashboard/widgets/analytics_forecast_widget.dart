@@ -50,17 +50,26 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
         return BlocBuilder<ForecastBloc, ForecastState>(
           builder: (context, state) {
             if (state is ForecastLoaded) {
+              final today = DateTime.now();
+              final currentDateFormatted = DateFormat('yyyy-MM-dd').format(today);
+              
               return Row(
                 children: state.response.forecasts
-                    .map((e) => ForeCastChip(
-                          active: false,
-                          day: DateFormat.E().format(e.time)[0],
-                          imagePath: getForecastAirQualityIcon(
-                              e.pm25, state.response.aqiRanges),
-                          height: _getResponsiveHeight(context),
-                          iconSize: _getResponsiveIconSize(context),
-                          margin: _getResponsiveMargin(context),
-                        ))
+                    .map((e) {
+                      // Check if this forecast is for the current date
+                      final forecastDate = DateFormat('yyyy-MM-dd').format(e.time);
+                      final isCurrentDay = forecastDate == currentDateFormatted;
+                      
+                      return ForeCastChip(
+                        active: isCurrentDay, // Set active based on current date
+                        day: DateFormat.E().format(e.time)[0],
+                        imagePath: getForecastAirQualityIcon(
+                            e.pm25, state.response.aqiRanges),
+                        height: _getResponsiveHeight(context),
+                        iconSize: _getResponsiveIconSize(context),
+                        margin: _getResponsiveMargin(context),
+                      );
+                    })
                     .toList(),
               );
             } else if (state is ForecastLoading) {
@@ -138,13 +147,23 @@ class ForeCastChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: fontSize * textScaleFactor,
                 fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                color: active ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             SizedBox(height: height * 0.05),
-            SvgPicture.asset(
-              imagePath,
+            Container(
               height: iconSize,
               width: iconSize,
+              decoration: active ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(iconSize / 2),
+              ) : null,
+              padding: active ? EdgeInsets.all(2) : EdgeInsets.zero,
+              child: SvgPicture.asset(
+                imagePath,
+                height: active ? iconSize - 4 : iconSize,
+                width: active ? iconSize - 4 : iconSize,
+              ),
             ),
           ],
         ),

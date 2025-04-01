@@ -84,7 +84,7 @@ class DashboardHeader extends StatelessWidget {
       builder: (context, userState) {
         if (userState is UserLoaded) {
           return Text(
-            "Hi ${userState.model.users[0].firstName} 👋🏼",
+            "Hi ${userState.model.users[0].firstName} 👋",
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
