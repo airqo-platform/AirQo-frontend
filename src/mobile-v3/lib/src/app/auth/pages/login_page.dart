@@ -23,6 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController emailController = TextEditingController();
   late TextEditingController passwordController = TextEditingController();
   late GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false; // Add this variable to track password visibility
 
   @override
   void initState() {
@@ -32,7 +33,6 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       authBloc = context.read<AuthBloc>();
-
     } catch (e) {
       logError('Failed to initialize AuthBloc: $e');
     }
@@ -102,7 +102,17 @@ class _LoginPageState extends State<LoginPage> {
                             label: "Email*",
                             controller: emailController),
                         SizedBox(height: 16),
-                        FormFieldWidget(
+                        // Modified password field with visibility toggle
+                        TextFormField(
+                          controller: passwordController,
+                          obscureText: !_isPasswordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "This field cannot be blank.";
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
                             prefixIcon: Container(
                               padding: const EdgeInsets.all(13.5),
                               child: SvgPicture.asset(
@@ -110,17 +120,24 @@ class _LoginPageState extends State<LoginPage> {
                                 height: 10,
                               ),
                             ),
-                            validator: (value) {
-
-                              if (value == null || value.isEmpty) {
-                                return "This field cannot be blank.";
-                              }
-                              return null;
-                            },
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: AppColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
                             hintText: "Enter your password",
-                            label: "Password",
-                            isPassword: true,
-                            controller: passwordController)
+                            labelText: "Password",
+                            border: OutlineInputBorder(),
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -189,7 +206,6 @@ class _LoginPageState extends State<LoginPage> {
                 )
               ]),
               SizedBox(height: 16),
-
               Center(
                 child: InkWell(
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -203,7 +219,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               )
             ],
-
           ),
         ),
       ),
