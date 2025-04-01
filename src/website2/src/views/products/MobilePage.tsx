@@ -104,9 +104,9 @@ const MobilePage = () => {
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
-          The AirQo Air quality Mobile App is the first of its kind in Africa.
-          With the App, you have access to real-time and forecast air quality
-          information from monitored urban areas across major cities in Africa.
+          The AirQo Mobile App is the first of its kind in Africa. With the App,
+          you have access to real-time and forecast air quality information from
+          monitored urban areas across major cities in Africa.
         </motion.p>
       </motion.section>
 
