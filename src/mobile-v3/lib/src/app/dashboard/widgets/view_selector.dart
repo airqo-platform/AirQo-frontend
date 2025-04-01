@@ -25,21 +25,29 @@ class ViewSelector extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // My Places Button
-          _buildViewButton(
+          // My Places Button with Tooltip
+          _buildTooltipWrapper(
             context,
-            label: "My Places",
-            isSelected: currentView == DashboardView.myPlaces,
-            onTap: () => onViewChanged(DashboardView.myPlaces),
+            tooltip: "View air quality data for locations you've saved",
+            child: _buildViewButton(
+              context,
+              label: "My Places",
+              isSelected: currentView == DashboardView.myPlaces,
+              onTap: () => onViewChanged(DashboardView.myPlaces),
+            ),
           ),
           SizedBox(width: 8),
 
-          // Nearby Button
-          _buildViewButton(
+          // Nearby Button with Tooltip
+          _buildTooltipWrapper(
             context,
-            label: "Nearby",
-            isSelected: currentView == DashboardView.nearby,
-            onTap: () => onViewChanged(DashboardView.nearby),
+            tooltip: "Show air quality data for locations close to you",
+            child: _buildViewButton(
+              context,
+              label: "Nearby",
+              isSelected: currentView == DashboardView.nearby,
+              onTap: () => onViewChanged(DashboardView.nearby),
+            ),
           ),
           SizedBox(width: 8),
 
@@ -58,6 +66,30 @@ class ViewSelector extends StatelessWidget {
               )),
         ],
       ),
+    );
+  }
+
+  // New method to wrap widgets with a tooltip
+  Widget _buildTooltipWrapper(
+    BuildContext context, {
+    required String tooltip,
+    required Widget child,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white24
+            : Colors.black87,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      textStyle: TextStyle(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.white,
+        fontSize: 12,
+      ),
+      child: child,
     );
   }
 
