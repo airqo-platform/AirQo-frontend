@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
 
 /// Model for a site location
 class SelectedSite extends Equatable {
@@ -46,6 +47,17 @@ class SelectedSite extends Equatable {
     }
     return null;
   }
+
+  // Convert to API format
+  Map<String, dynamic> toJson() {
+    return {
+      "_id": id,
+      "name": name,
+      "search_name": searchName ?? name,
+      "latitude": latitude,
+      "longitude": longitude,
+    };
+  }
 }
 
 /// Model for user preferences including selected locations
@@ -62,6 +74,26 @@ class UserPreferencesModel extends Equatable with UiLoggy {
 
   @override
   List<Object> get props => [id, userId, selectedSites];
+
+  // Add a helper method to check if this preference is effectively empty
+  bool get isEffectivelyEmpty {
+    if (selectedSites.isEmpty) return true;
+
+    // Consider it empty if it only has the default placeholder
+    if (selectedSites.length == 1 &&
+        selectedSites.first.id == UserPreferencesImpl.DEFAULT_LOCATION_ID) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // Get only the real locations (non-placeholders)
+  List<SelectedSite> get realSelectedSites {
+    return selectedSites
+        .where((site) => site.id != UserPreferencesImpl.DEFAULT_LOCATION_ID)
+        .toList();
+  }
 
   factory UserPreferencesModel.fromJson(Map<String, dynamic> json) {
     final logger = Loggy('UserPreferencesModel');

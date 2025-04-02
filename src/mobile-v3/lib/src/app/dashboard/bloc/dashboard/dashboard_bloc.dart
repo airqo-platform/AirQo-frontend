@@ -123,15 +123,32 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         return;
       }
 
+      // If the user wants to save an empty list, include the default placeholder
+      final effectiveLocationIds = locationIds.isEmpty
+          ? [UserPreferencesImpl.DEFAULT_LOCATION_ID]
+          : locationIds;
+
       loggy.info(
-          'Updating selected locations for user $userId with ${locationIds.length} IDs');
-      for (final id in locationIds) {
+          'Updating selected locations for user $userId with ${effectiveLocationIds.length} IDs');
+      for (final id in effectiveLocationIds) {
         loggy.info('Selected location ID: $id');
       }
 
       // Build selectedSites only from provided locationIds
       List<Map<String, dynamic>> selectedSites = [];
-      for (final id in locationIds) {
+      for (final id in effectiveLocationIds) {
+        if (id == UserPreferencesImpl.DEFAULT_LOCATION_ID) {
+          // Add our placeholder location with the required fields
+          selectedSites.add({
+            "_id": UserPreferencesImpl.DEFAULT_LOCATION_ID,
+            "name": "Default Location",
+            "search_name": "Default", // Required field per API docs
+            "latitude": 0.0,
+            "longitude": 0.0
+          });
+          continue;
+        }
+
         // Try to find a matching measurement or leave as null
         Measurement? matchingMeasurement;
         if (currentState.response.measurements != null) {

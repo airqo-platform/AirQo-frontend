@@ -9,6 +9,7 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/location_select
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
+import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
@@ -69,6 +70,21 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       return;
     }
 
+    // Filter out the default placeholder site for display purposes
+    final realSites = widget.userPreferences!.selectedSites
+        .where((site) => site.id != UserPreferencesImpl.DEFAULT_LOCATION_ID)
+        .toList();
+
+    // If we have only the default placeholder, show the empty state
+    if (realSites.isEmpty && widget.userPreferences!.selectedSites.isNotEmpty) {
+      setState(() {
+        selectedMeasurements = [];
+        unmatchedSites = [];
+        isLoading = false;
+      });
+      return;
+    }
+
     // Debug log all selected sites
     for (var site in widget.userPreferences!.selectedSites) {
       loggy.info('Selected site in preferences: ${site.name} (ID: ${site.id})');
@@ -83,7 +99,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         loggy.warning('No measurements available in dashboard state');
         // All sites are unmatched
         setState(() {
-          unmatchedSites = List.from(widget.userPreferences!.selectedSites);
+          unmatchedSites = List.from(realSites);
           isLoading = false;
         });
         return;
@@ -299,25 +315,41 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
-
   void _removeLocation(String id) {
     loggy.info('Removing location with ID: $id');
 
-    String locationName = "Location";
+    // Find the location in both selectedMeasurements and unmatchedSites
+    Measurement? targetMeasurement;
+    SelectedSite? targetSite;
+
+    // Find in measurements first
     for (var m in selectedMeasurements) {
+      // Enhanced ID matching to catch both mobile and analytics-added locations
       if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
-        locationName = m.siteDetails?.name ?? "Location";
-        break;
-      }
-    }
-    for (var s in unmatchedSites) {
-      if (s.id == id) {
-        locationName = s.name;
+        targetMeasurement = m;
         break;
       }
     }
 
+    // If not found in measurements, check unmatchedSites
+    if (targetMeasurement == null) {
+      for (var s in unmatchedSites) {
+        if (s.id == id) {
+          targetSite = s;
+          break;
+        }
+      }
+    }
+
+    String locationName = "Location";
+    if (targetMeasurement != null) {
+      locationName = targetMeasurement.siteDetails?.name ?? "Location";
+    } else if (targetSite != null) {
+      locationName = targetSite.name;
+    }
+
     setState(() {
+      // Remove from both collections to ensure it's gone
       selectedMeasurements.removeWhere(
           (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id);
       unmatchedSites.removeWhere((s) => s.id == id);
@@ -337,6 +369,17 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     loggy.info('Removing location: $locationName (ID: $id)');
     loggy.info(
         'Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
+
+    // If this would remove the last real location, add the default placeholder
+    if (remainingSiteIds.isEmpty ||
+        (remainingSiteIds.length == 1 &&
+            remainingSiteIds.first ==
+                UserPreferencesImpl.DEFAULT_LOCATION_ID)) {
+      // Ensure we have the default placeholder
+      if (!remainingSiteIds.contains(UserPreferencesImpl.DEFAULT_LOCATION_ID)) {
+        remainingSiteIds.add(UserPreferencesImpl.DEFAULT_LOCATION_ID);
+      }
+    }
 
     // Only proceed with update if we have the user preferences
     if (remainingSiteIds.isNotEmpty || widget.userPreferences != null) {

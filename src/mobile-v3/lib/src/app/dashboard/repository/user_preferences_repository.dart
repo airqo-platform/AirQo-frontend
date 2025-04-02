@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
-
+import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 abstract class UserPreferencesRepository {
   Future<Map<String, dynamic>> getUserPreferences(String userId,
       {String? groupId});
@@ -12,6 +12,20 @@ abstract class UserPreferencesRepository {
 
 class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   final String apiBaseUrl = 'https://api.airqo.net/api/v2';
+  static const String DEFAULT_LOCATION_ID = "default_placeholder_location";
+
+  bool isDefaultPlaceholder(SelectedSite site) {
+    return site.id == DEFAULT_LOCATION_ID;
+  }
+
+  SelectedSite getDefaultPlaceholder() {
+    return SelectedSite(
+        id: DEFAULT_LOCATION_ID,
+        name: "Default Location",
+        searchName: "Default",
+        latitude: 0.0,
+        longitude: 0.0);
+  }
 
   Future<Map<String, String>> _getHeaders() async {
     // Try to get user token first
