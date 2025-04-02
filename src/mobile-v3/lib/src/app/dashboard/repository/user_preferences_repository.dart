@@ -103,12 +103,10 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     }
   }
 
-  // Helper to get minimum of two integers
   int min(int a, int b) => a < b ? a : b;
 
   @override
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data) async {
-    // Following the PATCH /replace pattern from the documentation
     final String url = '$apiBaseUrl$preferencesEndpoint/replace';
     final userId = data['user_id'];
     
@@ -124,7 +122,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     Map<String, dynamic>? oldPreferencesData;
 
     try {
-      // Step 0: Get a backup of the current preferences before making changes
+
       final currentPrefsResponse = await getUserPreferences(userId);
       if (currentPrefsResponse['success'] == true) {
         if (currentPrefsResponse['data'] != null && 
@@ -141,7 +139,6 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       final headers = await _getHeaders();
 
-      // Following API documentation - use PATCH for replacement
       loggy.info('Sending replacement preferences to: $url');
       final updateResponse = await http.patch(
         Uri.parse(url),
@@ -167,10 +164,8 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         }
       }
 
-      // If we reach here, the update failed
       loggy.error('Failed to update preferences');
 
-      // Only attempt rollback if we have a backup and the data format is valid
       if (oldPreferencesData != null && 
           oldPreferencesData.containsKey('selected_sites')) {
         return await _attemptRollback(userId, oldPreferencesData, headers, url);
@@ -183,7 +178,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     } catch (e) {
       loggy.error('Error replacing preferences: $e');
 
-      // Attempt rollback if we have a backup
+
       if (oldPreferencesData != null) {
         final headers = await _getHeaders();
         return await _attemptRollback(userId, oldPreferencesData, headers, url);
@@ -196,7 +191,6 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     }
   }
 
-  // Helper method to attempt rollback to old preferences
   Future<Map<String, dynamic>> _attemptRollback(
       String userId,
       Map<String, dynamic> oldPreferencesData,
@@ -205,15 +199,12 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     try {
       loggy.info('Attempting to rollback to previous preferences');
 
-      // Prepare rollback data
       final rollbackPayload = {
         "user_id": userId,
         "selected_sites": oldPreferencesData['selected_sites'] ?? [],
-        // Include any other fields that were in the original data
         ...oldPreferencesData
       };
 
-      // Remove any fields that shouldn't be part of the rollback
       rollbackPayload.remove('_id');
       rollbackPayload.remove('createdAt');
       rollbackPayload.remove('updatedAt');
