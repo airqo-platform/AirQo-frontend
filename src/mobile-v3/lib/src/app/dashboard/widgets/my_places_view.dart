@@ -299,7 +299,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
-
   void _removeLocation(String id) {
     loggy.info('Removing location with ID: $id');
 
@@ -317,39 +316,16 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       }
     }
 
+    // Update local state immediately for UI responsiveness
     setState(() {
       selectedMeasurements.removeWhere(
           (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id);
       unmatchedSites.removeWhere((s) => s.id == id);
     });
 
-    if (widget.userPreferences == null) {
-      loggy.warning('Cannot update preferences: userPreferences is null');
-      return;
-    }
-
-    // Create a list of remaining site IDs, carefully filtering out only the one we want to remove
-    final remainingSiteIds = widget.userPreferences!.selectedSites
-        .where((site) => site.id != id)
-        .map((site) => site.id)
-        .toList();
-
-    loggy.info('Removing location: $locationName (ID: $id)');
-    loggy.info(
-        'Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
-
-    // Only proceed with update if we have the user preferences
-    if (remainingSiteIds.isNotEmpty || widget.userPreferences != null) {
-      final dashboardBloc = context.read<DashboardBloc>();
-      dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
-
-      // Wait a moment before loading preferences to ensure update has time to process
-      Future.delayed(Duration(milliseconds: 300), () {
-        if (mounted) {
-          dashboardBloc.add(LoadUserPreferences());
-        }
-      });
-    }
+    // Dispatch the new event
+    final dashboardBloc = context.read<DashboardBloc>();
+    dashboardBloc.add(RemoveSelectedLocation(id));
 
     NotificationManager().showNotification(
       context,

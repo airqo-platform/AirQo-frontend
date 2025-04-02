@@ -19,3 +19,12 @@ class UpdateSelectedLocations extends DashboardEvent {
   @override
   List<Object> get props => [locationIds];
 }
+
+class RemoveSelectedLocation extends DashboardEvent {
+  final String locationId;
+
+  const RemoveSelectedLocation(this.locationId);
+
+  @override
+  List<Object> get props => [locationId];
+}

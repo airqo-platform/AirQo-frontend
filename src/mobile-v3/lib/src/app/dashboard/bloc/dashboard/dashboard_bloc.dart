@@ -24,6 +24,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         await _handleUpdateSelectedLocations(event.locationIds, emit);
       }
     });
+    on<RemoveSelectedLocation>((event, emit) async {
+      await _handleRemoveSelectedLocation(event.locationId, emit);
+    });
   }
 
   Future<void> _handleLoadDashboard(Emitter<DashboardState> emit) async {
@@ -235,6 +238,48 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       }
     } catch (e) {
       loggy.error('Error loading user preferences: $e');
+    }
+  }
+
+  Future<void> _handleRemoveSelectedLocation(
+      String locationId, Emitter<DashboardState> emit) async {
+    if (state is! DashboardLoaded) return;
+
+    try {
+      final currentState = state as DashboardLoaded;
+      final userId = await AuthHelper.getCurrentUserId();
+
+      if (userId == null) {
+        loggy.warning('Cannot remove location: No user ID available');
+        return;
+      }
+
+      // Get the location name for the notification
+      String locationName = "Location";
+      if (currentState.response.measurements != null) {
+        for (var m in currentState.response.measurements!) {
+          if (m.id == locationId ||
+              m.siteId == locationId ||
+              m.siteDetails?.id == locationId) {
+            locationName = m.siteDetails?.name ?? "Location";
+            break;
+          }
+        }
+      }
+
+      // Call the new API method
+      final response =
+          await preferencesRepo.removeSelectedSite(userId, locationId);
+
+      if (response['success'] == true) {
+        loggy.info(
+            'Successfully removed location: $locationName (ID: $locationId)');
+        add(LoadUserPreferences());
+      } else {
+        loggy.warning('Failed to remove location: ${response["message"]}');
+      }
+    } catch (e) {
+      loggy.error('Error removing location: $e');
     }
   }
 }

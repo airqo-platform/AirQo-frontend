@@ -8,6 +8,7 @@ abstract class UserPreferencesRepository {
   Future<Map<String, dynamic>> getUserPreferences(String userId,
       {String? groupId});
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data);
+  Future<Map<String, dynamic>> removeSelectedSite(String userId, String siteId);
 }
 
 class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
@@ -213,6 +214,38 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',
+      };
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> removeSelectedSite(
+      String userId, String siteId) async {
+    final String url = '$apiBaseUrl/selected-sites/$siteId';
+
+    try {
+      loggy.info('Removing selected site with ID: $siteId');
+
+      final headers = await _getHeaders();
+      final response = await http.delete(Uri.parse(url), headers: headers);
+
+      loggy.info('Response status code: ${response.statusCode}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final result = json.decode(response.body);
+        loggy.info('Successfully removed selected site');
+        return result;
+      }
+
+      return {
+        'success': false,
+        'message': 'Failed to remove selected site',
+      };
+    } catch (e) {
+      loggy.error('Error removing selected site: $e');
+      return {
+        'success': false,
+        'message': 'Error: ${e.toString()}',
       };
     }
   }
