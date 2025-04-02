@@ -263,14 +263,14 @@ const AboutPage: React.FC = () => {
               <p className="text-lg text-gray-700 leading-relaxed">
                 AirQo was founded in 2015 at Makerere University to close the
                 gaps in air quality monitoring across Africa. Our low-cost air
-                quality monitors are designed to suit the African
-                infrastructure, providing locally-led solutions to African air
-                pollution challenges.
+                quality monitors are designed to suit the African Context,
+                providing locally-led solutions to African air pollution
+                challenges.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
                 We provide accurate, hyperlocal, and timely data providing
                 evidence of the magnitude and scale of air pollution across the
-                continent.
+                continent in African Cities.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
                 By empowering citizens with air quality information, we hope to
