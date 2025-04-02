@@ -44,6 +44,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "@/components/ui/use-toast";
+import { Permission, Role } from "@/app/types/roles";
 
 type OrganizationRolesProps = {
   organizationId: string;
@@ -79,7 +80,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     };
 
     try {
-      const newRole = await roles.createRoleApi(data);
+      await roles.createRoleApi(data);
       toast({
         title: "Role created",
         description: `The role "${newRoleName}" has been successfully created.`,
@@ -124,7 +125,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
 
   const sortedAndFilteredRoles = useMemo(() => {
     return grproles
-      .filter((role) => {
+      .filter((role: Role) => {
         const searchLower = searchQuery.toLowerCase();
         return (
           role.role_name.toLowerCase().includes(searchLower) ||
@@ -133,17 +134,17 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
           )
         );
       })
-      .sort((a, b) => {
+      .sort((a: Role, b: Role) => {
         if (sortField === "role_name") {
           return sortOrder === "asc"
             ? a.role_name.localeCompare(b.role_name)
             : b.role_name.localeCompare(a.role_name);
         } else {
           const permissionsA = a.role_permissions
-            .map((perm) => perm.permission)
+            .map((perm: Permission) => perm.permission)
             .join(", ");
           const permissionsB = b.role_permissions
-            .map((perm) => perm.permission)
+            .map((perm: Permission) => perm.permission)
             .join(", ");
           return sortOrder === "asc"
             ? permissionsA.localeCompare(permissionsB)
@@ -291,12 +292,12 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentRoles.map((role) => (
+              {currentRoles.map((role: Role) => (
                 <TableRow key={role._id}>
                   <TableCell>{role.role_name}</TableCell>
                   <TableCell>
                     {role.role_permissions
-                      .map((perm) => perm.permission)
+                      .map((perm: Permission) => perm.permission)
                       .join(", ")}
                   </TableCell>
                   <TableCell>
