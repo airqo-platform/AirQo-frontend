@@ -118,7 +118,6 @@ function sendToSlack(level, message, error, context) {
     // Get URL info
     const url = typeof window !== 'undefined' ? window.location.href : 'server';
 
-    // Create more robust fingerprint for deduplication
     // Include error type, URL, and relevant stack info
     const contextStr = JSON.stringify(context || {});
     let stackSignature = '';
