@@ -11,21 +11,35 @@ import {
   GENERATE_SITE_AND_DEVICE_IDS,
 } from '../urls/analytics';
 
+// Helper function to safely get token from localStorage
+const getToken = () => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return window.localStorage.getItem('token');
+  }
+  return null;
+};
+
 // Export data to file
-export const exportDataApi = (body) =>
-  api.post(DATA_EXPORT_URL, body).then((response) => response.data);
+export const exportDataApi = async (body) => {
+  const response = await api.post(DATA_EXPORT_URL, body);
+  return response.data;
+};
 
 // Share report via email
-export const shareReportApi = (body) =>
-  api.post(SHARE_REPORT_URL, body).then((response) => response.data);
+export const shareReportApi = async (body) => {
+  const response = await api.post(SHARE_REPORT_URL, body);
+  return response.data;
+};
 
 // Get sites summary data
-export const getSitesSummaryApi = ({ group }) => {
+export const getSitesSummaryApi = async ({ group }) => {
   if (process.env.NODE_ENV === 'development') {
-    // Use direct axios for proxy endpoints - no auth headers needed
     return axios
       .get('/api/proxy/sites', {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: getToken(),
+        },
         params: { group },
       })
       .then((response) => response.data)
@@ -39,14 +53,16 @@ export const getSitesSummaryApi = ({ group }) => {
 };
 
 // Get device summary data
-export const getDeviceSummaryApi = ({ group = null }) => {
+export const getDeviceSummaryApi = async ({ group = null }) => {
   const params = group ? { group } : {};
 
   if (process.env.NODE_ENV === 'development') {
-    // Use direct axios for proxy endpoints - no auth headers needed
     return axios
       .get('/api/proxy/devices', {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: getToken(),
+        },
         params,
       })
       .then((response) => response.data)
@@ -60,11 +76,10 @@ export const getDeviceSummaryApi = ({ group = null }) => {
 };
 
 // Get grid summary data
-export const getGridSummaryApi = ({ admin_level = null }) => {
+export const getGridSummaryApi = async ({ admin_level = null }) => {
   const params = admin_level ? { admin_level } : {};
 
   if (process.env.NODE_ENV === 'development') {
-    // Use direct axios for proxy endpoints - no auth headers needed
     return axios
       .get('/api/proxy/grids', {
         headers: { 'Content-Type': 'application/json' },
@@ -81,16 +96,13 @@ export const getGridSummaryApi = ({ admin_level = null }) => {
 };
 
 // Fetch analytics data
-export const getAnalyticsDataApi = ({ body }) => {
+export const getAnalyticsDataApi = async ({ body }) => {
   if (process.env.NODE_ENV === 'development') {
-    // For development, use direct axios with token from localStorage
-    const token = localStorage.getItem('token');
-
     return axios
       .post('/api/proxy/analytics', body, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token,
+          Authorization: getToken(),
         },
       })
       .then((response) => {
@@ -117,14 +129,18 @@ export const getAnalyticsDataApi = ({ body }) => {
 };
 
 // Get recent device measurements
-export const getRecentMeasurements = (params) =>
-  publicApi
+export const getRecentMeasurements = async (params) => {
+  return publicApi
     .get(DEVICE_READINGS_RECENT_URL, { params })
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch(() => ({}));
+};
 
 // Generate site and device IDs for a grid
-export const generateSiteAndDeviceIds = (grid_id) => {
-  if (!grid_id) return Promise.reject(new Error('Grid ID is required'));
+export const generateSiteAndDeviceIds = async (grid_id) => {
+  if (!grid_id) {
+    return Promise.reject(new Error('Grid ID is required'));
+  }
 
   return publicApi
     .get(`${GENERATE_SITE_AND_DEVICE_IDS}/${grid_id}/generate`)
