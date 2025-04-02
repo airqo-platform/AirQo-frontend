@@ -298,10 +298,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
-
   void _removeLocation(String id) {
-    loggy.info('Removing location with ID: $id');
-
+    // Find the name of the location being removed
     String locationName = "Location";
     for (var m in selectedMeasurements) {
       if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
@@ -316,40 +314,39 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       }
     }
 
+    // Remove all instances by name locally
     setState(() {
-      selectedMeasurements.removeWhere(
-          (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id);
-      unmatchedSites.removeWhere((s) => s.id == id);
+      selectedMeasurements.removeWhere((m) =>
+          m.siteDetails?.name == locationName ||
+          m.id == id ||
+          m.siteId == id ||
+          m.siteDetails?.id == id);
+      unmatchedSites.removeWhere((s) => s.name == locationName || s.id == id);
     });
 
     if (widget.userPreferences == null) {
-      loggy.warning('Cannot update preferences: userPreferences is null');
       return;
     }
 
-    // Create a list of remaining site IDs, carefully filtering out only the one we want to remove
+    // Filter out all sites with the same name from preferences
     final remainingSiteIds = widget.userPreferences!.selectedSites
-        .where((site) => site.id != id)
+        .where((site) => site.name != locationName)
         .map((site) => site.id)
         .toList();
 
-    loggy.info('Removing location: $locationName (ID: $id)');
+    loggy.info('Removing all instances of location: $locationName');
     loggy.info(
         'Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
 
-    // Only proceed with update if we have the user preferences
     if (remainingSiteIds.isNotEmpty || widget.userPreferences != null) {
       final dashboardBloc = context.read<DashboardBloc>();
       dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
-
-      // Wait a moment before loading preferences to ensure update has time to process
       Future.delayed(Duration(milliseconds: 300), () {
         if (mounted) {
           dashboardBloc.add(LoadUserPreferences());
         }
       });
     }
-
     NotificationManager().showNotification(
       context,
       message: '"$locationName" has been removed from your places',
