@@ -5,18 +5,17 @@ import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 
 abstract class UserPreferencesRepository {
-  Future<Map<String, dynamic>> getUserPreferences(String userId,
-      {String? groupId});
+  Future<Map<String, dynamic>> getUserPreferences(String userId, {String? groupId});
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data);
 }
 
 class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   final String apiBaseUrl = 'https://api.airqo.net/api/v2';
+  final String preferencesEndpoint = '/users/preferences';
 
   Future<Map<String, String>> _getHeaders() async {
     // Try to get user token first
-    final userToken =
-        await HiveRepository.getData('token', HiveBoxNames.authBox);
+    final userToken = await HiveRepository.getData('token', HiveBoxNames.authBox);
 
     // Base headers
     final headers = {
@@ -27,9 +26,6 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     // Add authorization - prefer user token if available, fall back to env token
     if (userToken != null && userToken.isNotEmpty) {
       loggy.info('Using user authentication token');
-
-      // Keep the token as-is with the JWT prefix
-      // The API expects the token with the JWT prefix
       headers["Authorization"] = userToken;
     } else {
       // Fallback to the application token
@@ -46,13 +42,16 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
   }
 
   @override
-  Future<Map<String, dynamic>> getUserPreferences(String userId,
-      {String? groupId}) async {
-    final String url =
-        '$apiBaseUrl/users/preferences/$userId${groupId != null ? "?group_id=$groupId" : ""}';
+  Future<Map<String, dynamic>> getUserPreferences(String userId, {String? groupId}) async {
+    String url = '$apiBaseUrl$preferencesEndpoint/$userId';
+    
+    if (groupId != null && groupId.isNotEmpty) {
+      url += '?group_id=$groupId';
+    }
 
     try {
       loggy.info('Fetching user preferences for user ID: $userId');
+      if (groupId != null) loggy.info('With group ID: $groupId');
 
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse(url), headers: headers);
@@ -61,8 +60,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       // Handle 401 Unauthorized explicitly
       if (response.statusCode == 401) {
-        loggy.warning(
-            'Authentication error (401): Token might be expired or invalid');
+        loggy.warning('Authentication error (401): Token might be expired or invalid');
         return {
           'success': false,
           'message': 'Authentication failed. Please log in again.',
@@ -70,15 +68,11 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         };
       }
 
-      // Check if response is HTML instead of JSON
-      if (response.body.trim().startsWith('<') ||
-          response.body.trim() == 'Unauthorized') {
-        loggy.error(
-            'Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
+      if (response.body.trim().startsWith('<') || response.body.trim() == 'Unauthorized') {
+        loggy.error('Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
         return {
           'success': false,
-          'message':
-              'Server returned invalid response. Please try again later.',
+          'message': 'Server returned invalid response. Please try again later.',
           'auth_error': response.statusCode == 401
         };
       }
@@ -97,7 +91,6 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     } catch (e) {
       loggy.error('Error fetching user preferences: $e');
 
-      // Determine if this is an auth error based on the exception
       final bool isAuthError = e.toString().contains('401') ||
           e.toString().contains('Unauthorized') ||
           (e is FormatException && e.toString().contains('Unauthorized'));
@@ -110,29 +103,36 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     }
   }
 
-// Helper to get minimum of two integers
+  // Helper to get minimum of two integers
   int min(int a, int b) => a < b ? a : b;
 
   @override
-  Future<Map<String, dynamic>> replacePreference(
-      Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data) async {
+    // Following the PATCH /replace pattern from the documentation
+    final String url = '$apiBaseUrl$preferencesEndpoint/replace';
     final userId = data['user_id'];
+    
+    if (userId == null || userId.isEmpty) {
+      return {
+        'success': false,
+        'message': 'User ID is required',
+      };
+    }
+    
     loggy.info('Replacing preferences for user ID: $userId');
 
     Map<String, dynamic>? oldPreferencesData;
-    bool resetSucceeded = false;
 
     try {
       // Step 0: Get a backup of the current preferences before making changes
       final currentPrefsResponse = await getUserPreferences(userId);
       if (currentPrefsResponse['success'] == true) {
-        if (currentPrefsResponse['data'] != null &&
+        if (currentPrefsResponse['data'] != null && 
             currentPrefsResponse['data'] is Map<String, dynamic>) {
-          oldPreferencesData =
-              Map<String, dynamic>.from(currentPrefsResponse['data']);
+          oldPreferencesData = Map<String, dynamic>.from(currentPrefsResponse['data']);
           loggy.info('Backed up current preferences before update');
-        } else if (currentPrefsResponse['preferences'] is List &&
-            currentPrefsResponse['preferences'].isNotEmpty) {
+        } else if (currentPrefsResponse['preferences'] is List && 
+                  currentPrefsResponse['preferences'].isNotEmpty) {
           oldPreferencesData = Map<String, dynamic>.from(
               currentPrefsResponse['preferences'].first);
           loggy.info('Backed up current preferences from preferences list');
@@ -141,73 +141,52 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       final headers = await _getHeaders();
 
-      // Step 1: Reset preferences by sending an empty selected_sites list
-      final resetUrl = '$apiBaseUrl/users/preferences/$userId';
-      final resetPayload = {
-        "user_id": userId,
-        "selected_sites": [], // Clear all sites first
-      };
-
-      loggy.info('Resetting preferences at: $resetUrl');
-      final resetResponse = await http.put(
-        Uri.parse(resetUrl),
-        headers: headers,
-        body: jsonEncode(resetPayload),
-      );
-
-      loggy.info('Reset response status: ${resetResponse.statusCode}');
-
-      if (resetResponse.statusCode < 200 || resetResponse.statusCode >= 300) {
-        loggy.warning('Failed to reset preferences: ${resetResponse.body}');
-        return {
-          'success': false,
-          'message': 'Failed to reset preferences',
-        };
-      }
-
-      resetSucceeded = true;
-
-      // Step 2: Send the actual update
-      loggy.info('Sending updated preferences to: $resetUrl');
-      final updateResponse = await http.put(
-        Uri.parse(resetUrl),
+      // Following API documentation - use PATCH for replacement
+      loggy.info('Sending replacement preferences to: $url');
+      final updateResponse = await http.patch(
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode(data),
       );
 
-      loggy.info('User update response status: ${updateResponse.statusCode}');
+      loggy.info('Replacement response status: ${updateResponse.statusCode}');
 
-      if (updateResponse.statusCode >= 200 &&
+      if (updateResponse.statusCode >= 200 && 
           updateResponse.statusCode < 300 &&
           !updateResponse.body.trim().startsWith('<')) {
-        final result = json.decode(updateResponse.body);
-        loggy.info('Successfully updated preferences');
-        return result;
+        try {
+          final result = json.decode(updateResponse.body);
+          loggy.info('Successfully updated preferences');
+          return result;
+        } catch (e) {
+          loggy.error('Error parsing success response: $e');
+          return {
+            'success': true,
+            'message': 'Successfully updated preferences, but response parsing failed',
+          };
+        }
       }
 
-      // If we reach here, the update failed but reset succeeded
-      loggy.error('Failed to update preferences after reset');
+      // If we reach here, the update failed
+      loggy.error('Failed to update preferences');
 
-      // Attempt rollback if we have a backup and the reset was successful
-      if (resetSucceeded && oldPreferencesData != null) {
-        return await _attemptRollback(
-            userId, oldPreferencesData, headers, resetUrl);
+      // Only attempt rollback if we have a backup and the data format is valid
+      if (oldPreferencesData != null && 
+          oldPreferencesData.containsKey('selected_sites')) {
+        return await _attemptRollback(userId, oldPreferencesData, headers, url);
       }
 
       return {
         'success': false,
-        'message':
-            'Failed to update preferences after reset, and rollback was not possible',
+        'message': 'Failed to update preferences, and rollback was not possible',
       };
     } catch (e) {
       loggy.error('Error replacing preferences: $e');
 
-      // Attempt rollback if we have a backup and the reset was successful
-      if (resetSucceeded && oldPreferencesData != null) {
+      // Attempt rollback if we have a backup
+      if (oldPreferencesData != null) {
         final headers = await _getHeaders();
-        final resetUrl = '$apiBaseUrl/users/preferences/$userId';
-        return await _attemptRollback(
-            userId, oldPreferencesData, headers, resetUrl);
+        return await _attemptRollback(userId, oldPreferencesData, headers, url);
       }
 
       return {
@@ -217,12 +196,12 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     }
   }
 
-// Helper method to attempt rollback to old preferences
+  // Helper method to attempt rollback to old preferences
   Future<Map<String, dynamic>> _attemptRollback(
       String userId,
       Map<String, dynamic> oldPreferencesData,
       Map<String, String> headers,
-      String resetUrl) async {
+      String url) async {
     try {
       loggy.info('Attempting to rollback to previous preferences');
 
@@ -230,10 +209,17 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       final rollbackPayload = {
         "user_id": userId,
         "selected_sites": oldPreferencesData['selected_sites'] ?? [],
+        // Include any other fields that were in the original data
+        ...oldPreferencesData
       };
 
-      final rollbackResponse = await http.put(
-        Uri.parse(resetUrl),
+      // Remove any fields that shouldn't be part of the rollback
+      rollbackPayload.remove('_id');
+      rollbackPayload.remove('createdAt');
+      rollbackPayload.remove('updatedAt');
+
+      final rollbackResponse = await http.patch(
+        Uri.parse(url),
         headers: headers,
         body: jsonEncode(rollbackPayload),
       );
@@ -243,16 +229,14 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         loggy.info('Rollback successful');
         return {
           'success': false,
-          'message':
-              'Failed to update preferences, but successfully rolled back to previous state',
+          'message': 'Failed to update preferences, but successfully rolled back to previous state',
           'rolled_back': true
         };
       } else {
         loggy.error('Failed to rollback preferences: ${rollbackResponse.body}');
         return {
           'success': false,
-          'message':
-              'Failed to update preferences and rollback failed. Your saved locations may be temporarily unavailable.',
+          'message': 'Failed to update preferences and rollback failed. Your saved locations may be temporarily unavailable.',
           'rolled_back': false
         };
       }
@@ -260,8 +244,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       loggy.error('Error during rollback: $e');
       return {
         'success': false,
-        'message':
-            'Critical error: Could not update preferences or restore previous state. Please try again later.',
+        'message': 'Critical error: Could not update preferences or restore previous state. Please try again later.',
         'rolled_back': false
       };
     }
