@@ -21,7 +21,6 @@ import analyticsReducer from './services/charts/ChartData';
 import { groupInfoSlice } from './services/groups/GroupInfoSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
-import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
@@ -46,7 +45,6 @@ const rootReducer = combineReducers({
   analytics: analyticsReducer,
   groupInfo: groupInfoSlice.reducer,
   locationSearch: locationSearchSlice.reducer,
-  apiClient: apiClientReducer,
   sites: sitesSummaryReducer,
 });
 
