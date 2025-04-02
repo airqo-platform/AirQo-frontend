@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { collocateDevices } from '.';
 
 const collocationDataSlice = createSlice({
   name: 'collocationData',
