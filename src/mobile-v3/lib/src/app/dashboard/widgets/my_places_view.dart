@@ -162,9 +162,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
             // Try matching with search name too
             if (measurement.siteDetails?.searchName != null &&
-                site.searchName != null &&
                 measurement.siteDetails!.searchName!.toLowerCase() ==
-                    site.searchName!.toLowerCase()) {
+                    site.searchName.toLowerCase()) {
               loggy.info(
                   'Found search name match for site: ${site.name} (searchName: ${site.searchName})');
               matched.add(measurement);
@@ -465,12 +464,11 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                             ),
                           ],
                         ),
-                        if (site.searchName != null &&
-                            site.searchName!.isNotEmpty)
+                        if (site.searchName.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(left: 32, top: 4),
                             child: Text(
-                              site.searchName!,
+                              site.searchName,
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 14,
