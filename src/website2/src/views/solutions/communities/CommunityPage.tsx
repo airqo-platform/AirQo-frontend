@@ -138,7 +138,7 @@ const CommunitiesPage = () => {
             {/* Right Column: Large Image (Visible from sm and above) */}
             <div className="hidden sm:flex">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_410_btjgs7.webp"
+                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1743547336/website/photos/Solutions/AIRQO_STORY_29_icjkc0.jpg"
                 alt="Champion 3"
                 width={500}
                 height={700}

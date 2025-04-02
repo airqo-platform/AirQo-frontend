@@ -309,11 +309,13 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741870808/website/photos/OurProducts/Monitor/image14_agtyes.jpg"
-              alt="Monitor Installation"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1743546958/website/photos/OurProducts/Monitor/Two_members_in_field_knwffk.jpg"
+              alt="Two members in the field installing the monitor"
               width={500}
               height={400}
-              style={{ objectFit: 'cover' }}
+              style={{
+                objectFit: 'cover',
+              }}
               className="rounded-lg h-full w-full md:w-full"
             />
           </motion.div>
