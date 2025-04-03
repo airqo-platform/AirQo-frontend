@@ -32,6 +32,7 @@ jobs:
       run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
       run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
+      run_netmanager-app: ${{ steps.check_files.outputs.run_netmanager-app }} # netmanager-app
 
     runs-on: ubuntu-latest
     steps:
@@ -56,7 +57,8 @@ jobs:
           echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_website2=false" >>$GITHUB_OUTPUT
           echo "run_inventory=false" >>$GITHUB_OUTPUT
-          echo "run_reports=false" >>$GITHUB_OUTPUT    
+          echo "run_reports=false" >>$GITHUB_OUTPUT
+          echo "run_netmanager-app=false" >>$GITHUB_OUTPUT    
 
           while IFS= read -r file
           do
@@ -92,6 +94,10 @@ jobs:
             if [[ $file == src/reports/* ]]; then
               echo "run_reports=true" >>$GITHUB_OUTPUT
             fi
+
+            if [[ $file == src/netmanager-app/* ]]; then
+              echo "run_netmanager-app=true" >>$GITHUB_OUTPUT
+            fi            
 
           done < files.txt
 
