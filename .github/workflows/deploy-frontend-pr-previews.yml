@@ -32,7 +32,7 @@ jobs:
       run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
       run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
-      run_netmanager-app: ${{ steps.check_files.outputs.run_netmanage-app }} # netmanager-app
+      run_netmanager-app: ${{ steps.check_files.outputs.run_netmanager-app }} # netmanager-app
 
     runs-on: ubuntu-latest
     steps:
