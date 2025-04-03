@@ -56,7 +56,6 @@ const devices = [
 ];
 
 export default function SiteDetailsPage() {
-  const [isEditing, setIsEditing] = useState(false);
 
   return (
     <div className="p-6">
@@ -80,7 +79,7 @@ export default function SiteDetailsPage() {
               <DialogHeader>
                 <DialogTitle>Edit Site</DialogTitle>
                 <DialogDescription>
-                  Make changes to the site details here. Click save when you're
+                  Make changes to the site details here. Click save when you&apos;re
                   done.
                 </DialogDescription>
               </DialogHeader>

@@ -19,8 +19,7 @@ import { Site } from "@/core/redux/slices/sitesSlice";
 import { Device } from "@/core/redux/slices/deviceSlice";
 import { useDevices } from "@/core/hooks/useDevices";
 import { DatePicker } from "@/components/ui/date-picker";
-import { dataExport } from "@/core/apis/analytics";
-import { useAppSelector } from "@/core/redux/hooks";
+import { dataExport, DataExportForm } from "@/core/apis/analytics";
 import { Grid } from "@/app/types/grids";
 
 const pollutantOptions = [
@@ -60,12 +59,8 @@ export const roundToEndOfDay = (dateISOString: string): Date => {
   return end;
 };
 
-const getValues = (options: Option[]): string[] => {
-  return options.map((option) => option.value);
-};
-
-const getvalue = (options: Option[]): string => {
-  return options[0].value;
+const getValues = (options: Option[] | undefined): string[] => {
+  return options?.map(option => option.value) || [];
 };
 
 export const roundToStartOfDay = (dateISOString: string): Date => {
@@ -76,9 +71,8 @@ export const roundToStartOfDay = (dateISOString: string): Date => {
 
 export default function ExportForm({ exportType }: ExportFormProps) {
   const [loading, setLoading] = useState(false);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { sites } = useSites();
-  const { grids } = useGrids(activeNetwork?.net_name || "");
+  const { grids } = useGrids();
   const { devices } = useDevices();
 
   const {
@@ -132,7 +126,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
     }
 
     if (devices?.length) {
-      const newDeviceOptions = devices.map((device: Device) => ({
+      const newDeviceOptions = (devices as unknown as Device[]).map((device) => ({
         value: device._id,
         label: device.name,
       }));
@@ -146,7 +140,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
     return () => {
       isSubscribed = false;
     };
-  }, [sites, grids, devices]);
+  }, [sites, grids, devices, siteOptions, cityOptions, deviceOptions]);
 
   const exportData = (data: string, filename: string, type: string) => {
     const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
@@ -160,21 +154,21 @@ export default function ExportForm({ exportType }: ExportFormProps) {
     window.URL.revokeObjectURL(url);
   };
 
-  const downloadData = async (data: FormData) => {
+  const downloadData = async (data: DataExportForm) => {
     try {
-      const response = await dataExport(data);
+      const response = await dataExport(data as unknown as DataExportForm);
 
-      let filename = `airquality-data.${data.fileType}`;
+      const filename = `airquality-data.${data.downloadType}`;
 
       if (response) {
-        if (data.fileType === "csv") {
+        if (data.downloadType === "csv") {
           if (typeof response !== "string") {
             throw new Error("Invalid CSV data format.");
           }
           exportData(response, filename, "text/csv;charset=utf-8;");
         }
 
-        if (data.fileType === "json") {
+        if (data.downloadType === "json") {
           const jsonString = JSON.stringify(response.data);
           exportData(jsonString, filename, "application/json");
         }
@@ -182,7 +176,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
         toast({
           title: "Data exported successfully",
           description: "Your data has been exported and is ready for download.",
-          variant: "success",
+          variant: "default",
         });
       } else {
         toast({
@@ -192,33 +186,38 @@ export default function ExportForm({ exportType }: ExportFormProps) {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error exporting data", error);
       let errorMessage;
 
-      if (error.response) {
-        if (error.response.status >= 500) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const err = error as { response?: { status: number; data: { status?: string; message?: string } }; request?: unknown; message?: string };
+        if (err.response) {
+          if (err.response.status >= 500) {
+            errorMessage =
+              "An error occurred while exporting your data. Please try again later.";
+          } else {
+            if (err.response.data.status === "success") {
+              toast({
+                title: "Error exporting data",
+                description: "No data found for the selected parameters",
+                variant: "default",
+              });
+              return;
+            }
+            errorMessage =
+              typeof err.response.data.message === "string"
+                ? err.response.data.message
+                : "An error occurred while downloading data";
+          }
+        } else if (err.request) {
+          errorMessage = "No response received from server";
+        } else {
           errorMessage =
             "An error occurred while exporting your data. Please try again later.";
-        } else {
-          if (error.response.data.status === "success") {
-            toast({
-              title: "Error exporting data",
-              description: "No data found for the selected parameters",
-              variant: "default",
-            });
-            return;
-          }
-          errorMessage =
-            typeof error.response.data.message === "string"
-              ? error.response.data
-              : "An error occurred while downloading data";
         }
-      } else if (error.request) {
-        errorMessage = "No response received from server";
       } else {
-        errorMessage =
-          "An error occurred while exporting your data. Please try again later.";
+        errorMessage = "An error occurred while exporting your data. Please try again later.";
       }
 
       toast({
@@ -231,7 +230,7 @@ export default function ExportForm({ exportType }: ExportFormProps) {
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
 
     if (data.startDateTime > data.endDateTime) {
@@ -260,20 +259,18 @@ export default function ExportForm({ exportType }: ExportFormProps) {
       return;
     }
 
-    let body: FormData = {
+    const body: DataExportForm = {
       startDateTime: roundToStartOfDay(data.startDateTime).toISOString(),
       endDateTime: roundToEndOfDay(data.endDateTime).toISOString(),
       sites: getValues(data.sites),
-      devices: getValues(data.devices || []),
-      cities: getValues(data.cities || []),
       regions: getValues(data.regions || []),
-      network: activeNetwork?.net_name || "",
       dataType: getvalue(data.dataType || []),
+      device_names: getValues(data.devices || []),
       pollutants: getValues(data.pollutants),
-      frequency: data.frequency,
-      fileType: data.fileType,
-      outputFormat: data.outputFormat,
+      frequency: data.frequency as "daily" | "hourly" | "monthly" | "weekly",
+      outputFormat: data.outputFormat as "airqo-standard",
       minimum: true,
+      downloadType: data.fileType as "csv" | "json"
     };
 
     await downloadData(body);

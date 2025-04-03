@@ -28,6 +28,11 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { useQueryClient } from "@tanstack/react-query"
+import { AxiosError } from "axios"
+
+interface ErrorResponse {
+  message: string;
+}
 
 const ITEMS_PER_PAGE = 8
 
@@ -172,8 +177,9 @@ const UserClientsTable = () => {
           })
         }
         dispatch(performRefresh())
-      } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || error.message || "Failed to generate token"
+      } catch (error: unknown) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        const errorMessage = axiosError?.response?.data?.message || "Failed to generate token"
         toast({
           title: "Error",
           description: errorMessage,
@@ -198,12 +204,13 @@ const UserClientsTable = () => {
           })
         }, 3000)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
       setShowInfoModal(false)
       setTimeout(() => {
         toast({
           title: "Error",
-          description: error.message || "Failed to send activation request",
+          description: axiosError.message || "Failed to send activation request",
           variant: "destructive",
         })
       }, 3000)

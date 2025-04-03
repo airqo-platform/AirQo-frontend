@@ -169,7 +169,7 @@ export function CreateSiteForm() {
       setOpen(false);
       form.reset();
       setCurrentStep(0);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setError(error.message || "An error occurred while creating the site.");
     } finally {
       setLoading(false);
