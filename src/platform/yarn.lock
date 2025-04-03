@@ -8052,6 +8052,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"loglevel@npm:^1.9.2":
+  version: 1.9.2
+  resolution: "loglevel@npm:1.9.2"
+  checksum: 896c67b90a507bfcfc1e9a4daa7bf789a441dd70d95cd13b998d6dd46233a3bfadfb8fadb07250432bbfb53bf61e95f2520f9b11f9d3175cc460e5c251eca0af
+  languageName: node
+  linkType: hard
+
 "loose-envify@npm:^1.0.0, loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
@@ -9192,6 +9199,7 @@ __metadata:
     jspdf: ^2.5.2
     jspdf-autotable: ^3.8.4
     jwt-decode: ^3.1.2
+    loglevel: ^1.9.2
     mapbox-gl: ^3.6.0
     moment: ^2.29.4
     moment-timezone: ^0.5.40

@@ -1,4 +1,4 @@
-import createAxiosInstance from './axiosConfig';
+import { api, publicApi } from '../utils/apiClient';
 import {
   SITES_URL,
   READINGS_URL,
@@ -8,57 +8,36 @@ import {
   GRIDS_SUMMARY_URL,
 } from '../urls/deviceRegistry';
 
-// Get grid locations
-export const getAllGridLocationsApi = async () => {
-  const response = await createAxiosInstance().get(`${GRID_LOCATIONS_URL}`);
-  return response.data;
-};
+// Grid locations endpoints
+export const getAllGridLocationsApi = () =>
+  api.get(GRID_LOCATIONS_URL).then((response) => response.data);
 
-// Get grid location details
-export const getGridLocationDetails = async (gridID) => {
-  const response = await createAxiosInstance().get(
-    `${GRID_LOCATIONS_URL}/${gridID}`,
-  );
-  return response.data;
-};
+export const getGridLocationDetails = (gridID) =>
+  api.get(`${GRID_LOCATIONS_URL}/${gridID}`).then((response) => response.data);
 
-// Get Sites Summary
-export const getSiteSummaryDetails = async () => {
-  const response = await createAxiosInstance().get(`${SITES_URL}/summary`);
-  return response.data;
-};
+// Sites endpoints
+export const getSiteSummaryDetails = () =>
+  api.get(`${SITES_URL}/summary`).then((response) => response.data);
 
-export const getGirdsSummaryDetails = async () => {
-  const response = await createAxiosInstance().get(`${GRIDS_SUMMARY_URL}`);
-  return response.data;
-};
+export const getGirdsSummaryDetails = () =>
+  api.get(GRIDS_SUMMARY_URL).then((response) => response.data);
 
-export const verifyCohortID = async (cohortID) => {
-  return await createAxiosInstance(false)
+// Devices endpoints
+export const verifyCohortID = (cohortID) =>
+  publicApi
     .get(`${DEVICES}/cohorts/verify/${cohortID}`)
     .then((response) => response.data);
-};
 
-export const updateCohortDetails = async (body, cohortID) => {
-  return await createAxiosInstance()
+export const updateCohortDetails = (body, cohortID) =>
+  api
     .put(`${DEVICES}/cohorts/${cohortID}`, body)
     .then((response) => response.data);
-};
 
-export const getMapReadings = async () => {
-  return await createAxiosInstance(false)
-    .get(READINGS_URL)
-    .then((response) => response.data);
-};
+export const getMapReadings = () =>
+  publicApi.get(READINGS_URL).then((response) => response.data);
 
-export const getNearestSite = async (params) => {
-  return await createAxiosInstance(false)
-    .get(NEAREST_SITE_URL, { params })
-    .then((response) => response.data);
-};
+export const getNearestSite = (params) =>
+  publicApi.get(NEAREST_SITE_URL, { params }).then((response) => response.data);
 
-export const getGridsSummaryApi = async () => {
-  return await createAxiosInstance()
-    .get(`${DEVICES}/grids/summary`)
-    .then((response) => response.data);
-};
+export const getGridsSummaryApi = () =>
+  api.get(`${DEVICES}/grids/summary`).then((response) => response.data);

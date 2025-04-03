@@ -1,4 +1,5 @@
-import createAxiosInstance from './axiosConfig';
+import { api, publicApi } from '../utils/apiClient';
+import axios from 'axios';
 import {
   DATA_EXPORT_URL,
   SHARE_REPORT_URL,
@@ -9,236 +10,140 @@ import {
   DEVICE_READINGS_RECENT_URL,
   GENERATE_SITE_AND_DEVICE_IDS,
 } from '../urls/analytics';
-import axios from 'axios';
 
-// Utility function to handle API errors
-const handleApiError = (error, customMessage = 'An error occurred') => {
-  console.error(`${customMessage}:`, error);
-  throw error;
+// Helper function to safely get token from localStorage
+const getToken = () => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return window.localStorage.getItem('token');
+  }
+  return null;
 };
 
-/**
- * Export data API
- * @param {Object} body - Request body
- * @returns {Promise<Object>} Response data
- */
+// Export data to file
 export const exportDataApi = async (body) => {
-  try {
-    const response = await createAxiosInstance().post(DATA_EXPORT_URL, body);
-    return response.data;
-  } catch (error) {
-    handleApiError(error, 'Error exporting data');
-  }
+  const response = await api.post(DATA_EXPORT_URL, body);
+  return response.data;
 };
 
-/**
- * Share report API
- * @param {Object} body - Request body
- * @returns {Promise<Object>} Response data
- */
+// Share report via email
 export const shareReportApi = async (body) => {
-  try {
-    const response = await createAxiosInstance().post(SHARE_REPORT_URL, body);
-    return response.data;
-  } catch (error) {
-    handleApiError(error, 'Error sharing report');
-  }
+  const response = await api.post(SHARE_REPORT_URL, body);
+  return response.data;
 };
 
-/**
- * Get sites summary
- * @param {Object} options - Request options
- * @param {string} options.group - Group filter
- * @returns {Promise<Object>} Sites summary data
- */
+// Get sites summary data
 export const getSitesSummaryApi = async ({ group }) => {
-  try {
-    let response;
-
-    if (process.env.NODE_ENV === 'development') {
-      // Use proxy endpoint in development mode
-      response = await axios.get('/api/proxy/sites', {
+  if (process.env.NODE_ENV === 'development') {
+    return axios
+      .get('/api/proxy/sites', {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: getToken(),
         },
         params: { group },
-      });
-    } else {
-      // Use direct API endpoint in production mode
-      response = await createAxiosInstance().get(SITES_SUMMARY_URL, {
-        params: { group },
-      });
-    }
-
-    // Add validation to ensure response.data exists
-    if (!response || !response.data) {
-      throw new Error('Invalid response received from API');
-    }
-
-    return response.data;
-  } catch (error) {
-    handleApiError(error, 'Error fetching sites summary');
-    return { sites: [] };
+      })
+      .then((response) => response.data)
+      .catch(() => ({ sites: [] }));
   }
+
+  return api
+    .get(SITES_SUMMARY_URL, { params: { group } })
+    .then((response) => response.data)
+    .catch(() => ({ sites: [] }));
 };
 
-/**
- * Get device summary
- * @param {Object} options - Request options
- * @param {string|null} options.group - Optional group filter
- * @returns {Promise<Object>} Device summary data
- */
+// Get device summary data
 export const getDeviceSummaryApi = async ({ group = null }) => {
-  try {
-    let response;
-    const params = {};
-    if (group) params.group = group;
+  const params = group ? { group } : {};
 
-    if (process.env.NODE_ENV === 'development') {
-      // Use proxy endpoint in development mode
-      response = await axios.get('/api/proxy/devices', {
+  if (process.env.NODE_ENV === 'development') {
+    return axios
+      .get('/api/proxy/devices', {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: getToken(),
         },
         params,
-      });
-    } else {
-      // Use direct API endpoint in production mode
-      response = await createAxiosInstance().get(DEVICE_SUMMARY_URL, {
-        params,
-      });
-    }
-
-    // Add validation to ensure response.data exists
-    if (!response || !response.data) {
-      throw new Error('Invalid response received from API');
-    }
-
-    return response.data;
-  } catch (error) {
-    handleApiError(error, 'Error fetching device summary');
-    return { devices: [] };
+      })
+      .then((response) => response.data)
+      .catch(() => ({ devices: [] }));
   }
+
+  return api
+    .get(DEVICE_SUMMARY_URL, { params })
+    .then((response) => response.data)
+    .catch(() => ({ devices: [] }));
 };
 
-/**
- * Get grid summary
- * @param {Object} options - Request options
- * @param {string|null} options.admin_level - Optional admin level filter
- * @returns {Promise<Object>} Grid summary data
- */
+// Get grid summary data
 export const getGridSummaryApi = async ({ admin_level = null }) => {
-  try {
-    let response;
-    const params = {};
-    if (admin_level) params.admin_level = admin_level;
+  const params = admin_level ? { admin_level } : {};
 
-    if (process.env.NODE_ENV === 'development') {
-      // Use proxy endpoint in development mode
-      response = await axios.get('/api/proxy/grids', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+  if (process.env.NODE_ENV === 'development') {
+    return axios
+      .get('/api/proxy/grids', {
+        headers: { 'Content-Type': 'application/json' },
         params,
-      });
-    } else {
-      // Use direct API endpoint in production mode
-      response = await createAxiosInstance().get(GRID_SUMMARY_URL, {
-        params,
-      });
-    }
-
-    // Add validation to ensure response.data exists
-    if (!response || !response.data) {
-      throw new Error('Invalid response received from API');
-    }
-
-    return response.data;
-  } catch (error) {
-    handleApiError(error, 'Error fetching grid summary');
-    return { grids: [] };
+      })
+      .then((response) => response.data)
+      .catch(() => ({ grids: [] }));
   }
+
+  return api
+    .get(GRID_SUMMARY_URL, { params })
+    .then((response) => response.data)
+    .catch(() => ({ grids: [] }));
 };
 
-/**
- * Fetches analytics data from the API
- * @param {Object} options - Request options
- * @param {Object} options.body - Request body containing analytics parameters
- * @returns {Promise<Object>} - Promise resolving to analytics data
- */
+// Fetch analytics data
 export const getAnalyticsDataApi = async ({ body }) => {
-  try {
-    // Get auth token
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authorization token is missing');
-    }
-
-    let response;
-
-    if (process.env.NODE_ENV === 'development') {
-      // Development environment - use proxy endpoint
-      response = await axios.post('/api/proxy/analytics', body, {
+  if (process.env.NODE_ENV === 'development') {
+    return axios
+      .post('/api/proxy/analytics', body, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token,
+          Authorization: getToken(),
         },
-      });
-    } else {
-      // Production environment - use direct API endpoint
-      response = await createAxiosInstance().post(ANALYTICS_URL, body);
-    }
-
-    // Process response
-    if (response?.data?.status === 'success') {
-      return response.data.data || [];
-    }
-
-    // Handle alternate success response format
-    if (response?.status === 'success' && Array.isArray(response.data)) {
-      return response.data;
-    }
-
-    // Handle edge case where data is directly in response
-    if (Array.isArray(response?.data)) {
-      return response.data;
-    }
-
-    // No valid data found in response
-    throw new Error(
-      response?.data?.message || 'Failed to fetch analytics data',
-    );
-  } catch (error) {
-    handleApiError(error, 'Error fetching analytics data');
-    return [];
+      })
+      .then((response) => {
+        if (response?.data?.status === 'success')
+          return response.data.data || [];
+        if (response?.status === 'success' && Array.isArray(response.data))
+          return response.data;
+        if (Array.isArray(response?.data)) return response.data;
+        return [];
+      })
+      .catch(() => []);
   }
+
+  return api
+    .post(ANALYTICS_URL, body)
+    .then((response) => {
+      if (response?.data?.status === 'success') return response.data.data || [];
+      if (response?.status === 'success' && Array.isArray(response.data))
+        return response.data;
+      if (Array.isArray(response?.data)) return response.data;
+      return [];
+    })
+    .catch(() => []);
 };
 
-/**
- * Fetches recent measurements data from the API
- * @param {Object} params - Query parameters for the API request
- * @returns {Promise<Object>} The recent measurements data
- */
-export const getRecentMeasurements = (params) =>
-  createAxiosInstance(false)
+// Get recent device measurements
+export const getRecentMeasurements = async (params) => {
+  return publicApi
     .get(DEVICE_READINGS_RECENT_URL, { params })
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch(() => ({}));
+};
 
-/**
- * Generates site and device IDs
- * @param {Object} grid_id - Grid ID for which site and device IDs are to be generated based in the url query parameters
- * @returns {Promise<Object>} The generated site and device IDs
- */
-export const generateSiteAndDeviceIds = (grid_id) => {
+// Generate site and device IDs for a grid
+export const generateSiteAndDeviceIds = async (grid_id) => {
   if (!grid_id) {
     return Promise.reject(new Error('Grid ID is required'));
   }
 
-  return createAxiosInstance(false)
+  return publicApi
     .get(`${GENERATE_SITE_AND_DEVICE_IDS}/${grid_id}/generate`)
     .then((response) => response.data)
-    .catch((error) => {
-      handleApiError(error, 'Error generating site and device IDs');
-      return {};
-    });
+    .catch(() => ({}));
 };

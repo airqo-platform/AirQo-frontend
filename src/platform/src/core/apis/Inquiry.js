@@ -1,8 +1,6 @@
+import { api } from '../utils/apiClient';
 import { INQUIRY_URL } from '../urls/inquiry';
-import createAxiosInstance from './axiosConfig';
 
-export const registerInquiry = async (body) => {
-  return await createAxiosInstance()
-    .post(`${INQUIRY_URL}/register`, body)
-    .then((response) => response.data);
-};
+// Register new inquiry
+export const registerInquiry = (body) =>
+  api.post(`${INQUIRY_URL}/register`, body).then((response) => response.data);

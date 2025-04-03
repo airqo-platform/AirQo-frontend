@@ -16,74 +16,39 @@ const initialState = {
   individual_preferences: [],
 };
 
-// Async actions using createAsyncThunk
+// Simplified async thunks
 export const postUserPreferences = createAsyncThunk(
-  'preferences/post', // Updated action type
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await postUserPreferencesApi(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.response ? error.response.data : { message: error.message },
-      );
-    }
+  'preferences/post',
+  async (data) => {
+    return postUserPreferencesApi(data);
   },
 );
 
 export const updateUserPreferences = createAsyncThunk(
   'preferences/update',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await updateUserPreferencesApi(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.response ? error.response.data : { message: error.message },
-      );
-    }
+  async (data) => {
+    return updateUserPreferencesApi(data);
   },
 );
 
 export const getIndividualUserPreferences = createAsyncThunk(
   'preferences/getIndividual',
-  async ({ identifier, groupID = null }, { rejectWithValue }) => {
-    try {
-      const response = await getUserPreferencesApi(identifier, groupID);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.response ? error.response.data : { message: error.message },
-      );
-    }
+  async ({ identifier, groupID = null }) => {
+    return getUserPreferencesApi(identifier, groupID);
   },
 );
 
 export const replaceUserPreferences = createAsyncThunk(
   'preferences/replace',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await patchUserPreferencesApi(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.response ? error.response.data : { message: error.message },
-      );
-    }
+  async (data) => {
+    return patchUserPreferencesApi(data);
   },
 );
 
 export const postUserDefaults = createAsyncThunk(
   'preferences/postDefaults',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await postUserDefaultsApi(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.response ? error.response.data : { message: error.message },
-      );
-    }
+  async (data) => {
+    return postUserDefaultsApi(data);
   },
 );
 
@@ -104,10 +69,9 @@ export const defaultsSlice = createSlice({
       state.success = false;
       state.errors = null;
     };
+
     const handleRejected = (state, action) => {
-      state.errors = action.payload
-        ? action.payload.message
-        : action.error.message;
+      state.errors = action.error.message;
       state.success = false;
     };
 
@@ -151,7 +115,14 @@ export const defaultsSlice = createSlice({
         state.individual_preferences = action.payload.preferences;
         state.success = true;
       })
-      .addCase(replaceUserPreferences.rejected, handleRejected);
+      .addCase(replaceUserPreferences.rejected, handleRejected)
+
+      // Post user defaults
+      .addCase(postUserDefaults.pending, handlePending)
+      .addCase(postUserDefaults.fulfilled, (state) => {
+        state.success = true;
+      })
+      .addCase(postUserDefaults.rejected, handleRejected);
   },
 });
 
