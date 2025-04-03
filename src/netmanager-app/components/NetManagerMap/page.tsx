@@ -1,11 +1,12 @@
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState,useCallback } from 'react'
 
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ConvertToGeojson } from '@/lib/utils';
+import { addSuggestedSites } from '@/core/redux/slices/mapslice';
 // import { GetAirQuoData,} from '@/core/apis/MapData';
-import { useMapData } from '@/core/hooks/useMapData';
+import { usemapdata } from '@/core/hooks/useMapData';
 import {mapStyles, mapDetails} from "../NetManagerMap/data/constants"
 import { IconButton } from './components/IconButton';
 import LayerIcon from "@/public/icons/map/layerIcon";
@@ -15,20 +16,21 @@ import LayerModel from './components/LayerModal';
 import {  LoaderCircle, Loader2 } from 'lucide-react';
 import { useAppSelector } from '@/core/redux/hooks';
 import MapSideBar from './components/Sidebar/page';
+import { useSelector, useDispatch } from 'react-redux';
 
 
 import allCountries from './data/countries.json'
 import { any } from 'zod';
 import { useSites } from '@/core/hooks/useSites';
+import { useGrids } from '@/core/hooks/useGrids';
 import { GetAirQuoData } from '@/core/apis/MapData';
 
 
-const NetManagerMap = (mapboxApiAccessToken:string) => {
+const NetManagerMap = () => {
         // const userGroup = useAppSelector((state)=> state.user.userGroups);
           const activeGroup = useAppSelector((state) => state.user.activeGroup)
-        // console.log(userGroup)
         console.log(activeGroup)
-
+          const dispatch = useDispatch();
         // const { width } = useWindowSize();
         const mapContainerRef = useRef<HTMLDivElement>(null);
         const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -43,12 +45,16 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
         const [siteDetails, setSiteDetails] = useState<any[]>([]);
         const [sessionToken, setSessionToken] = useState<string | null>(null);
         const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-        const {MapData, Error, Loading} = useMapData()
+
+        // const {MapData, Error, Loading} = useMapData()
         const isAdmin = true
-        // console.log("Map Data : ",MapData)
+        const preferences =useAppSelector((state) => state.defaults.individual_preferences) || [];
+        console.log("Prefferences", preferences)
         // const gridsDataSummary = useAppSelector((state) => state.grids) || [];
-        const { sites, isLoading, error } = useSites();
-        console.log("GridsData Summary: ",  sites);
+        // const { sites, isLoading, error } = useSites();
+        const { grids,isLoading,error} = useGrids(activeNetwork?.net_name||'')
+        // console.log("Sites: ",  sites);
+        console.log("gridsDataSummary: ",  grids);
 
         const AirQuality= {
         goodair :'/images/map/GoodAir.png',
@@ -80,17 +86,38 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
         }
         
 
-                        // Set site details when grid data summary changes
-  
+        // Set site details when grid data summary changes
         useEffect(() => {
-                if (Array.isArray(sites) && sites.length > 0) {
-                        setSiteDetails(sites);
-                        // const newSiteDetails = sites.flatMap(
-                        // (grid) => grid.sites || [],
-                        // );                      
-                       
-                }
-                }, [sites]);
+            if (Array.isArray(grids) && grids.length > 0) {
+              const newSiteDetails = grids.flatMap((grid) => grid.sites || [],
+              );
+              setSiteDetails(newSiteDetails);
+            }
+          }, [grids]);
+          console.log("New Site Details",siteDetails)
+
+        // Function to get random unique sites
+        const getRandomSites = useCallback((sites: any[], count: any) => {
+        const uniqueSites = sites.filter(
+        (site, index, self) =>
+                self.findIndex((s) => s._id === site._id) === index,
+        );
+        return uniqueSites.sort(() => 0.5 - Math.random()).slice(0, count);
+        }, []);
+
+            // Set suggested sites based on user preferences or randomly selected sites
+  useEffect(() => {
+        const preferencesSelectedSitesData = preferences.flatMap(
+          (pref: { selected_sites: any; }) => pref.selected_sites || [],
+        );
+    
+        if (preferencesSelectedSitesData.length > 0) {
+          dispatch(addSuggestedSites(preferencesSelectedSitesData));
+        } else if (siteDetails.length > 0) {
+          const selectedSites = getRandomSites(siteDetails, 4);
+          dispatch(addSuggestedSites(selectedSites));
+        }
+      }, [preferences, siteDetails, dispatch, getRandomSites]);
 
       /**
    * Initialize Country Data
@@ -151,8 +178,8 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style:mapStyle,
-        center: [18.5, 3], 
-        zoom: 3
+        center: [22.5, 8], 
+        zoom: 3.2
       });
 
       mapRef.current.on('load', async () => {
@@ -223,8 +250,6 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
                                     }
                                     
                 })
-                        
-                       
                         mapRef.current.on('mouseleave', 'data-layer', () => {
                                 if (mapRef.current) {
                                     mapRef.current.getCanvas().style.cursor = '';
@@ -292,9 +317,9 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
 
  
   return (
-        <div className="flex flex-col-reverse   md:flex md:flex-row min-h-screen md:h-screen   -ml-5 "> 
+        <div className="flex flex-col-reverse  -mt-5  gap-2 relative   md:flex md:flex-row min-h-screen min-w-screen md:w-screen  md:h-screen   -ml-5 "> 
 
-        <div className='h-full min-w-[380px] lg:w-[470px]'>
+        <div className='h-full  left-0 min-w-[30px] lg:w-[470px]'>
        <MapSideBar 
                 // handleUserClick={handleUserClick}
                 reset={()=>HandleReset()} 
@@ -305,18 +330,22 @@ const NetManagerMap = (mapboxApiAccessToken:string) => {
                 isAdmin={isAdmin}
                 siteDetails={siteDetails} 
                 />
-                </div>
+        </div>
       
-       { (  loading || !airdata) &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
+       
+
+     <div className="flex-grow min-h-screen w-full">
+     { (  loading || !airdata) &&(<div className="absolute inset-0 flex items-center justify-center z-[10000]">
           <div
             className={`bg-white w-[64px] h-[64px] flex justify-center items-center rounded-md shadow-md p-3`}
           >
             <LoaderCircle className='animate-spin text-blue-600' width={32} height={32} />
           </div>
         </div>)}
-       <div ref={mapContainerRef} className=" flex flex-grow   md:ml-[1%] rounded-lg container  w-full  md:h-full"/>
+  <div ref={mapContainerRef} className="relative rounded-lg w-full h-full bg-[#e6e4e0]" />
+</div>
 
-        <div className="absolute top-24 right-10 z-40 flex flex-col gap-4">
+        <div className="absolute top-18 right-20 z-40 flex flex-col gap-4">
             
          <IconButton
          onClick={() => setIsOpen(true)}

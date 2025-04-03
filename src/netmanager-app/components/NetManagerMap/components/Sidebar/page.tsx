@@ -44,7 +44,12 @@ import SearchResultsSkeleton from './components/SearchResultsSkeleton';
 import useGoogleMaps from '@/core/hooks/useGoogleMaps';
 import { Value } from '@radix-ui/react-select';
 
-
+type PlaceDetails = {
+        description: string;
+        latitude: number;
+        longitude: number;
+        mapbox_id: string;
+      };
 interface SiteDetails {
   _id: string;
   name: string;
@@ -75,6 +80,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [query, setQuery] = useState("");
   const [locationId,setlocationId] =useState("")
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [countryData, setCountryData] = useState<SiteDetails[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<SiteDetails | null>(null);
@@ -121,13 +127,13 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
       }, [dispatch]);
       
         const handleLocationSelect = useCallback(
-          async (data: { place_id: any; geometry: { coordinates: any[]; }; approximate_latitude: any; approximate_longitude: any; }) => {
+          async (data: { mapbox_id: any; approximate_latitude: any; approximate_longitude: any; }) => {
             try {
               let updatedData = data;
               let latitude, longitude;
       
-              if (data?.place_id) {
-                const placeDetails = await getPlaceDetails(data.place_id);
+              if (data?.mapbox_id) {
+                const placeDetails = await getPlaceDetails(data.mapbox_id) as PlaceDetails;
                 if (placeDetails.latitude && placeDetails.longitude) {
                   updatedData = { ...updatedData, ...placeDetails };
                   ({ latitude, longitude } = placeDetails);
@@ -136,9 +142,9 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
                 }
               } else {
                 latitude =
-                  data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
+                  data?.approximate_latitude;
                 longitude =
-                  data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
+                  data?.approximate_longitude;
               }
       
               if (!latitude || !longitude) {
@@ -147,7 +153,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
       
               dispatch(setCenter({ latitude, longitude }));
               dispatch(setZoom(11));
-              dispatch(setSelectedLocation(updatedData));
+              dispatch(setSelectedLocation(updatedData.mapbox_id));
             } catch (error) {
               console.error('Failed to select location:', error);
               setError({
@@ -168,6 +174,26 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
     return null;
   }, [googleMapsLoaded]);
 
+//   Fetch User Location
+useEffect(() => {
+        if (!navigator.geolocation) {
+          alert("Geolocation is not supported by your browser.");
+          return;
+        }
+    
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          },
+          (err) => {
+            console.error(err.message || "Unable to retrieve location.");
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }, []);
   //       Handle Search Functionality
   const handleSearch = useCallback(async () => {
         if (!reduxSearchTerm || reduxSearchTerm.length <= 1) {
@@ -184,8 +210,9 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
         setIsFocused(true);
     
         try {
+
           const predictions = await FetchSuggestions( reduxSearchTerm,
-                sessionToken=SessionToken||""
+                sessionToken=SessionToken||"",location?.latitude, location?.longitude
           );
           console.log("SUGS",predictions)
     
@@ -271,7 +298,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
 ]);
 
   return (
-    <div className="  w-full rounded-l-xl shadow-sm h-full  left-0  overflow-y-auto lg:overflow-hidden">
+    <div className="  w-full rounded-l-xl shadow-sm h-full top-0 bg-white overflow-y-auto lg:overflow-hidden">
       {/* Sidebar Header */}
         <div
               className={` pt-4 `}
@@ -311,64 +338,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
               )}
             </div>
 
-                                {/* Search Results Section */}
-                                {isSearchFocused &&  !openLocationDetails && (
-                        <div className="flex flex-col h-dvh pt-4 w-auto">
-                        <div className="flex flex-col gap-5 px-4">
-                            <SidebarHeader
-                              isAdmin={isAdmin}
-                              isFocused={isSearchFocused}
-                              handleHeaderClick={handleExit}
-                            />
-                            <SearchField
-                              onSearch={handleSearch}
-                              onClearSearch={handleExit}
-                              focus={isSearchFocused}
-                              showSearchResultsNumber={true}
-                            />
-                          </div>
-              
-                          {reduxSearchTerm === '' && (
-                        <div className="border border-secondary-neutral-light-100 mt-8" />
-                        )}
-
-                        {reduxSearchTerm && (
-                                <div
-                                        className={`border border-secondary-neutral-light-100 ${reduxSearchTerm.length > 0 ? 'mt-3' : ''}`}
-                                />
-                        )}
-              
-                          {reduxSearchTerm === '' ? (
-                            renderNoResults(false)
-                          ) : error.isError ? (
-                            <Toast
-                              message={error.message}
-                              clearData={() =>
-                                setError({ isError: false, message: '', type: '' })
-                              }
-                              type={error.type}
-                              timeout={3000}
-                              dataTestId="sidebar-toast"
-                              size="lg"
-                              position="bottom"
-                            />
-                          ) : isLoading &&
-                          searchResults.length === 0 &&
-                            measurementsLoading ? (
-                            <SearchResultsSkeleton />
-                          ) : searchResults.length === 0 && !isLoading ? (
-                            renderNoResults(true)
-                          ) : (
-                            <LocationCards
-                              searchResults={searchResults}
-                              isLoading={isLoading}
-                              handleLocationSelect={()=>{handleLocationSelect}}
-                            />
-                          )}
-                        </div>
-                      )}
-
-              <div className="sidebar-scroll-bar">
+            <div className="sidebar-scroll-bar">
                     {/* Suggested locations */}
                     { !suggestedSites || suggestedSites.length === 0 ?(
                       renderLoadingSkeleton()
@@ -387,7 +357,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
                           </div>
                         </div>
                         <LocationCards
-                          searchResults={searchResults}
+                          searchResults={suggestedSites}
                           isLoading={isLoading}
                           handleLocationSelect={()=>{handleLocationSelect}}
                         />
@@ -396,7 +366,62 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
                       !isSearchFocused && !openLocationDetails && renderDefaultMessage()
                     )}
             
+                    {/* Search Results Section */}
+                {isSearchFocused &&  !openLocationDetails && (
+                <div className="flex flex-col h-dvh pt-4 w-auto">
+                <div className="flex flex-col gap-5 px-4">
+                        <SidebarHeader
+                        isAdmin={isAdmin}
+                        isFocused={isSearchFocused}
+                        handleHeaderClick={handleExit}
+                        />
+                        <SearchField
+                        onSearch={handleSearch}
+                        onClearSearch={handleExit}
+                        focus={isSearchFocused}
+                        showSearchResultsNumber={true}
+                        />
+                </div>
+        
+                {reduxSearchTerm === '' && (
+                <div className="border border-secondary-neutral-light-100 mt-8" />
+                )}
 
+                {reduxSearchTerm && (
+                        <div
+                                className={`border border-secondary-neutral-light-100 ${reduxSearchTerm.length > 0 ? 'mt-3' : ''}`}
+                        />
+                )}
+        
+                {reduxSearchTerm === '' ? (
+                        renderNoResults(false)
+                        ) : error.isError ? (
+                        <Toast
+                        message={error.message}
+                        clearData={() =>
+                        setError({ isError: false, message: '', type: '' })
+                        }
+                        type={error.type}
+                        timeout={3000}
+                        dataTestId="sidebar-toast"
+                        size="lg"
+                        position="bottom"
+                        />
+                        ) : isLoading &&
+                        searchResults.length === 0 &&
+                        measurementsLoading ? (
+                        <SearchResultsSkeleton />
+                        ) : searchResults.length === 0 && !isLoading ? (
+                        renderNoResults(true)
+                        ) : (
+                        <LocationCards
+                        searchResults={searchResults}
+                        isLoading={isLoading}
+                        handleLocationSelect={()=>{handleLocationSelect}}
+                        />
+                        )}
+                </div>
+                )}
             
                     {/* Selected Site Details */}
                     {selectedLocation && !mapLoading && (
@@ -421,7 +446,7 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
                               }
                             </h3>
                           </div>
-            
+                              
                           <div className="mx-4">
                             <WeekPrediction
                               selectedSite={selectedLocation}
@@ -449,6 +474,9 @@ const MapSidebar: React.FC<MapSidebarProps> = ({
                       </div>
                     )}
                   </div>
+
+                
+
 
                       
       {/* {selectedLocation && <WeekPrediction selectedSite={selectedLocation} weeklyPredictions={weeklyPredictions} loading={isLoading} />} */}

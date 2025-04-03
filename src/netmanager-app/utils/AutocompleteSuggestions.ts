@@ -1,4 +1,4 @@
-export const getAutocompleteSuggestions = (input, sessionToken) => {
+export const getAutocompleteSuggestions = (input: any, sessionToken: any) => {
   return new Promise((resolve, reject) => {
     const autocompleteService = new google.maps.places.AutocompleteService();
     autocompleteService.getPlacePredictions(
@@ -7,7 +7,7 @@ export const getAutocompleteSuggestions = (input, sessionToken) => {
         types: ['establishment', 'geocode'],
         sessionToken: sessionToken,
       },
-      (predictions, status) => {
+      (predictions: unknown, status: string) => {
         if (status === 'OK') {
           resolve(predictions);
         } else {

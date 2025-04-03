@@ -4,11 +4,16 @@ import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import type { LayoutProps } from "../app/types/layout";
+import { usePathname } from "next/navigation"
 
 export default function Layout({ children }: LayoutProps) {
     const [darkMode, setDarkMode] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileView, setIsMobileView] = useState(false);
+    const pathname = usePathname()
+    const isActive = (path: string) => pathname?.startsWith(path)
+    const MapActive = isActive("/network-map")
+
 
     useEffect(() => {
         const isDarkMode = localStorage.getItem("darkMode") === "true";
@@ -28,6 +33,11 @@ export default function Layout({ children }: LayoutProps) {
     const toggleSidebar = () => {
         setIsSidebarCollapsed((prev) => !prev);
     };
+    useEffect(() => {
+        if (MapActive) {
+          setIsSidebarCollapsed(true);
+        }
+      }, [MapActive]);
 
     return (
         <div className={`flex h-screen bg-background ${darkMode ? "dark" : ""}`}>
@@ -38,7 +48,7 @@ export default function Layout({ children }: LayoutProps) {
                     isSidebarCollapsed ? "ml-0" : "ml-64"
                 }`}
             >
-                <Topbar isMobileView={isMobileView} />
+                {MapActive?(""):(<Topbar isMobileView={isMobileView} />)}
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-6">
                     <div className="container mx-auto">{children}</div>
                 </main>

@@ -116,6 +116,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       </Tooltip>
     </TooltipProvider>
   );
+    const MapActive = isActive("/network")
 
   return (
     <div
@@ -145,7 +146,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
+              {MapActive?(""):(<Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
@@ -157,7 +158,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 ) : (
                   <ChevronLeft className="h-4 w-4 text-gray-700" />
                 )}
-              </Button>
+              </Button>)}
             </TooltipTrigger>
             <TooltipContent side="right">
               {isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}

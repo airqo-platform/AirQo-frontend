@@ -22,9 +22,13 @@ export const GetAirQuoData = async () =>{
         }
 }
 
-export  const FetchSuggestions=async(value:string,sessionToken:string,):Promise<any[] | void>=>{
+export  const FetchSuggestions=async(value:string,sessionToken:string,latitude?: number, longitude?: number):Promise<any[] | void>=>{
         try{
-                const response = await axios.get(`${MAP_BOX_SUGGESTIONS}?q=${value.toLowerCase()}&access_token=${token}&session_token=${sessionToken}`)
+                let url = `${MAP_BOX_SUGGESTIONS}?q=${value.toLowerCase()}&access_token=${token}&session_token=${sessionToken}`
+                if (latitude || longitude) {
+                        url += `&proximity=${longitude},${latitude}`;
+                    }
+                const response = await axios.get(url)
                 const data = await response.data;
                 
                 console.log("data :",data)

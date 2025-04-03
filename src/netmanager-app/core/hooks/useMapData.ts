@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {GetAirQuoData} from "../apis/MapData"
 
-export function useMapData() {
+export function usemapdata() {
   const [MapData, setMapData] = useState(null);
   const [Error, setError] = useState<string | null>(null);
   const [Loading, setLoading] = useState(false);

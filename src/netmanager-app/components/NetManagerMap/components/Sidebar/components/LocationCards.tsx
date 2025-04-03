@@ -35,15 +35,16 @@ interface LocationCardProps {
     region?: string;
     address?:string;
     place_formatted?:string;
+  approximate_latitude?:number;
+    approximate_longitude?:number
+
   }>;
   isLoading: boolean;
-  handleLocationSelect: (location: {
-    _id?: string;
-    mapbox_id?: string;
-    description?: string;
-    search_name?: string;
-    region?: string;
-  }) => void;
+  handleLocationSelect: (data: {
+        mapbox_id?: any;
+        approximate_latitude?: any;
+        approximate_longitude?: any; 
+}) => void;
 }
 
 const LocationCards: React.FC<LocationCardProps> = ({ searchResults, isLoading, handleLocationSelect }) => {
@@ -91,8 +92,8 @@ const LocationCards: React.FC<LocationCardProps> = ({ searchResults, isLoading, 
     visibleResults.length > 0 && (
       <div className="sidebar-scroll-bar pb-[350px] h-dvh flex flex-col gap-4 my-5 px-4">
         {visibleResults.map((grid) => {
-          const description = grid?.place_formatted?capitalizeAllText(formatDescription(grid?.place_formatted)): capitalizeAllText(formatRegion(grid?.place_formatted || ''));
-
+          const description = grid?.place_formatted?capitalizeAllText(grid?.place_formatted): capitalizeAllText(grid?.place_formatted || '');
+          
           const title = capitalizeAllText(grid?.name?.split(',')[0],
           );
 
@@ -107,7 +108,7 @@ const LocationCards: React.FC<LocationCardProps> = ({ searchResults, isLoading, 
                   {title || 'No Name'}
                 </span>
                 <span className="font-medium text-secondary-neutral-light-300 text-sm leading-tight">
-                  {description || 'No Description'}
+                  {description || grid.region || 'No Description'}
                 </span>
               </div>
               <div className="p-2 rounded-full bg-secondary-neutral-light-50">

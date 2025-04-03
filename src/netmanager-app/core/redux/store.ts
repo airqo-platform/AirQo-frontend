@@ -11,6 +11,7 @@ import groupDetailsReducer from "./slices/groupDetailsSlice";
 import mapReducer from "./slices/mapslice";
 import locationSearchSlice  from "./slices/search/LocationSearchSlice";
 import recentMeasurementsSlice  from "./slices/RecentMeasurementsSlice";
+import UserDefaultsSlice from './slices/account/UserDefaultsSlice'
 
 
 export const store = configureStore({
@@ -26,7 +27,8 @@ export const store = configureStore({
     groupDetailsReducer: groupDetailsReducer,
     map:mapReducer,
     locationSearch:locationSearchSlice,
-    recentMeasurementReducer:recentMeasurementsSlice
+    recentMeasurementReducer:recentMeasurementsSlice,
+    defaults:UserDefaultsSlice
 
 
   },

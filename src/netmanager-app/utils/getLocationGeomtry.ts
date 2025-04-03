@@ -1,23 +1,23 @@
-export const getPlaceDetails = async (placeId) => {
+export const getPlaceDetails = async (mapbox_id:string) => {
   const geocoder = new google.maps.Geocoder();
 
   const locationPromise = new Promise((resolve, reject) => {
-    geocoder.geocode({ placeId }, (results, status) => {
+    geocoder.geocode({ mapbox_id }, (results: { formatted_address: any; geometry: { location: any; }; mapbox_id: any; }[], status: string) => {
       if (status === 'OK') {
         const {
           formatted_address: description,
           geometry: { location },
-          place_id,
+          mapbox_id,
         } = results[0];
         resolve({
           description,
           latitude: location.lat(),
           longitude: location.lng(),
-          place_id,
+          mapbox_id,
         });
       } else {
         reject(
-          new Error(`Failed to retrieve details for place with ID ${placeId}`),
+          new Error(`Failed to retrieve details for place with ID ${mapbox_id}`),
         );
       }
     });
