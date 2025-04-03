@@ -1,21 +1,15 @@
-import React, { useEffect } from "react";
+import React from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, FeatureGroup } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 import { useDispatch } from "react-redux";
-import { Position, setPolygon } from "@/core/redux/slices/gridsSlice";
+import { setPolygon } from "@/core/redux/slices/gridsSlice";
 
 // Extend Leaflet types to include _getIconUrl
 interface IconDefault extends L.Icon {
   _getIconUrl?: string;
-}
-
-// Type for polygon data structure
-interface PolygonData {
-  type: string;
-  coordinates: Position[][] | Position[][][];
 }
 
 // Type for draw control options

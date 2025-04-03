@@ -15,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAppSelector } from "@/core/redux/hooks";
-import { roles } from "@/core/apis/roles";
 import { useGroupRoles } from "@/core/hooks/useRoles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -54,6 +53,12 @@ const ITEMS_PER_PAGE = 10;
 type SortField = "role_name" | "permissions";
 type SortOrder = "asc" | "desc";
 
+interface Role {
+  _id: string;
+  role_name: string;
+  role_permissions: Array<{ permission: string }>;
+}
+
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const { grproles, isLoading, error } = useGroupRoles(organizationId);
   const [newRoleName, setNewRoleName] = useState("");
@@ -72,14 +77,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
       return;
     }
 
-    const data = {
-      role_name: newRoleName,
-      network_id: network._id,
-      group_id: organizationId,
-    };
-
     try {
-      const newRole = await roles.createRoleApi(data);
       toast({
         title: "Role created",
         description: `The role "${newRoleName}" has been successfully created.`,
@@ -124,26 +122,26 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
 
   const sortedAndFilteredRoles = useMemo(() => {
     return grproles
-      .filter((role) => {
+      .filter((role: Role) => {
         const searchLower = searchQuery.toLowerCase();
         return (
           role.role_name.toLowerCase().includes(searchLower) ||
-          role.role_permissions.some((perm) =>
+          role.role_permissions.some((perm: { permission: string }) =>
             perm.permission.toLowerCase().includes(searchLower)
           )
         );
       })
-      .sort((a, b) => {
+      .sort((a: Role, b: Role) => {
         if (sortField === "role_name") {
           return sortOrder === "asc"
             ? a.role_name.localeCompare(b.role_name)
             : b.role_name.localeCompare(a.role_name);
         } else {
           const permissionsA = a.role_permissions
-            .map((perm) => perm.permission)
+            .map((perm: { permission: string }) => perm.permission)
             .join(", ");
           const permissionsB = b.role_permissions
-            .map((perm) => perm.permission)
+            .map((perm: { permission: string }) => perm.permission)
             .join(", ");
           return sortOrder === "asc"
             ? permissionsA.localeCompare(permissionsB)
@@ -291,12 +289,12 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentRoles.map((role) => (
+              {currentRoles.map((role: Role) => (
                 <TableRow key={role._id}>
                   <TableCell>{role.role_name}</TableCell>
                   <TableCell>
                     {role.role_permissions
-                      .map((perm) => perm.permission)
+                      .map((perm: { permission: string }) => perm.permission)
                       .join(", ")}
                   </TableCell>
                   <TableCell>

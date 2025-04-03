@@ -21,14 +21,32 @@ import { MoreHorizontal } from 'lucide-react';
 import { EXCEEDANCES_DATA_URI, DEVICE_EXCEEDANCES_URI } from '@/core/urls';
 import createAxiosInstance from '@/core/apis/axiosConfig';
 import { Device } from '@/app/types/devices';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
+
+interface AnalyticsSite {
+  _id: string;
+  name?: string;
+  description?: string;
+  generated_name?: string;
+}
+
+interface ChartData {
+  name: string;
+  Good: number;
+  Moderate: number;
+  UHFSG: number;
+  Unhealthy: number;
+  VeryUnhealthy: number;
+  Hazardous: number;
+}
 
 interface ExceedancesChartProps {
-  analyticsSites: any[];
+  analyticsSites: AnalyticsSite[];
   analyticsDevices: Device[];
   isGrids: boolean;
   isCohorts: boolean;
 }
+
 const chartConfig = {
   Good: { label: "Good", color: "hsl(120, 100%, 25%)" },
   Moderate: { label: "Moderate", color: "hsl(60, 100%, 50%)" },
@@ -47,12 +65,12 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
   const [loading, setLoading] = useState(false);
   const [averageSites, setAverageSites] = useState<string[]>([]);
   const [averageDevices, setAverageDevices] = useState<string[]>([]);
-  const [dataset, setDataset] = useState<any[]>([]);
+  const [dataset, setDataset] = useState<ChartData[]>([]);
   const [pollutant, setPollutant] = useState({ value: 'pm2_5', label: 'PM 2.5' });
   const [standard, setStandard] = useState({ value: 'aqi', label: 'AQI' });
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   const [allLocationsDialogOpen, setAllLocationsDialogOpen] = useState(false);
-  const [allLocationsData, setAllLocationsData] = useState<any[]>([]);
+  const [allLocationsData, setAllLocationsData] = useState<ChartData[]>([]);
 
   useEffect(() => {
     if (isGrids) {
@@ -98,30 +116,17 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
     }
   }, [averageSites, averageDevices, isGrids, isCohorts, pollutant, standard]);
 
-  const processChartData = (data: any[]) => {
-    const processedData = data.slice(0, 10).map((item) => {
-      const location = isCohorts ? item.device_id : (item.site.name || item.site.description || item.site.generated_name);
-      const exceedances = isCohorts ? item.exceedances : item.exceedance;
-      
-      return {
-        name: location,
-        ...Object.keys(chartConfig).reduce((acc, key) => {
-          acc[key] = exceedances[key] || 0;
-          return acc;
-        }, {}),
-      };
-    });
-
-    setDataset(processedData);
+  const processChartData = (data: ChartData[]) => {
+    setDataset(data);
     setAllLocationsData(data);
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-4 border border-gray-200 rounded shadow-md">
           <p className="font-bold">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.fill }}>
               {entry.name}: {entry.value}
             </p>

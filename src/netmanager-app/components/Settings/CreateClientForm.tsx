@@ -46,10 +46,16 @@ const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose }) =>
         throw new Error("Client name can't be empty")
       }
 
+      if (!userInfo?._id) {
+        throw new Error("User ID is required")
+      }
+
       const data = {
         name: clientName,
-        user_id: userInfo?._id,
+        user_id: userInfo._id,
         ip_addresses: ipAddresses.filter((ip) => ip.trim() !== ''),
+        isActive: true,
+        client_secret: '',
       }
 
       const response = await settings.createClientApi(data)
@@ -60,10 +66,10 @@ const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose }) =>
         })
         onClose()
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create client",
+        description: error instanceof Error ? error.message : "Failed to create client",
         variant: "destructive",
       })
     } finally {

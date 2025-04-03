@@ -23,19 +23,19 @@ const NewAnalytics: React.FC = () => {
   const [downloadingData, setDownloadingData] = useState(false)
   const [activeGrid, setActiveGrid] = useState<Grid>()
   const [activeCohort, setActiveCohort] = useState<Cohort>()
-  const [transformedReadings, setTransformedReadings] = useState<{
-    type: string
-    features: {
-      type: "Feature"
-      properties: unknown
-      geometry: { type: "Point"; coordinates: [number, number] }
-    }[] // Updated type
-  } | null>(null)
+  // const [transformedReadings, setTransformedReadings] = useState<{
+  //   type: string
+  //   features: {
+  //     type: "Feature"
+  //     properties: unknown
+  //     geometry: { type: "Point"; coordinates: [number, number] }
+  //   }[] // Updated type
+  // } | null>(null)
 
   const { toast } = useToast()
   const { grids, isLoading: isGridsLoading } = useGrids()
   const { cohorts, isLoading: isCohortsLoading } = useCohorts()
-  const { mapReadings, isLoading: isMapReadingsLoading } = useMapReadings()
+  const { isLoading: isMapReadingsLoading } = useMapReadings()
 
   const airqloudsData = isCohort ? cohorts : grids
   const isLoading = isGridsLoading || isCohortsLoading || isMapReadingsLoading

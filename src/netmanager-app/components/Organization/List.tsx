@@ -42,6 +42,14 @@ type SortField =
   | "createdAt";
 type SortOrder = "asc" | "desc";
 
+interface Organization {
+  _id: string;
+  grp_title: string;
+  grp_industry?: string;
+  numberOfGroupUsers: number;
+  createdAt?: string;
+}
+
 const formatTitle = (title: string) => {
   return title
     .replace(/[_-]/g, " ")
@@ -64,7 +72,7 @@ export function OrganizationList() {
     }
   };
 
-  const sortOrganizations = (orgsToSort: any[]) => {
+  const sortOrganizations = (orgsToSort: Organization[]) => {
     return [...orgsToSort].sort((a, b) => {
       if (sortField === "createdAt") {
         const dateA = new Date(a.createdAt || 0).getTime();
@@ -81,7 +89,7 @@ export function OrganizationList() {
 
       if (typeof compareA === "string") {
         compareA = formatTitle(compareA).toLowerCase();
-        compareB = formatTitle(compareB).toLowerCase();
+        compareB = typeof compareB === "string" ? formatTitle(compareB).toLowerCase() : compareB;
       }
 
       if (compareA < compareB) return sortOrder === "asc" ? -1 : 1;
@@ -90,7 +98,7 @@ export function OrganizationList() {
     });
   };
 
-  const filteredOrganizations = groups.filter((org) =>
+  const filteredOrganizations = groups.filter((org: Organization) =>
     org.grp_title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
