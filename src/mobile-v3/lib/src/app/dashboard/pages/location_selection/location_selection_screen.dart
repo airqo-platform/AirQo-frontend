@@ -63,7 +63,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         currentState.response.measurements != null) {
       loggy.info('Dashboard already loaded, populating measurements');
       _populateMeasurements(currentState.response.measurements!);
-      _syncSelectedLocations(currentState); // Sync immediately in initState
+      _syncSelectedLocations(currentState); 
     } else {
       dashboardBloc.add(LoadDashboard());
     }
