@@ -3,11 +3,12 @@ import moment from "moment"
 import {Button} from "@/components/ui/button"
 import CopyIcon from "@/icons/Common/copy.svg"
 import EditIcon from "@/icons/Common/edit-pencil.svg"
+import { Client } from "@/app/types/clients"
 
 interface ClientTableRowProps {
-  client: any
-  onGenerateToken: (client: any) => void
-  onEditClient: (client: any) => void
+  client: Client
+  onGenerateToken: (client: Client) => void
+  onEditClient: (client: Client) => void
   onCopyToken: (token: string) => void
   getClientToken: (clientId: string) => string | null
   getClientTokenExpiryDate: (clientId: string) => string | null
@@ -23,7 +24,7 @@ export const ClientTableRow: FC<ClientTableRowProps> = ({
   getClientTokenExpiryDate,
   isLoadingToken,
 }) => {
-  const displayIPAddresses = (client) => {
+  const displayIPAddresses = (client: Client) => {
     return Array.isArray(client.ip_addresses) ? client.ip_addresses.join(", ") : client.ip_addresses
   }
 
@@ -52,14 +53,21 @@ export const ClientTableRow: FC<ClientTableRowProps> = ({
       <td className="w-[138px] px-4 py-3">
         {getClientToken(client._id) ? (
           <span className="font-medium text-sm leading-5 text-secondary-neutral-light-400 flex items-center gap-2">
-            {getClientToken(client._id).slice(0, 2)}....
-            {getClientToken(client._id).slice(-2)}
-            <div
-              className="w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer"
-              onClick={() => onCopyToken(getClientToken(client._id))}
-            >
-              <CopyIcon />
-            </div>
+            {(() => {
+              const token = getClientToken(client._id);
+              if (!token) return null;
+              return (
+                <>
+                  {token.slice(0, 2)}....{token.slice(-2)}
+                  <div
+                    className="w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer"
+                    onClick={() => onCopyToken(token)}
+                  >
+                    <CopyIcon />
+                  </div>
+                </>
+              );
+            })()}
           </span>
         ) : (
           <Button

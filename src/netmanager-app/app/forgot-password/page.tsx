@@ -50,6 +50,7 @@ export default function ForgotPasswordPage() {
       console.log(values);
       setStatus("success");
     } catch (error) {
+      console.error(error);
       setStatus("error");
     }
   }

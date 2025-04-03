@@ -68,10 +68,10 @@ export default function MyProfile() {
         setError("User data not found")
       }
     } catch (error) {
-      setError("Failed to fetch user data")
+      setError(error instanceof Error ? error.message : "Failed to fetch user data")
       toast({
         title: "Error",
-        description: "Failed to fetch user data",
+        description: error instanceof Error ? error.message : "Failed to fetch user data",
         variant: "destructive",
       })
     } finally {
@@ -133,7 +133,7 @@ export default function MyProfile() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update profile picture",
+        description: error instanceof Error ? error.message : "Failed to update profile picture",
         variant: "destructive",
       })
     } finally {
@@ -156,7 +156,7 @@ export default function MyProfile() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete profile picture",
+        description: error instanceof Error ? error.message : "Failed to delete profile picture",
         variant: "destructive",
       })
     }
@@ -182,10 +182,10 @@ export default function MyProfile() {
         description: "Profile updated successfully",
       })
     } catch (error) {
-      setError("Failed to update profile")
+      setError(error instanceof Error ? error.message : "Failed to update profile")
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: error instanceof Error ? error.message : "Failed to update profile",
         variant: "destructive",
       })
     } finally {

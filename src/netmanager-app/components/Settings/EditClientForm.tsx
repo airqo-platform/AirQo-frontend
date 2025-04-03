@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import DialogWrapper from "./DialogWrapper"
-import { Toast } from "@/components/ui/toast"
 import { addClients, addClientsDetails, performRefresh } from "@/core/redux/slices/clientsSlice"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -79,10 +78,16 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ open, onClose, data }) 
     }
 
     try {
+      if (!userInfo?._id) {
+        throw new Error("User ID is required")
+      }
+
       const data = {
         name: clientName,
-        user_id: userInfo?._id,
+        user_id: userInfo._id,
         ip_addresses: ipAddresses.filter((ip) => ip.trim() !== ""),
+        isActive: true,
+        client_secret: '',
       }
 
       const response = await settings.updateClientApi(data, clientID)
@@ -94,11 +99,10 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ open, onClose, data }) 
       dispatch(addClients(res.users[0].clients))
       dispatch(addClientsDetails(resp.clients))
       dispatch(performRefresh())
-      closeModal()
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsError({
         isError: true,
-        message: error?.response?.data?.message || "Failed to Edit client",
+        message: error instanceof Error ? error.message : "Failed to Edit client",
         type: "error",
       })
     } finally {
@@ -128,7 +132,11 @@ const EditClientForm: React.FC<EditClientFormProps> = ({ open, onClose, data }) 
       primaryButtonText="Update"
       loading={loading}
     >
-      {isError.isError && <Toast type={isError.type} message={isError.message} />}
+      {isError.isError && (
+        <div className="bg-destructive text-destructive-foreground p-4 rounded-md">
+          {isError.message}
+        </div>
+      )}
       <h3 className="text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2">Edit client</h3>
 
       <div className="flex flex-col gap-3 justify-start max-h-[350px] overflow-y-auto">
