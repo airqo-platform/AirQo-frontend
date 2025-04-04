@@ -110,19 +110,19 @@ export default function PasswordEdit() {
       setIsLoading(true)
       const response = await settings.updateUserPasswordApi(userId, pwdData)
 
-      if (response) {
-        setPasswords({
-          currentPassword: "",
-          newPassword: "",
-          confirmNewPassword: "",
-        })
-        toast({
-          title: "Success",
-          description: "Password updated successfully.",
-        })
-      } else {
-        throw new Error(response.message)
+      if (response && typeof response === 'object' && 'message' in response) {
+        throw new Error((response as { message: string }).message)
       }
+
+      setPasswords({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      })
+      toast({
+        title: "Success",
+        description: "Password updated successfully.",
+      })
     } catch (error) {
       toast({
         title: "Error",
@@ -322,14 +322,15 @@ export default function PasswordEdit() {
           </form>
         </CardContent>
         <CardFooter>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-            onClick={(e) => handleSubmit(e as React.FormEvent<HTMLFormElement>)}
-          >
-            {isLoading ? "Changing Password..." : "Change Password"}
-          </Button>
+          <form onSubmit={handleSubmit}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? "Changing Password..." : "Change Password"}
+            </Button>
+          </form>
         </CardFooter>
       </Card>
     </div>

@@ -2,7 +2,6 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-  UseQueryOptions,
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
@@ -10,6 +9,7 @@ import { CreateGrid, Grid } from "@/app/types/grids";
 import {  setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
+import React from "react";
 
 interface ErrorResponse {
   message: string;
@@ -24,13 +24,16 @@ export const useGrids = () => {
     queryKey: ["grids", activeNetwork?.net_name],
     queryFn: () => grids.getGridsApi(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
-    onSuccess: (data: any) => {
-      dispatch(setGrids(data.grids));
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message));
-    },
   });
+
+  React.useEffect(() => {
+    if (data?.grids) {
+      dispatch(setGrids(data.grids));
+    }
+    if (error) {
+      dispatch(setError(error.message));
+    }
+  }, [data, error, dispatch]);
 
   return {
     grids: data?.grids ?? [],
@@ -46,16 +49,16 @@ export const useGridDetails = (gridId: string) => {
     queryKey: ["gridDetails", gridId],
     queryFn: () => grids.getGridDetailsApi(gridId),
     enabled: !!gridId,
-    onSuccess: () => {
-      console.log("Grid details fetched successfully");
-    },
-    onError: (error: AxiosError<ErrorResponse>) => {
+  });
+
+  React.useEffect(() => {
+    if (error) {
       dispatch(setError(error.message));
-    },
-  } as UseQueryOptions<Grid, AxiosError<ErrorResponse>>);
+    }
+  }, [error, dispatch]);
 
   return {
-    gridDetails: data?.grids[0] ?? ({} as Grid),
+    gridDetails: data ?? ({} as Grid),
     isLoading,
     error,
   };

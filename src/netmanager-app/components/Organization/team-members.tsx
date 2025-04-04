@@ -50,6 +50,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Role } from "@/app/types/roles";
 
 type TeamMembersProps = {
   organizationId: string;
@@ -351,7 +352,7 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
                                 Error loading roles
                               </SelectItem>
                             ) : (
-                              grproles.map((role) => (
+                              grproles.map((role: Role) => (
                                 <SelectItem key={role._id} value={role._id}>
                                   {role.role_name}
                                 </SelectItem>

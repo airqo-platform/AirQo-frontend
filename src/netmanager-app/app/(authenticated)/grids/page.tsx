@@ -16,20 +16,17 @@ import { Badge } from "@/components/ui/badge";
 import { CreateGridForm } from "@/components/grids/create-grid";
 import { useRouter } from "next/navigation";
 import { useGrids } from "@/core/hooks/useGrids";
-import { useAppSelector } from "@/core/redux/hooks";
+import { Grid } from "@/app/types/grids";
 
 export default function GridsPage() {
   const router = useRouter();
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const { grids, isLoading: isGridsLoading } = useGrids(
-    activeNetwork?.net_name ?? ""
-  );
+  const { grids, isLoading: isGridsLoading } = useGrids();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
 
   const filteredGrids = grids.filter(
-    (grid) =>
+    (grid: Grid) =>
       grid.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       grid.admin_level.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -171,7 +168,7 @@ export default function GridsPage() {
           <TableBody>
             {filteredGrids
               .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-              .map((grid) => (
+              .map((grid: Grid) => (
                 <TableRow
                   key={grid._id}
                   onClick={() => router.push(`/grids/${grid._id}`)}

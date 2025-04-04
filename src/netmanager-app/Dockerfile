@@ -1,22 +1,29 @@
-# Use the official Node.js image as a base
+# First stage: Build the app
 FROM node:18-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
+# Copy package files and install dependencies
+COPY package*.json ./ 
 RUN npm ci
 
 # Copy the rest of the application code
 COPY . .
 
+# Build the Next.js app
 RUN npm run build
+
+# Second stage: Production container
+FROM node:18-alpine AS runner
+
+# Set the working directory
+WORKDIR /app
+
+# Copy built files from builder stage
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \

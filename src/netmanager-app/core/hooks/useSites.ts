@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { sites, ApproximateCoordinatesResponse } from "../apis/sites";
 import { setSites, setError } from "../redux/slices/sitesSlice";
 import { useAppSelector } from "../redux/hooks";
+import React from "react";
 
 export const useSites = () => {
   const dispatch = useDispatch();
@@ -17,13 +18,16 @@ export const useSites = () => {
         activeGroup?.grp_title || ""
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
-    onSuccess: (data: any) => {
-      dispatch(setSites(data.sites));
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message));
-    },
   });
+
+  React.useEffect(() => {
+    if (data?.sites) {
+      dispatch(setSites(data.sites));
+    }
+    if (error) {
+      dispatch(setError(error.message));
+    }
+  }, [data, error, dispatch]);
 
   return {
     sites: data?.sites || [],

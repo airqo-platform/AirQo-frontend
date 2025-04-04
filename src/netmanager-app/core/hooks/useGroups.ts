@@ -1,20 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { groupsApi, groupMembers } from "../apis/organizations";
-import type { Group } from "@/app/types/groups";
+import type { Group, GroupMember } from "@/app/types/groups";
 import { setError, setGroups } from "../redux/slices/groupsSlice";
 import { setTeamMember } from "../redux/slices/teamSlice";
 import { setGroup } from "../redux/slices/groupDetailsSlice";
 import { useDispatch } from "react-redux";
+import React from "react";
 
 interface ErrorResponse {
   message: string;
 }
 
 interface TeamMembersResponse {
-  group_members: Array<{
-    id: string;
-  }>;
+  success: boolean;
+  message: string;
+  group_members: GroupMember[];
 }
 
 export const useGroups = () => {
@@ -23,13 +24,16 @@ export const useGroups = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["groups"],
     queryFn: () => groupsApi.getGroupsApi(),
-    onSuccess: (data: any) => {
-      dispatch(setGroups(data.groups));
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message));
-    },
   });
+
+  React.useEffect(() => {
+    if (data?.groups) {
+      dispatch(setGroups(data.groups));
+    }
+    if (error) {
+      dispatch(setError(error.message));
+    }
+  }, [data, error, dispatch]);
 
   return {
     groups: data?.groups ?? [],
@@ -44,13 +48,16 @@ export const useGroupsDetails = (groupId: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["groupDetails", groupId],
     queryFn: () => groupsApi.getGroupDetailsApi(groupId),
-    onSuccess: (data: any) => {
-      dispatch(setGroup(data.group));
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message));
-    },
   });
+
+  React.useEffect(() => {
+    if (data?.group) {
+      dispatch(setGroup(data.group));
+    }
+    if (error) {
+      dispatch(setError(error.message));
+    }
+  }, [data, error, dispatch]);
 
   return {
     group: data?.group ?? [],
@@ -72,7 +79,7 @@ export const useUpdateGroupDetails = () => {
       data: Partial<Group>;
     }) => groupsApi.updateGroupDetailsApi(groupId, data),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(["groupDetails", variables.groupId]);
+      queryClient.invalidateQueries({ queryKey: ["groupDetails", variables.groupId] });
       dispatch(setGroup(data.group));
     },
     onError: (error: AxiosError<ErrorResponse>) => {
@@ -93,7 +100,7 @@ export const useCreateGroup = () => {
     mutationFn: (newGroup: Group) => groupsApi.createGroupApi(newGroup),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["groups"] })
-      dispatch(setGroups((prevGroups) => [...prevGroups, data.group]))
+      dispatch(setGroups([...data.groups, data.group]))
       return data.group 
     },
     onError: (error: AxiosError<ErrorResponse>) => {
@@ -116,8 +123,8 @@ export const useAssignDevicesToGroup = () => {
       groups: string[];
     }) => groupsApi.assignDevicesToGroupApi(deviceIds, groups),
     onSuccess: () => {
-      queryClient.invalidateQueries(["groups"]);
-      queryClient.invalidateQueries(["devices"]);
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(
@@ -142,8 +149,8 @@ export const useAssignSitesToGroup = () => {
       groups: string[];
     }) => groupsApi.assignSitesToGroupApi(siteIds, groups),
     onSuccess: () => {
-      queryClient.invalidateQueries(["groups"]);
-      queryClient.invalidateQueries(["sites"]);
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(
@@ -164,13 +171,16 @@ export const useTeamMembers = (groupId: string) => {
   >({
     queryKey: ["team", groupId],
     queryFn: () => groupMembers.getGroupMembersApi(groupId),
-    onSuccess: (data: TeamMembersResponse) => {
-      dispatch(setTeamMember(data));
-    },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      dispatch(setError(error.message));
-    },
   });
+
+  React.useEffect(() => {
+    if (data?.group_members) {
+      dispatch(setTeamMember(data.group_members));
+    }
+    if (error) {
+      dispatch(setError(error.message));
+    }
+  }, [data, error, dispatch]);
 
   return {
     team: data?.group_members || [],
@@ -188,7 +198,7 @@ export const useInviteUserToGroup = (groupId: string) => {
       const response = await groupMembers.getGroupMembersApi(groupId);
       const existingMembers = response.group_members || [];
       const isExistingMember = existingMembers.some(
-        (member: any) => member.email === userEmail
+        (member: GroupMember) => member.email === userEmail
       );
 
       if (isExistingMember) {
@@ -197,8 +207,8 @@ export const useInviteUserToGroup = (groupId: string) => {
 
       return groupMembers.inviteUserToGroupTeam(groupId, userEmail);
     },
-    onSuccess: (data, userEmail) => {
-      queryClient.invalidateQueries(["team", groupId]);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team", groupId] });
     },
     onError: (error: Error) => {
       dispatch(setError(error.message || "Failed to invite user to group"));
@@ -219,7 +229,7 @@ export const useAcceptGroupInvite = () => {
       userEmail: string;
     }) => groupMembers.acceptGroupTeamInvite(groupId, userEmail),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(["team", variables.groupId]);
+      queryClient.invalidateQueries({ queryKey: ["team", variables.groupId] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(
@@ -246,7 +256,7 @@ export const useUpdateGroupMember = () => {
       role: string;
     }) => groupMembers.updateGroupTeam(groupId, userEmail, role),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(["team", variables.groupId]);
+      queryClient.invalidateQueries({ queryKey: ["team", variables.groupId] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(

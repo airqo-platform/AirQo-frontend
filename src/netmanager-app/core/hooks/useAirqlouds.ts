@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { getGrids } from "@/core/apis/grids";
 import { setAirqlouds, setError } from "../redux/slices/analyticsSlice";
 import { useAppSelector } from "../redux/hooks";
-import { Airqloud } from "@/redux/slices/analyticsSlice";
+import { grids } from "../apis/grids";
+import React from "react";
 
 export const useAirqlouds = () => {
   const dispatch = useDispatch();
@@ -11,15 +11,18 @@ export const useAirqlouds = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["airqlouds", activeNetwork?.net_name],
-    queryFn: () => airqlouds.getGri(activeNetwork?.net_name || ""),
+    queryFn: () => grids.getGridsApi(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
-    onSuccess: (data: { airqlouds: Airqloud[] }) => {
-      dispatch(setAirqlouds(data.airqlouds));
-    },
-    onError: (error: Error) => {
-      dispatch(setError(error.message));
-    },
   });
+
+  React.useEffect(() => {
+    if (data?.airqlouds) {
+      dispatch(setAirqlouds(data.airqlouds));
+    }
+    if (error) {
+      dispatch(setError(error.message));
+    }
+  }, [data, error, dispatch]);
 
   return {
     airqlouds: data?.airqlouds || [],
