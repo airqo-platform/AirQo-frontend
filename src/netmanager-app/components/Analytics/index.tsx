@@ -186,12 +186,14 @@ const NewAnalytics: React.FC = () => {
           <GridDashboard
             loading={isGridsLoading}
             gridId={activeGrid._id}
-            recentEventsData={activeGrid.sites.map((site) => ({
-              properties: {
-                site_id: site._id,
-                pm2_5: { value: site.approximate_longitude },
-              },
-            }))}
+            recentEventsData={{
+              features: activeGrid.sites.map((site) => ({
+                properties: {
+                  site_id: site._id,
+                  pm2_5: { value: site.approximate_longitude },
+                },
+              }))
+            }}
             grids={grids as Grid[]}
           />
         )}

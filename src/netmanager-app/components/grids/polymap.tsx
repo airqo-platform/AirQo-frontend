@@ -63,7 +63,7 @@ const PolygonMap: React.FC = () => {
       dispatch(
         setPolygon({
           type: geoJson.geometry.type,
-          coordinates: geoJson.geometry.coordinates,
+          coordinates: geoJson.geometry.coordinates as [number, number][][] | [number, number][][][],
         })
       );
     }
@@ -77,7 +77,7 @@ const PolygonMap: React.FC = () => {
         dispatch(
           setPolygon({
             type: geoJson.geometry.type,
-            coordinates: geoJson.geometry.coordinates,
+            coordinates: geoJson.geometry.coordinates as [number, number][][] | [number, number][][][],
           })
         );
       }
