@@ -148,105 +148,129 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  Future<String?> _uploadImageToCloudinary(File imageFile) async {
+  try {
+    const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload';
+    var request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
+
+    // Use the same upload preset as the JS code
+    request.fields['upload_preset'] = 'YOUR_UPLOAD_PRESET'; // Replace with the exact preset from your JS env
+    request.fields['folder'] = 'profiles'; // Match the JS folder structure
+
+    // Add the image file
+    String extension = imageFile.path.split('.').last.toLowerCase();
+    String mimeType = extension == 'png' ? 'png' : 'jpeg';
+    request.files.add(await http.MultipartFile.fromPath(
+      'file', // Matches the JS 'file' field
+      imageFile.path,
+      contentType: MediaType('image', mimeType),
+    ));
+
+    print('Uploading image to Cloudinary...');
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+    print('Cloudinary response: ${response.statusCode} - ${response.body}');
+
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(response.body);
+      return jsonResponse['secure_url']; // Matches JS 'responseData.secure_url'
+    } else {
+      throw Exception('Cloudinary upload failed: ${response.statusCode}, ${response.body}');
+    }
+  } catch (e) {
+    print('Error uploading image to Cloudinary: $e');
+    throw e;
+  }
+}
+
   // 1. First, modify the _uploadProfileImage method to check the actual file extension
   Future<String?> _uploadProfileImage(File imageFile) async {
-    try {
-      // Get the user ID for the API endpoint
-      final userId =
-          await HiveRepository.getData("userId", HiveBoxNames.authBox);
-      if (userId == null) {
-        throw Exception("User ID not found");
-      }
-
-      // Get the image file extension to determine content type
-      String extension = imageFile.path.split('.').last.toLowerCase();
-      String mimeType;
-
-      // Set the appropriate MIME type based on file extension
-      switch (extension) {
-        case 'jpg':
-        case 'jpeg':
-          mimeType = 'jpeg';
-          break;
-        case 'png':
-          mimeType = 'png';
-          break;
-        case 'gif':
-          mimeType = 'gif';
-          break;
-        default:
-          mimeType = 'jpeg'; // Default to jpeg if unknown
-      }
-
-      // Create a multipart request
-      var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
-      var request = http.MultipartRequest('PUT', uri);
-
-      // Add the auth token
-      final authToken =
-          await HiveRepository.getData("token", HiveBoxNames.authBox);
-      if (authToken == null) {
-        throw Exception("Authentication token not found");
-      }
-      request.headers.addAll({
-        'Authorization': 'Bearer $authToken',
-      });
-
-      // Add form fields for user data (important to include these with the image)
-      // This ensures all user data is updated in a single request
-      request.fields['firstName'] = _firstNameController.text.trim();
-      request.fields['lastName'] = _lastNameController.text.trim();
-      request.fields['email'] = _emailController.text.trim();
-
-      // Add the image file with the correct MIME type
-      request.files.add(await http.MultipartFile.fromPath(
-        'profilePicture',
-        imageFile.path,
-        contentType: MediaType('image', mimeType),
-      ));
-
-      print('Starting profile picture upload to $uri...');
-      var streamedResponse = await request.send();
-      print('Upload completed. Status code: ${streamedResponse.statusCode}');
-
-      var response = await http.Response.fromStream(streamedResponse);
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        try {
-          var jsonResponse = json.decode(response.body);
-          if (jsonResponse['success'] == true) {
-            // Return success without triggering a second update
-            return "PROFILE_UPDATED";
-          } else {
-            throw Exception("Server returned success:false");
-          }
-        } catch (parseError) {
-          print('Error parsing JSON response: $parseError');
-          throw Exception("Failed to parse server response: $parseError");
-        }
-      } else {
-        throw Exception(
-            "Failed to upload image: Status ${response.statusCode}, ${response.body}");
-      }
-    } catch (e) {
-      print('Error uploading profile image: $e');
-      throw e;
+  try {
+    // 1. Upload to Cloudinary
+    final imageUrl = await _uploadImageToCloudinary(imageFile);
+    if (imageUrl == null) {
+      throw Exception("Failed to get image URL from Cloudinary");
     }
+
+    // 2. Update local state (UI preview)
+    setState(() {
+      _currentProfilePicture = imageUrl;
+    });
+
+    // 3. Get user ID from Hive (equivalent to localStorage in JS)
+    final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
+    if (userId == null) {
+      throw Exception("No valid user ID found in Hive");
+    }
+
+    // 4. Update user details on the server
+    var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+    final authToken = await HiveRepository.getData("token", HiveBoxNames.authBox);
+    if (authToken == null) {
+      throw Exception("Authentication token not found");
+    }
+
+    var body = {
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'profilePicture': imageUrl,
+    };
+
+    print('Updating profile at $uri with body: $body...');
+    var response = await http.put(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body),
+    );
+    print('Update completed. Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      var jsonResponse = json.decode(response.body);
+      if (jsonResponse['success'] == true) {
+        // 5. Update local storage and UserBloc (equivalent to localStorage and Redux in JS)
+        final updatedData = {
+          'userId': userId,
+          'firstName': _firstNameController.text.trim(),
+          'lastName': _lastNameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'profilePicture': imageUrl,
+        };
+        await HiveRepository.saveData("loggedUser", json.encode(updatedData), HiveBoxNames.authBox);
+        context.read<UserBloc>().add(UpdateUser(
+          firstName: updatedData['firstName'] ?? '',
+          lastName: updatedData['lastName'] ?? '',
+          email: updatedData['email'] ?? '',
+          profilePicture: updatedData['profilePicture'],
+        ));
+
+        return jsonResponse['user']?['profilePicture'] ?? "PROFILE_UPDATED";
+      } else {
+        throw Exception("Server returned success:false: ${response.body}");
+      }
+    } else {
+      throw Exception(
+          "Failed to update profile: Status ${response.statusCode}, ${response.body}");
+    }
+  } catch (e) {
+    print('Error uploading/updating profile image: $e');
+    throw e;
   }
+}
 
   void _updateProfile() async {
-    // Only update if form has changed and not already loading
     if (!_formChanged || _isLoading) return;
 
-    // Validate form fields
     if (!_validateForm()) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    // Set a timeout to reset loading state if the API takes too long
     _loadingTimeout = Timer(Duration(seconds: 30), () {
       if (_isLoading && mounted) {
         _resetLoadingState();
@@ -260,153 +284,77 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      // If a new profile image was selected, handle the image upload first
-      // For the part inside _updateProfile method where it handles image upload
       if (_selectedProfileImage != null) {
-        try {
-          // Show upload progress dialog
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text("Uploading profile picture..."),
-                  ],
-                ),
-              );
-            },
-          );
-
-          // Upload the image
-          String? uploadResult =
-              await _uploadProfileImage(_selectedProfileImage!);
-
-          // Close the progress dialog
-          if (Navigator.of(context, rootNavigator: true).canPop()) {
-            Navigator.of(context, rootNavigator: true).pop();
-          }
-
-          if (uploadResult == "PROFILE_UPDATED") {
-            // Profile was already updated with the image in a single request
-            _resetLoadingState();
-            setState(() {
-              _formChanged = false;
-            });
-
-            // Load the user profile to ensure UI is up-to-date
-            context.read<UserBloc>().add(LoadUser());
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Profile updated successfully'),
-                backgroundColor: Colors.green,
+        // Show upload progress
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text("Uploading profile picture..."),
+                ],
               ),
             );
+          },
+        );
 
-            // Navigate back after successful update
-            Navigator.of(context).pop();
-            return;
-          } else if (uploadResult != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Profile picture uploaded successfully!'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
-              ),
-            );
+        // Upload and update profile
+        String? uploadResult =
+            await _uploadProfileImage(_selectedProfileImage!);
 
-            // Update user profile with the profile picture URL
-            context.read<UserBloc>().add(
-                  UpdateUser(
-                    firstName: _firstNameController.text.trim(),
-                    lastName: _lastNameController.text.trim(),
-                    email: _emailController.text.trim(),
-                    profilePicture: uploadResult,
-                  ),
-                );
-            return;
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Profile picture upload failed. Using previous image.'),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          }
-        } catch (uploadError) {
-          // Close the progress dialog if it's still open
-          if (Navigator.of(context, rootNavigator: true).canPop()) {
-            Navigator.of(context, rootNavigator: true).pop();
-          }
+        if (Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
 
-          print('Error uploading image: $uploadError');
+        if (uploadResult != null) {
+          _resetLoadingState();
+          setState(() {
+            _formChanged = false;
+            _selectedProfileImage =
+                null; // Clear the selected image (matches JS)
+          });
+
+          // 6. Success message (matches JS success feedback)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                  'Failed to upload profile picture: ${uploadError.toString().substring(0, uploadError.toString().length > 100 ? 100 : uploadError.toString().length)}...'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 4),
+              content: Text('Profile image successfully added'),
+              backgroundColor: Colors.green,
             ),
           );
 
-          // Ask the user if they want to continue with just the profile info update
-          bool continueWithUpdate = await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text("Image Upload Failed"),
-                    content: Text(
-                        "Do you want to continue updating your profile without changing your profile picture?"),
-                    actions: [
-                      TextButton(
-                        child: Text("Cancel Update"),
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
-                      ),
-                      ElevatedButton(
-                        child: Text("Continue"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop(true);
-                        },
-                      ),
-                    ],
-                  );
-                },
-              ) ??
-              false;
-
-          if (!continueWithUpdate) {
-            _resetLoadingState();
-            return;
-          }
+          // Reload user data and navigate back
+          context.read<UserBloc>().add(LoadUser());
+          Navigator.of(context).pop();
         }
+      } else {
+        // Update profile without image
+        context.read<UserBloc>().add(
+              UpdateUser(
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: _emailController.text.trim(),
+              ),
+            );
+      }
+    } catch (e) {
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
       }
 
-      // Update user profile information (without profile picture)
-      context.read<UserBloc>().add(
-            UpdateUser(
-              firstName: _firstNameController.text.trim(),
-              lastName: _lastNameController.text.trim(),
-              email: _emailController.text.trim(),
-            ),
-          );
-    } catch (e) {
-      print('Error dispatching UpdateUser event: $e');
       _resetLoadingState();
+      setState(() {
+        _selectedProfileImage = null; // Clear on error (matches JS)
+      });
 
+      // Error message (matches JS error feedback)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error updating profile: $e'),
+          content: Text('Error uploading/updating profile image: $e'),
           backgroundColor: Colors.red,
         ),
       );

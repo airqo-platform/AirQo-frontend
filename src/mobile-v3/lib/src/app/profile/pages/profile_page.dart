@@ -156,7 +156,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Helper method to build the profile picture widget - reusing the same logic from dashboard_app_bar.dart
   Widget _buildProfilePicture(String profilePicture) {
     // Extract initials from user data if available
     final userState = context.read<UserBloc>().state;
