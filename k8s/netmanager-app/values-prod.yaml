@@ -15,7 +15,7 @@ ingress:
   enabled: false
 nodeSelector: 
   role: control-plane
-torelations: {}
+tolerations: {}
 resources:
   requests:
     cpu: 10m
