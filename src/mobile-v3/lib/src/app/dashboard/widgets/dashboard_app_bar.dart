@@ -101,12 +101,16 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          String firstName = userState.model.users[0].firstName.isNotEmpty
-              ? userState.model.users[0].firstName[0].toUpperCase()
-              : " ";
-          String lastName = userState.model.users[0].lastName.isNotEmpty
-              ? userState.model.users[0].lastName[0].toUpperCase()
-              : " ";
+          // String firstName = userState.model.users[0].firstName.isNotEmpty
+          //     ? userState.model.users[0].firstName[0].toUpperCase()
+          //     : " ";
+          // String lastName = userState.model.users[0].lastName.isNotEmpty
+          //     ? userState.model.users[0].lastName[0].toUpperCase()
+          //     : " ";
+          String profilePicture =
+              userState.model.users[0].profilePicture.isNotEmpty
+                  ? userState.model.users[0].profilePicture
+                  : "assets/icons/user_icon.svg";
           return GestureDetector(
             onTap: () {
               // Navigate to profile page
@@ -121,13 +125,9 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               backgroundColor: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkHighlight
                   : AppColors.dividerColorlight,
-              child: Center(
-                  child: Text(
-                "$firstName$lastName",
-                style: TextStyle(
-                  color: AppColors.navigationlight,
-                ),
-              )),
+              child: ClipOval(
+                child: _buildProfilePicture(profilePicture),
+              ),
             ),
           );
         } else if (userState is UserLoadingError) {
@@ -141,5 +141,42 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         }
       },
     );
+  }
+
+// Helper method to build the profile picture widget
+  Widget _buildProfilePicture(String profilePicture) {
+    if (profilePicture.startsWith('http')) {
+      // Network image (URL)
+      return Image.network(
+        profilePicture,
+        fit: BoxFit.cover,
+        width: 48, // 2 * radius
+        height: 48,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to default asset if network image fails
+          return SvgPicture.asset(
+            "assets/icons/user_icon.svg",
+            height: 22,
+            width: 22,
+          );
+        },
+      );
+    } else {
+      // Local asset (SVG or image)
+      if (profilePicture.endsWith('.svg')) {
+        return SvgPicture.asset(
+          profilePicture,
+          height: 22,
+          width: 22,
+        );
+      } else {
+        return Image.asset(
+          profilePicture,
+          fit: BoxFit.cover,
+          width: 48,
+          height: 48,
+        );
+      }
+    }
   }
 }
