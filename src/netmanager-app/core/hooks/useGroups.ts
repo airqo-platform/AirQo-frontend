@@ -18,6 +18,20 @@ interface TeamMembersResponse {
   group_members: GroupMember[];
 }
 
+interface CreateOrgInput {
+  grp_title: string;
+  grp_country: string;
+  grp_industry: string;
+  grp_timezone: {
+    value: string;
+    label: string;
+  };
+  grp_description: string;
+  grp_website: string;
+  grp_profile_picture?: string | "";
+};
+
+
 export const useGroups = () => {
   const dispatch = useDispatch();
 
@@ -97,7 +111,7 @@ export const useCreateGroup = () => {
   const dispatch = useDispatch()
 
   return useMutation({
-    mutationFn: (newGroup: Group) => groupsApi.createGroupApi(newGroup),
+    mutationFn: (newGroup: CreateOrgInput) => groupsApi.createGroupApi(newGroup),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["groups"] })
       dispatch(setGroups([...data.groups, data.group]))

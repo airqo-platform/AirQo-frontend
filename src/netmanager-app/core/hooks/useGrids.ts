@@ -21,7 +21,7 @@ export const useGrids = () => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["grids", activeNetwork?.net_name],
+    queryKey: ["grids"],
     queryFn: () => grids.getGridsApi(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
   });
