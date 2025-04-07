@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "@/components/ui/use-toast";
 import { Permission, Role } from "@/app/types/roles";
+import { roles } from "@/core/apis/roles";
 
 type OrganizationRolesProps = {
   organizationId: string;
@@ -54,11 +55,6 @@ const ITEMS_PER_PAGE = 10;
 type SortField = "role_name" | "permissions";
 type SortOrder = "asc" | "desc";
 
-interface Role {
-  _id: string;
-  role_name: string;
-  role_permissions: Array<{ permission: string }>;
-}
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const { grproles, isLoading, error } = useGroupRoles(organizationId);
@@ -131,7 +127,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const sortedAndFilteredRoles = useMemo(() => {
     return grproles
       .filter((role: Role) => {
-      .filter((role: Role) => {
         const searchLower = searchQuery.toLowerCase();
         return (
           role.role_name.toLowerCase().includes(searchLower) ||
@@ -140,7 +135,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
           )
         );
       })
-      .sort((a: Role, b: Role) => {
       .sort((a: Role, b: Role) => {
         if (sortField === "role_name") {
           return sortOrder === "asc"
@@ -299,7 +293,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentRoles.map((role: Role) => (
               {currentRoles.map((role: Role) => (
                 <TableRow key={role._id}>
                   <TableCell>{role.role_name}</TableCell>
