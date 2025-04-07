@@ -214,7 +214,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     // Handle network image (URL)
-    if (profilePicture.startsWith('http')) {
+    if (profilePicture.startsWith('https')) {
       return Image.network(
         profilePicture,
         fit: BoxFit.cover,

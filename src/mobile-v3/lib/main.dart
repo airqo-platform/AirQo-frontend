@@ -165,6 +165,7 @@ class _DeciderState extends State<Decider> {
 
                 // Handle logged-in user
                 if (authState is AuthLoaded) {
+                   context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
 
