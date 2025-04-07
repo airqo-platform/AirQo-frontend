@@ -34,6 +34,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         firstName: event.firstName,
         lastName: event.lastName,
         email: event.email,
+        profilePicture: event.profilePicture,
       );
       
       emit(UserUpdateSuccess(model));

@@ -16,6 +16,7 @@ class _EditProfileState extends State<EditProfile> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+
   bool _isLoading = false;
   bool _formChanged = false;
   Timer? _loadingTimeout;
@@ -129,6 +130,7 @@ class _EditProfileState extends State<EditProfile> {
               firstName: _firstNameController.text.trim(),
               lastName: _lastNameController.text.trim(),
               email: _emailController.text.trim(),
+              profilePicture: '', 
             ),
           );
     } catch (e) {

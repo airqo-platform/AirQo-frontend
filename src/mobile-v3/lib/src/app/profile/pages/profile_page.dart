@@ -65,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${firstName} ${lastName}",
+                                      "$firstName $lastName",
                                       style: TextStyle(
                                         color: Theme.of(context).brightness == Brightness.dark 
                                             ? Colors.white 

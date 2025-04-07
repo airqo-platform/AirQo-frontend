@@ -36,6 +36,7 @@ class User {
     String id;
     String firstName;
     String lastName;
+    String profilePicture;
     DateTime lastLogin;
     bool isActive;
     int loginCount;
@@ -52,6 +53,7 @@ class User {
         required this.id,
         required this.firstName,
         required this.lastName,
+        required this.profilePicture,
         required this.lastLogin,
         required this.isActive,
         required this.loginCount,
@@ -69,6 +71,7 @@ class User {
         id: json["_id"],
         firstName: json["firstName"],
         lastName: json["lastName"],
+        profilePicture: json["profilePicture"],
         lastLogin: DateTime.parse(json["lastLogin"]),
         isActive: json["isActive"],
         loginCount: json["loginCount"],
@@ -86,6 +89,7 @@ class User {
         "_id": id,
         "firstName": firstName,
         "lastName": lastName,
+        "profilePicture": profilePicture,
         "lastLogin": lastLogin.toIso8601String(),
         "isActive": isActive,
         "loginCount": loginCount,
