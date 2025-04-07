@@ -27,6 +27,9 @@ class _ProfilePageState extends State<ProfilePage> {
         } else if (state is UserLoaded) {
           String firstName = state.model.users[0].firstName;
           String lastName = state.model.users[0].lastName;
+          String profilePicture = state.model.users[0].profilePicture.isNotEmpty
+              ? state.model.users[0].profilePicture
+              : "";
           return DefaultTabController(
             length: 1,
             child: Scaffold(
@@ -54,10 +57,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   backgroundColor:
                                       Theme.of(context).highlightColor,
                                   radius: 50,
-                                  child: Center(
-                                    child: SvgPicture.asset(
-                                        "assets/icons/user_icon.svg"),
-                                  ),
+                                  child: _buildProfilePicture(profilePicture),
                                 ),
                               ),
                               Expanded(
@@ -152,6 +152,55 @@ class _ProfilePageState extends State<ProfilePage> {
         return Center(child: Text(state.toString()));
       },
     );
+  }
+  
+  // Helper method to build the profile picture widget - reusing the same logic from dashboard_app_bar.dart
+  Widget _buildProfilePicture(String profilePicture) {
+    if (profilePicture.isEmpty) {
+      return SvgPicture.asset(
+        "assets/icons/user_icon.svg",
+        height: 22,
+        width: 22,
+      );
+    }
+    
+    if (profilePicture.startsWith('http')) {
+      // Network image (URL)
+      return ClipOval(
+        child: Image.network(
+          profilePicture,
+          fit: BoxFit.cover,
+          width: 100, // 2 * radius
+          height: 100,
+          errorBuilder: (context, error, stackTrace) {
+            // Fallback to default asset if network image fails
+            return SvgPicture.asset(
+              "assets/icons/user_icon.svg",
+              height: 22,
+              width: 22,
+            );
+          },
+        ),
+      );
+    } else {
+      // Local asset (SVG or image)
+      if (profilePicture.endsWith('.svg')) {
+        return SvgPicture.asset(
+          profilePicture,
+          height: 22,
+          width: 22,
+        );
+      } else {
+        return ClipOval(
+          child: Image.asset(
+            profilePicture,
+            fit: BoxFit.cover,
+            width: 100,
+            height: 100,
+          ),
+        );
+      }
+    }
   }
 }
 
