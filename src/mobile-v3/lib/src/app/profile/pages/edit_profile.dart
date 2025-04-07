@@ -84,20 +84,7 @@ class _EditProfileState extends State<EditProfile> {
   }
   
   Future<File> _compressImage(File file) async {
-    // Get the file path
-    final filePath = file.path;
-    
-    // Use image_picker's built-in compression options when picking
-    // If you need more control, consider adding the flutter_image_compress package
-    final XFile compressedFile = await _picker.pickImage(
-      source: ImageSource.camera, // This is a dummy value, we're not actually picking
-      maxWidth: 600,
-      maxHeight: 600,
-      imageQuality: 70, // Adjust quality as needed (0-100)
-      preferredCameraDevice: CameraDevice.rear,
-    ) as XFile;
-    
-    return File(compressedFile.path);
+    return file;
   }
 
   bool _validateEmail(String email) {
@@ -189,26 +176,21 @@ class _EditProfileState extends State<EditProfile> {
         throw Exception("Authentication token not found");
       }
       
-      // First convert the image to base64
-      List<int> imageBytes = await compressedFile.readAsBytes();
-      String base64Image = base64Encode(imageBytes);
-      
-      // Prepare the request body with ONLY the profilePicture field to avoid overwriting other user data
-      final Map<String, dynamic> requestBody = {
-        "profilePicture": base64Image
-      };
-      
-      // Create a PUT request instead of multipart
-      var request = http.Request('PUT', uri);
-      
-      // Add the auth token to headers
-      request.headers.addAll({
-        'Authorization': 'Bearer $authToken',
-        'Content-Type': 'application/json',
-      });
-      
-      // Add the JSON body
-      request.body = json.encode(requestBody);
+          // Create a multipart request
+    var request = http.MultipartRequest('PUT', uri);
+    
+    // Add the auth token
+    request.headers.addAll({
+      'Authorization': 'Bearer $authToken',
+    });
+    
+    // Add the file
+    request.files.add(await http.MultipartFile.fromPath(
+      'profilePicture', 
+      imageFile.path,
+      contentType: MediaType('image', 'jpeg'),
+    ));
+    
       
       // Track upload progress for larger images
       print('Starting profile picture upload to $uri...');
@@ -329,7 +311,6 @@ class _EditProfileState extends State<EditProfile> {
                 firstName: _firstNameController.text.trim(),
                 lastName: _lastNameController.text.trim(),
                 email: _emailController.text.trim(),
-                profilePicture: profilePictureUrl, 
               ),
             );
             return; // Exit early as we've already handled the update
@@ -399,7 +380,6 @@ class _EditProfileState extends State<EditProfile> {
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           email: _emailController.text.trim(),
-          profilePicture: profilePictureUrl, 
         ),
       );
     } catch (e) {

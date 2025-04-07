@@ -176,27 +176,27 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   // Helper method to build the profile picture widget with null safety
   Widget _buildProfilePicture(
       String? profilePicture, String? firstName, String? lastName) {
-    // Add debug prints to troubleshoot
-    print("Building profile picture with data:");
-    print("Profile picture: $profilePicture");
-    print("First name: $firstName, Last name: $lastName");
-
     // Make firstName and lastName nullable safe by providing defaults
     String firstNameSafe = firstName ?? "";
     String lastNameSafe = lastName ?? "";
 
     // Generate initials from the user's name, with robust null/empty checks
-    String firstInitial =
-        (firstNameSafe.isNotEmpty) ? firstNameSafe[0].toUpperCase() : "";
-    String lastInitial =
-        (lastNameSafe.isNotEmpty) ? lastNameSafe[0].toUpperCase() : "";
-    String initials = (firstInitial + lastInitial).isNotEmpty
-        ? (firstInitial + lastInitial)
-        : "?";
+    String initials = "";
 
-    print("Generated initials: $initials");
+    if (firstNameSafe.isNotEmpty) {
+      initials += firstNameSafe[0].toUpperCase();
+    }
 
-    // Create the fallback widget (with initials) once to reuse
+    if (lastNameSafe.isNotEmpty) {
+      initials += lastNameSafe[0].toUpperCase();
+    }
+
+    // If no initials could be generated, use "?" as fallback
+    if (initials.isEmpty) {
+      initials = "?";
+    }
+
+    // Create the fallback widget (with initials)
     Widget initialsWidget = Center(
       child: Text(
         initials,
@@ -210,20 +210,17 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     // If profile picture is null or empty, show initials
     if (profilePicture == null || profilePicture.isEmpty) {
-      print("No profile picture, showing initials");
       return initialsWidget;
     }
 
-    // If profile picture is a network URL
+    // Handle network image (URL)
     if (profilePicture.startsWith('http')) {
-      print("Loading network image: $profilePicture");
       return Image.network(
         profilePicture,
         fit: BoxFit.cover,
         width: 48,
         height: 48,
         errorBuilder: (context, error, stackTrace) {
-          print("Network image error: $error");
           // On network image error, show initials
           return initialsWidget;
         },
@@ -231,15 +228,14 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           if (loadingProgress == null) {
             return child;
           }
-          // Show loading indicator or initials while loading
+          // Show initials while loading
           return initialsWidget;
         },
       );
     }
 
-    // For local SVG assets
+    // Handle SVG assets
     if (profilePicture.endsWith('.svg')) {
-      print("Loading SVG asset: $profilePicture");
       return SvgPicture.asset(
         profilePicture,
         height: 48,
@@ -249,15 +245,13 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
-    // For other local assets
-    print("Loading asset image: $profilePicture");
+    // Handle other local assets
     return Image.asset(
       profilePicture,
       fit: BoxFit.cover,
       width: 48,
       height: 48,
       errorBuilder: (context, error, stackTrace) {
-        print("Asset image error: $error");
         // On local image error, show initials
         return initialsWidget;
       },
