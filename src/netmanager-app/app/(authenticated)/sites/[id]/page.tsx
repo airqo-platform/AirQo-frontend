@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronLeft, Edit2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -28,16 +27,16 @@ const siteData = {
   name: "Water and Environment House, Luzira",
   description: "Water and Environment House, Luzira",
   organization: "AirQo",
-  latitude: 0.302458,
-  longitude: 32.641609,
+  latitude: "0.302458",
+  longitude: "32.641609",
   network: "airqo",
   parish: "Nakawa",
   subCounty: "Nakawa",
   district: "Kampala",
   region: "Central Region",
-  altitude: 1177.3994140625,
+  altitude: "1177.3994140625",
   greenness: "",
-  nearestRoad: null,
+  nearestRoad: undefined,
   mobileAppName: "Nakawa 528",
   mobileAppDescription: "Kampala, Uganda",
 };

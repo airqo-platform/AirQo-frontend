@@ -49,7 +49,7 @@ export function OrganizationProfile({
     mutationFn: (data: typeof formData) =>
       groupsApi.updateGroupDetailsApi(organizationId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["groupDetails", organizationId]);
+      queryClient.invalidateQueries({ queryKey: ["groupDetails", organizationId] });
       toast({
         title: "Profile Updated",
         description: "The organization profile has been successfully updated.",
@@ -167,9 +167,9 @@ export function OrganizationProfile({
           <Button
             type="submit"
             className="w-full md:w-auto"
-            disabled={updateMutation.isLoading}
+            disabled={updateMutation.isPending}
           >
-            {updateMutation.isLoading ? "Updating..." : "Update Profile"}
+            {updateMutation.isPending ? "Updating..." : "Update Profile"}
           </Button>
         </form>
       </CardContent>
