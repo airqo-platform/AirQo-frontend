@@ -27,5 +27,6 @@ final class UpdateUser extends UserEvent {
         firstName,
         lastName,
         email,
+        if (profilePicture != null) profilePicture!,
       ];
 }

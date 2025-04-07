@@ -148,6 +148,7 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  // 1. First, modify the _uploadProfileImage method to check the actual file extension
   Future<String?> _uploadProfileImage(File imageFile) async {
     try {
       // Get the user ID for the API endpoint
@@ -157,44 +158,53 @@ class _EditProfileState extends State<EditProfile> {
         throw Exception("User ID not found");
       }
 
-      // Compress the image before uploading
-      File compressedFile = imageFile;
-      try {
-        compressedFile = await _compressImage(imageFile);
-        print(
-            'Image compressed successfully. Original size: ${await imageFile.length()} bytes, Compressed size: ${await compressedFile.length()} bytes');
-      } catch (e) {
-        print('Failed to compress image: $e');
-        // If compression fails, continue with the original file
+      // Get the image file extension to determine content type
+      String extension = imageFile.path.split('.').last.toLowerCase();
+      String mimeType;
+
+      // Set the appropriate MIME type based on file extension
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          mimeType = 'jpeg';
+          break;
+        case 'png':
+          mimeType = 'png';
+          break;
+        case 'gif':
+          mimeType = 'gif';
+          break;
+        default:
+          mimeType = 'jpeg'; // Default to jpeg if unknown
       }
 
-      // Create a multipart request with the user-specific endpoint
-      // Using the general user update endpoint
+      // Create a multipart request
       var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+      var request = http.MultipartRequest('PUT', uri);
 
-      // Get the auth token for the request
+      // Add the auth token
       final authToken =
           await HiveRepository.getData("token", HiveBoxNames.authBox);
       if (authToken == null) {
         throw Exception("Authentication token not found");
       }
-
-      // Create a multipart request
-      var request = http.MultipartRequest('PUT', uri);
-
-      // Add the auth token
       request.headers.addAll({
         'Authorization': 'Bearer $authToken',
       });
 
-      // Add the file
+      // Add form fields for user data (important to include these with the image)
+      // This ensures all user data is updated in a single request
+      request.fields['firstName'] = _firstNameController.text.trim();
+      request.fields['lastName'] = _lastNameController.text.trim();
+      request.fields['email'] = _emailController.text.trim();
+
+      // Add the image file with the correct MIME type
       request.files.add(await http.MultipartFile.fromPath(
         'profilePicture',
         imageFile.path,
-        contentType: MediaType('image', 'jpeg'),
+        contentType: MediaType('image', mimeType),
       ));
 
-      // Track upload progress for larger images
       print('Starting profile picture upload to $uri...');
       var streamedResponse = await request.send();
       print('Upload completed. Status code: ${streamedResponse.statusCode}');
@@ -203,18 +213,14 @@ class _EditProfileState extends State<EditProfile> {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Parse the response to get the image URL
         try {
           var jsonResponse = json.decode(response.body);
-
-          String? profilePictureUrl;
-
-          if (jsonResponse['user'] != null &&
-              jsonResponse['user']['profilePicture'] != null) {
-            profilePictureUrl = jsonResponse['user']['profilePicture'];
+          if (jsonResponse['success'] == true) {
+            // Return success without triggering a second update
+            return "PROFILE_UPDATED";
+          } else {
+            throw Exception("Server returned success:false");
           }
-
-          return profilePictureUrl ?? "PROFILE_UPDATED";
         } catch (parseError) {
           print('Error parsing JSON response: $parseError');
           throw Exception("Failed to parse server response: $parseError");
@@ -225,7 +231,6 @@ class _EditProfileState extends State<EditProfile> {
       }
     } catch (e) {
       print('Error uploading profile image: $e');
-      // Re-throw to be handled by the caller
       throw e;
     }
   }
@@ -256,6 +261,7 @@ class _EditProfileState extends State<EditProfile> {
 
     try {
       // If a new profile image was selected, handle the image upload first
+      // For the part inside _updateProfile method where it handles image upload
       if (_selectedProfileImage != null) {
         try {
           // Show upload progress dialog
@@ -285,7 +291,27 @@ class _EditProfileState extends State<EditProfile> {
             Navigator.of(context, rootNavigator: true).pop();
           }
 
-          if (uploadResult != null) {
+          if (uploadResult == "PROFILE_UPDATED") {
+            // Profile was already updated with the image in a single request
+            _resetLoadingState();
+            setState(() {
+              _formChanged = false;
+            });
+
+            // Load the user profile to ensure UI is up-to-date
+            context.read<UserBloc>().add(LoadUser());
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profile updated successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Navigate back after successful update
+            Navigator.of(context).pop();
+            return;
+          } else if (uploadResult != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Profile picture uploaded successfully!'),
@@ -294,15 +320,13 @@ class _EditProfileState extends State<EditProfile> {
               ),
             );
 
-            // Reload user data to get updated profile picture
-            context.read<UserBloc>().add(LoadUser());
-
-            // Update user profile info separately
+            // Update user profile with the profile picture URL
             context.read<UserBloc>().add(
                   UpdateUser(
                     firstName: _firstNameController.text.trim(),
                     lastName: _lastNameController.text.trim(),
                     email: _emailController.text.trim(),
+                    profilePicture: uploadResult,
                   ),
                 );
             return;
