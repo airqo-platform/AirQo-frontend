@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Group } from "@/app/types/groups";
 import {
   Dialog,
   DialogContent,
@@ -151,18 +152,17 @@ export function CreateOrganizationDialog() {
   const {
     fields: memberFields,
     append: appendMember,
-    remove: removeMember,
   } = useFieldArray({
     control: inviteMembersForm.control,
     name: "members",
   });
 
-  const { mutate: createGroup, isLoading: isCreatingGroup } = useCreateGroup();
-  const { mutate: assignDevicesToGroup, isLoading: isAssigningDevices } =
+  const { mutate: createGroup, isPending: isCreatingGroup } = useCreateGroup();
+  const { mutate: assignDevicesToGroup, isPending: isAssigningDevices } =
     useAssignDevicesToGroup();
-  const { mutate: assignSitesToGroup, isLoading: isAssigningSites } =
+  const { mutate: assignSitesToGroup, isPending: isAssigningSites } =
     useAssignSitesToGroup();
-  const { mutate: inviteUserToGroup, isLoading: isInvitingMembers } =
+  const { mutate: inviteUserToGroup, isPending: isInvitingMembers } =
     useInviteUserToGroup("");
 
   const { sites: allSites, isLoading: isLoadingSites } = useSites();
@@ -172,7 +172,7 @@ export function CreateOrganizationDialog() {
     data: z.infer<typeof createOrgSchema>
   ) => {
     try {
-      await createGroup(data);
+      createGroup(data as unknown as Group);
       toast({
         title: "Organization created",
         description: `Successfully created organization: ${data.grp_title}`,
@@ -418,7 +418,7 @@ export function CreateOrganizationDialog() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Enter a URL for the organization's profile picture
+                      Enter a URL for the organization&apos;s profile picture
                       (optional)
                     </FormDescription>
                     <FormMessage />
@@ -454,7 +454,7 @@ export function CreateOrganizationDialog() {
                     <FormControl>
                       <Select
                         onValueChange={(value) => {
-                          const site = allSites.find((s) => s._id === value);
+                          const site = allSites.find((s: { _id: string; name: string }) => s._id === value);
                           if (site) {
                             const currentSites = addSitesForm.getValues().sites;
                             addSitesForm.setValue("sites", [
@@ -468,7 +468,7 @@ export function CreateOrganizationDialog() {
                           <SelectValue placeholder="Select a site" />
                         </SelectTrigger>
                         <SelectContent>
-                          {allSites.map((site) => (
+                          {allSites.map((site: { _id: string; name: string }) => (
                             <SelectItem key={site._id} value={site._id}>
                               {site.name}
                             </SelectItem>
@@ -721,3 +721,4 @@ export function CreateOrganizationDialog() {
     </Dialog>
   );
 }
+

@@ -1,5 +1,7 @@
-import type React from "react";
-import Link from "next/link";
+"use client"
+
+import type React from "react"
+import Link from "next/link"
 import {
   BarChart2,
   Users,
@@ -20,9 +22,9 @@ import {
   LogOut,
   NetworkIcon,
   ChevronLeft,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,43 +32,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import type { Group, Network } from "@/app/types/users";
-import { PermissionGuard } from "@/components/permission-guard";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import Image from "next/image";
+} from "@/components/ui/dropdown-menu"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import type { Group, Network } from "@/app/types/users"
+import { PermissionGuard } from "@/components/permission-guard"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Image from "next/image"
 
 const formatTitle = (title: string) => {
-  return title
-    .replace(/[_-]/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
+  return title.replace(/[_-]/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+}
 
 interface DesktopSidebarProps {
-  isSidebarCollapsed: boolean;
-  toggleSidebar: () => void;
-  isDevicesOpen: boolean;
-  handleDevicesToggle: (open: boolean) => void;
-  activeGroup: Group | null;
-  userGroups: Group[];
-  handleOrganizationChange: (group: Group) => void;
-  activeNetwork: Network | null;
-  availableNetworks: Network[];
-  handleNetworkChange: (network: Network) => void;
-  isActive: (path: string) => boolean;
-  logout: () => void;
-  className?: string;
+  isSidebarCollapsed: boolean
+  toggleSidebar: () => void
+  isDevicesOpen: boolean
+  handleDevicesToggle: (open: boolean) => void
+  activeGroup: Group | null
+  userGroups: Group[]
+  handleOrganizationChange: (group: Group) => void
+  activeNetwork: Network | null
+  availableNetworks: Network[]
+  handleNetworkChange: (network: Network) => void
+  isActive: (path: string) => boolean
+  logout: () => void
+  className?: string
 }
 
 const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
@@ -88,9 +79,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     icon: Icon,
     label,
   }: {
-    href: string;
-    icon: React.ElementType;
-    label: string;
+    href: string
+    icon: React.ElementType
+    label: string
   }) => (
     <TooltipProvider>
       <Tooltip>
@@ -102,20 +93,15 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             }`}
           >
             <Icon size={18} />
-            <span className={isSidebarCollapsed ? "hidden" : "block"}>
-              {label}
-            </span>
+            <span className={isSidebarCollapsed ? "hidden" : "block"}>{label}</span>
           </Link>
         </TooltipTrigger>
-        <TooltipContent
-          side="right"
-          className={isSidebarCollapsed ? "block" : "hidden"}
-        >
+        <TooltipContent side="right" className={isSidebarCollapsed ? "block" : "hidden"}>
           {label}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 
   return (
     <div
@@ -159,9 +145,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">
-              {isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}
-            </TooltipContent>
+            <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -169,19 +153,12 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       {/* Sidebar Content */}
       <div className="flex-grow overflow-y-auto">
         {/* Organization Switcher */}
-        <Card
-          className={`m-4 bg-primary text-primary-foreground ${
-            isSidebarCollapsed ? "hidden" : "block"
-          }`}
-        >
+        <Card className={`m-4 bg-primary text-primary-foreground ${isSidebarCollapsed ? "hidden" : "block"}`}>
           <CardContent className="p-3">
             <h2 className="text-sm font-semibold mb-2">Organization</h2>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="secondary"
-                  className="w-full justify-between uppercase"
-                >
+                <Button variant="secondary" className="w-full justify-between uppercase">
                   {activeGroup?.grp_title
                     ? `${formatTitle(activeGroup.grp_title).slice(0, 16)}${
                         activeGroup.grp_title.length > 16 ? "..." : ""
@@ -212,29 +189,29 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         <nav className="space-y-6 p-4">
           {/* Overview */}
           <div>
-            <h2
-              className={`text-sm font-semibold text-foreground/60 mb-2 ${
-                isSidebarCollapsed ? "hidden" : "block"
-              }`}
-            >
+            <h2 className={`text-sm font-semibold text-foreground/60 mb-2 ${isSidebarCollapsed ? "hidden" : "block"}`}>
               Overview
             </h2>
             <ul className="space-y-2">
               <li>
-                <NavItem href="/analytics" icon={BarChart2} label="Analytics" />
-              </li>
-              <li>
-                <NavItem
-                  href="/network-map"
-                  icon={MapIcon}
-                  label="Network Map"
+                <NavItem 
+                  href="/analytics" 
+                  icon={BarChart2} 
+                  label="Analytics" 
                 />
               </li>
               <li>
-                <NavItem
-                  href="/data-export"
-                  icon={Download}
-                  label="Data Export"
+                <NavItem 
+                  href="/network-map" 
+                  icon={MapIcon} 
+                  label="Network Map" 
+                />
+              </li>
+              <li>
+                <NavItem 
+                  href="/data-export" 
+                  icon={Download} 
+                  label="Data Export" 
                 />
               </li>
             </ul>
@@ -242,11 +219,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
           {/* Network */}
           <div>
-            <h2
-              className={`text-sm font-semibold text-foreground/60 mb-2 ${
-                isSidebarCollapsed ? "hidden" : "block"
-              }`}
-            >
+            <h2 className={`text-sm font-semibold text-foreground/60 mb-2 ${isSidebarCollapsed ? "hidden" : "block"}`}>
               Network
             </h2>
 
@@ -254,15 +227,10 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             <div className={`mb-4 ${isSidebarCollapsed ? "hidden" : "block"}`}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between text-foreground"
-                  >
+                  <Button variant="outline" className="w-full justify-between text-foreground">
                     <div className="flex items-center gap-2">
                       <NetworkIcon size={18} />
-                      <span className="uppercase">
-                        {activeNetwork?.net_name || "Select Network"}
-                      </span>
+                      <span className="uppercase">{activeNetwork?.net_name || "Select Network"}</span>
                     </div>
                     <ChevronRight size={16} />
                   </Button>
@@ -279,9 +247,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                         className="flex items-center justify-between uppercase"
                       >
                         {network.net_name}
-                        {activeNetwork?._id === network._id && (
-                          <Check size={16} />
-                        )}
+                        {activeNetwork?._id === network._id && <Check size={16} />}
                       </DropdownMenuItem>
                     ))}
                 </DropdownMenuContent>
@@ -291,67 +257,58 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             {/* Network Items */}
             <ul className="space-y-2">
               <PermissionGuard
-                permission={[
-                  "CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES",
-                  "DEPLOY_AIRQO_DEVICES",
-                ]}
+                permission={["CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES", "DEPLOY_AIRQO_DEVICES"]}
                 requireAll={false}
               >
                 <li>
-                  <Collapsible
-                    open={isDevicesOpen}
-                    onOpenChange={handleDevicesToggle}
-                  >
+                  <Collapsible open={isDevicesOpen} onOpenChange={handleDevicesToggle}>
                     <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-between ${
-                          isActive("/devices/overview") && !isDevicesOpen
-                            ? "bg-accent text-accent-foreground"
-                            : ""
-                        } ${isSidebarCollapsed ? "justify-center" : ""}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Radio size={18} />
-                          <span
-                            className={isSidebarCollapsed ? "hidden" : "block"}
-                          >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className={`w-full justify-between ${
+                                isActive("/devices/overview") && !isDevicesOpen
+                                  ? "bg-accent text-accent-foreground"
+                                  : ""
+                              } ${isSidebarCollapsed ? "justify-center" : ""}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Radio size={18} />
+                                <span className={isSidebarCollapsed ? "hidden" : "block"}>Devices</span>
+                              </div>
+                              <ChevronRight
+                                size={16}
+                                className={`transition-transform ${
+                                  isDevicesOpen ? "rotate-90" : ""
+                                } ${isSidebarCollapsed ? "hidden" : "block"}`}
+                              />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className={isSidebarCollapsed ? "block" : "hidden"}>
                             Devices
-                          </span>
-                        </div>
-                        <ChevronRight
-                          size={16}
-                          className={`transition-transform ${
-                            isDevicesOpen ? "rotate-90" : ""
-                          } ${isSidebarCollapsed ? "hidden" : "block"}`}
-                        />
-                      </Button>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </CollapsibleTrigger>
-                    <CollapsibleContent
-                      className={`ml-6 space-y-2 ${
-                        isSidebarCollapsed ? "hidden" : "block"
-                      }`}
-                    >
+                    <CollapsibleContent className={`ml-6 space-y-2 ${isSidebarCollapsed ? "hidden" : "block"}`}>
                       <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
-                        <NavItem
-                          href="/devices/overview"
-                          icon={BarChart2}
-                          label="Overview"
+                        <NavItem 
+                          href="/devices/overview" 
+                          icon={BarChart2} 
+                          label="Overview" 
                         />
                       </PermissionGuard>
                       <PermissionGuard permission="DEPLOY_AIRQO_DEVICES">
-                        <NavItem
-                          href="/devices/deploy"
-                          icon={PlusCircle}
-                          label="Deploy Device"
+                        <NavItem 
+                          href="/devices/deploy" 
+                          icon={PlusCircle} 
+                          label="Deploy Device" 
                         />
                       </PermissionGuard>
                       <PermissionGuard permission="VIEW_NETWORK_UPTIME">
-                        <NavItem
-                          href="/devices/monitoring"
-                          icon={MonitorSmartphone}
-                          label="Monitoring"
-                        />
+                        <NavItem href="/devices/monitoring" icon={MonitorSmartphone} label="Monitoring" />
                       </PermissionGuard>
                     </CollapsibleContent>
                   </Collapsible>
@@ -377,31 +334,19 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               </PermissionGuard>
 
               <li>
-                <NavItem
-                  href="/activity-logs"
-                  icon={Activity}
-                  label="Activity Logs"
-                />
+                <NavItem href="/activity-logs" icon={Activity} label="Activity Logs" />
               </li>
             </ul>
           </div>
 
           {/* Account */}
           <div>
-            <h2
-              className={`text-sm font-semibold text-foreground/60 mb-2 ${
-                isSidebarCollapsed ? "hidden" : "block"
-              }`}
-            >
+            <h2 className={`text-sm font-semibold text-foreground/60 mb-2 ${isSidebarCollapsed ? "hidden" : "block"}`}>
               Account
             </h2>
             <ul className="space-y-2">
               <li>
-                <NavItem
-                  href="/profile"
-                  icon={UserCircle}
-                  label="Profile Settings"
-                />
+                <NavItem href="/profile" icon={UserCircle} label="Profile Settings" />
               </li>
             </ul>
           </div>
@@ -410,35 +355,21 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
             <div>
               <h2
-                className={`text-sm font-semibold text-foreground/60 mb-2 ${
-                  isSidebarCollapsed ? "hidden" : "block"
-                }`}
+                className={`text-sm font-semibold text-foreground/60 mb-2 ${isSidebarCollapsed ? "hidden" : "block"}`}
               >
                 App Management
               </h2>
               <ul className="space-y-2">
                 <li>
-                  <NavItem
-                    href="/user-management"
-                    icon={Users}
-                    label="User Management"
-                  />
+                  <NavItem href="/user-management" icon={Users} label="User Management" />
                 </li>
                 <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
                   <li>
-                    <NavItem
-                      href="/access-control"
-                      icon={Shield}
-                      label="Access Control"
-                    />
+                    <NavItem href="/access-control" icon={Shield} label="Access Control" />
                   </li>
                 </PermissionGuard>
                 <li>
-                  <NavItem
-                    href="/organizations"
-                    icon={Building2}
-                    label="Organizations"
-                  />
+                  <NavItem href="/organizations" icon={Building2} label="Organizations" />
                 </li>
               </ul>
             </div>
@@ -459,22 +390,18 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 onClick={logout}
               >
                 <LogOut size={18} />
-                <span className={isSidebarCollapsed ? "hidden" : "block"}>
-                  Logout
-                </span>
+                <span className={isSidebarCollapsed ? "hidden" : "block"}>Logout</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent
-              side="right"
-              className={isSidebarCollapsed ? "block" : "hidden"}
-            >
+            <TooltipContent side="right" className={isSidebarCollapsed ? "block" : "hidden"}>
               Logout
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DesktopSidebar;
+export default DesktopSidebar
+

@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { event } from '@/core/hooks/useGoogleAnalytics';
 import html2canvas from 'html2canvas';
 
 /**
@@ -27,30 +26,28 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
         bgColor: 'bg-blue-500',
       });
 
-      // Hide map controls before capture
-      const controls = mapRef.current
-        .getContainer()
-        .querySelector('.mapboxgl-ctrl-container');
+      // Get the map container and canvas
+      const mapContainer = mapRef.current.getContainer();
+      const mapCanvas = mapRef.current.getCanvas();
+      const controls = mapContainer.querySelector('.mapboxgl-ctrl-container');
+
+      // Hide map controls for clean capture
       if (controls) {
         controls.style.visibility = 'hidden';
       }
 
-      // Force a map render and wait for all sources and layers to load
+      // Ensure map is fully rendered
       mapRef.current.triggerRepaint();
       await new Promise((resolve) => {
         const checkLoaded = () => {
-          if (!mapRef.current.loaded() || !mapRef.current.isStyleLoaded()) {
+          if (!mapRef.current?.loaded() || !mapRef.current?.isStyleLoaded()) {
             setTimeout(checkLoaded, 100);
             return;
           }
-          setTimeout(resolve, 500); // Extra delay to ensure everything is rendered
+          setTimeout(resolve, 300); // Short delay to ensure rendering
         };
         checkLoaded();
       });
-
-      // Get the map container and canvas
-      const mapContainer = mapRef.current.getContainer();
-      const mapCanvas = mapRef.current.getCanvas();
 
       // Create a temporary canvas for the final image
       const tempCanvas = document.createElement('canvas');
@@ -58,10 +55,10 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
       tempCanvas.height = mapCanvas.height;
       const ctx = tempCanvas.getContext('2d');
 
-      // Draw the map canvas first
+      // Draw the map canvas
       ctx.drawImage(mapCanvas, 0, 0);
 
-      // Capture markers layer using html2canvas
+      // Capture markers layer
       const markersLayer = mapContainer.querySelector(
         '.mapboxgl-canvas-container',
       );
@@ -90,20 +87,21 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
         controls.style.visibility = 'visible';
       }
 
-      // Show capture feedback
+      // Create flash effect
       const flashElement = document.createElement('div');
-      flashElement.style.position = 'absolute';
-      flashElement.style.top = '0';
-      flashElement.style.left = '0';
-      flashElement.style.width = '100%';
-      flashElement.style.height = '100%';
-      flashElement.style.backgroundColor = 'white';
-      flashElement.style.opacity = '0.3';
-      flashElement.style.zIndex = '1000';
-      flashElement.style.transition = 'opacity 0.3s ease-out';
+      flashElement.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        opacity: 0.3;
+        z-index: 1000;
+        transition: opacity 0.3s ease-out;
+      `;
 
       mapContainer.appendChild(flashElement);
-
       setTimeout(() => {
         flashElement.style.opacity = '0';
         setTimeout(() => {
@@ -112,17 +110,19 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
       }, 100);
 
       // Convert and download
-      const finalImage = tempCanvas.toDataURL('image/jpeg', 1.0);
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[:T]/g, '-')
+        .slice(0, 19);
+      const finalImage = tempCanvas.toDataURL('image/jpeg', 0.9);
       const link = document.createElement('a');
       link.href = finalImage;
-      link.download = `airqo-map-${new Date().toISOString().split('T')[0]}-${new Date()
-        .toTimeString()
-        .split(' ')[0]
-        .replace(/:/g, '-')}.jpeg`;
+      link.download = `airqo-map-${timestamp}.jpeg`;
+      link.style.display = 'none';
 
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
 
       // Update toast with success message
       setToastMessage({
@@ -130,24 +130,12 @@ const useMapScreenshot = (mapRef, setToastMessage) => {
         type: 'success',
         bgColor: 'bg-green-500',
       });
-
-      event({
-        action: 'map_screenshot',
-        category: 'Map Interaction',
-        label: `Zoom: ${mapRef.current.getZoom().toFixed(1)}`,
-        value: 1,
-      });
     } catch (error) {
+      console.error('Screenshot capture failed:', error);
       setToastMessage({
         message: 'Failed to capture screenshot',
         type: 'error',
         bgColor: 'bg-red-500',
-      });
-
-      event({
-        action: 'map_screenshot_error',
-        category: 'Error',
-        label: error.message,
       });
     }
   }, [mapRef, setToastMessage]);

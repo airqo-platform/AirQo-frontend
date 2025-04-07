@@ -29,11 +29,7 @@ import PolygonMap from "./polymap";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useCreateGrid } from "@/core/hooks/useGrids";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AxiosError } from "axios";
-
-interface ErrorResponse {
-  message: string;
-}
+import { Position } from "@/core/redux/slices/gridsSlice";
 
 const gridFormSchema = z.object({
   name: z.string().min(2, {
@@ -71,14 +67,14 @@ export function CreateGridForm() {
 
   const onSubmit = async (data: GridFormValues) => {
     try {
-      if (!polygon) {
+      if (!polygon || !polygon.coordinates) {
         setError("Shapefile is required");
         return;
       }
       const gridData = {
         name: data.name,
         admin_level: data.administrativeLevel,
-        shape: polygon,
+        shape: polygon as { type: "MultiPolygon" | "Polygon"; coordinates: Position[][] | Position[][][] },
         network: activeNetwork?.net_name || "",
       };
 
@@ -89,8 +85,8 @@ export function CreateGridForm() {
           setOpen(false);
         }
       }, 3000);
-    } catch (error: AxiosError<ErrorResponse>) {
-      setError(error.message || "An error occurred while creating the site.");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred while creating the site.");
     }
   };
 

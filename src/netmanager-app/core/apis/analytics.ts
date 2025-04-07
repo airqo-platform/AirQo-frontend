@@ -3,7 +3,7 @@ import { ANALYTICS_MGT_URL, USERS_MGT_URL } from "@/core/urls";
 
 const axiosInstance = createAxiosInstance();
 
-interface DataExportForm {
+export interface DataExportForm {
   startDateTime: string;
   endDateTime: string;
   sites?: string[] | [];

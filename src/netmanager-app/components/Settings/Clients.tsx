@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -64,7 +64,7 @@ const ClientManagement = () => {
   const [sortField, setSortField] = useState<keyof Client>("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
-  const { clients, isLoading, error } = useClients();
+  const { clients, isLoading } = useClients();
   const queryClient = useQueryClient();
 
   const handleActivateDeactivate = async (
@@ -87,7 +87,7 @@ const ClientManagement = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: `Failed to ${activate ? "activate" : "deactivate"} client`,
+        description: `Failed to ${activate ? "activate" : "deactivate"} client: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {

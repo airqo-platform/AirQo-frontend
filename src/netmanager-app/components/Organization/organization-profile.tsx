@@ -50,6 +50,7 @@ export function OrganizationProfile({
       groupsApi.updateGroupDetailsApi(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groupDetails", organizationId] });
+      queryClient.invalidateQueries({ queryKey: ["groupDetails", organizationId] });
       toast({
         title: "Profile Updated",
         description: "The organization profile has been successfully updated.",

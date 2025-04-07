@@ -1,5 +1,4 @@
-import { Device } from "@/app/types/grids";
-import { Site } from "@/app/types/sites";
+import { Device, Site } from "@/app/types/sites";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 

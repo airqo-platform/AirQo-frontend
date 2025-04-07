@@ -162,9 +162,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
             // Try matching with search name too
             if (measurement.siteDetails?.searchName != null &&
-                site.searchName != null &&
                 measurement.siteDetails!.searchName!.toLowerCase() ==
-                    site.searchName!.toLowerCase()) {
+                    site.searchName.toLowerCase()) {
               loggy.info(
                   'Found search name match for site: ${site.name} (searchName: ${site.searchName})');
               matched.add(measurement);
@@ -300,8 +299,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   }
 
   void _removeLocation(String id) {
-    loggy.info('Removing location with ID: $id');
-
+    // Find the name of the location being removed
     String locationName = "Location";
     for (var m in selectedMeasurements) {
       if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
@@ -316,29 +314,39 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       }
     }
 
+    // Remove all instances by name locally
     setState(() {
-      selectedMeasurements.removeWhere(
-          (m) => m.id == id || m.siteId == id || m.siteDetails?.id == id);
-      unmatchedSites.removeWhere((s) => s.id == id);
+      selectedMeasurements.removeWhere((m) =>
+          m.siteDetails?.name == locationName ||
+          m.id == id ||
+          m.siteId == id ||
+          m.siteDetails?.id == id);
+      unmatchedSites.removeWhere((s) => s.name == locationName || s.id == id);
     });
 
     if (widget.userPreferences == null) {
-      loggy.warning('Cannot update preferences: userPreferences is null');
       return;
     }
 
+    // Filter out all sites with the same name from preferences
     final remainingSiteIds = widget.userPreferences!.selectedSites
-        .where((site) => site.id != id)
+        .where((site) => site.name != locationName)
         .map((site) => site.id)
         .toList();
 
-    loggy.info('Filtered preferences by name: $locationName');
-    loggy.info('Remaining IDs: $remainingSiteIds');
+    loggy.info('Removing all instances of location: $locationName');
+    loggy.info(
+        'Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
 
-    final dashboardBloc = context.read<DashboardBloc>();
-    dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
-    dashboardBloc.add(LoadUserPreferences()); // Ensure state refreshes
-
+    if (remainingSiteIds.isNotEmpty || widget.userPreferences != null) {
+      final dashboardBloc = context.read<DashboardBloc>();
+      dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
+      Future.delayed(Duration(milliseconds: 300), () {
+        if (mounted) {
+          dashboardBloc.add(LoadUserPreferences());
+        }
+      });
+    }
     NotificationManager().showNotification(
       context,
       message: '"$locationName" has been removed from your places',
@@ -376,7 +384,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
             child: Column(
               children: [
                 if (isLoading)
@@ -385,14 +393,13 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                   _buildEmptyState()
                 else ...[
                   // Show matched measurements with analytics cards
-                  ...selectedMeasurements
-                      .map((measurement) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: SwipeableAnalyticsCard(
-                              measurement: measurement,
-                              onRemove: _removeLocation,
-                            ),
-                          )),
+                  ...selectedMeasurements.map((measurement) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: SwipeableAnalyticsCard(
+                          measurement: measurement,
+                          onRemove: _removeLocation,
+                        ),
+                      )),
 
                   // Show basic cards for unmatched sites
                   ...unmatchedSites.map((site) => Padding(
@@ -454,12 +461,11 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                             ),
                           ],
                         ),
-                        if (site.searchName != null &&
-                            site.searchName!.isNotEmpty)
+                        if (site.searchName.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(left: 32, top: 4),
                             child: Text(
-                              site.searchName!,
+                              site.searchName,
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 14,

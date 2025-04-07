@@ -15,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAppSelector } from "@/core/redux/hooks";
-import { roles } from "@/core/apis/roles";
 import { useGroupRoles } from "@/core/hooks/useRoles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -54,6 +53,12 @@ const ITEMS_PER_PAGE = 10;
 
 type SortField = "role_name" | "permissions";
 type SortOrder = "asc" | "desc";
+
+interface Role {
+  _id: string;
+  role_name: string;
+  role_permissions: Array<{ permission: string }>;
+}
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const { grproles, isLoading, error } = useGroupRoles(organizationId);
@@ -126,14 +131,16 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const sortedAndFilteredRoles = useMemo(() => {
     return grproles
       .filter((role: Role) => {
+      .filter((role: Role) => {
         const searchLower = searchQuery.toLowerCase();
         return (
           role.role_name.toLowerCase().includes(searchLower) ||
-          role.role_permissions.some((perm) =>
+          role.role_permissions.some((perm: { permission: string }) =>
             perm.permission.toLowerCase().includes(searchLower)
           )
         );
       })
+      .sort((a: Role, b: Role) => {
       .sort((a: Role, b: Role) => {
         if (sortField === "role_name") {
           return sortOrder === "asc"
@@ -292,6 +299,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {currentRoles.map((role: Role) => (
               {currentRoles.map((role: Role) => (
                 <TableRow key={role._id}>
                   <TableCell>{role.role_name}</TableCell>
