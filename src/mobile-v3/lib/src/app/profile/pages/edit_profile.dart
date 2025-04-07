@@ -22,7 +22,7 @@ class _EditProfileState extends State<EditProfile> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
-  
+
   String _currentProfilePicture = '';
   File? _selectedProfileImage;
   final ImagePicker _picker = ImagePicker();
@@ -58,13 +58,13 @@ class _EditProfileState extends State<EditProfile> {
         maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (pickedFile != null) {
         setState(() {
           _selectedProfileImage = File(pickedFile.path);
           _formChanged = true;
         });
-        
+
         // Show a message about the selected image
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -82,7 +82,7 @@ class _EditProfileState extends State<EditProfile> {
       );
     }
   }
-  
+
   Future<File> _compressImage(File file) async {
     return file;
   }
@@ -151,83 +151,77 @@ class _EditProfileState extends State<EditProfile> {
   Future<String?> _uploadProfileImage(File imageFile) async {
     try {
       // Get the user ID for the API endpoint
-      final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
+      final userId =
+          await HiveRepository.getData("userId", HiveBoxNames.authBox);
       if (userId == null) {
         throw Exception("User ID not found");
       }
-      
+
       // Compress the image before uploading
       File compressedFile = imageFile;
       try {
         compressedFile = await _compressImage(imageFile);
-        print('Image compressed successfully. Original size: ${await imageFile.length()} bytes, Compressed size: ${await compressedFile.length()} bytes');
+        print(
+            'Image compressed successfully. Original size: ${await imageFile.length()} bytes, Compressed size: ${await compressedFile.length()} bytes');
       } catch (e) {
         print('Failed to compress image: $e');
         // If compression fails, continue with the original file
       }
-      
+
       // Create a multipart request with the user-specific endpoint
       // Using the general user update endpoint
       var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
-      
+
       // Get the auth token for the request
-      final authToken = await HiveRepository.getData("token", HiveBoxNames.authBox);
+      final authToken =
+          await HiveRepository.getData("token", HiveBoxNames.authBox);
       if (authToken == null) {
         throw Exception("Authentication token not found");
       }
-      
-          // Create a multipart request
-    var request = http.MultipartRequest('PUT', uri);
-    
-    // Add the auth token
-    request.headers.addAll({
-      'Authorization': 'Bearer $authToken',
-    });
-    
-    // Add the file
-    request.files.add(await http.MultipartFile.fromPath(
-      'profilePicture', 
-      imageFile.path,
-      contentType: MediaType('image', 'jpeg'),
-    ));
-    
-      
+
+      // Create a multipart request
+      var request = http.MultipartRequest('PUT', uri);
+
+      // Add the auth token
+      request.headers.addAll({
+        'Authorization': 'Bearer $authToken',
+      });
+
+      // Add the file
+      request.files.add(await http.MultipartFile.fromPath(
+        'profilePicture',
+        imageFile.path,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+
       // Track upload progress for larger images
       print('Starting profile picture upload to $uri...');
       var streamedResponse = await request.send();
       print('Upload completed. Status code: ${streamedResponse.statusCode}');
-      
+
       var response = await http.Response.fromStream(streamedResponse);
       print('Response body: ${response.body}');
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Parse the response to get the image URL
         try {
           var jsonResponse = json.decode(response.body);
-          
-          // Based on your API structure, the response might include the updated user object
-          if (jsonResponse['success'] == true) {
-            // The response might include different fields depending on your API
-            if (jsonResponse['data'] != null && jsonResponse['data']['profilePicture'] != null) {
-              return jsonResponse['data']['profilePicture'];
-            } else if (jsonResponse['user'] != null && jsonResponse['user']['profilePicture'] != null) {
-              return jsonResponse['user']['profilePicture'];
-            } else if (jsonResponse['profilePicture'] != null) {
-              return jsonResponse['profilePicture'];
-            }
-            
-            // If profile picture update was successful but URL not in response
-            // Just indicate success and let the app reload the user data
-            return "PROFILE_UPDATED";
-          } else {
-            throw Exception("Upload failed: ${jsonResponse['message'] ?? 'Unknown error'}");
+
+          String? profilePictureUrl;
+
+          if (jsonResponse['user'] != null &&
+              jsonResponse['user']['profilePicture'] != null) {
+            profilePictureUrl = jsonResponse['user']['profilePicture'];
           }
+
+          return profilePictureUrl ?? "PROFILE_UPDATED";
         } catch (parseError) {
           print('Error parsing JSON response: $parseError');
           throw Exception("Failed to parse server response: $parseError");
         }
       } else {
-        throw Exception("Failed to upload image: Status ${response.statusCode}, ${response.body}");
+        throw Exception(
+            "Failed to upload image: Status ${response.statusCode}, ${response.body}");
       }
     } catch (e) {
       print('Error uploading profile image: $e');
@@ -261,13 +255,10 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      // Start with existing profile picture
-      String profilePictureUrl = _currentProfilePicture;
-      
-      // If a new profile image was selected, upload it
+      // If a new profile image was selected, handle the image upload first
       if (_selectedProfileImage != null) {
         try {
-          // Create a progress indicator dialog
+          // Show upload progress dialog
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -284,18 +275,17 @@ class _EditProfileState extends State<EditProfile> {
               );
             },
           );
-          
+
           // Upload the image
-          String? uploadResult = await _uploadProfileImage(_selectedProfileImage!);
-          
+          String? uploadResult =
+              await _uploadProfileImage(_selectedProfileImage!);
+
           // Close the progress dialog
-          Navigator.of(context, rootNavigator: true).pop();
-          
+          if (Navigator.of(context, rootNavigator: true).canPop()) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
           if (uploadResult != null) {
-            if (uploadResult != "PROFILE_UPDATED") {
-              profilePictureUrl = uploadResult;
-            }
-            
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Profile picture uploaded successfully!'),
@@ -303,22 +293,24 @@ class _EditProfileState extends State<EditProfile> {
                 duration: Duration(seconds: 2),
               ),
             );
-            
-            // Since we've already uploaded the profile picture with the main endpoint
-            // we just need to update the other user fields now
+
+            // Reload user data to get updated profile picture
+            context.read<UserBloc>().add(LoadUser());
+
+            // Update user profile info separately
             context.read<UserBloc>().add(
-              UpdateUser(
-                firstName: _firstNameController.text.trim(),
-                lastName: _lastNameController.text.trim(),
-                email: _emailController.text.trim(),
-              ),
-            );
-            return; // Exit early as we've already handled the update
+                  UpdateUser(
+                    firstName: _firstNameController.text.trim(),
+                    lastName: _lastNameController.text.trim(),
+                    email: _emailController.text.trim(),
+                  ),
+                );
+            return;
           } else {
-            // If upload returns null but doesn't throw, use current picture
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Profile picture upload failed. Using previous image.'),
+                content: Text(
+                    'Profile picture upload failed. Using previous image.'),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -328,63 +320,66 @@ class _EditProfileState extends State<EditProfile> {
           if (Navigator.of(context, rootNavigator: true).canPop()) {
             Navigator.of(context, rootNavigator: true).pop();
           }
-          
+
           print('Error uploading image: $uploadError');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to upload profile picture: ${uploadError.toString().substring(0, uploadError.toString().length > 100 ? 100 : uploadError.toString().length)}...'),
+              content: Text(
+                  'Failed to upload profile picture: ${uploadError.toString().substring(0, uploadError.toString().length > 100 ? 100 : uploadError.toString().length)}...'),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 4),
             ),
           );
-          
-          // Ask the user if they want to continue with the profile update
+
+          // Ask the user if they want to continue with just the profile info update
           bool continueWithUpdate = await showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text("Image Upload Failed"),
-                content: Text("Do you want to continue updating your profile without changing your profile picture?"),
-                actions: [
-                  TextButton(
-                    child: Text("Cancel Update"),
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text("Continue"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                ],
-              );
-            },
-          ) ?? false;
-          
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("Image Upload Failed"),
+                    content: Text(
+                        "Do you want to continue updating your profile without changing your profile picture?"),
+                    actions: [
+                      TextButton(
+                        child: Text("Cancel Update"),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      ),
+                      ElevatedButton(
+                        child: Text("Continue"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ) ??
+              false;
+
           if (!continueWithUpdate) {
             _resetLoadingState();
-            return; // Exit the update function
+            return;
           }
-          // Otherwise continue with the profile update with the existing profile picture
         }
       }
-      
-      // Update user profile with or without new image
+
+      // Update user profile information (without profile picture)
       context.read<UserBloc>().add(
-        UpdateUser(
-          firstName: _firstNameController.text.trim(),
-          lastName: _lastNameController.text.trim(),
-          email: _emailController.text.trim(),
-        ),
-      );
+            UpdateUser(
+              firstName: _firstNameController.text.trim(),
+              lastName: _lastNameController.text.trim(),
+              email: _emailController.text.trim(),
+            ),
+          );
     } catch (e) {
       print('Error dispatching UpdateUser event: $e');
       _resetLoadingState();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error updating profile: $e'),
@@ -411,7 +406,7 @@ class _EditProfileState extends State<EditProfile> {
         backgroundImage: FileImage(_selectedProfileImage!),
       );
     }
-    
+
     // If user has an existing profile picture, show that
     if (_currentProfilePicture.isNotEmpty) {
       if (_currentProfilePicture.startsWith('http')) {
@@ -450,7 +445,7 @@ class _EditProfileState extends State<EditProfile> {
         );
       }
     }
-    
+
     // Default user icon
     return CircleAvatar(
       backgroundColor: Theme.of(context).highlightColor,
@@ -459,7 +454,9 @@ class _EditProfileState extends State<EditProfile> {
         'assets/icons/user_icon.svg',
         width: MediaQuery.of(context).size.width * 0.15,
         height: MediaQuery.of(context).size.width * 0.15,
-        color: Theme.of(context).brightness == Brightness.dark ? null : AppColors.secondaryHeadlineColor,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? null
+            : AppColors.secondaryHeadlineColor,
       ),
     );
   }
@@ -476,18 +473,13 @@ class _EditProfileState extends State<EditProfile> {
 
     // Theme-based colors
     final textColor = isDarkMode ? Colors.white : AppColors.boldHeadlineColor4;
-    final subtitleColor = isDarkMode 
-        ? Colors.grey
-        : AppColors.secondaryHeadlineColor;
-    final backgroundColor = isDarkMode 
-        ? AppColors.darkThemeBackground
-        : AppColors.backgroundColor;
-    final cardColor = isDarkMode 
-        ? AppColors.highlightColor 
-        : Colors.white;
-    final borderColor = isDarkMode 
-        ? Colors.grey[800] ?? Colors.grey
-        : AppColors.borderColor2;
+    final subtitleColor =
+        isDarkMode ? Colors.grey : AppColors.secondaryHeadlineColor;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor;
+    final cardColor = isDarkMode ? AppColors.highlightColor : Colors.white;
+    final borderColor =
+        isDarkMode ? Colors.grey[800] ?? Colors.grey : AppColors.borderColor2;
 
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {

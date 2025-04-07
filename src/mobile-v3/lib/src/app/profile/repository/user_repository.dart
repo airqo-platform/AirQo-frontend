@@ -11,6 +11,7 @@ abstract class UserRepository extends BaseRepository {
     required String firstName,
     required String lastName,
     required String email,
+    String? profilePicture,
   });
 }
 
@@ -35,6 +36,7 @@ class UserImpl extends UserRepository {
     required String firstName,
     required String lastName,
     required String email,
+    String? profilePicture,
   }) async {
     final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
     if (userId == null) {
@@ -46,7 +48,12 @@ class UserImpl extends UserRepository {
       "firstName": firstName,
       "lastName": lastName,
       "email": email,
+      "profilePicture": profilePicture,
     };
+
+    if (profilePicture != null) {
+      requestBody["profilePicture"] = profilePicture;
+    }
 
     http.Response updateResponse = await createAuthenticatedPutRequest(
       path: "/api/v2/users/$userId",
