@@ -5,7 +5,6 @@ import Link from "next/link"
 import {
   BarChart2,
   Users,
-  Shield,
   Radio,
   MapPin,
   Layers,
@@ -363,11 +362,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                 <li>
                   <NavItem href="/user-management" icon={Users} label="User Management" />
                 </li>
-                <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
-                  <li>
-                    <NavItem href="/access-control" icon={Shield} label="Access Control" />
-                  </li>
-                </PermissionGuard>
                 <li>
                   <NavItem href="/organizations" icon={Building2} label="Organizations" />
                 </li>
