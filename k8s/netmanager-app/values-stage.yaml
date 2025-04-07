@@ -1,0 +1,44 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-stage-netmanager-app
+  tag: latest
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+service:
+  type: NodePort
+  nodePort: 31113
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+nodeSelector:
+  role: control-plane
+torelations: {}
+resources:
+  requests:
+    cpu: 10m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 150Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 80
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - control-plane
+        weight: 1
+app:
+  name: airqo-stage-netmanager-app
+  label: airqo-netmanager-app
+  namespace: staging
+  configmap: env-netmanager-staging
