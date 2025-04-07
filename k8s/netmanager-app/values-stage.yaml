@@ -14,7 +14,7 @@ service:
 ingress:
   enabled: false
 nodeSelector:
-  role: control-plane
+  role: high-mem
 tolerations: {}
 resources:
   requests:
@@ -35,7 +35,7 @@ affinity:
             - key: role
               operator: In
               values:
-                - control-plane
+                - high-mem
         weight: 1
 app:
   name: airqo-stage-netmanager-app
