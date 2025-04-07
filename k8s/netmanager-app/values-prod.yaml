@@ -39,6 +39,6 @@ affinity:
         weight: 1
 app:
   name: airqo-netmanager
-  label: airqo-netmanager
+  label: netmanager
   namespace: production
   configmap: env-netmanager-production

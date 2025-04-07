@@ -39,6 +39,6 @@ affinity:
         weight: 1
 app:
   name: airqo-stage-netmanager
-  label: airqo-netmanager
+  label: netmanager
   namespace: staging
   configmap: env-netmanager-staging
