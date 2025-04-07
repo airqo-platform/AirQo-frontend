@@ -36,7 +36,7 @@ class User {
     String id;
     String firstName;
     String lastName;
-    String profilePicture;
+    String? profilePicture;
     DateTime lastLogin;
     bool isActive;
     int loginCount;

@@ -63,6 +63,7 @@ dependencies:
   permission_handler: ^11.4.0
   geolocator: ^13.0.2
   image_picker: ^1.1.2
+  http_parser: ^4.0.2
 
 
 dev_dependencies:

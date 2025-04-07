@@ -1,9 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -16,6 +22,10 @@ class _EditProfileState extends State<EditProfile> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+  
+  String _currentProfilePicture = '';
+  File? _selectedProfileImage;
+  final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = false;
   bool _formChanged = false;
@@ -35,8 +45,59 @@ class _EditProfileState extends State<EditProfile> {
         _firstNameController.text = user.firstName;
         _lastNameController.text = user.lastName;
         _emailController.text = user.email;
+        _currentProfilePicture = user.profilePicture ?? '';
       });
     }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile != null) {
+        setState(() {
+          _selectedProfileImage = File(pickedFile.path);
+          _formChanged = true;
+        });
+        
+        // Show a message about the selected image
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Image selected. Save to upload.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+  Future<File> _compressImage(File file) async {
+    // Get the file path
+    final filePath = file.path;
+    
+    // Use image_picker's built-in compression options when picking
+    // If you need more control, consider adding the flutter_image_compress package
+    final XFile compressedFile = await _picker.pickImage(
+      source: ImageSource.camera, // This is a dummy value, we're not actually picking
+      maxWidth: 600,
+      maxHeight: 600,
+      imageQuality: 70, // Adjust quality as needed (0-100)
+      preferredCameraDevice: CameraDevice.rear,
+    ) as XFile;
+    
+    return File(compressedFile.path);
   }
 
   bool _validateEmail(String email) {
@@ -100,7 +161,100 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  void _updateProfile() {
+  Future<String?> _uploadProfileImage(File imageFile) async {
+    try {
+      // Get the user ID for the API endpoint
+      final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
+      if (userId == null) {
+        throw Exception("User ID not found");
+      }
+      
+      // Compress the image before uploading
+      File compressedFile = imageFile;
+      try {
+        compressedFile = await _compressImage(imageFile);
+        print('Image compressed successfully. Original size: ${await imageFile.length()} bytes, Compressed size: ${await compressedFile.length()} bytes');
+      } catch (e) {
+        print('Failed to compress image: $e');
+        // If compression fails, continue with the original file
+      }
+      
+      // Create a multipart request with the user-specific endpoint
+      // Using the general user update endpoint
+      var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+      
+      // Get the auth token for the request
+      final authToken = await HiveRepository.getData("token", HiveBoxNames.authBox);
+      if (authToken == null) {
+        throw Exception("Authentication token not found");
+      }
+      
+      // First convert the image to base64
+      List<int> imageBytes = await compressedFile.readAsBytes();
+      String base64Image = base64Encode(imageBytes);
+      
+      // Prepare the request body with ONLY the profilePicture field to avoid overwriting other user data
+      final Map<String, dynamic> requestBody = {
+        "profilePicture": base64Image
+      };
+      
+      // Create a PUT request instead of multipart
+      var request = http.Request('PUT', uri);
+      
+      // Add the auth token to headers
+      request.headers.addAll({
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json',
+      });
+      
+      // Add the JSON body
+      request.body = json.encode(requestBody);
+      
+      // Track upload progress for larger images
+      print('Starting profile picture upload to $uri...');
+      var streamedResponse = await request.send();
+      print('Upload completed. Status code: ${streamedResponse.statusCode}');
+      
+      var response = await http.Response.fromStream(streamedResponse);
+      print('Response body: ${response.body}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse the response to get the image URL
+        try {
+          var jsonResponse = json.decode(response.body);
+          
+          // Based on your API structure, the response might include the updated user object
+          if (jsonResponse['success'] == true) {
+            // The response might include different fields depending on your API
+            if (jsonResponse['data'] != null && jsonResponse['data']['profilePicture'] != null) {
+              return jsonResponse['data']['profilePicture'];
+            } else if (jsonResponse['user'] != null && jsonResponse['user']['profilePicture'] != null) {
+              return jsonResponse['user']['profilePicture'];
+            } else if (jsonResponse['profilePicture'] != null) {
+              return jsonResponse['profilePicture'];
+            }
+            
+            // If profile picture update was successful but URL not in response
+            // Just indicate success and let the app reload the user data
+            return "PROFILE_UPDATED";
+          } else {
+            throw Exception("Upload failed: ${jsonResponse['message'] ?? 'Unknown error'}");
+          }
+        } catch (parseError) {
+          print('Error parsing JSON response: $parseError');
+          throw Exception("Failed to parse server response: $parseError");
+        }
+      } else {
+        throw Exception("Failed to upload image: Status ${response.statusCode}, ${response.body}");
+      }
+    } catch (e) {
+      print('Error uploading profile image: $e');
+      // Re-throw to be handled by the caller
+      throw e;
+    }
+  }
+
+  void _updateProfile() async {
     // Only update if form has changed and not already loading
     if (!_formChanged || _isLoading) return;
 
@@ -112,7 +266,7 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     // Set a timeout to reset loading state if the API takes too long
-    _loadingTimeout = Timer(Duration(seconds: 15), () {
+    _loadingTimeout = Timer(Duration(seconds: 30), () {
       if (_isLoading && mounted) {
         _resetLoadingState();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -125,14 +279,129 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      context.read<UserBloc>().add(
-            UpdateUser(
-              firstName: _firstNameController.text.trim(),
-              lastName: _lastNameController.text.trim(),
-              email: _emailController.text.trim(),
-              profilePicture: '', 
+      // Start with existing profile picture
+      String profilePictureUrl = _currentProfilePicture;
+      
+      // If a new profile image was selected, upload it
+      if (_selectedProfileImage != null) {
+        try {
+          // Create a progress indicator dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text("Uploading profile picture..."),
+                  ],
+                ),
+              );
+            },
+          );
+          
+          // Upload the image
+          String? uploadResult = await _uploadProfileImage(_selectedProfileImage!);
+          
+          // Close the progress dialog
+          Navigator.of(context, rootNavigator: true).pop();
+          
+          if (uploadResult != null) {
+            if (uploadResult != "PROFILE_UPDATED") {
+              profilePictureUrl = uploadResult;
+            }
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profile picture uploaded successfully!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            
+            // Since we've already uploaded the profile picture with the main endpoint
+            // we just need to update the other user fields now
+            context.read<UserBloc>().add(
+              UpdateUser(
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: _emailController.text.trim(),
+                profilePicture: profilePictureUrl, 
+              ),
+            );
+            return; // Exit early as we've already handled the update
+          } else {
+            // If upload returns null but doesn't throw, use current picture
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profile picture upload failed. Using previous image.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        } catch (uploadError) {
+          // Close the progress dialog if it's still open
+          if (Navigator.of(context, rootNavigator: true).canPop()) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+          
+          print('Error uploading image: $uploadError');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload profile picture: ${uploadError.toString().substring(0, uploadError.toString().length > 100 ? 100 : uploadError.toString().length)}...'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 4),
             ),
           );
+          
+          // Ask the user if they want to continue with the profile update
+          bool continueWithUpdate = await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Image Upload Failed"),
+                content: Text("Do you want to continue updating your profile without changing your profile picture?"),
+                actions: [
+                  TextButton(
+                    child: Text("Cancel Update"),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                  ElevatedButton(
+                    child: Text("Continue"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                ],
+              );
+            },
+          ) ?? false;
+          
+          if (!continueWithUpdate) {
+            _resetLoadingState();
+            return; // Exit the update function
+          }
+          // Otherwise continue with the profile update with the existing profile picture
+        }
+      }
+      
+      // Update user profile with or without new image
+      context.read<UserBloc>().add(
+        UpdateUser(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          email: _emailController.text.trim(),
+          profilePicture: profilePictureUrl, 
+        ),
+      );
     } catch (e) {
       print('Error dispatching UpdateUser event: $e');
       _resetLoadingState();
@@ -151,6 +420,68 @@ class _EditProfileState extends State<EditProfile> {
         _formChanged = true;
       });
     }
+  }
+
+  Widget _buildProfilePictureWidget() {
+    // If user has selected a new image, show that
+    if (_selectedProfileImage != null) {
+      return CircleAvatar(
+        radius: MediaQuery.of(context).size.width * 0.15,
+        backgroundColor: Colors.transparent,
+        backgroundImage: FileImage(_selectedProfileImage!),
+      );
+    }
+    
+    // If user has an existing profile picture, show that
+    if (_currentProfilePicture.isNotEmpty) {
+      if (_currentProfilePicture.startsWith('http')) {
+        // Network image
+        return CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          backgroundImage: NetworkImage(_currentProfilePicture),
+          onBackgroundImageError: (exception, stackTrace) {
+            // Note: onBackgroundImageError should be void, we can't return a widget here
+            print('Error loading profile image: $exception');
+          },
+          child: SvgPicture.asset(
+            'assets/icons/user_icon.svg',
+            width: MediaQuery.of(context).size.width * 0.15,
+            height: MediaQuery.of(context).size.width * 0.15,
+          ),
+        );
+      } else if (_currentProfilePicture.endsWith('.svg')) {
+        // SVG image
+        return CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          child: SvgPicture.asset(
+            _currentProfilePicture,
+            width: MediaQuery.of(context).size.width * 0.15,
+            height: MediaQuery.of(context).size.width * 0.15,
+          ),
+        );
+      } else {
+        // Local image
+        return CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          backgroundImage: AssetImage(_currentProfilePicture),
+        );
+      }
+    }
+    
+    // Default user icon
+    return CircleAvatar(
+      backgroundColor: Theme.of(context).highlightColor,
+      radius: MediaQuery.of(context).size.width * 0.15,
+      child: SvgPicture.asset(
+        'assets/icons/user_icon.svg',
+        width: MediaQuery.of(context).size.width * 0.15,
+        height: MediaQuery.of(context).size.width * 0.15,
+        color: Theme.of(context).brightness == Brightness.dark ? null : AppColors.secondaryHeadlineColor,
+      ),
+    );
   }
 
   @override
@@ -324,36 +655,30 @@ class _EditProfileState extends State<EditProfile> {
                     children: [
                       Stack(
                         children: [
-                          CircleAvatar(
-                            backgroundColor: Theme.of(context).highlightColor,
-                            radius: avatarRadius,
-                            child: SvgPicture.asset(
-                              'assets/icons/user_icon.svg',
-                              width: avatarRadius * 1.5,
-                              height: avatarRadius * 1.5,
-                              color: isDarkMode ? null : AppColors.secondaryHeadlineColor,
-                            ),
-                          ),
+                          _buildProfilePictureWidget(),
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              padding: EdgeInsets.all(iconSize * 0.4),
-                              child: Icon(
-                                Icons.edit,
-                                color: Colors.white,
-                                size: iconSize,
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                padding: EdgeInsets.all(iconSize * 0.4),
+                                child: Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: iconSize,
+                                ),
                               ),
                             ),
                           ),

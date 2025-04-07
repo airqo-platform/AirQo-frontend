@@ -101,16 +101,19 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          // String firstName = userState.model.users[0].firstName.isNotEmpty
-          //     ? userState.model.users[0].firstName[0].toUpperCase()
-          //     : " ";
-          // String lastName = userState.model.users[0].lastName.isNotEmpty
-          //     ? userState.model.users[0].lastName[0].toUpperCase()
-          //     : " ";
-          String profilePicture =
-              userState.model.users[0].profilePicture.isNotEmpty
-                  ? userState.model.users[0].profilePicture
-                  : "assets/icons/user_icon.svg";
+          // Add debug logging to inspect model data
+          print("UserLoaded state: ${userState.model.users.length} users");
+
+          final user = userState.model.users[0];
+          String? profilePicture = user.profilePicture;
+
+          // Add null checks for firstName and lastName
+          String? firstName = user.firstName;
+          String? lastName = user.lastName;
+
+          print(
+              "User data - firstName: $firstName, lastName: $lastName, profilePicture: $profilePicture");
+
           return GestureDetector(
             onTap: () {
               // Navigate to profile page
@@ -126,57 +129,138 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ? AppColors.darkHighlight
                   : AppColors.dividerColorlight,
               child: ClipOval(
-                child: _buildProfilePicture(profilePicture),
+                child:
+                    _buildProfilePicture(profilePicture, firstName, lastName),
               ),
             ),
           );
         } else if (userState is UserLoadingError) {
-          return Container(); // Handle error state (optional)
+          print("UserLoadingError state: ${userState.toString()}");
+          return GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ProfilePage(),
+                ),
+              );
+            },
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
+              child: Center(
+                child: Text(
+                  "?",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          );
         } else {
+          print("Other UserState: ${userState.toString()}");
           return ShimmerContainer(
-            height: 44,
+            height: 48,
             borderRadius: 1000,
-            width: 44,
+            width: 48,
           );
         }
       },
     );
   }
 
-// Helper method to build the profile picture widget
-  Widget _buildProfilePicture(String profilePicture) {
+  // Helper method to build the profile picture widget with null safety
+  Widget _buildProfilePicture(
+      String? profilePicture, String? firstName, String? lastName) {
+    // Add debug prints to troubleshoot
+    print("Building profile picture with data:");
+    print("Profile picture: $profilePicture");
+    print("First name: $firstName, Last name: $lastName");
+
+    // Make firstName and lastName nullable safe by providing defaults
+    String firstNameSafe = firstName ?? "";
+    String lastNameSafe = lastName ?? "";
+
+    // Generate initials from the user's name, with robust null/empty checks
+    String firstInitial =
+        (firstNameSafe.isNotEmpty) ? firstNameSafe[0].toUpperCase() : "";
+    String lastInitial =
+        (lastNameSafe.isNotEmpty) ? lastNameSafe[0].toUpperCase() : "";
+    String initials = (firstInitial + lastInitial).isNotEmpty
+        ? (firstInitial + lastInitial)
+        : "?";
+
+    print("Generated initials: $initials");
+
+    // Create the fallback widget (with initials) once to reuse
+    Widget initialsWidget = Center(
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    );
+
+    // If profile picture is null or empty, show initials
+    if (profilePicture == null || profilePicture.isEmpty) {
+      print("No profile picture, showing initials");
+      return initialsWidget;
+    }
+
+    // If profile picture is a network URL
     if (profilePicture.startsWith('http')) {
-      // Network image (URL)
+      print("Loading network image: $profilePicture");
       return Image.network(
         profilePicture,
         fit: BoxFit.cover,
-        width: 48, // 2 * radius
+        width: 48,
         height: 48,
         errorBuilder: (context, error, stackTrace) {
-          // Fallback to default asset if network image fails
-          return SvgPicture.asset(
-            "assets/icons/user_icon.svg",
-            height: 22,
-            width: 22,
-          );
+          print("Network image error: $error");
+          // On network image error, show initials
+          return initialsWidget;
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+          // Show loading indicator or initials while loading
+          return initialsWidget;
         },
       );
-    } else {
-      // Local asset (SVG or image)
-      if (profilePicture.endsWith('.svg')) {
-        return SvgPicture.asset(
-          profilePicture,
-          height: 22,
-          width: 22,
-        );
-      } else {
-        return Image.asset(
-          profilePicture,
-          fit: BoxFit.cover,
-          width: 48,
-          height: 48,
-        );
-      }
     }
+
+    // For local SVG assets
+    if (profilePicture.endsWith('.svg')) {
+      print("Loading SVG asset: $profilePicture");
+      return SvgPicture.asset(
+        profilePicture,
+        height: 48,
+        width: 48,
+        fit: BoxFit.cover,
+        placeholderBuilder: (_) => initialsWidget,
+      );
+    }
+
+    // For other local assets
+    print("Loading asset image: $profilePicture");
+    return Image.asset(
+      profilePicture,
+      fit: BoxFit.cover,
+      width: 48,
+      height: 48,
+      errorBuilder: (context, error, stackTrace) {
+        print("Asset image error: $error");
+        // On local image error, show initials
+        return initialsWidget;
+      },
+    );
   }
 }

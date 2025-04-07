@@ -1,3 +1,4 @@
+
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/edit_profile.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_widget.dart';
@@ -27,8 +28,8 @@ class _ProfilePageState extends State<ProfilePage> {
         } else if (state is UserLoaded) {
           String firstName = state.model.users[0].firstName;
           String lastName = state.model.users[0].lastName;
-          String profilePicture = state.model.users[0].profilePicture.isNotEmpty
-              ? state.model.users[0].profilePicture
+          String profilePicture = state.model.users[0].profilePicture?.isNotEmpty == true
+              ? state.model.users[0].profilePicture!
               : "";
           return DefaultTabController(
             length: 1,
