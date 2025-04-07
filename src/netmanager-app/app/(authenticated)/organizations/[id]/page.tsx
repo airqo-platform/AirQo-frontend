@@ -77,9 +77,6 @@ export default function OrganizationDetailsPage() {
           <span>Back to Organizations</span>
         </Button>
 
-        {/* Organization Details */}
-        <h1 className="text-3xl font-bold mb-6">{group.grp_title}</h1>
-
         {/* Setup Status Card - uses our hook internally to determine setup status */}
         <OrganizationSetupCard organizationId={organizationId} organizationName={group.grp_title || "Organization"} />
 
