@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-netmanager-app
+  repository: eu.gcr.io/airqo-250220/airqo-netmanager
   tag: latest
   pullPolicy: Always
 imagePullSecrets: []
@@ -38,7 +38,7 @@ affinity:
             - control-plane
         weight: 1
 app:
-  name: airqo-netmanager-app
-  label: airqo-netmanager-app
+  name: airqo-netmanager
+  label: airqo-netmanager
   namespace: production
   configmap: env-netmanager-production
