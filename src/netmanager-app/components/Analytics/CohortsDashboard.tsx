@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -9,7 +9,8 @@ import { PollutantCategory } from './PollutantCategory'
 import { LineCharts } from '../Charts/Line'
 import { BarCharts } from '../Charts/Bar'
 import { ExceedancesChart } from './ExceedanceLine'
-import { Cohort} from '@/app/types/cohorts'
+import { Cohort } from '@/app/types/cohorts'
+import { Device } from '@/app/types/devices'
 
 interface CohortDashboardProps {
   loading: boolean
@@ -19,6 +20,8 @@ interface CohortDashboardProps {
 
 const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, cohorts }) => {
   const [chartType, setChartType] = useState<'line' | 'bar'>('line')
+  const [transformedDevices, setTransformedDevices] = useState<{ label: string; pm2_5: number }[]>([])
+  const [analyticsDevices, setAnalyticsDevices] = useState<Device[]>([])
 
   const categories = [
     { pm25level: "Good", iconClass: "bg-green-500" },
@@ -29,8 +32,65 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
     { pm25level: "Hazardous", iconClass: "bg-rose-900" }
   ]
 
-   const activeCohort = useMemo(() => cohorts.find((cohort) => cohort._id === cohortId), [cohorts, cohortId]);
-  
+  const activeCohort = useMemo(() => cohorts.find((cohort) => cohort._id === cohortId), [cohorts, cohortId]);
+
+  useEffect(() => {
+    if (activeCohort?.devices) {
+      const transformed = activeCohort.devices.map(device => ({
+        label: device.long_name,
+        pm2_5: 0 // Default value, you may want to fetch actual PM2.5 values
+      }));
+      setTransformedDevices(transformed);
+
+      const analyticsDevices = activeCohort.devices.map(device => ({
+        _id: device._id,
+        isOnline: true,
+        device_codes: [],
+        status: 'active',
+        category: 'default',
+        isActive: true,
+        description: '',
+        name: device.name,
+        network: device.network,
+        long_name: device.long_name,
+        createdAt: new Date().toISOString(),
+        authRequired: device.authRequired,
+        serial_number: device.serial_number,
+        api_code: device.api_code,
+        latitude: 0,
+        longitude: 0,
+        groups: device.groups,
+        previous_sites: [],
+        cohorts: [],
+        grids: [],
+        site: {
+          _id: '',
+          visibility: true,
+          grids: [],
+          isOnline: true,
+          location_name: '',
+          search_name: '',
+          group: '',
+          name: '',
+          data_provider: '',
+          site_category: {
+            tags: [],
+            area_name: '',
+            category: '',
+            highway: '',
+            landuse: '',
+            latitude: 0,
+            longitude: 0,
+            natural: '',
+            search_radius: 0,
+            waterway: ''
+          },
+          groups: []
+        }
+      }));
+      setAnalyticsDevices(analyticsDevices);
+    }
+  }, [activeCohort]);
 
   return (
     <div>
@@ -58,7 +118,7 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
                 <PollutantCategory 
                   pm25level={category.pm25level} 
                   iconClass={category.iconClass} 
-                  devices={activeCohort?.devices || []}
+                  devices={transformedDevices}
                 />
               </div>
             ))}
@@ -96,7 +156,7 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
 
         <ExceedancesChart
           analyticsSites={[]}
-          analyticsDevices={activeCohort?.devices || []}
+          analyticsDevices={analyticsDevices}
           isGrids={false}
           isCohorts={true}
         />
