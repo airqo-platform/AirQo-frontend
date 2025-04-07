@@ -43,6 +43,7 @@ jobs:
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
       run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
+      run_netmanager-app: ${{ steps.check_files.outputs.run_netmanager-app }} # netmanager-app
 
     runs-on: ubuntu-latest
     steps:
@@ -68,6 +69,7 @@ jobs:
           echo "run_docs=false" >>$GITHUB_OUTPUT
           echo "run_inventory=false" >>$GITHUB_OUTPUT
           echo "run_reports=false" >>$GITHUB_OUTPUT
+          echo "run_netmanager-app=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
@@ -104,6 +106,10 @@ jobs:
               echo "run_reports=true" >>$GITHUB_OUTPUT
             fi
 
+            if [[ $file == src/netmanager-app/* ]]; then
+              echo "run_netmanager-app=true" >>$GITHUB_OUTPUT
+            fi            
+
             if [[ $file == workflow-trigger ]]; then
               echo "run_netmanager=true" >>$GITHUB_OUTPUT
               echo "run_website=true" >>$GITHUB_OUTPUT
@@ -113,6 +119,7 @@ jobs:
               echo "run_docs=true" >>$GITHUB_OUTPUT
               echo "run_inventory=true" >>$GITHUB_OUTPUT
               echo "run_reports=true" >>$GITHUB_OUTPUT
+              echo "run_netmanager-app=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -689,3 +696,62 @@ jobs:
         run: |
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/reports/.env env-reports-staging | kubectl replace -f - -n staging
+
+  ### build and push netmanager-app image ###
+  netmanager-app:
+    name: build-push-netmanager-app-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_netmanager-app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="sta-env-netmanager-app" > src/netmanager-app/.env
+
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/netmanager-app/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-netmanager-app:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-netmanager-app:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-netmanager-app:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-netmanager-app:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-netmanager-app:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/netmanager-app/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update netmanager-app staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+
+      - name: Update the corresponding configmap
+        run: |
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=src/netmanager-app/.env env-netmanager-staging | kubectl replace -f - -n staging          
