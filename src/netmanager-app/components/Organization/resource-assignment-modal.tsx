@@ -170,8 +170,8 @@ export function ResourceAssignmentModal({
               {activeTab === "sites" &&
               selectedSites.length === filteredSites.filter((s) => !s.assigned).length &&
               filteredSites.some((s) => !s.assigned)
-                ? "Deselect All"
-                : "Select All"}
+                ? ""
+                : ""}
               {activeTab === "devices" &&
               selectedDevices.length === filteredDevices.filter((d) => !d.assigned).length &&
               filteredDevices.some((d) => !d.assigned)
