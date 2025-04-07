@@ -17,7 +17,12 @@ import {
 import { Site } from "@/app/types/sites";
 
 interface Categories {
-  [key: string]: Site[];
+  [key: string]: SiteWithPM25[];
+}
+
+interface SiteWithPM25 extends Site {
+  pm2_5: number;
+  label: string;
 }
 
 interface RecentEventFeature {
@@ -42,12 +47,12 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
 }) => {
   const [chartType, setChartType] = useState<"line" | "bar">("line");
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState<{
-    Good: Site[];
-    Moderate: Site[];
-    UHFSG: Site[];
-    Unhealthy: Site[];
-    VeryUnhealthy: Site[];
-    Hazardous: Site[];
+    Good: SiteWithPM25[];
+    Moderate: SiteWithPM25[];
+    UHFSG: SiteWithPM25[];
+    Unhealthy: SiteWithPM25[];
+    VeryUnhealthy: SiteWithPM25[];
+    Hazardous: SiteWithPM25[];
   }>({
     Good: [],
     Moderate: [],
@@ -73,7 +78,12 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
       Object.keys(PM_25_CATEGORY).forEach((key) => {
         const [min, max] = PM_25_CATEGORY[key as keyof typeof PM_25_CATEGORY];
         if (pm2_5 >= 0 && pm2_5 > min && pm2_5 <= max) {
-          categories[key].push({ ...site, pm2_5, label: site.label || "" });
+          const siteWithPM25: SiteWithPM25 = {
+            ...site,
+            pm2_5,
+            label: site.name || site.description || site.generated_name || ""
+          };
+          categories[key].push(siteWithPM25);
         }
       });
     };

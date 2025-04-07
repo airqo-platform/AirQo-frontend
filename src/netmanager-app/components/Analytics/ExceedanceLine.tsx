@@ -38,6 +38,12 @@ interface ChartData {
   Unhealthy: number;
   VeryUnhealthy: number;
   Hazardous: number;
+  device_id?: string;
+  site?: {
+    name?: string;
+    description?: string;
+    generated_name?: string;
+  };
 }
 
 interface ExceedancesChartProps {
@@ -45,6 +51,12 @@ interface ExceedancesChartProps {
   analyticsDevices: Device[];
   isGrids: boolean;
   isCohorts: boolean;
+}
+
+interface TooltipPayload {
+  name: string;
+  value: number;
+  fill: string;
 }
 
 const chartConfig = {
@@ -127,7 +139,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
         <div className="bg-white p-4 border border-gray-200 rounded shadow-md">
           <p className="font-bold">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.fill }}>
+            <p key={index} style={{ color: (entry as TooltipPayload).fill }}>
               {entry.name}: {entry.value}
             </p>
           ))}
@@ -240,7 +252,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                   <CardTitle className="text-lg">
                     {isCohorts
                       ? location.device_id
-                      : location.site.name || location.site.description || location.site.generated_name}
+                      : location.site?.name || location.site?.description || location.site?.generated_name}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
