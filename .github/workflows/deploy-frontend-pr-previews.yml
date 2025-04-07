@@ -868,7 +868,7 @@ jobs:
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-netmanager2:latest \
+            --update-secrets=/etc/env/.env=sta-env-netmanager-app:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npm run start" \
             --allow-unauthenticated
 
