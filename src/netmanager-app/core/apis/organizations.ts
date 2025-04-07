@@ -9,6 +9,20 @@ interface ErrorResponse {
   message: string;
 }
 
+interface CreateOrgInput {
+  grp_title: string;
+  grp_country: string;
+  grp_industry: string;
+  grp_timezone: {
+    value: string;
+    label: string;
+  };
+  grp_description: string;
+  grp_website: string;
+  grp_profile_picture?: string | "";
+};
+
+
 export const groupsApi = {
   getGroupsApi: async () => {
     try {
@@ -40,7 +54,7 @@ export const groupsApi = {
     }
   },
 
-  createGroupApi: async (data: Group) => {
+  createGroupApi: async (data: CreateOrgInput) => {
     try {
       const response = await axiosInstance.post(`${USERS_MGT_URL}/groups`, data);
       return response.data;

@@ -43,6 +43,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "@/components/ui/use-toast";
+import { Permission, Role } from "@/app/types/roles";
+import { roles } from "@/core/apis/roles";
 
 type OrganizationRolesProps = {
   organizationId: string;
@@ -53,11 +55,6 @@ const ITEMS_PER_PAGE = 10;
 type SortField = "role_name" | "permissions";
 type SortOrder = "asc" | "desc";
 
-interface Role {
-  _id: string;
-  role_name: string;
-  role_permissions: Array<{ permission: string }>;
-}
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const { grproles, isLoading, error } = useGroupRoles(organizationId);
@@ -77,7 +74,14 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
       return;
     }
 
+    const data = {
+      role_name: newRoleName,
+      network_id: network._id,
+      group_id: organizationId,
+    };
+
     try {
+      await roles.createRoleApi(data);
       toast({
         title: "Role created",
         description: `The role "${newRoleName}" has been successfully created.`,
@@ -138,10 +142,10 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
             : b.role_name.localeCompare(a.role_name);
         } else {
           const permissionsA = a.role_permissions
-            .map((perm: { permission: string }) => perm.permission)
+            .map((perm: Permission) => perm.permission)
             .join(", ");
           const permissionsB = b.role_permissions
-            .map((perm: { permission: string }) => perm.permission)
+            .map((perm: Permission) => perm.permission)
             .join(", ");
           return sortOrder === "asc"
             ? permissionsA.localeCompare(permissionsB)
@@ -294,7 +298,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                   <TableCell>{role.role_name}</TableCell>
                   <TableCell>
                     {role.role_permissions
-                      .map((perm: { permission: string }) => perm.permission)
+                      .map((perm: Permission) => perm.permission)
                       .join(", ")}
                   </TableCell>
                   <TableCell>

@@ -167,9 +167,9 @@ export function OrganizationProfile({
           <Button
             type="submit"
             className="w-full md:w-auto"
-            disabled={updateMutation.isPending}
+            disabled={updateMutation.status === "pending"}
           >
-            {updateMutation.isPending ? "Updating..." : "Update Profile"}
+            {updateMutation.status === "pending" ? "Updating..." : "Update Profile"}
           </Button>
         </form>
       </CardContent>
