@@ -69,7 +69,7 @@ export function CreateOrganizationDialog() {
   // Form submission handler
   const onCreateOrganization = async (data: z.infer<typeof createOrgSchema>) => {
     try {
-      const result = await createGroup(data as any )
+      const result = await createGroup(data)
 
       toast({
         title: "Organization created",
