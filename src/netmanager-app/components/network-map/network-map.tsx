@@ -12,51 +12,51 @@ function MapControls() {
   const map = useMap();
 
   return (
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[1000]">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex flex-col gap-2">
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-[1000]">
+      <div className="flex flex-col gap-2">
         <button
           onClick={() => map.zoomIn()}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Zoom in"
         >
-          <ZoomIn className="h-6 w-6" />
+          <ZoomIn className="h-5 w-5 text-gray-700" />
         </button>
         <button
           onClick={() => map.zoomOut()}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Zoom out"
         >
-          <ZoomOut className="h-6 w-6" />
+          <ZoomOut className="h-5 w-5 text-gray-700" />
         </button>
       </div>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
         <button
           onClick={() => map.setView(map.getCenter(), map.getZoom())}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Center map"
         >
-          <Crosshair className="h-6 w-6" />
+          <Crosshair className="h-5 w-5 text-gray-700" />
         </button>
         <button
           onClick={() => map.setView(DEFAULT_CENTER, 7)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Reset view"
         >
-          <RotateCcw className="h-6 w-6" />
+          <RotateCcw className="h-5 w-5 text-gray-700" />
         </button>
       </div>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
         <button
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Take screenshot"
         >
-          <Camera className="h-6 w-6" />
+          <Camera className="h-5 w-5 text-gray-700" />
         </button>
         <button
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Share map"
         >
-          <Share2 className="h-6 w-6" />
+          <Share2 className="h-5 w-5 text-gray-700" />
         </button>
       </div>
     </div>
