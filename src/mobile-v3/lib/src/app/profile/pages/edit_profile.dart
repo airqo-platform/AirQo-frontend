@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:loggy/loggy.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -19,7 +20,7 @@ class EditProfile extends StatefulWidget {
   State<EditProfile> createState() => _EditProfileState();
 }
 
-class _EditProfileState extends State<EditProfile> {
+class _EditProfileState extends State<EditProfile> with UiLoggy {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -150,115 +151,120 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<String?> _uploadImageToCloudinary(File imageFile) async {
-  try {
+    try {
+      final String cloudName = dotenv.env['NEXT_PUBLIC_CLOUDINARY_NAME'] ?? '';
+      final cloudinaryUrl =
+          'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+      var request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
 
-    final String cloudName = dotenv.env['NEXT_PUBLIC_CLOUDINARY_NAME']?? '';
-    final cloudinaryUrl = 'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
-    var request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
+      request.fields['upload_preset'] =
+          dotenv.env['NEXT_PUBLIC_CLOUDINARY_PRESET'] ?? '';
+      request.fields['folder'] = 'profiles';
 
-    request.fields['upload_preset'] = dotenv.env['NEXT_PUBLIC_CLOUDINARY_PRESET'] ?? '';
-    request.fields['folder'] = 'profiles';
+      String extension = imageFile.path.split('.').last.toLowerCase();
+      String mimeType = extension == 'png' ? 'png' : 'jpeg';
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        contentType: MediaType('image', mimeType),
+      ));
 
+      ('Uploading image to Cloudinary...');
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      loggy.info(
+          'Cloudinary response: ${response.statusCode} - ${response.body}');
 
-    String extension = imageFile.path.split('.').last.toLowerCase();
-    String mimeType = extension == 'png' ? 'png' : 'jpeg';
-    request.files.add(await http.MultipartFile.fromPath(
-      'file', 
-      imageFile.path,
-      contentType: MediaType('image', mimeType),
-    ));
-
-    print('Uploading image to Cloudinary...');
-    var streamedResponse = await request.send();
-    var response = await http.Response.fromStream(streamedResponse);
-    print('Cloudinary response: ${response.statusCode} - ${response.body}');
-
-    if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
-      return jsonResponse['secure_url'];
-    } else {
-      throw Exception('Cloudinary upload failed: ${response.statusCode}, ${response.body}');
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        return jsonResponse['secure_url'];
+      } else {
+        throw Exception(
+            'Cloudinary upload failed: ${response.statusCode}, ${response.body}');
+      }
+    } catch (e) {
+      loggy.warning('Error uploading image to Cloudinary: $e');
+      throw e;
     }
-  } catch (e) {
-    print('Error uploading image to Cloudinary: $e');
-    throw e;
   }
-}
 
   Future<String?> _uploadProfileImage(File imageFile) async {
-  try {
-    // 1. Upload to Cloudinary
-    final imageUrl = await _uploadImageToCloudinary(imageFile);
-    if (imageUrl == null) {
-      throw Exception("Failed to get image URL from Cloudinary");
-    }
-
-    setState(() {
-      _currentProfilePicture = imageUrl;
-    });
-
-    final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
-    if (userId == null) {
-      throw Exception("No valid user ID found in Hive");
-    }
-
-    // 4. Update user details on the server
-    var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
-    final authToken = await HiveRepository.getData("token", HiveBoxNames.authBox);
-    if (authToken == null) {
-      throw Exception("Authentication token not found");
-    }
-
-    var body = {
-      'firstName': _firstNameController.text.trim(),
-      'lastName': _lastNameController.text.trim(),
-      'email': _emailController.text.trim(),
-      'profilePicture': imageUrl,
-    };
-
-    print('Updating profile at $uri with body: $body...');
-    var response = await http.put(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $authToken',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(body),
-    );
-    print('Update completed. Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      var jsonResponse = json.decode(response.body);
-      if (jsonResponse['success'] == true) {
-        final updatedData = {
-          'userId': userId,
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'profilePicture': imageUrl,
-        };
-        await HiveRepository.saveData("loggedUser", json.encode(updatedData), HiveBoxNames.authBox);
-        context.read<UserBloc>().add(UpdateUser(
-          firstName: updatedData['firstName'] ?? '',
-          lastName: updatedData['lastName'] ?? '',
-          email: updatedData['email'] ?? '',
-          profilePicture: updatedData['profilePicture'],
-        ));
-
-        return jsonResponse['user']?['profilePicture'] ?? "PROFILE_UPDATED";
-      } else {
-        throw Exception("Server returned success:false: ${response.body}");
+    try {
+      // 1. Upload to Cloudinary
+      final imageUrl = await _uploadImageToCloudinary(imageFile);
+      if (imageUrl == null) {
+        throw Exception("Failed to get image URL from Cloudinary");
       }
-    } else {
-      throw Exception(
-          "Failed to update profile: Status ${response.statusCode}, ${response.body}");
+
+      setState(() {
+        _currentProfilePicture = imageUrl;
+      });
+
+      final userId =
+          await HiveRepository.getData("userId", HiveBoxNames.authBox);
+      if (userId == null) {
+        throw Exception("No valid user ID found in Hive");
+      }
+
+      // 4. Update user details on the server
+      var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+      final authToken =
+          await HiveRepository.getData("token", HiveBoxNames.authBox);
+      if (authToken == null) {
+        throw Exception("Authentication token not found");
+      }
+
+      var body = {
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'profilePicture': imageUrl,
+      };
+
+      loggy.info('Updating profile at $uri with body: $body...');
+      var response = await http.put(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+      loggy.info('Update completed. Status code: ${response.statusCode}');
+      loggy.info('Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        var jsonResponse = json.decode(response.body);
+        if (jsonResponse['success'] == true) {
+          final updatedData = {
+            'userId': userId,
+            'firstName': _firstNameController.text.trim(),
+            'lastName': _lastNameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'profilePicture': imageUrl,
+          };
+          await HiveRepository.saveData(
+              "loggedUser", json.encode(updatedData), HiveBoxNames.authBox);
+          context.read<UserBloc>().add(UpdateUser(
+                firstName: updatedData['firstName'] ?? '',
+                lastName: updatedData['lastName'] ?? '',
+                email: updatedData['email'] ?? '',
+                profilePicture: updatedData['profilePicture'],
+              ));
+
+          return jsonResponse['user']?['profilePicture'] ?? "PROFILE_UPDATED";
+        } else {
+          throw Exception("Server returned success:false: ${response.body}");
+        }
+      } else {
+        throw Exception(
+            "Failed to update profile: Status ${response.statusCode}, ${response.body}");
+      }
+    } catch (e) {
+      loggy.warning('Error uploading/updating profile image: $e');
+      rethrow ;
     }
-  } catch (e) {
-    print('Error uploading/updating profile image: $e');
-    throw e;
   }
-}
 
   void _updateProfile() async {
     if (!_formChanged || _isLoading) return;
@@ -313,11 +319,9 @@ class _EditProfileState extends State<EditProfile> {
           _resetLoadingState();
           setState(() {
             _formChanged = false;
-            _selectedProfileImage =
-                null; // Clear the selected image (matches JS)
+            _selectedProfileImage = null;
           });
 
-          // 6. Success message (matches JS success feedback)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Profile image successfully added'),
@@ -325,12 +329,10 @@ class _EditProfileState extends State<EditProfile> {
             ),
           );
 
-          // Reload user data and navigate back
           context.read<UserBloc>().add(LoadUser());
           Navigator.of(context).pop();
         }
       } else {
-        // Update profile without image
         context.read<UserBloc>().add(
               UpdateUser(
                 firstName: _firstNameController.text.trim(),
@@ -346,10 +348,9 @@ class _EditProfileState extends State<EditProfile> {
 
       _resetLoadingState();
       setState(() {
-        _selectedProfileImage = null; // Clear on error (matches JS)
+        _selectedProfileImage = null;
       });
 
-      // Error message (matches JS error feedback)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error uploading/updating profile image: $e'),
@@ -377,17 +378,14 @@ class _EditProfileState extends State<EditProfile> {
       );
     }
 
-    // If user has an existing profile picture, show that
     if (_currentProfilePicture.isNotEmpty) {
       if (_currentProfilePicture.startsWith('http')) {
-        // Network image
         return CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
           backgroundImage: NetworkImage(_currentProfilePicture),
           onBackgroundImageError: (exception, stackTrace) {
-            // Note: onBackgroundImageError should be void, we can't return a widget here
-            print('Error loading profile image: $exception');
+            loggy.warning('Error loading profile image: $exception');
           },
           child: SvgPicture.asset(
             'assets/icons/user_icon.svg',
@@ -396,7 +394,7 @@ class _EditProfileState extends State<EditProfile> {
           ),
         );
       } else if (_currentProfilePicture.endsWith('.svg')) {
-        // SVG image
+
         return CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
@@ -407,7 +405,7 @@ class _EditProfileState extends State<EditProfile> {
           ),
         );
       } else {
-        // Local image
+
         return CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
@@ -453,7 +451,7 @@ class _EditProfileState extends State<EditProfile> {
 
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {
-        print('Current state: $state');
+        loggy.info('Current state: $state');
 
         if (state is UserUpdateSuccess) {
           _resetLoadingState();
