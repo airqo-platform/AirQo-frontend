@@ -10,6 +10,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -150,18 +151,19 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<String?> _uploadImageToCloudinary(File imageFile) async {
   try {
-    const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload';
+
+    final String cloudName = dotenv.env['NEXT_PUBLIC_CLOUDINARY_NAME']?? '';
+    final cloudinaryUrl = 'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
     var request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
 
-    // Use the same upload preset as the JS code
-    request.fields['upload_preset'] = 'YOUR_UPLOAD_PRESET'; // Replace with the exact preset from your JS env
-    request.fields['folder'] = 'profiles'; // Match the JS folder structure
+    request.fields['upload_preset'] = dotenv.env['NEXT_PUBLIC_CLOUDINARY_PRESET'] ?? '';
+    request.fields['folder'] = 'profiles';
 
-    // Add the image file
+
     String extension = imageFile.path.split('.').last.toLowerCase();
     String mimeType = extension == 'png' ? 'png' : 'jpeg';
     request.files.add(await http.MultipartFile.fromPath(
-      'file', // Matches the JS 'file' field
+      'file', 
       imageFile.path,
       contentType: MediaType('image', mimeType),
     ));
@@ -173,7 +175,7 @@ class _EditProfileState extends State<EditProfile> {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      return jsonResponse['secure_url']; // Matches JS 'responseData.secure_url'
+      return jsonResponse['secure_url'];
     } else {
       throw Exception('Cloudinary upload failed: ${response.statusCode}, ${response.body}');
     }
@@ -183,7 +185,6 @@ class _EditProfileState extends State<EditProfile> {
   }
 }
 
-  // 1. First, modify the _uploadProfileImage method to check the actual file extension
   Future<String?> _uploadProfileImage(File imageFile) async {
   try {
     // 1. Upload to Cloudinary
@@ -192,12 +193,10 @@ class _EditProfileState extends State<EditProfile> {
       throw Exception("Failed to get image URL from Cloudinary");
     }
 
-    // 2. Update local state (UI preview)
     setState(() {
       _currentProfilePicture = imageUrl;
     });
 
-    // 3. Get user ID from Hive (equivalent to localStorage in JS)
     final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
     if (userId == null) {
       throw Exception("No valid user ID found in Hive");
@@ -232,7 +231,6 @@ class _EditProfileState extends State<EditProfile> {
     if (response.statusCode == 200 || response.statusCode == 201) {
       var jsonResponse = json.decode(response.body);
       if (jsonResponse['success'] == true) {
-        // 5. Update local storage and UserBloc (equivalent to localStorage and Redux in JS)
         final updatedData = {
           'userId': userId,
           'firstName': _firstNameController.text.trim(),
@@ -439,7 +437,7 @@ class _EditProfileState extends State<EditProfile> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final avatarRadius = screenWidth * 0.15;
+    //final avatarRadius = screenWidth * 0.15;
     final padding = screenWidth * 0.05;
     final iconSize = screenWidth * 0.06;
 
