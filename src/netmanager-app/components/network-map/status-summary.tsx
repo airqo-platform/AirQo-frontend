@@ -1,70 +1,121 @@
 "use client";
 
 import { useDevices } from "@/core/hooks/useDevices";
-import { Loader2 } from "lucide-react";
+import { Loader2, Activity, Clock, AlertTriangle, Sun, Power, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface StatCardProps {
   title: string;
   value: number;
   icon: React.ReactNode;
+  description?: string;
 }
 
-const StatCard = ({ title, value, icon }: StatCardProps) => (
-  <Card className="p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg">
-    <div className="flex items-center gap-4">
-      <div className="p-2 bg-primary/10 rounded-lg">{icon}</div>
-      <div>
-        <p className="text-sm text-muted-foreground">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
-      </div>
+const StatCard = ({ title, value, icon, description }: StatCardProps) => (
+  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/5 transition-colors">
+    <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+      {icon}
     </div>
-  </Card>
+    <div className="min-w-0">
+      <p className="text-sm text-muted-foreground">{title}</p>
+      <p className="text-xl font-semibold">{value}</p>
+      {description && (
+        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+      )}
+    </div>
+  </div>
 );
 
 export function StatusSummary() {
   const { stats, isLoading } = useDevices();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <Card className="p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+        <div className="flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      </Card>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      <StatCard
-        title="Total Devices"
-        value={stats.total}
-        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect></svg>}
-      />
-      <StatCard
-        title="Due Maintenance"
-        value={stats.maintenance.due}
-        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>}
-      />
-      <StatCard
-        title="Overdue"
-        value={stats.maintenance.overdue}
-        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>}
-      />
-      <StatCard
-        title="Solar Powered"
-        value={stats.powerSource.solar}
-        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>}
-      />
-      <StatCard
-        title="Alternator"
-        value={stats.powerSource.alternator}
-        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>}
-      />
-      <StatCard
-        title="Mains Powered"
-        value={stats.powerSource.mains}
-        icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path></svg>}
-      />
+    <div className="relative">
+      <motion.div
+        initial={false}
+        animate={{ 
+          x: isCollapsed ? -280 : 0,
+          opacity: isCollapsed ? 0 : 1
+        }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg divide-y divide-border w-[280px]">
+          <div className="p-4">
+            <h2 className="font-semibold mb-3">Device Status</h2>
+            <StatCard
+              title="Total Devices"
+              value={stats.total}
+              icon={<Activity className="h-5 w-5" />}
+              description={`${stats.online} online, ${stats.offline} offline`}
+            />
+          </div>
+
+          <div className="p-4">
+            <h2 className="font-semibold mb-3">Maintenance</h2>
+            <div>
+              <StatCard
+                title="Due Maintenance"
+                value={stats.maintenance.due}
+                icon={<Clock className="h-5 w-5" />}
+              />
+              <StatCard
+                title="Overdue"
+                value={stats.maintenance.overdue}
+                icon={<AlertTriangle className="h-5 w-5" />}
+              />
+            </div>
+          </div>
+
+          <div className="p-4">
+            <h2 className="font-semibold mb-3">Power Source</h2>
+            <div>
+              <StatCard
+                title="Solar Powered"
+                value={stats.powerSource.solar}
+                icon={<Sun className="h-5 w-5" />}
+              />
+              <StatCard
+                title="Alternator"
+                value={stats.powerSource.alternator}
+                icon={<Power className="h-5 w-5" />}
+              />
+              <StatCard
+                title="Mains Powered"
+                value={stats.powerSource.mains}
+                icon={<Zap className="h-5 w-5" />}
+              />
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+      
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`absolute z-20 top-7 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
+          ${isCollapsed ? "left-0" : "right-3"}`}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-4 w-4 text-gray-700" />
+        ) : (
+          <ChevronLeft className="h-4 w-4 text-gray-700" />
+        )}
+      </Button>
     </div>
   );
 } 

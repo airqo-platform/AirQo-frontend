@@ -1,23 +1,26 @@
 "use client"; // Ensures this runs on the client
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
-import type { LayoutProps } from "../app/types/layout";
 
-export default function Layout({ children }: LayoutProps) {
-    const [darkMode, setDarkMode] = useState(false);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+interface LayoutProps {
+    children: React.ReactNode;
+    hideTopbar?: boolean;
+    defaultCollapsed?: boolean;
+}
+
+export default function Layout({ 
+    children, 
+    hideTopbar = false,
+    defaultCollapsed = false 
+}: LayoutProps) {
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(defaultCollapsed);
     const [isMobileView, setIsMobileView] = useState(false);
 
     useEffect(() => {
-        const isDarkMode = localStorage.getItem("darkMode") === "true";
-        setDarkMode(isDarkMode);
-        document.documentElement.classList.toggle("dark", isDarkMode);
-
         const handleResize = () => {
             setIsMobileView(window.innerWidth < 768);
-            setIsSidebarCollapsed(window.innerWidth < 1024);
         };
 
         handleResize();
@@ -26,23 +29,21 @@ export default function Layout({ children }: LayoutProps) {
     }, []);
 
     const toggleSidebar = () => {
-        setIsSidebarCollapsed((prev) => !prev);
+        setIsSidebarCollapsed(!isSidebarCollapsed);
     };
 
     return (
-        <div className={`flex h-screen bg-background ${darkMode ? "dark" : ""}`}>
-            <Sidebar isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
-
-            <div
-                className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ease-in-out ${
-                    isSidebarCollapsed ? "ml-0" : "ml-64"
-                }`}
-            >
-                <Topbar isMobileView={isMobileView} />
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-6">
-                    <div className="container mx-auto">{children}</div>
-                </main>
-            </div>
+        <div className="flex h-screen overflow-hidden">
+            <Sidebar
+                isSidebarCollapsed={isSidebarCollapsed}
+                toggleSidebar={toggleSidebar}
+            />
+            <main className="flex-1 flex flex-col overflow-hidden">
+                {!hideTopbar && <Topbar isMobileView={isMobileView} />}
+                <div className="flex-1 overflow-y-auto">
+                    {children}
+                </div>
+            </main>
         </div>
     );
 }

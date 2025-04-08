@@ -158,9 +158,11 @@ export function NetworkMap() {
             <DeviceMarker key={device._id} device={device} />
           ) : null
         ))}
-        <MapLegend />
         <MapControls />
       </MapContainer>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000]">
+        <MapLegend />
+      </div>
     </div>
   );
 } 

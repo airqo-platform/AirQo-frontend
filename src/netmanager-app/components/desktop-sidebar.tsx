@@ -2,6 +2,7 @@
 
 import type React from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   BarChart2,
   Users,
@@ -73,6 +74,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   isActive,
   logout,
 }) => {
+  const pathname = usePathname();
+  const isNetworkMapRoute = pathname === "/network-map";
+
   const NavItem = ({
     href,
     icon: Icon,
@@ -104,7 +108,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-card transition-all duration-300 ease-in-out z-40 shadow-lg flex flex-col
+      className={`fixed top-0 left-0 h-full bg-card transition-all duration-300 ease-in-out z-40 shadow-lg flex flex-col desktop-sidebar
                 ${isSidebarCollapsed ? "w-16" : "w-64"}
             `}
     >
@@ -126,27 +130,29 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           />
         </motion.div>
 
-        {/* Sidebar Toggle Button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className={`absolute top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
-                  ${isSidebarCollapsed ? "left-12" : "left-60"}`}
-              >
-                {isSidebarCollapsed ? (
-                  <ChevronRight className="h-4 w-4 text-gray-700" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4 text-gray-700" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {/* Sidebar Toggle Button - Only show if not on network map */}
+        {!isNetworkMapRoute && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className={`absolute top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
+                    ${isSidebarCollapsed ? "left-12" : "left-60"}`}
+                >
+                  {isSidebarCollapsed ? (
+                    <ChevronRight className="h-4 w-4 text-gray-700" />
+                  ) : (
+                    <ChevronLeft className="h-4 w-4 text-gray-700" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
 
       {/* Sidebar Content */}

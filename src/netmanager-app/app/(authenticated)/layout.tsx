@@ -1,15 +1,21 @@
 "use client";
 
-import "../globals.css";
-import Layout from "../../components/layout";
+import { usePathname } from "next/navigation";
+import Layout from "@/components/layout";
 
 export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isNetworkMapRoute = pathname === "/network-map";
+
   return (
-    <Layout>
+    <Layout 
+      hideTopbar={isNetworkMapRoute}
+      defaultCollapsed={isNetworkMapRoute}
+    >
       {children}
     </Layout>
   );
