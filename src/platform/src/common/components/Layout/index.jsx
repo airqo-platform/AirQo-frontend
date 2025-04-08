@@ -1,17 +1,12 @@
-// src/components/Layout.jsx
-
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '../TopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
-import Modal from '../Modal/dataDownload';
 import MaintenanceBanner from '../MaintenanceBanner';
-
-import { setOpenModal } from '@/lib/store/services/downloadModal';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useUserChecklists from '@/core/hooks/useUserChecklists';
@@ -28,7 +23,6 @@ const Layout = ({
   showSearch,
 }) => {
   const router = useRouter();
-  const dispatch = useDispatch();
   const { userID } = useGetActiveGroup();
 
   // Custom Hooks
@@ -37,14 +31,8 @@ const Layout = ({
   useInactivityLogout(userID);
 
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
-  const isOpen = useSelector((state) => state.modal.openModal);
 
   const { maintenance } = useMaintenanceStatus();
-
-  // Handler to close the modal
-  const handleCloseModal = () => {
-    dispatch(setOpenModal(false));
-  };
 
   return (
     <div className="flex min-h-screen bg-[#f6f6f7]" data-testid="layout">
@@ -92,9 +80,6 @@ const Layout = ({
 
       {/* SideBar Drawer */}
       <SideBarDrawer />
-
-      {/* Modal */}
-      <Modal isOpen={isOpen} onClose={handleCloseModal} />
     </div>
   );
 };

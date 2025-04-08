@@ -16,14 +16,14 @@ import LocationIcon from '@/icons/Analytics/LocationIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import { format, parseISO } from 'date-fns';
 import { saveAs } from 'file-saver';
-import CustomToast from '../../../Toast/CustomToast';
+import CustomToast from '@/components/Toast/CustomToast';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/components/Charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { Refreshing, DoneRefreshed } from '../constants/svgs';
-import InfoMessage from '../../../Messages/InfoMessage';
+import InfoMessage from '@/components/Messages/InfoMessage';
 import SelectionMessage from '../components/SelectionMessage';
 
 /**

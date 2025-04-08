@@ -1,6 +1,13 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
+import PropTypes from 'prop-types';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
@@ -30,7 +37,7 @@ import {
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
-import CustomToast from '../../../Toast/CustomToast';
+import CustomToast from '@/components/Toast/CustomToast';
 import { format } from 'date-fns';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { event } from '@/core/hooks/useGoogleAnalytics';
@@ -74,10 +81,195 @@ const getMimeType = (fileType) => {
 };
 
 /**
+ * SettingsSidebar component for DataDownload
+ */
+const SettingsSidebar = ({
+  formData,
+  handleOptionSelect,
+  edit,
+  setEdit,
+  filteredDataTypeOptions,
+  ORGANIZATION_OPTIONS,
+  durationGuidance,
+  handleSubmit,
+  sidebarBg = '#f6f6f7',
+}) => {
+  return (
+    <form
+      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r flex-shrink-0"
+      style={{ backgroundColor: sidebarBg }}
+      onSubmit={handleSubmit}
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3">
+        <h4 className="text-lg font-medium">Download Settings</h4>
+        <button
+          type="button"
+          className={`text-sm text-blue-600 ${edit ? 'font-semibold' : 'opacity-80'}`}
+          onClick={() => setEdit(!edit)}
+        >
+          {edit ? 'Done' : <EditIcon />}
+        </button>
+      </div>
+
+      {/* Form Fields */}
+      <div className="space-y-4">
+        <CustomFields
+          field
+          title="Title"
+          edit={edit}
+          id="title"
+          defaultOption={{ name: formData.title.name }}
+          handleOptionSelect={handleOptionSelect}
+        />
+
+        <CustomFields
+          title="Organization"
+          options={ORGANIZATION_OPTIONS}
+          id="organization"
+          icon={<WorldIcon width={16} height={16} fill="#000" />}
+          defaultOption={formData.organization}
+          handleOptionSelect={handleOptionSelect}
+          textFormat="uppercase"
+        />
+
+        <CustomFields
+          title="Data type"
+          options={filteredDataTypeOptions}
+          id="dataType"
+          icon={<CalibrateIcon />}
+          defaultOption={formData.dataType}
+          handleOptionSelect={handleOptionSelect}
+        />
+
+        <CustomFields
+          title="Pollutant"
+          options={POLLUTANT_OPTIONS}
+          id="pollutant"
+          icon={<WindIcon />}
+          defaultOption={formData.pollutant}
+          handleOptionSelect={handleOptionSelect}
+        />
+
+        <CustomFields
+          title="Duration"
+          id="duration"
+          useCalendar
+          required={true}
+          requiredText={`${!formData.duration ? 'please select a date range' : ''}`}
+          defaultOption={formData.duration}
+          handleOptionSelect={handleOptionSelect}
+        />
+
+        {durationGuidance && (
+          <div className="text-xs text-blue-600 -mt-2 ml-1">
+            {durationGuidance}
+          </div>
+        )}
+
+        <CustomFields
+          title="Frequency"
+          options={FREQUENCY_OPTIONS}
+          id="frequency"
+          icon={<FrequencyIcon />}
+          defaultOption={formData.frequency}
+          handleOptionSelect={handleOptionSelect}
+        />
+
+        <CustomFields
+          title="File type"
+          options={FILE_TYPE_OPTIONS}
+          id="fileType"
+          icon={<FileTypeIcon />}
+          defaultOption={formData.fileType}
+          handleOptionSelect={handleOptionSelect}
+        />
+      </div>
+    </form>
+  );
+};
+
+/**
+ * DataContent component for DataDownload
+ */
+const DataContent = ({
+  selectedItems,
+  clearSelections,
+  currentFilterData,
+  activeFilterKey,
+  selectedRows,
+  setSelectedRows,
+  clearSelected,
+  isLoading,
+  filterErrors,
+  handleToggleItem,
+  columnsByFilter,
+  filters,
+  handleFilter,
+  searchKeysByFilter,
+  handleRetryLoad,
+}) => {
+  return (
+    <div className="bg-white flex-1 h-full px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
+      {/* Selection info with SelectionMessage component */}
+      {selectedItems.length > 0 && (
+        <SelectionMessage type="info" onClear={clearSelections}>
+          {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
+            ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
+            : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
+              ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
+              : `${selectedItems.length} ${
+                  selectedItems.length === 1
+                    ? activeFilterKey === FILTER_TYPES.SITES
+                      ? 'monitoring site'
+                      : 'device'
+                    : activeFilterKey === FILTER_TYPES.SITES
+                      ? 'monitoring sites'
+                      : 'devices'
+                } selected for data download`}
+        </SelectionMessage>
+      )}
+
+      {/* Selection guidance with SelectionMessage component */}
+      {selectedItems.length === 0 && (
+        <SelectionMessage type="info">
+          {activeFilterKey === FILTER_TYPES.COUNTRIES ||
+          activeFilterKey === FILTER_TYPES.CITIES
+            ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
+            : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
+        </SelectionMessage>
+      )}
+
+      {/* Data table */}
+      <DataTable
+        data={currentFilterData}
+        selectedRows={selectedRows}
+        setSelectedRows={setSelectedRows}
+        clearSelectionTrigger={clearSelected}
+        loading={isLoading}
+        error={!!filterErrors[activeFilterKey]}
+        errorMessage={filterErrors[activeFilterKey]}
+        onToggleRow={handleToggleItem}
+        columnsByFilter={columnsByFilter}
+        filters={filters}
+        onFilter={handleFilter}
+        searchKeys={searchKeysByFilter}
+        onRetry={() => handleRetryLoad(activeFilterKey)}
+      />
+    </div>
+  );
+};
+
+/**
  * DataDownload component allows users to download air quality data
  * with various filtering options.
+ * Refactored with exact 280px sidebar width.
+ *
+ * @param {Object} props
+ * @param {Function} props.onClose - Function to close the modal
+ * @param {string} props.sidebarBg - Background color for sidebar
  */
-const DataDownload = ({ onClose }) => {
+const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   // Initialize refs
   const initialLoadRef = useRef(false);
   const abortControllerRef = useRef(null);
@@ -459,7 +651,9 @@ const DataDownload = ({ onClose }) => {
   // Handle download submission with improved validation and error handling
   const handleSubmit = useCallback(
     async (e) => {
-      e.preventDefault();
+      if (e && e.preventDefault) {
+        e.preventDefault();
+      }
 
       // Abort any existing request
       if (abortControllerRef.current) {
@@ -959,145 +1153,40 @@ const DataDownload = ({ onClose }) => {
   ]);
 
   return (
-    <>
-      {/* Settings Panel */}
-      <form
-        className="w-auto h-auto md:w-[280px] md:h-[658px] relative bg-[#f6f6f7] space-y-3 px-5 pt-5 pb-14"
-        onSubmit={handleSubmit}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="text-lg font-medium">Download Settings</h4>
-          <button
-            type="button"
-            className={`text-sm text-blue-600 ${edit ? 'font-semibold' : 'opacity-80'}`}
-            onClick={() => setEdit(!edit)}
-          >
-            {edit ? 'Done' : <EditIcon />}
-          </button>
-        </div>
+    <div className="flex flex-col md:flex-row">
+      {/* Settings Panel - Exactly 280px width */}
+      <SettingsSidebar
+        formData={formData}
+        handleOptionSelect={handleOptionSelect}
+        edit={edit}
+        setEdit={setEdit}
+        filteredDataTypeOptions={filteredDataTypeOptions}
+        ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
+        durationGuidance={durationGuidance}
+        handleSubmit={handleSubmit}
+        sidebarBg={sidebarBg}
+      />
 
-        {/* Form Fields */}
-        <CustomFields
-          field
-          title="Title"
-          edit={edit}
-          id="title"
-          defaultOption={{ name: formData.title.name }}
-          handleOptionSelect={handleOptionSelect}
-        />
-        <CustomFields
-          title="Organization"
-          options={ORGANIZATION_OPTIONS}
-          id="organization"
-          icon={<WorldIcon width={16} height={16} fill="#000" />}
-          defaultOption={formData.organization}
-          handleOptionSelect={handleOptionSelect}
-          textFormat="uppercase"
-        />
-        <CustomFields
-          title="Data type"
-          options={filteredDataTypeOptions}
-          id="dataType"
-          icon={<CalibrateIcon />}
-          defaultOption={formData.dataType}
-          handleOptionSelect={handleOptionSelect}
-          disabled={
-            activeFilterKey === FILTER_TYPES.COUNTRIES ||
-            activeFilterKey === FILTER_TYPES.CITIES
-          }
-        />
-        <CustomFields
-          title="Pollutant"
-          options={POLLUTANT_OPTIONS}
-          id="pollutant"
-          icon={<WindIcon />}
-          defaultOption={formData.pollutant}
-          handleOptionSelect={handleOptionSelect}
-        />
-        <CustomFields
-          title="Duration"
-          id="duration"
-          useCalendar
-          required={true}
-          requiredText={`${!formData.duration ? 'please select a date range' : ''}`}
-          defaultOption={formData.duration}
-          handleOptionSelect={handleOptionSelect}
+      {/* Main Content Section */}
+      <div className="flex-1 flex flex-col relative">
+        <DataContent
+          selectedItems={selectedItems}
+          clearSelections={clearSelections}
+          currentFilterData={currentFilterData}
+          activeFilterKey={activeFilterKey}
+          selectedRows={selectedItems}
+          setSelectedRows={setSelectedItems}
+          clearSelected={clearSelected}
+          isLoading={isLoading}
+          filterErrors={filterErrors}
+          handleToggleItem={handleToggleItem}
+          columnsByFilter={columnsByFilter}
+          filters={filters}
+          handleFilter={handleFilter}
+          searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
+          handleRetryLoad={handleRetryLoad}
         />
 
-        {durationGuidance && (
-          <div className="text-xs text-blue-600 -mt-2 ml-1">
-            {durationGuidance}
-          </div>
-        )}
-        <CustomFields
-          title="Frequency"
-          options={FREQUENCY_OPTIONS}
-          id="frequency"
-          icon={<FrequencyIcon />}
-          defaultOption={formData.frequency}
-          handleOptionSelect={handleOptionSelect}
-        />
-        <CustomFields
-          title="File type"
-          options={FILE_TYPE_OPTIONS}
-          id="fileType"
-          icon={<FileTypeIcon />}
-          defaultOption={formData.fileType}
-          handleOptionSelect={handleOptionSelect}
-        />
-      </form>
-
-      {/* Data Table Section */}
-      <div className="bg-white relative w-full h-auto">
-        <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {/* Selection info with SelectionMessage component */}
-          {selectedItems.length > 0 && (
-            <SelectionMessage type="info" onClear={clearSelections}>
-              {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
-                ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
-                : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
-                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
-                  : `${selectedItems.length} ${
-                      selectedItems.length === 1
-                        ? activeFilterKey === FILTER_TYPES.SITES
-                          ? 'monitoring site'
-                          : 'device'
-                        : activeFilterKey === FILTER_TYPES.SITES
-                          ? 'monitoring sites'
-                          : 'devices'
-                    } selected for data download`}
-            </SelectionMessage>
-          )}
-
-          {/* Selection guidance with SelectionMessage component */}
-          {selectedItems.length === 0 && (
-            <SelectionMessage type="info">
-              {activeFilterKey === FILTER_TYPES.COUNTRIES ||
-              activeFilterKey === FILTER_TYPES.CITIES
-                ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
-                : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
-            </SelectionMessage>
-          )}
-
-          {/* Data table */}
-          <DataTable
-            data={currentFilterData}
-            selectedRows={selectedItems}
-            setSelectedRows={setSelectedItems}
-            clearSelectionTrigger={clearSelected}
-            loading={isLoading}
-            error={!!filterErrors[activeFilterKey]}
-            onToggleRow={handleToggleItem}
-            columnsByFilter={columnsByFilter}
-            filters={filters}
-            onFilter={handleFilter}
-            searchKeys={searchKeysByFilter[activeFilterKey]}
-            onRetry={() => handleRetryLoad(activeFilterKey)}
-          />
-        </div>
-
-        {/* Footer - handles all error display */}
         <Footer
           setError={setFormError}
           messageType={footerInfo.type}
@@ -1111,8 +1200,13 @@ const DataDownload = ({ onClose }) => {
           disabled={isDownloadDisabled}
         />
       </div>
-    </>
+    </div>
   );
+};
+
+DataDownload.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  sidebarBg: PropTypes.string,
 };
 
 export default DataDownload;

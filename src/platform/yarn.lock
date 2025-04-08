@@ -6421,6 +6421,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"framer-motion@npm:^12.6.3":
+  version: 12.6.3
+  resolution: "framer-motion@npm:12.6.3"
+  dependencies:
+    motion-dom: ^12.6.3
+    motion-utils: ^12.6.3
+    tslib: ^2.4.0
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 6e64166bbef6810f933f5ed4a0c40457b16bd8ef9c9fb4746aa5bf5303ab7b79475144e8b03b9388bbdab3291316a43fa749171c5fe85d98a6839e44a27bfaae
+  languageName: node
+  linkType: hard
+
 "fromentries@npm:^1.2.0":
   version: 1.3.2
   resolution: "fromentries@npm:1.3.2"
@@ -8405,6 +8427,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"motion-dom@npm:^12.6.3":
+  version: 12.6.3
+  resolution: "motion-dom@npm:12.6.3"
+  dependencies:
+    motion-utils: ^12.6.3
+  checksum: f0b8c55bbd966f128834d53d39d1130cdde4b4902d94f71b2b3ffeba368034acee664b9fdba9f42e3448ff949bd9b3e53ff008328bda991dfee8d2ad92ec4a29
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.6.3":
+  version: 12.6.3
+  resolution: "motion-utils@npm:12.6.3"
+  checksum: 09eebcd883566f706de7f5a7402d6f0a1ad7a5af526903abd8b1f8024728f2720308a1409319938dd2dad875cfd4e520cfb2a9754aa3b6a64597e9e66ef6273b
+  languageName: node
+  linkType: hard
+
 "ms@npm:^2.1.1, ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
@@ -9190,6 +9228,7 @@ __metadata:
     file-saver: ^2.0.5
     flowbite: ^1.6.3
     flowbite-react: ^0.3.8
+    framer-motion: ^12.6.3
     fuse.js: ^7.0.0
     globals: ^15.9.0
     html2canvas: ^1.4.1

@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '@/icons/tickIcon';
-import CustomDropdown from '../../../Dropdowns/CustomDropdown';
-import DatePicker from '../../../Calendar/DatePicker';
+import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
+import DatePicker from '@/components/Calendar/DatePicker';
 
 /**
  * Formats a string by replacing underscores/hyphens with spaces and adjusting its case.

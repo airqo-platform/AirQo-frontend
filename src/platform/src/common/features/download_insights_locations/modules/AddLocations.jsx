@@ -1,3 +1,4 @@
+'use client';
 import React, {
   useState,
   useCallback,
@@ -15,7 +16,8 @@ import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import InfoMessage from '../../../Messages/InfoMessage';
+import InfoMessage from '@/components/Messages/InfoMessage';
+import PropTypes from 'prop-types';
 
 // Message types for footer component
 const MESSAGE_TYPES = {
@@ -37,9 +39,151 @@ export const AddLocationHeader = () => (
 );
 
 /**
- * AddLocations component allows users to select locations for monitoring.
+ * Sidebar component for AddLocations that displays selected locations
  */
-const AddLocations = ({ onClose }) => {
+const LocationsSidebar = ({
+  sidebarSites,
+  selectedSites,
+  handleToggleSite,
+  loading,
+  filteredSites,
+  sidebarBg = '#f6f6f7',
+}) => {
+  const sidebarSitesContent = useMemo(() => {
+    if (loading) {
+      // Show a placeholder skeleton
+      return (
+        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+        </div>
+      );
+    }
+
+    if (!filteredSites.length) {
+      return (
+        <InfoMessage
+          title="No data available"
+          description="The system couldn't retrieve location data. Please try again later."
+          variant="info"
+        />
+      );
+    }
+
+    if (sidebarSites.length === 0) {
+      return (
+        <InfoMessage
+          title="No locations selected"
+          description="Select a location from the table to add it here."
+          variant="info"
+        />
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {sidebarSites.map((site) => (
+          <div key={site._id}>
+            <LocationCard
+              site={site}
+              onToggle={() => handleToggleSite(site)}
+              isLoading={false}
+              isSelected={selectedSites.some((s) => s._id === site._id)}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }, [
+    sidebarSites,
+    selectedSites,
+    handleToggleSite,
+    loading,
+    filteredSites.length,
+  ]);
+
+  return (
+    <div
+      className="w-[280px] min-h-[400px] max-h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0"
+      style={{ backgroundColor: sidebarBg }}
+    >
+      {sidebarSitesContent}
+    </div>
+  );
+};
+
+/**
+ * Main content area component for AddLocations
+ */
+const LocationsContent = ({
+  filteredSites,
+  selectedSites,
+  setSelectedSites,
+  clearSelected,
+  loading,
+  isError,
+  fetchError,
+  handleToggleSite,
+  columnsByFilter,
+  filters,
+  handleFilter,
+}) => {
+  return (
+    <div className="bg-white flex-1 h-full px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
+      {isError ? (
+        <InfoMessage
+          title="Error Loading Data"
+          description={fetchError?.message || 'Unable to fetch locations data.'}
+          variant="error"
+        />
+      ) : filteredSites.length === 0 && !loading ? (
+        <InfoMessage
+          title="No Locations Found"
+          description="No locations are currently available for selection."
+          variant="info"
+        />
+      ) : (
+        <DataTable
+          data={filteredSites}
+          selectedRows={selectedSites}
+          setSelectedRows={setSelectedSites}
+          clearSelectionTrigger={clearSelected}
+          loading={loading}
+          error={isError}
+          errorMessage={
+            fetchError?.message || 'Unable to fetch locations data.'
+          }
+          onToggleRow={handleToggleSite}
+          filters={filters}
+          columnsByFilter={columnsByFilter}
+          onFilter={handleFilter}
+          searchKeys={[
+            'location_name',
+            'search_name',
+            'name',
+            'city',
+            'country',
+            'data_provider',
+            'owner',
+            'organization',
+          ]}
+        />
+      )}
+    </div>
+  );
+};
+
+/**
+ * AddLocations component allows users to select locations for monitoring.
+ * Refactored with exact 280px sidebar width.
+ *
+ * @param {Object} props
+ * @param {Function} props.onClose - Function to close the modal
+ * @param {string} props.sidebarBg - Background color for sidebar
+ */
+const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const dispatch = useDispatch();
   const errorTimeoutRef = useRef(null);
 
@@ -399,59 +543,6 @@ const AddLocations = ({ onClose }) => {
       });
   }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
 
-  /**
-   * Enhanced sidebar content generation with better handling of different site data structures
-   */
-  const sidebarSitesContent = useMemo(() => {
-    if (loading) {
-      // Show a placeholder skeleton or spinner
-      return (
-        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-        </div>
-      );
-    }
-
-    if (!filteredSites.length) {
-      return (
-        <InfoMessage
-          title="No data available"
-          description="The system couldn't retrieve location data. Please try again later."
-          variant="info"
-        />
-      );
-    }
-
-    if (sidebarSites.length === 0) {
-      return (
-        <InfoMessage
-          title="No locations selected"
-          description="Select a location from the table to add it here."
-          variant="info"
-        />
-      );
-    }
-
-    return sidebarSites.map((site) => (
-      <LocationCard
-        key={site._id}
-        site={site}
-        onToggle={() => handleToggleSite(site)}
-        isLoading={false}
-        isSelected={selectedSites.some((s) => s._id === site._id)}
-      />
-    ));
-  }, [
-    sidebarSites,
-    selectedSites,
-    handleToggleSite,
-    loading,
-    filteredSites.length,
-  ]);
-
   // Get the footer message and message type
   const footerInfo = useMemo(() => {
     if (error) {
@@ -466,57 +557,33 @@ const AddLocations = ({ onClose }) => {
   }, [error, statusMessage, messageType]);
 
   return (
-    <>
-      {/* Sidebar for Selected Sites */}
-      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto md:border-r relative space-y-3 px-4 pt-5 pb-14">
-        {sidebarSitesContent}
-      </div>
+    <div className="flex flex-col md:flex-row">
+      {/* Sidebar Component - Exactly 280px width */}
+      <LocationsSidebar
+        sidebarSites={sidebarSites}
+        selectedSites={selectedSites}
+        handleToggleSite={handleToggleSite}
+        loading={loading}
+        filteredSites={filteredSites}
+        sidebarBg={sidebarBg}
+      />
 
       {/* Main Content Area */}
-      <div className="bg-white relative w-full h-auto">
-        <div className="px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
-          {isError ? (
-            <InfoMessage
-              title="Error Loading Data"
-              description={
-                fetchError?.message || 'Unable to fetch locations data.'
-              }
-              variant="error"
-            />
-          ) : filteredSites.length === 0 && !loading ? (
-            <InfoMessage
-              title="No Locations Found"
-              description="No locations are currently available for selection."
-              variant="info"
-            />
-          ) : (
-            <DataTable
-              data={filteredSites}
-              selectedRows={selectedSites}
-              setSelectedRows={setSelectedSites}
-              clearSelectionTrigger={clearSelected}
-              loading={loading}
-              error={isError}
-              errorMessage={
-                fetchError?.message || 'Unable to fetch locations data.'
-              }
-              onToggleRow={handleToggleSite}
-              filters={filters}
-              columnsByFilter={columnsByFilter}
-              onFilter={handleFilter}
-              searchKeys={[
-                'location_name',
-                'search_name',
-                'name',
-                'city',
-                'country',
-                'data_provider',
-                'owner',
-                'organization',
-              ]}
-            />
-          )}
-        </div>
+      <div className="flex-1 flex flex-col relative">
+        <LocationsContent
+          filteredSites={filteredSites}
+          selectedSites={selectedSites}
+          setSelectedSites={setSelectedSites}
+          clearSelected={clearSelected}
+          loading={loading}
+          isError={isError}
+          fetchError={fetchError}
+          handleToggleSite={handleToggleSite}
+          columnsByFilter={columnsByFilter}
+          filters={filters}
+          handleFilter={handleFilter}
+        />
+
         <Footer
           btnText={submitLoading ? 'Saving...' : 'Save'}
           setError={setError}
@@ -530,8 +597,13 @@ const AddLocations = ({ onClose }) => {
           disabled={submitLoading}
         />
       </div>
-    </>
+    </div>
   );
+};
+
+AddLocations.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  sidebarBg: PropTypes.string,
 };
 
 export default AddLocations;

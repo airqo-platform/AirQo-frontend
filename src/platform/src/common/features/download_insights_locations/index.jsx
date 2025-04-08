@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Transition, TransitionChild } from '@headlessui/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './modules/DataDownload';
@@ -12,6 +12,12 @@ import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
 
+/**
+ * Enhanced Modal component with consistent layout and animations
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Whether the modal is open
+ * @param {Function} props.onClose - Function to close the modal
+ */
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType.type);
 
@@ -32,6 +38,7 @@ const Modal = ({ isOpen, onClose }) => {
       case 'search':
         return <AddSearchHeader />;
       default:
+        return <div className="text-lg font-medium">Modal</div>;
     }
   };
 
@@ -52,56 +59,60 @@ const Modal = ({ isOpen, onClose }) => {
       case 'search':
         return <Search onClose={onClose} />;
       default:
+        return <div>No content available</div>;
     }
   };
 
   return (
-    <Transition show={isOpen} as={React.Fragment}>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <TransitionChild
-          as={React.Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
           <div className="fixed inset-0 transition-opacity" aria-hidden="true">
             <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
           </div>
-        </TransitionChild>
 
-        <TransitionChild
-          as={React.Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-          enterTo="opacity-100 translate-y-0 sm:scale-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-          leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        >
-          <div className="w-full max-w-[1020px] max-h-[90vh] bg-white rounded-lg shadow-xl overflow-y-auto transform transition-all mx-2 lg:mx-0">
+          <motion.div
+            className="w-full max-w-5xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              transition: {
+                type: 'spring',
+                damping: 25,
+                stiffness: 300,
+              },
+            }}
+            exit={{
+              opacity: 0,
+              y: 20,
+              scale: 0.98,
+              transition: {
+                duration: 0.2,
+              },
+            }}
+          >
             {/* Header */}
             <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300">
               {renderHeader()}
               <button
                 type="button"
                 onClick={onClose}
-                className="focus:outline-none"
+                className="focus:outline-none hover:bg-gray-100 p-1 rounded-full transition-colors duration-150"
+                aria-label="Close Modal"
               >
                 <Close fill="#000" />
                 <span className="sr-only">Close Modal</span>
               </button>
             </div>
+
             {/* Body */}
-            <div className="relative flex flex-col md:flex-row overflow-y-auto">
-              {renderBody()}
-            </div>
-          </div>
-        </TransitionChild>
-      </div>
-    </Transition>
+            <div className="relative overflow-y-auto">{renderBody()}</div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 
