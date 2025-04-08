@@ -30,6 +30,8 @@ import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
+import 'package:airqo/src/app/other/language/services/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,16 +71,18 @@ class AirqoMobile extends StatelessWidget {
   final KyaRepository kyaRepository;
   final GooglePlacesRepository googlePlacesRepository;
   final DashboardRepository dashboardRepository;
-  const AirqoMobile(
-      {super.key,
-      required this.authRepository,
-      required this.mapRepository,
-      required this.googlePlacesRepository,
-      required this.kyaRepository,
-      required this.themeRepository,
-      required this.userRepository,
-      required this.forecastRepository,
-      required this.dashboardRepository});
+
+  const AirqoMobile({
+    super.key,
+    required this.authRepository,
+    required this.mapRepository,
+    required this.googlePlacesRepository,
+    required this.kyaRepository,
+    required this.themeRepository,
+    required this.userRepository,
+    required this.forecastRepository,
+    required this.dashboardRepository,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -114,22 +118,53 @@ class AirqoMobile extends StatelessWidget {
           create: (context) => ConnectivityBloc(connectivity),
         ),
         BlocProvider(
-          create: (context) =>
-              PasswordResetBloc(authRepository: authRepository),
+          create: (context) => PasswordResetBloc(authRepository: authRepository),
         ),
         BlocProvider(
           create: (context) => LanguageBloc()..add(LoadLanguage()),
         ),
       ],
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, state) {
-          bool isLightTheme = state is ThemeLight;
+      child: BlocBuilder<LanguageBloc, LanguageState>(
+        builder: (context, languageState) {
+          Locale currentLocale = const Locale('en', ''); 
+          if (languageState is LanguageLoaded) {
+            currentLocale = Locale(languageState.languageCode, '');
+          }
 
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
-            title: "AirQo",
-            home: Decider(),
+          return BlocBuilder<ThemeBloc, ThemeState>(
+            builder: (context, themeState) {
+              bool isLightTheme = themeState is ThemeLight;
+
+              return MaterialApp(
+                locale: currentLocale, 
+                supportedLocales: const [
+                  Locale('en', ''),
+                  Locale('fr', ''),
+                  Locale('sw', ''),
+                  Locale('lg', ''),
+                  Locale('pt', ''),
+                ],
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                localeResolutionCallback: (locale, supportedLocales) {
+                  for (var supportedLocale in supportedLocales) {
+                    if (locale != null &&
+                        supportedLocale.languageCode == locale.languageCode) {
+                      return supportedLocale;
+                    }
+                  }
+                  return supportedLocales.first; 
+                },
+                debugShowCheckedModeBanner: false,
+                theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
+                title: "AirQo",
+                home: Decider(),
+              );
+            },
           );
         },
       ),

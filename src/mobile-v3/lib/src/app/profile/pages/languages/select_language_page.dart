@@ -128,11 +128,10 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                   onTap: () {
                     context.read<LanguageBloc>().add(ChangeLanguage(language.code));
                     
-                    // Show confirmation snackbar
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          AppLocalizations.of(context).translate('language_changed_to') + ' ' + language.name,
+                          '${AppLocalizations.of(context).translate('language_changed_to')} ${language.name}',
                         ),
                         backgroundColor: AppColors.primaryColor,
                         duration: Duration(seconds: 2),
