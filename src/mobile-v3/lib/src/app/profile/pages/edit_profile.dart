@@ -1,9 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:loggy/loggy.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -12,10 +20,15 @@ class EditProfile extends StatefulWidget {
   State<EditProfile> createState() => _EditProfileState();
 }
 
-class _EditProfileState extends State<EditProfile> {
+class _EditProfileState extends State<EditProfile> with UiLoggy {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
+
+  String _currentProfilePicture = '';
+  File? _selectedProfileImage;
+  final ImagePicker _picker = ImagePicker();
+
   bool _isLoading = false;
   bool _formChanged = false;
   Timer? _loadingTimeout;
@@ -34,9 +47,45 @@ class _EditProfileState extends State<EditProfile> {
         _firstNameController.text = user.firstName;
         _lastNameController.text = user.lastName;
         _emailController.text = user.email;
+        _currentProfilePicture = user.profilePicture ?? '';
       });
     }
   }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedProfileImage = File(pickedFile.path);
+          _formChanged = true;
+        });
+
+        // Show a message about the selected image
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Image selected. Save to upload.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
 
   bool _validateEmail(String email) {
     final emailRegExp = RegExp(
@@ -99,19 +148,137 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  void _updateProfile() {
-    // Only update if form has changed and not already loading
+  Future<String?> _uploadImageToCloudinary(File imageFile) async {
+    try {
+      final String cloudName = dotenv.env['NEXT_PUBLIC_CLOUDINARY_NAME'] ?? '';
+      final cloudinaryUrl =
+          'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+      var request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
+
+      request.fields['upload_preset'] =
+          dotenv.env['NEXT_PUBLIC_CLOUDINARY_PRESET'] ?? '';
+      request.fields['folder'] = 'profiles';
+
+      String extension = imageFile.path.split('.').last.toLowerCase();
+      String mimeType = extension == 'png' ? 'png' : 'jpeg';
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        contentType: MediaType('image', mimeType),
+      ));
+
+      ('Uploading image to Cloudinary...');
+      var streamedResponse = await request.send().timeout(
+        const Duration(seconds: 60),
+        onTimeout: () {
+          throw TimeoutException('Image upload timed out');
+        },
+      );
+      var response = await http.Response.fromStream(streamedResponse);
+      loggy.info(
+          'Cloudinary response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        return jsonResponse['secure_url'];
+      } else {
+        throw Exception(
+            'Cloudinary upload failed: ${response.statusCode}, ${response.body}');
+      }
+    } catch (e) {
+      loggy.warning('Error uploading image to Cloudinary: $e');
+      throw e;
+    }
+  }
+
+  Future<String?> _uploadProfileImage(File imageFile) async {
+    try {
+      // 1. Upload to Cloudinary
+      final imageUrl = await _uploadImageToCloudinary(imageFile);
+      if (imageUrl == null) {
+        throw Exception("Failed to get image URL from Cloudinary");
+      }
+
+      setState(() {
+        _currentProfilePicture = imageUrl;
+      });
+
+      final userId =
+          await HiveRepository.getData("userId", HiveBoxNames.authBox);
+      if (userId == null) {
+        throw Exception("No valid user ID found in Hive");
+      }
+
+      // 4. Update user details on the server
+      var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+      final authToken =
+          await HiveRepository.getData("token", HiveBoxNames.authBox);
+      if (authToken == null) {
+        throw Exception("Authentication token not found");
+      }
+
+      var body = {
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'profilePicture': imageUrl,
+      };
+
+      loggy.info('Updating profile at $uri with limited details: firstName & lastName...');
+      var response = await http.put(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(body),
+      );
+      loggy.info('Update completed. Status code: ${response.statusCode}');
+      loggy.info('Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        var jsonResponse = json.decode(response.body);
+        if (jsonResponse['success'] == true) {
+          final updatedData = {
+            'userId': userId,
+            'firstName': _firstNameController.text.trim(),
+            'lastName': _lastNameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'profilePicture': imageUrl,
+          };
+          await HiveRepository.saveData(
+              "loggedUser", json.encode(updatedData), HiveBoxNames.authBox);
+          context.read<UserBloc>().add(UpdateUser(
+                firstName: updatedData['firstName'] ?? '',
+                lastName: updatedData['lastName'] ?? '',
+                email: updatedData['email'] ?? '',
+                profilePicture: updatedData['profilePicture'],
+              ));
+
+          return jsonResponse['user']?['profilePicture'] ?? "PROFILE_UPDATED";
+        } else {
+          throw Exception("Server returned success:false: ${response.body}");
+        }
+      } else {
+        throw Exception(
+            "Failed to update profile: Status ${response.statusCode}, ${response.body}");
+      }
+    } catch (e) {
+      loggy.warning('Error uploading/updating profile image: $e');
+      rethrow ;
+    }
+  }
+
+  void _updateProfile() async {
     if (!_formChanged || _isLoading) return;
 
-    // Validate form fields
     if (!_validateForm()) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    // Set a timeout to reset loading state if the API takes too long
-    _loadingTimeout = Timer(Duration(seconds: 15), () {
+    _loadingTimeout = Timer(Duration(seconds: 30), () {
       if (_isLoading && mounted) {
         _resetLoadingState();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,19 +291,72 @@ class _EditProfileState extends State<EditProfile> {
     });
 
     try {
-      context.read<UserBloc>().add(
-            UpdateUser(
-              firstName: _firstNameController.text.trim(),
-              lastName: _lastNameController.text.trim(),
-              email: _emailController.text.trim(),
+      if (_selectedProfileImage != null) {
+        // Show upload progress
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text("Uploading profile picture..."),
+                ],
+              ),
+            );
+          },
+        );
+
+        // Upload and update profile
+        String? uploadResult =
+            await _uploadProfileImage(_selectedProfileImage!);
+
+        if (Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        if (uploadResult != null) {
+          _resetLoadingState();
+          setState(() {
+            _formChanged = false;
+            _selectedProfileImage = null;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Profile image successfully added'),
+              backgroundColor: Colors.green,
             ),
           );
+
+          context.read<UserBloc>().add(LoadUser());
+          Navigator.of(context).pop();
+        }
+      } else {
+        context.read<UserBloc>().add(
+              UpdateUser(
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: _emailController.text.trim(),
+              ),
+            );
+      }
     } catch (e) {
-      print('Error dispatching UpdateUser event: $e');
+      if (Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
       _resetLoadingState();
+      setState(() {
+        _selectedProfileImage = null;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error updating profile: $e'),
+          content: Text('Error uploading/updating profile image: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -151,34 +371,85 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  Widget _buildProfilePictureWidget() {
+    // If user has selected a new image, show that
+    if (_selectedProfileImage != null) {
+      return CircleAvatar(
+        radius: MediaQuery.of(context).size.width * 0.15,
+        backgroundColor: Colors.transparent,
+        backgroundImage: FileImage(_selectedProfileImage!),
+      );
+    }
+
+    if (_currentProfilePicture.isNotEmpty) {
+      if (_currentProfilePicture.startsWith('http')) {
+        return CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          backgroundImage: NetworkImage(_currentProfilePicture),
+          onBackgroundImageError: (exception, stackTrace) {
+            loggy.warning('Error loading profile image: $exception');
+          }
+        );
+      } else if (_currentProfilePicture.endsWith('.svg')) {
+
+        return CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          child: SvgPicture.asset(
+            _currentProfilePicture,
+            width: MediaQuery.of(context).size.width * 0.15,
+            height: MediaQuery.of(context).size.width * 0.15,
+          ),
+        );
+      } else {
+
+        return CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          backgroundImage: AssetImage(_currentProfilePicture),
+        );
+      }
+    }
+
+    // Default user icon
+    return CircleAvatar(
+      backgroundColor: Theme.of(context).highlightColor,
+      radius: MediaQuery.of(context).size.width * 0.15,
+      child: SvgPicture.asset(
+        'assets/icons/user_icon.svg',
+        width: MediaQuery.of(context).size.width * 0.15,
+        height: MediaQuery.of(context).size.width * 0.15,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? null
+            : AppColors.secondaryHeadlineColor,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final avatarRadius = screenWidth * 0.15;
+    //final avatarRadius = screenWidth * 0.15;
     final padding = screenWidth * 0.05;
     final iconSize = screenWidth * 0.06;
 
     // Theme-based colors
     final textColor = isDarkMode ? Colors.white : AppColors.boldHeadlineColor4;
-    final subtitleColor = isDarkMode 
-        ? Colors.grey
-        : AppColors.secondaryHeadlineColor;
-    final backgroundColor = isDarkMode 
-        ? AppColors.darkThemeBackground
-        : AppColors.backgroundColor;
-    final cardColor = isDarkMode 
-        ? AppColors.highlightColor 
-        : Colors.white;
-    final borderColor = isDarkMode 
-        ? Colors.grey[800] ?? Colors.grey
-        : AppColors.borderColor2;
+    final subtitleColor =
+        isDarkMode ? Colors.grey : AppColors.secondaryHeadlineColor;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor;
+    final cardColor = isDarkMode ? AppColors.highlightColor : Colors.white;
+    final borderColor =
+        isDarkMode ? Colors.grey[800] ?? Colors.grey : AppColors.borderColor2;
 
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {
-        print('Current state: $state');
+        loggy.info('Current state: $state');
 
         if (state is UserUpdateSuccess) {
           _resetLoadingState();
@@ -322,36 +593,30 @@ class _EditProfileState extends State<EditProfile> {
                     children: [
                       Stack(
                         children: [
-                          CircleAvatar(
-                            backgroundColor: Theme.of(context).highlightColor,
-                            radius: avatarRadius,
-                            child: SvgPicture.asset(
-                              'assets/icons/user_icon.svg',
-                              width: avatarRadius * 1.5,
-                              height: avatarRadius * 1.5,
-                              color: isDarkMode ? null : AppColors.secondaryHeadlineColor,
-                            ),
-                          ),
+                          _buildProfilePictureWidget(),
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              padding: EdgeInsets.all(iconSize * 0.4),
-                              child: Icon(
-                                Icons.edit,
-                                color: Colors.white,
-                                size: iconSize,
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                padding: EdgeInsets.all(iconSize * 0.4),
+                                child: Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: iconSize,
+                                ),
                               ),
                             ),
                           ),
