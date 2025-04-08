@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import MoreInsightsChart from '@/components/Charts/MoreInsightsChart';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
@@ -46,43 +47,42 @@ const MoreInsights = () => {
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
-  // Local state
+  // Local state with useRef for values that don't need re-renders
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
   const [isManualRefresh, setIsManualRefresh] = useState(false);
   const [refreshSuccess, setRefreshSuccess] = useState(false);
-  const refreshTimeoutRef = useRef(null);
-  const successTimeoutRef = useRef(null);
-  const abortControllerRef = useRef(null);
-  const downloadControllerRef = useRef(null);
+
+  // Refs for cleanup and controllers
+  const controllersRef = useRef({
+    refresh: null,
+    success: null,
+    abort: null,
+    download: null,
+  });
 
   // API hooks
   const fetchData = useDataDownload();
 
-  /**
-   * Ensure `allSites` is an array
-   */
+  // Ensure `allSites` is an array
   const allSites = useMemo(() => {
     if (Array.isArray(modalData)) return modalData;
     if (modalData) return [modalData];
     return [];
   }, [modalData]);
 
-  /**
-   * Data fetching and visibility states
-   */
+  // Data fetching and visibility states
   const [dataLoadingSites, setDataLoadingSites] = useState(
     allSites.map((site) => site._id),
   );
+
   const [visibleSites, setVisibleSites] = useState(
     allSites.map((site) => site._id),
   );
 
-  /**
-   * Initialize date range to last 7 days
-   */
+  // Initialize date range to last 7 days
   const initialDateRange = useMemo(() => {
     const { startDateISO, endDateISO } = formatDateRangeToISO(
       new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -97,9 +97,7 @@ const MoreInsights = () => {
 
   const [dateRange, setDateRange] = useState(initialDateRange);
 
-  /**
-   * Fetch analytics data using SWR hook with improved configuration
-   */
+  // Fetch analytics data using SWR hook with optimized configuration
   const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
     useAnalyticsData(
       {
@@ -118,37 +116,28 @@ const MoreInsights = () => {
         dedupingInterval: 10000,
         revalidateIfStale: false,
         revalidateOnReconnect: false,
-        errorRetryCount: 3,
-        errorRetryInterval: 3000,
-        focusThrottleInterval: 10000,
-        loadingTimeout: 30000,
+        errorRetryCount: 2,
         onError: (err) => {
           if (
             err.name === 'AbortError' ||
             err.message?.includes('aborted') ||
             err.message?.includes('canceled')
           ) {
-            console.log('Request aborted, this is expected behavior');
             return;
           }
-          console.error('Error fetching analytics data:', err);
-
-          // Clear refresh state if error occurs during refresh
           if (isManualRefresh) {
             setIsManualRefresh(false);
           }
         },
         onSuccess: () => {
-          // If this was a manual refresh, show success message
           if (isManualRefresh) {
             setRefreshSuccess(true);
             setIsManualRefresh(false);
 
-            // Clear success message after 3 seconds
-            if (successTimeoutRef.current) {
-              clearTimeout(successTimeoutRef.current);
+            if (controllersRef.current.success) {
+              clearTimeout(controllersRef.current.success);
             }
-            successTimeoutRef.current = setTimeout(() => {
+            controllersRef.current.success = setTimeout(() => {
               setRefreshSuccess(false);
             }, 3000);
           }
@@ -159,18 +148,18 @@ const MoreInsights = () => {
   // Clean up timeouts on unmount
   useEffect(() => {
     return () => {
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
-      }
-      if (successTimeoutRef.current) {
-        clearTimeout(successTimeoutRef.current);
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (downloadControllerRef.current) {
-        downloadControllerRef.current.abort();
-      }
+      // Clean up all timeouts and abort controllers
+      const controllers = controllersRef.current;
+      Object.keys(controllers).forEach((key) => {
+        if (controllers[key]) {
+          if (key === 'abort' || key === 'download') {
+            controllers[key].abort();
+          } else {
+            clearTimeout(controllers[key]);
+          }
+          controllers[key] = null;
+        }
+      });
     };
   }, []);
 
@@ -185,14 +174,11 @@ const MoreInsights = () => {
   }, [downloadError]);
 
   /**
-   * Toggle site visibility in chart.
-   * If it is the last visible site, prevent unchecking and show a warning notification.
+   * Toggle site visibility in chart with improved UX feedback
    */
   const toggleSiteVisibility = useCallback((siteId) => {
     setVisibleSites((prev) => {
-      // If the site is currently visible
       if (prev.includes(siteId)) {
-        // Prevent unchecking if it is the only visible site
         if (prev.length === 1) {
           CustomToast({
             message: 'At least one location must remain selected.',
@@ -207,122 +193,60 @@ const MoreInsights = () => {
   }, []);
 
   /**
-   * Add a site to load data for
+   * Site management functions combined into a single handler for efficiency
    */
-  const addDataLoadingSite = useCallback(
-    (siteId) => {
+  const handleSiteAction = useCallback(
+    (siteId, action = 'toggle') => {
+      // Add site to data loading
       if (!dataLoadingSites.includes(siteId)) {
         setDataLoadingSites((prev) => [...prev, siteId]);
         setVisibleSites((prev) => [...prev, siteId]);
         return true; // Data reload will happen
       }
-      return false; // No data reload needed
-    },
-    [dataLoadingSites],
-  );
 
-  /**
-   * Remove a site from data loading
-   */
-  const removeDataLoadingSite = useCallback(
-    (siteId) => {
-      if (dataLoadingSites.length <= 1) {
-        return false;
-      }
-      setDataLoadingSites((prev) => prev.filter((id) => id !== siteId));
-      setVisibleSites((prev) => prev.filter((id) => id !== siteId));
-      return true;
-    },
-    [dataLoadingSites],
-  );
-
-  /**
-   * Add multiple sites to data loading at once
-   */
-  const addMultipleSites = useCallback((siteIds) => {
-    if (!Array.isArray(siteIds) || siteIds.length === 0) return false;
-    setDataLoadingSites((prev) => {
-      const newSites = siteIds.filter((id) => !prev.includes(id));
-      if (newSites.length === 0) return prev;
-      return [...prev, ...newSites];
-    });
-    setVisibleSites((prev) => {
-      const newVisible = [...prev];
-      siteIds.forEach((id) => {
-        if (!newVisible.includes(id)) {
-          newVisible.push(id);
-        }
-      });
-      return newVisible;
-    });
-    return true;
-  }, []);
-
-  /**
-   * Add all available sites at once
-   */
-  const addAllSites = useCallback(() => {
-    const allSiteIds = allSites.map((site) => site._id);
-    return addMultipleSites(allSiteIds);
-  }, [allSites, addMultipleSites]);
-
-  /**
-   * Handle site click actions (toggle or remove)
-   */
-  const handleSiteClick = useCallback(
-    (siteId, action = 'toggle') => {
-      if (!dataLoadingSites.includes(siteId)) {
-        return addDataLoadingSite(siteId);
-      }
+      // Toggle visibility
       if (action === 'toggle') {
         toggleSiteVisibility(siteId);
         return false;
       }
-      if (action === 'remove') {
-        return removeDataLoadingSite(siteId);
+
+      // Remove site
+      if (action === 'remove' && dataLoadingSites.length > 1) {
+        setDataLoadingSites((prev) => prev.filter((id) => id !== siteId));
+        setVisibleSites((prev) => prev.filter((id) => id !== siteId));
+        return true;
       }
+
       return false;
     },
-    [
-      dataLoadingSites,
-      toggleSiteVisibility,
-      addDataLoadingSite,
-      removeDataLoadingSite,
-    ],
+    [dataLoadingSites, toggleSiteVisibility],
   );
 
   /**
-   * Handle manual refresh with improved handling of aborts and state management
+   * Handle manual refresh with improved handling of aborts
    */
   const handleManualRefresh = useCallback(async () => {
     if (isManualRefresh || isValidating) return;
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    if (controllersRef.current.abort) {
+      controllersRef.current.abort.abort();
     }
 
-    abortControllerRef.current = new AbortController();
+    controllersRef.current.abort = new AbortController();
     setIsManualRefresh(true);
     setRefreshSuccess(false);
 
     try {
-      await refetch({ signal: abortControllerRef.current.signal });
-    } catch (err) {
-      console.error('Manual refresh failed:', err);
+      await refetch({ signal: controllersRef.current.abort.signal });
+    } catch {
       setIsManualRefresh(false);
-      // Reset any stuck state that might prevent future refreshes
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
-      }
     }
   }, [refetch, isManualRefresh, isValidating]);
 
   /**
-   * Download data in CSV format with improved data handling.
-   * Only downloads data for visible (checked) sites.
+   * Download data in CSV format
    */
   const handleDataDownload = async () => {
-    // Check if there are any visible sites to download
     if (visibleSites.length === 0) {
       CustomToast({
         message: 'Please select at least one site to download data.',
@@ -335,12 +259,11 @@ const MoreInsights = () => {
     setDownloadError(null);
 
     try {
-      // Cancel any existing download request
-      if (downloadControllerRef.current) {
-        downloadControllerRef.current.abort();
+      if (controllersRef.current.download) {
+        controllersRef.current.download.abort();
       }
 
-      downloadControllerRef.current = new AbortController();
+      controllersRef.current.download = new AbortController();
 
       const { startDate, endDate } = dateRange;
       const formattedStartDate = format(
@@ -352,20 +275,11 @@ const MoreInsights = () => {
         "yyyy-MM-dd'T'00:00:00.000'Z'",
       );
 
-      // Using visible sites instead of all data loading sites
-      const sitesToDownload = visibleSites;
-
-      // Look up site names for the filename
-      const siteNames = sitesToDownload.map((siteId) => {
-        const site = allSites.find((s) => s._id === siteId);
-        return site ? site.name || 'Unknown' : 'Unknown';
-      });
-
-      // Create API request data
+      // API request data
       const apiData = {
         startDateTime: formattedStartDate,
         endDateTime: formattedEndDate,
-        sites: sitesToDownload, // Only download selected sites
+        sites: visibleSites,
         network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
         frequency: frequency,
@@ -375,104 +289,56 @@ const MoreInsights = () => {
         minimum: true,
       };
 
-      console.log('Download request data:', apiData);
-
-      // Set a timeout for the download
+      // Set timeout for download
       const downloadTimeout = setTimeout(() => {
-        if (downloadControllerRef.current) {
-          downloadControllerRef.current.abort();
+        if (controllersRef.current.download) {
+          controllersRef.current.download.abort();
           setDownloadError(
-            'The download request is taking longer than expected. Please try again later.',
+            'Download is taking longer than expected. Please try again.',
           );
           setDownloadLoading(false);
         }
       }, 30000);
 
       try {
-        // Fetch the data
         const response = await fetchData(apiData);
         clearTimeout(downloadTimeout);
 
-        // Log the response for debugging in production
-        console.log('CSV RAW RESPONSE (MoreInsights):', response);
-        console.log('CSV response type:', typeof response);
+        let csvData = '';
 
-        // Initialize csvData with a fallback empty CSV structure
-        let csvData =
-          'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
-
-        // Handle different response formats
-        if (response) {
-          if (typeof response === 'string') {
-            // If response is a string, use it directly
-            csvData = response;
-            // Remove 'resp' prefix if it exists
-            if (csvData.startsWith('resp')) {
-              csvData = csvData.substring(4);
-            }
-          } else if (typeof response === 'object' && response !== null) {
-            // If response is an object, try to extract the data
-            if (response.data) {
-              if (typeof response.data === 'string') {
-                csvData = response.data;
-              } else if (Array.isArray(response.data)) {
-                // Convert array to CSV
-                const headers = Object.keys(response.data[0] || {}).join(',');
-                const rows = response.data
-                  .map((row) => Object.values(row).join(','))
-                  .join('\n');
-                csvData = headers ? `${headers}\n${rows}` : csvData;
-              }
-            } else {
-              // If no data property, try to stringify the object
-              csvData = JSON.stringify(response);
-            }
+        // Process the response based on its type
+        if (typeof response === 'string') {
+          csvData = response.startsWith('resp')
+            ? response.substring(4)
+            : response;
+        } else if (response && typeof response === 'object') {
+          if (response.data) {
+            csvData =
+              typeof response.data === 'string'
+                ? response.data
+                : Array.isArray(response.data)
+                  ? `${Object.keys(response.data[0] || {}).join(',')}\n${response.data
+                      .map((row) => Object.values(row).join(','))
+                      .join('\n')}`
+                  : JSON.stringify(response.data);
+          } else {
+            csvData = JSON.stringify(response);
           }
         }
 
-        // Validate that we have CSV data with at least a header
-        if (!csvData.includes(',')) {
-          console.error('Invalid CSV format, using default header');
-          csvData =
-            'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
-        }
+        // Create filename
+        const fileName =
+          visibleSites.length === 1
+            ? `${allSites.find((s) => s._id === visibleSites[0])?.name || 'site'}_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`
+            : `${visibleSites.length}_sites_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
 
-        // Create descriptive filename
-        let fileName;
-        if (sitesToDownload.length === 1) {
-          // Single site
-          fileName = `${siteNames[0]}_${chartData.pollutionType}_${format(
-            parseISO(startDate),
-            'yyyy-MM-dd',
-          )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-        } else if (sitesToDownload.length === allSites.length) {
-          // All sites
-          fileName = `all_sites_${chartData.pollutionType}_${format(
-            parseISO(startDate),
-            'yyyy-MM-dd',
-          )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-        } else {
-          // Multiple sites
-          fileName = `${sitesToDownload.length}_selected_sites_${
-            chartData.pollutionType
-          }_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-        }
+        // Create and save the blob
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
 
-        // Save the file
-        const mimeType = 'text/csv;charset=utf-8;';
-        const blob = new Blob([csvData], { type: mimeType });
-        console.log(
-          'CSV Blob created with size:',
-          blob.size,
-          'Content preview:',
-          csvData.substring(0, 100),
-        );
-
-        // Only save if we have actual data (more than just headers)
         if (blob.size > 10) {
           saveAs(blob, fileName);
           CustomToast({
-            message: `Download complete for ${sitesToDownload.length} selected site(s)!`,
+            message: `Download complete for ${visibleSites.length} site(s)!`,
             type: 'success',
           });
         } else {
@@ -480,34 +346,23 @@ const MoreInsights = () => {
         }
       } catch (error) {
         clearTimeout(downloadTimeout);
-        throw error; // Re-throw to be caught by the outer catch block
+        throw error;
       }
     } catch (error) {
-      console.error('Error during download:', error);
-
-      if (
-        error.name === 'AbortError' ||
-        error.message?.includes('aborted') ||
-        error.message?.includes('canceled')
-      ) {
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
         setDownloadError('Download was canceled.');
       } else {
         setDownloadError(
-          error.message ||
-            'There was an error downloading the data. Please try again later.',
+          error.message || 'Error downloading data. Please try again.',
         );
       }
     } finally {
       setDownloadLoading(false);
-      if (downloadControllerRef.current) {
-        downloadControllerRef.current = null;
-      }
+      controllersRef.current.download = null;
     }
   };
 
-  /**
-   * Date range change handler
-   */
+  // Handler functions
   const handleDateChange = useCallback((start, end, label) => {
     if (start && end) {
       setDateRange({
@@ -518,82 +373,128 @@ const MoreInsights = () => {
     }
   }, []);
 
-  /**
-   * Frequency change handler
-   */
   const handleFrequencyChange = useCallback(
     (option) => {
-      if (frequency !== option) {
-        setFrequency(option);
-      }
+      if (frequency !== option) setFrequency(option);
     },
     [frequency],
   );
 
-  /**
-   * Chart type change handler
-   */
   const handleChartTypeChange = useCallback(
     (option) => {
-      if (chartType !== option) {
-        setChartType(option);
-      }
+      if (chartType !== option) setChartType(option);
     },
     [chartType],
   );
 
-  /**
-   * Generate sidebar content for site selection.
-   * The checkbox state is now controlled by `visibleSites`.
-   */
-  const allSitesContent = useMemo(() => {
+  // Load all sites button handler
+  const handleLoadAllSites = useCallback(() => {
+    const allSiteIds = allSites.map((site) => site._id);
+    const newSiteIds = allSiteIds.filter(
+      (id) => !dataLoadingSites.includes(id),
+    );
+
+    if (newSiteIds.length === 0) return false;
+
+    setDataLoadingSites((prev) => [...prev, ...newSiteIds]);
+    setVisibleSites((prev) => {
+      const newVisible = [...prev];
+      newSiteIds.forEach((id) => {
+        if (!newVisible.includes(id)) newVisible.push(id);
+      });
+      return newVisible;
+    });
+
+    return true;
+  }, [allSites, dataLoadingSites]);
+
+  // Animation variants for the component
+  const sidebarVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.07,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  // Memoized sidebar content
+  const sidebarContent = useMemo(() => {
     if (!Array.isArray(allSites) || allSites.length === 0) {
       return (
-        <div className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center">
+        <motion.div
+          className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center"
+          variants={itemVariants}
+        >
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
             <LocationIcon width={20} height={20} fill="#9EA3AA" />
           </span>
           No locations available
-        </div>
+        </motion.div>
       );
     }
-    return allSites.map((site) => (
-      <LocationCard
-        key={site._id}
-        site={site}
-        onToggle={() => handleSiteClick(site._id, 'toggle')}
-        onRemove={() => handleSiteClick(site._id, 'remove')}
-        // Use visibleSites for the checked state so the UI reflects the toggle properly
-        isSelected={visibleSites.includes(site._id)}
-        isVisible={visibleSites.includes(site._id)}
-        isLoading={
-          isValidating &&
-          dataLoadingSites.includes(site._id) &&
-          !visibleSites.includes(site._id)
-        }
-        disableToggle={
-          dataLoadingSites.length <= 1 && dataLoadingSites.includes(site._id)
-        }
-      />
-    ));
-  }, [allSites, dataLoadingSites, visibleSites, handleSiteClick, isValidating]);
 
-  /**
-   * Button tooltip content for download
-   */
+    return (
+      <motion.div
+        className="space-y-3"
+        variants={sidebarVariants}
+        initial="hidden"
+        animate="visible"
+        style={{ backgroundColor: '#f6f6f7' }}
+      >
+        {allSites.map((site) => (
+          <motion.div
+            key={site._id}
+            variants={itemVariants}
+            transition={{ duration: 0.2 }}
+          >
+            <LocationCard
+              site={site}
+              onToggle={() => handleSiteAction(site._id, 'toggle')}
+              onRemove={() => handleSiteAction(site._id, 'remove')}
+              isSelected={visibleSites.includes(site._id)}
+              isVisible={visibleSites.includes(site._id)}
+              isLoading={
+                isValidating &&
+                dataLoadingSites.includes(site._id) &&
+                !visibleSites.includes(site._id)
+              }
+              disableToggle={
+                dataLoadingSites.length <= 1 &&
+                dataLoadingSites.includes(site._id)
+              }
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    );
+  }, [
+    allSites,
+    dataLoadingSites,
+    visibleSites,
+    handleSiteAction,
+    isValidating,
+    itemVariants,
+    sidebarVariants,
+  ]);
+
+  // Memoized tooltip content for download button
   const downloadTooltipContent = useMemo(() => {
-    if (visibleSites.length === 0) {
+    if (visibleSites.length === 0)
       return 'Please select at least one site to download data';
-    }
-    if (visibleSites.length === dataLoadingSites.length) {
+    if (visibleSites.length === dataLoadingSites.length)
       return 'Download data for all selected sites';
-    }
     return `Download data for ${visibleSites.length} checked site(s)`;
   }, [visibleSites.length, dataLoadingSites.length]);
 
-  /**
-   * Refresh button component with improved state handling
-   */
+  // Memoized refresh button
   const RefreshButton = useMemo(
     () => (
       <Tooltip content="Refresh data" className="w-auto text-center">
@@ -601,11 +502,7 @@ const MoreInsights = () => {
           onClick={handleManualRefresh}
           disabled={isValidating}
           aria-label="Refresh data"
-          className={`ml-2 p-2 rounded-md border border-gray-200 ${
-            isValidating
-              ? 'bg-gray-100 cursor-not-allowed'
-              : 'hover:bg-gray-100'
-          } transition-colors flex items-center`}
+          className={`ml-2 p-2 rounded-md border border-gray-200 ${isValidating ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-100'} transition-colors flex items-center`}
         >
           {isValidating && isManualRefresh ? (
             <svg
@@ -613,7 +510,6 @@ const MoreInsights = () => {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              aria-hidden="true"
             >
               <circle
                 className="opacity-25"
@@ -638,13 +534,15 @@ const MoreInsights = () => {
     [isValidating, isManualRefresh, handleManualRefresh],
   );
 
-  /**
-   * Determine chart content based on loading/error states
-   */
+  // Memoized chart content based on loading/error states
   const chartContent = useMemo(() => {
     if (isError) {
       return (
-        <div className="flex flex-col items-center justify-center h-[380px] space-y-3 bg-red-50 border border-red-200 rounded-md p-6 text-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center h-[380px] space-y-3 bg-red-50 border border-red-200 rounded-md p-6 text-center"
+        >
           <MdErrorOutline className="text-red-500 text-4xl" />
           <h3 className="text-red-800 text-lg font-semibold">
             Oops! Something went wrong.
@@ -656,21 +554,19 @@ const MoreInsights = () => {
               : error?.message ||
                 'Something went wrong loading the chart data.'}
           </p>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
-              // Force set isManualRefresh to false in case it's stuck
               setIsManualRefresh(false);
-              // Short timeout to ensure state is updated before trying again
-              setTimeout(() => {
-                handleManualRefresh();
-              }, 100);
+              setTimeout(handleManualRefresh, 100);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
             disabled={isValidating}
           >
             {isValidating ? 'Refreshing...' : 'Try Again'}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       );
     }
 
@@ -683,19 +579,25 @@ const MoreInsights = () => {
 
     if (allSiteData?.length > 0) {
       return (
-        <MoreInsightsChart
-          data={allSiteData}
-          selectedSites={dataLoadingSites}
-          visibleSiteIds={visibleSites}
-          chartType={chartType}
-          frequency={frequency}
-          width="100%"
-          height={380}
-          id="air-quality-chart"
-          pollutantType={chartData.pollutionType}
-          refreshChart={handleManualRefresh}
-          isRefreshing={isValidating && isManualRefresh}
-        />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <MoreInsightsChart
+            data={allSiteData}
+            selectedSites={dataLoadingSites}
+            visibleSiteIds={visibleSites}
+            chartType={chartType}
+            frequency={frequency}
+            width="100%"
+            height={380}
+            id="air-quality-chart"
+            pollutantType={chartData.pollutionType}
+            refreshChart={handleManualRefresh}
+            isRefreshing={isValidating && isManualRefresh}
+          />
+        </motion.div>
       );
     }
 
@@ -706,13 +608,15 @@ const MoreInsights = () => {
         variant="info"
         className="w-full h-full"
         action={
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleManualRefresh}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
             disabled={isValidating}
           >
             {isValidating ? 'Refreshing...' : 'Retry'}
-          </button>
+          </motion.button>
         }
       />
     );
@@ -728,14 +632,47 @@ const MoreInsights = () => {
     frequency,
     chartData.pollutionType,
     handleManualRefresh,
-    setIsManualRefresh,
   ]);
 
+  // Animation variants for main content
+  const contentVariants = {
+    initial: { opacity: 0 },
+    animate: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const controlsVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3 },
+    },
+  };
+
   return (
-    <div className="flex w-full h-full">
+    <motion.div
+      className="flex w-full h-full overflow-hidden"
+      variants={contentVariants}
+      initial="initial"
+      animate="animate"
+    >
       {/* Sidebar for Sites */}
-      <div className="w-auto h-auto md:w-[280px] md:h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-2 pb-14">
-        <div className="text-sm text-gray-500 mb-4">
+      <motion.div
+        className="w-[280px] h-full overflow-y-auto overflow-x-hidden border-r relative space-y-3 px-4 pt-2 pb-14"
+        variants={sidebarVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="text-sm text-gray-500 mb-4"
+          variants={itemVariants}
+        >
           <p className="flex items-center">
             <span>Click checkbox to toggle visibility</span>
             <Tooltip
@@ -746,22 +683,32 @@ const MoreInsights = () => {
             </Tooltip>
           </p>
           {allSites.length > dataLoadingSites.length && (
-            <button
-              onClick={addAllSites}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLoadAllSites}
               className="mt-3 px-3 py-1.5 bg-blue-50 text-blue-600 rounded text-xs font-medium hover:bg-blue-100 transition-colors w-full"
             >
               Load all {allSites.length} sites
-            </button>
+            </motion.button>
           )}
-        </div>
-        {allSitesContent}
-      </div>
+        </motion.div>
+        {sidebarContent}
+      </motion.div>
 
       {/* Main Content Area */}
-      <div className="bg-white relative w-full h-full">
-        <div className="px-2 md:px-8 pt-6 pb-4 space-y-4 relative h-full w-full overflow-y-auto md:overflow-hidden">
-          {/* Controls: Dropdowns and Actions */}
-          <div className="w-full flex flex-wrap gap-2 justify-between">
+      <motion.div
+        className="relative flex-1 h-full overflow-hidden"
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="px-2 md:px-6 pt-4 pb-4 space-y-4 h-full flex flex-col">
+          {/* Controls Bar */}
+          <motion.div
+            variants={controlsVariants}
+            className="w-full flex flex-wrap gap-2 justify-between"
+          >
             <div className="space-x-2 flex items-center">
               <CustomDropdown
                 btnText={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
@@ -773,9 +720,7 @@ const MoreInsights = () => {
                   <span
                     key={option}
                     onClick={() => handleFrequencyChange(option)}
-                    className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                      frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''
-                    }`}
+                    className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''}`}
                   >
                     <span>
                       {option.charAt(0).toUpperCase() + option.slice(1)}
@@ -802,9 +747,7 @@ const MoreInsights = () => {
                   <span
                     key={option.id}
                     onClick={() => handleChartTypeChange(option.id)}
-                    className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                      chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
-                    }`}
+                    className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''}`}
                   >
                     <span>{option.name}</span>
                     {chartType === option.id && <CheckIcon fill="#145FFF" />}
@@ -824,11 +767,7 @@ const MoreInsights = () => {
                   btnText={`Download ${visibleSites.length > 0 ? `(${visibleSites.length})` : 'Data'}`}
                   Icon={<DownloadIcon width={16} height={17} color="white" />}
                   onClick={handleDataDownload}
-                  btnStyle={`${visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'} text-white border ${
-                    visibleSites.length > 0
-                      ? 'border-blue-600'
-                      : 'border-gray-400'
-                  } px-3 py-2 rounded-xl`}
+                  btnStyle={`${visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'} text-white border ${visibleSites.length > 0 ? 'border-blue-600' : 'border-gray-400'} px-3 py-2 rounded-xl`}
                   isLoading={downloadLoading}
                   disabled={
                     downloadLoading ||
@@ -839,63 +778,105 @@ const MoreInsights = () => {
                 />
               </Tooltip>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Error message using SelectionMessage component */}
-          {downloadError && (
-            <SelectionMessage type="error">{downloadError}</SelectionMessage>
-          )}
-
-          <div className="w-full h-auto border rounded-xl border-grey-150 p-2 relative">
-            {refreshSuccess && !isValidating && (
-              <div className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
-                <DoneRefreshed />
-                <span className="text-sm font-medium">Data refreshed</span>
-              </div>
+          {/* Error message */}
+          <AnimatePresence>
+            {downloadError && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <SelectionMessage type="error">
+                  {downloadError}
+                </SelectionMessage>
+              </motion.div>
             )}
+          </AnimatePresence>
 
-            {isManualRefresh && isValidating && (
-              <div className="absolute top-2 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm animate-pulse">
-                <Refreshing />
-                <span className="text-sm font-medium">Refreshing data...</span>
-              </div>
-            )}
+          {/* Chart container */}
+          <motion.div
+            variants={itemVariants}
+            className="w-full border rounded-xl border-grey-150 p-2 relative overflow-hidden"
+          >
+            {/* Success notification */}
+            <AnimatePresence>
+              {refreshSuccess && !isValidating && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm"
+                >
+                  <DoneRefreshed />
+                  <span className="text-sm font-medium">Data refreshed</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Loading notification */}
+            <AnimatePresence>
+              {isManualRefresh && isValidating && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-2 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm animate-pulse"
+                >
+                  <Refreshing />
+                  <span className="text-sm font-medium">
+                    Refreshing data...
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {chartContent}
-          </div>
+          </motion.div>
 
-          {/* Site visibility indicator using SelectionMessage component */}
-          {dataLoadingSites.length > visibleSites.length && (
-            <SelectionMessage type="info" className="flex items-center">
-              <svg
-                className="h-4 w-4 mr-2 text-blue-500"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+          {/* Selection message for hidden sites */}
+          <AnimatePresence>
+            {dataLoadingSites.length > visibleSites.length && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
               >
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path
-                  fillRule="evenodd"
-                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {dataLoadingSites.length - visibleSites.length} site(s) hidden and
-              will not be included in downloads. Check the boxes in the sidebar
-              to include them.
-            </SelectionMessage>
-          )}
+                <SelectionMessage type="info" className="flex items-center">
+                  <svg
+                    className="h-4 w-4 mr-2 text-blue-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {dataLoadingSites.length - visibleSites.length} site(s) hidden
+                  and will not be included in downloads. Check the boxes in the
+                  sidebar to include them.
+                </SelectionMessage>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <AirQualityCard
-            airQuality="--"
-            pollutionSource="--"
-            pollutant={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-            isLoading={chartLoading || isValidating}
-          />
+          {/* Air Quality Card */}
+          <motion.div variants={itemVariants} className="flex-shrink-0">
+            <AirQualityCard
+              airQuality="--"
+              pollutionSource="--"
+              pollutant={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
+              isLoading={chartLoading || isValidating}
+            />
+          </motion.div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

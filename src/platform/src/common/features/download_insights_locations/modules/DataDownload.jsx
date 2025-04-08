@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
@@ -92,100 +93,155 @@ const SettingsSidebar = ({
   ORGANIZATION_OPTIONS,
   durationGuidance,
   handleSubmit,
+  handleTitleChange,
   sidebarBg = '#f6f6f7',
 }) => {
+  // Animation variants for sidebar
+  const sidebarVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.07,
+      },
+    },
+  };
+
+  const formItemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <form
-      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r flex-shrink-0"
+    <motion.form
+      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
       onSubmit={handleSubmit}
+      variants={sidebarVariants}
+      initial="hidden"
+      animate="visible"
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-3">
+      <motion.div
+        className="flex justify-between items-center mb-3"
+        variants={formItemVariants}
+      >
         <h4 className="text-lg font-medium">Download Settings</h4>
-        <button
+        <motion.button
           type="button"
           className={`text-sm text-blue-600 ${edit ? 'font-semibold' : 'opacity-80'}`}
           onClick={() => setEdit(!edit)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           {edit ? 'Done' : <EditIcon />}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Form Fields */}
-      <div className="space-y-4">
-        <CustomFields
-          field
-          title="Title"
-          edit={edit}
-          id="title"
-          defaultOption={{ name: formData.title.name }}
-          handleOptionSelect={handleOptionSelect}
-        />
+      <motion.div className="space-y-4">
+        <motion.div variants={formItemVariants}>
+          {edit ? (
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Title
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={formData.title.name}
+                onChange={handleTitleChange}
+                autoFocus
+              />
+            </div>
+          ) : (
+            <CustomFields
+              field
+              title="Title"
+              edit={false}
+              id="title"
+              defaultOption={{ name: formData.title.name }}
+              handleOptionSelect={handleOptionSelect}
+            />
+          )}
+        </motion.div>
 
-        <CustomFields
-          title="Organization"
-          options={ORGANIZATION_OPTIONS}
-          id="organization"
-          icon={<WorldIcon width={16} height={16} fill="#000" />}
-          defaultOption={formData.organization}
-          handleOptionSelect={handleOptionSelect}
-          textFormat="uppercase"
-        />
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Organization"
+            options={ORGANIZATION_OPTIONS}
+            id="organization"
+            icon={<WorldIcon width={16} height={16} fill="#000" />}
+            defaultOption={formData.organization}
+            handleOptionSelect={handleOptionSelect}
+            textFormat="uppercase"
+          />
+        </motion.div>
 
-        <CustomFields
-          title="Data type"
-          options={filteredDataTypeOptions}
-          id="dataType"
-          icon={<CalibrateIcon />}
-          defaultOption={formData.dataType}
-          handleOptionSelect={handleOptionSelect}
-        />
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Data type"
+            options={filteredDataTypeOptions}
+            id="dataType"
+            icon={<CalibrateIcon />}
+            defaultOption={formData.dataType}
+            handleOptionSelect={handleOptionSelect}
+          />
+        </motion.div>
 
-        <CustomFields
-          title="Pollutant"
-          options={POLLUTANT_OPTIONS}
-          id="pollutant"
-          icon={<WindIcon />}
-          defaultOption={formData.pollutant}
-          handleOptionSelect={handleOptionSelect}
-        />
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Pollutant"
+            options={POLLUTANT_OPTIONS}
+            id="pollutant"
+            icon={<WindIcon />}
+            defaultOption={formData.pollutant}
+            handleOptionSelect={handleOptionSelect}
+          />
+        </motion.div>
 
-        <CustomFields
-          title="Duration"
-          id="duration"
-          useCalendar
-          required={true}
-          requiredText={`${!formData.duration ? 'please select a date range' : ''}`}
-          defaultOption={formData.duration}
-          handleOptionSelect={handleOptionSelect}
-        />
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Duration"
+            id="duration"
+            useCalendar
+            required={true}
+            requiredText={`${!formData.duration ? 'please select a date range' : ''}`}
+            defaultOption={formData.duration}
+            handleOptionSelect={handleOptionSelect}
+          />
 
-        {durationGuidance && (
-          <div className="text-xs text-blue-600 -mt-2 ml-1">
-            {durationGuidance}
-          </div>
-        )}
+          {durationGuidance && (
+            <div className="text-xs text-blue-600 -mt-2 ml-1">
+              {durationGuidance}
+            </div>
+          )}
+        </motion.div>
 
-        <CustomFields
-          title="Frequency"
-          options={FREQUENCY_OPTIONS}
-          id="frequency"
-          icon={<FrequencyIcon />}
-          defaultOption={formData.frequency}
-          handleOptionSelect={handleOptionSelect}
-        />
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Frequency"
+            options={FREQUENCY_OPTIONS}
+            id="frequency"
+            icon={<FrequencyIcon />}
+            defaultOption={formData.frequency}
+            handleOptionSelect={handleOptionSelect}
+          />
+        </motion.div>
 
-        <CustomFields
-          title="File type"
-          options={FILE_TYPE_OPTIONS}
-          id="fileType"
-          icon={<FileTypeIcon />}
-          defaultOption={formData.fileType}
-          handleOptionSelect={handleOptionSelect}
-        />
-      </div>
-    </form>
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="File type"
+            options={FILE_TYPE_OPTIONS}
+            id="fileType"
+            icon={<FileTypeIcon />}
+            defaultOption={formData.fileType}
+            handleOptionSelect={handleOptionSelect}
+          />
+        </motion.div>
+      </motion.div>
+    </motion.form>
   );
 };
 
@@ -209,72 +265,117 @@ const DataContent = ({
   searchKeysByFilter,
   handleRetryLoad,
 }) => {
+  // Animation variants for content area
+  const contentVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="bg-white flex-1 h-full px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
+    <motion.div
+      className="bg-white flex-1 h-full px-2 md:px-6 pt-4 pb-4 overflow-y-auto flex flex-col"
+      variants={contentVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Selection info with SelectionMessage component */}
-      {selectedItems.length > 0 && (
-        <SelectionMessage type="info" onClear={clearSelections}>
-          {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
-            ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
-            : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
-              ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
-              : `${selectedItems.length} ${
-                  selectedItems.length === 1
-                    ? activeFilterKey === FILTER_TYPES.SITES
-                      ? 'monitoring site'
-                      : 'device'
-                    : activeFilterKey === FILTER_TYPES.SITES
-                      ? 'monitoring sites'
-                      : 'devices'
-                } selected for data download`}
-        </SelectionMessage>
-      )}
+      <AnimatePresence>
+        {selectedItems.length > 0 && (
+          <motion.div
+            variants={itemVariants}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <SelectionMessage type="info" onClear={clearSelections}>
+              {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
+                ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
+                : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
+                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
+                  : `${selectedItems.length} ${
+                      selectedItems.length === 1
+                        ? activeFilterKey === FILTER_TYPES.SITES
+                          ? 'monitoring site'
+                          : 'device'
+                        : activeFilterKey === FILTER_TYPES.SITES
+                          ? 'monitoring sites'
+                          : 'devices'
+                    } selected for data download`}
+            </SelectionMessage>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Selection guidance with SelectionMessage component */}
-      {selectedItems.length === 0 && (
-        <SelectionMessage type="info">
-          {activeFilterKey === FILTER_TYPES.COUNTRIES ||
-          activeFilterKey === FILTER_TYPES.CITIES
-            ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
-            : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
-        </SelectionMessage>
-      )}
+      <AnimatePresence>
+        {selectedItems.length === 0 && (
+          <motion.div
+            variants={itemVariants}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <SelectionMessage type="info">
+              {activeFilterKey === FILTER_TYPES.COUNTRIES ||
+              activeFilterKey === FILTER_TYPES.CITIES
+                ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
+                : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
+            </SelectionMessage>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Data table */}
-      <DataTable
-        data={currentFilterData}
-        selectedRows={selectedRows}
-        setSelectedRows={setSelectedRows}
-        clearSelectionTrigger={clearSelected}
-        loading={isLoading}
-        error={!!filterErrors[activeFilterKey]}
-        errorMessage={filterErrors[activeFilterKey]}
-        onToggleRow={handleToggleItem}
-        columnsByFilter={columnsByFilter}
-        filters={filters}
-        onFilter={handleFilter}
-        searchKeys={searchKeysByFilter}
-        onRetry={() => handleRetryLoad(activeFilterKey)}
-      />
-    </div>
+      <motion.div className="flex-grow mt-4" variants={itemVariants}>
+        <DataTable
+          data={currentFilterData}
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
+          clearSelectionTrigger={clearSelected}
+          loading={isLoading}
+          error={!!filterErrors[activeFilterKey]}
+          errorMessage={filterErrors[activeFilterKey]}
+          onToggleRow={handleToggleItem}
+          columnsByFilter={columnsByFilter}
+          filters={filters}
+          onFilter={handleFilter}
+          searchKeys={searchKeysByFilter}
+          onRetry={() => handleRetryLoad(activeFilterKey)}
+        />
+      </motion.div>
+    </motion.div>
   );
 };
 
 /**
  * DataDownload component allows users to download air quality data
  * with various filtering options.
- * Refactored with exact 280px sidebar width.
+ * Refactored with exact 280px sidebar width and consistent animations.
  *
  * @param {Object} props
  * @param {Function} props.onClose - Function to close the modal
  * @param {string} props.sidebarBg - Background color for sidebar
  */
 const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
-  // Initialize refs
-  const initialLoadRef = useRef(false);
-  const abortControllerRef = useRef(null);
-  const previousFilterRef = useRef(null);
-  const errorTimeoutRef = useRef(null);
+  // Consolidate refs for better cleanup management
+  const refs = useRef({
+    abortController: null,
+    previousFilter: null,
+    errorTimeout: null,
+  });
 
   // Get active group info
   const {
@@ -308,7 +409,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
 
   // Filter data type options based on active filter
   const filteredDataTypeOptions = useMemo(() => {
-    // Hide Raw Data option for Countries and Cities filters
     if (
       activeFilterKey === FILTER_TYPES.COUNTRIES ||
       activeFilterKey === FILTER_TYPES.CITIES
@@ -336,6 +436,14 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     frequency: FREQUENCY_OPTIONS[0],
     fileType: FILE_TYPE_OPTIONS[0],
   });
+
+  // Handle title change
+  const handleTitleChange = useCallback((e) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: { name: e.target.value },
+    }));
+  }, []);
 
   // Use the SiteAndDeviceIds hook with proper error handling
   const {
@@ -381,36 +489,34 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     refresh: refreshCities,
   } = useGridSummary('city');
 
-  // Enhanced error handling - reset error messages after 2 seconds
+  // Enhanced error handling with automatic clearing
   const resetErrorAfterDelay = useCallback((error) => {
     setFormError(error);
 
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
+    if (refs.current.errorTimeout) {
+      clearTimeout(refs.current.errorTimeout);
     }
 
-    errorTimeoutRef.current = setTimeout(() => {
+    refs.current.errorTimeout = setTimeout(() => {
       setFormError('');
-      errorTimeoutRef.current = null;
     }, 2000);
   }, []);
 
-  // Handle automatic error clearing after 2 seconds
+  // Complete cleanup on unmount
   useEffect(() => {
     return () => {
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
+      if (refs.current.abortController) {
+        refs.current.abortController.abort();
+      }
+      if (refs.current.errorTimeout) {
+        clearTimeout(refs.current.errorTimeout);
       }
     };
   }, []);
 
   // Set initial organization once data is loaded
   useEffect(() => {
-    if (
-      !initialLoadRef.current &&
-      !formData.organization &&
-      ORGANIZATION_OPTIONS.length > 0
-    ) {
+    if (!formData.organization && ORGANIZATION_OPTIONS.length > 0) {
       const airqoNetwork = ORGANIZATION_OPTIONS.find(
         (group) => group.name?.toLowerCase() === 'airqo',
       );
@@ -421,26 +527,23 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           ? activeGroup
           : airqoNetwork || ORGANIZATION_OPTIONS[0],
       }));
-
-      initialLoadRef.current = true;
     }
   }, [ORGANIZATION_OPTIONS, activeGroup, formData.organization]);
 
   // Update filter errors for UI feedback
   useEffect(() => {
-    const errors = {};
-
-    if (sitesError)
-      errors.sites = sitesErrorMsg?.message || 'Error loading sites';
-    if (devicesError)
-      errors.devices = devicesErrorMsg?.message || 'Error loading devices';
-    if (countriesError)
-      errors.countries =
-        countriesErrorMsg?.message || 'Error loading countries';
-    if (citiesError)
-      errors.cities = citiesErrorMsg?.message || 'Error loading cities';
-
-    setFilterErrors(errors);
+    setFilterErrors({
+      sites: sitesError ? sitesErrorMsg?.message || 'Error loading sites' : '',
+      devices: devicesError
+        ? devicesErrorMsg?.message || 'Error loading devices'
+        : '',
+      countries: countriesError
+        ? countriesErrorMsg?.message || 'Error loading countries'
+        : '',
+      cities: citiesError
+        ? citiesErrorMsg?.message || 'Error loading cities'
+        : '',
+    });
   }, [
     sitesError,
     sitesErrorMsg,
@@ -477,8 +580,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   // Handle filter tab changes and clear selections
   useEffect(() => {
     if (
-      previousFilterRef.current &&
-      previousFilterRef.current !== activeFilterKey
+      refs.current.previousFilter &&
+      refs.current.previousFilter !== activeFilterKey
     ) {
       clearSelections();
 
@@ -497,22 +600,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         }));
       }
     }
-    previousFilterRef.current = activeFilterKey;
+    refs.current.previousFilter = activeFilterKey;
   }, [activeFilterKey]);
-
-  // Cancel any pending requests on unmount or when component re-renders
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
-      }
-
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Clear selections without resetting form data
   const clearSelections = useCallback(() => {
@@ -521,7 +610,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     setStatusMessage('');
     setFormError('');
     setClearSelected(true);
-    setTimeout(() => setClearSelected(false), 0);
+    setTimeout(() => setClearSelected(false), 50);
   }, []);
 
   // Reset everything including form data
@@ -561,7 +650,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     [refreshSites, refreshDevices, clearSelections],
   );
 
-  // Toggle item selection with no limit
+  // Toggle item selection
   const handleToggleItem = useCallback(
     (item) => {
       // For countries and cities, only allow one selection
@@ -613,7 +702,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     [refreshCountries, refreshCities, refreshDevices, refreshSites],
   );
 
-  // Enhanced validation function to check duration is selected
+  // Enhanced validation function
   const validateFormData = useCallback((formData, selectedItems) => {
     if (!formData.duration?.name?.start || !formData.duration?.name?.end) {
       return 'Please select a valid date range';
@@ -648,7 +737,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     return null; // No errors
   }, []);
 
-  // Handle download submission with improved validation and error handling
+  // Handle download submission with improved error handling
   const handleSubmit = useCallback(
     async (e) => {
       if (e && e.preventDefault) {
@@ -656,10 +745,10 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       }
 
       // Abort any existing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      if (refs.current.abortController) {
+        refs.current.abortController.abort();
       }
-      abortControllerRef.current = new AbortController();
+      refs.current.abortController = new AbortController();
 
       setDownloadLoading(true);
       setFormError('');
@@ -723,8 +812,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
 
         // Set timeout for the request
         const timeoutId = setTimeout(() => {
-          if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
+          if (refs.current.abortController) {
+            refs.current.abortController.abort();
             resetErrorAfterDelay('Request timed out. Please try again later.');
             setMessageType(MESSAGE_TYPES.ERROR);
             setDownloadLoading(false);
@@ -741,79 +830,51 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           const mimeType = getMimeType(fileExtension);
           const fileName = `${formData.title.name || 'Air_Quality_Data'}.${fileExtension}`;
 
-          // Direct handling of different file types with minimal processing
+          // Process response based on file type
           if (fileExtension === 'csv') {
-            try {
-              // The API returns CSV data directly, so we can use it as is
-              let csvData;
-
-              if (typeof response === 'string') {
-                // If response is a string, use it directly
-                csvData = response;
-                // Remove 'resp' prefix if it exists
-                if (csvData.startsWith('resp')) {
-                  csvData = csvData.substring(4);
-                }
-              } else if (
-                typeof response === 'object' &&
-                response !== null &&
-                response.data
-              ) {
-                // If response is an object with data property, use that
-                csvData =
-                  typeof response.data === 'string'
+            // Process CSV data
+            let csvData =
+              typeof response === 'string'
+                ? response.startsWith('resp')
+                  ? response.substring(4)
+                  : response
+                : typeof response === 'object' &&
+                    response !== null &&
+                    response.data
+                  ? typeof response.data === 'string'
                     ? response.data
-                    : JSON.stringify(response.data);
-              } else {
-                // Fallback to empty CSV with headers
-                csvData =
-                  'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
-                console.error('Invalid response format from API');
-              }
+                    : JSON.stringify(response.data)
+                  : 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
 
-              // Create and download the blob
-              const blob = new Blob([csvData], { type: mimeType });
-
-              if (blob.size > 10) {
-                saveAs(blob, fileName);
-              } else {
-                throw new Error('No data available for the selected criteria');
-              }
-            } catch (error) {
-              console.error('CSV download error:', error);
-              throw new Error('Error saving CSV data. Please try again.');
+            // Save as CSV
+            const blob = new Blob([csvData], { type: mimeType });
+            if (blob.size > 10) {
+              saveAs(blob, fileName);
+            } else {
+              throw new Error('No data available for the selected criteria');
             }
           } else if (fileExtension === 'json') {
-            // JSON handling
-            let jsonData;
+            // Process JSON data
+            let jsonData =
+              typeof response === 'string'
+                ? JSON.parse(response)
+                : typeof response === 'object' && response !== null
+                  ? response.data || response
+                  : { error: 'No data available' };
 
-            if (typeof response === 'string') {
-              try {
-                jsonData = JSON.parse(response);
-              } catch (error) {
-                console.error('JSON parse error:', error);
-                jsonData = { data: response };
-              }
-            } else if (typeof response === 'object' && response !== null) {
-              jsonData = response.data || response;
-            } else {
-              jsonData = { error: 'No data available' };
-            }
-
+            // Save as JSON
             const jsonString = JSON.stringify(jsonData, null, 2);
             saveAs(new Blob([jsonString], { type: mimeType }), fileName);
           } else if (fileExtension === 'pdf') {
-            // PDF handling
+            // Process PDF data
             const doc = new jsPDF();
             let pdfData = [];
 
             if (typeof response === 'string') {
               try {
-                const parsedData = JSON.parse(response);
-                pdfData = parsedData.data || [];
-              } catch (error) {
-                console.error('JSON parse error:', error);
-                // Try to parse as CSV
+                pdfData = JSON.parse(response).data || [];
+              } catch {
+                // Try to parse as CSV if JSON fails
                 const lines = response.split('\n');
                 if (lines.length > 1) {
                   const headers = lines[0].split(',');
@@ -833,6 +894,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
               pdfData = response.data || [];
             }
 
+            // Create PDF
             if (!pdfData || pdfData.length === 0) {
               doc.text('No data available to display', 10, 10);
             } else {
@@ -866,14 +928,13 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           onClose();
         } catch (error) {
           clearTimeout(timeoutId);
-          throw error; // Re-throw to be caught by the outer catch block
+          throw error;
         }
       } catch (error) {
         console.error('Download error:', error);
 
         // Skip analytics tracking for aborted requests
         if (error.name !== 'AbortError') {
-          // Log error to analytics
           event({
             action: 'download_error',
             category: 'Data Export',
@@ -881,17 +942,13 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           });
         }
 
-        // Set user-friendly error message that will auto-clear after 2 seconds
         resetErrorAfterDelay(
-          error.message ||
-            'An error occurred while downloading the data. Please try again.',
+          error.message || 'Error downloading the data. Please try again.',
         );
         setMessageType(MESSAGE_TYPES.ERROR);
       } finally {
         setDownloadLoading(false);
-        if (abortControllerRef.current) {
-          abortControllerRef.current = null;
-        }
+        refs.current.abortController = null;
       }
     },
     [
@@ -1152,12 +1209,26 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     selectedItems.length,
   ]);
 
+  // Main component animation variants
+  const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, transition: { duration: 0.2 } },
+  };
+
   return (
-    <div className="flex flex-col md:flex-row">
+    <motion.div
+      className="flex flex-col md:flex-row h-full overflow-hidden"
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
       {/* Settings Panel - Exactly 280px width */}
       <SettingsSidebar
         formData={formData}
         handleOptionSelect={handleOptionSelect}
+        handleTitleChange={handleTitleChange}
         edit={edit}
         setEdit={setEdit}
         filteredDataTypeOptions={filteredDataTypeOptions}
@@ -1200,7 +1271,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           disabled={isDownloadDisabled}
         />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -7,9 +7,10 @@ import React, {
   useRef,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { motion } from 'framer-motion';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DataTable from '../components/DataTable';
-import Footer from '../components/Footer';
+import EnhancedFooter from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
@@ -39,7 +40,24 @@ export const AddLocationHeader = () => (
 );
 
 /**
+ * Enhanced LocationCard wrapper component to ensure proper card styling
+ */
+const EnhancedLocationCard = ({ site, onToggle, isSelected, sidebarBg }) => {
+  return (
+    <LocationCard
+      site={site}
+      onToggle={onToggle}
+      isLoading={false}
+      isSelected={isSelected}
+      disableToggle={false}
+      cardStyle={{ backgroundColor: sidebarBg || '#f6f6f7' }}
+    />
+  );
+};
+
+/**
  * Sidebar component for AddLocations that displays selected locations
+ * with improved animations and transitions
  */
 const LocationsSidebar = ({
   sidebarSites,
@@ -49,15 +67,37 @@ const LocationsSidebar = ({
   filteredSites,
   sidebarBg = '#f6f6f7',
 }) => {
+  // Animation variants
+  const sidebarVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.07,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   const sidebarSitesContent = useMemo(() => {
     if (loading) {
       // Show a placeholder skeleton
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
-          <div className="animate-pulse h-10 w-full bg-gray-200 rounded"></div>
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="animate-pulse h-10 w-full bg-gray-200 rounded"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+            />
+          ))}
         </div>
       );
     }
@@ -83,18 +123,23 @@ const LocationsSidebar = ({
     }
 
     return (
-      <div className="space-y-3">
+      <motion.div
+        className="space-y-3"
+        variants={sidebarVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {sidebarSites.map((site) => (
-          <div key={site._id}>
-            <LocationCard
+          <motion.div key={site._id} variants={itemVariants} layout>
+            <EnhancedLocationCard
               site={site}
               onToggle={() => handleToggleSite(site)}
-              isLoading={false}
               isSelected={selectedSites.some((s) => s._id === site._id)}
+              sidebarBg={sidebarBg}
             />
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     );
   }, [
     sidebarSites,
@@ -102,15 +147,18 @@ const LocationsSidebar = ({
     handleToggleSite,
     loading,
     filteredSites.length,
+    sidebarBg,
   ]);
 
   return (
-    <div
-      className="w-[280px] min-h-[400px] max-h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0"
-      style={{ backgroundColor: sidebarBg }}
+    <motion.div
+      className="w-[280px] min-h-[400px] max-h-[658px] overflow-y-auto overflow-x-hidden border-r relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0 bg-white"
+      variants={sidebarVariants}
+      initial="hidden"
+      animate="visible"
     >
       {sidebarSitesContent}
-    </div>
+    </motion.div>
   );
 };
 
@@ -130,54 +178,85 @@ const LocationsContent = ({
   filters,
   handleFilter,
 }) => {
+  // Animation variants for content area
+  const contentVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.07,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="bg-white flex-1 h-full px-2 md:px-8 pt-6 pb-4 overflow-y-auto">
+    <motion.div
+      className="flex-1 h-full px-2 md:px-8 pt-6 pb-4 overflow-y-auto"
+      variants={contentVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {isError ? (
-        <InfoMessage
-          title="Error Loading Data"
-          description={fetchError?.message || 'Unable to fetch locations data.'}
-          variant="error"
-        />
+        <motion.div variants={itemVariants}>
+          <InfoMessage
+            title="Error Loading Data"
+            description={
+              fetchError?.message || 'Unable to fetch locations data.'
+            }
+            variant="error"
+          />
+        </motion.div>
       ) : filteredSites.length === 0 && !loading ? (
-        <InfoMessage
-          title="No Locations Found"
-          description="No locations are currently available for selection."
-          variant="info"
-        />
+        <motion.div variants={itemVariants}>
+          <InfoMessage
+            title="No Locations Found"
+            description="No locations are currently available for selection."
+            variant="info"
+          />
+        </motion.div>
       ) : (
-        <DataTable
-          data={filteredSites}
-          selectedRows={selectedSites}
-          setSelectedRows={setSelectedSites}
-          clearSelectionTrigger={clearSelected}
-          loading={loading}
-          error={isError}
-          errorMessage={
-            fetchError?.message || 'Unable to fetch locations data.'
-          }
-          onToggleRow={handleToggleSite}
-          filters={filters}
-          columnsByFilter={columnsByFilter}
-          onFilter={handleFilter}
-          searchKeys={[
-            'location_name',
-            'search_name',
-            'name',
-            'city',
-            'country',
-            'data_provider',
-            'owner',
-            'organization',
-          ]}
-        />
+        <motion.div variants={itemVariants}>
+          <DataTable
+            data={filteredSites}
+            selectedRows={selectedSites}
+            setSelectedRows={setSelectedSites}
+            clearSelectionTrigger={clearSelected}
+            loading={loading}
+            error={isError}
+            errorMessage={
+              fetchError?.message || 'Unable to fetch locations data.'
+            }
+            onToggleRow={handleToggleSite}
+            filters={filters}
+            columnsByFilter={columnsByFilter}
+            onFilter={handleFilter}
+            searchKeys={[
+              'location_name',
+              'search_name',
+              'name',
+              'city',
+              'country',
+              'data_provider',
+              'owner',
+              'organization',
+            ]}
+          />
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
 /**
  * AddLocations component allows users to select locations for monitoring.
- * Refactored with exact 280px sidebar width.
+ * Users can clear all selections if needed, but must select at least one
+ * location before saving.
  *
  * @param {Object} props
  * @param {Function} props.onClose - Function to close the modal
@@ -185,7 +264,10 @@ const LocationsContent = ({
  */
 const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const dispatch = useDispatch();
+
+  // Refs to handle cleanup
   const errorTimeoutRef = useRef(null);
+  const dataInitializedRef = useRef(false);
 
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(
@@ -257,36 +339,48 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     return firstPreference?.selected_sites?.map((site) => site._id) || [];
   }, [preferencesData]);
 
-  /**
-   * Initialize selectedSites and sidebarSites once data is loaded,
-   * if the user currently has preferences but no local selection.
-   */
+  // Improved initialization of selected sites
   useEffect(() => {
-    if (!loading && filteredSites.length > 0) {
-      // If we have user preferences, initialize selection based on them
-      if (selectedSites.length === 0 && selectedSiteIds.length > 0) {
-        const initialSelectedSites = filteredSites.filter((site) =>
-          selectedSiteIds.includes(site._id),
-        );
+    if (
+      !loading &&
+      filteredSites.length > 0 &&
+      selectedSiteIds.length > 0 &&
+      !dataInitializedRef.current
+    ) {
+      // Find matching sites from the filtered sites data
+      const matchingSites = filteredSites.filter((site) =>
+        selectedSiteIds.includes(site._id),
+      );
 
-        if (initialSelectedSites.length > 0) {
-          setSelectedSites(initialSelectedSites);
-          setSidebarSites(initialSelectedSites);
-        }
-      }
-      // If we have filteredSites but no selections at all, initialize sidebar with empty array
-      // to ensure the component knows data is available
-      else if (selectedSites.length === 0 && sidebarSites.length === 0) {
-        setSidebarSites([]);
+      if (matchingSites.length > 0) {
+        // Important: Set both states to ensure consistency
+        setSelectedSites(matchingSites);
+        setSidebarSites(matchingSites);
+        dataInitializedRef.current = true;
+
+        // Force DataTable to update selection by clearing and resetting selection
+        setClearSelected(true);
+
+        // Use a longer timeout to ensure UI components have time to process
+        setTimeout(() => {
+          setClearSelected(false);
+
+          // Additional timeout to ensure checkbox updates
+          setTimeout(() => {
+            const checkboxRefresh = document.createEvent('Event');
+            checkboxRefresh.initEvent('change', true, true);
+            document
+              .querySelectorAll('input[type="checkbox"]')
+              .forEach((checkbox) => {
+                checkbox.dispatchEvent(checkboxRefresh);
+              });
+          }, 50);
+        }, 100);
+
+        console.log(`Initialized ${matchingSites.length} pre-selected sites`);
       }
     }
-  }, [
-    loading,
-    selectedSites.length,
-    selectedSiteIds,
-    filteredSites,
-    sidebarSites.length,
-  ]);
+  }, [loading, filteredSites, selectedSiteIds]);
 
   // Handle automatic error clearing after 2 seconds
   useEffect(() => {
@@ -312,60 +406,56 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   }, [error]);
 
   /**
-   * Clears all selected sites.
+   * Clears all selected sites without restrictions.
    */
   const handleClearSelection = useCallback(() => {
-    setClearSelected(true);
     setSelectedSites([]);
     setSidebarSites([]);
-    setTimeout(() => setClearSelected(false), 0);
+
+    setClearSelected(true);
+    setTimeout(() => setClearSelected(false), 100);
     setStatusMessage('');
     setError('');
   }, []);
 
   /**
    * Toggles the selection of a site.
+   * Ensures that both selectedSites and sidebarSites stay in sync.
    */
-  const handleToggleSite = useCallback(
-    (site) => {
-      setSelectedSites((prev) => {
-        const isSelected = prev.some((s) => s._id === site._id);
+  const handleToggleSite = useCallback((site) => {
+    setSelectedSites((prev) => {
+      const isSelected = prev.some((s) => s._id === site._id);
 
-        // Check for maximum selection limit (4 sites)
-        if (!isSelected && prev.length >= 4) {
-          setError('You can select up to 4 locations only.');
-          setMessageType(MESSAGE_TYPES.ERROR);
-          return prev;
-        }
-
-        return isSelected
-          ? prev.filter((s) => s._id !== site._id)
-          : [...prev, site];
-      });
-
-      setSidebarSites((prev) => {
-        const alreadyInSidebar = prev.some((s) => s._id === site._id);
-        if (alreadyInSidebar) {
-          // If we're removing from selected, also remove from sidebar
-          return prev.filter((s) => s._id !== site._id);
-        }
-
-        // Check for maximum selection limit
-        if (
-          selectedSites.some((s) => s._id === site._id) ||
-          selectedSites.length < 4
-        ) {
-          return [...prev, site];
-        }
-
+      // Check for maximum selection limit (4 sites)
+      if (!isSelected && prev.length >= 4) {
+        setError('You can select up to 4 locations only.');
+        setMessageType(MESSAGE_TYPES.ERROR);
         return prev;
+      }
+
+      // Toggle selection
+      const newSelection = isSelected
+        ? prev.filter((s) => s._id !== site._id)
+        : [...prev, site];
+
+      // Update sidebar sites to match selection
+      setSidebarSites((sidebarPrev) => {
+        if (isSelected) {
+          // Remove from sidebar if deselected
+          return sidebarPrev.filter((s) => s._id !== site._id);
+        } else if (!sidebarPrev.some((s) => s._id === site._id)) {
+          // Add to sidebar if selected and not already there
+          return [...sidebarPrev, site];
+        }
+        return sidebarPrev;
       });
 
-      // Clear any error message when making a selection
-      setError('');
-    },
-    [selectedSites],
-  );
+      return newSelection;
+    });
+
+    // Clear any error message when making a selection
+    setError('');
+  }, []);
 
   /**
    * Custom filter function for DataTable.
@@ -483,10 +573,11 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
 
   /**
    * Handles submission of the selected sites.
+   * Validates that at least one site is selected before saving.
    */
   const handleSubmit = useCallback(() => {
     if (selectedSites.length === 0) {
-      setError('No locations selected.');
+      setError('Please select at least one location to save.');
       setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
@@ -553,11 +644,35 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       return { message: statusMessage, type: messageType };
     }
 
-    return { message: '', type: MESSAGE_TYPES.INFO };
-  }, [error, statusMessage, messageType]);
+    // Show warning when no sites are selected
+    if (selectedSites.length === 0) {
+      return {
+        message: 'Please select at least one location to save',
+        type: MESSAGE_TYPES.WARNING,
+      };
+    }
+
+    return {
+      message: `${selectedSites.length} ${selectedSites.length === 1 ? 'location' : 'locations'} selected`,
+      type: MESSAGE_TYPES.INFO,
+    };
+  }, [error, statusMessage, messageType, selectedSites.length]);
+
+  // Page transition animation
+  const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, transition: { duration: 0.2 } },
+  };
 
   return (
-    <div className="flex flex-col md:flex-row">
+    <motion.div
+      className="flex flex-col md:flex-row h-full"
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
       {/* Sidebar Component - Exactly 280px width */}
       <LocationsSidebar
         sidebarSites={sidebarSites}
@@ -584,20 +699,23 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           handleFilter={handleFilter}
         />
 
-        <Footer
+        <EnhancedFooter
           btnText={submitLoading ? 'Saving...' : 'Save'}
           setError={setError}
           message={footerInfo.message}
           messageType={footerInfo.type}
           selectedItems={selectedSites}
-          handleClearSelection={handleClearSelection}
+          handleClearSelection={
+            selectedSites.length > 0 ? handleClearSelection : undefined
+          }
           handleSubmit={handleSubmit}
           onClose={onClose}
           loading={submitLoading}
-          disabled={submitLoading}
+          disabled={submitLoading || selectedSites.length === 0} // Disable save button when no sites are selected
+          minimumSelection={0} // Allow clearing all selections
         />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

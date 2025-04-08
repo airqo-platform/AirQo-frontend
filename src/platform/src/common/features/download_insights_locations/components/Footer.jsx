@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 
@@ -22,20 +22,35 @@ const EnhancedFooter = ({
   loading = false,
   disabled = false,
   errorTimeout = 5000, // Configurable error timeout
+  minimumSelection = 0, // Set to 1 for AddLocations component
 }) => {
+  // Track timer for cleanup
+  const timeoutRef = useRef(null);
+
   // Auto-clear error messages after specified timeout
   useEffect(() => {
-    let timeoutId;
     if (
       message &&
       (messageType === MESSAGE_TYPES.ERROR ||
         messageType === MESSAGE_TYPES.WARNING) &&
       setError
     ) {
-      timeoutId = setTimeout(() => setError(''), errorTimeout);
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        setError('');
+        timeoutRef.current = null;
+      }, errorTimeout);
     }
+
+    // Cleanup on unmount or when dependencies change
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [message, messageType, setError, errorTimeout]);
 
@@ -51,13 +66,39 @@ const EnhancedFooter = ({
   }, [messageType]);
 
   // Determine if clear button should be shown
-  const showClearButton = selectedItems.length > 0 && handleClearSelection;
+  const showClearButton = useMemo(() => {
+    // Only show if we have items selected AND more than the minimum required
+    return selectedItems.length > minimumSelection && handleClearSelection;
+  }, [selectedItems.length, handleClearSelection, minimumSelection]);
 
   // Button hover animation
   const buttonVariants = {
     idle: { scale: 1 },
     hover: { scale: 1.03 },
     tap: { scale: 0.98 },
+    disabled: { opacity: 0.7 },
+  };
+
+  // Message animation
+  const messageVariants = {
+    initial: { opacity: 0, y: 5, height: 0 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      height: 'auto',
+      transition: {
+        duration: 0.2,
+        ease: 'easeOut',
+      },
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.2,
+        ease: 'easeIn',
+      },
+    },
   };
 
   return (
@@ -65,12 +106,12 @@ const EnhancedFooter = ({
       {/* Animated message area */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={message}
-          className="text-sm leading-5 font-normal flex-1 mb-2 md:mb-0"
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          key={message || 'status'}
+          className="text-sm leading-5 font-normal flex-1 mb-2 md:mb-0 overflow-hidden"
+          variants={messageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
         >
           {message ? (
             <span className={messageStyles}>{message}</span>
@@ -87,20 +128,24 @@ const EnhancedFooter = ({
       {/* Action buttons */}
       <div className="flex w-full md:w-auto gap-2 justify-end">
         {/* Conditionally render clear button */}
-        {showClearButton && (
-          <motion.button
-            type="button"
-            onClick={handleClearSelection}
-            className="px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-100 transition-colors ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-            disabled={loading}
-            variants={buttonVariants}
-            initial="idle"
-            whileHover="hover"
-            whileTap="tap"
-          >
-            Clear
-          </motion.button>
-        )}
+        <AnimatePresence>
+          {showClearButton && (
+            <motion.button
+              type="button"
+              onClick={handleClearSelection}
+              className="px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-100 transition-colors ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              disabled={loading}
+              variants={buttonVariants}
+              initial="idle"
+              animate="idle"
+              whileHover="hover"
+              whileTap="tap"
+              exit={{ opacity: 0, width: 0, padding: 0, margin: 0 }}
+            >
+              Clear
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* Cancel button */}
         <motion.button
@@ -110,8 +155,9 @@ const EnhancedFooter = ({
           disabled={loading}
           variants={buttonVariants}
           initial="idle"
-          whileHover="hover"
-          whileTap="tap"
+          animate="idle"
+          whileHover={!loading ? 'hover' : 'disabled'}
+          whileTap={!loading ? 'tap' : 'disabled'}
         >
           Cancel
         </motion.button>
@@ -128,8 +174,9 @@ const EnhancedFooter = ({
           disabled={disabled || loading}
           variants={buttonVariants}
           initial="idle"
-          whileHover={!disabled && !loading ? 'hover' : 'idle'}
-          whileTap={!disabled && !loading ? 'tap' : 'idle'}
+          animate={disabled || loading ? 'disabled' : 'idle'}
+          whileHover={!disabled && !loading ? 'hover' : 'disabled'}
+          whileTap={!disabled && !loading ? 'tap' : 'disabled'}
         >
           {loading ? (
             <span className="flex items-center justify-center">
@@ -176,6 +223,7 @@ EnhancedFooter.propTypes = {
   loading: PropTypes.bool,
   disabled: PropTypes.bool,
   errorTimeout: PropTypes.number,
+  minimumSelection: PropTypes.number,
 };
 
 export default EnhancedFooter;

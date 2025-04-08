@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
@@ -24,20 +24,46 @@ const MODAL_CONFIGURATIONS = {
 };
 
 /**
- * Enhanced Modal component with consistent layout and animations
+ * Enhanced Modal component with improved animations and responsive layout
  * @param {Object} props
  * @param {boolean} props.isOpen - Whether the modal is open
  * @param {Function} props.onClose - Function to close the modal
  */
 const Modal = ({ isOpen, onClose }) => {
-  const modalType = useSelector((state) => state.modal.modalType.type);
+  const modalType = useSelector((state) => state.modal.modalType?.type);
+
   const ModalHeader =
     MODAL_CONFIGURATIONS[modalType]?.header ||
     (() => <div className="text-lg font-medium">Modal</div>);
+
   const ModalBody =
     MODAL_CONFIGURATIONS[modalType]?.body ||
     (() => <div>No content available</div>);
 
+  // Handle ESC key to close modal
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose],
+  );
+
+  // Add/remove event listeners
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = ''; // Restore scrolling
+    };
+  }, [isOpen, handleKeyDown]);
+
+  // Animation configurations
   const modalAnimationConfig = {
     initial: { opacity: 0, y: 20, scale: 0.98 },
     animate: {
@@ -70,7 +96,7 @@ const Modal = ({ isOpen, onClose }) => {
 
           <motion.div
             {...modalAnimationConfig}
-            className="w-full max-w-5xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
+            className="w-full max-w-5xl lg:h-[80vh] max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
           >
             {/* Header */}
             <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300">
@@ -78,7 +104,7 @@ const Modal = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="focus:outline-none hover:bg-gray-100 p-1 rounded-full transition-colors duration-150"
+                className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 hover:bg-gray-100 p-1.5 rounded-full transition-colors duration-150"
                 aria-label="Close Modal"
               >
                 <Close fill="#000" />
@@ -87,7 +113,13 @@ const Modal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Body */}
-            <div className="relative overflow-y-auto">
+            <div
+              className="relative overflow-y-auto"
+              style={{
+                maxHeight: 'calc(90vh - 65px)',
+                height: 'calc(80vh - 65px)',
+              }}
+            >
               <ModalBody onClose={onClose} />
             </div>
           </motion.div>

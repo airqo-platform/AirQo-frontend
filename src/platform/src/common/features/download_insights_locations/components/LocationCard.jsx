@@ -1,5 +1,7 @@
+'use client';
 import React from 'react';
 import PropTypes from 'prop-types';
+import { motion } from 'framer-motion';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 
 // Helper function to handle truncation logic
@@ -11,6 +13,7 @@ const truncateName = (name, maxLength = 13) => {
 /**
  * LocationCard Component
  * Displays information about a location with a checkbox to toggle selection.
+ * Enhanced with smooth animations and better accessibility.
  */
 const LocationCard = ({
   site,
@@ -18,54 +21,115 @@ const LocationCard = ({
   isSelected,
   isLoading,
   disableToggle,
+  cardStyle,
 }) => {
+  // Animation variants
+  const cardVariants = {
+    initial: { opacity: 0, y: 5 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.2 },
+    },
+    hover: {
+      y: -2,
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.07)',
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 15,
+      },
+    },
+    tap: { scale: 0.98 },
+  };
+
   // Display loading skeleton while loading
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 p-3 items-start bg-gray-100 rounded-xl animate-pulse w-full h-[68px]">
+      <motion.div
+        className="flex flex-col gap-3 p-3 items-start bg-gray-100 rounded-xl w-full h-[68px]"
+        variants={cardVariants}
+        initial="initial"
+        animate="animate"
+      >
         <div className="flex justify-between w-full h-auto">
-          <div className="w-2/3 h-4 bg-gray-300 rounded mb-1"></div>
-          <div className="w-4 h-4 bg-gray-300 rounded"></div>
+          <div className="w-2/3 h-4 bg-gray-300 rounded mb-1 animate-pulse"></div>
+          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse"></div>
         </div>
-        <div className="w-2/3 h-3 bg-gray-300 rounded"></div>
-      </div>
+        <div className="w-2/3 h-3 bg-gray-300 rounded animate-pulse"></div>
+      </motion.div>
     );
   }
 
   // Destructure necessary properties from site
-  const { name, search_name, country } = site;
+  const { name, search_name, country, city, _id } = site;
 
   // Determine display name (search_name or fallback to name)
   const displayName = truncateName(
     name || (search_name && search_name.split(',')[0]) || '',
   );
 
+  // Determine location description (prefer country, fallback to city)
+  const locationDescription = country || city || 'Unknown Location';
+
+  // Handle click on the card (but not the checkbox)
+  const handleCardClick = () => {
+    if (!disableToggle) {
+      onToggle(site);
+    }
+  };
+
   return (
-    <div
-      className={`flex justify-between items-center p-3 bg-[#F6F6F7] border ${
-        isSelected ? 'border-blue-300 ring-2 ring-blue-500' : 'border-gray-200'
-      } rounded-lg shadow-sm transition-all w-full ${
-        disableToggle ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-blue-50'
-      }`}
+    <motion.div
+      className={`flex justify-between items-center p-3 border ${
+        isSelected ? 'border-blue-300 ring-1 ring-blue-500' : 'border-gray-200'
+      } rounded-lg shadow-sm w-full ${disableToggle ? 'opacity-90' : ''}`}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover={!disableToggle ? 'hover' : undefined}
+      whileTap={!disableToggle ? 'tap' : undefined}
+      onClick={handleCardClick}
+      role="button"
+      aria-pressed={isSelected}
       aria-disabled={disableToggle}
+      tabIndex={disableToggle ? -1 : 0}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !disableToggle) {
+          e.preventDefault();
+          onToggle(site);
+        }
+      }}
+      style={cardStyle || { backgroundColor: '#f6f6f7' }}
     >
       <div className="flex items-center gap-2">
-        <LocationIcon
-          width={20}
-          height={20}
-          fill={isSelected ? '#3B82F6' : '#9EA3AA'}
-        />
+        <motion.div
+          initial={{ rotate: 0 }}
+          animate={isSelected ? { rotate: [0, 15, 0] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          <LocationIcon
+            width={20}
+            height={20}
+            fill={isSelected ? '#3B82F6' : '#9EA3AA'}
+          />
+        </motion.div>
         <div className="flex flex-col">
           <h3 className="text-sm font-medium text-gray-900">{displayName}</h3>
-          <small className="text-xs text-gray-500">
-            {country || 'Unknown Country'}
-          </small>
+          <small className="text-xs text-gray-500">{locationDescription}</small>
         </div>
       </div>
-      <div>
+      <motion.div
+        whileTap={{ scale: 1.2 }}
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-center"
+      >
+        <label htmlFor={`checkbox-${_id || 'unknown'}`} className="sr-only">
+          Select {displayName}
+        </label>
         <input
           type="checkbox"
-          id={`checkbox-${site._id || 'unknown'}`}
+          id={`checkbox-${_id || 'unknown'}`}
           checked={isSelected}
           onChange={(e) => {
             e.stopPropagation();
@@ -73,12 +137,14 @@ const LocationCard = ({
               onToggle(site);
             }
           }}
-          className="w-4 h-4 text-blue-600 bg-white cursor-pointer border-blue-300 rounded focus:ring-blue-500"
+          className={`w-4 h-4 text-blue-600 bg-white border-blue-300 rounded focus:ring-blue-500 ${
+            disableToggle ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+          }`}
           aria-label={`Select ${displayName}`}
           disabled={disableToggle}
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -88,16 +154,19 @@ LocationCard.propTypes = {
     name: PropTypes.string,
     search_name: PropTypes.string,
     country: PropTypes.string,
+    city: PropTypes.string,
   }).isRequired,
   onToggle: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
   isLoading: PropTypes.bool,
-  disableToggle: PropTypes.bool, // New prop to disable toggle when needed
+  disableToggle: PropTypes.bool,
+  cardStyle: PropTypes.object,
 };
 
 LocationCard.defaultProps = {
   isLoading: false,
   disableToggle: false,
+  cardStyle: null,
 };
 
 export default LocationCard;
