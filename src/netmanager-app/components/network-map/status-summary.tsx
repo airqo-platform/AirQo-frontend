@@ -108,7 +108,7 @@ export function StatusSummary() {
         size="icon"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className={`absolute z-20 top-7 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
-          ${isCollapsed ? "left-0" : "right-3"}`}
+          ${isCollapsed ? "-left-1 top-1/2" : "right-3"}`}
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4 text-gray-700" />
