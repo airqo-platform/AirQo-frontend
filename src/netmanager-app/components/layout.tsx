@@ -43,7 +43,7 @@ export default function Layout({
                 isSidebarCollapsed={isSidebarCollapsed}
                 toggleSidebar={toggleSidebar}
             />
-            <main className={`flex-1 flex flex-col overflow-hidden bg-background transition-all duration-300 ${
+            <main className={`flex-1 flex flex-col bg-background transition-all duration-300 overflow-hidden ${
                 isSidebarCollapsed ? "md:pl-16" : "md:pl-64"
             }`}>
                 {!hideTopbar && <Topbar isMobileView={isMobileView} toggleSidebar={toggleSidebar} />}
