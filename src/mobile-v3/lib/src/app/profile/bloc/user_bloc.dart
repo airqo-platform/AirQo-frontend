@@ -34,10 +34,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         firstName: event.firstName,
         lastName: event.lastName,
         email: event.email,
+        profilePicture: event.profilePicture,
       );
       
       emit(UserUpdateSuccess(model));
-      // Also emit UserLoaded state to update the UI
+
       emit(UserLoaded(model));
     } catch (e) {
       print(e.toString());
