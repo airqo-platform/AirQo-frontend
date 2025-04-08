@@ -85,9 +85,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     }
   }
 
-  Future<File> _compressImage(File file) async {
-    return file;
-  }
+
 
   bool _validateEmail(String email) {
     final emailRegExp = RegExp(
@@ -170,7 +168,12 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       ));
 
       ('Uploading image to Cloudinary...');
-      var streamedResponse = await request.send();
+      var streamedResponse = await request.send().timeout(
+        const Duration(seconds: 60),
+        onTimeout: () {
+          throw TimeoutException('Image upload timed out');
+        },
+      );
       var response = await http.Response.fromStream(streamedResponse);
       loggy.info(
           'Cloudinary response: ${response.statusCode} - ${response.body}');
