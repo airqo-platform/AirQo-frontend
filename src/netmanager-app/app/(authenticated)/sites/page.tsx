@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Loader2, ArrowUpDown } from "lucide-react";
+import { Search, Loader2, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +21,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { SiteForm } from "@/app/(authenticated)/sites/site-form";
 import { useRouter } from "next/navigation";
 import { RouteGuard } from "@/components/route-guard";
 import { useSites } from "@/core/hooks/useSites";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -30,10 +30,112 @@ import { cn } from "@/lib/utils";
 import { sites } from "@/core/apis/sites";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { useApproximateCoordinates } from "@/core/hooks/useSites";
+
+const MapPreview = dynamic(
+  () => import("react-leaflet").then((mod) => {
+    const { MapContainer, TileLayer, Marker, useMap } = mod;
+    
+    const MapUpdater = ({ position }: { position: [number, number] }) => {
+      const map = useMap();
+      useEffect(() => {
+        map.setView(position);
+      }, [map, position]);
+      return null;
+    };
+
+    const Component = ({
+      latitude,
+      longitude,
+      onPositionChange,
+    }: {
+      latitude: string;
+      longitude: string;
+      onPositionChange: (lat: string, lng: string) => void;
+    }) => {
+      const [isClient, setIsClient] = useState(false);
+      const [MapComponents, setMapComponents] = useState<{ L: { icon: (options: { iconUrl: string; iconSize: [number, number]; iconAnchor: [number, number] }) => import('leaflet').Icon<import('leaflet').IconOptions> } } | null>(null);
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      const position: [number, number] = [lat || 0, lng || 0];
+
+      useEffect(() => {
+        const setupMap = async () => {
+          if (typeof window !== 'undefined') {
+            const L = (await import('leaflet')).default;
+            delete (L.Icon.Default.prototype as { _getIconUrl?: string })._getIconUrl;
+            L.Icon.Default.mergeOptions({
+              iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+              iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+              shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+            });
+            setMapComponents({ L });
+            setIsClient(true);
+          }
+        };
+        setupMap();
+      }, []);
+
+      const handleMarkerDrag = (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+        const marker = e.target;
+        const position = marker.getLatLng();
+        onPositionChange(position.lat.toFixed(6), position.lng.toFixed(6));
+      };
+
+      if (!lat || !lng) {
+        return (
+          <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-md">
+            <p className="text-gray-500">Enter coordinates to see map preview</p>
+          </div>
+        );
+      }
+
+      if (!isClient || !MapComponents) {
+        return (
+          <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-md">
+            <p className="text-gray-500">Loading map...</p>
+          </div>
+        );
+      }
+
+      const icon = MapComponents.L.icon({
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+      });
+
+      return (
+        <div className="w-full h-64 rounded-md overflow-hidden">
+          <MapContainer
+            center={position}
+            zoom={13}
+            scrollWheelZoom={false}
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker
+              position={position}
+              icon={icon}
+              draggable={true}
+              eventHandlers={{
+                dragend: handleMarkerDrag,
+              }}
+            />
+            <MapUpdater position={position} />
+          </MapContainer>
+        </div>
+      );
+    };
+
+    return Component;
+  }),
+  { ssr: false }
+);
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
@@ -65,71 +167,6 @@ const steps = [
   { id: "Step 1", name: "Site Details" },
   { id: "Step 2", name: "Map Preview" },
 ];
-
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  map.setView(center);
-  return null;
-}
-
-const MapPreview = ({
-  latitude,
-  longitude,
-  onPositionChange,
-}: {
-  latitude: string;
-  longitude: string;
-  onPositionChange: (lat: string, lng: string) => void;
-}) => {
-  const lat = parseFloat(latitude);
-  const lng = parseFloat(longitude);
-  const position: [number, number] = [lat || 0, lng || 0];
-
-  const handleMarkerDrag = (e: L.LeafletEvent) => {
-    const marker = e.target;
-    const position = marker.getLatLng();
-    onPositionChange(position.lat.toFixed(6), position.lng.toFixed(6));
-  };
-
-  if (!lat || !lng) {
-    return (
-      <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-md">
-        <p className="text-gray-500">Enter coordinates to see map preview</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full h-64 rounded-md overflow-hidden">
-      <MapContainer
-        center={position}
-        zoom={13}
-        scrollWheelZoom={false}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker
-          position={position}
-          icon={icon}
-          draggable={true}
-          eventHandlers={{
-            dragend: handleMarkerDrag,
-          }}
-        />
-        <MapUpdater center={position} />
-      </MapContainer>
-    </div>
-  );
-};
 
 export function CreateSiteForm() {
   const [open, setOpen] = useState(false);
@@ -169,8 +206,8 @@ export function CreateSiteForm() {
       setOpen(false);
       form.reset();
       setCurrentStep(0);
-    } catch (error: any) {
-      setError(error.message || "An error occurred while creating the site.");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred while creating the site.");
     } finally {
       setLoading(false);
     }

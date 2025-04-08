@@ -52,7 +52,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     loggy.info('initState called');
     selectedLocations = {};
     _initializeUserData();
-    context.read<GooglePlacesBloc>().add(ResetGooglePlaces());
+    googlePlacesBloc = context.read<GooglePlacesBloc>();
+    googlePlacesBloc!.add(ResetGooglePlaces());
 
     final dashboardBloc = context.read<DashboardBloc>();
     final currentState = dashboardBloc.state;
@@ -62,7 +63,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         currentState.response.measurements != null) {
       loggy.info('Dashboard already loaded, populating measurements');
       _populateMeasurements(currentState.response.measurements!);
-      _syncSelectedLocations(currentState); // Sync immediately in initState
+      _syncSelectedLocations(currentState); 
     } else {
       dashboardBloc.add(LoadDashboard());
     }
@@ -418,7 +419,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           ),
           actions: [
             IconButton(
-              icon: Icon(Icons.close, color: Theme.of(context).textTheme.headlineLarge?.color),
+              icon: Icon(Icons.close,
+                  color: Theme.of(context).textTheme.headlineLarge?.color),
               onPressed: () => Navigator.pop(context),
             ),
           ],

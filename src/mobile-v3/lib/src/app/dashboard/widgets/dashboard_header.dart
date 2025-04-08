@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
+import 'package:airqo/src/meta/utils/colors.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
 import '../../shared/widgets/page_padding.dart';
@@ -21,7 +21,9 @@ class DashboardHeader extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
-            color: Theme.of(context).textTheme.headlineMedium?.color,
+            color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.secondaryHeadlineColor2
+                  : AppColors.secondaryHeadlineColor4,
           ),
         ),
         SizedBox(height: 16)
@@ -82,11 +84,13 @@ class DashboardHeader extends StatelessWidget {
       builder: (context, userState) {
         if (userState is UserLoaded) {
           return Text(
-            "Hi ${userState.model.users[0].firstName} 👋🏼",
+            "Hi ${userState.model.users[0].firstName} 👋",
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: Theme.of(context).textTheme.headlineLarge?.color,
+              color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.boldHeadlineColor2
+            : AppColors.boldHeadlineColor5,
             ),
           );
         }

@@ -11,34 +11,21 @@ export const stripTrailingSlash = (url: string) => {
 };
 
 export const transformDataToGeoJson = (
-  data: Measurement[],
-  { longitude, latitude, ...rest }: { longitude: string; latitude: string },
-  coordinateGetter?: (feature: Measurement) => [number, number],
-  filter: (feature: Measurement) => boolean = () => true
-) => {
-  const features: {
-    type: "Feature";
-    properties: unknown;
-    geometry: { type: "Point"; coordinates: [number, number] };
-  }[] = [];
-  data.map((feature) => {
-    if (filter(feature)) {
-      features.forEach({
-        type: "Feature",
-        properties: { ...rest, ...feature },
-        geometry: {
-          type: "Point",
-          coordinates: (coordinateGetter && coordinateGetter(feature)) || [
-            feature[longitude] || 0,
-            feature[latitude] || 0,
-          ],
-        },
-      });
-    }
-  });
-
+  features: Measurement[],
+  coordinateGetter?: (feature: Measurement) => [number, number]
+): GeoJSON.FeatureCollection => {
   return {
     type: "FeatureCollection",
-    features,
+    features: features.map((feature) => ({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: (coordinateGetter && coordinateGetter(feature)) || [
+          feature.siteDetails.approximate_longitude || 0,
+          feature.siteDetails.approximate_latitude || 0,
+        ],
+      },
+      properties: feature,
+    })),
   };
 };

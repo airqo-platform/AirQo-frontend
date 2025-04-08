@@ -91,14 +91,6 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                   child: SizedBox(
                     child: Column(
                       children: [
-
-                        Text("Reset your password",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).textTheme.titleMedium?.color
-                          ),
-                        ),
                         SizedBox(
                           height: 20,
                         ),

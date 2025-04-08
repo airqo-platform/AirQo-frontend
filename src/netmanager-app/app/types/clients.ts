@@ -22,4 +22,5 @@ import { UserDetails } from './users';
     client_secret: string
     user: UserDetails
     access_token: AccessToken
+    createdAt: string
   }

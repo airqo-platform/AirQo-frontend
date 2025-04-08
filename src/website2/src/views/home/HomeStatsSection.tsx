@@ -121,30 +121,39 @@ const AccordionAndImageSection: React.FC<{
 
 const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
   impactNumbers,
-}) => (
-  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-    {statItems.map((stat, index) => (
-      <div
-        key={index}
-        className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
-      >
-        <div className="text-left flex flex-col items-start">
-          <p className="text-3xl font-bold">
-            {impactNumbers?.[stat.key] ?? 0}+
-          </p>
-          <p className="text-gray-600">{stat.label}</p>
+}) => {
+  const formatStatValue = (key: string, value: number): string => {
+    if (key === 'data_records') {
+      return `${value}M+`;
+    }
+    return `${value}+`;
+  };
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+      {statItems.map((stat, index) => (
+        <div
+          key={index}
+          className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
+        >
+          <div className="text-left flex flex-col items-start">
+            <p className="text-3xl font-bold">
+              {formatStatValue(stat.key, impactNumbers?.[stat.key] ?? 0)}
+            </p>
+            <p className="text-gray-600">{stat.label}</p>
+          </div>
+          <div className="flex items-center justify-center w-12 h-12 bg-white rounded-full">
+            <Image
+              src={stat.icon || '/placeholder.svg'}
+              alt={stat.label}
+              width={30}
+              height={30}
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-center w-12 h-12 bg-white rounded-full">
-          <Image
-            src={stat.icon || '/placeholder.svg'}
-            alt={stat.label}
-            width={30}
-            height={30}
-          />
-        </div>
-      </div>
-    ))}
-  </div>
-);
+      ))}
+    </div>
+  );
+};
 
 export default HomeStatsSection;

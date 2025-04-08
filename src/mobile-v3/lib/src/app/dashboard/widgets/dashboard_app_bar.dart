@@ -3,7 +3,7 @@ import 'package:airqo/src/app/profile/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:airqo/src/meta/utils/colors.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../other/theme/bloc/theme_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
@@ -37,13 +37,25 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _buildThemeToggle(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
-      onTap: () => themeBloc.add(ToggleTheme(true)),
+      onTap: () {
+        print("Toggling theme. Current isDarkMode: $isDarkMode");
+
+        // Try without named parameter - it might be a positional parameter
+        themeBloc.add(ToggleTheme(true));
+      },
       child: CircleAvatar(
         radius: 24,
-        backgroundColor: Theme.of(context).highlightColor,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkHighlight
+            : AppColors.lightHighlight,
         child: Center(
-          child: SvgPicture.asset("assets/images/dashboard/theme_toggle.svg"),
+          child: SvgPicture.asset(
+            isDarkMode
+                ? "assets/images/dashboard/Dark_icon.svg"
+                : "assets/images/dashboard/Light_icon.svg",
+          ),
         ),
       ),
     );
@@ -89,12 +101,19 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, userState) {
         if (userState is UserLoaded) {
-          String firstName = userState.model.users[0].firstName.isNotEmpty
-              ? userState.model.users[0].firstName[0].toUpperCase()
-              : " ";
-          String lastName = userState.model.users[0].lastName.isNotEmpty
-            ? userState.model.users[0].lastName[0].toUpperCase()
-            : " ";
+          // Add debug logging to inspect model data
+          print("UserLoaded state: ${userState.model.users.length} users");
+
+          final user = userState.model.users[0];
+          String? profilePicture = user.profilePicture;
+
+          // Add null checks for firstName and lastName
+          String? firstName = user.firstName;
+          String? lastName = user.lastName;
+
+          print(
+              "User data - firstName: $firstName, lastName: $lastName, profilePicture: $profilePicture");
+
           return GestureDetector(
             onTap: () {
               // Navigate to profile page
@@ -106,19 +125,135 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
             child: CircleAvatar(
               radius: 24,
-              backgroundColor: Theme.of(context).highlightColor,
-              child: Center(child: Text("$firstName$lastName")),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
+              child: ClipOval(
+                child:
+                    _buildProfilePicture(profilePicture, firstName, lastName),
+              ),
             ),
           );
         } else if (userState is UserLoadingError) {
-          return Container(); // Handle error state (optional)
+          print("UserLoadingError state: ${userState.toString()}");
+          return GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ProfilePage(),
+                ),
+              );
+            },
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
+              child: Center(
+                child: Text(
+                  "?",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          );
         } else {
+          print("Other UserState: ${userState.toString()}");
           return ShimmerContainer(
-            height: 44,
+            height: 48,
             borderRadius: 1000,
-            width: 44,
+            width: 48,
           );
         }
+      },
+    );
+  }
+
+  // Helper method to build the profile picture widget with null safety
+  Widget _buildProfilePicture(
+      String? profilePicture, String? firstName, String? lastName) {
+    // Make firstName and lastName nullable safe by providing defaults
+    String firstNameSafe = firstName ?? "";
+    String lastNameSafe = lastName ?? "";
+
+    // Generate initials from the user's name, with robust null/empty checks
+    String initials = "";
+
+    if (firstNameSafe.isNotEmpty) {
+      initials += firstNameSafe[0].toUpperCase();
+    }
+
+    if (lastNameSafe.isNotEmpty) {
+      initials += lastNameSafe[0].toUpperCase();
+    }
+
+    // If no initials could be generated, use "?" as fallback
+    if (initials.isEmpty) {
+      initials = "?";
+    }
+
+    // Create the fallback widget (with initials)
+    Widget initialsWidget = Center(
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    );
+
+    // If profile picture is null or empty, show initials
+    if (profilePicture == null || profilePicture.isEmpty) {
+      return initialsWidget;
+    }
+
+    // Handle network image (URL)
+    if (profilePicture.startsWith('https')) {
+      return Image.network(
+        profilePicture,
+        fit: BoxFit.cover,
+        width: 48,
+        height: 48,
+        errorBuilder: (context, error, stackTrace) {
+          // On network image error, show initials
+          return initialsWidget;
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+          // Show initials while loading
+          return initialsWidget;
+        },
+      );
+    }
+
+    // Handle SVG assets
+    if (profilePicture.endsWith('.svg')) {
+      return SvgPicture.asset(
+        profilePicture,
+        height: 48,
+        width: 48,
+        fit: BoxFit.cover,
+        placeholderBuilder: (_) => initialsWidget,
+      );
+    }
+
+    // Handle other local assets
+    return Image.asset(
+      profilePicture,
+      fit: BoxFit.cover,
+      width: 48,
+      height: 48,
+      errorBuilder: (context, error, stackTrace) {
+        // On local image error, show initials
+        return initialsWidget;
       },
     );
   }
