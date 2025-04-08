@@ -1,6 +1,6 @@
 "use client";
 
-import { useDevices } from "@/core/hooks/useDevices";
+import { useDeviceStatus } from "@/core/hooks/useDevices";
 import { Loader2, ZoomIn, ZoomOut, Crosshair, Camera, Share2, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import mapboxgl from 'mapbox-gl';
@@ -103,7 +103,7 @@ const isValidCoordinate = (num: number) => {
 };
 
 export function NetworkMap() {
-  const { devices, isLoading } = useDevices();
+  const { devices, isLoading } = useDeviceStatus();
   const [isClient, setIsClient] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);

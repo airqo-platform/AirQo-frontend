@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { devices, DeviceStatus } from "../apis/devices";
+import { devices } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -8,39 +8,77 @@ import type {
   ReadingsApiResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 interface ErrorResponse {
   message: string;
 }
 
-export function useDevices() {
+export const useDevices = () => {
+  const dispatch = useDispatch();
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+
+  const devicesQuery = useQuery<
+    DevicesSummaryResponse,
+    AxiosError<ErrorResponse>
+  >({
+    queryKey: ["devices", activeNetwork?.net_name, activeGroup?.grp_title],
+    queryFn: () =>
+      devices.getDevicesSummaryApi(
+        activeNetwork?.net_name || "",
+        activeGroup?.grp_title || ""
+      ),
+    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+    onSuccess: (data: DevicesSummaryResponse) => {
+      // Convert Device[] to DeviceStatus[]
+      const devicesWithStatus = data.devices.map(device => ({
+        ...device,
+        device_number: 0,
+        mobility: false,
+        maintenance_status: "good" as const,
+        powerType: "mains" as const,
+        elapsed_time: 0,
+        status: device.isOnline ? "online" as const : "offline" as const,
+      }));
+      dispatch(setDevices(devicesWithStatus));
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      dispatch(setError(error.message));
+    },
+  } as UseQueryOptions<DevicesSummaryResponse, AxiosError<ErrorResponse>>);
+
+  return {
+    devices: devicesQuery.data?.devices || [],
+    isLoading: devicesQuery.isLoading,
+    error: devicesQuery.error,
+  };
+};
+
+export function useDeviceStatus() {
   const dispatch = useDispatch();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["devices"],
+    queryKey: ["deviceStatus"],
     queryFn: devices.getDevicesStatus,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  useEffect(() => {
-    if (data) {
-      const summary = data.data[0]; // Get the first summary
-      const allDevices = [...summary.online_devices, ...summary.offline_devices];
-      dispatch(setDevices(allDevices));
-    }
-  }, [data, dispatch]);
+  const summary = useMemo(() => data?.data[0], [data]);
+  const allDevices = useMemo(() => 
+    summary ? [...summary.online_devices, ...summary.offline_devices] : []
+  , [summary]);
 
   useEffect(() => {
+    if (data) {
+      dispatch(setDevices(allDevices));
+    }
     if (error) {
       dispatch(setError((error as Error).message));
     }
-  }, [error, dispatch]);
+  }, [data, error, dispatch, allDevices]);
 
-  const summary = data?.data[0];
-  const allDevices = summary ? [...summary.online_devices, ...summary.offline_devices] : [];
-
-  const deviceStats = {
+  const deviceStats = useMemo(() => ({
     total: summary?.total_active_device_count || 0,
     online: summary?.count_of_online_devices || 0,
     offline: summary?.count_of_offline_devices || 0,
@@ -55,7 +93,7 @@ export function useDevices() {
       alternator: summary?.count_of_alternator_devices || 0,
       mains: summary?.count_of_mains || 0,
     },
-  };
+  }), [summary, allDevices]);
 
   return {
     devices: allDevices,

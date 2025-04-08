@@ -1,6 +1,6 @@
 "use client";
 
-import { useDevices } from "@/core/hooks/useDevices";
+import { useDeviceStatus } from "@/core/hooks/useDevices";
 import { Loader2, Activity, Clock, AlertTriangle, Sun, Power, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
@@ -30,7 +30,7 @@ const StatCard = ({ title, value, icon, description }: StatCardProps) => (
 );
 
 export function StatusSummary() {
-  const { stats, isLoading } = useDevices();
+  const { stats, isLoading } = useDeviceStatus();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (isLoading) {
