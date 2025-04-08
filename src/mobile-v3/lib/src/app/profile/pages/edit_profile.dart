@@ -386,12 +386,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           backgroundImage: NetworkImage(_currentProfilePicture),
           onBackgroundImageError: (exception, stackTrace) {
             loggy.warning('Error loading profile image: $exception');
-          },
-          child: SvgPicture.asset(
-            'assets/icons/user_icon.svg',
-            width: MediaQuery.of(context).size.width * 0.15,
-            height: MediaQuery.of(context).size.width * 0.15,
-          ),
+          }
         );
       } else if (_currentProfilePicture.endsWith('.svg')) {
 
