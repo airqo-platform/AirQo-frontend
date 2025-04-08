@@ -95,8 +95,8 @@ function MapControls() {
   );
 }
 
-const DEFAULT_CENTER: [number, number] = [32.58252, 0.347596]; // Uganda coordinates [lng, lat]
-const DEFAULT_ZOOM = 7;
+const DEFAULT_CENTER: [number, number] = [32.2903, 1.3733];
+const DEFAULT_ZOOM = 6;
 
 const isValidCoordinate = (num: number) => {
   return typeof num === 'number' && !isNaN(num) && num !== 0;
@@ -107,6 +107,7 @@ export function NetworkMap() {
   const [isClient, setIsClient] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
   
   useEffect(() => {
     setIsClient(true);
@@ -303,7 +304,13 @@ export function NetworkMap() {
         const properties = feature.properties;
         if (!properties) return;
 
-        new mapboxgl.Popup({ 
+        // Close the previous popup if it exists
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+        }
+
+        // Create and store the new popup
+        currentPopupRef.current = new mapboxgl.Popup({ 
           offset: 25,
           closeButton: true,
           closeOnClick: false
@@ -327,6 +334,11 @@ export function NetworkMap() {
             </div>
           `)
           .addTo(map);
+
+        // Add event listener to clear the ref when popup is manually closed
+        currentPopupRef.current.on('close', () => {
+          currentPopupRef.current = null;
+        });
       });
 
       // Change cursor on hover
@@ -339,6 +351,10 @@ export function NetworkMap() {
     });
 
     return () => {
+      // Clean up popup when component unmounts
+      if (currentPopupRef.current) {
+        currentPopupRef.current.remove();
+      }
       map.remove();
       mapRef.current = null;
     };
