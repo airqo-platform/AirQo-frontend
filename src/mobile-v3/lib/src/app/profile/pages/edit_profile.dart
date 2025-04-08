@@ -221,7 +221,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         'profilePicture': imageUrl,
       };
 
-      loggy.info('Updating profile at $uri with body: $body...');
+      loggy.info('Updating profile at $uri with limited details: firstName & lastName...');
       var response = await http.put(
         uri,
         headers: {
