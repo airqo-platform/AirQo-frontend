@@ -16,18 +16,35 @@ class AppLocalizations {
   Map<String, String> _localizedStrings = {};
 
   Future<bool> load() async {
-    String jsonString = await rootBundle.loadString('assets/lang/${locale.languageCode}.json');
-    Map<String, dynamic> jsonMap = json.decode(jsonString);
+    try {
+      String jsonString = await rootBundle.loadString('assets/lang/${locale.languageCode}.json');
+      Map<String, dynamic> jsonMap = json.decode(jsonString);
+      _localizedStrings = _flattenJson(jsonMap);
+      print('Loaded translations for ${locale.languageCode}: $_localizedStrings');
+      return true;
+    } catch (e) {
+      print('Error loading translations for ${locale.languageCode}: $e');
+      return false;
+    }
+  }
 
-    _localizedStrings = jsonMap.map((key, value) {
-      return MapEntry(key, value.toString());
+  Map<String, String> _flattenJson(Map<String, dynamic> jsonMap, [String prefix = '']) {
+    Map<String, String> flatMap = {};
+    jsonMap.forEach((key, value) {
+      String newKey = prefix.isEmpty ? key : '$prefix.$key';
+      if (value is Map<String, dynamic>) {
+        flatMap.addAll(_flattenJson(value, newKey));
+      } else {
+        flatMap[newKey] = value.toString();
+      }
     });
-
-    return true;
+    return flatMap;
   }
 
   String translate(String key) {
-    return _localizedStrings[key] ?? key;
+    final value = _localizedStrings[key] ?? key;
+    print('Translating "$key" to "$value" for ${locale.languageCode}');
+    return value;
   }
 }
 

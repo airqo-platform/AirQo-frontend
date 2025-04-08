@@ -42,7 +42,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          AppLocalizations.of(context).translate('select_language'), 
+          AppLocalizations.of(context).translate('language.select_language'), 
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w500,
@@ -64,6 +64,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
           
           if (state is LanguageLoaded) {
             currentLanguageCode = state.languageCode;
+            
           }
           
           return Padding(
@@ -131,7 +132,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '${AppLocalizations.of(context).translate('language_changed_to')} ${language.name}',
+                          '${AppLocalizations.of(context).translate('language.language_changed_to')} ${language.name}',
                         ),
                         backgroundColor: AppColors.primaryColor,
                         duration: Duration(seconds: 2),
