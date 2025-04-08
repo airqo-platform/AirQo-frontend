@@ -49,7 +49,7 @@ dependencies:
   shimmer: ^3.0.0
   flutter_sticky_header: ^0.7.0
   flutter_dotenv: ^5.1.0
-  intl: ^0.20.1
+  intl: any
   google_maps_flutter: ^2.7.1
   flutter_card_swiper: ^7.0.1
   logger: ^2.5.0
@@ -64,6 +64,7 @@ dependencies:
   geolocator: ^13.0.2
   image_picker: ^1.1.2
   http_parser: ^4.0.2
+  shared_preferences: ^2.5.3
 
 
 dev_dependencies:
@@ -94,6 +95,7 @@ flutter:
   assets:
     - assets/images/auth/
     - assets/icons/
+    - assets/lang/
     - assets/images/dashboard/
     - assets/images/shared/
     - assets/profile/

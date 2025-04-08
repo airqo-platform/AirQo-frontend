@@ -29,6 +29,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
+import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -112,8 +113,13 @@ class AirqoMobile extends StatelessWidget {
         BlocProvider(
           create: (context) => ConnectivityBloc(connectivity),
         ),
-        BlocProvider(create: (context) => PasswordResetBloc(authRepository: authRepository),
-        )
+        BlocProvider(
+          create: (context) =>
+              PasswordResetBloc(authRepository: authRepository),
+        ),
+        BlocProvider(
+          create: (context) => LanguageBloc()..add(LoadLanguage()),
+        ),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
@@ -130,7 +136,6 @@ class AirqoMobile extends StatelessWidget {
     );
   }
 }
-
 
 class Decider extends StatefulWidget {
   const Decider({super.key});
@@ -165,7 +170,7 @@ class _DeciderState extends State<Decider> {
 
                 // Handle logged-in user
                 if (authState is AuthLoaded) {
-                   context.read<UserBloc>().add(LoadUser());
+                  context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
 
