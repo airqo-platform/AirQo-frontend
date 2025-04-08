@@ -2,7 +2,6 @@
 
 import type React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import {
   BarChart2,
   Users,
@@ -74,8 +73,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   isActive,
   logout,
 }) => {
-  const pathname = usePathname();
-  const isNetworkMapRoute = pathname === "/network-map";
 
   const NavItem = ({
     href,
@@ -93,9 +90,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             href={href}
             className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200 ${
               isActive(href) ? "bg-accent text-accent-foreground" : ""
-            }`}
+            } ${isSidebarCollapsed ? "justify-center" : ""}`}
           >
-            <Icon size={18} />
+            <Icon size={18} className="shrink-0" />
             <span className={isSidebarCollapsed ? "hidden" : "block"}>{label}</span>
           </Link>
         </TooltipTrigger>
@@ -130,8 +127,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           />
         </motion.div>
 
-        {/* Sidebar Toggle Button - Only show if not on network map */}
-        {!isNetworkMapRoute && (
+        
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -152,7 +148,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        )}
+        
       </div>
 
       {/* Sidebar Content */}
@@ -273,14 +269,14 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
-                              className={`w-full justify-between ${
+                              className={`w-full ${
                                 isActive("/devices/overview") && !isDevicesOpen
                                   ? "bg-accent text-accent-foreground"
                                   : ""
-                              } ${isSidebarCollapsed ? "justify-center" : ""}`}
+                              } ${isSidebarCollapsed ? "justify-center p-2" : "justify-between"}`}
                             >
-                              <div className="flex items-center gap-2">
-                                <Radio size={18} />
+                              <div className={`flex items-center gap-2 ${isSidebarCollapsed ? "justify-center" : ""}`}>
+                                <Radio size={18} className="shrink-0" />
                                 <span className={isSidebarCollapsed ? "hidden" : "block"}>Devices</span>
                               </div>
                               <ChevronRight
@@ -313,7 +309,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                         />
                       </PermissionGuard>
                       <PermissionGuard permission="VIEW_NETWORK_UPTIME">
-                        <NavItem href="/devices/monitoring" icon={MonitorSmartphone} label="Monitoring" />
+                        <NavItem 
+                          href="/devices/monitoring" 
+                          icon={MonitorSmartphone} 
+                          label="Monitoring" 
+                        />
                       </PermissionGuard>
                     </CollapsibleContent>
                   </Collapsible>

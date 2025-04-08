@@ -15,10 +15,15 @@ export default function Layout({
     hideTopbar = false,
     defaultCollapsed = false 
 }: LayoutProps) {
+    const [darkMode, setDarkMode] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(defaultCollapsed);
     const [isMobileView, setIsMobileView] = useState(false);
 
     useEffect(() => {
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+        setDarkMode(isDarkMode);
+        document.documentElement.classList.toggle("dark", isDarkMode);
+
         const handleResize = () => {
             setIsMobileView(window.innerWidth < 768);
         };
@@ -33,13 +38,15 @@ export default function Layout({
     };
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className={`flex h-screen overflow-hidden bg-background ${darkMode ? "dark" : ""}`}>
             <Sidebar
                 isSidebarCollapsed={isSidebarCollapsed}
                 toggleSidebar={toggleSidebar}
             />
-            <main className="flex-1 flex flex-col overflow-hidden">
-                {!hideTopbar && <Topbar isMobileView={isMobileView} />}
+            <main className={`flex-1 flex flex-col overflow-hidden bg-background transition-all duration-300 ${
+                isSidebarCollapsed ? "md:pl-16" : "md:pl-64"
+            }`}>
+                {!hideTopbar && <Topbar isMobileView={isMobileView} toggleSidebar={toggleSidebar} />}
                 <div className="flex-1 overflow-y-auto">
                     {children}
                 </div>
