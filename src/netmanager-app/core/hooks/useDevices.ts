@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { devices } from "../apis/devices";
+import { devices, DeviceStatus } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -8,41 +8,62 @@ import type {
   ReadingsApiResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
+import { useEffect } from "react";
 
 interface ErrorResponse {
   message: string;
 }
 
-export const useDevices = () => {
+export function useDevices() {
   const dispatch = useDispatch();
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
-  const devicesQuery = useQuery<
-    DevicesSummaryResponse,
-    AxiosError<ErrorResponse>
-  >({
-    queryKey: ["devices", activeNetwork?.net_name, activeGroup?.grp_title],
-    queryFn: () =>
-      devices.getDevicesSummaryApi(
-        activeNetwork?.net_name || "",
-        activeGroup?.grp_title || ""
-      ),
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
-    onSuccess: (data: DevicesSummaryResponse) => {
-      dispatch(setDevices(data.devices));
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["devices"],
+    queryFn: devices.getDevicesStatus,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  useEffect(() => {
+    if (data) {
+      const summary = data.data[0]; // Get the first summary
+      const allDevices = [...summary.online_devices, ...summary.offline_devices];
+      dispatch(setDevices(allDevices));
+    }
+  }, [data, dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      dispatch(setError((error as Error).message));
+    }
+  }, [error, dispatch]);
+
+  const summary = data?.data[0];
+  const allDevices = summary ? [...summary.online_devices, ...summary.offline_devices] : [];
+
+  const deviceStats = {
+    total: summary?.total_active_device_count || 0,
+    online: summary?.count_of_online_devices || 0,
+    offline: summary?.count_of_offline_devices || 0,
+    maintenance: {
+      good: allDevices.filter(d => d.maintenance_status === "good").length,
+      due: summary?.count_due_maintenance || 0,
+      overdue: summary?.count_overdue_maintenance || 0,
+      unspecified: summary?.count_unspecified_maintenance || 0,
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      dispatch(setError(error.message));
+    powerSource: {
+      solar: summary?.count_of_solar_devices || 0,
+      alternator: summary?.count_of_alternator_devices || 0,
+      mains: summary?.count_of_mains || 0,
     },
-  } as UseQueryOptions<DevicesSummaryResponse, AxiosError<ErrorResponse>>);
+  };
 
   return {
-    devices: devicesQuery.data?.devices || [],
-    isLoading: devicesQuery.isLoading,
-    error: devicesQuery.error,
+    devices: allDevices,
+    stats: deviceStats,
+    isLoading,
+    error: error ? (error as Error).message : null,
   };
-};
+}
 
 export const useMapReadings = () => {
   const dispatch = useDispatch();

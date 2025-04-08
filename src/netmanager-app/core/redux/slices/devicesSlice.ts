@@ -1,44 +1,38 @@
-import { createSlice } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
-import type { Device } from "@/app/types/devices";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { DeviceStatus } from "@/core/apis/devices";
 
 interface DevicesState {
-  devices: Device[];
+  devices: DeviceStatus[];
   error: string | null;
-  selectedDevice: Device | null;
+  selectedDeviceId: string | null;
 }
 
 const initialState: DevicesState = {
   devices: [],
   error: null,
-  selectedDevice: null,
+  selectedDeviceId: null,
 };
 
-const devicesSlice = createSlice({
+export const devicesSlice = createSlice({
   name: "devices",
   initialState,
   reducers: {
-    setDevices(state: DevicesState, action: PayloadAction<Device[]>) {
+    setDevices: (state, action: PayloadAction<DeviceStatus[]>) => {
       state.devices = action.payload;
       state.error = null;
     },
-    setError(state: DevicesState, action: PayloadAction<string>) {
+    setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
     },
-    setSelectedDevice(
-      state: DevicesState,
-      action: PayloadAction<Device | null>
-    ) {
-      state.selectedDevice = action.payload;
+    setSelectedDevice: (state, action: PayloadAction<string>) => {
+      state.selectedDeviceId = action.payload;
     },
-    clearDevices(state: DevicesState) {
-      state.devices = [];
+    clearError: (state) => {
       state.error = null;
-      state.selectedDevice = null;
     },
   },
 });
 
-export const { setDevices, setError, setSelectedDevice, clearDevices } =
-  devicesSlice.actions;
+export const { setDevices, setError, setSelectedDevice, clearError } = devicesSlice.actions;
+
 export default devicesSlice.reducer;
