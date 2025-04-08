@@ -12,6 +12,17 @@ import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
 
+// Modal configuration mapping
+const MODAL_CONFIGURATIONS = {
+  download: { header: DownloadDataHeader, body: DataDownload },
+  addLocation: { header: AddLocationHeader, body: AddLocations },
+  inSights: { header: InSightsHeader, body: MoreInsights },
+  moreSights: { header: SelectMoreHeader, body: SelectMore },
+  plant_tree: { header: AddPlantTreeHeader, body: PlantTree },
+  buy_device: { header: AddBuyDeviceHeader, body: BuyDevice },
+  search: { header: AddSearchHeader, body: Search },
+};
+
 /**
  * Enhanced Modal component with consistent layout and animations
  * @param {Object} props
@@ -20,47 +31,33 @@ import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
  */
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType.type);
+  const ModalHeader =
+    MODAL_CONFIGURATIONS[modalType]?.header ||
+    (() => <div className="text-lg font-medium">Modal</div>);
+  const ModalBody =
+    MODAL_CONFIGURATIONS[modalType]?.body ||
+    (() => <div>No content available</div>);
 
-  const renderHeader = () => {
-    switch (modalType) {
-      case 'download':
-        return <DownloadDataHeader />;
-      case 'addLocation':
-        return <AddLocationHeader />;
-      case 'inSights':
-        return <InSightsHeader />;
-      case 'moreSights':
-        return <SelectMoreHeader />;
-      case 'plant_tree':
-        return <AddPlantTreeHeader />;
-      case 'buy_device':
-        return <AddBuyDeviceHeader />;
-      case 'search':
-        return <AddSearchHeader />;
-      default:
-        return <div className="text-lg font-medium">Modal</div>;
-    }
-  };
-
-  const renderBody = () => {
-    switch (modalType) {
-      case 'download':
-        return <DataDownload onClose={onClose} />;
-      case 'addLocation':
-        return <AddLocations onClose={onClose} />;
-      case 'inSights':
-        return <MoreInsights />;
-      case 'moreSights':
-        return <SelectMore onClose={onClose} />;
-      case 'plant_tree':
-        return <PlantTree onClose={onClose} />;
-      case 'buy_device':
-        return <BuyDevice onClose={onClose} />;
-      case 'search':
-        return <Search onClose={onClose} />;
-      default:
-        return <div>No content available</div>;
-    }
+  const modalAnimationConfig = {
+    initial: { opacity: 0, y: 20, scale: 0.98 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: 'spring',
+        damping: 25,
+        stiffness: 300,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: 20,
+      scale: 0.98,
+      transition: {
+        duration: 0.2,
+      },
+    },
   };
 
   return (
@@ -72,30 +69,12 @@ const Modal = ({ isOpen, onClose }) => {
           </div>
 
           <motion.div
+            {...modalAnimationConfig}
             className="w-full max-w-5xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              transition: {
-                type: 'spring',
-                damping: 25,
-                stiffness: 300,
-              },
-            }}
-            exit={{
-              opacity: 0,
-              y: 20,
-              scale: 0.98,
-              transition: {
-                duration: 0.2,
-              },
-            }}
           >
             {/* Header */}
             <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300">
-              {renderHeader()}
+              <ModalHeader />
               <button
                 type="button"
                 onClick={onClose}
@@ -108,7 +87,9 @@ const Modal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Body */}
-            <div className="relative overflow-y-auto">{renderBody()}</div>
+            <div className="relative overflow-y-auto">
+              <ModalBody onClose={onClose} />
+            </div>
           </motion.div>
         </div>
       )}
@@ -117,8 +98,8 @@ const Modal = ({ isOpen, onClose }) => {
 };
 
 Modal.propTypes = {
-  isOpen: PropTypes.bool,
-  onClose: PropTypes.func,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default Modal;

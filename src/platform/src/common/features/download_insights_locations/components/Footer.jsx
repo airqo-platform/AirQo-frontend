@@ -1,11 +1,8 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 
-/**
- * Message types used in the footer for styling
- */
 export const MESSAGE_TYPES = {
   ERROR: 'error',
   WARNING: 'warning',
@@ -13,23 +10,7 @@ export const MESSAGE_TYPES = {
   SUCCESS: 'success',
 };
 
-/**
- * Enhanced Footer component for modal dialogs with animations
- * Provides consistent styling, positioning and animations for modal actions
- *
- * @param {Object} props
- * @param {string} props.message - Message to display in the footer
- * @param {string} props.messageType - Type of message (error, warning, info, success)
- * @param {Function} props.setError - Function to set error message
- * @param {Array} props.selectedItems - Array of selected items
- * @param {Function} props.handleClearSelection - Function to clear selections
- * @param {Function} props.handleSubmit - Submit handler function
- * @param {Function} props.onClose - Function to close the modal
- * @param {string} props.btnText - Primary button text
- * @param {boolean} props.loading - Whether the primary action is loading
- * @param {boolean} props.disabled - Whether the primary action is disabled
- */
-const Footer = ({
+const EnhancedFooter = ({
   message = '',
   messageType = MESSAGE_TYPES.INFO,
   setError,
@@ -40,50 +21,37 @@ const Footer = ({
   btnText = 'Submit',
   loading = false,
   disabled = false,
+  errorTimeout = 5000, // Configurable error timeout
 }) => {
-  // Auto-clear error messages after 8 seconds
+  // Auto-clear error messages after specified timeout
   useEffect(() => {
-    if (message && messageType === MESSAGE_TYPES.ERROR && setError) {
-      const timer = setTimeout(() => setError(''), 8000);
-      return () => clearTimeout(timer);
+    let timeoutId;
+    if (
+      message &&
+      (messageType === MESSAGE_TYPES.ERROR ||
+        messageType === MESSAGE_TYPES.WARNING) &&
+      setError
+    ) {
+      timeoutId = setTimeout(() => setError(''), errorTimeout);
     }
-  }, [message, messageType, setError]);
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [message, messageType, setError, errorTimeout]);
 
-  // Get appropriate text color based on message type
-  const getMessageStyles = () => {
-    switch (messageType) {
-      case MESSAGE_TYPES.ERROR:
-        return 'text-red-600';
-      case MESSAGE_TYPES.WARNING:
-        return 'text-amber-600';
-      case MESSAGE_TYPES.SUCCESS:
-        return 'text-green-600';
-      case MESSAGE_TYPES.INFO:
-      default:
-        return 'text-blue-600';
-    }
-  };
+  // Memoized message styles
+  const messageStyles = useMemo(() => {
+    const styleMap = {
+      [MESSAGE_TYPES.ERROR]: 'text-red-600',
+      [MESSAGE_TYPES.WARNING]: 'text-amber-600',
+      [MESSAGE_TYPES.SUCCESS]: 'text-green-600',
+      [MESSAGE_TYPES.INFO]: 'text-blue-600',
+    };
+    return styleMap[messageType] || 'text-blue-600';
+  }, [messageType]);
 
-  // Get message content for the footer
-  const getMessageContent = () => {
-    // If there's a message, show it with appropriate styling
-    if (message) {
-      return <span className={getMessageStyles()}>{message}</span>;
-    }
-
-    // Default state based on selection count
-    if (selectedItems?.length === 0) {
-      return <span className="text-gray-500">Select items to continue</span>;
-    }
-
-    return (
-      <span className="text-blue-600">
-        {`${selectedItems?.length} ${
-          selectedItems?.length === 1 ? 'item' : 'items'
-        } selected`}
-      </span>
-    );
-  };
+  // Determine if clear button should be shown
+  const showClearButton = selectedItems.length > 0 && handleClearSelection;
 
   // Button hover animation
   const buttonVariants = {
@@ -94,7 +62,7 @@ const Footer = ({
 
   return (
     <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between shadow-lg z-10">
-      {/* Message area with animation */}
+      {/* Animated message area */}
       <AnimatePresence mode="wait">
         <motion.div
           key={message}
@@ -104,14 +72,22 @@ const Footer = ({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {getMessageContent()}
+          {message ? (
+            <span className={messageStyles}>{message}</span>
+          ) : (
+            <span className="text-gray-500">
+              {selectedItems.length > 0
+                ? `${selectedItems.length} ${selectedItems.length === 1 ? 'item' : 'items'} selected`
+                : 'Select items to continue'}
+            </span>
+          )}
         </motion.div>
       </AnimatePresence>
 
       {/* Action buttons */}
       <div className="flex w-full md:w-auto gap-2 justify-end">
-        {/* Clear selection button - only show if there are selected items */}
-        {selectedItems?.length > 0 && handleClearSelection && (
+        {/* Conditionally render clear button */}
+        {showClearButton && (
           <motion.button
             type="button"
             onClick={handleClearSelection}
@@ -140,7 +116,7 @@ const Footer = ({
           Cancel
         </motion.button>
 
-        {/* Submit button */}
+        {/* Submit/Action button */}
         <motion.button
           type="button"
           onClick={handleSubmit}
@@ -188,7 +164,7 @@ const Footer = ({
   );
 };
 
-Footer.propTypes = {
+EnhancedFooter.propTypes = {
   message: PropTypes.string,
   messageType: PropTypes.oneOf(Object.values(MESSAGE_TYPES)),
   setError: PropTypes.func,
@@ -199,6 +175,7 @@ Footer.propTypes = {
   btnText: PropTypes.string,
   loading: PropTypes.bool,
   disabled: PropTypes.bool,
+  errorTimeout: PropTypes.number,
 };
 
-export default Footer;
+export default EnhancedFooter;
