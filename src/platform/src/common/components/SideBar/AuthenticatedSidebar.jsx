@@ -18,11 +18,9 @@ import {
 import { useOutsideClick } from '@/core/hooks';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
-import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
 import Button from '../Button';
 import Card from '../CardWrapper';
-// import Carousel_1 from '../carousels/Carousel_1';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -31,6 +29,7 @@ const AuthenticatedSideBar = () => {
   const size = useWindowSize();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
+  const { isSemiDarkEnabled, theme } = useTheme();
 
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -53,10 +52,19 @@ const AuthenticatedSideBar = () => {
 
     const mediaQuery = window.matchMedia(MAX_WIDTH);
     handleRouteChange();
-    mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaQueryChange);
+    } else {
+      mediaQuery.addListener(handleMediaQueryChange);
+    }
 
     return () => {
-      mediaQuery.removeEventListener('change', handleMediaQueryChange);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaQueryChange);
+      } else {
+        mediaQuery.removeListener(handleMediaQueryChange);
+      }
     };
   }, [dispatch, router.pathname]);
 
@@ -112,6 +120,12 @@ const AuthenticatedSideBar = () => {
     setDropdown((prevState) => !prevState);
   }, []);
 
+  // Collapse button styling
+  const collapseButtonStyle =
+    isSemiDarkEnabled || theme === 'dark'
+      ? 'bg-gray-800 border-gray-700 text-white'
+      : 'bg-white border-gray-200 text-gray-800';
+
   // Function to render Collocation sidebar item based on permissions
   const renderCollocationItem = useCallback(() => {
     if (!checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
@@ -125,19 +139,43 @@ const AuthenticatedSideBar = () => {
           navPath="#"
           iconOnly
           onClick={toggleDropdown}
+          label="Collocation"
         />
         {dropdown && (
           <div
             ref={dropdownRef}
-            className="fixed left-24 top-[300px] w-40 bg-white border border-gray-200 divide-y divide-gray-100 rounded-xl shadow-lg p-1"
+            className={`
+              fixed left-24 top-[300px] w-48 z-50
+              ${isSemiDarkEnabled || theme === 'dark' ? 'bg-gray-800' : 'bg-white'}
+              border ${isSemiDarkEnabled || theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}
+              shadow-lg rounded-xl p-2 space-y-1
+            `}
           >
             <Link href={'/collocation/overview'}>
-              <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
+              <div
+                className={`
+                w-full p-3 rounded-lg cursor-pointer
+                ${
+                  isSemiDarkEnabled || theme === 'dark'
+                    ? 'text-white hover:bg-gray-700'
+                    : 'text-gray-800 hover:bg-gray-100'
+                }
+              `}
+              >
                 Overview
               </div>
             </Link>
             <Link href={'/collocation/collocate'}>
-              <div className="w-full p-4 rounded-xl hover:bg-[#f3f6f8] cursor-pointer">
+              <div
+                className={`
+                w-full p-3 rounded-lg cursor-pointer
+                ${
+                  isSemiDarkEnabled || theme === 'dark'
+                    ? 'text-white hover:bg-gray-700'
+                    : 'text-gray-800 hover:bg-gray-100'
+                }
+              `}
+              >
                 Collocate
               </div>
             </Link>
@@ -162,45 +200,87 @@ const AuthenticatedSideBar = () => {
         />
       </SidebarItem>
     );
-  }, [isCollapsed, toggleDropdown, dropdown, collocationOpen]);
+  }, [
+    isCollapsed,
+    toggleDropdown,
+    dropdown,
+    collocationOpen,
+    isSemiDarkEnabled,
+    theme,
+  ]);
 
   return (
     <div>
       <div
-        className={`transition-all duration-200 ease-in-out ${isCollapsed ? 'w-[88px]' : 'w-[256px]'} hidden h-dvh lg:block relative p-2 z-50`}
+        className={`
+          transition-all duration-200 ease-in-out relative z-50 h-dvh hidden lg:block p-2
+          ${isCollapsed ? 'w-[88px]' : 'w-[256px]'}
+        `}
       >
         <Card
-          className="h-full lg:relative"
-          background="bg-white"
+          className="h-full sidebar-card relative overflow-hidden"
+          background={
+            isSemiDarkEnabled ? 'bg-gray-900' : 'bg-white dark:bg-gray-900'
+          }
           padding="p-3"
           overflow={true}
           overflowType="auto"
           bordered={true}
-          borderColor="border-grey-750"
-          contentClassName="flex flex-col h-full scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
+          borderColor={
+            isSemiDarkEnabled || theme === 'dark'
+              ? 'border-gray-700'
+              : 'border-gray-200'
+          }
+          contentClassName={`
+            flex flex-col h-full overflow-x-hidden
+            scrollbar-thin 
+            ${
+              isSemiDarkEnabled || theme === 'dark'
+                ? 'scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+                : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'
+            }
+          `}
         >
+          {/* Logo Section */}
           <div className="pb-4 flex justify-between items-center">
             <Button
               paddingStyles="p-0 m-0"
               onClick={() => router.push('/Home')}
               variant="text"
             >
-              <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
+              <div
+                className={`w-[46.56px] h-8 flex flex-col flex-1 ${isSemiDarkEnabled || theme === 'dark' ? 'text-white' : ''}`}
+              >
+                {isSemiDarkEnabled || theme === 'dark' ? (
+                  <AirqoLogo className="w-full h-full" fill={'ffffff'} />
+                ) : (
+                  <AirqoLogo className="w-full h-full" />
+                )}
+              </div>
             </Button>
           </div>
 
+          {/* Organization Dropdown */}
           <div className="mt-4">
-            <OrganizationDropdown />
+            <OrganizationDropdown
+              className={
+                isSemiDarkEnabled || theme === 'dark'
+                  ? 'semi-dark-dropdown'
+                  : ''
+              }
+            />
           </div>
 
+          {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
-            <div className="mt-10 space-y-2">
+            <div className="mt-8 space-y-1">
               <SidebarItem
                 label="Home"
                 Icon={HomeIcon}
                 navPath="/Home"
                 iconOnly={isCollapsed}
               />
+
               <SidebarItem
                 label="Analytics"
                 Icon={BarChartIcon}
@@ -208,10 +288,18 @@ const AuthenticatedSideBar = () => {
                 iconOnly={isCollapsed}
               />
 
+              {/* Network Section */}
               {isCollapsed ? (
-                <hr className="h-[0.5px] bg-grey-150 transition-all duration-300 ease-in-out" />
+                <hr
+                  className={`my-3 border-t ${isSemiDarkEnabled || theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}
+                />
               ) : (
-                <div className="text-xs text-[#7A7F87] px-3 py-3 font-semibold transition-all duration-300 ease-in-out">
+                <div
+                  className={`
+                  px-3 pt-5 pb-2 text-xs font-semibold
+                  ${isSemiDarkEnabled || theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}
+                `}
+                >
                   Network
                 </div>
               )}
@@ -224,6 +312,7 @@ const AuthenticatedSideBar = () => {
                 navPath="/map"
                 iconOnly={isCollapsed}
               />
+
               <SidebarItem
                 label="Settings"
                 Icon={SettingsIcon}
@@ -232,17 +321,70 @@ const AuthenticatedSideBar = () => {
               />
             </div>
 
-            {/* TODO: Add carousel BACK later */}
-            {/* <Carousel_1 /> */}
+            {/* Bottom Section (for future carousel) */}
+            <div className="mt-auto pb-4">
+              {/* Placeholder for future components */}
+            </div>
           </div>
         </Card>
 
         {/* Sidebar collapse button */}
         {router.pathname !== '/map' && (
-          <div className="absolute flex rounded-full top-11 -right-[3px] z-50 bg-white p-[2px] shadow-md justify-between items-center border">
-            <button type="button" onClick={() => dispatch(toggleSidebar())}>
-              <LeftArrowIcon className={isCollapsed ? 'hidden' : 'block'} />
-              <RightArrowIcon className={isCollapsed ? 'block' : 'hidden'} />
+          <div
+            className={`
+            absolute flex rounded-full top-10 -right-[3px] z-50 
+            shadow-md justify-between items-center border
+            ${collapseButtonStyle}
+          `}
+          >
+            <button
+              type="button"
+              onClick={() => dispatch(toggleSidebar())}
+              className="p-1 focus:outline-none"
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isCollapsed ? (
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="transform rotate-180"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke={
+                      isSemiDarkEnabled || theme === 'dark'
+                        ? 'white'
+                        : '#1f2937'
+                    }
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke={
+                      isSemiDarkEnabled || theme === 'dark'
+                        ? 'white'
+                        : '#1f2937'
+                    }
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
             </button>
           </div>
         )}

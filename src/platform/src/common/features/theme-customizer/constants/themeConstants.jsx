@@ -1,5 +1,3 @@
-// No need for 'use client' here as this is just constants
-
 export const THEME_MODES = Object.freeze({
   LIGHT: 'light',
   DARK: 'dark',
@@ -11,11 +9,12 @@ export const THEME_SKINS = Object.freeze({
   BORDERED: 'bordered',
 });
 
-export const THEME_LAYOUTS = Object.freeze({
-  VERTICAL: 'vertical',
-  HORIZONTAL: 'horizontal',
-  COLLAPSED: 'collapsed',
+export const SEMI_DARK_MODES = Object.freeze({
+  ENABLED: 'enabled',
+  DISABLED: 'disabled',
 });
 
-// Local storage key for theme
+// Local storage keys
 export const THEME_STORAGE_KEY = 'app-theme';
+export const SKIN_STORAGE_KEY = 'app-skin';
+export const SEMI_DARK_STORAGE_KEY = 'app-semi-dark';

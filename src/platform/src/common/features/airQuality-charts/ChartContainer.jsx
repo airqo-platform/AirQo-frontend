@@ -16,6 +16,7 @@ import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import CustomToast from '@/components/Toast/CustomToast';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
 import StandardsMenu from './components/StandardsMenu';
+import Card from '@/components/CardWrapper';
 
 const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];
 const SKELETON_DELAY = 500;
@@ -53,42 +54,53 @@ const ChartContainer = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useOutsideClick(dropdownRef, () => {
-    dropdownRef.current?.classList.remove('show');
-    setDownloadComplete(null);
+    if (dropdownRef.current?.classList.contains('show')) {
+      dropdownRef.current.classList.remove('show');
+      setDownloadComplete(null);
+    }
   });
 
   // Handle skeleton loader visibility
   useEffect(() => {
-    const timer = chartLoading
-      ? setShowSkeleton(true)
-      : setTimeout(() => setShowSkeleton(false), SKELETON_DELAY);
+    let timer;
+    if (chartLoading) {
+      setShowSkeleton(true);
+    } else {
+      timer = setTimeout(() => setShowSkeleton(false), SKELETON_DELAY);
+    }
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [chartLoading]);
 
   // Handle refresh state
   useEffect(() => {
-    if (!isManualRefresh) return;
+    let timer;
+
+    if (!isManualRefresh) return undefined;
 
     if (chartLoading || (isValidating && !chartLoading)) {
       setIsRefreshing(true);
-      return;
-    }
-
-    if (!isValidating && !chartLoading && isRefreshing) {
-      const timer = setTimeout(() => {
+    } else if (!isValidating && !chartLoading && isRefreshing) {
+      timer = setTimeout(() => {
         setIsRefreshing(false);
         setIsManualRefresh(false);
       }, SKELETON_DELAY);
-
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [isValidating, chartLoading, isRefreshing, isManualRefresh]);
 
   // Cleanup
   useEffect(() => {
     return () => {
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -148,9 +160,15 @@ const ChartContainer = ({
     setIsRefreshing(true);
     refetch();
 
+    // Clear any existing timer first to prevent memory leaks
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+    }
+
     refreshTimerRef.current = setTimeout(() => {
       setIsRefreshing(false);
       setIsManualRefresh(false);
+      refreshTimerRef.current = null;
     }, REFRESH_TIMEOUT);
   }, [refetch]);
 
@@ -161,36 +179,6 @@ const ChartContainer = ({
     },
     [dispatch, userSelectedSites],
   );
-
-  const RefreshIndicator = useMemo(() => {
-    if (!isManualRefresh || !isRefreshing) return null;
-
-    return (
-      <div className="absolute top-12 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
-        <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
-        <span className="text-sm font-medium">Refreshing data</span>
-      </div>
-    );
-  }, [isManualRefresh, isRefreshing]);
 
   const renderDropdownContent = useMemo(
     () => (
@@ -244,85 +232,153 @@ const ChartContainer = ({
     ],
   );
 
-  const ErrorOverlay = () => (
-    <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-100 bg-opacity-80 z-10 p-4 rounded-md">
-      <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center max-w-md">
+  const RefreshIndicator = useMemo(() => {
+    if (!isManualRefresh || !isRefreshing) return null;
+
+    return (
+      <div className="absolute top-12 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
         <svg
+          className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600"
           xmlns="http://www.w3.org/2000/svg"
-          className="h-12 w-12 text-red-500 mb-4"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor"
         >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
           <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           />
         </svg>
-        <p className="text-red-600 font-medium mb-2 text-center">
-          Unable to load chart data
-        </p>
-        <p className="text-gray-600 text-sm mb-4 text-center">
-          {error?.message ||
-            'There was a problem retrieving the data. Please try again.'}
-        </p>
-        <button
-          onClick={refetch}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-        >
-          Try Again
-        </button>
+        <span className="text-sm font-medium">Refreshing data</span>
       </div>
-    </div>
-  );
+    );
+  }, [isManualRefresh, isRefreshing]);
 
-  return (
-    <div
-      className="border bg-white rounded-xl border-gray-200 shadow-sm relative overflow-hidden"
-      id={id}
-    >
-      {RefreshIndicator}
-      <div className="flex flex-col items-start gap-1 w-full p-4">
-        {showTitle && (
-          <div className="flex items-center justify-between w-full">
-            <h3 className="text-lg font-medium">{chartTitle}</h3>
-            <div ref={dropdownRef}>
-              <CustomDropdown
-                btnText="More"
-                dropdown
-                tabID={`options-btn-${id}`}
-                tabStyle="py-1 px-2 rounded-xl"
-                id={`options-${id}`}
-                alignment="right"
-              >
-                {renderDropdownContent}
-              </CustomDropdown>
-            </div>
-          </div>
-        )}
-        <div ref={chartRef} className="my-3 relative" style={{ width, height }}>
-          {error && !chartSites.length ? (
-            <ErrorOverlay />
-          ) : showSkeleton ? (
-            <SkeletonLoader width={width} height={height} />
-          ) : (
-            <MoreInsightsChart
-              data={data}
-              selectedSites={chartSites}
-              chartType={chartType}
-              frequency={timeFrame}
-              width="100%"
-              height={height}
-              id={id}
-              pollutantType={pollutionType}
-              refreshChart={handleRefreshChart}
-              isRefreshing={isRefreshing}
+  const ErrorOverlay = useMemo(() => {
+    if (!error || chartSites.length > 0) return null;
+
+    return (
+      <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-100 bg-opacity-80 z-10 p-4 rounded-md">
+        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center max-w-md">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-12 w-12 text-red-500 mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
-          )}
+          </svg>
+          <p className="text-red-600 font-medium mb-2 text-center">
+            Unable to load chart data
+          </p>
+          <p className="text-gray-600 text-sm mb-4 text-center">
+            {error?.message ||
+              'There was a problem retrieving the data. Please try again.'}
+          </p>
+          <button
+            onClick={refetch}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Try Again
+          </button>
         </div>
       </div>
+    );
+  }, [error, chartSites.length, refetch]);
+
+  // Define card header after renderDropdownContent is defined
+  const cardHeader = useMemo(() => {
+    if (!showTitle) return null;
+
+    return (
+      <div className="flex items-center justify-between w-full">
+        <h3 className="text-lg font-medium">{chartTitle}</h3>
+        <div ref={dropdownRef}>
+          <CustomDropdown
+            btnText="More"
+            dropdown
+            tabID={`options-btn-${id}`}
+            tabStyle="py-1 px-2 rounded-xl"
+            id={`options-${id}`}
+            alignment="right"
+          >
+            {renderDropdownContent}
+          </CustomDropdown>
+        </div>
+      </div>
+    );
+  }, [showTitle, chartTitle, id, renderDropdownContent]);
+
+  // Chart content
+  const chartContent = useMemo(() => {
+    return (
+      <div className="relative" style={{ width, height }}>
+        {ErrorOverlay}
+        {showSkeleton ? (
+          <SkeletonLoader width={width} height={height} />
+        ) : (
+          <MoreInsightsChart
+            data={data}
+            selectedSites={chartSites}
+            chartType={chartType}
+            frequency={timeFrame}
+            width="100%"
+            height={height}
+            id={id}
+            pollutantType={pollutionType}
+            refreshChart={handleRefreshChart}
+            isRefreshing={isRefreshing}
+          />
+        )}
+      </div>
+    );
+  }, [
+    width,
+    height,
+    ErrorOverlay,
+    showSkeleton,
+    data,
+    chartSites,
+    chartType,
+    timeFrame,
+    id,
+    pollutionType,
+    handleRefreshChart,
+    isRefreshing,
+  ]);
+
+  return (
+    <div className="relative" id={id}>
+      {RefreshIndicator}
+      <Card
+        header={cardHeader}
+        padding="p-0"
+        width="w-full"
+        overflow={false}
+        className="relative overflow-hidden"
+        contentClassName="p-0"
+        headerProps={{
+          className: 'pt-4 pb-2 px-6 flex items-center justify-between',
+        }}
+      >
+        <div ref={chartRef} className="p-4 pt-0">
+          {chartContent}
+        </div>
+      </Card>
     </div>
   );
 };

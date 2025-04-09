@@ -1,8 +1,10 @@
 import React, { forwardRef } from 'react';
 import clsx from 'clsx';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 /**
  * A highly flexible card wrapper component for use across the entire application
+ * that automatically applies the current theme skin settings
  */
 const Card = forwardRef(
   (
@@ -10,11 +12,11 @@ const Card = forwardRef(
       children,
       className = '',
       contentClassName = '',
-      bordered = true,
-      borderColor = 'border-grey-750',
+      bordered,
+      borderColor = 'border-gray-200 dark:border-gray-700',
       rounded = true,
       radius = 'rounded-xl',
-      background = 'bg-white',
+      background = 'bg-white dark:bg-gray-800',
       shadow = '',
       padding = 'p-4',
       width = 'w-full',
@@ -40,21 +42,41 @@ const Card = forwardRef(
     },
     ref,
   ) => {
+    // Get theme context to apply skin settings
+    const { skin, isSemiDarkEnabled } = useTheme();
+
+    // Determine if card should be bordered based on skin if not explicitly set
+    const shouldBeBordered =
+      bordered !== undefined ? bordered : skin === 'bordered';
+
+    // Determine shadow based on skin if not explicitly set
+    const appliedShadow = shadow || (skin === 'default' ? 'shadow-sm' : '');
+
+    // Determine if we need to apply semi-dark styles
+    const isSidebarCard = className?.includes('sidebar') || false;
+    const shouldApplySemiDark = isSemiDarkEnabled && isSidebarCard;
+
     const cardClasses = clsx(
       // Base classes
       'flex flex-col',
       width,
       height,
-      background,
+
+      // Apply background with conditional semi-dark mode for sidebar
+      shouldApplySemiDark ? 'bg-gray-800 text-white' : background,
 
       // Conditional classes
       rounded && (radius || 'rounded-xl'),
-      bordered && ['border', borderColor],
-      shadow && shadow,
+      shouldBeBordered && ['border', borderColor],
+      appliedShadow,
       onClick && 'cursor-pointer',
       active && 'ring-2 ring-blue-500',
       hoverable && 'hover:shadow-md transition-shadow duration-200',
       disabled && 'opacity-60 pointer-events-none',
+
+      // Ensure text is properly colored in dark/light mode
+      !shouldApplySemiDark && 'text-gray-900 dark:text-white',
+
       className,
     );
 
@@ -62,17 +84,18 @@ const Card = forwardRef(
       padding,
       overflow && [
         'overflow-y-' + overflowType,
-        'scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200',
+        'scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-700',
       ],
       contentClassName,
     );
 
     const headerClasses = clsx(
       'flex items-center justify-between',
+      padding,
       headerProps.className || '',
     );
 
-    const footerClasses = clsx('mt-auto', footerProps.className || '');
+    const footerClasses = clsx('mt-auto', padding, footerProps.className || '');
 
     // Create default header if title is provided
     const defaultHeader =
@@ -83,10 +106,18 @@ const Card = forwardRef(
             {(title || subtitle) && (
               <div>
                 {title && (
-                  <h3 className="font-semibold text-gray-800">{title}</h3>
+                  <h3
+                    className={`font-semibold ${shouldApplySemiDark ? 'text-white' : 'text-gray-800 dark:text-white'}`}
+                  >
+                    {title}
+                  </h3>
                 )}
                 {subtitle && (
-                  <p className="text-sm text-gray-500">{subtitle}</p>
+                  <p
+                    className={`text-sm ${shouldApplySemiDark ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}
+                  >
+                    {subtitle}
+                  </p>
                 )}
               </div>
             )}

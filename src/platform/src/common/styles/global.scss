@@ -2,15 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==============================
+   Theme Mode Variables 
+   ============================== */
+:root {
+  /* Light mode variables */
+  --background-color: #ffffff;
+  --text-color: #1f2937;
+  --border-color: #e5e7eb;
+  --scrollbar-track: #f3f6f8;
+  --scrollbar-thumb: #9eb0c2;
+  --scrollbar-hover: #555;
+
+  /* Sidebar - Light Mode */
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #1f2937;
+  --sidebar-muted: #7a7f87;
+  --sidebar-hover: #f3f6f8;
+  --sidebar-border: #e5e7eb;
+  --sidebar-active: #e6f0fd;
+  --sidebar-active-text: #2563eb;
+  --sidebar-icon: #1c1d20;
+  --sidebar-scrollbar-thumb: #9eb0c2;
+  --sidebar-scrollbar-track: #f3f6f8;
+}
+
+/* Dark mode variables */
+.dark {
+  --background-color: #111827;
+  --text-color: #f9fafb;
+  --border-color: #374151;
+  --scrollbar-track: #1f2937;
+  --scrollbar-thumb: #4b5563;
+  --scrollbar-hover: #6b7280;
+
+  /* Sidebar - Dark Mode */
+  --sidebar-bg: #1f2937;
+  --sidebar-text: #f9fafb;
+  --sidebar-muted: #9ca3af;
+  --sidebar-hover: #374151;
+  --sidebar-border: #4b5563;
+  --sidebar-active: #1e3a8a;
+  --sidebar-active-text: #60a5fa;
+  --sidebar-icon: #f9fafb;
+  --sidebar-scrollbar-thumb: #4b5563;
+  --sidebar-scrollbar-track: #1f2937;
+}
+
+/* Semi-dark mode forces the sidebar to be dark regardless of theme */
+.semi-dark {
+  --sidebar-bg: #1f2937;
+  --sidebar-text: #f9fafb;
+  --sidebar-muted: #9ca3af;
+  --sidebar-hover: #374151;
+  --sidebar-border: #4b5563;
+  --sidebar-active: #1e3a8a;
+  --sidebar-active-text: #60a5fa;
+  --sidebar-icon: #f9fafb;
+  --sidebar-scrollbar-thumb: #4b5563;
+  --sidebar-scrollbar-track: #1f2937;
+}
+
+/* ==============================
+   Skin Styles
+   ============================== */
+[data-skin='default'] .card {
+  /* Default skin has subtle shadows and no borders by default */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+[data-skin='bordered'] .card {
+  /* Bordered skin has prominent borders and no shadows by default */
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+/* ==============================
+   Base Styles
+   ============================== */
 html,
 body {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  // background-color: #f6f6f7;
   box-sizing: border-box;
   overflow-x: hidden;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 *,
@@ -19,9 +99,9 @@ body {
   box-sizing: inherit;
 }
 
-#root, // React projects
+#root, /* React projects */
 #__next {
-  // Next.js projects
+  /* Next.js projects */
   height: 100%;
 }
 
@@ -31,61 +111,182 @@ body > div#__next {
   flex-direction: column;
   background-color: inherit;
 }
-// Map Legend Styles
-.custom-tooltip {
-  box-shadow: none;
-  text-align: center;
-  padding: 2px 4px;
+
+/* Apply CSS variables */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
-/* Remove border click effect for Daisy UI input */
-input:focus {
-  border-color: transparent;
-  box-shadow: none !important;
-  outline: none !important;
-}
-textarea:focus {
-  border-color: transparent;
-  box-shadow: none !important;
-  outline: none !important;
-}
-select:focus {
-  border-color: transparent;
-  box-shadow: none !important;
-  outline: none !important;
+/* ==============================
+   Sidebar Styles
+   ============================== */
+/* Sidebar component specific styles */
+.sidebar-card {
+  background-color: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+  border-color: var(--sidebar-border) !important;
 }
 
-.country-scroll-bar {
-  overflow-x: auto;
-  overflow-y: hidden;
-  cursor: pointer;
-
-  // Hide the scrollbar by default
-  &::-webkit-scrollbar {
-    height: 4px;
-    display: none;
-  }
-
-  // Show the scrollbar when the element is focused
-  &:hover::-webkit-scrollbar {
-    height: 4px;
-    display: block;
-  }
+/* Sidebar icon colors */
+.sidebar-card svg:not([fill='none']) path,
+.sidebar-card svg:not([fill='none']) circle,
+.sidebar-card svg:not([fill='none']) rect {
+  fill: var(--sidebar-icon);
 }
 
+/* Ensure sidebar icons with stroke are visible */
+.sidebar-card svg[stroke] path,
+.sidebar-card svg[stroke] circle,
+.sidebar-card svg[stroke] rect {
+  stroke: var(--sidebar-icon);
+}
+
+/* Active sidebar item */
+.sidebar-card .active-sidebar-item {
+  background-color: var(--sidebar-active);
+  color: var(--sidebar-active-text);
+}
+
+.sidebar-card .active-sidebar-item svg path {
+  fill: var(--sidebar-active-text);
+}
+
+/* Sidebar hover effects */
+.sidebar-card .sidebar-item:hover:not(.active-sidebar-item) {
+  background-color: var(--sidebar-hover);
+}
+
+/* Network label in sidebar */
+.sidebar-card .network-label {
+  color: var(--sidebar-muted);
+}
+
+/* Organization Dropdown in Sidebar */
+.semi-dark-dropdown,
+.dark .sidebar-dropdown {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-color: var(--sidebar-border);
+}
+
+.semi-dark-dropdown select,
+.semi-dark-dropdown button,
+.dark .sidebar-dropdown select,
+.dark .sidebar-dropdown button {
+  color: var(--sidebar-text);
+  background-color: var(--sidebar-bg);
+}
+
+.semi-dark-dropdown button:hover,
+.dark .sidebar-dropdown button:hover {
+  background-color: var(--sidebar-hover);
+}
+
+/* Organization dropdown menu */
+.org-dropdown-menu {
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+
+.org-dropdown-item {
+  color: var(--sidebar-text);
+}
+
+.org-dropdown-item:hover {
+  background-color: var(--sidebar-hover);
+}
+
+.org-dropdown-item.active {
+  background-color: var(--sidebar-active);
+  color: var(--sidebar-active-text);
+}
+
+/* Sidebar indicator for active items */
+.sidebar-active-indicator {
+  background-color: var(--sidebar-active-text);
+}
+
+/* Sidebar collapse button */
+.sidebar-collapse-button {
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+
+/* ==============================
+   Scrollbar Styles
+   ============================== */
 .sidebar-scroll-bar {
   overflow-y: auto;
   overflow-x: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
 
-  // Hide the scrollbar by default
+  /* Hide scrollbar by default */
+  &::-webkit-scrollbar {
+    width: 5px;
+    display: none;
+  }
+
+  /* Show scrollbar on hover */
+  &:hover::-webkit-scrollbar {
+    display: block;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: var(--sidebar-scrollbar-track);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--sidebar-scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-hover);
+  }
+}
+
+.custom-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Global scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-hover);
+}
+
+/* Horizontal scrollbars */
+.country-scroll-bar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: pointer;
+
+  /* Hide scrollbar by default */
   &::-webkit-scrollbar {
     height: 4px;
     display: none;
   }
 
-  // Show the scrollbar when the element is focused
+  /* Show scrollbar on hover */
   &:hover::-webkit-scrollbar {
     height: 4px;
     display: block;
@@ -96,28 +297,21 @@ select:focus {
   height: 2px;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  display: none;
+/* ==============================
+   Form Element Styles
+   ============================== */
+/* Remove border click effect for Daisy UI input */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: transparent;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: #f3f6f8;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #9eb0c2;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
-}
-
+/* ==============================
+   Animation Styles
+   ============================== */
 @keyframes slide-in {
   0% {
     transform: translateY(-100%);
@@ -131,7 +325,39 @@ select:focus {
   animation: slide-in 0.3s ease-out forwards;
 }
 
-/* Map Styles */
+/* ==============================
+   Map Styles
+   ============================== */
+/* Tooltip styles */
+.custom-tooltip {
+  box-shadow: none;
+  text-align: center;
+  padding: 2px 4px;
+}
+
+/* Map popup styles */
+.my-custom-popup {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  box-shadow: none;
+  z-index: 666;
+  max-width: 250px;
+
+  .mapboxgl-popup-content {
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .mapboxgl-popup-tip {
+    display: none;
+    transform: rotate(180deg);
+  }
+}
+
+/* Unclustered marker mixin */
 @mixin unClusteredStyles($top: 83%) {
   display: flex;
   align-items: center;
@@ -169,27 +395,7 @@ select:focus {
   }
 }
 
-.my-custom-popup {
-  padding: 0;
-  margin: 0;
-  background-color: transparent;
-  box-shadow: none;
-  z-index: 666;
-  max-width: 250px;
-
-  .mapboxgl-popup-content {
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-    box-shadow: none;
-  }
-
-  .mapboxgl-popup-tip {
-    display: none;
-    transform: rotate(180deg);
-  }
-}
-
+/* Unclustered marker styles */
 .unClustered {
   @include unClusteredStyles;
   background-color: #fff;
@@ -238,6 +444,7 @@ select:focus {
   @include unClusteredStyles(88%);
 }
 
+/* Clustered marker styles */
 .clustered {
   &:hover {
     border: 1px solid #002499;
@@ -245,15 +452,14 @@ select:focus {
   }
 }
 
-.mapboxgl-ctrl-group:not(:empty) {
-  box-shadow: none;
-}
-
+/* Map controls */
+.mapboxgl-ctrl-group:not(:empty),
 .mapboxgl-ctrl-group,
 .mapboxgl-ctrl {
   box-shadow: none;
 }
 
+/* Responsive map styles */
 @media (max-width: 1023px) {
   .mapboxgl-ctrl-attrib {
     display: none;

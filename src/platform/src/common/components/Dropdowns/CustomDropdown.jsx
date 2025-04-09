@@ -21,6 +21,7 @@ const CustomDropdown = ({
   trigger = null,
   alignment = 'left',
   customPopperStyle = {},
+  dropdownStyle = {}, // Added to support custom dropdown styling
   isField,
 }) => {
   const [isOpen, setIsOpen] = useState(openDropdown);
@@ -93,6 +94,14 @@ const CustomDropdown = ({
     [closeDropdown],
   );
 
+  // Merge popper styles with custom dropdown styles provided
+  const mergedStyles = {
+    ...styles.popper,
+    ...customPopperStyle,
+    zIndex: 1000,
+    ...dropdownStyle,
+  };
+
   return (
     <div className="relative" id={id}>
       {trigger ? (
@@ -136,22 +145,32 @@ const CustomDropdown = ({
                 : 'min-w-52'
             }
           `}
-          // We pass our custom styles only when the sidebar is not collapsed
-          {...(sidebar && isCollapsed
-            ? {}
-            : {
-                style: { ...styles.popper, ...customPopperStyle, zIndex: 1000 },
-              })}
+          // We pass custom styles based on the sidebar state
+          style={sidebar && isCollapsed ? {} : mergedStyles}
           {...(sidebar && isCollapsed ? {} : attributes.popper)}
           // Pass custom padding to the Card's content wrapper via contentClassName
           contentClassName="p-1"
+          // Apply any custom background styles from dropdownStyle
+          background={dropdownStyle.backgroundColor ? '' : undefined}
+          // Apply any custom border styles from dropdownStyle
+          bordered={dropdownStyle.borderColor ? true : undefined}
+          borderColor={dropdownStyle.borderColor ? '' : undefined}
         >
           {/* Wrapping the dropdown items in an extra div to handle clicks on empty areas */}
-          <div onClick={() => handleItemClick()}>
+          <div
+            onClick={() => handleItemClick()}
+            style={{
+              backgroundColor: dropdownStyle.backgroundColor,
+              borderColor: dropdownStyle.borderColor,
+            }}
+            className="rounded-xl overflow-hidden"
+          >
             {React.Children.map(children, (child) =>
-              React.cloneElement(child, {
-                onClick: () => handleItemClick(child.props.onClick),
-              }),
+              child
+                ? React.cloneElement(child, {
+                    onClick: () => handleItemClick(child.props.onClick),
+                  })
+                : null,
             )}
           </div>
         </Card>

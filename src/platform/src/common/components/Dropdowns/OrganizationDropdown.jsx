@@ -2,23 +2,23 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { GoOrganization } from 'react-icons/go';
 import CustomDropdown from './CustomDropdown';
-import ChevronDownIcon from '@/icons/Common/chevron_downIcon';
-import RadioIcon from '@/icons/SideBar/radioIcon';
 import Spinner from '@/components/Spinner';
 import Button from '../Button';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const cleanGroupName = (name) => {
   if (!name) return '';
   return name.replace(/[-_]/g, ' ').toUpperCase();
 };
 
-const OrganizationDropdown = () => {
+const OrganizationDropdown = ({ className = '' }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const { theme, isSemiDarkEnabled } = useTheme();
 
   const {
     id: activeGroupId,
@@ -96,21 +96,45 @@ const OrganizationDropdown = () => {
     return null;
   }
 
+  // Determine styles based on theme
+  const dropdownBgColor =
+    isSemiDarkEnabled || theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+
+  const dropdownBorderColor =
+    isSemiDarkEnabled || theme === 'dark'
+      ? 'border-gray-700'
+      : 'border-gray-200';
+
+  const dropdownTextColor =
+    isSemiDarkEnabled || theme === 'dark' ? 'text-white' : 'text-gray-800';
+
+  const hoverBgColor =
+    isSemiDarkEnabled || theme === 'dark'
+      ? 'hover:bg-gray-700'
+      : 'hover:bg-gray-100';
+
+  const activeItemBgColor =
+    isSemiDarkEnabled || theme === 'dark'
+      ? 'bg-blue-900/30 text-blue-400'
+      : 'bg-[#EBF5FF] text-blue-600';
+
   // Create group item components
   const renderGroupItems = () =>
     groupList.map((group) => (
       <button
         key={group?._id}
         onClick={() => handleDropdownSelect(group)}
-        className={`w-full h-11 px-3.5 rounded-lg py-2.5 mb-2 flex items-center justify-between ${
-          activeGroupId === group._id
-            ? 'bg-[#EBF5FF] text-blue-600'
-            : 'hover:bg-gray-100'
-        }`}
+        className={`
+          w-full h-11 px-3.5 rounded-lg py-2.5 mb-2 flex items-center justify-between
+          ${activeGroupId === group._id ? activeItemBgColor : hoverBgColor}
+          ${dropdownTextColor}
+        `}
         disabled={loading && selectedGroupId === group._id}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="w-8 h-8 bg-yellow-200 flex-shrink-0 flex items-center justify-center rounded-full">
+          <div
+            className={`w-8 h-8 ${isSemiDarkEnabled || theme === 'dark' ? 'bg-gray-600' : 'bg-yellow-200'} flex-shrink-0 flex items-center justify-center rounded-full`}
+          >
             <GoOrganization className="text-slate-600 text-lg" />
           </div>
           <div
@@ -124,55 +148,129 @@ const OrganizationDropdown = () => {
           {loading && selectedGroupId === group._id ? (
             <Spinner width={16} height={16} />
           ) : activeGroupId === group._id ? (
-            <RadioIcon />
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-blue-500 dark:text-blue-400"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="8"
+                fill={
+                  isSemiDarkEnabled || theme === 'dark' ? '#60a5fa' : '#3b82f6'
+                }
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="11"
+                stroke={
+                  isSemiDarkEnabled || theme === 'dark' ? '#60a5fa' : '#3b82f6'
+                }
+                strokeWidth="2"
+              />
+            </svg>
           ) : (
-            <input type="radio" className="border-[#C4C7CB]" readOnly />
+            <div
+              className={`w-4 h-4 rounded-full border ${isSemiDarkEnabled || theme === 'dark' ? 'border-gray-500' : 'border-gray-400'}`}
+            ></div>
           )}
         </div>
       </button>
     ));
+
+  // Set the dropdown style for theme
+  const dropdownStyleProps = {
+    backgroundColor:
+      isSemiDarkEnabled || theme === 'dark' ? '#1f2937' : '#ffffff',
+    borderColor: isSemiDarkEnabled || theme === 'dark' ? '#374151' : '#e5e7eb',
+    boxShadow:
+      isSemiDarkEnabled || theme === 'dark'
+        ? '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)'
+        : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  };
 
   return (
     <CustomDropdown
       trigger={
         <Button
           paddingStyles="p-0 m-0"
-          className="w-full border-none"
+          className={`w-full border-none ${className}`}
           variant="outlined"
         >
           <div
-            className={`w-full h-12 p-2 bg-white rounded-xl border border-gray-200 hover:bg-gray-100 ${
-              isCollapsed
-                ? 'flex justify-center'
-                : 'inline-flex justify-between items-center'
-            }`}
+            className={`
+              w-full h-12 p-2 rounded-xl border
+              ${dropdownBgColor} ${dropdownBorderColor} ${hoverBgColor}
+              ${isCollapsed ? 'flex justify-center' : 'inline-flex justify-between items-center'}
+            `}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-yellow-200 flex items-center justify-center rounded-full">
+              <div
+                className={`w-8 h-8 ${isSemiDarkEnabled || theme === 'dark' ? 'bg-gray-600' : 'bg-yellow-200'} flex items-center justify-center rounded-full`}
+              >
                 <GoOrganization className="text-slate-600 text-lg" />
               </div>
               {!isCollapsed && (
                 <div
-                  className="text-sm font-medium leading-tight truncate max-w-[200px]"
+                  className={`text-sm font-medium leading-tight truncate max-w-[150px] ${dropdownTextColor}`}
                   title={cleanGroupName(activeGroupTitle)}
                 >
                   {cleanGroupName(activeGroupTitle)}
                 </div>
               )}
             </div>
-            {groupList.length > 1 && !isCollapsed && <ChevronDownIcon />}
+            {groupList.length > 1 && !isCollapsed && (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7 10l5 5 5-5"
+                  stroke={
+                    isSemiDarkEnabled || theme === 'dark'
+                      ? '#ffffff'
+                      : '#1f2937'
+                  }
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
           </div>
         </Button>
       }
       sidebar={true}
       id="organization-dropdown"
-      dropDownClass="max-h-[260px] overflow-y-auto custom-scrollbar w-full"
+      dropDownClass={`
+        max-h-[260px] overflow-y-auto custom-scrollbar w-full
+        ${
+          isSemiDarkEnabled || theme === 'dark'
+            ? 'scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+            : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'
+        }
+      `}
       customPopperStyle={{
         width: isCollapsed ? 'auto' : '100%',
         maxWidth: isCollapsed ? '240px' : 'none',
       }}
+      dropdownStyle={dropdownStyleProps}
     >
-      {renderGroupItems()}
+      {groupList.length > 0 ? (
+        renderGroupItems()
+      ) : (
+        <div className={`p-3 text-center ${dropdownTextColor}`}>
+          No groups available
+        </div>
+      )}
     </CustomDropdown>
   );
 };
