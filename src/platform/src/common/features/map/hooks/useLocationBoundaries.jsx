@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import axios from 'axios';
-import { BOUNDARY_URL } from '../data/constants';
+import { BOUNDARY_URL } from '../constants/constants';
 
 const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
   const zoomHandlerRef = useRef(null);

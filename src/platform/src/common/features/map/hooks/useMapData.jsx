@@ -15,7 +15,7 @@ import {
   setMapReadingsData,
   setWaqData,
 } from '@/lib/store/services/map/MapSlice';
-import { AQI_FOR_CITIES } from '../data/Cities';
+import { AQI_FOR_CITIES } from '../constants/Cities';
 import {
   createPopupHTML,
   createClusterNode,

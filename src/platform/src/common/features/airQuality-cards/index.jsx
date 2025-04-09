@@ -10,29 +10,28 @@ import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 
 /**
- * AQNumberCard component displays air quality information in card format
- * for selected sites, with ability to add new locations
+ * AQNumberCard displays air quality information in a responsive grid.
+ * It arranges the cards into 4 columns on large screens and adjusts columns on smaller screens.
  */
 const AQNumberCard = ({ className = '' }) => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
 
-  // Fetch data states
+  // Fetch group and pollutant data from Redux state
   const { loading: isFetchingActiveGroup } = useGetActiveGroup();
   const pollutantType = useSelector((state) => state.chart.pollutionType);
 
-  // Get user preferences and selected sites
+  // Get user preferences and selected sites from Redux state
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences?.[0],
   );
 
-  // Extract and limit the number of site IDs
+  // Get selected site IDs and limit displayed sites to MAX_CARDS
   const selectedSiteIds = useMemo(() => {
     if (!preferences?.selected_sites?.length) return [];
     return preferences.selected_sites.map((site) => site._id);
   }, [preferences]);
 
-  // Limit displayed sites to MAX_CARDS
   const selectedSites = useMemo(() => {
     if (!preferences?.selected_sites?.length) return [];
     return preferences.selected_sites.slice(0, MAX_CARDS);
@@ -41,13 +40,10 @@ const AQNumberCard = ({ className = '' }) => {
   // Fetch measurements for selected sites
   const { data: measurements, isLoading } = useRecentMeasurements(
     selectedSiteIds.length > 0 ? { site_id: selectedSiteIds.join(',') } : null,
-    {
-      revalidateOnFocus: false,
-      revalidateOnMount: true,
-    },
+    { revalidateOnFocus: false, revalidateOnMount: true },
   );
 
-  // Handler for opening modals
+  // Handler to open modals for card actions
   const handleOpenModal = useCallback(
     (type, ids = [], data = null) => {
       dispatch(setModalType({ type, ids, data }));
@@ -56,10 +52,8 @@ const AQNumberCard = ({ className = '' }) => {
     [dispatch],
   );
 
-  // Loading state
   const isLoadingData = isLoading || isFetchingActiveGroup;
 
-  // Find measurement data for a specific site
   const getMeasurementForSite = useCallback(
     (siteId) => {
       if (!measurements) return null;
@@ -68,11 +62,11 @@ const AQNumberCard = ({ className = '' }) => {
     [measurements],
   );
 
-  // Render loading skeleton
+  // Show skeleton cards while loading data
   if (isLoadingData) {
     return (
       <div
-        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${className}`}
+        className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${className}`}
         aria-busy="true"
         aria-label="Loading air quality data"
       >
@@ -83,10 +77,10 @@ const AQNumberCard = ({ className = '' }) => {
     );
   }
 
-  // Render cards grid
+  // Render the cards grid (responsive with 4 columns on large screens)
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${className}`}
+      className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${className}`}
       data-testid="aq-number-card-grid"
     >
       {selectedSites.map((site) => (
@@ -99,8 +93,6 @@ const AQNumberCard = ({ className = '' }) => {
           pollutantType={pollutantType}
         />
       ))}
-
-      {/* Show "Add Location" card if there's room for more sites or if no sites are selected */}
       {(selectedSites.length < MAX_CARDS || selectedSites.length === 0) && (
         <AddLocationCard onOpenModal={handleOpenModal} />
       )}
@@ -108,8 +100,5 @@ const AQNumberCard = ({ className = '' }) => {
   );
 };
 
-AQNumberCard.propTypes = {
-  className: PropTypes.string,
-};
-
+AQNumberCard.propTypes = { className: PropTypes.string };
 export default memo(AQNumberCard);

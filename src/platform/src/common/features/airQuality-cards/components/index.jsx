@@ -4,6 +4,7 @@ import { Tooltip } from 'flowbite-react';
 import { useResizeObserver } from '@/core/hooks/useResizeObserver';
 import { AQI_CATEGORY_MAP, IconMap } from '../constants';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import Card from '@/components/CardWrapper';
 
 const WINDOW_BREAKPOINT = 1024;
 
@@ -26,8 +27,6 @@ const TrendIndicator = memo(({ trendData }) => {
   }
 
   const { trendTooltip, isIncreasing } = trendData;
-
-  // As per the image: blue for down arrow, gray for up arrow
   const bgColorClass = isIncreasing ? 'bg-gray-100' : 'bg-blue-100';
   const textColorClass = isIncreasing ? 'text-gray-400' : 'text-blue-500';
   const TrendIcon = isIncreasing ? FiArrowUp : FiArrowDown;
@@ -43,9 +42,7 @@ const TrendIndicator = memo(({ trendData }) => {
     </Tooltip>
   );
 });
-
 TrendIndicator.displayName = 'TrendIndicator';
-
 TrendIndicator.propTypes = {
   trendData: PropTypes.shape({
     trendTooltip: PropTypes.string,
@@ -66,11 +63,13 @@ const getMeasurementValue = (measurement, pollutantType) => {
 
 const SiteCard = memo(
   ({ site, measurement, onOpenModal, windowWidth, pollutantType }) => {
+    // Refs and state for text truncation
     const nameRef = useRef(null);
     const countryRef = useRef(null);
     const [isNameTruncated, setIsNameTruncated] = useState(false);
     const [isCountryTruncated, setIsCountryTruncated] = useState(false);
 
+    // Check if the name or country overflow the container to show a tooltip
     const checkTruncation = useCallback(() => {
       if (nameRef.current) {
         setIsNameTruncated(
@@ -87,7 +86,7 @@ const SiteCard = memo(
     useResizeObserver(nameRef, checkTruncation);
     useResizeObserver(countryRef, checkTruncation);
 
-    // Derived values
+    // Derived values and helper function for trend tooltip
     const aqiCategory = measurement?.aqi_category || 'Unknown';
     const statusKey = AQI_CATEGORY_MAP[aqiCategory] || 'unknown';
     const airQualityText = `Air Quality is ${aqiCategory}`;
@@ -105,7 +104,6 @@ const SiteCard = memo(
     const siteName = site.name || '---';
     const siteCountry = site.country || '---';
 
-    // Helper function to generate trend tooltip
     function generateTrendTooltip(percentageDifference) {
       const percentValue = Math.abs(percentageDifference);
       return percentageDifference > 0
@@ -113,7 +111,7 @@ const SiteCard = memo(
         : `The air quality has improved by ${percentValue}% compared to the previous week.`;
     }
 
-    // Site name with truncation handling
+    // Render site name and country with truncation support
     const renderSiteName = (
       <span
         className="block w-full overflow-hidden text-ellipsis whitespace-nowrap font-medium text-lg text-left"
@@ -157,53 +155,51 @@ const SiteCard = memo(
     }, [onOpenModal, site]);
 
     return (
-      <button
-        className="w-full h-auto"
+      <Card
         onClick={handleClick}
-        aria-label={`View detailed insights for ${siteName}`}
-        type="button"
+        role="button"
+        tabIndex={0}
+        // Do not change background, border, or radius so we use defaults from Card,
+        // and set a consistent minimum height.
+        className="w-full h-auto min-h-[180px] hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer"
+        padding="p-4 sm:p-5"
       >
-        <div className="w-full flex flex-col justify-between bg-white border border-gray-200 rounded-xl p-4 sm:p-5 h-auto min-h-[180px] shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer">
-          {/* Header Section - Fixed to prevent overflow */}
-          <div className="flex justify-between items-start gap-2 pb-2 mb-2">
-            <div className="min-w-0 flex-grow">
-              {siteNameWithTooltip}
-              {siteCountryWithTooltip}
-            </div>
-            <div className="flex-shrink-0">
-              <TrendIndicator trendData={trendData} />
-            </div>
+        {/* Header Section with site name and country */}
+        <div className="flex justify-between items-start gap-2 pb-2 mb-2">
+          <div className="min-w-0 flex-grow">
+            {siteNameWithTooltip}
+            {siteCountryWithTooltip}
           </div>
-
-          {/* Content Section */}
-          <div className="flex justify-between items-center mt-auto pt-2">
-            <div className="flex flex-col text-left min-w-0 max-w-[60%]">
-              <div className="text-gray-800 text-3xl font-bold truncate">
-                {measurementValue}
-              </div>
-              <div className="text-gray-500 text-sm whitespace-nowrap">
-                {pollutantDisplay} • μg/m³
-              </div>
-            </div>
-
-            <Tooltip
-              content={airQualityText}
-              placement={windowWidth > WINDOW_BREAKPOINT ? 'top' : 'left'}
-              className="w-52"
-            >
-              <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center">
-                <AirQualityIcon className="w-full h-full" aria-hidden="true" />
-              </div>
-            </Tooltip>
+          <div className="flex-shrink-0">
+            <TrendIndicator trendData={trendData} />
           </div>
         </div>
-      </button>
+
+        {/* Content Section with measurement and air quality icon */}
+        <div className="flex justify-between items-center mt-auto pt-2">
+          <div className="flex flex-col text-left min-w-0 max-w-[60%]">
+            <div className="text-gray-800 text-3xl font-bold truncate">
+              {measurementValue}
+            </div>
+            <div className="text-gray-500 text-sm whitespace-nowrap">
+              {pollutantDisplay} • μg/m³
+            </div>
+          </div>
+          <Tooltip
+            content={airQualityText}
+            placement={windowWidth > WINDOW_BREAKPOINT ? 'top' : 'left'}
+            className="w-52"
+          >
+            <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center">
+              <AirQualityIcon className="w-full h-full" aria-hidden="true" />
+            </div>
+          </Tooltip>
+        </div>
+      </Card>
     );
   },
 );
-
 SiteCard.displayName = 'SiteCard';
-
 SiteCard.propTypes = {
   site: PropTypes.shape({
     _id: PropTypes.string.isRequired,
@@ -213,31 +209,37 @@ SiteCard.propTypes = {
   measurement: PropTypes.shape({
     aqi_category: PropTypes.string,
     averages: PropTypes.object,
-    pm2_5: PropTypes.shape({
-      value: PropTypes.number,
-    }),
-    pm10: PropTypes.shape({
-      value: PropTypes.number,
-    }),
+    pm2_5: PropTypes.shape({ value: PropTypes.number }),
+    pm10: PropTypes.shape({ value: PropTypes.number }),
   }),
   onOpenModal: PropTypes.func.isRequired,
   windowWidth: PropTypes.number.isRequired,
   pollutantType: PropTypes.oneOf(['pm2_5', 'pm10']).isRequired,
 };
 
-const AddLocationCard = memo(({ onOpenModal }) => (
-  <button
-    onClick={() => onOpenModal('addLocation')}
-    className="border-dashed border-2 border-blue-400 bg-blue-50 rounded-xl p-4 sm:p-5 h-auto min-h-[180px] flex justify-center items-center text-blue-500 font-medium transition-transform transform hover:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    aria-label="Add a new location to monitor air quality"
-    type="button"
-  >
-    + Add Location
-  </button>
-));
+const AddLocationCard = memo(({ onOpenModal }) => {
+  const handleClick = useCallback(() => {
+    onOpenModal('addLocation');
+  }, [onOpenModal]);
 
+  return (
+    <Card
+      // Adjusted for the add location variant: blue dashed border and hover scale effect.
+      background="bg-blue-50"
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      bordered
+      width="w-full"
+      borderColor="border-blue-400"
+      className="border-dashed h-full min-h-[180px] flex justify-center items-center text-blue-500 font-medium transition-transform transform hover:scale-95"
+      padding="p-4 sm:p-5"
+    >
+      + Add Location
+    </Card>
+  );
+});
 AddLocationCard.displayName = 'AddLocationCard';
-
 AddLocationCard.propTypes = {
   onOpenModal: PropTypes.func.isRequired,
 };

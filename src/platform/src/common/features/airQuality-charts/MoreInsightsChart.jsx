@@ -26,7 +26,7 @@ import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { useSelector } from 'react-redux';
 import { MdInfoOutline, MdRefresh } from 'react-icons/md';
-import InfoMessage from '../Messages/InfoMessage';
+import InfoMessage from '@/components/Messages/InfoMessage';
 
 /**
  * MoreInsightsChart Component

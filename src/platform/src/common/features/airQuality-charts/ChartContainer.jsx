@@ -13,7 +13,7 @@ import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
 import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import CustomToast from '../Toast/CustomToast';
+import CustomToast from '@/components/Toast/CustomToast';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
 import StandardsMenu from './components/StandardsMenu';
 

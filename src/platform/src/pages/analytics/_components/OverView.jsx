@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ChartContainer from '@/components/Charts/ChartContainer';
-import AQNumberCard from '@/components/AQNumberCard';
+import ChartContainer from '@/features/airQuality-charts/ChartContainer';
+import AQNumberCard from '@/features/airQuality-cards';
 import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CheckIcon from '@/icons/tickIcon';

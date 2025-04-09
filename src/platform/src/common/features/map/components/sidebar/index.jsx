@@ -5,8 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 // UI Components
 import Button from '@/components/Button';
 import SearchField from '@/components/search/SearchField';
-import Toast from '../../../Toast'; // Adjust path if needed
-import SearchResultsSkeleton from './components/SearchResultsSkeleton'; // Adjust path if needed
+import Toast from '@/components/Toast';
+import SearchResultsSkeleton from './components/SearchResultsSkeleton';
 
 // Child Components / Utils
 import SidebarHeader from './components/SidebarHeader';
@@ -46,7 +46,7 @@ import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
 import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
-import allCountries from '../../data/countries.json';
+import allCountries from '../../constants/countries.json';
 
 const MapSidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();

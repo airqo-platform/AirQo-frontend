@@ -11,9 +11,9 @@ import {
 } from '@/lib/store/services/map/MapSlice';
 import LayerModal from './components/LayerModal';
 import Loader from '@/components/Spinner';
-import Toast from '../Toast';
+import Toast from '@/components/Toast';
 import AirQualityLegend from './components/Legend';
-import { mapStyles, mapDetails } from './data/constants';
+import { mapStyles, mapDetails } from './constants/constants';
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
@@ -30,7 +30,7 @@ import {
   LoadingOverlay,
   useLocationBoundaries,
   useMapScreenshot,
-} from './functions';
+} from './hooks';
 
 const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
   const dispatch = useDispatch();
