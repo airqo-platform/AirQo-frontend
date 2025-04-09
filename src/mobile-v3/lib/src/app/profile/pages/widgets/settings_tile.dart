@@ -9,13 +9,15 @@ class SettingsTile extends StatelessWidget {
   String? description;
   final String iconPath;
   final void Function(bool)? onChanged;
+  final void Function()? onTap;
 
   SettingsTile({
     super.key,
     required this.iconPath,
     required this.title,
     this.switchValue,
-    required this.onChanged,
+    this.onChanged,
+    this.onTap,
     this.description
   });
 
@@ -41,6 +43,7 @@ class SettingsTile extends StatelessWidget {
         children: [
           ListTile(
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            onTap: onTap,
             trailing: switchValue != null
                 ? Switch(
                     activeColor: Colors.white,

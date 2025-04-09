@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
@@ -46,16 +47,15 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
   Future<void> _toggleLocation(bool value) async {
     if (value) {
-      // Enable location
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        // Prompt user to enable location services
+
         bool openedSettings = await Geolocator.openLocationSettings();
         if (!openedSettings) {
           _showSnackBar('Please enable location services in settings.');
           return;
         }
-        // Recheck if the service was enabled after settings
+
         serviceEnabled = await Geolocator.isLocationServiceEnabled();
         if (!serviceEnabled) {
           return;
@@ -90,7 +90,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   }
 
   void _showLogoutConfirmation() {
-
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -114,9 +113,8 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   }
 
   Future<void> _handleLogout(BuildContext dialogContext) async {
-    Navigator.pop(dialogContext); // Close confirmation dialog
+    Navigator.pop(dialogContext);
 
-    // Show loading indicator
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -124,13 +122,11 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     );
 
     try {
-      // Trigger logout event
       context.read<AuthBloc>().add(LogoutUser());
 
-      // Listen to state changes
       await for (final state in context.read<AuthBloc>().stream) {
         if (state is GuestUser) {
-          Navigator.pop(context); // Close loading dialog
+          Navigator.pop(context);
           await Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const WelcomeScreen()),
@@ -138,13 +134,13 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           );
           break;
         } else if (state is AuthLoadingError) {
-          Navigator.pop(context); // Close loading dialog
+          Navigator.pop(context);
           _showSnackBar(state.message);
           break;
         }
       }
     } catch (e) {
-      Navigator.pop(context); // Close loading dialog
+      Navigator.pop(context);
       _showSnackBar('An unexpected error occurred during logout');
     }
   }
@@ -162,7 +158,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           children: [
             SizedBox(height: screenHeight * 0.02),
 
-            // Location Setting
             SettingsTile(
               switchValue: _locationEnabled,
               iconPath: "assets/images/shared/location_icon.svg",
@@ -172,7 +167,22 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                   "AirQo to use your precise location to locate the Air Quality of your nearest location",
             ),
 
-            // Logout Button
+            SizedBox(height: screenHeight * 0.02),
+
+            SettingsTile(
+              iconPath: "assets/images/shared/language_icon.svg",
+              title: "Languages",
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => SelectLanguagePage(),
+                  ),
+                );
+              },
+              description:
+                  "Change the language of the app to your preferred language",
+            ),
+
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
               child: ElevatedButton(
@@ -203,7 +213,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
             SizedBox(height: screenHeight * 0.01),
 
-            // App Info
             Center(
               child: Column(
                 children: [

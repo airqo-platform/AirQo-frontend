@@ -457,7 +457,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             _formChanged = false;
           });
 
-          // Load the user profile to ensure UI is up-to-date
           context.read<UserBloc>().add(LoadUser());
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -467,7 +466,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             ),
           );
 
-          // Navigate back after successful update
           Navigator.of(context).pop();
         } else if (state is UserUpdateError) {
           _resetLoadingState();
@@ -480,10 +478,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           );
         }
       },
-      // Also build the UI based on state changes
+
       builder: (context, state) {
-        // If the state has changed to UserUpdating and we're not already loading,
-        // update our local loading state
         if (state is UserUpdating && !_isLoading) {
           _isLoading = true;
         }
