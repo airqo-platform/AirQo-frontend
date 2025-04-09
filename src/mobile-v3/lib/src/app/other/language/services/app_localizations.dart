@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loggy/loggy.dart';
 
-class AppLocalizations {
+class AppLocalizations with UiLoggy {
   final Locale locale;
   
   AppLocalizations(this.locale);
@@ -20,10 +21,10 @@ class AppLocalizations {
       String jsonString = await rootBundle.loadString('assets/lang/${locale.languageCode}.json');
       Map<String, dynamic> jsonMap = json.decode(jsonString);
       _localizedStrings = _flattenJson(jsonMap);
-      print('Loaded translations for ${locale.languageCode}: $_localizedStrings');
+      loggy.info('Loaded translations for ${locale.languageCode}: $_localizedStrings');
       return true;
     } catch (e) {
-      print('Error loading translations for ${locale.languageCode}: $e');
+      loggy.warning('Error loading translations for ${locale.languageCode}: $e');
       return false;
     }
   }
@@ -43,7 +44,6 @@ class AppLocalizations {
 
   String translate(String key) {
     final value = _localizedStrings[key] ?? key;
-    print('Translating "$key" to "$value" for ${locale.languageCode}');
     return value;
   }
 }

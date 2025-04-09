@@ -47,16 +47,15 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
   Future<void> _toggleLocation(bool value) async {
     if (value) {
-      // Enable location
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        // Prompt user to enable location services
+
         bool openedSettings = await Geolocator.openLocationSettings();
         if (!openedSettings) {
           _showSnackBar('Please enable location services in settings.');
           return;
         }
-        // Recheck if the service was enabled after settings
+
         serviceEnabled = await Geolocator.isLocationServiceEnabled();
         if (!serviceEnabled) {
           return;
@@ -184,7 +183,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                   "Change the language of the app to your preferred language",
             ),
 
-            // Logout Button
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
               child: ElevatedButton(
@@ -215,7 +213,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
             SizedBox(height: screenHeight * 0.01),
 
-            // App Info
             Center(
               child: Column(
                 children: [

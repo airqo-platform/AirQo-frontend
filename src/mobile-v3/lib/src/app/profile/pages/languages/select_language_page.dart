@@ -32,17 +32,71 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
     LanguageOption(code: 'pt', name: 'Portuguese', nativeName: 'Português'),
   ];
 
+  void _showLanguageChangeNotification(
+      BuildContext context, LanguageOption language) {
+    //final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.language_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)
+                        .translate('Language changed to'),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    language.name,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryColor.withOpacity(0.9),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: Duration(seconds: 3),
+        elevation: 6,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final dividerColor = isDarkMode 
-        ? AppColors.dividerColordark 
-        : AppColors.dividerColorlight;
-    
+    final dividerColor =
+        isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          AppLocalizations.of(context).translate('language.select_language'), 
+          AppLocalizations.of(context).translate('language.select_language'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w500,
@@ -61,12 +115,11 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
       body: BlocBuilder<LanguageBloc, LanguageState>(
         builder: (context, state) {
           String currentLanguageCode = 'en';
-          
+
           if (state is LanguageLoaded) {
             currentLanguageCode = state.languageCode;
-            
           }
-          
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: ListView.separated(
@@ -78,7 +131,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
               itemBuilder: (context, index) {
                 final language = languages[index];
                 final isSelected = language.code == currentLanguageCode;
-                
+
                 return ListTile(
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   title: Text(
@@ -86,8 +139,8 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w400,
-                      color: isDarkMode 
-                          ? AppColors.highlightColor2 
+                      color: isDarkMode
+                          ? AppColors.highlightColor2
                           : AppColors.boldHeadlineColor4,
                     ),
                   ),
@@ -95,9 +148,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                     language.nativeName,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDarkMode 
-                          ? Colors.grey 
-                          : Colors.grey.shade700,
+                      color: isDarkMode ? Colors.grey : Colors.grey.shade700,
                     ),
                   ),
                   trailing: isSelected
@@ -119,25 +170,19 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                           height: 24,
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: isDarkMode 
-                                  ? AppColors.secondaryHeadlineColor2 
+                              color: isDarkMode
+                                  ? AppColors.secondaryHeadlineColor2
                                   : AppColors.borderColor2,
                             ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                   onTap: () {
-                    context.read<LanguageBloc>().add(ChangeLanguage(language.code));
-                    
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${AppLocalizations.of(context).translate('language.language_changed_to')} ${language.name}',
-                        ),
-                        backgroundColor: AppColors.primaryColor,
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                    context
+                        .read<LanguageBloc>()
+                        .add(ChangeLanguage(language.code));
+
+                        _showLanguageChangeNotification(context, language);
                   },
                 );
               },
