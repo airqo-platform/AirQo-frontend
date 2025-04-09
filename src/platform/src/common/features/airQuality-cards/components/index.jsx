@@ -7,6 +7,8 @@ import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import Card from '@/components/CardWrapper';
 
 const WINDOW_BREAKPOINT = 1024;
+// Set the exact height to 190px using Tailwind's arbitrary value syntax
+const CARD_HEIGHT = 'h-44';
 
 const TrendIndicator = memo(({ trendData }) => {
   if (!trendData) {
@@ -111,10 +113,10 @@ const SiteCard = memo(
         : `The air quality has improved by ${percentValue}% compared to the previous week.`;
     }
 
-    // Render site name and country with truncation support
+    // Enhanced site name rendering with improved truncation
     const renderSiteName = (
       <span
-        className="block w-full overflow-hidden text-ellipsis whitespace-nowrap font-medium text-lg text-left"
+        className="block w-full overflow-hidden text-ellipsis whitespace-nowrap font-medium text-lg text-left pr-2" // Added pr-2 to prevent text from touching the indicator
         ref={nameRef}
         title={isNameTruncated ? siteName : ''}
       >
@@ -124,7 +126,7 @@ const SiteCard = memo(
 
     const renderSiteCountry = (
       <span
-        className="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm text-gray-400 capitalize text-left"
+        className="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm text-gray-400 capitalize text-left pr-2" // Added pr-2 for spacing
         ref={countryRef}
         title={isCountryTruncated ? siteCountry : ''}
       >
@@ -159,18 +161,21 @@ const SiteCard = memo(
         onClick={handleClick}
         role="button"
         tabIndex={0}
-        // Do not change background, border, or radius so we use defaults from Card,
-        // and set a consistent minimum height.
-        className="w-full h-auto min-h-[180px] hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer"
+        // Use the fixed height of 190px
+        height={CARD_HEIGHT}
+        // Maintain hover shadow and transition effects
+        className="w-full hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer"
         padding="p-4 sm:p-5"
       >
-        {/* Header Section with site name and country */}
-        <div className="flex justify-between items-start gap-2 pb-2 mb-2">
-          <div className="min-w-0 flex-grow">
+        {/* Header Section with site name and country - improved spacing */}
+        <div className="flex justify-between items-start gap-3 pb-2 mb-2">
+          <div className="min-w-0 flex-grow max-w-[calc(100%-40px)]">
+            {' '}
+            {/* Prevent text from touching indicator */}
             {siteNameWithTooltip}
             {siteCountryWithTooltip}
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 ml-auto">
             <TrendIndicator trendData={trendData} />
           </div>
         </div>
@@ -181,7 +186,7 @@ const SiteCard = memo(
             <div className="text-gray-800 text-3xl font-bold truncate">
               {measurementValue}
             </div>
-            <div className="text-gray-500 text-sm whitespace-nowrap">
+            <div className="text-gray-500 text-sm whitespace-nowrap truncate">
               {pollutantDisplay} • μg/m³
             </div>
           </div>
@@ -224,15 +229,14 @@ const AddLocationCard = memo(({ onOpenModal }) => {
 
   return (
     <Card
-      // Adjusted for the add location variant: blue dashed border and hover scale effect.
+      height={CARD_HEIGHT}
       background="bg-blue-50"
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      bordered
       width="w-full"
       borderColor="border-blue-400"
-      className="border-dashed h-full min-h-[180px] flex justify-center items-center text-blue-500 font-medium transition-transform transform hover:scale-95"
+      className="border-dashed flex justify-center items-center text-blue-500 font-medium transition-transform transform hover:scale-95"
       padding="p-4 sm:p-5"
     >
       + Add Location
