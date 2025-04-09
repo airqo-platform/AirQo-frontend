@@ -1,4 +1,3 @@
-// pages/_app.js
 import '@/styles/global.scss';
 import { Provider } from 'react-redux';
 import { useEffect } from 'react';
@@ -10,6 +9,9 @@ import ErrorBoundary from '../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import logger from '../lib/logger';
+
+import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
+import { ThemeCustomizer } from '@/features/theme-customizer/components/ThemeCustomizer';
 
 function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -85,8 +87,11 @@ function App({ Component, ...rest }) {
     <Provider store={store}>
       <PersistGate loading={<Loading />} persistor={store.__persistor}>
         <ErrorBoundary name="AppRoot" feature="global">
-          <GoogleAnalytics />
-          {getLayout(<Component {...props.pageProps} />)}
+          <ThemeProvider>
+            <GoogleAnalytics />
+            {getLayout(<Component {...props.pageProps} />)}
+            <ThemeCustomizer />
+          </ThemeProvider>
         </ErrorBoundary>
         <Toaster expand={true} richColors />
       </PersistGate>
