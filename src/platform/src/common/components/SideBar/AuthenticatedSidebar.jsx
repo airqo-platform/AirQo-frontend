@@ -21,6 +21,7 @@ import Link from 'next/link';
 import LeftArrowIcon from '@/icons/SideBar/leftArrowIcon';
 import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
 import Button from '../Button';
+import Card from '../CardWrapper';
 // import Carousel_1 from '../carousels/Carousel_1';
 
 const MAX_WIDTH = '(max-width: 1024px)';
@@ -168,7 +169,16 @@ const AuthenticatedSideBar = () => {
       <div
         className={`transition-all duration-200 ease-in-out ${isCollapsed ? 'w-[88px]' : 'w-[256px]'} hidden h-dvh lg:block relative p-2 z-50`}
       >
-        <div className="flex p-3 bg-white h-full lg:relative flex-col overflow-y-auto border border-grey-750 scrollbar-thin rounded-xl scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden">
+        <Card
+          className="h-full lg:relative"
+          background="bg-white"
+          padding="p-3"
+          overflow={true}
+          overflowType="auto"
+          bordered={true}
+          borderColor="border-grey-750"
+          contentClassName="flex flex-col h-full scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
+        >
           <div className="pb-4 flex justify-between items-center">
             <Button
               paddingStyles="p-0 m-0"
@@ -178,9 +188,11 @@ const AuthenticatedSideBar = () => {
               <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
             </Button>
           </div>
+
           <div className="mt-4">
             <OrganizationDropdown />
           </div>
+
           <div className="flex flex-col justify-between h-full">
             <div className="mt-10 space-y-2">
               <SidebarItem
@@ -223,7 +235,7 @@ const AuthenticatedSideBar = () => {
             {/* TODO: Add carousel BACK later */}
             {/* <Carousel_1 /> */}
           </div>
-        </div>
+        </Card>
 
         {/* Sidebar collapse button */}
         {router.pathname !== '/map' && (

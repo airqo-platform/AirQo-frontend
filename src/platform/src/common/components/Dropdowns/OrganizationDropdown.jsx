@@ -96,6 +96,42 @@ const OrganizationDropdown = () => {
     return null;
   }
 
+  // Create group item components
+  const renderGroupItems = () =>
+    groupList.map((group) => (
+      <button
+        key={group?._id}
+        onClick={() => handleDropdownSelect(group)}
+        className={`w-full h-11 px-3.5 rounded-lg py-2.5 mb-2 flex items-center justify-between ${
+          activeGroupId === group._id
+            ? 'bg-[#EBF5FF] text-blue-600'
+            : 'hover:bg-gray-100'
+        }`}
+        disabled={loading && selectedGroupId === group._id}
+      >
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="w-8 h-8 bg-yellow-200 flex-shrink-0 flex items-center justify-center rounded-full">
+            <GoOrganization className="text-slate-600 text-lg" />
+          </div>
+          <div
+            className="text-sm font-medium truncate"
+            title={cleanGroupName(group.grp_title)}
+          >
+            {cleanGroupName(group.grp_title)}
+          </div>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          {loading && selectedGroupId === group._id ? (
+            <Spinner width={16} height={16} />
+          ) : activeGroupId === group._id ? (
+            <RadioIcon />
+          ) : (
+            <input type="radio" className="border-[#C4C7CB]" readOnly />
+          )}
+        </div>
+      </button>
+    ));
+
   return (
     <CustomDropdown
       trigger={
@@ -136,39 +172,7 @@ const OrganizationDropdown = () => {
         maxWidth: isCollapsed ? '240px' : 'none',
       }}
     >
-      {groupList.map((group) => (
-        <button
-          key={group?._id}
-          onClick={() => handleDropdownSelect(group)}
-          className={`w-full h-11 px-3.5 rounded-lg py-2.5 mb-2 flex items-center justify-between ${
-            activeGroupId === group._id
-              ? 'bg-[#EBF5FF] text-blue-600'
-              : 'hover:bg-gray-100'
-          }`}
-          disabled={loading && selectedGroupId === group._id}
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-8 h-8 bg-yellow-200 flex-shrink-0 flex items-center justify-center rounded-full">
-              <GoOrganization className="text-slate-600 text-lg" />
-            </div>
-            <div
-              className="text-sm font-medium truncate"
-              title={cleanGroupName(group.grp_title)}
-            >
-              {cleanGroupName(group.grp_title)}
-            </div>
-          </div>
-          <div className="flex-shrink-0 ml-2">
-            {loading && selectedGroupId === group._id ? (
-              <Spinner width={16} height={16} />
-            ) : activeGroupId === group._id ? (
-              <RadioIcon />
-            ) : (
-              <input type="radio" className="border-[#C4C7CB]" readOnly />
-            )}
-          </div>
-        </button>
-      ))}
+      {renderGroupItems()}
     </CustomDropdown>
   );
 };
