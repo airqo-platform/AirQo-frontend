@@ -53,7 +53,7 @@ class _SelectLanguagePageState extends State<SelectLanguagePage> {
                 children: [
                   Text(
                     AppLocalizations.of(context)
-                        .translate('Language changed to'),
+                        .translate('language.language_changed'),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
