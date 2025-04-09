@@ -66,7 +66,7 @@ const AQNumberCard = ({ className = '' }) => {
   if (isLoadingData) {
     return (
       <div
-        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${className}`}
+        className={`grid grid-cols-4 gap-3 sm:gap-4 ${className}`}
         aria-busy="true"
         aria-label="Loading air quality data"
       >
@@ -80,7 +80,7 @@ const AQNumberCard = ({ className = '' }) => {
   // Render the cards grid (responsive with 4 columns on large screens)
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${className}`}
+      className={`grid grid-cols-4 gap-3 sm:gap-4 ${className}`}
       data-testid="aq-number-card-grid"
     >
       {selectedSites.map((site) => (
