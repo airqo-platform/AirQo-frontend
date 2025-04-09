@@ -40,7 +40,7 @@ export const AddLocationHeader = () => (
 );
 
 /**
- * Enhanced LocationCard wrapper component to ensure proper card styling
+ * Enhanced LocationCard wrapper component to ensure proper card styling and checked state
  */
 const EnhancedLocationCard = ({ site, onToggle, isSelected, sidebarBg }) => {
   return (
@@ -129,16 +129,21 @@ const LocationsSidebar = ({
         initial="hidden"
         animate="visible"
       >
-        {sidebarSites.map((site) => (
-          <motion.div key={site._id} variants={itemVariants} layout>
-            <EnhancedLocationCard
-              site={site}
-              onToggle={() => handleToggleSite(site)}
-              isSelected={selectedSites.some((s) => s._id === site._id)}
-              sidebarBg={sidebarBg}
-            />
-          </motion.div>
-        ))}
+        {sidebarSites.map((site) => {
+          // Explicitly check if this site is in the selectedSites array
+          const isSelected = selectedSites.some((s) => s._id === site._id);
+
+          return (
+            <motion.div key={site._id} variants={itemVariants} layout>
+              <EnhancedLocationCard
+                site={site}
+                onToggle={() => handleToggleSite(site)}
+                isSelected={isSelected}
+                sidebarBg={sidebarBg}
+              />
+            </motion.div>
+          );
+        })}
       </motion.div>
     );
   }, [
@@ -264,10 +269,12 @@ const LocationsContent = ({
  */
 const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const dispatch = useDispatch();
+  const MAX_LOCATIONS = 4; // Define max locations constant
 
   // Refs to handle cleanup
   const errorTimeoutRef = useRef(null);
   const dataInitializedRef = useRef(false);
+  const tableInitializedRef = useRef(false);
 
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(
@@ -339,6 +346,112 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     return firstPreference?.selected_sites?.map((site) => site._id) || [];
   }, [preferencesData]);
 
+  // Utility function to set DataTable checkbox state
+  const syncCheckboxStates = useCallback(() => {
+    // For each selected site, find and check the corresponding checkbox
+    selectedSites.forEach((site) => {
+      try {
+        // Try multiple ways to find the checkbox for this site
+        const siteIdSelectors = [
+          `input[type="checkbox"][data-id="${site._id}"]`,
+          `tr[data-id="${site._id}"] input[type="checkbox"]`,
+          `tr[data-row-id="${site._id}"] input[type="checkbox"]`,
+          `.datatable-row[data-id="${site._id}"] input[type="checkbox"]`,
+        ];
+
+        // Try each selector
+        let checkbox = null;
+        for (const selector of siteIdSelectors) {
+          checkbox = document.querySelector(selector);
+          if (checkbox) break;
+        }
+
+        // If we found a checkbox, ensure it's checked
+        if (checkbox) {
+          checkbox.checked = true;
+        }
+      } catch (err) {
+        console.warn(`Failed to check box for site ${site._id}:`, err);
+      }
+    });
+
+    // Specifically address the sidebar checkbox state
+    document.querySelectorAll('.location-card').forEach((card) => {
+      try {
+        const checkbox = card.querySelector('input[type="checkbox"]');
+        if (!checkbox) return;
+
+        // Get site ID from various possible data attributes
+        const siteId =
+          card.dataset.siteId ||
+          card.dataset.id ||
+          card.id?.replace('location-', '');
+
+        if (siteId && selectedSites.some((site) => site._id === siteId)) {
+          checkbox.checked = true;
+        }
+      } catch (err) {
+        console.warn('Error syncing sidebar checkbox:', err);
+      }
+    });
+  }, [selectedSites]);
+
+  // Apply custom styling to ensure checkboxes in the table reflect selection
+  const applyCustomTableStyle = useCallback(() => {
+    try {
+      const style = document.createElement('style');
+      style.id = 'locations-table-style';
+      style.textContent = `
+        /* Style for rows with selected items */
+        tr.selected-row td, 
+        tr[data-selected="true"] td {
+          background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Ensure checkboxes are visible and checked */
+        tr.selected-row input[type="checkbox"],
+        tr[data-selected="true"] input[type="checkbox"] {
+          appearance: auto;
+          -webkit-appearance: auto;
+          opacity: 1;
+          position: relative;
+          pointer-events: auto;
+          transform: scale(1.2);
+          accent-color: #3b82f6;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Force checked state visibility */
+        input[type="checkbox"]:checked {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+      `;
+
+      // Remove any existing style with same ID
+      const existingStyle = document.getElementById('locations-table-style');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+
+      document.head.appendChild(style);
+
+      // Mark selected rows with a data attribute and class
+      selectedSites.forEach((site) => {
+        const siteRows = document.querySelectorAll(
+          `tr[data-id="${site._id}"], tr[data-row-id="${site._id}"]`,
+        );
+        siteRows.forEach((row) => {
+          row.classList.add('selected-row');
+          row.setAttribute('data-selected', 'true');
+        });
+      });
+    } catch (err) {
+      console.warn('Error applying custom table style:', err);
+    }
+  }, [selectedSites]);
+
   // Improved initialization of selected sites
   useEffect(() => {
     if (
@@ -353,7 +466,12 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       );
 
       if (matchingSites.length > 0) {
-        // Important: Set both states to ensure consistency
+        console.log(
+          `Initializing ${matchingSites.length} pre-selected sites`,
+          matchingSites,
+        );
+
+        // Set both states to ensure consistency - this is crucial
         setSelectedSites(matchingSites);
         setSidebarSites(matchingSites);
         dataInitializedRef.current = true;
@@ -361,26 +479,81 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         // Force DataTable to update selection by clearing and resetting selection
         setClearSelected(true);
 
-        // Use a longer timeout to ensure UI components have time to process
+        // Schedule multiple attempts to force the UI to update for reliability
         setTimeout(() => {
           setClearSelected(false);
 
-          // Additional timeout to ensure checkbox updates
-          setTimeout(() => {
-            const checkboxRefresh = document.createEvent('Event');
-            checkboxRefresh.initEvent('change', true, true);
-            document
-              .querySelectorAll('input[type="checkbox"]')
-              .forEach((checkbox) => {
-                checkbox.dispatchEvent(checkboxRefresh);
-              });
-          }, 50);
+          // Schedule multiple checkbox update attempts with increasing delays
+          [50, 150, 300, 500, 800].forEach((delay) => {
+            setTimeout(() => {
+              syncCheckboxStates();
+              applyCustomTableStyle();
+            }, delay);
+          });
         }, 100);
-
-        console.log(`Initialized ${matchingSites.length} pre-selected sites`);
       }
     }
-  }, [loading, filteredSites, selectedSiteIds]);
+  }, [
+    loading,
+    filteredSites,
+    selectedSiteIds,
+    syncCheckboxStates,
+    applyCustomTableStyle,
+  ]);
+
+  // Handle DataTable initialization - apply custom styles and ensure checkboxes are checked
+  useEffect(() => {
+    if (!loading && !tableInitializedRef.current && filteredSites.length > 0) {
+      tableInitializedRef.current = true;
+
+      // Delay to ensure the table is rendered
+      setTimeout(() => {
+        applyCustomTableStyle();
+        syncCheckboxStates();
+
+        // Special handling for the DataTable component - intercept checkbox click events
+        const tableContainer = document.querySelector('.datatable-container');
+        if (tableContainer) {
+          // Use event delegation to handle checkbox clicks
+          tableContainer.addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox') {
+              // Find the row containing this checkbox
+              const row = e.target.closest('tr');
+              if (!row) return;
+
+              // Get the site ID from the row
+              const siteId = row.dataset.id || row.dataset.rowId;
+              if (!siteId) return;
+
+              // Find the corresponding site
+              const site = filteredSites.find((s) => s._id === siteId);
+              if (!site) return;
+
+              // Update row styling based on checkbox state
+              if (e.target.checked) {
+                row.classList.add('selected-row');
+                row.setAttribute('data-selected', 'true');
+              } else {
+                row.classList.remove('selected-row');
+                row.setAttribute('data-selected', 'false');
+              }
+            }
+          });
+        }
+      }, 300);
+    }
+  }, [loading, filteredSites, applyCustomTableStyle, syncCheckboxStates]);
+
+  // Effect to update checkboxes when selected sites change
+  useEffect(() => {
+    if (selectedSites.length > 0 && !loading) {
+      // Apply custom styling and sync checkboxes
+      setTimeout(() => {
+        syncCheckboxStates();
+        applyCustomTableStyle();
+      }, 100);
+    }
+  }, [selectedSites, loading, syncCheckboxStates, applyCustomTableStyle]);
 
   // Handle automatic error clearing after 2 seconds
   useEffect(() => {
@@ -413,7 +586,25 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     setSidebarSites([]);
 
     setClearSelected(true);
-    setTimeout(() => setClearSelected(false), 100);
+    setTimeout(() => {
+      setClearSelected(false);
+
+      // Clear all checked states on checkboxes
+      document
+        .querySelectorAll('input[type="checkbox"]')
+        .forEach((checkbox) => {
+          checkbox.checked = false;
+        });
+
+      // Remove selected styling from all rows
+      document
+        .querySelectorAll('tr.selected-row, tr[data-selected="true"]')
+        .forEach((row) => {
+          row.classList.remove('selected-row');
+          row.setAttribute('data-selected', 'false');
+        });
+    }, 100);
+
     setStatusMessage('');
     setError('');
   }, []);
@@ -421,41 +612,121 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   /**
    * Toggles the selection of a site.
    * Ensures that both selectedSites and sidebarSites stay in sync.
+   * Properly validates against max selection limit.
    */
-  const handleToggleSite = useCallback((site) => {
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
-
-      // Check for maximum selection limit (4 sites)
-      if (!isSelected && prev.length >= 4) {
-        setError('You can select up to 4 locations only.');
-        setMessageType(MESSAGE_TYPES.ERROR);
-        return prev;
+  const handleToggleSite = useCallback(
+    (site) => {
+      if (!site || !site._id) {
+        console.error('Invalid site object passed to handleToggleSite', site);
+        return;
       }
 
-      // Toggle selection
-      const newSelection = isSelected
-        ? prev.filter((s) => s._id !== site._id)
-        : [...prev, site];
+      setSelectedSites((prev) => {
+        const isSelected = prev.some((s) => s._id === site._id);
 
-      // Update sidebar sites to match selection
-      setSidebarSites((sidebarPrev) => {
+        // If already selected, allow deselection
         if (isSelected) {
-          // Remove from sidebar if deselected
-          return sidebarPrev.filter((s) => s._id !== site._id);
-        } else if (!sidebarPrev.some((s) => s._id === site._id)) {
-          // Add to sidebar if selected and not already there
-          return [...sidebarPrev, site];
+          const newSelection = prev.filter((s) => s._id !== site._id);
+
+          // Update sidebar sites to match selection
+          setSidebarSites((sidebarPrev) =>
+            sidebarPrev.filter((s) => s._id !== site._id),
+          );
+
+          // Clear any warning message
+          setError('');
+
+          // Find and uncheck the corresponding checkbox
+          setTimeout(() => {
+            try {
+              // Try multiple selectors to find the checkbox
+              const selectors = [
+                `input[type="checkbox"][data-id="${site._id}"]`,
+                `tr[data-id="${site._id}"] input[type="checkbox"]`,
+                `tr[data-row-id="${site._id}"] input[type="checkbox"]`,
+              ];
+
+              let checkbox = null;
+              for (const selector of selectors) {
+                checkbox = document.querySelector(selector);
+                if (checkbox) break;
+              }
+
+              if (checkbox) {
+                checkbox.checked = false;
+
+                // Update row styling
+                const row = checkbox.closest('tr');
+                if (row) {
+                  row.classList.remove('selected-row');
+                  row.setAttribute('data-selected', 'false');
+                }
+              }
+            } catch (err) {
+              console.warn('Error updating checkbox state:', err);
+            }
+          }, 10);
+
+          return newSelection;
         }
-        return sidebarPrev;
+
+        // Check for maximum selection limit
+        if (prev.length >= MAX_LOCATIONS) {
+          setError(`You can select up to ${MAX_LOCATIONS} locations only.`);
+          setMessageType(MESSAGE_TYPES.ERROR);
+          return prev; // Return previous state unchanged
+        }
+
+        // Add the new selection
+        const newSelection = [...prev, site];
+
+        // Update sidebar sites to add the new selection
+        setSidebarSites((sidebarPrev) => {
+          if (!sidebarPrev.some((s) => s._id === site._id)) {
+            return [...sidebarPrev, site];
+          }
+          return sidebarPrev;
+        });
+
+        // Clear any error message when making a valid selection
+        setError('');
+
+        // Find and check the corresponding checkbox
+        setTimeout(() => {
+          try {
+            // Try multiple selectors to find the checkbox
+            const selectors = [
+              `input[type="checkbox"][data-id="${site._id}"]`,
+              `tr[data-id="${site._id}"] input[type="checkbox"]`,
+              `tr[data-row-id="${site._id}"] input[type="checkbox"]`,
+            ];
+
+            let checkbox = null;
+            for (const selector of selectors) {
+              checkbox = document.querySelector(selector);
+              if (checkbox) break;
+            }
+
+            if (checkbox) {
+              checkbox.checked = true;
+
+              // Update row styling
+              const row = checkbox.closest('tr');
+              if (row) {
+                row.classList.add('selected-row');
+                row.setAttribute('data-selected', 'true');
+              }
+            }
+          } catch (err) {
+            console.warn('Error updating checkbox state:', err);
+          }
+        }, 10);
+
+        return newSelection;
       });
-
-      return newSelection;
-    });
-
-    // Clear any error message when making a selection
-    setError('');
-  }, []);
+    },
+    [MAX_LOCATIONS],
+  );
 
   /**
    * Custom filter function for DataTable.
@@ -588,8 +859,8 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       return;
     }
 
-    if (selectedSites.length > 4) {
-      setError('You can select up to 4 locations only.');
+    if (selectedSites.length > MAX_LOCATIONS) {
+      setError(`You can select up to ${MAX_LOCATIONS} locations only.`);
       setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
@@ -632,7 +903,7 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         setSubmitLoading(false);
         setStatusMessage('');
       });
-  }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
+  }, [selectedSites, userID, dispatch, onClose, activeGroupId, MAX_LOCATIONS]);
 
   // Get the footer message and message type
   const footerInfo = useMemo(() => {
@@ -652,11 +923,19 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       };
     }
 
+    // Show warning when max sites are selected
+    if (selectedSites.length === MAX_LOCATIONS) {
+      return {
+        message: `Maximum of ${MAX_LOCATIONS} locations selected`,
+        type: MESSAGE_TYPES.WARNING,
+      };
+    }
+
     return {
       message: `${selectedSites.length} ${selectedSites.length === 1 ? 'location' : 'locations'} selected`,
       type: MESSAGE_TYPES.INFO,
     };
-  }, [error, statusMessage, messageType, selectedSites.length]);
+  }, [error, statusMessage, messageType, selectedSites.length, MAX_LOCATIONS]);
 
   // Page transition animation
   const pageVariants = {
@@ -672,6 +951,7 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       initial="initial"
       animate="animate"
       exit="exit"
+      data-testid="add-locations-container"
     >
       {/* Sidebar Component - Exactly 280px width */}
       <LocationsSidebar
@@ -711,8 +991,8 @@ const AddLocations = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           handleSubmit={handleSubmit}
           onClose={onClose}
           loading={submitLoading}
-          disabled={submitLoading || selectedSites.length === 0} // Disable save button when no sites are selected
-          minimumSelection={0} // Allow clearing all selections
+          disabled={submitLoading || selectedSites.length === 0}
+          minimumSelection={0}
         />
       </div>
     </motion.div>
