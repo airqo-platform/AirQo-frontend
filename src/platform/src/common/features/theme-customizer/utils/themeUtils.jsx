@@ -1,27 +1,36 @@
-export const applyTheme = (mode) => {
-  // Remove existing theme classes
-  document.documentElement.classList.remove('light', 'dark', 'system');
+'use client';
 
-  // Apply new theme class
-  document.documentElement.classList.add(mode);
+import { THEME_STORAGE_KEY } from '../constants/themeConstants';
 
-  // Persist theme selection
-  localStorage.setItem('app-theme', mode);
+export const applyTheme = (mode, systemTheme) => {
+  document.documentElement.classList.remove('light', 'dark');
+
+  let effectiveTheme = mode;
+
+  if (mode === 'system' && systemTheme) {
+    effectiveTheme = systemTheme;
+  }
+
+  document.documentElement.classList.add(effectiveTheme);
+  document.documentElement.setAttribute('data-theme', effectiveTheme);
 };
 
 export const getInitialTheme = () => {
-  // Check localStorage first
-  const savedTheme = localStorage.getItem('app-theme');
-  if (savedTheme) return savedTheme;
-
-  // Check system preference
-  if (typeof window !== 'undefined') {
-    const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)',
-    ).matches;
-    return prefersDark ? 'dark' : 'light';
+  if (typeof window === 'undefined') {
+    return 'light';
   }
 
-  // Default to light if no preference detected
+  try {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme) return savedTheme;
+  } catch (error) {
+    console.warn('Could not access localStorage for theme preference:', error);
+  }
+
+  if (window.matchMedia) {
+    // Using the result directly instead of storing in unused variable
+    return 'system';
+  }
+
   return 'light';
 };

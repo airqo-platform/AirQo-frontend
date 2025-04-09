@@ -133,6 +133,9 @@ module.exports = {
           300: '#8AC4FF',
           600: '#145FFF',
         },
+        gray: {
+          750: '#2a2f3a',
+        },
       },
     },
     container: {
