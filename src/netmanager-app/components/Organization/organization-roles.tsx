@@ -132,8 +132,8 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     setEditRoleName(role.role_name)
 
     // Extract permission IDs from the role's permissions
-    const permissionIds = role.role_permissions.map((perm: Permission) => perm._id)
-    setSelectedPermissions(permissionIds)
+    const permission_ids = role.role_permissions.map((perm: Permission) => perm._id)
+    setSelectedPermissions(permission_ids)
     setIsPermissionsDialogOpen(true)
 
     // Ensure permissions are loaded when dialog opens
@@ -146,6 +146,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     e.preventDefault()
 
     try {
+      console.log("Updating permissions for role:", editRoleId, "with permissions:", selectedPermissions)
       await updateRolePermissions(editRoleId, selectedPermissions)
 
       toast({
@@ -397,7 +398,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                 {/* Custom scrollable container with visible scrollbar */}
                 <div className="flex-1 rounded-md border overflow-hidden flex flex-col">
                   <div
-                    className="flex-1 overflow-y-auto p-4 space-y-3"
+                    className="flex-1 overflow-y-auto p-4 space-y-3 permissions-scrollbar"
                     style={{
                       scrollbarWidth: "thin",
                       scrollbarColor: "rgba(156, 163, 175, 0.5) transparent",

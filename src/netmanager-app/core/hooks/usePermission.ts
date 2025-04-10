@@ -60,11 +60,12 @@ export function usePermissions() {
     }
   }, [isLoading]) // Only depends on isLoading state
 
-  const assignPermissionsToRole = useCallback(async (roleId: string, permissionIds: string[]) => {
+  const assignPermissionsToRole = useCallback(async (roleId: string, permission_ids: string[]) => {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.assignPermissionsToRoleApi(roleId, { permissionIds })
+      // Changed from { permissions: permissionIds } to { permission_ids: permissionIds }
+      const data = await users.assignPermissionsToRoleApi(roleId, { permission_ids })
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to assign permissions")
@@ -90,11 +91,12 @@ export function usePermissions() {
     }
   }, [])
 
-  const updateRolePermissions = useCallback(async (roleId: string, permissionIds: string[]) => {
+  const updateRolePermissions = useCallback(async (roleId: string, permission_ids: string[]) => {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.updatePermissionsToRoleApi(roleId, { permissionIds })
+      // Changed from { permissions: permissionIds } to { permission_ids: permissionIds }
+      const data = await users.updatePermissionsToRoleApi(roleId, { permission_ids })
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to update permissions")

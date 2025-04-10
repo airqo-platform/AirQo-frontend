@@ -88,7 +88,7 @@ export const users = {
       .get(`${USERS_MGT_URL}/permissions`)
       .then((response) => response.data);
   },
-  assignPermissionsToRoleApi: async (roleID: string, data: { permissionIds: string[] }) => {
+  assignPermissionsToRoleApi: async (roleID: string, data: { permission_ids: string[] }) => {
     return await createAxiosInstance()
       .post(`${USERS_MGT_URL}/roles/${roleID}/permissions`, data)
       .then((response) => response.data);
@@ -98,7 +98,7 @@ export const users = {
       .delete(`${USERS_MGT_URL}/roles/${roleID}/permissions/${permissionID}`, {})
       .then((response) => response.data);
   },
-  updatePermissionsToRoleApi: async (roleID: string, data: { permissionIds: string[] }) => {
+  updatePermissionsToRoleApi: async (roleID: string, data: { permission_ids: string[] }) => {
     return await createAxiosInstance()
       .put(`${USERS_MGT_URL}/roles/${roleID}/permissions`, data)
       .then((response) => response.data);
