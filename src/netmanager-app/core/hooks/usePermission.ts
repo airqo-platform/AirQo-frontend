@@ -64,7 +64,7 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.assignPermissionsToRoleApi(roleId, { permissions: permissionIds })
+      const data = await users.assignPermissionsToRoleApi(roleId, { permissionIds })
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to assign permissions")
@@ -94,7 +94,7 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.updatePermissionsToRoleApi(roleId, { permissions: permissionIds })
+      const data = await users.updatePermissionsToRoleApi(roleId, { permissionIds })
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to update permissions")
