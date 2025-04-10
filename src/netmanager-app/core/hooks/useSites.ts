@@ -97,20 +97,51 @@ export const useUpdateSiteDetails = () => {
   });
 };
 
+interface CreateSiteResponse {
+  success: boolean;
+  message: string;
+  site: {
+    share_links: Record<string, unknown>;
+    visibility: boolean;
+    grids: unknown[];
+    images: unknown[];
+    groups: unknown[];
+    site_codes: string[];
+    land_use: unknown[];
+    isOnline: boolean;
+    _id: string;
+    location_name: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    network: string;
+    approximate_latitude: number;
+    approximate_longitude: number;
+    bearing_in_radians: number;
+    approximate_distance_in_km: number;
+    lat_long: string;
+    generated_name: string;
+    altitude: number;
+    data_provider: string;
+    description: string;
+    createdAt: string;
+  };
+}
+
 interface CreateSiteRequest {
   name: string;
   latitude: string;
   longitude: string;
   network: string;
-  group: string;
 }
 
 export const useCreateSite = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<CreateSiteResponse, Error, CreateSiteRequest>({
     mutationFn: async (data: CreateSiteRequest) => {
-      return sites.createSite(data);
+      const response = await sites.createSite(data);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sites"] });
