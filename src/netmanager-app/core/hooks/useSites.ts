@@ -58,3 +58,23 @@ export const useApproximateCoordinates = () => {
     error: error as Error | null,
   };
 };
+
+interface UseSiteDetailsOptions {
+  enabled?: boolean;
+}
+
+export const useSiteDetails = (
+  siteId: string,
+  options: UseSiteDetailsOptions = {}
+) => {
+  const { enabled = true } = options;
+
+  return useQuery({
+    queryKey: ["site-details", siteId],
+    queryFn: async () => {
+      const response = await sites.getSiteDetails(siteId);
+      return response.data;
+    },
+    enabled: !!siteId && enabled,
+  });
+};
