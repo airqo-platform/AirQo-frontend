@@ -88,21 +88,21 @@ export const users = {
       .get(`${USERS_MGT_URL}/permissions`)
       .then((response) => response.data);
   },
-  assignPermissionsToRoleApi: async (roleID:string, data:any) => {
+  assignPermissionsToRoleApi: async (roleID: string, data: { permissionIds: string[] }) => {
     return await createAxiosInstance()
       .post(`${USERS_MGT_URL}/roles/${roleID}/permissions`, data)
       .then((response) => response.data);
   },
-  // removePermissionsFromRoleApi: async (roleID:string, permissionID:string) => {
-  //   return await createAxiosInstance()
-  //     .delete(`${USERS_MGT_URL}/roles/${roleID}/permissions/${permissionID}`, {})
-  //     .then((response) => response.data);
-  // },
-  // updatePermissionsToRoleApi: async (roleID:string, data:any) => {
-  //   return await createAxiosInstance()
-  //     .put(`${USERS_MGT_URL}/roles/${roleID}/permissions`, data)
-  //     .then((response) => response.data);
-  // },
+  removePermissionsFromRoleApi: async (roleID:string, permissionID:string) => {
+    return await createAxiosInstance()
+      .delete(`${USERS_MGT_URL}/roles/${roleID}/permissions/${permissionID}`, {})
+      .then((response) => response.data);
+  },
+  updatePermissionsToRoleApi: async (roleID: string, data: { permissionIds: string[] }) => {
+    return await createAxiosInstance()
+      .put(`${USERS_MGT_URL}/roles/${roleID}/permissions`, data)
+      .then((response) => response.data);
+  },
   // createTeamApi: async (data:any) => {
   //   return await createAxiosInstance()
   //     .post(`${USERS_MGT_URL}/teams`, data)
