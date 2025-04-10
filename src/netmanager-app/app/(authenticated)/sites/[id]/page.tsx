@@ -78,7 +78,7 @@ export default function SiteDetailsPage() {
     altitude: site.altitude.toString(),
     greenness: "",
     nearestRoad: site.distance_to_nearest_road?.toString(),
-    mobileAppName: site.generated_name,
+    mobileAppName: site.search_name,
     mobileAppDescription: site.location_name,
   };
 
@@ -115,8 +115,8 @@ export default function SiteDetailsPage() {
                 Edit Site
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
+              <DialogHeader className="bg-background pb-4">
                 <DialogTitle>Edit Site</DialogTitle>
                 <DialogDescription>
                   Make changes to the site details here. Click save when you&apos;re
@@ -201,18 +201,18 @@ export default function SiteDetailsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Location Details</CardTitle>
+            <CardTitle>Mobile App Site Details</CardTitle>
             <CardDescription>
               Information about the site location
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="font-semibold">Formatted Name</h3>
-              <p>{site.formatted_name}</p>
+              <h3 className="font-semibold">Editable Name</h3>
+              <p>{site.search_name}</p>
             </div>
             <div>
-              <h3 className="font-semibold">Location Name</h3>
+              <h3 className="font-semibold">Editable Description</h3>
               <p>{site.location_name}</p>
             </div>
             <div>

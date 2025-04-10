@@ -113,7 +113,7 @@ export function SiteForm({ initialData }: SiteFormProps) {
               <FormItem>
                 <FormLabel>Network</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter network" {...field} />
+                  <Input {...field} disabled />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -248,14 +248,14 @@ export function SiteForm({ initialData }: SiteFormProps) {
         </div>
 
         <div>
-          <h3 className="text-lg font-medium mb-2">Mobile App Details</h3>
+          <h3 className="text-lg font-medium mb-2">Mobile App Site Details</h3>
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="mobileAppName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile App Name</FormLabel>
+                  <FormLabel>Editable Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter mobile app name" {...field} />
                   </FormControl>
@@ -269,7 +269,7 @@ export function SiteForm({ initialData }: SiteFormProps) {
               name="mobileAppDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile App Description</FormLabel>
+                  <FormLabel>Editable Description</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter mobile app description"
