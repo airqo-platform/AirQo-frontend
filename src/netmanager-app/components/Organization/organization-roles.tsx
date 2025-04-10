@@ -66,6 +66,8 @@ const ALL_PERMISSIONS = [
 ]
 
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
+
+  // Removed unused editRoleId state
   const { grproles, isLoading, error } = useGroupRoles(organizationId)
   const [newRoleName, setNewRoleName] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
@@ -113,7 +115,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   }
 
   const openPermissionsDialog = (role: Role) => {
-    setEditRoleId(role._id)
+    // Removed unused editRoleId state
     setEditRoleName(role.role_name)
     // Initialize selected permissions from the role
     setSelectedPermissions(role.role_permissions.map((perm: Permission) => perm.permission))
@@ -419,4 +421,3 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     </Card>
   )
 }
-
