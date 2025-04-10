@@ -112,7 +112,7 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
           <RotateCcw className="h-5 w-5 text-gray-700" />
         </button>
       </div>
-      <div className="flex flex-col gap-2">
+      {/* <div className="flex flex-col gap-2">
         <button
           onClick={handleScreenshot}
           className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
@@ -127,7 +127,7 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
         >
           <Share2 className="h-5 w-5 text-gray-700" />
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
