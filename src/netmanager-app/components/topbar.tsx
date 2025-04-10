@@ -81,8 +81,8 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-16 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-full items-center justify-between px-4">
+    <header className="flex h-16 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex w-full items-center justify-between px-4">
         {isMobileView && toggleSidebar && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
             <Menu className="h-5 w-5" />

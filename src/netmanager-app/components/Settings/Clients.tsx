@@ -175,7 +175,7 @@ const ClientManagement = () => {
   };
 
   return (
-    <div className=" py-2">
+    <div className="py-2">
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin" />
