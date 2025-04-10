@@ -64,11 +64,10 @@ export default function SiteDetailsPage() {
     );
   }
 
-  // Transform site data for SiteForm
   const siteFormData = {
     name: site.name,
     description: site.description,
-    organization: "AirQo", // This comes from the current org context
+    organization: site.network,
     latitude: site.latitude.toString(),
     longitude: site.longitude.toString(),
     network: site.network,
@@ -86,10 +85,10 @@ export default function SiteDetailsPage() {
   // Transform devices data for SiteDevices
   const transformedDevices: Device[] = site.devices?.map(device => ({
     name: device.name,
-    description: "", // Description is not available in the site data
+    description: "",
     site: site.name,
     isPrimary: device.isPrimaryInLocation,
-    isCoLocated: false, // This information is not available in the site data
+    isCoLocated: false,
     registrationDate: new Date(device.createdAt).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -230,7 +229,6 @@ export default function SiteDetailsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Site Devices</CardTitle>
-            <CardDescription>Devices deployed at this site</CardDescription>
           </CardHeader>
           <CardContent>
             <SiteDevices devices={transformedDevices} />
