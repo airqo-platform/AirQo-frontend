@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-stage-netmanager
-  tag: stage-7d390c6b-1744047301
+  repository: eu.gcr.io/airqo-250220/airqo-stage-netmanager-app
+  tag: stage-6d002cbc-1744095354
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
@@ -38,7 +38,7 @@ affinity:
                 - high-mem
         weight: 1
 app:
-  name: airqo-stage-netmanager
+  name: airqo-stage-netmanager-app
   label: netmanager
   namespace: staging
   configmap: env-netmanager-staging
