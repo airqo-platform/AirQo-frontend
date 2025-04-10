@@ -172,7 +172,6 @@ export const devices = {
   },
 
   getDevicesStatus: async (): Promise<DeviceStatusResponse> => {
-    // Get today's date and yesterday's date
     const endDate = new Date().toISOString();
     const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const limit = 1;
@@ -185,7 +184,6 @@ export const devices = {
 
   createDevice: async (data: CreateDeviceRequest): Promise<DeviceResponse> => {
     try {
-      // Filter out empty values but keep network field
       const cleanedData = {
         network: data.network,
         ...Object.fromEntries(
@@ -210,7 +208,6 @@ export const devices = {
 
   importDevice: async (data: ImportDeviceRequest): Promise<DeviceResponse> => {
     try {
-      // Filter out empty values but keep network field
       const cleanedData = {
         network: data.network,
         ...Object.fromEntries(
