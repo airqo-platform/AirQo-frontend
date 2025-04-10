@@ -85,13 +85,34 @@ export const useUpdateSiteDetails = () => {
   return useMutation({
     mutationFn: async ({ siteId, data }: { siteId: string; data: Record<string, string | undefined> }) => {
       const cleanedData = Object.fromEntries(
-        Object.entries(data).filter(([_, value]) => value !== undefined)
+        Object.entries(data).filter(([, value]) => value !== undefined)
       );
       
       return sites.updateSiteDetails(siteId, cleanedData);
     },
     onSuccess: (_, { siteId }) => {
       queryClient.invalidateQueries({ queryKey: ["site-details", siteId] });
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+    },
+  });
+};
+
+interface CreateSiteRequest {
+  name: string;
+  latitude: string;
+  longitude: string;
+  network: string;
+  group: string;
+}
+
+export const useCreateSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateSiteRequest) => {
+      return sites.createSite(data);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sites"] });
     },
   });

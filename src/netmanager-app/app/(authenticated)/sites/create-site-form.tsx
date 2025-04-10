@@ -27,12 +27,10 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sites } from "@/core/apis/sites";
 import { useAppSelector } from "@/core/redux/hooks";
-import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
-import { useApproximateCoordinates } from "@/core/hooks/useSites";
+import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
 
 const MapPreview = dynamic(
   () => import("react-leaflet").then((mod) => {
@@ -170,12 +168,11 @@ const steps = [
 
 export function CreateSiteForm() {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const { getApproximateCoordinates, isPending } = useApproximateCoordinates();
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { getApproximateCoordinates, isPending: isOptimizing } = useApproximateCoordinates();
+  const { mutate: createSite, isPending: isCreating, error: createError } = useCreateSite();
 
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -192,25 +189,20 @@ export function CreateSiteForm() {
       return;
     }
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      await sites.createSite({
+    createSite(
+      {
         ...values,
         network: activeNetwork?.net_name || "",
-      });
-
-      await queryClient.invalidateQueries({ queryKey: ["sites"] });
-
-      setOpen(false);
-      form.reset();
-      setCurrentStep(0);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred while creating the site.");
-    } finally {
-      setLoading(false);
-    }
+        group: activeGroup?.grp_title || "",
+      },
+      {
+        onSuccess: () => {
+          setOpen(false);
+          form.reset();
+          setCurrentStep(0);
+        },
+      }
+    );
   }
 
   const onBack = () => {
@@ -353,10 +345,10 @@ export function CreateSiteForm() {
                     disabled={
                       !form.getValues("latitude") ||
                       !form.getValues("longitude") ||
-                      isPending
+                      isOptimizing
                     }
                   >
-                    {isPending ? (
+                    {isOptimizing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Optimizing...
@@ -407,10 +399,12 @@ export function CreateSiteForm() {
               </div>
             )}
 
-            {error && (
+            {createError && (
               <Alert variant="destructive">
                 <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  {createError instanceof Error ? createError.message : "An error occurred while creating the site."}
+                </AlertDescription>
               </Alert>
             )}
 
@@ -420,8 +414,8 @@ export function CreateSiteForm() {
                   Back
                 </Button>
               )}
-              <Button type="submit" disabled={loading}>
-                {loading ? (
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating...
