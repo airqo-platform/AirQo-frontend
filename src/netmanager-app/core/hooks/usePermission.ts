@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { users } from "@/core/apis/users"
+import { roles } from "@/core/apis/roles"
 
 export interface Permission {
   _id: string
@@ -10,6 +10,7 @@ export interface Permission {
 }
 
 export function usePermissions() {
+  // Initialize permissions as an empty array to prevent filter errors
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
@@ -18,13 +19,17 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.getNetworkPermissionsApi()
-      setPermissions(data)
-      return data
+      const data = await roles.getNetworkPermissionsApi()
+      // Ensure data is an array before setting it
+      const permissionsArray = Array.isArray(data) ? data : []
+      setPermissions(permissionsArray)
+      return permissionsArray
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to fetch permissions")
       setError(error)
-      throw error
+      console.error("Error fetching permissions:", error)
+      // Return empty array on error to prevent further issues
+      return []
     } finally {
       setIsLoading(false)
     }
@@ -34,7 +39,7 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.assignPermissionsToRoleApi(roleId, { permissionIds })
+      const data = await roles.assignPermissionsToRoleApi(roleId, { permissions: permissionIds })
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to assign permissions")
@@ -49,7 +54,7 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.removePermissionsFromRoleApi(roleId, permissionId)
+      const data = await roles.removePermissionsFromRoleApi(roleId, permissionId)
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to remove permission")
@@ -64,7 +69,7 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await users.updatePermissionsToRoleApi(roleId, { permissionIds })
+      const data = await roles.updatePermissionsToRoleApi(roleId, { permissions: permissionIds })
       return data
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to update permissions")

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -34,8 +34,11 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { Permission, Role } from "@/app/types/roles"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
 import { roles } from "@/core/apis/roles"
+import { usePermissions } from "@/hooks/usePermissions"
+import type { Role, Permission } from "@/app/types/roles"
 
 type OrganizationRolesProps = {
   organizationId: string
@@ -46,29 +49,16 @@ const ITEMS_PER_PAGE = 10
 type SortField = "role_name" | "permissions"
 type SortOrder = "asc" | "desc"
 
-// This would typically come from your API or be defined elsewhere
-const ALL_PERMISSIONS = [
-  "view:users",
-  "create:users",
-  "edit:users",
-  "delete:users",
-  "view:roles",
-  "create:roles",
-  "edit:roles",
-  "delete:roles",
-  "view:content",
-  "create:content",
-  "edit:content",
-  "delete:content",
-  "admin:access",
-  "reports:view",
-  "billing:manage",
-]
-
 export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
+  const { grproles, isLoading: isRolesLoading, error: rolesError } = useGroupRoles(organizationId)
+  const {
+    permissions: allPermissions,
+    isLoading: isPermissionsLoading,
+    error: permissionsError,
+    fetchNetworkPermissions,
+    updateRolePermissions,
+  } = usePermissions()
 
-  // Removed unused editRoleId state
-  const { grproles, isLoading, error } = useGroupRoles(organizationId)
   const [newRoleName, setNewRoleName] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -76,11 +66,22 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false)
-  // Removed unused editRoleId state
+  const [editRoleId, setEditRoleId] = useState<string>("")
   const [editRoleName, setEditRoleName] = useState("")
   const [permissionsSearch, setPermissionsSearch] = useState("")
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
   const network = useAppSelector((state) => state.user.activeNetwork)
+
+  useEffect(() => {
+    fetchNetworkPermissions().catch((error) => {
+      console.error("Failed to fetch permissions:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load permissions. Please try again.",
+        variant: "destructive",
+      })
+    })
+  }, [fetchNetworkPermissions])
 
   const handleCreateRole = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,10 +116,12 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   }
 
   const openPermissionsDialog = (role: Role) => {
-    // Removed unused editRoleId state
+    setEditRoleId(role._id)
     setEditRoleName(role.role_name)
-    // Initialize selected permissions from the role
-    setSelectedPermissions(role.role_permissions.map((perm: Permission) => perm.permission))
+
+    // Extract permission IDs from the role's permissions
+    const permissionIds = role.role_permissions.map((perm: Permission) => perm._id)
+    setSelectedPermissions(permissionIds)
     setIsPermissionsDialogOpen(true)
   }
 
@@ -126,11 +129,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     e.preventDefault()
 
     try {
-      // Convert selected permissions to the format expected by your API
-      // const permissionsData = selectedPermissions.map((permission) => ({ permission }))
-
-      // await roles.updateRolePermissionsApi(editRoleId, { role_permissions: permissionsData })
-      // This is a placeholder for the actual API call
+      await updateRolePermissions(editRoleId, selectedPermissions)
 
       toast({
         title: "Permissions updated",
@@ -157,14 +156,14 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   }
 
   const sortedAndFilteredRoles = useMemo(() => {
+    if (!Array.isArray(grproles)) return []
+
     return grproles
       .filter((role: Role) => {
         const searchLower = searchQuery.toLowerCase()
         return (
           role.role_name.toLowerCase().includes(searchLower) ||
-          role.role_permissions.some((perm: { permission: string }) =>
-            perm.permission.toLowerCase().includes(searchLower),
-          )
+          role.role_permissions.some((perm: Permission) => perm.permission.toLowerCase().includes(searchLower))
         )
       })
       .sort((a: Role, b: Role) => {
@@ -181,8 +180,15 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   }, [grproles, searchQuery, sortField, sortOrder])
 
   const filteredPermissions = useMemo(() => {
-    return ALL_PERMISSIONS.filter((permission) => permission.toLowerCase().includes(permissionsSearch.toLowerCase()))
-  }, [permissionsSearch])
+    // Ensure allPermissions is an array before filtering
+    if (!Array.isArray(allPermissions)) return []
+
+    return allPermissions.filter(
+      (permission) =>
+        permission.permission.toLowerCase().includes(permissionsSearch.toLowerCase()) ||
+        (permission.description && permission.description.toLowerCase().includes(permissionsSearch.toLowerCase())),
+    )
+  }, [allPermissions, permissionsSearch])
 
   const totalPages = Math.ceil(sortedAndFilteredRoles.length / ITEMS_PER_PAGE)
   const currentRoles = sortedAndFilteredRoles.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
@@ -221,12 +227,15 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     return pageNumbers
   }
 
+  const isLoading = isRolesLoading || isPermissionsLoading
+  const error = rolesError || permissionsError
+
   if (isLoading) {
     return <Skeleton className="w-full h-96" />
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error loading roles. Please try again.</div>
+    return <div className="text-center text-red-500">Error loading data. Please try again.</div>
   }
 
   return (
@@ -300,8 +309,34 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
             <TableBody>
               {currentRoles.map((role: Role) => (
                 <TableRow key={role._id}>
-                  <TableCell>{role.role_name}</TableCell>
-                  <TableCell>{role.role_permissions.map((perm: Permission) => perm.permission).join(", ")}</TableCell>
+                  <TableCell className="font-medium">{role.role_name}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {role.role_permissions && role.role_permissions.length > 0 ? (
+                        role.role_permissions.slice(0, 3).map((perm: Permission) => (
+                          <TooltipProvider key={perm._id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="text-xs">
+                                  {perm.permission}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{perm.description || "No description available"}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No permissions assigned</span>
+                      )}
+                      {role.role_permissions && role.role_permissions.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{role.role_permissions.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Button variant="outline" onClick={() => openPermissionsDialog(role)}>
                       <Shield className="h-4 w-4 mr-2" />
@@ -343,34 +378,66 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                 </div>
                 <ScrollArea className="h-[300px] rounded-md border p-4">
                   <div className="space-y-4">
-                    {filteredPermissions.map((permission) => (
-                      <div key={permission} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={permission}
-                          checked={selectedPermissions.includes(permission)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedPermissions([...selectedPermissions, permission])
-                            } else {
-                              setSelectedPermissions(selectedPermissions.filter((p) => p !== permission))
-                            }
-                          }}
-                        />
-                        <Label
-                          htmlFor={permission}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {permission}
-                        </Label>
-                      </div>
-                    ))}
-                    {filteredPermissions.length === 0 && (
+                    {filteredPermissions.length > 0 ? (
+                      filteredPermissions.map((permission) => (
+                        <div key={permission._id} className="flex items-start space-x-2">
+                          <Checkbox
+                            id={permission._id}
+                            checked={selectedPermissions.includes(permission._id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedPermissions([...selectedPermissions, permission._id])
+                              } else {
+                                setSelectedPermissions(selectedPermissions.filter((p) => p !== permission._id))
+                              }
+                            }}
+                            className="mt-1"
+                          />
+                          <div className="grid gap-1.5">
+                            <Label
+                              htmlFor={permission._id}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {permission.permission}
+                            </Label>
+                            {permission.description && (
+                              <p className="text-xs text-muted-foreground">{permission.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
                       <div className="text-center py-4 text-muted-foreground">
-                        No permissions found matching your search
+                        {permissionsSearch
+                          ? "No permissions found matching your search"
+                          : "No permissions available. Please try refreshing."}
                       </div>
                     )}
                   </div>
                 </ScrollArea>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {selectedPermissions.length} of {Array.isArray(allPermissions) ? allPermissions.length : 0}{" "}
+                    permissions selected
+                  </span>
+                  <div className="space-x-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setSelectedPermissions([])}>
+                      Clear All
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (Array.isArray(allPermissions)) {
+                          setSelectedPermissions(allPermissions.map((p) => p._id))
+                        }
+                      }}
+                    >
+                      Select All
+                    </Button>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsPermissionsDialogOpen(false)}>
