@@ -364,14 +364,6 @@ export function NetworkMap() {
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="h-full w-full relative">
       <style jsx global>{`
@@ -388,6 +380,14 @@ export function NetworkMap() {
       `}</style>
       <div ref={mapContainerRef} className="h-full w-full" />
       <MapControls />
+      {isLoading && (
+        <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Loading devices...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

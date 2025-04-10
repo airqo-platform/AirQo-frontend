@@ -33,6 +33,10 @@ export default function Layout({
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    useEffect(() => {
+        setIsSidebarCollapsed(defaultCollapsed);
+    }, [defaultCollapsed]);
+
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
     };
