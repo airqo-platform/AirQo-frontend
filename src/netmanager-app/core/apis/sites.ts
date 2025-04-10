@@ -27,6 +27,21 @@ interface SiteDetailsResponse {
   data: Site;
 }
 
+interface UpdateSiteRequest {
+  name?: string;
+  description?: string;
+  network?: string;
+  latitude?: string;
+  longitude?: string;
+  parish?: string;
+  sub_county?: string;
+  district?: string;
+  region?: string;
+  altitude?: string;
+  search_name?: string;
+  location_name?: string;
+}
+
 export const sites = {
   getSitesSummary: async (networkId: string, groupName: string) => {
     try {
@@ -99,6 +114,21 @@ export const sites = {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
         axiosError.response?.data?.message || "Failed to fetch site details"
+      );
+    }
+  },
+
+  updateSiteDetails: async (siteId: string, data: UpdateSiteRequest): Promise<SiteDetailsResponse> => {
+    try {
+      const response = await axiosInstance.put<SiteDetailsResponse>(
+        `${SITES_MGT_URL}?id=${siteId}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update site details"
       );
     }
   },
