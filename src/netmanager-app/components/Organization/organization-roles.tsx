@@ -89,7 +89,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   }
 
   useEffect(() => {
-    // Only fetch permissions once when the component mounts
     if (!permissionsFetched.current) {
       loadPermissions()
     }
@@ -131,12 +130,10 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     setEditRoleId(role._id)
     setEditRoleName(role.role_name)
 
-    // Extract permission IDs from the role's permissions
     const permission_ids = role.role_permissions.map((perm: Permission) => perm._id)
     setSelectedPermissions(permission_ids)
     setIsPermissionsDialogOpen(true)
 
-    // Ensure permissions are loaded when dialog opens
     if (!Array.isArray(allPermissions) || allPermissions.length === 0) {
       loadPermissions()
     }
