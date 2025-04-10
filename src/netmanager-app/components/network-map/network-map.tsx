@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeviceStatus } from "@/core/hooks/useDevices";
-import { Loader2, ZoomIn, ZoomOut, Crosshair, Camera, Share2, RotateCcw } from "lucide-react";
+import { Loader2, ZoomIn, ZoomOut, Crosshair, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -54,29 +54,29 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
     });
   };
 
-  const handleScreenshot = async () => {
-    if (!map) return;
-    try {
-      const canvas = map.getCanvas();
-      const dataURL = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = 'network-map.png';
-      link.href = dataURL;
-      link.click();
-    } catch (error) {
-      console.error('Failed to take screenshot:', error);
-    }
-  };
+  // const handleScreenshot = async () => {
+  //   if (!map) return;
+  //   try {
+  //     const canvas = map.getCanvas();
+  //     const dataURL = canvas.toDataURL('image/png');
+  //     const link = document.createElement('a');
+  //     link.download = 'network-map.png';
+  //     link.href = dataURL;
+  //     link.click();
+  //   } catch (error) {
+  //     console.error('Failed to take screenshot:', error);
+  //   }
+  // };
 
-  const handleShare = () => {
-    if (!map) return;
-    const center = map.getCenter();
-    const zoom = map.getZoom();
-    const url = `${window.location.origin}${window.location.pathname}?center=${center.lng},${center.lat}&zoom=${zoom}`;
-    navigator.clipboard.writeText(url)
-      .then(() => alert('Map URL copied to clipboard!'))
-      .catch(() => alert('Failed to copy URL to clipboard'));
-  };
+  // const handleShare = () => {
+  //   if (!map) return;
+  //   const center = map.getCenter();
+  //   const zoom = map.getZoom();
+  //   const url = `${window.location.origin}${window.location.pathname}?center=${center.lng},${center.lat}&zoom=${zoom}`;
+  //   navigator.clipboard.writeText(url)
+  //     .then(() => alert('Map URL copied to clipboard!'))
+  //     .catch(() => alert('Failed to copy URL to clipboard'));
+  // };
 
   return (
     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-[1000]">
