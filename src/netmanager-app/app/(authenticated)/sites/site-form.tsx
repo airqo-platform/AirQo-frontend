@@ -13,6 +13,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useUpdateSiteDetails } from "@/core/hooks/useSites";
+import { useParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { DialogClose } from "@/components/ui/dialog";
+import { useRef } from "react";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
@@ -45,19 +50,74 @@ interface SiteFormProps {
 }
 
 export function SiteForm({ initialData }: SiteFormProps) {
+  const params = useParams();
+  const siteId = params.id as string;
+  const { toast } = useToast();
+  const { mutate: updateSite, isPending } = useUpdateSiteDetails();
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
     defaultValues: initialData || {
       name: "",
-      organization: "AirQo", // This comes from the current org context
+      organization: "AirQo",
       latitude: "",
       longitude: "",
     },
   });
 
   function onSubmit(values: SiteFormValues) {
-    console.log(values);
-    // Here you would typically send this data to your API
+    const dirtyFields = form.formState.dirtyFields;
+
+    const fieldMapping = {
+      name: "name",
+      description: "description",
+      network: "network",
+      latitude: "latitude",
+      longitude: "longitude",
+      parish: "parish",
+      subCounty: "sub_county",
+      district: "district",
+      region: "region",
+      altitude: "altitude",
+      mobileAppName: "search_name",
+      mobileAppDescription: "location_name",
+    };
+
+    const transformedData = Object.entries(fieldMapping).reduce((acc, [formField, apiField]) => {
+      if (dirtyFields[formField as keyof typeof dirtyFields]) {
+        acc[apiField] = values[formField as keyof SiteFormValues];
+      }
+      return acc;
+    }, {} as Record<string, string | undefined>);
+
+    if (Object.keys(transformedData).length === 0) {
+      toast({
+        title: "No Changes",
+        description: "No fields have been modified",
+      });
+      return;
+    }
+
+    updateSite(
+      { siteId, data: transformedData },
+      {
+        onSuccess: () => {
+          cancelButtonRef.current?.click();
+          toast({
+            title: "Success",
+            description: "Site details updated successfully",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to update site details",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
 
   return (
@@ -113,7 +173,7 @@ export function SiteForm({ initialData }: SiteFormProps) {
               <FormItem>
                 <FormLabel>Network</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter network" {...field} />
+                  <Input {...field} disabled />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -248,14 +308,14 @@ export function SiteForm({ initialData }: SiteFormProps) {
         </div>
 
         <div>
-          <h3 className="text-lg font-medium mb-2">Mobile App Details</h3>
+          <h3 className="text-lg font-medium mb-2">Mobile App Site Details</h3>
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="mobileAppName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile App Name</FormLabel>
+                  <FormLabel>Editable Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter mobile app name" {...field} />
                   </FormControl>
@@ -269,7 +329,7 @@ export function SiteForm({ initialData }: SiteFormProps) {
               name="mobileAppDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mobile App Description</FormLabel>
+                  <FormLabel>Editable Description</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter mobile app description"
@@ -284,10 +344,14 @@ export function SiteForm({ initialData }: SiteFormProps) {
         </div>
 
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline">
-            Cancel
+          <DialogClose asChild>
+            <Button type="button" variant="outline" ref={cancelButtonRef}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save Changes"}
           </Button>
-          <Button type="submit">Save Changes</Button>
         </div>
       </form>
     </Form>

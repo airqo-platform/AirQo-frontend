@@ -1,6 +1,7 @@
 import createAxiosInstance from "./axiosConfig";
 import { SITES_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
+import { Site } from "@/app/types/sites";
 
 const axiosInstance = createAxiosInstance();
 
@@ -19,6 +20,26 @@ interface ApproximateCoordinatesResponse {
 
 interface ErrorResponse {
   message: string;
+}
+
+interface SiteDetailsResponse {
+  message: string;
+  data: Site;
+}
+
+interface UpdateSiteRequest {
+  name?: string;
+  description?: string;
+  network?: string;
+  latitude?: string;
+  longitude?: string;
+  parish?: string;
+  sub_county?: string;
+  district?: string;
+  region?: string;
+  altitude?: string;
+  search_name?: string;
+  location_name?: string;
 }
 
 export const sites = {
@@ -79,6 +100,35 @@ export const sites = {
       throw new Error(
         axiosError.response?.data?.message ||
           "Failed to get approximate coordinates"
+      );
+    }
+  },
+
+  getSiteDetails: async (siteId: string): Promise<SiteDetailsResponse> => {
+    try {
+      const response = await axiosInstance.get<SiteDetailsResponse>(
+        `${SITES_MGT_URL}/${siteId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch site details"
+      );
+    }
+  },
+
+  updateSiteDetails: async (siteId: string, data: UpdateSiteRequest): Promise<SiteDetailsResponse> => {
+    try {
+      const response = await axiosInstance.put<SiteDetailsResponse>(
+        `${SITES_MGT_URL}?id=${siteId}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update site details"
       );
     }
   },

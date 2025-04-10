@@ -263,36 +263,39 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               >
                 <li>
                   <Collapsible open={isDevicesOpen} onOpenChange={handleDevicesToggle}>
-                    <CollapsibleTrigger asChild>
+                    {isSidebarCollapsed ? (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className={`w-full ${
-                                isActive("/devices/overview") && !isDevicesOpen
-                                  ? "bg-accent text-accent-foreground"
-                                  : ""
-                              } ${isSidebarCollapsed ? "justify-center p-2" : "justify-between"}`}
-                            >
-                              <div className={`flex items-center gap-2 ${isSidebarCollapsed ? "justify-center" : ""}`}>
-                                <Radio size={18} className="shrink-0" />
-                                <span className={isSidebarCollapsed ? "hidden" : "block"}>Devices</span>
-                              </div>
-                              <ChevronRight
-                                size={16}
-                                className={`transition-transform ${
-                                  isDevicesOpen ? "rotate-90" : ""
-                                } ${isSidebarCollapsed ? "hidden" : "block"}`}
-                              />
-                            </Button>
+                            <div className="flex items-center w-full cursor-pointer text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200">
+                              <Radio size={18} className="shrink-0" />
+                            </div>
                           </TooltipTrigger>
-                          <TooltipContent side="right" className={isSidebarCollapsed ? "block" : "hidden"}>
-                            Devices
-                          </TooltipContent>
+                          <TooltipContent side="right">Devices</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    </CollapsibleTrigger>
+                    ) : (
+                      <CollapsibleTrigger asChild>
+                        <div
+                          className={`flex items-center w-full cursor-pointer text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200 ${
+                            isActive("/devices/overview") && !isDevicesOpen
+                              ? "bg-accent text-accent-foreground"
+                              : ""
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            <Radio size={18} className="shrink-0" />
+                            <span>Devices</span>
+                          </div>
+                          <ChevronRight
+                            size={16}
+                            className={`transition-transform shrink-0 ${
+                              isDevicesOpen ? "rotate-90" : ""
+                            }`}
+                          />
+                        </div>
+                      </CollapsibleTrigger>
+                    )}
                     <CollapsibleContent className={`ml-6 space-y-2 ${isSidebarCollapsed ? "hidden" : "block"}`}>
                       <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
                         <NavItem 

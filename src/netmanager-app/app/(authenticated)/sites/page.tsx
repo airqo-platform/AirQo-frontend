@@ -37,7 +37,7 @@ import { CreateSiteForm } from "./create-site-form";
 
 const ITEMS_PER_PAGE = 8;
 
-type SortField = "name" | "description" | "region" | "isOnline" | "createdAt";
+type SortField = "name" | "description" | "isOnline" | "createdAt";
 type SortOrder = "asc" | "desc";
 
 export default function SitesPage() {
@@ -50,10 +50,8 @@ export default function SitesPage() {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      // Toggle order if same field
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      // New field, set to ascending
       setSortField(field);
       setSortOrder("asc");
     }
@@ -201,10 +199,6 @@ export default function SitesPage() {
                 {sortField === "description" &&
                   (sortOrder === "asc" ? "↑" : "↓")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort("region")}>
-                Region{" "}
-                {sortField === "region" && (sortOrder === "asc" ? "↑" : "↓")}
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleSort("isOnline")}>
                 Status{" "}
                 {sortField === "isOnline" && (sortOrder === "asc" ? "↑" : "↓")}
@@ -237,13 +231,6 @@ export default function SitesPage() {
                 <TableHead>District</TableHead>
                 <TableHead
                   className="cursor-pointer"
-                  onClick={() => handleSort("region")}
-                >
-                  Region{" "}
-                  {sortField === "region" && (sortOrder === "asc" ? "↑" : "↓")}
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer"
                   onClick={() => handleSort("isOnline")}
                 >
                   Status{" "}
@@ -265,7 +252,6 @@ export default function SitesPage() {
                   <TableCell>{site.description}</TableCell>
                   <TableCell>{site.country}</TableCell>
                   <TableCell>{site.district}</TableCell>
-                  <TableCell>{site.region}</TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
