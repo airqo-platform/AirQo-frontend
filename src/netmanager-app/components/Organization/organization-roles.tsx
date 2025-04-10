@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +11,7 @@ import { useAppSelector } from "@/core/redux/hooks"
 import { useGroupRoles } from "@/core/hooks/useRoles"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Search, ArrowUpDown, Plus, Shield } from "lucide-react"
+import { Search, ArrowUpDown, Plus, Shield, RefreshCw } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/pagination"
 import { toast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { roles } from "@/core/apis/roles"
@@ -44,7 +43,7 @@ type OrganizationRolesProps = {
   organizationId: string
 }
 
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 8
 
 type SortField = "role_name" | "permissions"
 type SortOrder = "asc" | "desc"
@@ -59,6 +58,9 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     updateRolePermissions,
   } = usePermissions()
 
+  // Use a ref to track if we've already fetched permissions
+  const permissionsFetched = useRef(false)
+
   const [newRoleName, setNewRoleName] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -72,15 +74,25 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
   const network = useAppSelector((state) => state.user.activeNetwork)
 
-  useEffect(() => {
-    fetchNetworkPermissions().catch((error) => {
+  const loadPermissions = async () => {
+    try {
+      permissionsFetched.current = true
+      await fetchNetworkPermissions()
+    } catch (error) {
       console.error("Failed to fetch permissions:", error)
       toast({
         title: "Error",
         description: "Failed to load permissions. Please try again.",
         variant: "destructive",
       })
-    })
+    }
+  }
+
+  useEffect(() => {
+    // Only fetch permissions once when the component mounts
+    if (!permissionsFetched.current) {
+      loadPermissions()
+    }
   }, [fetchNetworkPermissions])
 
   const handleCreateRole = async (e: React.FormEvent) => {
@@ -123,6 +135,11 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     const permissionIds = role.role_permissions.map((perm: Permission) => perm._id)
     setSelectedPermissions(permissionIds)
     setIsPermissionsDialogOpen(true)
+
+    // Ensure permissions are loaded when dialog opens
+    if (!Array.isArray(allPermissions) || allPermissions.length === 0) {
+      loadPermissions()
+    }
   }
 
   const handleUpdatePermissions = async (e: React.FormEvent) => {
@@ -358,15 +375,15 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
 
         {/* Permissions Management Dialog */}
         <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>Manage Permissions: {editRoleName}</DialogTitle>
               <DialogDescription>
                 Select the permissions you want to assign to this role. The role name cannot be changed.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleUpdatePermissions} className="space-y-4">
-              <div className="space-y-2">
+            <form onSubmit={handleUpdatePermissions} className="space-y-4 flex-1 overflow-hidden flex flex-col">
+              <div className="space-y-2 flex-1 overflow-hidden flex flex-col">
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -376,11 +393,22 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                     onChange={(e) => setPermissionsSearch(e.target.value)}
                   />
                 </div>
-                <ScrollArea className="h-[300px] rounded-md border p-4">
-                  <div className="space-y-4">
+
+                {/* Custom scrollable container with visible scrollbar */}
+                <div className="flex-1 rounded-md border overflow-hidden flex flex-col">
+                  <div
+                    className="flex-1 overflow-y-auto p-4 space-y-3"
+                    style={{
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "rgba(156, 163, 175, 0.5) transparent",
+                    }}
+                  >
                     {filteredPermissions.length > 0 ? (
                       filteredPermissions.map((permission) => (
-                        <div key={permission._id} className="flex items-start space-x-2">
+                        <div
+                          key={permission._id}
+                          className="flex items-start space-x-2 py-2 border-b border-gray-100 last:border-0"
+                        >
                           <Checkbox
                             id={permission._id}
                             checked={selectedPermissions.includes(permission._id)}
@@ -393,7 +421,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                             }}
                             className="mt-1"
                           />
-                          <div className="grid gap-1.5">
+                          <div className="grid gap-1">
                             <Label
                               htmlFor={permission._id}
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -407,15 +435,28 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        {permissionsSearch
-                          ? "No permissions found matching your search"
-                          : "No permissions available. Please try refreshing."}
+                      <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
+                        <p className="text-muted-foreground">
+                          {permissionsSearch
+                            ? "No permissions found matching your search"
+                            : "No permissions available."}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={loadPermissions}
+                          disabled={isPermissionsLoading}
+                        >
+                          <RefreshCw className={`h-4 w-4 mr-2 ${isPermissionsLoading ? "animate-spin" : ""}`} />
+                          Refresh Permissions
+                        </Button>
                       </div>
                     )}
                   </div>
-                </ScrollArea>
-                <div className="flex items-center justify-between text-sm">
+                </div>
+
+                <div className="flex items-center justify-between text-sm pt-2">
                   <span className="text-muted-foreground">
                     {selectedPermissions.length} of {Array.isArray(allPermissions) ? allPermissions.length : 0}{" "}
                     permissions selected
