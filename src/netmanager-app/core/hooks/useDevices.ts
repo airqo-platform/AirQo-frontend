@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { devices } from "../apis/devices";
+import { devices, DeviceDetailsResponse } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -177,5 +177,13 @@ export const useImportDevice = () => {
         );
       }
     },
+  });
+};
+
+export const useDeviceDetails = (deviceId: string) => {
+  return useQuery({
+    queryKey: ["device-details", deviceId],
+    queryFn: () => devices.getDeviceDetails(deviceId),
+    enabled: !!deviceId,
   });
 };

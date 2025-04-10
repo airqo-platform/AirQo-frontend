@@ -8,26 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { useDeviceDetails } from "@/core/hooks/useDevices";
 
 export default function DeviceDetailsPage() {
   const params = useParams();
   const deviceId = params.id as string;
-
-  // TODO: Add device details hook
-  const isLoading = false;
-  const error = null;
-  const device = {
-    name: "airqo_g5483",
-    channelId: "2874910",
-    description: "",
-    dataAccess: "Private",
-    isp: "Internet Service Provider",
-    isPrimaryInLocation: false,
-    network: "airqo",
-    generationVersion: "",
-    generationCount: "",
-    category: "Lowcost"
-  };
+  const { data: response, isLoading, error } = useDeviceDetails(deviceId);
+  const device = response?.data;
 
   if (isLoading) {
     return (
@@ -44,6 +31,18 @@ export default function DeviceDetailsPage() {
           <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error.message}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!device) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>Device not found</AlertDescription>
         </Alert>
       </div>
     );
@@ -79,40 +78,48 @@ export default function DeviceDetailsPage() {
                 <p>{device.name}</p>
               </div>
               <div>
-                <h3 className="font-semibold">Channel ID</h3>
-                <p>{device.channelId}</p>
+                <h3 className="font-semibold">Serial Number</h3>
+                <p>{device.serial_number}</p>
               </div>
               <div>
-                <h3 className="font-semibold">Description</h3>
-                <p>{device.description || "N/A"}</p>
+                <h3 className="font-semibold">Device Number</h3>
+                <p>{device.device_number}</p>
               </div>
               <div>
-                <h3 className="font-semibold">Data Access</h3>
-                <p>{device.dataAccess}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Internet Service Provider</h3>
-                <p>{device.isp}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Primary Device In Location</h3>
-                <p>{device.isPrimaryInLocation ? "Yes" : "No"}</p>
+                <h3 className="font-semibold">Status</h3>
+                <p className="capitalize">{device.status}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Network</h3>
                 <p>{device.network}</p>
               </div>
               <div>
-                <h3 className="font-semibold">Generation Version</h3>
-                <p>{device.generationVersion || "N/A"}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Generation Count</h3>
-                <p>{device.generationCount || "N/A"}</p>
-              </div>
-              <div>
                 <h3 className="font-semibold">Category</h3>
-                <p>{device.category}</p>
+                <p className="capitalize">{device.category}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Primary Device In Location</h3>
+                <p>{device.isPrimaryInLocation ? "Yes" : "No"}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Online Status</h3>
+                <p>{device.isOnline ? "Online" : "Offline"}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Active Status</h3>
+                <p>{device.isActive ? "Active" : "Inactive"}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Next Maintenance</h3>
+                <p>{new Date(device.nextMaintenance).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Created At</h3>
+                <p>{new Date(device.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Height</h3>
+                <p>{device.height} m</p>
               </div>
             </div>
           </TabsContent>

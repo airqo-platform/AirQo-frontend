@@ -98,6 +98,36 @@ interface DeviceResponse {
   };
 }
 
+interface DeviceDetailsResponse {
+  message: string;
+  data: {
+    id: string;
+    name: string;
+    alias: string;
+    mobility: boolean;
+    network: string;
+    groups: string[];
+    serial_number: string;
+    authRequired: boolean;
+    long_name: string;
+    createdAt: string;
+    visibility: boolean;
+    isPrimaryInLocation: boolean;
+    nextMaintenance: string;
+    device_number: number;
+    status: string;
+    isActive: boolean;
+    writeKey: string;
+    isOnline: boolean;
+    readKey: string;
+    pictures: unknown[];
+    height: number;
+    device_codes: string[];
+    category: string;
+    cohorts: unknown[];
+  };
+}
+
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
@@ -202,4 +232,20 @@ export const devices = {
       );
     }
   },
+
+  getDeviceDetails: async (deviceId: string): Promise<DeviceDetailsResponse> => {
+    try {
+      const response = await axiosInstance.get<DeviceDetailsResponse>(
+        `${DEVICES_MGT_URL}/${deviceId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device details"
+      );
+    }
+  },
 };
+
+export type { DeviceDetailsResponse };
