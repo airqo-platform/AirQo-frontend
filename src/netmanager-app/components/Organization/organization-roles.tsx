@@ -36,7 +36,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { roles } from "@/core/apis/roles"
-import { usePermissions } from "@/hooks/usePermissions"
+import { usePermissions } from "@/core/hooks/usePermission"
 import type { Role, Permission } from "@/app/types/roles"
 
 type OrganizationRolesProps = {
