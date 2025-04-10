@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/dialog";
 import { ImportDeviceForm } from "@/components/import-device-form";
 import { AddAirQoDeviceForm } from "@/components/add-airqo-device-form";
+import { useRouter } from "next/navigation";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -63,6 +64,7 @@ export default function DevicesPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const { devices, isLoading, error } = useDevices();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const router = useRouter();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -161,6 +163,10 @@ export default function DevicesPage() {
   const truncateText = (text: string, maxLength: number = 20) => {
     if (!text) return "";
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
+  const handleDeviceClick = (deviceId: string) => {
+    router.push(`/devices/${deviceId}`);
   };
 
   if (isLoading) {
@@ -297,7 +303,11 @@ export default function DevicesPage() {
             </TableHeader>
             <TableBody>
               {currentDevices.map((device: Device) => (
-                <TableRow key={device._id}>
+                <TableRow 
+                  key={device._id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleDeviceClick(device._id)}
+                >
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <TooltipProvider>
