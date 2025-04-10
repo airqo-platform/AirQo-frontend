@@ -245,8 +245,7 @@ const UserClientsTable = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Clients</h2>
+      <div className="flex items-center justify-end">
         <Button onClick={() => setOpenCreateForm(true)}>
           <Plus className="mr-2 h-4 w-4" /> Create Client
         </Button>

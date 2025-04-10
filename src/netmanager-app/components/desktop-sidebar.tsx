@@ -73,6 +73,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   isActive,
   logout,
 }) => {
+
   const NavItem = ({
     href,
     icon: Icon,
@@ -89,9 +90,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             href={href}
             className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200 ${
               isActive(href) ? "bg-accent text-accent-foreground" : ""
-            }`}
+            } ${isSidebarCollapsed ? "justify-center" : ""}`}
           >
-            <Icon size={18} />
+            <Icon size={18} className="shrink-0" />
             <span className={isSidebarCollapsed ? "hidden" : "block"}>{label}</span>
           </Link>
         </TooltipTrigger>
@@ -104,7 +105,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-card transition-all duration-300 ease-in-out z-40 shadow-lg flex flex-col
+      className={`fixed top-0 left-0 h-full bg-card transition-all duration-300 ease-in-out z-40 shadow-lg flex flex-col desktop-sidebar
                 ${isSidebarCollapsed ? "w-16" : "w-64"}
             `}
     >
@@ -126,27 +127,28 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           />
         </motion.div>
 
-        {/* Sidebar Toggle Button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className={`absolute top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
-                  ${isSidebarCollapsed ? "left-12" : "left-60"}`}
-              >
-                {isSidebarCollapsed ? (
-                  <ChevronRight className="h-4 w-4 text-gray-700" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4 text-gray-700" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className={`absolute top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white shadow-sm border transition-all duration-300 
+                    ${isSidebarCollapsed ? "left-12" : "left-60"}`}
+                >
+                  {isSidebarCollapsed ? (
+                    <ChevronRight className="h-4 w-4 text-gray-700" />
+                  ) : (
+                    <ChevronLeft className="h-4 w-4 text-gray-700" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">{isSidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        
       </div>
 
       {/* Sidebar Content */}
@@ -267,14 +269,14 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
-                              className={`w-full justify-between ${
+                              className={`w-full ${
                                 isActive("/devices/overview") && !isDevicesOpen
                                   ? "bg-accent text-accent-foreground"
                                   : ""
-                              } ${isSidebarCollapsed ? "justify-center" : ""}`}
+                              } ${isSidebarCollapsed ? "justify-center p-2" : "justify-between"}`}
                             >
-                              <div className="flex items-center gap-2">
-                                <Radio size={18} />
+                              <div className={`flex items-center gap-2 ${isSidebarCollapsed ? "justify-center" : ""}`}>
+                                <Radio size={18} className="shrink-0" />
                                 <span className={isSidebarCollapsed ? "hidden" : "block"}>Devices</span>
                               </div>
                               <ChevronRight
@@ -307,7 +309,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                         />
                       </PermissionGuard>
                       <PermissionGuard permission="VIEW_NETWORK_UPTIME">
-                        <NavItem href="/devices/monitoring" icon={MonitorSmartphone} label="Monitoring" />
+                        <NavItem 
+                          href="/devices/monitoring" 
+                          icon={MonitorSmartphone} 
+                          label="Monitoring" 
+                        />
                       </PermissionGuard>
                     </CollapsibleContent>
                   </Collapsible>
