@@ -22,24 +22,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DialogClose } from "@/components/ui/dialog";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useImportDevice } from "@/core/hooks/useDevices";
+
+const CATEGORIES = [
+  { value: 'lowcost', name: 'Lowcost' },
+  { value: 'bam', name: 'BAM' },
+  { value: 'gas', name: 'GAS' }
+];
 
 const importDeviceSchema = z.object({
-  deviceName: z.string().min(2, {
+  name: z.string().min(2, {
     message: "Device name must be at least 2 characters.",
+  }),
+  deviceNumber: z.string().min(1, {
+    message: "Device number is required.",
   }),
   category: z.string({
     required_error: "Please select a category.",
   }),
-  serialNumber: z.string().min(1, {
-    message: "Serial number is required.",
-  }),
-  network: z.string().min(1, {
-    message: "Network is required.",
-  }),
   description: z.string().optional(),
-  channelId: z.string().optional(),
+  network: z.string(),
   writeKey: z.string().optional(),
   readKey: z.string().optional(),
 });
@@ -49,30 +53,60 @@ type ImportDeviceValues = z.infer<typeof importDeviceSchema>;
 export function ImportDeviceForm() {
   const { toast } = useToast();
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const [isShowingMore, setIsShowingMore] = useState(false);
+  const { mutate: importDevice, isPending } = useImportDevice();
 
   const form = useForm<ImportDeviceValues>({
     resolver: zodResolver(importDeviceSchema),
     defaultValues: {
-      deviceName: "",
+      name: "",
+      deviceNumber: "",
       category: "",
-      serialNumber: "",
-      network: "airqo",
       description: "",
-      channelId: "",
+      network: "airqo",
       writeKey: "",
       readKey: "",
     },
   });
 
   function onSubmit(values: ImportDeviceValues) {
-    // TODO: Implement device import logic
-    console.log(values);
-    toast({
-      title: "Success",
-      description: "Device imported successfully",
-    });
-    cancelButtonRef.current?.click();
+    // Create base data object with required fields
+    const deviceData = {
+      long_name: values.name,
+      device_number: values.deviceNumber,
+      category: values.category,
+      network: values.network,
+    };
+
+    // Add optional fields only if they have values
+    if (values.description?.trim()) {
+      deviceData['description'] = values.description.trim();
+    }
+    if (values.writeKey?.trim()) {
+      deviceData['writeKey'] = values.writeKey.trim();
+    }
+    if (values.readKey?.trim()) {
+      deviceData['readKey'] = values.readKey.trim();
+    }
+
+    importDevice(
+      deviceData,
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "Device imported successfully",
+          });
+          cancelButtonRef.current?.click();
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to import device",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
 
   return (
@@ -81,12 +115,26 @@ export function ImportDeviceForm() {
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="deviceName"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Device Name *</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter device name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="deviceNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Device Number *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter device number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -106,25 +154,13 @@ export function ImportDeviceForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="low_cost">Low Cost</SelectItem>
-                    <SelectItem value="bam">BAM</SelectItem>
-                    <SelectItem value="reference">Reference</SelectItem>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="serialNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Serial Number *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter serial number" {...field} />
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -146,9 +182,37 @@ export function ImportDeviceForm() {
 
           <FormField
             control={form.control}
-            name="description"
+            name="writeKey"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Write Key</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter write key" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="readKey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Read Key</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter read key" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
                 <FormLabel>Description</FormLabel>
                 <FormControl>
                   <Textarea
@@ -162,70 +226,17 @@ export function ImportDeviceForm() {
           />
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setIsShowingMore(!isShowingMore)}
-          className="w-full"
-        >
-          {isShowingMore ? "SHOW LESS OPTIONS" : "SHOW MORE OPTIONS"}
-        </Button>
-
-        {isShowingMore && (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="channelId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Channel ID (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter channel ID" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="writeKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Write Key (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter write key" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="readKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Read Key (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter read key" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-
         <div className="flex justify-end gap-4">
           <DialogClose asChild>
             <Button type="button" variant="outline" ref={cancelButtonRef}>
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit">Register</Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Importing..." : "Import Device"}
+          </Button>
         </div>
       </form>
     </Form>
   );
-} 
+}

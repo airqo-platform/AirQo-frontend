@@ -1,4 +1,4 @@
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { devices } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
@@ -9,6 +9,7 @@ import type {
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
+import { useAssignDevicesToGroup } from "./useGroups";
 
 interface ErrorResponse {
   message: string;
@@ -123,4 +124,58 @@ export const useMapReadings = () => {
     isLoading: mapReadingsQuery.isLoading,
     error: mapReadingsQuery.error,
   };
+};
+
+export const useCreateDevice = () => {
+  const queryClient = useQueryClient();
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { mutate: assignDevices } = useAssignDevicesToGroup();
+  
+  return useMutation({
+    mutationFn: devices.createDevice,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      
+      if (activeGroup?.grp_title) {
+        assignDevices(
+          {
+            deviceIds: [response.created_device._id],
+            groups: [activeGroup.grp_title],
+          },
+          {
+            onError: (error) => {
+              console.error("Failed to assign device to group:", error);
+            },
+          }
+        );
+      }
+    },
+  });
+};
+
+export const useImportDevice = () => {
+  const queryClient = useQueryClient();
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { mutate: assignDevices } = useAssignDevicesToGroup();
+  
+  return useMutation({
+    mutationFn: devices.importDevice,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      
+      if (activeGroup?.grp_title) {
+        assignDevices(
+          {
+            deviceIds: [response.created_device._id],
+            groups: [activeGroup.grp_title],
+          },
+          {
+            onError: (error) => {
+              console.error("Failed to assign device to group:", error);
+            },
+          }
+        );
+      }
+    },
+  });
 };

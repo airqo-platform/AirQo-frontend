@@ -48,6 +48,56 @@ export interface DeviceStatusResponse {
   data: DeviceStatusSummary[];
 }
 
+interface CreateDeviceRequest {
+  long_name: string;
+  category: string;
+  network: string;
+}
+
+interface ImportDeviceRequest {
+  device_number?: number;
+  long_name: string;
+  description?: string;
+  createdAt?: string;
+  generation_version?: number;
+  generation_count?: number;
+  writeKey?: string;
+  readKey?: string;
+  category: string;
+  visibility?: boolean;
+  network: string;
+}
+
+interface DeviceResponse {
+  success: boolean;
+  message: string;
+  created_device: {
+    visibility: boolean;
+    tags: string[];
+    mobility: boolean;
+    height: number;
+    isPrimaryInLocation: boolean;
+    nextMaintenance: string;
+    category: string;
+    isActive: boolean;
+    pictures: unknown[];
+    _id: string;
+    long_name: string;
+    generation_version: number;
+    generation_count: number;
+    device_number: number;
+    writeKey: string;
+    readKey: string;
+    name: string;
+    deployment_date: string;
+    maintenance_date: string;
+    recall_date: string;
+    createdAt: string;
+    updatedAt: string;
+    description?: string;
+  };
+}
+
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
@@ -101,5 +151,55 @@ export const devices = {
       `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`
     );
     return response.data;
+  },
+
+  createDevice: async (data: CreateDeviceRequest): Promise<DeviceResponse> => {
+    try {
+      // Filter out empty values but keep network field
+      const cleanedData = {
+        network: data.network,
+        ...Object.fromEntries(
+          Object.entries(data).filter(([key, value]) => 
+            key === 'network' || (value !== undefined && value !== null && value !== '')
+          )
+        ),
+      };
+
+      const response = await axiosInstance.post<DeviceResponse>(
+        `${DEVICES_MGT_URL}`,
+        cleanedData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to create device"
+      );
+    }
+  },
+
+  importDevice: async (data: ImportDeviceRequest): Promise<DeviceResponse> => {
+    try {
+      // Filter out empty values but keep network field
+      const cleanedData = {
+        network: data.network,
+        ...Object.fromEntries(
+          Object.entries(data).filter(([key, value]) => 
+            key === 'network' || (value !== undefined && value !== null && value !== '')
+          )
+        ),
+      };
+
+      const response = await axiosInstance.post<DeviceResponse>(
+        `${DEVICES_MGT_URL}/soft`,
+        cleanedData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to import device"
+      );
+    }
   },
 };

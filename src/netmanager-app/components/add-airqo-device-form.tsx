@@ -24,6 +24,7 @@ import {
 import { DialogClose } from "@/components/ui/dialog";
 import { useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useCreateDevice } from "@/core/hooks/useDevices";
 
 const CATEGORIES = [
   { value: 'lowcost', name: 'Lowcost' },
@@ -47,6 +48,7 @@ type AirQoDeviceValues = z.infer<typeof airqoDeviceSchema>;
 export function AddAirQoDeviceForm() {
   const { toast } = useToast();
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const { mutate: createDevice, isPending } = useCreateDevice();
 
   const form = useForm<AirQoDeviceValues>({
     resolver: zodResolver(airqoDeviceSchema),
@@ -59,13 +61,37 @@ export function AddAirQoDeviceForm() {
   });
 
   function onSubmit(values: AirQoDeviceValues) {
-    // TODO: Implement device creation logic
-    console.log(values);
-    toast({
-      title: "Success",
-      description: "AirQo device added successfully",
-    });
-    cancelButtonRef.current?.click();
+    // Create base data object with required fields
+    const deviceData = {
+      long_name: values.name,
+      category: values.category,
+      network: values.network,
+    };
+
+    // Add optional fields only if they have values
+    if (values.description?.trim()) {
+      deviceData['description'] = values.description.trim();
+    }
+
+    createDevice(
+      deviceData,
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "AirQo device added successfully",
+          });
+          cancelButtonRef.current?.click();
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to add device",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
 
   return (
@@ -149,7 +175,9 @@ export function AddAirQoDeviceForm() {
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit">Add Device</Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Adding..." : "Add Device"}
+          </Button>
         </div>
       </form>
     </Form>
