@@ -31,7 +31,7 @@ export const useGroupResources = (groupId: string) => {
           hasSites: Array.isArray(response.sites) && response.sites.length > 0,
           sites: response.sites || [],
         }
-      } catch (error) {
+      } catch {
         return { hasSites: false, sites: [] }
       }
     },
@@ -49,7 +49,7 @@ export const useGroupResources = (groupId: string) => {
           hasDevices: Array.isArray(response.devices) && response.devices.length > 0,
           devices: response.devices || [],
         }
-      } catch (error) {
+      } catch {
         return { hasDevices: false, devices: [] }
       }
     },

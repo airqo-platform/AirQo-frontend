@@ -190,7 +190,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   }, [grproles, searchQuery, sortField, sortOrder])
 
   const filteredPermissions = useMemo(() => {
-    // Ensure allPermissions is an array before filtering
     if (!Array.isArray(allPermissions)) return []
 
     return allPermissions.filter(
