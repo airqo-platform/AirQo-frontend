@@ -14,14 +14,14 @@ export const ThemeCustomizer = memo(() => {
       <button
         onClick={openThemeSheet}
         className="fixed right-0 top-1/2 transform -translate-y-1/2 
-          bg-blue-600 text-white p-3 rounded-l-xl 
+          bg-blue-600 text-white p-3 
           shadow-md hover:bg-blue-700 
           transition-all duration-300 z-50 
-          flex items-center justify-center"
+          flex items-center justify-center rounded-l-lg"
         aria-label="Open Theme Settings"
         type="button"
       >
-        <FaCog size={16} className="animate-pulse" />
+        <FaCog size={16} />
       </button>
 
       {/* Theme Sheet */}

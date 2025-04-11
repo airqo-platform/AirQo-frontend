@@ -23,7 +23,7 @@ import {
 export const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  // Initialize theme states with callbacks to avoid unnecessary re-renders
+  // Initialize states with getter functions
   const [theme, setTheme] = useState(getInitialTheme);
   const [skin, setSkin] = useState(getInitialSkin);
   const [semiDarkMode, setSemiDarkMode] = useState(getInitialSemiDark);
@@ -34,7 +34,7 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    // Set initial system theme value
+    // Set initial value
     setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
 
     // Event handler for system theme changes
@@ -42,37 +42,33 @@ export const ThemeProvider = ({ children }) => {
       const newSystemTheme = e.matches ? 'dark' : 'light';
       setSystemTheme(newSystemTheme);
 
-      // If current theme is 'system', apply the new system theme
+      // Apply new theme if in system mode
       if (theme === 'system') {
         applyTheme('system', newSystemTheme, semiDarkMode);
       }
     };
 
-    // Use the appropriate event listener method based on browser support
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleChange);
-    }
+    // Use the appropriate event listener method
+    const addListener = mediaQuery.addEventListener
+      ? mediaQuery.addEventListener.bind(mediaQuery)
+      : mediaQuery.addListener?.bind(mediaQuery);
 
-    // Clean up event listener on unmount
+    const removeListener = mediaQuery.removeEventListener
+      ? mediaQuery.removeEventListener.bind(mediaQuery)
+      : mediaQuery.removeListener?.bind(mediaQuery);
+
+    if (addListener) addListener('change', handleChange);
+
+    // Cleanup
     return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleChange);
-      } else {
-        // Fallback for older browsers
-        mediaQuery.removeListener(handleChange);
-      }
+      if (removeListener) removeListener('change', handleChange);
     };
   }, [theme, semiDarkMode]);
 
   // Apply theme effect
   useEffect(() => {
-    // Apply the chosen theme and semi-dark mode
     applyTheme(theme, systemTheme, semiDarkMode);
 
-    // Save to localStorage if not incognito mode
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch (error) {
@@ -82,10 +78,8 @@ export const ThemeProvider = ({ children }) => {
 
   // Apply skin effect
   useEffect(() => {
-    // Apply chosen skin
     document.documentElement.setAttribute('data-skin', skin);
 
-    // Save to localStorage if not incognito mode
     try {
       localStorage.setItem(SKIN_STORAGE_KEY, skin);
     } catch (error) {
@@ -93,9 +87,8 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [skin]);
 
-  // Apply semi-dark mode effect
+  // Save semi-dark mode preference
   useEffect(() => {
-    // Save to localStorage if not incognito mode
     try {
       localStorage.setItem(SEMI_DARK_STORAGE_KEY, semiDarkMode);
     } catch (error) {
@@ -106,43 +99,32 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [semiDarkMode]);
 
-  // Memoized callbacks for better performance
-  const toggleTheme = useCallback((newTheme) => {
-    setTheme(newTheme);
-  }, []);
-
-  const toggleSkin = useCallback((newSkin) => {
-    setSkin(newSkin);
-  }, []);
-
-  const toggleSemiDarkMode = useCallback((enabled) => {
-    setSemiDarkMode(
-      enabled ? SEMI_DARK_MODES.ENABLED : SEMI_DARK_MODES.DISABLED,
-    );
-  }, []);
+  // Memoized callbacks
+  const toggleTheme = useCallback((newTheme) => setTheme(newTheme), []);
+  const toggleSkin = useCallback((newSkin) => setSkin(newSkin), []);
+  const toggleSemiDarkMode = useCallback(
+    (enabled) =>
+      setSemiDarkMode(
+        enabled ? SEMI_DARK_MODES.ENABLED : SEMI_DARK_MODES.DISABLED,
+      ),
+    [],
+  );
 
   const openThemeSheet = useCallback(() => {
     setIsThemeSheetOpen(true);
 
-    // Add event listener to handle escape key
+    // Handle escape key
     const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        setIsThemeSheetOpen(false);
-      }
+      if (e.key === 'Escape') setIsThemeSheetOpen(false);
     };
 
     document.addEventListener('keydown', handleEsc);
-
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-    };
+    return () => document.removeEventListener('keydown', handleEsc);
   }, []);
 
-  const closeThemeSheet = useCallback(() => {
-    setIsThemeSheetOpen(false);
-  }, []);
+  const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), []);
 
-  // Memoize context value to prevent unnecessary re-renders
+  // Memoize context value
   const contextValue = useMemo(
     () => ({
       theme,

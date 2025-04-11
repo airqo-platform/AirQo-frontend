@@ -9,14 +9,13 @@ import {
 } from '../constants/themeConstants';
 
 export const applyTheme = (mode, systemTheme, semiDarkMode) => {
+  // Remove all theme classes first
   document.documentElement.classList.remove('light', 'dark', 'semi-dark');
 
-  let effectiveTheme = mode;
+  // Determine effective theme
+  const effectiveTheme = mode === 'system' && systemTheme ? systemTheme : mode;
 
-  if (mode === 'system' && systemTheme) {
-    effectiveTheme = systemTheme;
-  }
-
+  // Apply theme class
   document.documentElement.classList.add(effectiveTheme);
 
   // Apply semi-dark mode if enabled
@@ -24,57 +23,30 @@ export const applyTheme = (mode, systemTheme, semiDarkMode) => {
     document.documentElement.classList.add('semi-dark');
   }
 
+  // Set theme attribute for potential CSS selectors
   document.documentElement.setAttribute('data-theme', effectiveTheme);
 };
 
-export const getInitialTheme = () => {
-  if (typeof window === 'undefined') {
-    return 'light';
-  }
+const getLocalStorageItem = (key, defaultValue) => {
+  if (typeof window === 'undefined') return defaultValue;
 
   try {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme) return savedTheme;
+    const savedValue = localStorage.getItem(key);
+    return savedValue || defaultValue;
   } catch (error) {
-    console.warn('Could not access localStorage for theme preference:', error);
+    console.warn(`Could not access localStorage for ${key}:`, error);
+    return defaultValue;
   }
-
-  if (window.matchMedia) {
-    return 'system';
-  }
-
-  return 'light';
 };
 
-export const getInitialSkin = () => {
-  if (typeof window === 'undefined') {
-    return THEME_SKINS.BORDERED;
-  }
+export const getInitialTheme = () =>
+  getLocalStorageItem(
+    THEME_STORAGE_KEY,
+    window?.matchMedia ? 'system' : 'light',
+  );
 
-  try {
-    const savedSkin = localStorage.getItem(SKIN_STORAGE_KEY);
-    if (savedSkin) return savedSkin;
-  } catch (error) {
-    console.warn('Could not access localStorage for skin preference:', error);
-  }
+export const getInitialSkin = () =>
+  getLocalStorageItem(SKIN_STORAGE_KEY, THEME_SKINS.BORDERED);
 
-  return THEME_SKINS.BORDERED;
-};
-
-export const getInitialSemiDark = () => {
-  if (typeof window === 'undefined') {
-    return SEMI_DARK_MODES.DISABLED;
-  }
-
-  try {
-    const savedSemiDark = localStorage.getItem(SEMI_DARK_STORAGE_KEY);
-    if (savedSemiDark) return savedSemiDark;
-  } catch (error) {
-    console.warn(
-      'Could not access localStorage for semi-dark preference:',
-      error,
-    );
-  }
-
-  return SEMI_DARK_MODES.DISABLED;
-};
+export const getInitialSemiDark = () =>
+  getLocalStorageItem(SEMI_DARK_STORAGE_KEY, SEMI_DARK_MODES.DISABLED);

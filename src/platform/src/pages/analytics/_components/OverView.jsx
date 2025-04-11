@@ -1,40 +1,34 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ChartContainer from '@/features/airQuality-charts/ChartContainer';
-import AQNumberCard from '@/features/airQuality-cards';
-import BorderlessContentBox from '@/components/Layout/borderless_content_box';
-import CustomCalendar from '@/components/Calendar/CustomCalendar';
-import CheckIcon from '@/icons/tickIcon';
-import TabButtons from '@/components/Button/TabButtons';
-import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
+import { subDays } from 'date-fns';
+import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import {
   setTimeFrame,
   setPollutant,
   setChartDataRange,
 } from '@/lib/store/services/charts/ChartSlice';
-import SettingsIcon from '@/icons/settings.svg';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import ChartContainer from '@/features/airQuality-charts/ChartContainer';
+import AQNumberCard from '@/features/airQuality-cards';
+import BorderlessContentBox from '@/components/Layout/borderless_content_box';
+import CustomCalendar from '@/components/Calendar/CustomCalendar';
+import CustomDropdown, {
+  DropdownItem,
+} from '@/components/Button/CustomDropdown';
 import PlusIcon from '@/icons/map/plusIcon';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import Modal from '@/features/download-insights-locations';
-import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import SettingsIcon from '@/icons/settings.svg';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
-import { subDays } from 'date-fns';
-import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
+import Modal from '@/features/download-insights-locations';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
-/**
- * Overview component for displaying analytics dashboards and charts
- */
 const OverView = () => {
   const dispatch = useDispatch();
-
-  // Get global state from Redux
   const isModalOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
   const { title: groupTitle } = useGetActiveGroup();
 
-  // Default date range for the last 7 days
   const defaultDateRange = useMemo(
     () => ({
       startDate: subDays(new Date(), 7),
@@ -44,8 +38,6 @@ const OverView = () => {
     [],
   );
 
-  // Local state for date range - initialize with the value from Redux if available,
-  // otherwise use the default
   const [dateRange, setDateRange] = useState(() => {
     if (
       chartData.chartDataRange.startDate &&
@@ -60,7 +52,6 @@ const OverView = () => {
     return defaultDateRange;
   });
 
-  // Memoize the date range object for API calls to prevent unnecessary renders
   const apiDateRange = useMemo(
     () => ({
       startDate: dateRange.startDate,
@@ -69,7 +60,6 @@ const OverView = () => {
     [dateRange.startDate, dateRange.endDate],
   );
 
-  // Fetch analytics data using the SWR hook with the memoized date range
   const { allSiteData, chartLoading, isError, error, refetch } =
     useAnalyticsData({
       selectedSiteIds: chartData.chartSites,
@@ -79,7 +69,6 @@ const OverView = () => {
       organisationName: chartData.organizationName || groupTitle,
     });
 
-  // Initialize chart data range on component mount
   useEffect(() => {
     if (
       !chartData.chartDataRange.startDate ||
@@ -90,7 +79,6 @@ const OverView = () => {
         startDate,
         endDate,
       );
-
       dispatch(
         setChartDataRange({
           startDate: startDateISO,
@@ -101,7 +89,6 @@ const OverView = () => {
     }
   }, [dispatch, defaultDateRange, chartData.chartDataRange]);
 
-  // Reset chart data range to default when component unmounts
   useEffect(() => {
     return () => {
       const { startDate, endDate } = defaultDateRange;
@@ -109,7 +96,6 @@ const OverView = () => {
         startDate,
         endDate,
       );
-
       dispatch(
         setChartDataRange({
           startDate: startDateISO,
@@ -120,11 +106,6 @@ const OverView = () => {
     };
   }, [dispatch, defaultDateRange]);
 
-  /**
-   * Opens a modal of the specified type
-   * @param {string} type - Modal type ('addLocation' or 'download')
-   * @param {Array} ids - Optional array of IDs
-   */
   const handleOpenModal = useCallback(
     (type, ids = []) => {
       dispatch(setOpenModal(true));
@@ -133,10 +114,6 @@ const OverView = () => {
     [dispatch],
   );
 
-  /**
-   * Handles change in time frame selection
-   * @param {string} option - Selected time frame option
-   */
   const handleTimeFrameChange = useCallback(
     (option) => {
       if (chartData.timeFrame !== option) {
@@ -146,10 +123,6 @@ const OverView = () => {
     [dispatch, chartData.timeFrame],
   );
 
-  /**
-   * Handles change in pollutant selection
-   * @param {string} pollutantId - ID of the selected pollutant
-   */
   const handlePollutantChange = useCallback(
     (pollutantId) => {
       if (chartData.pollutionType !== pollutantId) {
@@ -159,35 +132,14 @@ const OverView = () => {
     [dispatch, chartData.pollutionType],
   );
 
-  /**
-   * Handles change in date range selection
-   * Updates both local state and Redux store
-   * @param {Date} startDate - Start date
-   * @param {Date} endDate - End date
-   * @param {string} label - Label for the date range
-   */
   const handleDateChange = useCallback(
     (startDate, endDate, label) => {
-      // Validate dates before processing
-      if (!startDate || !endDate) {
-        console.error('Invalid date range selected');
-        return;
-      }
-
-      // Format dates for ISO storage in Redux
+      if (!startDate || !endDate) return;
       const { startDateISO, endDateISO } = formatDateRangeToISO(
         startDate,
         endDate,
       );
-
-      // Update local state first for immediate UI reflection
-      setDateRange({
-        startDate,
-        endDate,
-        label: label || 'Custom Range',
-      });
-
-      // Then update Redux store for persistence
+      setDateRange({ startDate, endDate, label: label || 'Custom Range' });
       dispatch(
         setChartDataRange({
           startDate: startDateISO,
@@ -195,23 +147,15 @@ const OverView = () => {
           label: label || 'Custom Range',
         }),
       );
-
-      // Force refetch data with new date range
-      setTimeout(() => {
-        refetch();
-      }, 0);
+      setTimeout(refetch, 0);
     },
     [dispatch, refetch],
   );
 
-  /**
-   * Closes the modal
-   */
   const handleCloseModal = useCallback(() => {
     dispatch(setOpenModal(false));
   }, [dispatch]);
 
-  // Determine whether to show loading state for charts
   const isChartLoading = chartLoading || (!allSiteData && !isError);
 
   return (
@@ -221,30 +165,18 @@ const OverView = () => {
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="space-x-2 flex">
             {/* Time Frame Dropdown */}
-            <CustomDropdown
-              btnText={chartData.timeFrame}
-              dropdown
-              id="days"
-              className="left-0"
-            >
-              {TIME_OPTIONS.map((option) => (
-                <span
-                  key={option}
-                  onClick={() => handleTimeFrameChange(option)}
-                  className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                    chartData.timeFrame === option
-                      ? 'bg-[#EBF5FF] rounded-md'
-                      : ''
-                  }`}
-                >
-                  <span className="flex items-center space-x-2">
+            <CustomDropdown text={chartData.timeFrame}>
+              <div className="py-1">
+                {TIME_OPTIONS.map((option) => (
+                  <DropdownItem
+                    key={option}
+                    onClick={() => handleTimeFrameChange(option)}
+                    active={chartData.timeFrame === option}
+                  >
                     {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </span>
-                  {chartData.timeFrame === option && (
-                    <CheckIcon fill="#145FFF" />
-                  )}
-                </span>
-              ))}
+                  </DropdownItem>
+                ))}
+              </div>
             </CustomDropdown>
 
             {/* Custom Calendar */}
@@ -260,45 +192,42 @@ const OverView = () => {
 
             {/* Pollutant Dropdown */}
             <CustomDropdown
-              tabIcon={<SettingsIcon />}
-              btnText="Pollutant"
-              id="pollutant"
-              className="left-0"
+              text="Pollutant"
+              icon={<SettingsIcon />}
+              iconPosition="left"
             >
-              {POLLUTANT_OPTIONS.map((option) => (
-                <span
-                  key={option.id}
-                  onClick={() => handlePollutantChange(option.id)}
-                  className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                    chartData.pollutionType === option.id
-                      ? 'bg-[#EBF5FF] rounded-md'
-                      : ''
-                  }`}
-                >
-                  <span className="flex items-center space-x-2">
+              <div className="py-1">
+                {POLLUTANT_OPTIONS.map((option) => (
+                  <DropdownItem
+                    key={option.id}
+                    onClick={() => handlePollutantChange(option.id)}
+                    active={chartData.pollutionType === option.id}
+                  >
                     {option.name}
-                  </span>
-                  {chartData.pollutionType === option.id && (
-                    <CheckIcon fill="#145FFF" />
-                  )}
-                </span>
-              ))}
+                  </DropdownItem>
+                ))}
+              </div>
             </CustomDropdown>
           </div>
 
           <div className="space-x-2 flex">
             {/* Add Location Button */}
-            <TabButtons
-              btnText="Add location"
-              Icon={<PlusIcon width={16} height={16} />}
+            <CustomDropdown
+              text="Add location"
+              icon={<PlusIcon width={16} height={16} />}
+              iconPosition="left"
+              isButton
               onClick={() => handleOpenModal('addLocation')}
             />
-            {/* Download Data Button */}
-            <TabButtons
-              btnText="Download Data"
-              Icon={<DownloadIcon width={16} height={17} color="white" />}
+
+            {/* Download Data Button with a blue background */}
+            <CustomDropdown
+              text="Download Data"
+              icon={<DownloadIcon width={16} height={17} color="white" />}
+              iconPosition="left"
+              isButton
               onClick={() => handleOpenModal('download')}
-              btnStyle="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl"
+              buttonClassName="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl hover:bg-blue-700"
             />
           </div>
         </div>
@@ -308,7 +237,6 @@ const OverView = () => {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Line Chart */}
           <ChartContainer
             chartType="line"
             chartTitle="Air Pollution Trends Over Time"
@@ -320,7 +248,6 @@ const OverView = () => {
             refetch={refetch}
             dateRange={apiDateRange}
           />
-          {/* Bar Chart */}
           <ChartContainer
             chartType="bar"
             chartTitle="Air Pollution Levels Distribution"
@@ -335,7 +262,6 @@ const OverView = () => {
         </div>
       </div>
 
-      {/* Data Download Modal */}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
     </BorderlessContentBox>
   );

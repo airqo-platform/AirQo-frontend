@@ -16,7 +16,7 @@ import {
   getYear,
 } from 'date-fns';
 import CalendarIcon from '@/icons/Analytics/calendarIcon';
-import TabButtons from '../Button/TabButtons';
+import CustomDropdown from '../Button/CustomDropdown';
 import Calendar from './Calendar';
 import { useOutsideClick } from '@/core/hooks';
 
@@ -31,7 +31,7 @@ const isValidDate = (date) => {
 };
 
 /**
- * CustomCalendar Component
+ * CustomCalendar Component with dark mode support
  */
 const CustomCalendar = ({
   initialStartDate,
@@ -39,7 +39,6 @@ const CustomCalendar = ({
   initial_label,
   onChange,
   className = '',
-  dropdown = false,
   isLoading = false,
 }) => {
   const containerRef = useRef(null);
@@ -171,17 +170,11 @@ const CustomCalendar = ({
 
   /**
    * Toggles the visibility of the date picker.
-   *
-   * @param {Event} event - Click event.
    */
-  const handleToggleDatePicker = useCallback(
-    (event) => {
-      if (isLoading) return; // Prevent toggling if loading
-      event.stopPropagation();
-      setOpenDatePicker((prev) => !prev);
-    },
-    [isLoading],
-  );
+  const handleToggleDatePicker = useCallback(() => {
+    if (isLoading) return; // Prevent toggling if loading
+    setOpenDatePicker((prev) => !prev);
+  }, [isLoading]);
 
   /**
    * Closes the date picker.
@@ -245,13 +238,13 @@ const CustomCalendar = ({
       className="relative cursor-pointer date-picker-container"
       ref={containerRef}
     >
-      <TabButtons
-        Icon={<CalendarIcon />}
-        btnText={value.label || 'Select Date Range'}
-        dropdown={dropdown}
+      <CustomDropdown
+        text={value.label || 'Select Date Range'}
+        icon={<CalendarIcon />}
+        iconPosition="left"
         onClick={handleToggleDatePicker}
-        id="datePicker"
-        type="button"
+        isButton={true}
+        showArrowWithButton={true}
         disabled={isLoading}
       />
       {renderCalendar()}
@@ -266,6 +259,7 @@ CustomCalendar.propTypes = {
   className: PropTypes.string,
   dropdown: PropTypes.bool,
   isLoading: PropTypes.bool,
+  darkMode: PropTypes.bool,
 };
 
 CustomCalendar.defaultProps = {
@@ -273,6 +267,7 @@ CustomCalendar.defaultProps = {
   className: '',
   dropdown: false,
   isLoading: false,
+  darkMode: false,
 };
 
 export default CustomCalendar;
