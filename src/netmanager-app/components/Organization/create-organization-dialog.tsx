@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCreateGroup } from "@/core/hooks/useGroups"
 import { useRouter } from "next/navigation"
 
-// Schema
 const createOrgSchema = z.object({
   grp_title: z.string().min(2, { message: "Organization name must be at least 2 characters." }),
   grp_country: z.string({ required_error: "Please select a country." }),
@@ -62,11 +61,9 @@ export function CreateOrganizationDialog() {
     },
   })
 
-  // API Hook
   const { mutateAsync: createGroup, status } = useCreateGroup()
   const isCreatingGroup = status === "pending"
 
-  // Form submission handler
   const onCreateOrganization = async (data: z.infer<typeof createOrgSchema>) => {
     try {
       const result = await createGroup(data)
@@ -79,7 +76,6 @@ export function CreateOrganizationDialog() {
       setOpen(false)
       form.reset()
 
-      // Optionally navigate to the new organization's page
       if (result && result._id) {
         router.push(`/organizations/${result._id}`)
       }
