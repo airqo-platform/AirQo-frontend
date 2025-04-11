@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { devices, DeviceDetailsResponse } from "../apis/devices";
+import { devices } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -32,7 +32,6 @@ export const useDevices = () => {
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
     onSuccess: (data: DevicesSummaryResponse) => {
-      // Convert Device[] to DeviceStatus[]
       const devicesWithStatus = data.devices.map(device => ({
         ...device,
         device_number: 0,

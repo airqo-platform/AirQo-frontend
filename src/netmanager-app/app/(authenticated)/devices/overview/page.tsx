@@ -48,8 +48,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ImportDeviceForm } from "@/components/import-device-form";
-import { AddAirQoDeviceForm } from "@/components/add-airqo-device-form";
+import { ImportDeviceForm } from "@/components/devices/import-device-form";
+import { AddAirQoDeviceForm } from "@/components/devices/add-airqo-device-form";
 import { useRouter } from "next/navigation";
 
 const ITEMS_PER_PAGE = 8;

@@ -24,7 +24,7 @@ import {
 import { DialogClose } from "@/components/ui/dialog";
 import { useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useImportDevice } from "@/core/hooks/useDevices";
+import { useCreateDevice } from "@/core/hooks/useDevices";
 
 const CATEGORIES = [
   { value: 'lowcost', name: 'Lowcost' },
@@ -32,76 +32,56 @@ const CATEGORIES = [
   { value: 'gas', name: 'GAS' }
 ];
 
-const importDeviceSchema = z.object({
+const airqoDeviceSchema = z.object({
   name: z.string().min(2, {
     message: "Device name must be at least 2 characters.",
-  }),
-  deviceNumber: z.string().min(1, {
-    message: "Device number is required.",
   }),
   category: z.string({
     required_error: "Please select a category.",
   }),
   description: z.string().optional(),
   network: z.string(),
-  writeKey: z.string().optional(),
-  readKey: z.string().optional(),
 });
 
-type ImportDeviceValues = z.infer<typeof importDeviceSchema>;
+type AirQoDeviceValues = z.infer<typeof airqoDeviceSchema>;
 
-export function ImportDeviceForm() {
+export function AddAirQoDeviceForm() {
   const { toast } = useToast();
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const { mutate: importDevice, isPending } = useImportDevice();
+  const { mutate: createDevice, isPending } = useCreateDevice();
 
-  const form = useForm<ImportDeviceValues>({
-    resolver: zodResolver(importDeviceSchema),
+  const form = useForm<AirQoDeviceValues>({
+    resolver: zodResolver(airqoDeviceSchema),
     defaultValues: {
       name: "",
-      deviceNumber: "",
       category: "",
       description: "",
       network: "airqo",
-      writeKey: "",
-      readKey: "",
     },
   });
 
-  function onSubmit(values: ImportDeviceValues) {
-    // Create base data object with required fields
+  function onSubmit(values: AirQoDeviceValues) {
     const deviceData = {
       long_name: values.name,
-      device_number: values.deviceNumber,
       category: values.category,
       network: values.network,
+      ...(values.description?.trim() && { description: values.description.trim() })
     };
 
-    // Add optional fields only if they have values
-    if (values.description?.trim()) {
-      deviceData['description'] = values.description.trim();
-    }
-    if (values.writeKey?.trim()) {
-      deviceData['writeKey'] = values.writeKey.trim();
-    }
-    if (values.readKey?.trim()) {
-      deviceData['readKey'] = values.readKey.trim();
-    }
-
-    importDevice(
+    createDevice(
       deviceData,
       {
         onSuccess: () => {
           toast({
             title: "Success",
-            description: "Device imported successfully",
+            description: "AirQo device added successfully",
           });
           cancelButtonRef.current?.click();
         },
         onError: (error: Error) => {
           toast({
             title: "Error",
-            description: error.message || "Failed to import device",
+            description: error.message || "Failed to add device",
             variant: "destructive",
           });
         },
@@ -121,20 +101,6 @@ export function ImportDeviceForm() {
                 <FormLabel>Device Name *</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter device name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="deviceNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Device Number *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter device number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -182,34 +148,6 @@ export function ImportDeviceForm() {
 
           <FormField
             control={form.control}
-            name="writeKey"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Write Key</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter write key" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="readKey"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Read Key</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter read key" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="description"
             render={({ field }) => (
               <FormItem className="col-span-2">
@@ -233,10 +171,10 @@ export function ImportDeviceForm() {
             </Button>
           </DialogClose>
           <Button type="submit" disabled={isPending}>
-            {isPending ? "Importing..." : "Import Device"}
+            {isPending ? "Adding..." : "Add Device"}
           </Button>
         </div>
       </form>
     </Form>
   );
-}
+} 
