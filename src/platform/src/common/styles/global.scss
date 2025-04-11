@@ -25,7 +25,7 @@
 
 /* Dark Mode */
 .dark {
-  --background: #181a1b;
+  --background: #1d1f20c9;
   --text: #f9fafb;
   --border: #374151;
   --scrollbar-track: #1f2937;
@@ -33,7 +33,7 @@
   --scrollbar-hover: #6b7280;
 
   /* Sidebar - Dark */
-  --sidebar-bg: #181a1b;
+  --sidebar-bg: #1d1f20c9;
   --sidebar-text: #f9fafb;
   --sidebar-muted: #9ca3af;
   --sidebar-hover: #374151;
@@ -45,7 +45,7 @@
 
 /* Semi-dark mode (forces dark sidebar) */
 .semi-dark {
-  --sidebar-bg: #181a1b;
+  --sidebar-bg: #1d1f20c9;
   --sidebar-text: #f9fafb;
   --sidebar-muted: #9ca3af;
   --sidebar-hover: #374151;
