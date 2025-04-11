@@ -16,12 +16,11 @@ export interface PermissionsResponse {
 }
 
 export function usePermissions() {
-  // Initialize permissions as an empty array to prevent filter errors
+
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<Error | null>(null)
 
-  // Use useCallback to prevent the function from being recreated on every render
   const fetchNetworkPermissions = useCallback(async () => {
 
     if (isLoading) return []
@@ -40,7 +39,6 @@ export function usePermissions() {
         }
       }
 
-      console.log("Extracted permissions:", permissionsArray)
       setPermissions(permissionsArray)
       return permissionsArray
     } catch (err) {
