@@ -58,7 +58,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     updateRolePermissions,
   } = usePermissions()
 
-  // Use a ref to track if we've already fetched permissions
   const permissionsFetched = useRef(false)
 
   const [newRoleName, setNewRoleName] = useState("")
@@ -79,7 +78,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
       permissionsFetched.current = true
       await fetchNetworkPermissions()
     } catch (error) {
-      console.error("Failed to fetch permissions:", error)
       toast({
         title: "Error",
         description: "Failed to load permissions. Please try again.",
@@ -371,7 +369,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
           </Table>
         </div>
 
-        {/* Permissions Management Dialog */}
         <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
           <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
             <DialogHeader>
@@ -392,7 +389,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
                   />
                 </div>
 
-                {/* Custom scrollable container with visible scrollbar */}
                 <div className="flex-1 rounded-md border overflow-hidden flex flex-col">
                   <div
                     className="flex-1 overflow-y-auto p-4 space-y-3 permissions-scrollbar"

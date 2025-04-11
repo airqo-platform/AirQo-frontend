@@ -58,13 +58,12 @@ export function usePermissions() {
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading]) // Only depends on isLoading state
+  }, [isLoading])
 
   const assignPermissionsToRole = useCallback(async (roleId: string, permission_ids: string[]) => {
     setIsLoading(true)
     setError(null)
     try {
-      // Changed from { permissions: permissionIds } to { permission_ids: permissionIds }
       const data = await users.assignPermissionsToRoleApi(roleId, { permission_ids })
       return data
     } catch (err) {
@@ -95,7 +94,6 @@ export function usePermissions() {
     setIsLoading(true)
     setError(null)
     try {
-      // Changed from { permissions: permissionIds } to { permission_ids: permissionIds }
       const data = await users.updatePermissionsToRoleApi(roleId, { permission_ids })
       return data
     } catch (err) {
