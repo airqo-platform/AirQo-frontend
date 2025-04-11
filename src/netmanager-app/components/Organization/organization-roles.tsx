@@ -77,7 +77,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     try {
       permissionsFetched.current = true
       await fetchNetworkPermissions()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to load permissions. Please try again.",
@@ -96,7 +96,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     e.preventDefault()
 
     if (!network) {
-      console.error("Network is null")
       return
     }
 
@@ -114,8 +113,8 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
       })
       setNewRoleName("")
       setIsCreateDialogOpen(false)
-    } catch (error) {
-      console.error("Error creating role:", error)
+    } catch {
+
       toast({
         title: "Error",
         description: "Failed to create role. Please try again.",
@@ -141,7 +140,6 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     e.preventDefault()
 
     try {
-      console.log("Updating permissions for role:", editRoleId, "with permissions:", selectedPermissions)
       await updateRolePermissions(editRoleId, selectedPermissions)
 
       toast({
@@ -149,8 +147,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
         description: `Permissions for "${editRoleName}" have been successfully updated.`,
       })
       setIsPermissionsDialogOpen(false)
-    } catch (error) {
-      console.error("Error updating permissions:", error)
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update permissions. Please try again.",
