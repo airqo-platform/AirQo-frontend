@@ -335,7 +335,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       return (
         <div className="px-3">
           <div className="pt-3 pb-2">
-            <div className="flex items-center gap-2 text-black-800 mb-3">
+            <div className="flex items-center gap-2 text-black-800 dark:text-white mb-3">
               <Button
                 paddingStyles="p-0"
                 onClick={handleExit}
