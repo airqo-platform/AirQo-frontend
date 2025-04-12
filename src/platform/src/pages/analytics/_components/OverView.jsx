@@ -220,14 +220,19 @@ const OverView = () => {
               onClick={() => handleOpenModal('addLocation')}
             />
 
-            {/* Download Data Button with a blue background */}
             <CustomDropdown
               text="Download Data"
               icon={<DownloadIcon width={16} height={17} color="white" />}
               iconPosition="left"
               isButton
               onClick={() => handleOpenModal('download')}
-              buttonClassName="bg-blue-600 text-white border border-blue-600 px-3 py-1 rounded-xl hover:bg-blue-700"
+              buttonStyle={{
+                backgroundColor: '#2563EB',
+                color: 'white',
+                border: '1px solid #2563EB',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.75rem',
+              }}
             />
           </div>
         </div>
