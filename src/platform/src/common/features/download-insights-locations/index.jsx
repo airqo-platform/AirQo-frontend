@@ -11,8 +11,8 @@ import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
-// Modal configuration mapping
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
   addLocation: { header: AddLocationHeader, body: AddLocations },
@@ -23,66 +23,50 @@ const MODAL_CONFIGURATIONS = {
   search: { header: AddSearchHeader, body: Search },
 };
 
-/**
- * Enhanced Modal component with improved animations and responsive layout
- * @param {Object} props
- * @param {boolean} props.isOpen - Whether the modal is open
- * @param {Function} props.onClose - Function to close the modal
- */
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType?.type);
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   const ModalHeader =
     MODAL_CONFIGURATIONS[modalType]?.header ||
-    (() => <div className="text-lg font-medium">Modal</div>);
+    (() => <div className="text-lg font-medium dark:text-white">Modal</div>);
 
   const ModalBody =
     MODAL_CONFIGURATIONS[modalType]?.body ||
-    (() => <div>No content available</div>);
+    (() => <div className="dark:text-white">No content available</div>);
 
-  // Handle ESC key to close modal
   const handleKeyDown = useCallback(
     (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     },
     [onClose],
   );
 
-  // Add/remove event listeners
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      document.body.style.overflow = 'hidden';
     }
-
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = ''; // Restore scrolling
+      document.body.style.overflow = '';
     };
   }, [isOpen, handleKeyDown]);
 
-  // Animation configurations
   const modalAnimationConfig = {
     initial: { opacity: 0, y: 20, scale: 0.98 },
     animate: {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: {
-        type: 'spring',
-        damping: 25,
-        stiffness: 300,
-      },
+      transition: { type: 'spring', damping: 25, stiffness: 300 },
     },
     exit: {
       opacity: 0,
       y: 20,
       scale: 0.98,
-      transition: {
-        duration: 0.2,
-      },
+      transition: { duration: 0.2 },
     },
   };
 
@@ -93,28 +77,24 @@ const Modal = ({ isOpen, onClose }) => {
           <div className="fixed inset-0 transition-opacity" aria-hidden="true">
             <div className="absolute inset-0 bg-gray-500 opacity-60"></div>
           </div>
-
           <motion.div
             {...modalAnimationConfig}
-            className="w-full max-w-5xl lg:h-[80vh] max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
+            className="w-full max-w-5xl lg:h-[80vh] max-h-[90vh] bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300">
+            <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300 dark:border-gray-700">
               <ModalHeader />
               <button
                 type="button"
                 onClick={onClose}
-                className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 hover:bg-gray-100 p-1.5 rounded-full transition-colors duration-150"
+                className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded-full transition-colors duration-150"
                 aria-label="Close Modal"
               >
-                <Close fill="#000" />
+                <Close fill={`${isDarkMode ? '#fff' : '#000'}`} />
                 <span className="sr-only">Close Modal</span>
               </button>
             </div>
-
-            {/* Body */}
             <div
-              className="relative overflow-y-auto"
+              className="relative overflow-y-auto dark:text-white"
               style={{
                 maxHeight: 'calc(90vh - 65px)',
                 height: 'calc(80vh - 65px)',

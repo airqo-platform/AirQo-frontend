@@ -7,9 +7,10 @@ import {
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
 import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
-import TopBarSearch from '@/components/search/TopBarSearch';
+import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import CustomDropdown from '@/components/Button/CustomDropdown';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 /**
  * DataTable Props:
@@ -56,6 +57,8 @@ function DataTable({
   const [activeFilter, setActiveFilter] = useState(filters[0] || null);
   const [searchResults, setSearchResults] = useState([]);
   const [filterErrors, setFilterErrors] = useState({});
+  const { theme } = useTheme();
+  const darkMode = theme === 'dark';
 
   /**
    * Deduplicate data by _id (if present)
@@ -299,6 +302,17 @@ function DataTable({
             const isActive = activeFilter?.key === filterDef.key;
             const hasError = !!filterErrors[filterDef.key];
 
+            const activeBgColor = '#2563eb'; // same for light or dark in this example
+            const errorBgColor = '#dc2626';
+            const defaultBgColor = darkMode ? '' : '#fff';
+
+            const activeBorderColor = '#2563eb';
+            const errorBorderColor = '#fca5a5';
+            const defaultBorderColor = darkMode ? '#4b5563' : '#d1d5db';
+
+            const defaultTextColor = darkMode ? '#e5e7eb' : '#374151';
+            const errorTextColor = darkMode ? '#f87171' : '#b91c1c';
+
             const buttonStyle = {
               padding: '0.5rem 1rem',
               fontSize: '0.875rem',
@@ -308,21 +322,21 @@ function DataTable({
               position: 'relative',
               backgroundColor: isActive
                 ? hasError
-                  ? '#dc2626' // red-600
-                  : '#2563eb' // blue-600
-                : '#ffffff',
+                  ? errorBgColor
+                  : activeBgColor
+                : defaultBgColor,
               color: isActive
                 ? '#ffffff'
                 : hasError
-                  ? '#b91c1c' // red-700
-                  : '#374151', // gray-700
+                  ? errorTextColor
+                  : defaultTextColor,
               borderColor: isActive
                 ? hasError
-                  ? '#fca5a5' // red-300
-                  : '#2563eb'
+                  ? errorBorderColor
+                  : activeBorderColor
                 : hasError
-                  ? '#fca5a5'
-                  : '#d1d5db', // gray-300
+                  ? errorBorderColor
+                  : defaultBorderColor,
             };
 
             return (
@@ -352,7 +366,13 @@ function DataTable({
       {renderFilterError()}
 
       {/* Main Table Container */}
-      <div className="relative overflow-x-auto border border-gray-200 rounded-lg bg-white">
+      <div
+        className={`relative overflow-x-auto border ${
+          darkMode
+            ? 'border-gray-700 rounded-lg bg-transparent'
+            : 'border-gray-200 rounded-lg bg-white'
+        }`}
+      >
         {/* Show a loading skeleton if we're actively loading and do have an active filter */}
         {loading && activeFilter ? (
           <TableLoadingSkeleton />
@@ -363,9 +383,25 @@ function DataTable({
             variant="info"
           />
         ) : (
-          <table className="w-full text-sm text-left text-gray-900">
-            <thead className="border-b bg-gray-50 border-gray-200">
-              <tr className="text-gray-500 text-sm font-normal">
+          <table
+            className={`w-full text-sm text-left ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}
+          >
+            <thead
+              className={`border-b ${
+                darkMode
+                  ? 'bg-transparent border-gray-700'
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <tr
+                className={
+                  darkMode
+                    ? 'text-gray-300 text-sm font-normal'
+                    : 'text-gray-500 text-sm font-normal'
+                }
+              >
                 {/* Checkbox column */}
                 <th scope="col" className="w-4 p-4">
                   <div className="flex items-center">
@@ -410,7 +446,11 @@ function DataTable({
                 return (
                   <tr
                     key={item._id || idx}
-                    className="border-b py-4 border-gray-100 hover:bg-slate-50"
+                    className={`border-b py-4 ${
+                      darkMode
+                        ? 'border-gray-700 hover:bg-gray-800'
+                        : 'border-gray-100 hover:bg-slate-50'
+                    }`}
                   >
                     {/* Checkbox column */}
                     <td className="w-4 p-4">
@@ -463,7 +503,9 @@ function DataTable({
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             aria-label="Previous page"
-            className={`mr-2 w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 ${
+            className={`mr-2 w-8 h-8 flex items-center justify-center rounded-md border ${
+              darkMode ? 'border-gray-700' : 'border-gray-200'
+            } ${
               currentPage === 1
                 ? 'text-gray-300 cursor-not-allowed'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -475,7 +517,9 @@ function DataTable({
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             aria-label="Next page"
-            className={`w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 ${
+            className={`w-8 h-8 flex items-center justify-center rounded-md border ${
+              darkMode ? 'border-gray-700' : 'border-gray-200'
+            } ${
               currentPage === totalPages
                 ? 'text-gray-300 cursor-not-allowed'
                 : 'text-gray-600 hover:bg-gray-100'

@@ -44,12 +44,14 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 import SelectionMessage from '../components/SelectionMessage';
 
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+
 /**
  * Header component for the Download Data modal.
  */
 export const DownloadDataHeader = () => (
   <h3
-    className="flex text-lg leading-6 font-medium text-gray-900"
+    className="flex text-lg leading-6 font-medium dark:text-white"
     id="modal-title"
   >
     Download air quality data
@@ -115,7 +117,7 @@ const SettingsSidebar = ({
 
   return (
     <motion.form
-      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r flex-shrink-0 overflow-y-auto overflow-x-hidden"
+      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
       onSubmit={handleSubmit}
       variants={sidebarVariants}
@@ -396,6 +398,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const [edit, setEdit] = useState(false);
   const [activeFilterKey, setActiveFilterKey] = useState('sites');
   const [selectedGridId, setSelectedGridId] = useState(null);
+  const { theme } = useTheme();
+  const darkMode = theme === 'dark';
 
   // Organization options derived from group list
   const ORGANIZATION_OPTIONS = useMemo(
@@ -1235,7 +1239,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
         durationGuidance={durationGuidance}
         handleSubmit={handleSubmit}
-        sidebarBg={sidebarBg}
+        sidebarBg={darkMode ? '' : sidebarBg}
       />
 
       {/* Main Content Section */}

@@ -1,6 +1,12 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
@@ -22,15 +28,23 @@ import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import SkeletonLoader from '@/features/airQuality-charts/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
-import { Refreshing, DoneRefreshed } from '../constants/svgs';
+import { DoneRefreshed } from '../constants/svgs';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import SelectionMessage from '../components/SelectionMessage';
+
+export const InSightsHeader = () => (
+  <h3
+    className="flex text-lg leading-6 font-medium dark:text-white"
+    id="modal-title"
+  >
+    More Insights
+  </h3>
+);
 
 const MoreInsights = () => {
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
-  // Local state
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
   const [frequency, setFrequency] = useState('daily');
@@ -40,11 +54,11 @@ const MoreInsights = () => {
   const controllersRef = useRef({});
   const fetchData = useDataDownload();
 
-  const allSites = useMemo(() => {
-    if (Array.isArray(modalData)) return modalData;
-    return modalData ? [modalData] : [];
-  }, [modalData]);
-
+  // Normalize sites data
+  const allSites = useMemo(
+    () => (Array.isArray(modalData) ? modalData : modalData ? [modalData] : []),
+    [modalData],
+  );
   const [dataLoadingSites, setDataLoadingSites] = useState(
     allSites.map((s) => s._id),
   );
@@ -85,9 +99,8 @@ const MoreInsights = () => {
             err.name === 'AbortError' ||
             err.message?.includes('aborted') ||
             err.message?.includes('canceled')
-          ) {
+          )
             return;
-          }
           if (isManualRefresh) setIsManualRefresh(false);
         },
         onSuccess: () => {
@@ -106,10 +119,9 @@ const MoreInsights = () => {
 
   useEffect(() => {
     return () => {
-      Object.values(controllersRef.current).forEach((ctrl) => {
-        if (ctrl?.abort) ctrl.abort();
-        else clearTimeout(ctrl);
-      });
+      Object.values(controllersRef.current).forEach((ctrl) =>
+        ctrl?.abort ? ctrl.abort() : clearTimeout(ctrl),
+      );
     };
   }, []);
 
@@ -231,8 +243,14 @@ const MoreInsights = () => {
       }
       const fileName =
         visibleSites.length === 1
-          ? `${allSites.find((s) => s._id === visibleSites[0])?.name || 'site'}_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`
-          : `${visibleSites.length}_sites_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+          ? `${allSites.find((s) => s._id === visibleSites[0])?.name || 'site'}_${chartData.pollutionType}_${format(
+              parseISO(startDate),
+              'yyyy-MM-dd',
+            )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`
+          : `${visibleSites.length}_sites_${chartData.pollutionType}_${format(
+              parseISO(startDate),
+              'yyyy-MM-dd',
+            )}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
       const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
       if (blob.size > 10) {
         saveAs(blob, fileName);
@@ -258,13 +276,12 @@ const MoreInsights = () => {
   };
 
   const handleDateChange = useCallback((start, end, label) => {
-    if (start && end) {
+    if (start && end)
       setDateRange({
         startDate: start.toISOString(),
         endDate: end.toISOString(),
         label,
       });
-    }
   }, []);
 
   const handleFrequencyChange = useCallback(
@@ -276,16 +293,22 @@ const MoreInsights = () => {
     [chartType],
   );
 
-  const handleLoadAllSites = useCallback(() => {
-    const allIds = allSites.map((site) => site._id);
-    const newIds = allIds.filter((id) => !dataLoadingSites.includes(id));
-    if (!newIds.length) return false;
-    setDataLoadingSites((prev) => [...prev, ...newIds]);
-    setVisibleSites((prev) => Array.from(new Set([...prev, ...newIds])));
-    return true;
-  }, [allSites, dataLoadingSites]);
-
   // Animation variants
+  const contentVariants = {
+    initial: { opacity: 0 },
+    animate: {
+      opacity: 1,
+      transition: { duration: 0.3, staggerChildren: 0.1 },
+    },
+  };
+  const controlsVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
   const sidebarVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -293,33 +316,22 @@ const MoreInsights = () => {
       transition: { duration: 0.3, staggerChildren: 0.07 },
     },
   };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-  };
 
   const sidebarContent = useMemo(() => {
-    if (!allSites.length) {
+    if (!allSites.length)
       return (
         <motion.div
           className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center"
           variants={itemVariants}
         >
-          <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
+          <span className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 mb-2">
             <LocationIcon width={20} height={20} fill="#9EA3AA" />
           </span>
           No locations available
         </motion.div>
       );
-    }
     return (
-      <motion.div
-        className="space-y-3"
-        variants={sidebarVariants}
-        initial="hidden"
-        animate="visible"
-        style={{ backgroundColor: '#f6f6f7' }}
-      >
+      <motion.div className="space-y-3" variants={sidebarVariants}>
         {allSites.map((site) => (
           <motion.div
             key={site._id}
@@ -329,9 +341,7 @@ const MoreInsights = () => {
             <LocationCard
               site={site}
               onToggle={() => handleSiteAction(site._id, 'toggle')}
-              onRemove={() => handleSiteAction(site._id, 'remove')}
               isSelected={visibleSites.includes(site._id)}
-              isVisible={visibleSites.includes(site._id)}
               isLoading={
                 isValidating &&
                 dataLoadingSites.includes(site._id) &&
@@ -371,7 +381,11 @@ const MoreInsights = () => {
           onClick={handleManualRefresh}
           disabled={isValidating}
           aria-label="Refresh data"
-          className={`ml-2 p-2 rounded-md border border-gray-200 ${isValidating ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-100'} transition-colors flex items-center`}
+          className={`ml-2 p-2 rounded-md border border-gray-200 dark:border-gray-700 ${
+            isValidating
+              ? 'bg-gray-100 cursor-not-allowed'
+              : 'hover:bg-gray-100'
+          } transition-colors flex items-center`}
         >
           {isValidating && isManualRefresh ? (
             <svg
@@ -387,12 +401,12 @@ const MoreInsights = () => {
                 r="10"
                 stroke="currentColor"
                 strokeWidth="4"
-              ></circle>
+              />
               <path
                 className="opacity-75"
                 fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
+              />
             </svg>
           ) : (
             <RefreshIcon width={20} height={20} />
@@ -404,7 +418,7 @@ const MoreInsights = () => {
   );
 
   const chartContent = useMemo(() => {
-    if (isError) {
+    if (isError)
       return (
         <motion.div
           initial={{ opacity: 0 }}
@@ -436,14 +450,12 @@ const MoreInsights = () => {
           </motion.button>
         </motion.div>
       );
-    }
     if (
       chartLoading ||
       (isValidating && dataLoadingSites.length > 0 && !allSiteData?.length)
-    ) {
+    )
       return <SkeletonLoader width="100%" height={380} />;
-    }
-    if (allSiteData?.length > 0) {
+    if (allSiteData?.length)
       return (
         <motion.div
           initial={{ opacity: 0 }}
@@ -465,7 +477,6 @@ const MoreInsights = () => {
           />
         </motion.div>
       );
-    }
     return (
       <InfoMessage
         title="No Data"
@@ -499,18 +510,6 @@ const MoreInsights = () => {
     handleManualRefresh,
   ]);
 
-  const contentVariants = {
-    initial: { opacity: 0 },
-    animate: {
-      opacity: 1,
-      transition: { duration: 0.3, staggerChildren: 0.1 },
-    },
-  };
-  const controlsVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  };
-
   return (
     <motion.div
       className="flex w-full h-full overflow-hidden"
@@ -520,35 +519,27 @@ const MoreInsights = () => {
     >
       {/* Sidebar */}
       <motion.div
-        className="w-[280px] h-full overflow-y-auto border-r relative space-y-3 px-4 pt-2 pb-14"
+        className="w-[280px] h-full overflow-y-auto border-r dark:border-gray-700 relative space-y-3 px-4 pt-2 pb-14"
         variants={sidebarVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div
-          className="text-sm text-gray-500 mb-4"
-          variants={itemVariants}
-        >
-          <p className="flex items-center">
-            <span>Click checkbox to toggle visibility</span>
-            <Tooltip
-              content="Checked sites will be included in downloads"
-              className="ml-1"
-            >
-              <MdInfo className="text-blue-500" />
-            </Tooltip>
-          </p>
-          {allSites.length > dataLoadingSites.length && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleLoadAllSites}
-              className="mt-3 px-3 py-1.5 bg-blue-50 text-blue-600 rounded text-xs font-medium hover:bg-blue-100 transition-colors w-full"
-            >
-              Load all {allSites.length} sites
-            </motion.button>
-          )}
-        </motion.div>
+        {allSites.length > 1 && (
+          <motion.div
+            className="text-sm text-gray-500 mb-4"
+            variants={itemVariants}
+          >
+            <p className="flex items-center">
+              <span>Click checkbox to toggle visibility</span>
+              <Tooltip
+                content="Checked sites will be included in downloads"
+                className="ml-1"
+              >
+                <MdInfo className="text-blue-500" />
+              </Tooltip>
+            </p>
+          </motion.div>
+        )}
         {sidebarContent}
       </motion.div>
 
@@ -613,7 +604,6 @@ const MoreInsights = () => {
                 className="w-auto text-center"
               >
                 <CustomDropdown
-                  // When downloading, show "Downloading..." text; otherwise, show "Download (n)"
                   text={
                     downloadLoading
                       ? 'Downloading...'
@@ -656,7 +646,7 @@ const MoreInsights = () => {
           {/* Chart Container */}
           <motion.div
             variants={itemVariants}
-            className="w-full border rounded-xl p-2 relative overflow-hidden"
+            className="w-full border dark:border-gray-700 rounded-xl p-2 relative overflow-hidden"
           >
             <AnimatePresence>
               {refreshSuccess && !isValidating && (
@@ -671,22 +661,7 @@ const MoreInsights = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-            <AnimatePresence>
-              {isManualRefresh && isValidating && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-2 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm animate-pulse"
-                >
-                  <Refreshing />
-                  <span className="text-sm font-medium">
-                    Refreshing data...
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {chartContent}
+            <AnimatePresence>{chartContent}</AnimatePresence>
           </motion.div>
 
           {/* Selection Message for Hidden Sites */}
@@ -712,8 +687,7 @@ const MoreInsights = () => {
                     />
                   </svg>
                   {dataLoadingSites.length - visibleSites.length} site(s) hidden
-                  and will not be included in downloads. Check the boxes in the
-                  sidebar to include them.
+                  and will not be included in downloads.
                 </SelectionMessage>
               </motion.div>
             )}

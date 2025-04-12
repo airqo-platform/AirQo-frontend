@@ -83,22 +83,14 @@ const EnhancedFooter = ({
   // Inline style objects for each button, now with a border radius corresponding to rounded-xl (≈ 0.75rem)
   const clearButtonStyle = {
     padding: '0.5rem 0.75rem',
-    border: '1px solid #D1D5DB', // gray-300
     fontSize: '0.875rem',
-    borderRadius: '0.75rem', // rounded-xl
-    backgroundColor: '#FFFFFF',
-    color: '#374151', // text-gray-700
     transition:
       'background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out',
   };
 
   const cancelButtonStyle = {
     padding: '0.5rem 0.75rem',
-    border: '1px solid #D1D5DB',
     fontSize: '0.875rem',
-    borderRadius: '0.75rem', // rounded-xl
-    backgroundColor: '#FFFFFF',
-    color: '#374151',
     transition:
       'background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out',
   };
@@ -107,14 +99,14 @@ const EnhancedFooter = ({
     padding: '0.5rem 1rem',
     border: 'none',
     fontSize: '0.875rem',
-    borderRadius: '0.75rem', // rounded-xl
-    backgroundColor: '#2563eb', // blue-600
+    borderRadius: '0.75rem',
+    backgroundColor: '#2563eb',
     color: '#FFFFFF',
     transition: 'background-color 0.15s ease-in-out',
   };
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between shadow-lg z-10">
+    <div className="sticky bottom-0 left-0 right-0 bg-background border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between shadow-lg z-10">
       {/* Animated message area */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -161,6 +153,7 @@ const EnhancedFooter = ({
               <CustomDropdown
                 isButton={true}
                 text="Clear"
+                buttonClassName="dark:text-white"
                 buttonStyle={clearButtonStyle}
                 onClick={handleClearSelection}
                 disabled={loading}
@@ -180,6 +173,7 @@ const EnhancedFooter = ({
           <CustomDropdown
             isButton={true}
             text="Cancel"
+            buttonClassName="dark:text-white"
             buttonStyle={cancelButtonStyle}
             onClick={onClose}
             disabled={loading}
