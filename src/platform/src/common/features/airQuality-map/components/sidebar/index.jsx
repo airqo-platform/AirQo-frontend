@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -6,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Button from '@/components/Button';
 import SearchField from '@/components/search/SearchField';
 import Toast from '@/components/Toast';
+import Card from '@/components/CardWrapper';
 import SearchResultsSkeleton from './components/SearchResultsSkeleton';
 
 // Child Components / Utils
@@ -15,17 +22,11 @@ import LocationCards from './components/LocationCards';
 import WeekPrediction from './components/Predictions';
 import PollutantCard from './components/PollutantCard';
 import LocationAlertCard from './components/LocationAlertCard';
-import {
-  renderNoResults,
-  renderLoadingSkeleton,
-  renderDefaultMessage,
-} from './components/Sections';
 
 // Icons & Assets
 import ArrowLeftIcon from '@/icons/arrow_left.svg';
 
 // Hooks & Redux
-import { useWindowSize } from '@/lib/windowSize';
 import {
   setOpenLocationDetails,
   setSelectedLocation,
@@ -48,9 +49,37 @@ import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 import allCountries from '../../constants/countries.json';
 
+// Section Components
+const SectionDivider = () => (
+  <div className="border border-secondary-neutral-light-100 dark:border-gray-700 my-3" />
+);
+
+const NoResults = ({ hasSearched }) => (
+  <Card contentClassName="flex flex-col items-center justify-center py-6">
+    <h3 className="text-lg font-medium text-secondary-neutral-dark-700 dark:text-white text-center">
+      {hasSearched
+        ? 'No results found'
+        : 'Search for a location to view air quality data'}
+    </h3>
+    <p className="text-sm text-secondary-neutral-light-900 dark:text-gray-300 mt-2 text-center">
+      {hasSearched
+        ? 'Try adjusting your search term or search for a different location'
+        : 'Enter a location name to see air quality information and forecasts'}
+    </p>
+  </Card>
+);
+
+const LoadingSkeleton = () => (
+  <Card className="mx-2 animate-pulse">
+    <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-md mb-3"></div>
+    <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-md mb-3"></div>
+    <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+  </Card>
+);
+
 const MapSidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
-  const { width } = useWindowSize();
+  const contentRef = useRef(null);
 
   // Local state
   const [isFocused, setIsFocused] = useState(false);
@@ -60,6 +89,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [error, setError] = useState({ isError: false, message: '', type: '' });
+  const [contentOverflows, setContentOverflows] = useState(false);
 
   // Redux selectors
   const openLocationDetails = useSelector(
@@ -73,8 +103,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     (state) => state.locationSearch.searchTerm,
   );
   const suggestedSites = useSelector((state) => state.map.suggestedSites);
-
-  // Reintroduce selectedWeeklyPrediction from Redux
   const selectedWeeklyPrediction = useSelector(
     (state) => state.map.selectedWeeklyPrediction,
   );
@@ -92,10 +120,26 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return null;
   }, [googleMapsLoaded]);
 
-  // Only destructure the isLoading property from the SWR hook to avoid unused variable errors
   const { isLoading: measurementsLoading } = useRecentMeasurements(
     selectedLocation ? { site_id: selectedLocation._id } : null,
   );
+
+  /**
+   * Check if content overflows using window resize event
+   */
+  useEffect(() => {
+    if (contentRef.current) {
+      const checkOverflow = () => {
+        const hasOverflow =
+          contentRef.current.scrollHeight > contentRef.current.clientHeight;
+        setContentOverflows(hasOverflow);
+      };
+
+      checkOverflow();
+      window.addEventListener('resize', checkOverflow);
+      return () => window.removeEventListener('resize', checkOverflow);
+    }
+  }, [selectedLocation, searchResults, suggestedSites]);
 
   /**
    * Fetch weekly predictions for the selected location
@@ -105,6 +149,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       setWeeklyPredictions([]);
       return;
     }
+
     setLoading(true);
     try {
       if (selectedLocation?.forecast?.length > 0) {
@@ -138,8 +183,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         return acc;
       }, []);
       setCountryData(uniqueCountries);
-    } else {
-      console.error('No valid siteDetails data available.');
     }
   }, [siteDetails]);
 
@@ -151,6 +194,11 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     dispatch(setSelectedLocation(null));
     dispatch(addSearchTerm(''));
     setIsFocused(false);
+
+    return () => {
+      // Cleanup on unmount
+      dispatch(reSetMap());
+    };
   }, [dispatch]);
 
   /**
@@ -221,10 +269,12 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       setSearchResults([]);
       return;
     }
+
     if (!googleMapsLoaded || !autoCompleteSessionToken) {
       console.error('Google Maps API is not loaded yet.');
       return;
     }
+
     setLoading(true);
     setIsFocused(true);
 
@@ -233,16 +283,15 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         reduxSearchTerm,
         autoCompleteSessionToken,
       );
-      if (predictions?.length) {
-        setSearchResults(
-          predictions.map(({ description, place_id }) => ({
-            description,
-            place_id,
-          })),
-        );
-      } else {
-        setSearchResults([]);
-      }
+
+      setSearchResults(
+        predictions?.length
+          ? predictions.map(({ description, place_id }) => ({
+              description,
+              place_id,
+            }))
+          : [],
+      );
     } catch (err) {
       console.error('Search failed:', err);
       setSearchResults([]);
@@ -271,111 +320,95 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const handleAllSelection = useCallback(() => {
     setSelectedCountry(null);
     dispatch(reSetMap());
+
     const sortedSites = siteDetails
       ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
       : [];
+
     dispatch(addSuggestedSites(sortedSites));
   }, [dispatch, siteDetails]);
 
-  return (
-    // Full-height sidebar, left-aligned text, relative positioning
-    <div className="relative w-full h-full rounded-l-xl shadow-sm bg-white overflow-y-auto lg:overflow-hidden text-left">
-      {/* Sidebar Header Section */}
-      <div
-        className={`${
-          !isSearchFocused && !openLocationDetails ? 'space-y-4' : 'hidden'
-        } pt-4`}
-      >
-        <div className="px-4">
-          <SidebarHeader isAdmin={isAdmin} />
-        </div>
-        {!isAdmin && <hr />}
-        {!isSearchFocused && !openLocationDetails && (
-          <>
-            <div onClick={() => setIsFocused(true)} className="mt-5 px-4">
-              <SearchField showSearchResultsNumber={false} focus={false} />
-            </div>
-            <div className="flex items-center mt-5 overflow-hidden px-4 py-2 transition-all duration-300 ease-in-out justify-start">
+  // Render the main sidebar section based on current state
+  const renderMainContent = () => {
+    // Location Details View
+    if (selectedLocation && !mapLoading) {
+      return (
+        <div className="px-3">
+          <div className="pt-3 pb-2">
+            <div className="flex items-center gap-2 text-black-800 mb-3">
               <Button
+                paddingStyles="p-0"
+                onClick={handleExit}
+                variant="text"
                 type="button"
-                variant="filled"
-                onClick={handleAllSelection}
-                className="py-[6px] px-[10px] border-none rounded-full mb-3 text-sm font-medium"
               >
-                All
+                <ArrowLeftIcon />
               </Button>
-              <div className="country-scroll-bar">
-                <CountryList
-                  data={countryData}
-                  selectedCountry={selectedCountry}
-                  setSelectedCountry={setSelectedCountry}
-                  siteDetails={siteDetails}
-                />
-              </div>
+              <h3 className="text-lg font-medium leading-6 truncate">
+                {
+                  capitalizeAllText(
+                    selectedLocation?.description ||
+                      selectedLocation?.search_name ||
+                      selectedLocation?.location,
+                  )?.split(',')[0]
+                }
+              </h3>
             </div>
-            <div className="border border-secondary-neutral-light-100 my-5" />
-          </>
-        )}
-      </div>
 
-      <div className="sidebar-scroll-bar">
-        {/* Suggested locations */}
-        {mapLoading || !suggestedSites || suggestedSites.length === 0 ? (
-          renderLoadingSkeleton()
-        ) : !isSearchFocused &&
-          !openLocationDetails &&
-          suggestedSites.length > 0 ? (
-          <>
-            <div className="flex justify-between items-center mt-4 px-4">
-              <div className="flex gap-1">
-                <span className="font-medium text-secondary-neutral-dark-400 text-sm">
-                  Sort by:
-                </span>
-                <select className="rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
-                  <option value="custom">Suggested</option>
-                </select>
-              </div>
-            </div>
-            <LocationCards
-              searchResults={suggestedSites}
-              isLoading={isLoading}
-              handleLocationSelect={handleLocationSelect}
+            <WeekPrediction
+              selectedSite={selectedLocation}
+              weeklyPredictions={weeklyPredictions}
+              loading={isLoading}
             />
-          </>
-        ) : (
-          !isSearchFocused && !openLocationDetails && renderDefaultMessage()
-        )}
+          </div>
 
-        {/* Search Results Section */}
-        {isSearchFocused && !openLocationDetails && (
-          <div className="flex flex-col h-dvh pt-4 w-auto">
-            <div className="flex flex-col gap-5 px-4">
-              <SidebarHeader
-                isAdmin={isAdmin}
-                isFocused={isSearchFocused}
-                handleHeaderClick={handleExit}
-              />
-              <SearchField
-                onSearch={handleSearch}
-                onClearSearch={handleExit}
-                focus={isSearchFocused}
-                showSearchResultsNumber
-              />
-            </div>
+          <SectionDivider />
 
-            {reduxSearchTerm === '' && (
-              <div className="border border-secondary-neutral-light-100 mt-8" />
-            )}
-            {reduxSearchTerm && (
-              <div
-                className={`border border-secondary-neutral-light-100 ${
-                  reduxSearchTerm.length > 0 ? 'mt-3' : ''
-                }`}
-              />
-            )}
+          <div className="mb-3 flex flex-col gap-3">
+            <PollutantCard
+              selectedSite={selectedLocation}
+              selectedWeeklyPrediction={selectedWeeklyPrediction}
+            />
 
+            <LocationAlertCard
+              title="Air Quality Alerts"
+              selectedSite={selectedLocation}
+              selectedWeeklyPrediction={selectedWeeklyPrediction}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Search Results View
+    if (isSearchFocused) {
+      return (
+        <div className="flex flex-col w-full">
+          <div className="flex flex-col gap-3 px-3 pt-3">
+            <SidebarHeader
+              isAdmin={isAdmin}
+              isFocused={isSearchFocused}
+              handleHeaderClick={handleExit}
+            />
+            <SearchField
+              onSearch={handleSearch}
+              onClearSearch={handleExit}
+              focus={isSearchFocused}
+              showSearchResultsNumber
+            />
+          </div>
+
+          {reduxSearchTerm === '' && <SectionDivider />}
+
+          {reduxSearchTerm && (
+            <div className="border border-secondary-neutral-light-100 mt-2" />
+          )}
+
+          <>
             {reduxSearchTerm === '' ? (
-              renderNoResults(false)
+              <div className="px-3 pt-3">
+                <NoResults hasSearched={false} />
+              </div>
             ) : error.isError ? (
               <Toast
                 message={error.message}
@@ -391,9 +424,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             ) : isLoading &&
               searchResults.length === 0 &&
               measurementsLoading ? (
-              <SearchResultsSkeleton />
+              <div className="px-3 pt-3">
+                <SearchResultsSkeleton />
+              </div>
             ) : searchResults.length === 0 && !isLoading ? (
-              renderNoResults(true)
+              <div className="px-3 pt-3">
+                <NoResults hasSearched={true} />
+              </div>
             ) : (
               <LocationCards
                 searchResults={searchResults}
@@ -401,62 +438,99 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                 handleLocationSelect={handleLocationSelect}
               />
             )}
-          </div>
-        )}
+          </>
+        </div>
+      );
+    }
 
-        {/* Selected Site Details */}
-        {selectedLocation && !mapLoading && (
-          <div>
-            <div className="pt-6 pb-5">
-              <div className="flex items-center gap-2 text-black-800 mb-4 mx-4">
-                <Button
-                  paddingStyles="p-0"
-                  onClick={handleExit}
-                  variant="text"
-                  type="button"
-                >
-                  <ArrowLeftIcon />
-                </Button>
-                <h3 className="text-xl font-medium leading-7">
-                  {
-                    capitalizeAllText(
-                      selectedLocation?.description ||
-                        selectedLocation?.search_name ||
-                        selectedLocation?.location,
-                    )?.split(',')[0]
-                  }
-                </h3>
-              </div>
-              <div className="mx-4">
-                <WeekPrediction
-                  selectedSite={selectedLocation}
-                  weeklyPredictions={weeklyPredictions}
-                  loading={isLoading}
+    // Suggested Sites View
+    return (
+      <>
+        {mapLoading || !suggestedSites || suggestedSites.length === 0 ? (
+          <LoadingSkeleton />
+        ) : suggestedSites.length > 0 ? (
+          <>
+            <div className="px-1">
+              <Card className="mt-3" bordered={false}>
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-1">
+                    <span className="font-medium text-secondary-neutral-dark-400 text-sm">
+                      Sort by:
+                    </span>
+                    <select className="rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
+                      <option value="custom">Suggested</option>
+                    </select>
+                  </div>
+                </div>
+              </Card>
+            </div>
+            <LocationCards
+              searchResults={suggestedSites}
+              isLoading={isLoading}
+              handleLocationSelect={handleLocationSelect}
+            />
+          </>
+        ) : (
+          <NoResults hasSearched={false} />
+        )}
+      </>
+    );
+  };
+
+  return (
+    <Card
+      className="relative w-full h-full rounded-l-xl shadow-sm text-left"
+      padding="p-0"
+      overflow={true}
+    >
+      <div className="h-full flex flex-col">
+        {/* Sidebar Header Section - only shown in main view */}
+        {!isSearchFocused && !openLocationDetails && (
+          <div className="pt-3 px-3 space-y-3 flex-shrink-0">
+            <SidebarHeader isAdmin={isAdmin} />
+
+            {!isAdmin && <hr className="my-2" />}
+
+            <div onClick={() => setIsFocused(true)}>
+              <SearchField showSearchResultsNumber={false} focus={false} />
+            </div>
+
+            <div className="py-2 flex items-center overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hide-scrollbar">
+              <Button
+                type="button"
+                variant="filled"
+                onClick={handleAllSelection}
+                className="py-1 px-3 border-none rounded-full text-sm font-medium mr-2 flex-shrink-0 h-8 flex items-center"
+              >
+                All
+              </Button>
+              <div className="flex-shrink-0 flex space-x-2">
+                <CountryList
+                  data={countryData}
+                  selectedCountry={selectedCountry}
+                  setSelectedCountry={setSelectedCountry}
+                  siteDetails={siteDetails}
                 />
               </div>
             </div>
 
-            <div className="border border-secondary-neutral-light-100 my-5" />
-
-            <div
-              className={`mx-4 mb-5 ${
-                width < 1024 ? 'sidebar-scroll-bar h-dvh' : ''
-              } flex flex-col gap-4`}
-            >
-              <PollutantCard
-                selectedSite={selectedLocation}
-                selectedWeeklyPrediction={selectedWeeklyPrediction}
-              />
-              <LocationAlertCard
-                title="Air Quality Alerts"
-                selectedSite={selectedLocation}
-                selectedWeeklyPrediction={selectedWeeklyPrediction}
-              />
-            </div>
+            <SectionDivider />
           </div>
         )}
+
+        {/* Content Area with conditional scrolling */}
+        <div
+          ref={contentRef}
+          className={`sidebar-content-wrapper flex-grow ${
+            contentOverflows
+              ? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
+              : 'overflow-hidden'
+          }`}
+        >
+          {renderMainContent()}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

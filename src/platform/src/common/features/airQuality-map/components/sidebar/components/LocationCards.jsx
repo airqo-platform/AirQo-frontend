@@ -49,14 +49,18 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
   }, [searchResults]);
 
   if (visibleResults.length === 0 && !isLoading) {
-    return <p className="text-black text-center pt-8">No sites available.</p>;
+    return (
+      <p className="text-black dark:text-white text-center pt-8">
+        No sites available.
+      </p>
+    );
   }
 
   return (
     <Card
       background="bg-transparent"
       bordered={false}
-      className="sidebar-scroll-bar pb-[350px] h-dvh my-5"
+      className="pb-[350px] h-dvh my-5"
       padding="p-4"
     >
       <div className="flex flex-col gap-4">
@@ -74,8 +78,10 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
             <Card
               key={grid._id || grid.place_id}
               padding="px-4 py-4"
-              className="cursor-pointer"
-              shadow="shadow-md"
+              bordered
+              borderColor="border-2 border-gray-200 dark:border-blue-500"
+              className="cursor-pointer bg-white dark:bg-gray-800"
+              shadow="shadow"
               onClick={() => handleLocationSelect(grid)}
             >
               <div className="flex items-center justify-between w-full">
@@ -88,7 +94,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                   </span>
                 </div>
                 <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
-                  <LocationIcon fill="#9EA3AA" />
+                  <LocationIcon fill="#3B82F6" />
                 </div>
               </div>
             </Card>

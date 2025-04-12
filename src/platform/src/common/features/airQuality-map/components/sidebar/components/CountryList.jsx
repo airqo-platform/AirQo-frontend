@@ -100,7 +100,7 @@ const CountryList = ({
                 e.target.src = '/path-to-default-flag-image.png';
               }}
             />
-            <span className="text-sm text-secondary-neutral-light-600 font-medium">
+            <span className="text-sm text-secondary-neutral-light-600 dark:text-white font-medium">
               {country.country}
             </span>
           </Card>

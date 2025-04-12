@@ -7,7 +7,7 @@ const SearchResultsSkeleton = () => {
       {Array.from({ length: numElements }).map((_, i) => (
         <div
           key={i}
-          className="bg-secondary-neutral-dark-50 rounded-xl w-full h-16"
+          className="bg-gray-200 dark:bg-gray-700 rounded-xl w-full h-16"
         />
       ))}
     </div>
