@@ -47,8 +47,8 @@ const CountryList = ({
       background="bg-gray-200 dark:bg-gray-700"
     >
       <div className="flex items-center gap-2">
-        <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-5 w-5" />
-        <div className="bg-gray-300 dark:bg-gray-600 rounded w-16 h-4" />
+        <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-5 w-5" />
+        <div className="bg-gray-200 dark:bg-gray-600 rounded w-16 h-4" />
       </div>
     </Card>
   );
@@ -85,9 +85,10 @@ const CountryList = ({
             width="w-full"
             height="h-10"
             padding="px-5"
+            radius="rounded-full"
             contentClassName="flex items-center justify-center gap-2 h-full"
             className={`cursor-pointer ${isSelected ? 'ring-2 ring-blue-400' : ''}`}
-            background="bg-grey-200 dark:bg-transparent"
+            background="bg-secondary-neutral-dark-50 dark:bg-transparent"
           >
             <Image
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}

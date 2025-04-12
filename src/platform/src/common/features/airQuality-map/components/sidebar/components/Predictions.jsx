@@ -9,6 +9,56 @@ import Button from '@/components/Button';
 import Calendar from '@/components/Calendar/Calendar';
 import Spinner from '@/components/Spinner';
 import { useOutsideClick } from '@/core/hooks';
+import Card from '@/components/CardWrapper';
+
+const DayCell = ({ day, date, isActive, imageSrc, loading }) => {
+  return (
+    <div className="flex flex-col items-center justify-around space-y-2">
+      {/* Day letter */}
+      <div
+        className={`text-sm font-medium ${
+          isActive ? 'text-gray-400' : 'text-gray-500'
+        }`}
+      >
+        {day}
+      </div>
+
+      {/* Date number */}
+      <div
+        className={`text-sm font-medium mb-2 ${
+          isActive ? 'text-white font-bold' : 'text-gray-500'
+        }`}
+      >
+        {date}
+      </div>
+
+      {/* Emoji icon with background */}
+      <div
+        className={`w-10 h-10 rounded-full flex items-center justify-center `}
+      >
+        {loading ? (
+          <Spinner width={6} height={6} />
+        ) : (
+          <Image
+            src={imageSrc}
+            alt="Air Quality Icon"
+            width={32}
+            height={32}
+            className="rounded-full"
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+DayCell.propTypes = {
+  day: PropTypes.string.isRequired,
+  date: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  isActive: PropTypes.bool.isRequired,
+  imageSrc: PropTypes.string.isRequired,
+  loading: PropTypes.bool,
+};
 
 const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const dispatch = useDispatch();
@@ -24,19 +74,11 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   );
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const dropdownRef = useRef(null);
+
   const currentDay = useMemo(
     () => new Date().toLocaleDateString('en-US', { weekday: 'long' }),
     [],
   );
-  const weekDays = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ];
 
   useOutsideClick(dropdownRef, () => setOpenDatePicker(false));
 
@@ -68,11 +110,11 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   const getImageSrc = useCallback(
     (prediction) => {
       const siteTime = new Date(
-        selectedSite.time || recentLocationMeasurements?.[0]?.time,
+        selectedSite?.time || recentLocationMeasurements?.[0]?.time,
       );
       const predictionTime = new Date(prediction.time);
       const pm25Value =
-        selectedSite.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value;
+        selectedSite?.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value;
 
       if (isSameDay(siteTime, predictionTime)) {
         return images[getAQIcon('pm2_5', pm25Value)] || images['Invalid'];
@@ -82,65 +124,50 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     [selectedSite, recentLocationMeasurements],
   );
 
-  const renderPredictionBlock = useCallback(
-    (prediction, index) => (
-      <div
-        key={index}
-        onClick={() => dispatch(setSelectedWeeklyPrediction(prediction))}
-        className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
-          isActive(prediction) ? 'bg-blue-600' : 'bg-secondary-neutral-dark-100'
-        }`}
-      >
-        <div className="flex flex-col items-center justify-start gap-[3px]">
-          <div
-            className={`text-center text-sm font-semibold leading-tight ${
-              isActive(prediction)
-                ? 'text-primary-300'
-                : 'text-secondary-neutral-dark-400'
-            }`}
-          >
-            {new Date(prediction.time)
-              .toLocaleDateString('en-US', { weekday: 'long' })
-              .charAt(0)}
-          </div>
-          {loading ? (
-            <Spinner width={6} height={6} />
-          ) : (
-            <div
-              className={`text-center text-sm font-medium leading-tight ${
-                isActive(prediction)
-                  ? 'text-white'
-                  : 'text-secondary-neutral-dark-200'
-              }`}
-            >
-              {new Date(prediction.time).toLocaleDateString('en-US', {
-                day: 'numeric',
-              })}
-            </div>
-          )}
-        </div>
-        <Image
-          src={getImageSrc(prediction)}
-          alt="Air Quality Icon"
-          width={32}
-          height={32}
-        />
-      </div>
-    ),
-    [dispatch, getImageSrc, isActive, loading],
-  );
+  // Generate the week view data
+  const weekViewData = useMemo(() => {
+    if (weeklyPredictions && weeklyPredictions.length > 0) {
+      return weeklyPredictions.map((prediction) => {
+        const dateObj = new Date(prediction.time);
+        return {
+          day: dateObj
+            .toLocaleDateString('en-US', { weekday: 'short' })
+            .charAt(0),
+          fullDay: dateObj.toLocaleDateString('en-US', { weekday: 'short' }),
+          date: dateObj.getDate(),
+          prediction,
+          isActive: isActive(prediction),
+          imageSrc: getImageSrc(prediction),
+        };
+      });
+    }
+
+    // Fallback when no predictions are available
+    return Array.from({ length: 7 }, (_, i) => {
+      const dateObj = new Date();
+      dateObj.setDate(dateObj.getDate() + i);
+      const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+      return {
+        day: dayName.charAt(0),
+        fullDay: dayName,
+        date: dateObj.getDate(),
+        isActive: i === 0,
+        imageSrc: images['Invalid'],
+      };
+    });
+  }, [weeklyPredictions, isActive, getImageSrc]);
 
   return (
-    <div className="relative">
-      <div className="mb-5 relative">
+    <>
+      {/* Date selector */}
+      <div className="mb-4 relative">
         <Button
-          className="flex flex-row-reverse shadow rounded-md text-sm text-secondary-neutral-light-600 font-medium leading-tight bg-white h-8 my-1"
+          className="flex flex-row-reverse shadow rounded-md text-sm text-gray-600 font-medium leading-tight bg-white h-8 border border-gray-200"
           variant="outlined"
           onClick={() => setOpenDatePicker(!openDatePicker)}
         >
           {safeFormatDate(value)}
         </Button>
-
         {openDatePicker && (
           <div className="absolute z-[900]" ref={dropdownRef}>
             <Calendar
@@ -153,40 +180,36 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
           </div>
         )}
       </div>
-      <div className="flex justify-between items-center gap-2">
-        {weeklyPredictions && weeklyPredictions.length > 0
-          ? weeklyPredictions.map(renderPredictionBlock)
-          : weekDays.map((day) => (
-              <div
-                className={`rounded-[40px] px-0.5 pt-1.5 pb-0.5 flex flex-col justify-center items-center gap-2 shadow ${
-                  day === currentDay
-                    ? 'bg-blue-600'
-                    : 'bg-secondary-neutral-dark-100'
-                }`}
-                key={day}
-              >
-                <div className="flex flex-col items-center justify-start gap-[3px]">
-                  <div className="text-center text-sm font-semibold leading-tight text-secondary-neutral-dark-400">
-                    {day.charAt(0)}
-                  </div>
-                  {loading ? (
-                    <Spinner width={6} height={6} />
-                  ) : (
-                    <div className="text-center text-sm font-medium leading-tight text-secondary-neutral-dark-200">
-                      --
-                    </div>
-                  )}
-                </div>
-                <Image
-                  src={images['Invalid']}
-                  alt="Air Quality Icon"
-                  width={32}
-                  height={32}
-                />
-              </div>
-            ))}
+
+      {/* Week view: Each prediction wrapped in its own Card */}
+      <div className="grid grid-cols-7 gap-2">
+        {weekViewData.map((item, index) => (
+          <Card
+            key={index}
+            onClick={() => {
+              if (item.prediction) {
+                dispatch(setSelectedWeeklyPrediction(item.prediction));
+              }
+            }}
+            padding="p-3"
+            className={`cursor-pointer flex flex-col items-center justify-center transition-transform duration-200 `}
+            background={`${
+              item.isActive ? 'bg-blue-600' : 'bg-secondary-neutral-dark-50'
+            }`}
+            radius="rounded-full"
+            shadow="shadow-sm"
+          >
+            <DayCell
+              day={item.day}
+              date={item.date}
+              isActive={item.isActive}
+              imageSrc={item.imageSrc}
+              loading={loading}
+            />
+          </Card>
+        ))}
       </div>
-    </div>
+    </>
   );
 };
 
