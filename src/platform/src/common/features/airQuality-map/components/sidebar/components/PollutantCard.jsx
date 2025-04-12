@@ -5,6 +5,7 @@ import { isSameDay } from 'date-fns';
 import WindIcon from '@/icons/Common/wind.svg';
 import { getAQIcon, images } from '../../MapNodes';
 import { useSelector } from 'react-redux';
+import Card from '@/components/CardWrapper';
 
 const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   const recentLocationMeasurements = useSelector(
@@ -58,7 +59,14 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
   }, [selectedSite, selectedWeeklyPrediction, recentLocationMeasurements]);
 
   return (
-    <div className="px-3 pt-3 pb-4 bg-secondary-neutral-dark-50 rounded-lg shadow border border-secondary-neutral-dark-100 flex justify-between items-center">
+    <Card
+      padding="px-3 pt-3 pb-4"
+      className="flex justify-between items-center"
+      bordered={true}
+      rounded={true}
+      shadow="shadow"
+      background="bg-secondary-neutral-dark-50"
+    >
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded-lg bg-secondary-neutral-dark-100 flex items-center justify-center">
@@ -79,7 +87,7 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
         height={80}
         loading="eager"
       />
-    </div>
+    </Card>
   );
 };
 

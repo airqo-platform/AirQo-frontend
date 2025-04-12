@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { capitalizeAllText } from '@/core/utils/strings';
 import LocationIcon from '@/icons/LocationIcon';
+import { capitalizeAllText } from '@/core/utils/strings';
 import Button from '@/components/Button';
+import Card from '@/components/CardWrapper';
 
 const formatDescription = (description) => {
   if (!description) return '';
@@ -52,8 +53,13 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
   }
 
   return (
-    visibleResults.length > 0 && (
-      <div className="sidebar-scroll-bar pb-[350px] h-dvh flex flex-col gap-4 my-5 px-4">
+    <Card
+      background="bg-transparent"
+      bordered={false}
+      className="sidebar-scroll-bar pb-[350px] h-dvh my-5"
+      padding="p-4"
+    >
+      <div className="flex flex-col gap-4">
         {visibleResults.map((grid) => {
           const description = grid?.description
             ? capitalizeAllText(formatDescription(grid.description))
@@ -65,23 +71,27 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
           );
 
           return (
-            <div
+            <Card
               key={grid._id || grid.place_id}
-              className="flex justify-between items-center text-sm w-full hover:bg-blue-100 px-4 py-[14px] rounded-xl border border-secondary-neutral-light-100 shadow-sm cursor-pointer"
+              padding="px-4 py-4"
+              className="cursor-pointer"
+              shadow="shadow-md"
               onClick={() => handleLocationSelect(grid)}
             >
-              <div className="flex flex-col w-full">
-                <span className="text-base font-medium text-black">
-                  {title || 'No Name'}
-                </span>
-                <span className="font-medium text-secondary-neutral-light-300 text-sm leading-tight">
-                  {description || 'No Description'}
-                </span>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col">
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {title || 'No Name'}
+                  </span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {description || 'No Description'}
+                  </span>
+                </div>
+                <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                  <LocationIcon fill="#9EA3AA" />
+                </div>
               </div>
-              <div className="p-2 rounded-full bg-secondary-neutral-light-50">
-                <LocationIcon fill="#9EA3AA" />
-              </div>
-            </div>
+            </Card>
           );
         })}
         {searchResults.length > 6 && !showAllResults && (
@@ -97,7 +107,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
           </div>
         )}
       </div>
-    )
+    </Card>
   );
 };
 

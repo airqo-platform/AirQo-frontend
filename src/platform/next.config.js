@@ -5,7 +5,12 @@ const withTM = require('next-transpile-modules')(['redux-persist']);
 module.exports = withTM(
   withVideos({
     images: {
-      remotePatterns: [],
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'flagsapi.com',
+        },
+      ],
     },
     reactStrictMode: true,
 

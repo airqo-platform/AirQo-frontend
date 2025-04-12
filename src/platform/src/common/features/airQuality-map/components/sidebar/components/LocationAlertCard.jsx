@@ -11,6 +11,7 @@ import {
   isValid,
 } from 'date-fns';
 import { useSelector } from 'react-redux';
+import Card from '@/components/CardWrapper';
 
 const addSpacesToCategory = (category) =>
   category?.replace(/([a-z])([A-Z])/g, '$1 $2') || 'Unknown Category';
@@ -109,9 +110,14 @@ const LocationAlertCard = ({
   ]);
 
   return (
-    <div className="p-3 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center">
+    <Card
+      padding="p-3"
+      className="flex flex-col justify-center items-center"
+      bordered={true}
+      // You can override background if needed; here we use default white/dark settings.
+    >
       <div
-        className={`flex justify-between items-center ${collapsed && 'mb-2'} cursor-pointer`}
+        className="flex justify-between items-center cursor-pointer mb-2"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex justify-start items-center gap-3">
@@ -131,7 +137,7 @@ const LocationAlertCard = ({
           {airQualityMessage}
         </p>
       )}
-    </div>
+    </Card>
   );
 };
 
