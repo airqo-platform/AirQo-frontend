@@ -70,7 +70,7 @@ const NoResults = ({ hasSearched }) => (
 );
 
 const LoadingSkeleton = () => (
-  <Card className="mx-2 animate-pulse">
+  <Card className="animate-pulse" bordered={false}>
     <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-md mb-3"></div>
     <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-md mb-3"></div>
     <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
