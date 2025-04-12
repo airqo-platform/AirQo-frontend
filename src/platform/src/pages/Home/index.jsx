@@ -15,8 +15,9 @@ import {
   updateTitle,
 } from '@/lib/store/services/checklists/CheckList';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
-import CustomModal from '@/components/Modal/videoModals/CustomModal';
+import VideoModal from '@/features/video-players/Intro-video-modal';
 import StepProgress from '@/components/steppers/CircularStepper';
+import Card from '@/components/CardWrapper';
 
 // Video URL constant
 const ANALYTICS_VIDEO_URL =
@@ -135,9 +136,6 @@ const Home = () => {
     setStep(completedCards.length);
   }, [cardCheckList, steps]);
 
-  // console.info('checkListData', checkListData);
-  // console.info('cardCheckList', cardCheckList);
-
   return (
     <Layout noBorderBottom pageTitle="Home" topbarTitle="Home">
       {checkListStatus === 'loading' && checkListData.length === 0 ? (
@@ -156,10 +154,10 @@ const Home = () => {
             {/* Onboarding Checklist and Progress */}
             <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center">
               <div className="w-full md:w-1/2 flex flex-col items-start">
-                <h2 className="text-xl md:text-2xl font-medium text-gray-900">
+                <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
                   Onboarding Checklist
                 </h2>
-                <p className="text-sm md:text-base text-gray-500">
+                <p className="text-sm md:text-base text-gray-500 dark:text-gray-300">
                   We recommend starting with our onboarding checklist.
                 </p>
               </div>
@@ -191,11 +189,13 @@ const Home = () => {
                   : 'justify-between';
 
                 return (
-                  <div
+                  <Card
                     key={stepItem.id}
-                    className="bg-white shadow-sm w-full h-64 flex flex-col justify-between items-start border border-grey-150 rounded-xl py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:ring-blue-600"
-                    tabIndex={0}
-                    aria-label={`Step ${stepItem.id}: ${stepItem.label}`}
+                    width="w-full"
+                    height="h-full"
+                    className="focus:outline-blue-600 focus:ring-2 focus:ring-blue-600"
+                    contentClassName="space-y-8"
+                    padding="py-5 px-3"
                   >
                     {/* Icon Section */}
                     <div className="w-full">
@@ -211,7 +211,7 @@ const Home = () => {
                     </div>
 
                     {/* Label */}
-                    <p className="w-full text-base font-normal">
+                    <p className="w-full text-base font-normal dark:text-white">
                       {stepItem.label}
                     </p>
 
@@ -240,68 +240,70 @@ const Home = () => {
                               {isInProgress ? 'Resume' : statusText}
                             </div>
                           </Link>
-                          <span className="text-sm font-normal text-black-900">
+                          <span className="text-sm font-normal text-gray-900 dark:text-white">
                             {stepItem.time}
                           </span>
                         </>
                       )}
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>
 
             {/* Information and Video Section */}
-            <div className="bg-white shadow-sm w-full grid grid-cols-1 md:grid-cols-2 gap-3 items-center border border-grey-150 rounded-xl p-6">
-              {/* Text Content */}
-              <div className="flex flex-col justify-start space-y-4">
-                <h2 className="text-2xl font-medium text-black-900">
-                  Track air pollution in places you care about
-                </h2>
-                <p className="text-lg font-normal text-black-900">
-                  Empower yourself with knowledge about the air you breathe;
-                  because clean air begins with understanding.
-                </p>
-                <div className="flex items-center space-x-4 mt-4">
-                  <Button
-                    path="/analytics"
-                    className="bg-blue-900 text-white rounded-lg w-32 h-12"
-                    dataTestId="get-started-button"
-                  >
-                    Start here
-                  </Button>
-                  <button
-                    onClick={handleModal}
-                    className="text-blue-600 text-sm font-normal mt-2 cursor-pointer"
-                  >
-                    Show me how
-                  </button>
+            <Card className="w-full" padding="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                {/* Text Content */}
+                <div className="flex flex-col justify-start space-y-4">
+                  <h2 className="text-2xl font-medium text-gray-900 dark:text-white">
+                    Track air pollution in places you care about
+                  </h2>
+                  <p className="text-lg font-normal text-gray-900 dark:text-white">
+                    Empower yourself with knowledge about the air you breathe;
+                    because clean air begins with understanding.
+                  </p>
+                  <div className="flex items-center space-x-4 mt-4">
+                    <Button
+                      path="/analytics"
+                      className="bg-blue-900 text-white rounded-lg w-32 h-12"
+                      dataTestId="get-started-button"
+                    >
+                      Start here
+                    </Button>
+                    <button
+                      onClick={handleModal}
+                      className="text-blue-600 text-sm font-normal mt-2 cursor-pointer"
+                    >
+                      Show me how
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Video Thumbnail */}
-              <div
-                className="rounded-md p-9 relative flex items-center justify-center cursor-pointer"
-                style={{ background: '#145DFF08' }}
-                onClick={handleModal}
-                aria-label="Play Analytics Video"
-              >
-                <div className="absolute z-50 inset-0 flex items-center justify-center">
-                  <PlayIcon />
+                {/* Video Thumbnail */}
+                <div
+                  className="rounded-md p-9 relative flex items-center justify-center cursor-pointer"
+                  style={{ background: '#145DFF08' }}
+                  onClick={handleModal}
+                  aria-label="Play Analytics Video"
+                >
+                  <div className="absolute z-50 inset-0 flex items-center justify-center">
+                    <PlayIcon />
+                  </div>
+                  <Image
+                    src={AnalyticsImage}
+                    alt="Analytics Image"
+                    width={600}
+                    height={350}
+                    className="rounded-md"
+                  />
                 </div>
-                <Image
-                  src={AnalyticsImage}
-                  alt="Analytics Image"
-                  width={600}
-                  height={350}
-                  className="rounded-md"
-                />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Custom Modal */}
-          <CustomModal
+          <VideoModal
             open={open}
             setOpen={setOpen}
             videoUrl={ANALYTICS_VIDEO_URL}
