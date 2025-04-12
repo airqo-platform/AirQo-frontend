@@ -37,15 +37,28 @@ const CountryList = ({
     [dispatch, siteDetails, setSelectedCountry],
   );
 
+  // Skeleton loader component for a single card
+  const SkeletonCard = () => (
+    <Card
+      width="w-full"
+      height="h-10"
+      padding="px-5"
+      contentClassName="flex items-center justify-center gap-2 h-full"
+      background="bg-gray-200 dark:bg-gray-700"
+    >
+      <div className="flex items-center gap-2">
+        <div className="bg-gray-300 dark:bg-gray-600 rounded-full h-5 w-5" />
+        <div className="bg-gray-300 dark:bg-gray-600 rounded w-16 h-4" />
+      </div>
+    </Card>
+  );
+
   // Render skeleton placeholders if data is loading or empty
   if (sortedCountries.length === 0) {
     return (
-      <div className="flex gap-2 ml-2 animate-pulse mb-2">
+      <div className="flex gap-2 ml-2 mb-2 animate-pulse">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="bg-secondary-neutral-dark-50 px-4 py-[14px] w-28 h-9 rounded-full dark:bg-gray-700"
-          />
+          <SkeletonCard key={index} />
         ))}
       </div>
     );
@@ -73,9 +86,7 @@ const CountryList = ({
             height="h-10"
             padding="px-5"
             contentClassName="flex items-center justify-center gap-2 h-full"
-            className={`cursor-pointer ${
-              isSelected ? 'ring-2 ring-blue-400' : ''
-            }`}
+            className={`cursor-pointer ${isSelected ? 'ring-2 ring-blue-400' : ''}`}
             background="bg-grey-200 dark:bg-transparent"
           >
             <Image
