@@ -495,16 +495,19 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               <SearchField showSearchResultsNumber={false} focus={false} />
             </div>
 
-            <div className="py-2 flex items-center overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hide-scrollbar">
+            <div className="flex py-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 hide-scrollbar">
               <Button
                 type="button"
                 variant="filled"
                 onClick={handleAllSelection}
-                className="py-1 px-3 border-none rounded-full text-sm font-medium mr-2 flex-shrink-0 h-8 flex items-center"
+                style={{
+                  borderRadius: '9999px',
+                }}
+                className="px-3 border-none text-md font-medium h-10 flex items-center"
               >
                 All
               </Button>
-              <div className="flex-shrink-0 flex space-x-2">
+              <div className="flex space-x-2">
                 <CountryList
                   data={countryData}
                   selectedCountry={selectedCountry}

@@ -42,7 +42,7 @@ const SearchField = ({
         <input
           ref={inputRef}
           placeholder="Search villages, cities or country"
-          className="input pl-10 text-sm text-secondary-neutral-light-800 dark:text-white w-full h-12 ml-0 rounded-lg bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 focus:ring-blue-500 dark:focus:ring-blue-500"
+          className="input pl-10 text-sm text-secondary-neutral-light-800 dark:text-white w-full h-12 ml-0 rounded-lg bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500"
           value={reduxSearchTerm}
           onChange={handleSearch}
         />
