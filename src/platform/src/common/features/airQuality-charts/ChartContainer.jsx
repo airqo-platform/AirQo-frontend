@@ -42,7 +42,6 @@ const ChartContainer = ({
   const dropdownRef = useRef(null);
   const refreshTimerRef = useRef(null);
 
-  // Get theme information from context
   const { theme, systemTheme } = useTheme();
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
@@ -61,29 +60,25 @@ const ChartContainer = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useOutsideClick(dropdownRef, () => {
-    if (dropdownRef.current?.classList.contains('show')) {
-      dropdownRef.current.classList.remove('show');
-      setDownloadComplete(null);
-    }
+    dropdownRef.current?.classList.remove('show');
+    setDownloadComplete(null);
   });
 
-  // Handle skeleton loader visibility
+  // Handle skeleton visibility based on loading state.
   useEffect(() => {
     let timer;
-    if (chartLoading) {
-      setShowSkeleton(true);
-    } else {
+    if (!chartLoading) {
       timer = setTimeout(() => setShowSkeleton(false), SKELETON_DELAY);
+    } else {
+      setShowSkeleton(true);
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
+    return () => timer && clearTimeout(timer);
   }, [chartLoading]);
 
-  // Handle refresh state
+  // Handle refresh indicator state.
   useEffect(() => {
     let timer;
-    if (!isManualRefresh) return undefined;
+    if (!isManualRefresh) return;
     if (chartLoading || (isValidating && !chartLoading)) {
       setIsRefreshing(true);
     } else if (!isValidating && !chartLoading && isRefreshing) {
@@ -92,96 +87,101 @@ const ChartContainer = ({
         setIsManualRefresh(false);
       }, SKELETON_DELAY);
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
+    return () => timer && clearTimeout(timer);
   }, [isValidating, chartLoading, isRefreshing, isManualRefresh]);
 
-  // Cleanup refresh timer on unmount
+  // Cleanup timer on unmount.
   useEffect(() => {
-    return () => {
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current);
-        refreshTimerRef.current = null;
-      }
-    };
+    return () =>
+      refreshTimerRef.current && clearTimeout(refreshTimerRef.current);
   }, []);
 
-  const exportChart = useCallback(async (format) => {
-    if (!chartRef.current || !EXPORT_FORMATS.includes(format)) return;
-    setDownloadComplete(null);
-    setLoadingFormat(format);
-    try {
-      const canvas = await html2canvas(chartRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#fff',
-      });
-      if (format === 'pdf') {
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [canvas.width, canvas.height],
+  // Export chart with canvas background matching theme.
+  const exportChart = useCallback(
+    async (format) => {
+      if (!chartRef.current || !EXPORT_FORMATS.includes(format)) return;
+      setDownloadComplete(null);
+      setLoadingFormat(format);
+
+      try {
+        const canvas = await html2canvas(chartRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: isDark ? '#1F2937' : '#FFFFFF', // match theme background
         });
-        pdf.addImage(
-          canvas.toDataURL('image/png', 0.8),
-          'PNG',
-          0,
-          0,
-          canvas.width,
-          canvas.height,
-        );
-        pdf.save('airquality-data.pdf');
-      } else {
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL(`image/${format}`, 0.8);
-        link.download = `airquality-data.${format}`;
-        link.click();
-      }
-      setDownloadComplete(format);
-      CustomToast({
-        message: `Chart exported as ${format.toUpperCase()} successfully!`,
-        type: 'success',
-      });
-    } catch (error) {
-      console.error('Error exporting chart:', error);
-      CustomToast({
-        message: `Failed to export chart as ${format.toUpperCase()}.`,
-        type: 'error',
-      });
-    } finally {
-      setLoadingFormat(null);
-    }
-  }, []);
 
+        if (format === 'pdf') {
+          const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [canvas.width, canvas.height],
+          });
+          pdf.addImage(
+            canvas.toDataURL('image/png', 0.8),
+            'PNG',
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+          );
+          pdf.save('airquality-data.pdf');
+        } else {
+          const link = document.createElement('a');
+          link.href = canvas.toDataURL(`image/${format}`, 0.8);
+          link.download = `airquality-data.${format}`;
+          link.click();
+        }
+
+        setDownloadComplete(format);
+        CustomToast({
+          message: `Chart exported as ${format.toUpperCase()} successfully!`,
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Error exporting chart:', error);
+        CustomToast({
+          message: `Failed to export chart as ${format.toUpperCase()}.`,
+          type: 'error',
+        });
+      } finally {
+        setLoadingFormat(null);
+      }
+    },
+    [isDark],
+  );
+
+  // Refresh chart data.
   const handleRefreshChart = useCallback(() => {
     setIsManualRefresh(true);
     setIsRefreshing(true);
     refetch();
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
-    }
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     refreshTimerRef.current = setTimeout(() => {
       setIsRefreshing(false);
       setIsManualRefresh(false);
-      refreshTimerRef.current = null;
     }, REFRESH_TIMEOUT);
   }, [refetch]);
 
-  const handleOpenModal = useCallback(
-    (type) => {
-      dispatch(setModalType({ type, ids: [], data: userSelectedSites }));
-      dispatch(setOpenModal(true));
-    },
-    [dispatch, userSelectedSites],
-  );
+  // Open modal for additional insights.
+  const handleOpenModal = useCallback(() => {
+    dispatch(
+      setModalType({ type: 'inSights', ids: [], data: userSelectedSites }),
+    );
+    dispatch(setOpenModal(true));
+  }, [dispatch, userSelectedSites]);
 
+  // Dropdown menu content with dark mode support.
   const renderDropdownContent = useMemo(
     () => (
       <>
+        {/* Refresh Item */}
         <button
           onClick={handleRefreshChart}
-          className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+          className={`flex justify-between items-center w-full px-4 py-2 text-sm ${
+            isDark
+              ? 'text-gray-200 hover:bg-gray-700'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
           disabled={isRefreshing}
         >
           <span>Refresh</span>
@@ -189,12 +189,18 @@ const ChartContainer = ({
             <div className="animate-spin h-4 w-4 border-2 border-t-blue-500 border-gray-300 rounded-full" />
           )}
         </button>
-        <hr className="border-gray-200 dark:border-gray-600" />
+        <hr className={`${isDark ? 'border-gray-600' : 'border-gray-200'}`} />
+
+        {/* Export Items */}
         {EXPORT_FORMATS.map((format) => (
           <button
             key={format}
             onClick={() => exportChart(format)}
-            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+            className={`flex justify-between items-center w-full px-4 py-2 text-sm ${
+              isDark
+                ? 'text-gray-200 hover:bg-gray-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
             disabled={loadingFormat || isRefreshing}
           >
             <span>Export as {format.toUpperCase()}</span>
@@ -207,56 +213,67 @@ const ChartContainer = ({
             </span>
           </button>
         ))}
-        <hr className="border-gray-200 dark:border-gray-600" />
+        <hr className={`${isDark ? 'border-gray-600' : 'border-gray-200'}`} />
+
+        {/* More Insights and Standards */}
         <button
-          onClick={() => handleOpenModal('inSights')}
-          className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+          onClick={handleOpenModal}
+          className={`flex justify-between items-center w-full px-4 py-2 text-sm ${
+            isDark
+              ? 'text-gray-200 hover:bg-gray-700'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
           disabled={isRefreshing}
         >
           <span>More insights</span>
         </button>
-        <StandardsMenu />
+        <StandardsMenu isDark={isDark} />
       </>
     ),
     [
       handleRefreshChart,
+      isRefreshing,
       exportChart,
       loadingFormat,
       downloadComplete,
       handleOpenModal,
-      isRefreshing,
+      isDark,
     ],
   );
 
-  const RefreshIndicator = useMemo(() => {
-    if (!isManualRefresh || !isRefreshing) return null;
-    return (
-      <div className="absolute top-12 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
-        <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        <span className="text-sm font-medium">Refreshing data</span>
-      </div>
-    );
-  }, [isManualRefresh, isRefreshing]);
+  // Refresh Indicator
+  const RefreshIndicator = useMemo(
+    () =>
+      isManualRefresh &&
+      isRefreshing && (
+        <div className="absolute top-12 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
+          <svg
+            className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          <span className="text-sm font-medium">Refreshing data</span>
+        </div>
+      ),
+    [isManualRefresh, isRefreshing],
+  );
 
+  // Error Overlay if no sites to display.
   const ErrorOverlay = useMemo(() => {
     if (!error || chartSites.length > 0) return null;
     return (
@@ -309,7 +326,7 @@ const ChartContainer = ({
     );
   }, [error, chartSites.length, refetch, isDark]);
 
-  // Define card header with CustomDropdown for additional options
+  // Optional card header.
   const cardHeader = useMemo(() => {
     if (!showTitle) return null;
     return (
@@ -338,9 +355,9 @@ const ChartContainer = ({
     );
   }, [showTitle, chartTitle, renderDropdownContent, isDark]);
 
-  // Chart content
-  const chartContent = useMemo(() => {
-    return (
+  // Main chart content with overlay for skeleton or error.
+  const chartContent = useMemo(
+    () => (
       <div className="relative" style={{ width, height }}>
         {ErrorOverlay}
         {showSkeleton ? (
@@ -360,21 +377,22 @@ const ChartContainer = ({
           />
         )}
       </div>
-    );
-  }, [
-    width,
-    height,
-    ErrorOverlay,
-    showSkeleton,
-    data,
-    chartSites,
-    chartType,
-    timeFrame,
-    id,
-    pollutionType,
-    handleRefreshChart,
-    isRefreshing,
-  ]);
+    ),
+    [
+      width,
+      height,
+      ErrorOverlay,
+      showSkeleton,
+      data,
+      chartSites,
+      chartType,
+      timeFrame,
+      id,
+      pollutionType,
+      handleRefreshChart,
+      isRefreshing,
+    ],
+  );
 
   return (
     <div className="relative" id={id}>
@@ -384,7 +402,9 @@ const ChartContainer = ({
         padding="p-0"
         width="w-full"
         overflow={false}
-        className={`relative overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        className={`relative overflow-hidden ${
+          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}
         contentClassName="p-0"
         headerProps={{
           className: 'pt-4 pb-2 px-6 flex items-center justify-between',
