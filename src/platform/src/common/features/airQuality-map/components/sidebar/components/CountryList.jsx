@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import Button from '@/components/Button';
+import Image from 'next/image';
+import Card from '@/components/CardWrapper';
 import {
   setLocation,
   addSuggestedSites,
@@ -16,29 +17,28 @@ const CountryList = ({
   const dispatch = useDispatch();
 
   // Memoize sorted data to avoid re-sorting on every render
-  const sortedData = useMemo(() => {
+  const sortedCountries = useMemo(() => {
     if (!Array.isArray(data) || data.length === 0) return [];
     return [...data].sort((a, b) => a.country.localeCompare(b.country));
   }, [data]);
 
   // Handle click event for country selection
-  const handleClick = useCallback(
+  const handleCountryClick = useCallback(
     (country) => {
       if (!country) return;
-
       setSelectedCountry(country);
       dispatch(setLocation({ country: country.country, city: '' }));
 
       const selectedSites = siteDetails
         .filter((site) => site.country === country.country)
         .sort((a, b) => a.name.localeCompare(b.name));
-
       dispatch(addSuggestedSites(selectedSites));
     },
     [dispatch, siteDetails, setSelectedCountry],
   );
 
-  if (sortedData.length === 0) {
+  // Render skeleton placeholders if data is loading or empty
+  if (sortedCountries.length === 0) {
     return (
       <div className="flex gap-2 ml-2 animate-pulse mb-2">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -53,7 +53,7 @@ const CountryList = ({
 
   return (
     <div className="flex space-x-2 ml-2 mb-2">
-      {sortedData.map((country, index) => {
+      {sortedCountries.map((country, index) => {
         if (!country || !country.flag) {
           return (
             <div key={index} className="text-red-500">
@@ -61,21 +61,26 @@ const CountryList = ({
             </div>
           );
         }
+
+        // Check if current country is selected
+        const isSelected = selectedCountry?.country === country.country;
+
         return (
-          <Button
+          <Card
             key={index}
-            type="button"
-            className={`flex items-center cursor-pointer rounded-full bg-gray-100 hover:bg-gray-200 py-[6px] px-[10px] min-w-max space-x-2 m-0 ${
-              selectedCountry?.country === country.country
-                ? 'border-2 border-blue-400'
-                : ''
+            onClick={() => handleCountryClick(country)}
+            width="w-full"
+            height="h-10"
+            padding="px-5"
+            contentClassName="flex items-center justify-center gap-2 h-full"
+            className={`cursor-pointer ${
+              isSelected ? 'ring-2 ring-blue-400' : ''
             }`}
-            variant="outline"
-            onClick={() => handleClick(country)}
+            background="bg-grey-200 dark:bg-transparent"
           >
-            <img
+            <Image
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
-              alt={country.country}
+              alt={`${country.country} flag`}
               width={20}
               height={20}
               onError={(e) => {
@@ -86,7 +91,7 @@ const CountryList = ({
             <span className="text-sm text-secondary-neutral-light-600 font-medium">
               {country.country}
             </span>
-          </Button>
+          </Card>
         );
       })}
     </div>
