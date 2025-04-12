@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
 import { getAQICategory, getAQIMessage } from '../../MapNodes';
@@ -11,7 +11,6 @@ import {
   isValid,
 } from 'date-fns';
 import { useSelector } from 'react-redux';
-import Card from '@/components/CardWrapper';
 
 const addSpacesToCategory = (category) =>
   category?.replace(/([a-z])([A-Z])/g, '$1 $2') || 'Unknown Category';
@@ -34,11 +33,13 @@ const LocationAlertCard = ({
     (state) => state.recentMeasurements.measurements,
   );
   const [collapsed, setCollapsed] = useState(isCollapsed);
+  const contentRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(0);
 
   const getValidDate = (time) =>
     isValid(new Date(time)) ? new Date(time) : null;
 
-  const getAirQualityCategory = useMemo(() => {
+  const airQualityCategory = useMemo(() => {
     const currentPM25 =
       selectedSite?.pm2_5 || recentLocationMeasurements?.[0]?.pm2_5?.value;
     const predictedPM25 = selectedWeeklyPrediction?.pm2_5;
@@ -56,7 +57,7 @@ const LocationAlertCard = ({
     return addSpacesToCategory(categoryObject?.category);
   }, [selectedSite, selectedWeeklyPrediction, recentLocationMeasurements]);
 
-  const getDateMessage = useMemo(() => {
+  const dateMessage = useMemo(() => {
     const selectedTime = selectedWeeklyPrediction
       ? isSameDay(
           getValidDate(selectedSite?.time) ||
@@ -90,11 +91,11 @@ const LocationAlertCard = ({
         recentLocationMeasurements?.[0]?.pm2_5?.value?.toFixed(2);
 
     if (pm2_5Value) {
-      const aqiMessage = getAQIMessage('pm2_5', getDateMessage, pm2_5Value);
+      const aqiMessage = getAQIMessage('pm2_5', dateMessage, pm2_5Value);
       return (
         <>
           <span className="text-blue-500">{`${locationName}'s`}</span> Air
-          Quality is expected to be {getAirQualityCategory} {getDateMessage}.{' '}
+          Quality is expected to be {airQualityCategory} {dateMessage}.{' '}
           {aqiMessage}
         </>
       );
@@ -102,23 +103,26 @@ const LocationAlertCard = ({
     return 'No air quality data for this place.';
   }, [
     locationName,
-    getAirQualityCategory,
-    getDateMessage,
+    airQualityCategory,
+    dateMessage,
     selectedSite,
     selectedWeeklyPrediction,
     recentLocationMeasurements,
   ]);
 
+  // Measure content height for smooth animation - moved after all variables are defined
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [collapsed, selectedSite, selectedWeeklyPrediction]); // Dependencies that could affect content size
+
   return (
-    <Card
-      padding="p-3"
-      className="flex flex-col justify-center items-center"
-      bordered={true}
-      // You can override background if needed; here we use default white/dark settings.
-    >
+    <div className="p-3 mb-4 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center">
       <div
-        className="flex justify-between items-center cursor-pointer mb-2"
+        className="flex justify-between items-center cursor-pointer"
         onClick={() => setCollapsed(!collapsed)}
+        data-testid="alert-card-header"
       >
         <div className="flex justify-start items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold">
@@ -128,16 +132,32 @@ const LocationAlertCard = ({
             {title}
           </h3>
         </div>
-        <div className="w-7 h-7 rounded-full flex items-center justify-center bg-white">
+        <div
+          className={`w-7 h-7 rounded-full flex items-center justify-center bg-white transition-transform duration-300 ${
+            collapsed ? 'rotate-0' : 'rotate-180'
+          }`}
+        >
           <ChevronDownIcon className="text-secondary-neutral-dark-950 w-4 h-4" />
         </div>
       </div>
-      {collapsed && (
+
+      {/* Content with smooth height transition */}
+      <div
+        ref={contentRef}
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{
+          maxHeight: collapsed ? '0px' : `${contentHeight}px`,
+          opacity: collapsed ? 0 : 1,
+          marginTop: collapsed ? 0 : '8px',
+          visibility: collapsed ? 'hidden' : 'visible',
+        }}
+        data-testid="alert-card-content"
+      >
         <p className="text-xl font-bold leading-7 text-secondary-neutral-dark-950">
           {airQualityMessage}
         </p>
-      )}
-    </Card>
+      </div>
+    </div>
   );
 };
 
