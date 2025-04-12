@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   LineChart,
@@ -25,8 +26,9 @@ import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { useSelector } from 'react-redux';
-import { MdInfoOutline, MdRefresh } from 'react-icons/md';
+import { MdInfoOutline } from 'react-icons/md';
 import InfoMessage from '@/components/Messages/InfoMessage';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 /**
  * MoreInsightsChart Component
@@ -46,6 +48,11 @@ const MoreInsightsChart = ({
   refreshChart,
   isRefreshing = false,
 }) => {
+  // Get theme values
+  const { theme, systemTheme } = useTheme();
+  const isDark =
+    theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+
   const [activeIndex, setActiveIndex] = useState(null);
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
@@ -58,7 +65,6 @@ const MoreInsightsChart = ({
     if (visibleSiteIds && visibleSiteIds.length > 0) {
       return visibleSiteIds;
     }
-    // Extract IDs from selectedSites if they're objects
     if (selectedSites && selectedSites.length > 0) {
       if (typeof selectedSites[0] === 'object') {
         return selectedSites
@@ -81,7 +87,6 @@ const MoreInsightsChart = ({
     const combinedData = {};
     const siteIdToName = {};
 
-    // Build site ID to name mapping
     rawData.forEach((dataPoint) => {
       const { site_id, name } = dataPoint;
       if (site_id && name && selectedSiteIds.includes(site_id)) {
@@ -89,10 +94,8 @@ const MoreInsightsChart = ({
       }
     });
 
-    // Combine data points
     rawData.forEach((dataPoint) => {
       const { site_id, value, time } = dataPoint;
-      // Skip invalid or unselected sites
       if (!site_id || value === undefined || !time) return;
       if (!selectedSiteIds.includes(site_id)) return;
 
@@ -106,7 +109,6 @@ const MoreInsightsChart = ({
       combinedData[formattedTime][site_id] = value;
     });
 
-    // Convert to array & sort by time
     const sortedData = Object.values(combinedData).sort(
       (a, b) => new Date(a.time) - new Date(b.time),
     );
@@ -174,7 +176,7 @@ const MoreInsightsChart = ({
    * Calculate step for X-axis labels
    */
   const calculateStep = useCallback(() => {
-    const minLabelWidth = 25; // Minimum width needed per label
+    const minLabelWidth = 25;
     if (containerWidth <= 0 || chartData.length === 0) return 1;
     const maxLabels = Math.floor(containerWidth / minLabelWidth);
     return Math.max(1, Math.ceil(chartData.length / maxLabels));
@@ -182,15 +184,9 @@ const MoreInsightsChart = ({
 
   const step = useMemo(() => calculateStep(), [calculateStep]);
 
-  /**
-   * Chart component types
-   */
   const ChartComponent = chartType === 'line' ? LineChart : BarChart;
   const DataComponent = chartType === 'line' ? Line : Bar;
 
-  /**
-   * Handle refresh button click with debounce protection
-   */
   const handleRefreshClick = useCallback(() => {
     if (!isRefreshing && refreshChart) {
       refreshChart();
@@ -201,20 +197,16 @@ const MoreInsightsChart = ({
    * Render chart content based on state
    */
   const renderChart = useMemo(() => {
-    // No sites selected
     if (selectedSiteIds.length === 0) {
       return (
         <InfoMessage
           title="No Sites Selected"
-          description="
-            Please select one or more sites to view the chart."
+          description="Please select one or more sites to view the chart."
           variant="info"
           className="w-full h-full flex justify-center items-center flex-col"
         />
       );
     }
-
-    // All sites hidden
     if (effectiveVisibleSiteIds.length === 0) {
       return (
         <div className="flex flex-col justify-center items-center h-full p-4 text-gray-500">
@@ -227,14 +219,11 @@ const MoreInsightsChart = ({
         </div>
       );
     }
-
-    // No data
     if (chartData.length === 0) {
       return (
         <InfoMessage
           title="No Data Available"
-          description=" There's no data to display for the selected criteria. Try
-            adjusting your filters or refreshing the chart."
+          description="There's no data to display for the selected criteria. Try adjusting your filters or refreshing the chart."
           variant="info"
           className="w-full h-full flex justify-center items-center flex-col"
           action={
@@ -247,7 +236,7 @@ const MoreInsightsChart = ({
                 }`}
                 aria-label="Refresh chart data"
               >
-                <MdRefresh className="h-5 w-5 mr-1" />
+                <MdInfoOutline className="h-5 w-5 mr-1" />
                 Refresh Chart
               </button>
             )
@@ -256,7 +245,6 @@ const MoreInsightsChart = ({
       );
     }
 
-    // Render the actual chart
     return (
       <ResponsiveContainer width={width} height={height}>
         <ChartComponent
@@ -264,10 +252,11 @@ const MoreInsightsChart = ({
           margin={{ top: 38, right: 10, left: -15, bottom: 20 }}
           style={{ cursor: 'pointer' }}
         >
-          {/* Grid */}
-          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
-
-          {/* X-Axis */}
+          <CartesianGrid
+            stroke={isDark ? '#555' : '#ccc'}
+            strokeDasharray="5 5"
+            vertical={false}
+          />
           <XAxis
             dataKey="time"
             tickLine={false}
@@ -276,7 +265,7 @@ const MoreInsightsChart = ({
                 x={x}
                 y={y}
                 payload={payload}
-                fill={fill}
+                fill={isDark ? '#E5E7EB' : fill}
                 frequency={frequency}
                 index={index}
                 step={step}
@@ -287,14 +276,12 @@ const MoreInsightsChart = ({
             interval={step}
             padding={{ left: 30, right: 30 }}
           />
-
-          {/* Y-Axis */}
           <YAxis
             domain={[0, 'auto']}
             axisLine={false}
             fontSize={12}
             tickLine={false}
-            tick={{ fill: '#1C1D20' }}
+            tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20' }}
             tickFormatter={formatYAxisTick}
           >
             <Label
@@ -306,21 +293,15 @@ const MoreInsightsChart = ({
                     : 'Pollutant'
               }
               position="top"
-              fill="#1C1D20"
+              fill={isDark ? '#D1D5DB' : '#1C1D20'}
               fontSize={12}
               angle={0}
               dx={0}
               dy={-20}
-              style={{
-                textAnchor: 'start',
-              }}
+              style={{ textAnchor: 'start' }}
             />
           </YAxis>
-
-          {/* Legend */}
           <Legend content={renderCustomizedLegend} />
-
-          {/* Tooltip */}
           <Tooltip
             content={
               <CustomGraphTooltip
@@ -331,16 +312,14 @@ const MoreInsightsChart = ({
             cursor={
               chartType === 'line'
                 ? {
-                    stroke: '#aaa',
+                    stroke: isDark ? '#888' : '#aaa',
                     strokeOpacity: 0.3,
                     strokeWidth: 2,
                     strokeDasharray: '3 3',
                   }
-                : { fill: '#eee', fillOpacity: 0.3 }
+                : { fill: isDark ? '#444' : '#eee', fillOpacity: 0.3 }
             }
           />
-
-          {/* Data Lines/Bars */}
           {dataKeys.map((key, index) => (
             <DataComponent
               key={key}
@@ -358,8 +337,6 @@ const MoreInsightsChart = ({
               onMouseLeave={handleMouseLeave}
             />
           ))}
-
-          {/* Reference Line for WHO Standard */}
           {WHO_STANDARD_VALUE > 0 && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}
@@ -393,6 +370,7 @@ const MoreInsightsChart = ({
     isRefreshing,
     aqStandard?.name,
     handleRefreshClick,
+    isDark,
   ]);
 
   return (

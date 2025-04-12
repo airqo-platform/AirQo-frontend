@@ -3,20 +3,19 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import DownloadIcon from '@/icons/Analytics/downloadIcon';
+import { format, parseISO } from 'date-fns';
+import { saveAs } from 'file-saver';
 import MoreInsightsChart from '@/features/airQuality-charts/MoreInsightsChart';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
-import CheckIcon from '@/icons/tickIcon';
-import TabButtons from '@/components/Button/TabButtons';
-import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
+import CustomDropdown, {
+  DropdownItem,
+} from '@/components/Button/CustomDropdown';
 import { TIME_OPTIONS, CHART_TYPE } from '@/lib/constants';
 import useDataDownload from '@/core/hooks/useDataDownload';
 import AirQualityCard from '../components/AirQualityCard';
 import LocationCard from '../components/LocationCard';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
-import { format, parseISO } from 'date-fns';
-import { saveAs } from 'file-saver';
 import CustomToast from '@/components/Toast/CustomToast';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
@@ -27,62 +26,30 @@ import { Refreshing, DoneRefreshed } from '../constants/svgs';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import SelectionMessage from '../components/SelectionMessage';
 
-/**
- * InSightsHeader Component
- */
-export const InSightsHeader = () => (
-  <h3
-    className="flex text-lg leading-6 font-medium text-gray-900"
-    id="modal-title"
-  >
-    Analytics
-  </h3>
-);
-
-/**
- * MoreInsights Component - Advanced analytics dashboard
- */
 const MoreInsights = () => {
-  // Redux state
   const modalData = useSelector((state) => state.modal.modalType?.data);
   const chartData = useSelector((state) => state.chart);
 
-  // Local state with useRef for values that don't need re-renders
+  // Local state
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
   const [frequency, setFrequency] = useState('daily');
   const [chartType, setChartType] = useState('line');
   const [isManualRefresh, setIsManualRefresh] = useState(false);
   const [refreshSuccess, setRefreshSuccess] = useState(false);
-
-  // Refs for cleanup and controllers
-  const controllersRef = useRef({
-    refresh: null,
-    success: null,
-    abort: null,
-    download: null,
-  });
-
-  // API hooks
+  const controllersRef = useRef({});
   const fetchData = useDataDownload();
 
-  // Ensure `allSites` is an array
   const allSites = useMemo(() => {
     if (Array.isArray(modalData)) return modalData;
-    if (modalData) return [modalData];
-    return [];
+    return modalData ? [modalData] : [];
   }, [modalData]);
 
-  // Data fetching and visibility states
   const [dataLoadingSites, setDataLoadingSites] = useState(
-    allSites.map((site) => site._id),
+    allSites.map((s) => s._id),
   );
+  const [visibleSites, setVisibleSites] = useState(allSites.map((s) => s._id));
 
-  const [visibleSites, setVisibleSites] = useState(
-    allSites.map((site) => site._id),
-  );
-
-  // Initialize date range to last 7 days
   const initialDateRange = useMemo(() => {
     const { startDateISO, endDateISO } = formatDateRangeToISO(
       new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -94,10 +61,8 @@ const MoreInsights = () => {
       label: 'Last 7 days',
     };
   }, []);
-
   const [dateRange, setDateRange] = useState(initialDateRange);
 
-  // Fetch analytics data using SWR hook with optimized configuration
   const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
     useAnalyticsData(
       {
@@ -114,8 +79,6 @@ const MoreInsights = () => {
       {
         revalidateOnFocus: false,
         dedupingInterval: 10000,
-        revalidateIfStale: false,
-        revalidateOnReconnect: false,
         errorRetryCount: 2,
         onError: (err) => {
           if (
@@ -125,57 +88,38 @@ const MoreInsights = () => {
           ) {
             return;
           }
-          if (isManualRefresh) {
-            setIsManualRefresh(false);
-          }
+          if (isManualRefresh) setIsManualRefresh(false);
         },
         onSuccess: () => {
           if (isManualRefresh) {
             setRefreshSuccess(true);
             setIsManualRefresh(false);
-
-            if (controllersRef.current.success) {
-              clearTimeout(controllersRef.current.success);
-            }
-            controllersRef.current.success = setTimeout(() => {
-              setRefreshSuccess(false);
-            }, 3000);
+            clearTimeout(controllersRef.current.success);
+            controllersRef.current.success = setTimeout(
+              () => setRefreshSuccess(false),
+              3000,
+            );
           }
         },
       },
     );
 
-  // Clean up timeouts on unmount
   useEffect(() => {
     return () => {
-      // Clean up all timeouts and abort controllers
-      const controllers = controllersRef.current;
-      Object.keys(controllers).forEach((key) => {
-        if (controllers[key]) {
-          if (key === 'abort' || key === 'download') {
-            controllers[key].abort();
-          } else {
-            clearTimeout(controllers[key]);
-          }
-          controllers[key] = null;
-        }
+      Object.values(controllersRef.current).forEach((ctrl) => {
+        if (ctrl?.abort) ctrl.abort();
+        else clearTimeout(ctrl);
       });
     };
   }, []);
 
-  // Clear download error after timeout
   useEffect(() => {
     if (downloadError) {
-      const timer = setTimeout(() => {
-        setDownloadError(null);
-      }, 5000);
+      const timer = setTimeout(() => setDownloadError(null), 5000);
       return () => clearTimeout(timer);
     }
   }, [downloadError]);
 
-  /**
-   * Toggle site visibility in chart with improved UX feedback
-   */
   const toggleSiteVisibility = useCallback((siteId) => {
     setVisibleSites((prev) => {
       if (prev.includes(siteId)) {
@@ -192,50 +136,33 @@ const MoreInsights = () => {
     });
   }, []);
 
-  /**
-   * Site management functions combined into a single handler for efficiency
-   */
   const handleSiteAction = useCallback(
     (siteId, action = 'toggle') => {
-      // Add site to data loading
       if (!dataLoadingSites.includes(siteId)) {
         setDataLoadingSites((prev) => [...prev, siteId]);
         setVisibleSites((prev) => [...prev, siteId]);
-        return true; // Data reload will happen
+        return true;
       }
-
-      // Toggle visibility
       if (action === 'toggle') {
         toggleSiteVisibility(siteId);
         return false;
       }
-
-      // Remove site
       if (action === 'remove' && dataLoadingSites.length > 1) {
         setDataLoadingSites((prev) => prev.filter((id) => id !== siteId));
         setVisibleSites((prev) => prev.filter((id) => id !== siteId));
         return true;
       }
-
       return false;
     },
     [dataLoadingSites, toggleSiteVisibility],
   );
 
-  /**
-   * Handle manual refresh with improved handling of aborts
-   */
   const handleManualRefresh = useCallback(async () => {
     if (isManualRefresh || isValidating) return;
-
-    if (controllersRef.current.abort) {
-      controllersRef.current.abort.abort();
-    }
-
+    controllersRef.current.abort?.abort();
     controllersRef.current.abort = new AbortController();
     setIsManualRefresh(true);
     setRefreshSuccess(false);
-
     try {
       await refetch({ signal: controllersRef.current.abort.signal });
     } catch {
@@ -243,28 +170,19 @@ const MoreInsights = () => {
     }
   }, [refetch, isManualRefresh, isValidating]);
 
-  /**
-   * Download data in CSV format
-   */
   const handleDataDownload = async () => {
-    if (visibleSites.length === 0) {
+    if (!visibleSites.length) {
       CustomToast({
         message: 'Please select at least one site to download data.',
         type: 'warning',
       });
       return;
     }
-
     setDownloadLoading(true);
     setDownloadError(null);
-
     try {
-      if (controllersRef.current.download) {
-        controllersRef.current.download.abort();
-      }
-
+      controllersRef.current.download?.abort();
       controllersRef.current.download = new AbortController();
-
       const { startDate, endDate } = dateRange;
       const formattedStartDate = format(
         parseISO(startDate),
@@ -274,79 +192,56 @@ const MoreInsights = () => {
         parseISO(endDate),
         "yyyy-MM-dd'T'00:00:00.000'Z'",
       );
-
-      // API request data
       const apiData = {
         startDateTime: formattedStartDate,
         endDateTime: formattedEndDate,
         sites: visibleSites,
         network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
-        frequency: frequency,
+        frequency,
         datatype: 'calibrated',
         downloadType: 'csv',
         outputFormat: 'airqo-standard',
         minimum: true,
       };
-
-      // Set timeout for download
       const downloadTimeout = setTimeout(() => {
-        if (controllersRef.current.download) {
-          controllersRef.current.download.abort();
-          setDownloadError(
-            'Download is taking longer than expected. Please try again.',
-          );
-          setDownloadLoading(false);
-        }
+        controllersRef.current.download?.abort();
+        setDownloadError(
+          'Download is taking longer than expected. Please try again.',
+        );
+        setDownloadLoading(false);
       }, 30000);
-
-      try {
-        const response = await fetchData(apiData);
-        clearTimeout(downloadTimeout);
-
-        let csvData = '';
-
-        // Process the response based on its type
-        if (typeof response === 'string') {
-          csvData = response.startsWith('resp')
-            ? response.substring(4)
-            : response;
-        } else if (response && typeof response === 'object') {
-          if (response.data) {
-            csvData =
-              typeof response.data === 'string'
-                ? response.data
-                : Array.isArray(response.data)
-                  ? `${Object.keys(response.data[0] || {}).join(',')}\n${response.data
-                      .map((row) => Object.values(row).join(','))
-                      .join('\n')}`
-                  : JSON.stringify(response.data);
-          } else {
-            csvData = JSON.stringify(response);
-          }
-        }
-
-        // Create filename
-        const fileName =
-          visibleSites.length === 1
-            ? `${allSites.find((s) => s._id === visibleSites[0])?.name || 'site'}_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`
-            : `${visibleSites.length}_sites_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
-
-        // Create and save the blob
-        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-
-        if (blob.size > 10) {
-          saveAs(blob, fileName);
-          CustomToast({
-            message: `Download complete for ${visibleSites.length} site(s)!`,
-            type: 'success',
-          });
-        } else {
-          throw new Error('No data available for the selected criteria');
-        }
-      } catch (error) {
-        clearTimeout(downloadTimeout);
-        throw error;
+      const response = await fetchData(apiData);
+      clearTimeout(downloadTimeout);
+      let csvData = '';
+      if (typeof response === 'string') {
+        csvData = response.startsWith('resp')
+          ? response.substring(4)
+          : response;
+      } else if (response && typeof response === 'object') {
+        csvData = response.data
+          ? typeof response.data === 'string'
+            ? response.data
+            : Array.isArray(response.data)
+              ? `${Object.keys(response.data[0] || {}).join(',')}\n${response.data
+                  .map((row) => Object.values(row).join(','))
+                  .join('\n')}`
+              : JSON.stringify(response.data)
+          : JSON.stringify(response);
+      }
+      const fileName =
+        visibleSites.length === 1
+          ? `${allSites.find((s) => s._id === visibleSites[0])?.name || 'site'}_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`
+          : `${visibleSites.length}_sites_${chartData.pollutionType}_${format(parseISO(startDate), 'yyyy-MM-dd')}_to_${format(parseISO(endDate), 'yyyy-MM-dd')}.csv`;
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      if (blob.size > 10) {
+        saveAs(blob, fileName);
+        CustomToast({
+          message: `Download complete for ${visibleSites.length} site(s)!`,
+          type: 'success',
+        });
+      } else {
+        throw new Error('No data available for the selected criteria');
       }
     } catch (error) {
       if (error.name === 'AbortError' || error.message?.includes('aborted')) {
@@ -362,7 +257,6 @@ const MoreInsights = () => {
     }
   };
 
-  // Handler functions
   const handleDateChange = useCallback((start, end, label) => {
     if (start && end) {
       setDateRange({
@@ -374,60 +268,38 @@ const MoreInsights = () => {
   }, []);
 
   const handleFrequencyChange = useCallback(
-    (option) => {
-      if (frequency !== option) setFrequency(option);
-    },
+    (option) => frequency !== option && setFrequency(option),
     [frequency],
   );
-
   const handleChartTypeChange = useCallback(
-    (option) => {
-      if (chartType !== option) setChartType(option);
-    },
+    (option) => chartType !== option && setChartType(option),
     [chartType],
   );
 
-  // Load all sites button handler
   const handleLoadAllSites = useCallback(() => {
-    const allSiteIds = allSites.map((site) => site._id);
-    const newSiteIds = allSiteIds.filter(
-      (id) => !dataLoadingSites.includes(id),
-    );
-
-    if (newSiteIds.length === 0) return false;
-
-    setDataLoadingSites((prev) => [...prev, ...newSiteIds]);
-    setVisibleSites((prev) => {
-      const newVisible = [...prev];
-      newSiteIds.forEach((id) => {
-        if (!newVisible.includes(id)) newVisible.push(id);
-      });
-      return newVisible;
-    });
-
+    const allIds = allSites.map((site) => site._id);
+    const newIds = allIds.filter((id) => !dataLoadingSites.includes(id));
+    if (!newIds.length) return false;
+    setDataLoadingSites((prev) => [...prev, ...newIds]);
+    setVisibleSites((prev) => Array.from(new Set([...prev, ...newIds])));
     return true;
   }, [allSites, dataLoadingSites]);
 
-  // Animation variants for the component
+  // Animation variants
   const sidebarVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        duration: 0.3,
-        staggerChildren: 0.07,
-      },
+      transition: { duration: 0.3, staggerChildren: 0.07 },
     },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
   };
 
-  // Memoized sidebar content
   const sidebarContent = useMemo(() => {
-    if (!Array.isArray(allSites) || allSites.length === 0) {
+    if (!allSites.length) {
       return (
         <motion.div
           className="text-gray-500 w-full text-sm h-auto flex flex-col justify-center items-center"
@@ -440,7 +312,6 @@ const MoreInsights = () => {
         </motion.div>
       );
     }
-
     return (
       <motion.div
         className="space-y-3"
@@ -485,16 +356,14 @@ const MoreInsights = () => {
     sidebarVariants,
   ]);
 
-  // Memoized tooltip content for download button
   const downloadTooltipContent = useMemo(() => {
-    if (visibleSites.length === 0)
+    if (!visibleSites.length)
       return 'Please select at least one site to download data';
     if (visibleSites.length === dataLoadingSites.length)
       return 'Download data for all selected sites';
     return `Download data for ${visibleSites.length} checked site(s)`;
   }, [visibleSites.length, dataLoadingSites.length]);
 
-  // Memoized refresh button
   const RefreshButton = useMemo(
     () => (
       <Tooltip content="Refresh data" className="w-auto text-center">
@@ -534,7 +403,6 @@ const MoreInsights = () => {
     [isValidating, isManualRefresh, handleManualRefresh],
   );
 
-  // Memoized chart content based on loading/error states
   const chartContent = useMemo(() => {
     if (isError) {
       return (
@@ -569,14 +437,12 @@ const MoreInsights = () => {
         </motion.div>
       );
     }
-
     if (
       chartLoading ||
       (isValidating && dataLoadingSites.length > 0 && !allSiteData?.length)
     ) {
       return <SkeletonLoader width="100%" height={380} />;
     }
-
     if (allSiteData?.length > 0) {
       return (
         <motion.div
@@ -600,7 +466,6 @@ const MoreInsights = () => {
         </motion.div>
       );
     }
-
     return (
       <InfoMessage
         title="No Data"
@@ -634,25 +499,16 @@ const MoreInsights = () => {
     handleManualRefresh,
   ]);
 
-  // Animation variants for main content
   const contentVariants = {
     initial: { opacity: 0 },
     animate: {
       opacity: 1,
-      transition: {
-        duration: 0.3,
-        staggerChildren: 0.1,
-      },
+      transition: { duration: 0.3, staggerChildren: 0.1 },
     },
   };
-
   const controlsVariants = {
     hidden: { opacity: 0, y: -10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   };
 
   return (
@@ -662,9 +518,9 @@ const MoreInsights = () => {
       initial="initial"
       animate="animate"
     >
-      {/* Sidebar for Sites */}
+      {/* Sidebar */}
       <motion.div
-        className="w-[280px] h-full overflow-y-auto overflow-x-hidden border-r relative space-y-3 px-4 pt-2 pb-14"
+        className="w-[280px] h-full overflow-y-auto border-r relative space-y-3 px-4 pt-2 pb-14"
         variants={sidebarVariants}
         initial="hidden"
         animate="visible"
@@ -696,7 +552,7 @@ const MoreInsights = () => {
         {sidebarContent}
       </motion.div>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <motion.div
         className="relative flex-1 h-full overflow-hidden"
         variants={contentVariants}
@@ -711,22 +567,17 @@ const MoreInsights = () => {
           >
             <div className="space-x-2 flex items-center">
               <CustomDropdown
-                btnText={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
-                dropdown
-                id="frequency"
+                text={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
                 className="left-0"
               >
                 {TIME_OPTIONS.map((option) => (
-                  <span
+                  <DropdownItem
                     key={option}
                     onClick={() => handleFrequencyChange(option)}
-                    className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${frequency === option ? 'bg-[#EBF5FF] rounded-md' : ''}`}
+                    active={frequency === option}
                   >
-                    <span>
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </span>
-                    {frequency === option && <CheckIcon fill="#145FFF" />}
-                  </span>
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </DropdownItem>
                 ))}
               </CustomDropdown>
 
@@ -739,19 +590,17 @@ const MoreInsights = () => {
               />
 
               <CustomDropdown
-                btnText={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
-                id="chartType"
+                text={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 className="left-0"
               >
                 {CHART_TYPE.map((option) => (
-                  <span
+                  <DropdownItem
                     key={option.id}
                     onClick={() => handleChartTypeChange(option.id)}
-                    className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${chartType === option.id ? 'bg-[#EBF5FF] rounded-md' : ''}`}
+                    active={chartType === option.id}
                   >
-                    <span>{option.name}</span>
-                    {chartType === option.id && <CheckIcon fill="#145FFF" />}
-                  </span>
+                    {option.name}
+                  </DropdownItem>
                 ))}
               </CustomDropdown>
 
@@ -763,24 +612,33 @@ const MoreInsights = () => {
                 content={downloadTooltipContent}
                 className="w-auto text-center"
               >
-                <TabButtons
-                  btnText={`Download ${visibleSites.length > 0 ? `(${visibleSites.length})` : 'Data'}`}
-                  Icon={<DownloadIcon width={16} height={17} color="white" />}
-                  onClick={handleDataDownload}
-                  btnStyle={`${visibleSites.length > 0 ? 'bg-blue-600' : 'bg-gray-400'} text-white border ${visibleSites.length > 0 ? 'border-blue-600' : 'border-gray-400'} px-3 py-2 rounded-xl`}
-                  isLoading={downloadLoading}
-                  disabled={
-                    downloadLoading ||
-                    chartLoading ||
-                    isValidating ||
-                    visibleSites.length === 0
+                <CustomDropdown
+                  // When downloading, show "Downloading..." text; otherwise, show "Download (n)"
+                  text={
+                    downloadLoading
+                      ? 'Downloading...'
+                      : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`
                   }
+                  isButton
+                  onClick={handleDataDownload}
+                  buttonStyle={{
+                    backgroundColor: visibleSites.length
+                      ? '#2563EB'
+                      : '#9CA3AF',
+                    color: 'white',
+                    border: visibleSites.length
+                      ? '1px solid #2563EB'
+                      : '1px solid #9CA3AF',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '0.75rem',
+                  }}
+                  disabled={downloadLoading}
                 />
               </Tooltip>
             </div>
           </motion.div>
 
-          {/* Error message */}
+          {/* Download Error Notification */}
           <AnimatePresence>
             {downloadError && (
               <motion.div
@@ -795,12 +653,11 @@ const MoreInsights = () => {
             )}
           </AnimatePresence>
 
-          {/* Chart container */}
+          {/* Chart Container */}
           <motion.div
             variants={itemVariants}
-            className="w-full border rounded-xl border-grey-150 p-2 relative overflow-hidden"
+            className="w-full border rounded-xl p-2 relative overflow-hidden"
           >
-            {/* Success notification */}
             <AnimatePresence>
               {refreshSuccess && !isValidating && (
                 <motion.div
@@ -814,8 +671,6 @@ const MoreInsights = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Loading notification */}
             <AnimatePresence>
               {isManualRefresh && isValidating && (
                 <motion.div
@@ -831,11 +686,10 @@ const MoreInsights = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-
             {chartContent}
           </motion.div>
 
-          {/* Selection message for hidden sites */}
+          {/* Selection Message for Hidden Sites */}
           <AnimatePresence>
             {dataLoadingSites.length > visibleSites.length && (
               <motion.div

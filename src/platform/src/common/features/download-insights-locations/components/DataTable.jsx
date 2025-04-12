@@ -9,6 +9,7 @@ import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from '@/components/search/TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
+import CustomDropdown from '@/components/Button/CustomDropdown';
 
 /**
  * DataTable Props:
@@ -298,28 +299,40 @@ function DataTable({
             const isActive = activeFilter?.key === filterDef.key;
             const hasError = !!filterErrors[filterDef.key];
 
+            const buttonStyle = {
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              transition:
+                'background-color 0.3s, color 0.3s, border-color 0.3s',
+              position: 'relative',
+              backgroundColor: isActive
+                ? hasError
+                  ? '#dc2626' // red-600
+                  : '#2563eb' // blue-600
+                : '#ffffff',
+              color: isActive
+                ? '#ffffff'
+                : hasError
+                  ? '#b91c1c' // red-700
+                  : '#374151', // gray-700
+              borderColor: isActive
+                ? hasError
+                  ? '#fca5a5' // red-300
+                  : '#2563eb'
+                : hasError
+                  ? '#fca5a5'
+                  : '#d1d5db', // gray-300
+            };
+
             return (
-              <button
+              <CustomDropdown
                 key={filterDef.key}
-                type="button"
+                isButton={true}
+                text={filterDef.label}
+                buttonStyle={buttonStyle}
                 onClick={() => handleFilterChange(filterDef)}
-                className={`px-4 py-2 shadow rounded-xl text-sm font-medium border transition-colors relative
-                  ${
-                    isActive
-                      ? hasError
-                        ? 'bg-red-600 text-white'
-                        : 'bg-blue-600 text-white'
-                      : hasError
-                        ? 'bg-white text-red-700 border-red-300 hover:bg-red-50'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                  }
-                `}
-              >
-                {filterDef.label}
-                {hasError && !isActive && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                )}
-              </button>
+              />
             );
           })}
         </div>

@@ -1,3 +1,4 @@
+'use client';
 import React, {
   useRef,
   useCallback,
@@ -9,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import CheckIcon from '@/icons/tickIcon';
-import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
+import CustomDropdown from '@/components/Button/CustomDropdown';
 import MoreInsightsChart from './MoreInsightsChart';
 import SkeletonLoader from './components/SkeletonLoader';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
@@ -17,6 +18,7 @@ import CustomToast from '@/components/Toast/CustomToast';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
 import StandardsMenu from './components/StandardsMenu';
 import Card from '@/components/CardWrapper';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];
 const SKELETON_DELAY = 500;
@@ -39,6 +41,11 @@ const ChartContainer = ({
   const chartRef = useRef(null);
   const dropdownRef = useRef(null);
   const refreshTimerRef = useRef(null);
+
+  // Get theme information from context
+  const { theme, systemTheme } = useTheme();
+  const isDark =
+    theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
 
   const { chartSites, timeFrame, pollutionType } = useSelector(
     (state) => state.chart,
@@ -68,7 +75,6 @@ const ChartContainer = ({
     } else {
       timer = setTimeout(() => setShowSkeleton(false), SKELETON_DELAY);
     }
-
     return () => {
       if (timer) clearTimeout(timer);
     };
@@ -77,9 +83,7 @@ const ChartContainer = ({
   // Handle refresh state
   useEffect(() => {
     let timer;
-
     if (!isManualRefresh) return undefined;
-
     if (chartLoading || (isValidating && !chartLoading)) {
       setIsRefreshing(true);
     } else if (!isValidating && !chartLoading && isRefreshing) {
@@ -88,13 +92,12 @@ const ChartContainer = ({
         setIsManualRefresh(false);
       }, SKELETON_DELAY);
     }
-
     return () => {
       if (timer) clearTimeout(timer);
     };
   }, [isValidating, chartLoading, isRefreshing, isManualRefresh]);
 
-  // Cleanup
+  // Cleanup refresh timer on unmount
   useEffect(() => {
     return () => {
       if (refreshTimerRef.current) {
@@ -106,17 +109,14 @@ const ChartContainer = ({
 
   const exportChart = useCallback(async (format) => {
     if (!chartRef.current || !EXPORT_FORMATS.includes(format)) return;
-
     setDownloadComplete(null);
     setLoadingFormat(format);
-
     try {
       const canvas = await html2canvas(chartRef.current, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#fff',
       });
-
       if (format === 'pdf') {
         const pdf = new jsPDF({
           orientation: 'landscape',
@@ -138,7 +138,6 @@ const ChartContainer = ({
         link.download = `airquality-data.${format}`;
         link.click();
       }
-
       setDownloadComplete(format);
       CustomToast({
         message: `Chart exported as ${format.toUpperCase()} successfully!`,
@@ -159,12 +158,9 @@ const ChartContainer = ({
     setIsManualRefresh(true);
     setIsRefreshing(true);
     refetch();
-
-    // Clear any existing timer first to prevent memory leaks
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current);
     }
-
     refreshTimerRef.current = setTimeout(() => {
       setIsRefreshing(false);
       setIsManualRefresh(false);
@@ -185,7 +181,7 @@ const ChartContainer = ({
       <>
         <button
           onClick={handleRefreshChart}
-          className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
           disabled={isRefreshing}
         >
           <span>Refresh</span>
@@ -193,12 +189,12 @@ const ChartContainer = ({
             <div className="animate-spin h-4 w-4 border-2 border-t-blue-500 border-gray-300 rounded-full" />
           )}
         </button>
-        <hr className="border-gray-200" />
+        <hr className="border-gray-200 dark:border-gray-600" />
         {EXPORT_FORMATS.map((format) => (
           <button
             key={format}
             onClick={() => exportChart(format)}
-            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
             disabled={loadingFormat || isRefreshing}
           >
             <span>Export as {format.toUpperCase()}</span>
@@ -211,10 +207,10 @@ const ChartContainer = ({
             </span>
           </button>
         ))}
-        <hr className="border-gray-200" />
+        <hr className="border-gray-200 dark:border-gray-600" />
         <button
           onClick={() => handleOpenModal('inSights')}
-          className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          className="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
           disabled={isRefreshing}
         >
           <span>More insights</span>
@@ -234,7 +230,6 @@ const ChartContainer = ({
 
   const RefreshIndicator = useMemo(() => {
     if (!isManualRefresh || !isRefreshing) return null;
-
     return (
       <div className="absolute top-12 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
         <svg
@@ -250,12 +245,12 @@ const ChartContainer = ({
             r="10"
             stroke="currentColor"
             strokeWidth="4"
-          />
+          ></circle>
           <path
             className="opacity-75"
             fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
+          ></path>
         </svg>
         <span className="text-sm font-medium">Refreshing data</span>
       </div>
@@ -264,16 +259,24 @@ const ChartContainer = ({
 
   const ErrorOverlay = useMemo(() => {
     if (!error || chartSites.length > 0) return null;
-
     return (
-      <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-100 bg-opacity-80 z-10 p-4 rounded-md">
-        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center max-w-md">
+      <div
+        className={`absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center p-4 z-10 rounded-md ${
+          isDark ? 'bg-gray-800 bg-opacity-80' : 'bg-gray-100 bg-opacity-80'
+        }`}
+      >
+        <div
+          className={`p-4 rounded-lg shadow-md flex flex-col items-center max-w-md ${
+            isDark ? 'bg-gray-700' : 'bg-white'
+          }`}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-12 w-12 text-red-500 mb-4"
+            className="h-12 w-12 mb-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            style={{ color: isDark ? '#F87171' : '#EF4444' }}
           >
             <path
               strokeLinecap="round"
@@ -282,10 +285,16 @@ const ChartContainer = ({
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <p className="text-red-600 font-medium mb-2 text-center">
+          <p
+            className="font-medium mb-2 text-center"
+            style={{ color: isDark ? '#F87171' : '#EF4444' }}
+          >
             Unable to load chart data
           </p>
-          <p className="text-gray-600 text-sm mb-4 text-center">
+          <p
+            className="text-sm mb-4 text-center"
+            style={{ color: isDark ? '#D1D5DB' : '#4B5563' }}
+          >
             {error?.message ||
               'There was a problem retrieving the data. Please try again.'}
           </p>
@@ -298,30 +307,36 @@ const ChartContainer = ({
         </div>
       </div>
     );
-  }, [error, chartSites.length, refetch]);
+  }, [error, chartSites.length, refetch, isDark]);
 
-  // Define card header after renderDropdownContent is defined
+  // Define card header with CustomDropdown for additional options
   const cardHeader = useMemo(() => {
     if (!showTitle) return null;
-
     return (
       <div className="flex items-center justify-between w-full">
-        <h3 className="text-lg font-medium">{chartTitle}</h3>
+        <h3
+          className="text-lg font-medium"
+          style={{ color: isDark ? '#F9FAFB' : '#1F2937' }}
+        >
+          {chartTitle}
+        </h3>
         <div ref={dropdownRef}>
           <CustomDropdown
-            btnText="More"
-            dropdown
-            tabID={`options-btn-${id}`}
-            tabStyle="py-1 px-2 rounded-xl"
-            id={`options-${id}`}
-            alignment="right"
+            text="More"
+            dropdownAlign="right"
+            buttonStyle={{
+              fontSize: '0.875rem',
+              padding: '0.3rem 0.5rem',
+              background: 'transparent',
+              color: isDark ? '#F9FAFB' : '#1F2937',
+            }}
           >
             {renderDropdownContent}
           </CustomDropdown>
         </div>
       </div>
     );
-  }, [showTitle, chartTitle, id, renderDropdownContent]);
+  }, [showTitle, chartTitle, renderDropdownContent, isDark]);
 
   // Chart content
   const chartContent = useMemo(() => {
@@ -369,7 +384,7 @@ const ChartContainer = ({
         padding="p-0"
         width="w-full"
         overflow={false}
-        className="relative overflow-hidden"
+        className={`relative overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
         contentClassName="p-0"
         headerProps={{
           className: 'pt-4 pb-2 px-6 flex items-center justify-between',

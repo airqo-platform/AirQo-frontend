@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
+import CustomDropdown from '@/components/Button/CustomDropdown';
 
 export const MESSAGE_TYPES = {
   ERROR: 'error',
@@ -71,7 +72,7 @@ const EnhancedFooter = ({
     return selectedItems.length > minimumSelection && handleClearSelection;
   }, [selectedItems.length, handleClearSelection, minimumSelection]);
 
-  // Button hover animation
+  // Framer Motion button variants
   const buttonVariants = {
     idle: { scale: 1 },
     hover: { scale: 1.03 },
@@ -79,26 +80,37 @@ const EnhancedFooter = ({
     disabled: { opacity: 0.7 },
   };
 
-  // Message animation
-  const messageVariants = {
-    initial: { opacity: 0, y: 5, height: 0 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      height: 'auto',
-      transition: {
-        duration: 0.2,
-        ease: 'easeOut',
-      },
-    },
-    exit: {
-      opacity: 0,
-      height: 0,
-      transition: {
-        duration: 0.2,
-        ease: 'easeIn',
-      },
-    },
+  // Inline style objects for each button, now with a border radius corresponding to rounded-xl (≈ 0.75rem)
+  const clearButtonStyle = {
+    padding: '0.5rem 0.75rem',
+    border: '1px solid #D1D5DB', // gray-300
+    fontSize: '0.875rem',
+    borderRadius: '0.75rem', // rounded-xl
+    backgroundColor: '#FFFFFF',
+    color: '#374151', // text-gray-700
+    transition:
+      'background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out',
+  };
+
+  const cancelButtonStyle = {
+    padding: '0.5rem 0.75rem',
+    border: '1px solid #D1D5DB',
+    fontSize: '0.875rem',
+    borderRadius: '0.75rem', // rounded-xl
+    backgroundColor: '#FFFFFF',
+    color: '#374151',
+    transition:
+      'background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out',
+  };
+
+  const submitButtonStyle = {
+    padding: '0.5rem 1rem',
+    border: 'none',
+    fontSize: '0.875rem',
+    borderRadius: '0.75rem', // rounded-xl
+    backgroundColor: '#2563eb', // blue-600
+    color: '#FFFFFF',
+    transition: 'background-color 0.15s ease-in-out',
   };
 
   return (
@@ -108,10 +120,18 @@ const EnhancedFooter = ({
         <motion.div
           key={message || 'status'}
           className="text-sm leading-5 font-normal flex-1 mb-2 md:mb-0 overflow-hidden"
-          variants={messageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
+          initial={{ opacity: 0, y: 5, height: 0 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            height: 'auto',
+            transition: { duration: 0.2, ease: 'easeOut' },
+          }}
+          exit={{
+            opacity: 0,
+            height: 0,
+            transition: { duration: 0.2, ease: 'easeIn' },
+          }}
         >
           {message ? (
             <span className={messageStyles}>{message}</span>
@@ -127,85 +147,89 @@ const EnhancedFooter = ({
 
       {/* Action buttons */}
       <div className="flex w-full md:w-auto gap-2 justify-end">
-        {/* Conditionally render clear button */}
+        {/* Clear Button (conditionally rendered) */}
         <AnimatePresence>
           {showClearButton && (
-            <motion.button
-              type="button"
-              onClick={handleClearSelection}
-              className="px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-100 transition-colors ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              disabled={loading}
+            <motion.div
               variants={buttonVariants}
               initial="idle"
               animate="idle"
-              whileHover="hover"
-              whileTap="tap"
+              whileHover={!loading ? 'hover' : 'disabled'}
+              whileTap={!loading ? 'tap' : 'disabled'}
               exit={{ opacity: 0, width: 0, padding: 0, margin: 0 }}
             >
-              Clear
-            </motion.button>
+              <CustomDropdown
+                isButton={true}
+                text="Clear"
+                buttonStyle={clearButtonStyle}
+                onClick={handleClearSelection}
+                disabled={loading}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Cancel button */}
-        <motion.button
-          type="button"
-          onClick={onClose}
-          className="px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-100 transition-colors ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          disabled={loading}
+        {/* Cancel Button */}
+        <motion.div
           variants={buttonVariants}
           initial="idle"
           animate="idle"
           whileHover={!loading ? 'hover' : 'disabled'}
           whileTap={!loading ? 'tap' : 'disabled'}
         >
-          Cancel
-        </motion.button>
+          <CustomDropdown
+            isButton={true}
+            text="Cancel"
+            buttonStyle={cancelButtonStyle}
+            onClick={onClose}
+            disabled={loading}
+          />
+        </motion.div>
 
-        {/* Submit/Action button */}
-        <motion.button
-          type="button"
-          onClick={handleSubmit}
-          className={`px-4 py-2 bg-blue-600 text-white text-sm rounded-md transition-colors ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
-            disabled || loading
-              ? 'opacity-70 cursor-not-allowed'
-              : 'hover:bg-blue-700'
-          }`}
-          disabled={disabled || loading}
+        {/* Submit Button */}
+        <motion.div
           variants={buttonVariants}
           initial="idle"
           animate={disabled || loading ? 'disabled' : 'idle'}
           whileHover={!disabled && !loading ? 'hover' : 'disabled'}
           whileTap={!disabled && !loading ? 'tap' : 'disabled'}
         >
-          {loading ? (
-            <span className="flex items-center justify-center">
-              <svg
-                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              {btnText}
-            </span>
-          ) : (
-            btnText
-          )}
-        </motion.button>
+          <CustomDropdown
+            isButton={true}
+            text={
+              loading ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  {btnText}
+                </span>
+              ) : (
+                btnText
+              )
+            }
+            buttonStyle={submitButtonStyle}
+            onClick={handleSubmit}
+            disabled={disabled || loading}
+          />
+        </motion.div>
       </div>
     </div>
   );

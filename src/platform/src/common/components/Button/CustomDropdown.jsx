@@ -90,7 +90,7 @@ const CustomDropdown = ({
         aria-expanded={isOpen}
         disabled={disabled}
         className={mergedButtonClasses}
-        style={buttonStyle} // Apply custom inline styles here.
+        style={buttonStyle}
       >
         {isCollapsed ? (
           <span>{icon}</span>
