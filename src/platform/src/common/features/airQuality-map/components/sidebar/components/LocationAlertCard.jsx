@@ -145,13 +145,9 @@ const LocationAlertCard = ({
 
   return (
     <Card
-      padding="p-0" // We'll handle padding in the content
+      padding="p-0"
       className="mb-4 transition-all duration-300"
-      background="bg-white dark:bg-gray-800"
-      borderColor="border-secondary-neutral-dark-100 dark:border-gray-700"
       shadow="shadow"
-      rounded={true}
-      radius="rounded-lg"
       header={cardHeader}
       headerProps={{
         className: 'p-3',

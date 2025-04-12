@@ -60,33 +60,36 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
 
   return (
     <Card
-      padding="px-3 pt-3 pb-4"
-      className="flex justify-between items-center"
-      bordered={true}
-      rounded={true}
+      padding="p-4"
       shadow="shadow"
-      background="bg-secondary-neutral-dark-50"
+      contentClassName="flex items-center justify-between w-full"
+      className="flex items-center justify-between gap-4 hover:shadow-xl transition-shadow duration-300"
     >
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded-lg bg-secondary-neutral-dark-100 flex items-center justify-center">
+      {/* Left Content: Label and PM2.5 Value */}
+      <div className="flex flex-col">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-secondary-neutral-dark-50 flex items-center justify-center">
             <WindIcon />
           </div>
-          <p className="text-sm font-medium leading-tight text-secondary-neutral-dark-300">
+          <p className="text-sm font-medium text-gray-400 dark:text-gray-300">
             PM2.5
           </p>
         </div>
-        <div className="text-2xl font-extrabold leading-normal text-secondary-neutral-light-800">
+        <div className="mt-1 text-3xl font-bold text-gray-800 dark:text-white">
           {pm2_5Value}
         </div>
       </div>
-      <Image
-        src={imageSrc}
-        alt="Air Quality Icon"
-        width={80}
-        height={80}
-        loading="eager"
-      />
+
+      {/* Right Content: Air Quality Icon */}
+      <div className="relative w-20 h-20">
+        <Image
+          src={imageSrc}
+          alt="Air Quality Icon"
+          layout="fill"
+          objectFit="contain"
+          priority
+        />
+      </div>
     </Card>
   );
 };
