@@ -11,6 +11,7 @@ import {
   isValid,
 } from 'date-fns';
 import { useSelector } from 'react-redux';
+import Card from '@/components/CardWrapper';
 
 const addSpacesToCategory = (category) =>
   category?.replace(/([a-z])([A-Z])/g, '$1 $2') || 'Unknown Category';
@@ -110,41 +111,57 @@ const LocationAlertCard = ({
     recentLocationMeasurements,
   ]);
 
-  // Measure content height for smooth animation - moved after all variables are defined
+  // Measure content height for smooth animation
   useEffect(() => {
     if (contentRef.current) {
       setContentHeight(contentRef.current.scrollHeight);
     }
-  }, [collapsed, selectedSite, selectedWeeklyPrediction]); // Dependencies that could affect content size
+  }, [collapsed, selectedSite, selectedWeeklyPrediction]);
+
+  // Custom header for the Card component
+  const cardHeader = (
+    <div
+      className="flex justify-between items-center w-full cursor-pointer"
+      onClick={() => setCollapsed(!collapsed)}
+      data-testid="alert-card-header"
+    >
+      <div className="flex justify-start items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold">
+          🚨
+        </div>
+        <h3 className="text-lg font-medium leading-relaxed text-secondary-neutral-dark-950 dark:text-white">
+          {title}
+        </h3>
+      </div>
+      <div
+        className={`rounded-full flex items-center justify-center p-2 bg-white transition-transform duration-300 ${
+          collapsed ? 'rotate-0' : 'rotate-180'
+        }`}
+      >
+        <ChevronDownIcon />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="p-3 mb-4 bg-white rounded-lg shadow border border-secondary-neutral-dark-100 flex-col justify-center items-center">
-      <div
-        className="flex justify-between items-center cursor-pointer"
-        onClick={() => setCollapsed(!collapsed)}
-        data-testid="alert-card-header"
-      >
-        <div className="flex justify-start items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-secondary-neutral-dark-50 p-2 flex items-center justify-center text-xl font-bold">
-            🚨
-          </div>
-          <h3 className="text-lg font-medium leading-relaxed text-secondary-neutral-dark-950">
-            {title}
-          </h3>
-        </div>
-        <div
-          className={`w-7 h-7 rounded-full flex items-center justify-center bg-white transition-transform duration-300 ${
-            collapsed ? 'rotate-0' : 'rotate-180'
-          }`}
-        >
-          <ChevronDownIcon className="text-secondary-neutral-dark-950 w-4 h-4" />
-        </div>
-      </div>
-
+    <Card
+      padding="p-0" // We'll handle padding in the content
+      className="mb-4 transition-all duration-300"
+      background="bg-white dark:bg-gray-800"
+      borderColor="border-secondary-neutral-dark-100 dark:border-gray-700"
+      shadow="shadow"
+      rounded={true}
+      radius="rounded-lg"
+      header={cardHeader}
+      headerProps={{
+        className: 'p-3',
+      }}
+      testId="location-alert-card"
+    >
       {/* Content with smooth height transition */}
       <div
         ref={contentRef}
-        className="overflow-hidden transition-all duration-300 ease-in-out"
+        className="overflow-hidden transition-all duration-300 ease-in-out px-3 pb-3"
         style={{
           maxHeight: collapsed ? '0px' : `${contentHeight}px`,
           opacity: collapsed ? 0 : 1,
@@ -153,11 +170,11 @@ const LocationAlertCard = ({
         }}
         data-testid="alert-card-content"
       >
-        <p className="text-xl font-bold leading-7 text-secondary-neutral-dark-950">
+        <p className="text-xl font-bold leading-7 text-secondary-neutral-dark-950 dark:text-white">
           {airQualityMessage}
         </p>
       </div>
-    </div>
+    </Card>
   );
 };
 
