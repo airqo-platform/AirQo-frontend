@@ -157,7 +157,7 @@ const LocationsSidebar = ({
 
   return (
     <motion.div
-      className="w-[280px] min-h-[400px] max-h-[658px] overflow-y-auto overflow-x-hidden border-r relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0 bg-white"
+      className="w-[280px] min-h-[400px] max-h-[658px] overflow-y-auto overflow-x-hidden border-r relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0"
       variants={sidebarVariants}
       initial="hidden"
       animate="visible"

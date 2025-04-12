@@ -284,7 +284,7 @@ const DataContent = ({
 
   return (
     <motion.div
-      className="bg-white flex-1 h-full px-2 md:px-6 pt-4 pb-4 overflow-y-auto flex flex-col"
+      className="flex-1 h-full px-2 md:px-6 pt-4 pb-4 overflow-y-auto flex flex-col"
       variants={contentVariants}
       initial="hidden"
       animate="visible"
