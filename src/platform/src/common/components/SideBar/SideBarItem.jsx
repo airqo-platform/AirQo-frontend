@@ -1,319 +1,165 @@
-import React, { useEffect, useState } from 'react';
+'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
-/**
- * SideBarDropdownItem Component - Renders a dropdown item in the sidebar
- */
-export const SideBarDropdownItem = ({
-  itemLabel,
-  itemPath,
-  textColor = '',
-  hoverClass = '',
-}) => {
+export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
-  const { theme, isSemiDarkEnabled } = useTheme();
+  const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const [isMediumDevice, setIsMediumDevice] = useState(false);
-
-  // Get current route and check if it contains navPath
   const currentRoute = router.pathname;
   const isCurrentRoute = currentRoute.includes(itemPath);
 
-  // Determine text color based on active state and theme
-  const getTextColor = () => {
-    if (isCurrentRoute) {
-      return 'text-blue-500 dark:text-blue-400';
+  // Determine current theme mode (dark, light, or semi-dark)
+  const isDarkMode = useMemo(() => {
+    if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) {
+      return true;
     }
+    return isSemiDarkEnabled;
+  }, [theme, systemTheme, isSemiDarkEnabled]);
 
-    if (textColor) return textColor;
-
-    return isSemiDarkEnabled || theme === 'dark'
+  // Use dynamic classes based on theme and active state
+  const textClass = isCurrentRoute
+    ? 'text-blue-600 dark:text-blue-400'
+    : isDarkMode
       ? 'text-gray-200'
-      : 'text-gray-800';
-  };
+      : 'text-black';
 
-  // Handle navigation
-  const changePath = (e) => {
+  const handleClick = (e) => {
     e.preventDefault();
     router.push(itemPath);
   };
 
-  // Check for medium device
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
-    const handleMediaQueryChange = (e) => {
-      setIsMediumDevice(e.matches);
-    };
+    const handleMediaQueryChange = (e) => setIsMediumDevice(e.matches);
 
     setIsMediumDevice(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
 
-    // Use the appropriate event listener method based on browser support
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleMediaQueryChange);
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleMediaQueryChange);
-    }
-
-    return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleMediaQueryChange);
-      } else {
-        // Fallback for older browsers
-        mediaQuery.removeListener(handleMediaQueryChange);
-      }
-    };
+    return () =>
+      mediaQuery.removeEventListener('change', handleMediaQueryChange);
   }, []);
 
-  // Determine hover background class
-  const getHoverBgClass = () => {
-    if (hoverClass) return hoverClass;
-
-    return isSemiDarkEnabled || theme === 'dark'
-      ? 'hover:bg-gray-700'
-      : 'hover:bg-gray-100';
-  };
-
   return (
-    <a href={itemPath} onClick={changePath}>
-      <div
-        className={`
-          py-2 px-3 rounded-lg flex items-center
-          ${
-            isCurrentRoute
-              ? 'bg-blue-900/20 dark:bg-blue-950/50'
-              : getHoverBgClass()
-          }
-        `}
-      >
+    <Link
+      href={itemPath}
+      onClick={handleClick}
+      className={`block transition-colors duration-200 ${
+        isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+      }`}
+    >
+      <div className="h-10 flex items-center">
         {(!isMediumDevice || itemLabel) && (
-          <h3
-            className={`
-              text-sm font-medium
-              ${getTextColor()}
-            `}
-          >
-            {itemLabel}
-          </h3>
+          <h3 className={`text-sm leading-5 ${textClass}`}>{itemLabel}</h3>
         )}
       </div>
-    </a>
+    </Link>
   );
 };
 
-/**
- * SidebarItem Component - Renders an item in the sidebar
- */
 const SidebarItem = ({
   Icon,
   label,
-  navPath = '#', // Default value to prevent undefined
+  navPath,
   children,
   onClick,
   toggleMethod,
   toggleState,
   iconOnly = false,
-  textColor = '',
-  hoverClass = '',
-  className = '',
-  dropdown = false,
 }) => {
   const router = useRouter();
-  const { theme, isSemiDarkEnabled } = useTheme();
-
-  // Get current route and check if matching
+  const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const currentRoute = router.pathname;
   const isCurrentRoute =
-    navPath !== '#' &&
-    (currentRoute === navPath || (navPath === '/Home' && currentRoute === '/'));
-  const hasDropdown = dropdown || !!children;
+    currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
+  const hasDropdown = !!children;
 
-  // Determine text color based on active state and theme
-  const getTextColor = () => {
-    if (isCurrentRoute) {
-      return 'text-blue-500 dark:text-blue-400';
+  // Determine current theme mode (dark, light, or semi-dark)
+  const isDarkMode = useMemo(() => {
+    if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark')) {
+      return true;
     }
+    return isSemiDarkEnabled;
+  }, [theme, systemTheme, isSemiDarkEnabled]);
 
-    if (textColor) return textColor;
-
-    return isSemiDarkEnabled || theme === 'dark'
+  // Dynamic classes and colors based on theme and active state
+  const textClass = isCurrentRoute
+    ? 'text-blue-600 dark:text-blue-600'
+    : isDarkMode
       ? 'text-gray-200'
-      : 'text-gray-800';
-  };
+      : 'text-black';
 
-  // Determine hover background class
-  const getHoverBgClass = () => {
-    if (hoverClass) return hoverClass;
+  const iconColor = isCurrentRoute
+    ? '#2563EB'
+    : isDarkMode
+      ? '#FFFFFF'
+      : '#000000';
 
-    return isSemiDarkEnabled || theme === 'dark'
-      ? 'hover:bg-gray-700/50'
-      : 'hover:bg-gray-100';
-  };
+  const bgClass = isCurrentRoute
+    ? `${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'}`
+    : `${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`;
 
-  // Determine background for active items
-  const getActiveBgClass = () => {
-    return isSemiDarkEnabled || theme === 'dark'
-      ? 'bg-blue-900/20 dark:bg-blue-950/40'
-      : 'bg-blue-50';
-  };
+  const commonClasses = `
+    cursor-pointer transition-all duration-300 ease-in-out
+    ${textClass}
+    ${toggleState ? `${isDarkMode ? 'bg-gray-700' : 'bg-sidebar-blue'} rounded-xl` : ''}
+  `;
 
-  // Determine the icon color based on active state and theme
-  const getIconColor = () => {
-    if (isCurrentRoute) {
-      return isSemiDarkEnabled || theme === 'dark'
-        ? '#60a5fa' // blue-400
-        : '#3b82f6'; // blue-500
-    }
+  const leftIndicatorClass =
+    'absolute -left-2 h-1/3 w-1 bg-blue-600 rounded-xl';
 
-    return isSemiDarkEnabled || theme === 'dark'
-      ? '#f9fafb' // white/gray-50
-      : '#1f2937'; // gray-800
-  };
+  const handleItemClick = hasDropdown ? toggleMethod : onClick;
 
-  // Handle the click event
-  const handleClick = (e) => {
-    if (hasDropdown) {
-      e.preventDefault();
-      if (toggleMethod) toggleMethod();
-    } else if (onClick) {
-      e.preventDefault();
-      onClick();
-    }
-  };
-
-  // Render the icon with appropriate color
-  const renderIcon = () => (
-    <div
-      className={`
-        flex items-center justify-center flex-shrink-0
-        ${iconOnly ? 'w-12 h-12' : 'w-6 h-6 mr-3'}
-        ${getTextColor()}
-      `}
-    >
-      {Icon && <Icon fill={getIconColor()} />}
-    </div>
-  );
-
-  // Render the content (label and dropdown arrow)
-  const renderContent = () => (
-    <>
-      {!iconOnly && (
-        <div className="flex-grow overflow-hidden">
-          <span
-            className={`
-              font-medium text-sm truncate block
-              ${getTextColor()}
-            `}
-          >
-            {label}
-          </span>
-        </div>
-      )}
-      {hasDropdown && !iconOnly && (
-        <div className={`ml-2 ${getTextColor()}`}>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            className={`transform transition-transform ${toggleState ? 'rotate-180' : 'rotate-0'}`}
-          >
-            <path
-              d="M7 10l5 5 5-5"
-              stroke={getIconColor()}
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      )}
-    </>
-  );
-
-  // For items with dropdown or onClick handlers, don't use Link
-  if (hasDropdown || onClick) {
-    return (
-      <div
-        className={`
-          relative rounded-xl overflow-hidden
-          ${toggleState && hasDropdown ? 'mb-2' : ''}
-        `}
-        role="button"
-        tabIndex={0}
-      >
-        <div
-          className={`
-            relative flex items-center w-full
-            ${iconOnly ? 'justify-center p-2' : 'p-3'}
-            ${isCurrentRoute ? getActiveBgClass() : getHoverBgClass()}
-            rounded-xl transition-all duration-200
-            ${className}
-          `}
-          onClick={handleClick}
-        >
-          {isCurrentRoute && (
-            <div
-              className={`
-              absolute left-0 top-1/2 transform -translate-y-1/2 h-4/5 w-1 
-              bg-blue-600 dark:bg-blue-400 rounded-r-md
-            `}
-            />
-          )}
-          {renderIcon()}
-          {renderContent()}
-        </div>
-
-        {toggleState && children && (
-          <div className="mt-1 space-y-1 pl-3">{children}</div>
-        )}
-      </div>
-    );
-  }
-
-  // For regular navigation items, use Link
   return (
     <div
-      className={`
-        relative rounded-xl overflow-hidden
-      `}
+      className={commonClasses}
       role="button"
       tabIndex={0}
+      onClick={handleItemClick}
     >
-      <Link href={navPath || '#'}>
+      <Link
+        href={navPath || '#'}
+        className={`
+          relative flex items-center
+          ${iconOnly ? 'p-0' : 'p-3 w-full'}
+          ${bgClass}
+          rounded-xl
+        `}
+      >
+        {isCurrentRoute && <div className={leftIndicatorClass} />}
+
         <div
-          className={`
-            relative flex items-center w-full
-            ${iconOnly ? 'justify-center p-2' : 'p-3'}
-            ${isCurrentRoute ? getActiveBgClass() : getHoverBgClass()}
-            rounded-xl transition-all duration-200
-            ${className}
-          `}
+          className={`flex items-center justify-center ${iconOnly ? 'w-12 h-12' : 'w-8 h-8 mr-4'}`}
         >
-          {isCurrentRoute && (
-            <div
-              className={`
-              absolute left-0 top-1/2 transform -translate-y-1/2 h-4/5 w-1 
-              bg-blue-600 dark:bg-blue-400 rounded-r-md
-            `}
-            />
-          )}
-          {renderIcon()}
-          {renderContent()}
+          {Icon && <Icon fill={iconColor} />}
         </div>
+
+        {!iconOnly && (
+          <div className="flex-grow">
+            <h3 className={`font-medium ${textClass}`}>{label}</h3>
+          </div>
+        )}
+
+        {hasDropdown && !iconOnly && (
+          <ArrowDropDownIcon fillColor={iconColor} />
+        )}
       </Link>
+
+      {toggleState && children && (
+        <div className="ml-12 mt-2 space-y-2">{children}</div>
+      )}
     </div>
   );
 };
 
-// PropTypes
 SideBarDropdownItem.propTypes = {
   itemLabel: PropTypes.string.isRequired,
   itemPath: PropTypes.string.isRequired,
-  textColor: PropTypes.string,
-  hoverClass: PropTypes.string,
 };
 
 SidebarItem.propTypes = {
@@ -325,10 +171,6 @@ SidebarItem.propTypes = {
   toggleMethod: PropTypes.func,
   toggleState: PropTypes.bool,
   iconOnly: PropTypes.bool,
-  textColor: PropTypes.string,
-  hoverClass: PropTypes.string,
-  className: PropTypes.string,
-  dropdown: PropTypes.bool,
 };
 
 export default SidebarItem;

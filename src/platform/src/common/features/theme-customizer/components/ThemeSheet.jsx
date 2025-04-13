@@ -8,8 +8,6 @@ import {
   FaMoon,
   FaDesktop,
   FaBorderStyle,
-  FaToggleOn,
-  FaToggleOff,
 } from 'react-icons/fa';
 import { useTheme } from '../hooks/useTheme';
 import { THEME_MODES, THEME_SKINS } from '../constants/themeConstants';
@@ -20,10 +18,8 @@ export const ThemeSheet = memo(() => {
     toggleTheme,
     skin,
     toggleSkin,
-    toggleSemiDarkMode,
     isThemeSheetOpen,
     closeThemeSheet,
-    isSemiDarkEnabled,
   } = useTheme();
 
   // Callback to handle theme mode change
@@ -41,11 +37,6 @@ export const ThemeSheet = memo(() => {
     },
     [toggleSkin],
   );
-
-  // Callback for toggling semi-dark mode
-  const handleSemiDarkToggle = useCallback(() => {
-    toggleSemiDarkMode(!isSemiDarkEnabled);
-  }, [toggleSemiDarkMode, isSemiDarkEnabled]);
 
   // Theme mode options
   const themeOptions = [
@@ -102,7 +93,7 @@ export const ThemeSheet = memo(() => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 right-0 w-72 h-full bg-white dark:bg-gray-800 z-50 shadow-lg overflow-y-auto"
+            className="fixed top-0 right-0 w-72 h-full bg-white dark:bg-[#1d1f20] z-50 shadow-lg overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby="theme-sheet-title"
@@ -186,40 +177,6 @@ export const ThemeSheet = memo(() => {
                         </button>
                       ),
                     )}
-                  </div>
-                </div>
-
-                {/* Semi Dark Mode Section */}
-                <div className="space-y-2">
-                  <h3 className="text-base font-semibold dark:text-white">
-                    Semi Dark Mode
-                  </h3>
-                  <div className="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 rounded-md">
-                    <div>
-                      <div className="font-medium text-gray-800 dark:text-white text-sm">
-                        Semi Dark Sidebar
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Dark sidebar with light content
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleSemiDarkToggle}
-                      className={`p-1 rounded-full transition-colors ${
-                        isSemiDarkEnabled
-                          ? 'text-blue-500'
-                          : 'text-gray-400 dark:text-gray-500'
-                      }`}
-                      aria-pressed={isSemiDarkEnabled}
-                      aria-label="Toggle semi dark mode"
-                      type="button"
-                    >
-                      {isSemiDarkEnabled ? (
-                        <FaToggleOn size={20} />
-                      ) : (
-                        <FaToggleOff size={20} />
-                      )}
-                    </button>
                   </div>
                 </div>
               </div>
