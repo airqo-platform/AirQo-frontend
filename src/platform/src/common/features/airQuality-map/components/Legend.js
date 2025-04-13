@@ -5,7 +5,7 @@ import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
 import 'tippy.js/animations/scale-subtle.css';
 import 'tippy.js/animations/scale-extreme.css';
-import 'tippy.js/themes/light.css'; // Optional if you want a specific theme
+import 'tippy.js/themes/light.css';
 
 // Icons
 import GoodAir from '@/icons/Charts/GoodAir';
@@ -17,14 +17,18 @@ import Hazardous from '@/icons/Charts/Hazardous';
 import UpArrow from '@/icons/map/upArrow';
 import DownArrow from '@/icons/map/downArrow';
 import { useWindowSize } from '@/lib/windowSize';
+// Import Card wrapper component
+import Card from '@/components/CardWrapper';
 
 const AirQualityLegend = ({ pollutant }) => {
   const [show, setShow] = useState(true);
   const { width } = useWindowSize();
   const size = width < 1024 ? 30 : 40;
   const legendButtonsRef = useRef([]);
+  const contentRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState('auto');
 
-  // Ensure component only listens to window resize on the client-side
+  // Listen to window resize and conditionally show the legend (optional additional logic)
   useEffect(() => {
     const handleResize = () => {
       if (typeof window !== 'undefined') {
@@ -38,19 +42,28 @@ const AirQualityLegend = ({ pollutant }) => {
     };
   }, []);
 
-  // Initialize tooltips using tippy.js with custom styles
+  // Measure the content height whenever the legend or its contents change
+  useEffect(() => {
+    if (contentRef.current) {
+      // When expanded, set to scrollHeight; when collapsed, set to 0.
+      setContentHeight(show ? `${contentRef.current.scrollHeight}px` : '0px');
+    }
+  }, [show, size, pollutant]);
+
+  // Initialize tooltips using tippy.js with updated configuration to allow HTML
   useEffect(() => {
     legendButtonsRef.current.forEach((button) => {
       if (button) {
         tippy(button, {
-          content: button.getAttribute('data-tippy-content'),
+          // Replace newline characters with <br/> for proper formatting
+          content: button
+            .getAttribute('data-tippy-content')
+            .replace(/\n/g, '<br/>'),
+          allowHTML: true,
           theme: 'light',
           placement: 'right',
           animation: 'scale',
           arrow: true,
-          onShow(instance) {
-            instance.popper.classList.add('custom-tooltip');
-          },
         });
       }
     });
@@ -99,16 +112,30 @@ const AirQualityLegend = ({ pollutant }) => {
   const levels = pollutantLevels[pollutant] || [];
 
   return (
-    <div className="flex flex-col items-center rounded-full shadow-md p-1 md:p-2 bg-white">
+    <Card
+      className="flex flex-col items-center"
+      padding="p-1 md:p-2"
+      shadow="shadow"
+      rounded
+      background="bg-white dark:bg-[#1d1f20]"
+      radius="rounded-full"
+      width="w-auto"
+      height="h-auto"
+    >
       <button
-        onClick={() => setShow(!show)}
-        className="rounded-full p-2 mb-1 last:mb-0"
+        onClick={() => setShow((prev) => !prev)}
+        className="rounded-full p-2 mb-1 last:mb-0 transition-transform duration-300"
         aria-label="Air Quality Control"
       >
         {show ? <DownArrow /> : <UpArrow />}
       </button>
-      {show &&
-        levels.map((level, index) => (
+      {/* Container for the collapsible legend */}
+      <div
+        ref={contentRef}
+        className="overflow-hidden transition-all duration-300 ease-in-out flex flex-col items-center gap-2"
+        style={{ maxHeight: contentHeight }}
+      >
+        {levels.map((level, index) => (
           <button
             key={index}
             className="bg-transparent rounded-full mb-2 last:mb-0"
@@ -119,7 +146,8 @@ const AirQualityLegend = ({ pollutant }) => {
             {level.icon}
           </button>
         ))}
-    </div>
+      </div>
+    </Card>
   );
 };
 

@@ -302,8 +302,8 @@ const AirQoMap = ({ customStyle, mapboxApiAccessToken, pollutant }) => {
 
       {/* Air Quality Legend */}
       {(width >= 1024 || !selectedNode) && (
-        <div className="relative left-4 z-50 md:block">
-          <div className="absolute bottom-2 z-[900]">
+        <div className="relative left-4 md:block" style={{ zIndex: 10000 }}>
+          <div className="absolute bottom-2">
             <AirQualityLegend pollutant={pollutant} />
           </div>
         </div>
