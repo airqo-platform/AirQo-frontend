@@ -116,7 +116,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
           <CloseIcon fill="#FFFFFF" />
           <span className="sr-only">Close modal</span>
         </button>
-        <div className="w-full h-full relative">
+        <div className="w-full h-[384px] relative">
           {loading && (
             <div className="absolute inset-0 flex justify-center items-center">
               <Spinner />
