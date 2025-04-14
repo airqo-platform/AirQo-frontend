@@ -123,7 +123,7 @@ const VideoModal = ({ open, setOpen, videoUrl, checklistData }) => {
         </button>
         <div className="w-full h-full max-h-[384px] relative">
           {loading && (
-            <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+            <div className="absolute top-0 left-0 w-full h-[384px] flex justify-center items-center">
               <Spinner />
             </div>
           )}

@@ -26,8 +26,8 @@ const OrganizationDropdown = ({ className = '' }) => {
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, isSemiDarkEnabled } = useTheme();
-  const isDarkMode = isSemiDarkEnabled || theme === 'dark';
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark' || theme === 'system';
   const buttonRef = useRef(null);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
 
