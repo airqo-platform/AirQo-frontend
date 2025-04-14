@@ -30,12 +30,9 @@ export default function UserStatsDashboard() {
   
     return (
       <div className="container mx-auto py-10 px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">User Statistics</h1>
-            <p className="text-muted-foreground mt-1">Overview of all registered users in the system</p>
-          </div>
-          {!isLoading && data && <UserSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">User Statistics</h1>
+          <p className="text-muted-foreground mt-1">Overview of all registered users in the system</p>
         </div>
   
         {isLoading ? (
@@ -92,22 +89,27 @@ export default function UserStatsDashboard() {
               </div>
   
               <div className="mt-8">
-                <Tabs defaultValue="all-users">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="all-users">All Users</TabsTrigger>
-                    <TabsTrigger value="active-users">Active Users</TabsTrigger>
-                    <TabsTrigger value="api-users">API Users</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="all-users">
-                    <UserTable users={data.users_stats.users.details} searchTerm={searchTerm} />
-                  </TabsContent>
-                  <TabsContent value="active-users">
-                    <UserTable users={data.users_stats.active_users.details} searchTerm={searchTerm} />
-                  </TabsContent>
-                  <TabsContent value="api-users">
-                    <UserTable users={data.users_stats.api_users.details} searchTerm={searchTerm} />
-                  </TabsContent>
-                </Tabs>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                  <Tabs defaultValue="all-users" className="w-full">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                      <TabsList>
+                        <TabsTrigger value="all-users">All Users</TabsTrigger>
+                        <TabsTrigger value="active-users">Active Users</TabsTrigger>
+                        <TabsTrigger value="api-users">API Users</TabsTrigger>
+                      </TabsList>
+                      {!isLoading && data && <UserSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
+                    </div>
+                    <TabsContent value="all-users">
+                      <UserTable users={data.users_stats.users.details} searchTerm={searchTerm} />
+                    </TabsContent>
+                    <TabsContent value="active-users">
+                      <UserTable users={data.users_stats.active_users.details} searchTerm={searchTerm} />
+                    </TabsContent>
+                    <TabsContent value="api-users">
+                      <UserTable users={data.users_stats.api_users.details} searchTerm={searchTerm} />
+                    </TabsContent>
+                  </Tabs>
+                </div>
               </div>
             </>
           )
