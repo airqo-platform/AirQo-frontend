@@ -1,83 +1,157 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getUserChecklists, upsertUserChecklists } from '@/core/apis/Account';
 
-// Define the initial state of each card
-const initialCardState = {
-  status: 'not started',
-  completed: false,
-  completionDate: null,
-  videoProgress: 0,
-  title: '',
-};
-
-// Define the initial state of the slice
 const initialState = {
-  cards: Array(4)
-    .fill()
-    .map((_, i) => ({ id: i + 1, ...initialCardState })),
+  checklist: [],
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+  error: null,
+  lastUpdated: null,
 };
 
-export const cardSlice = createSlice({
+// Fetch checklist data for a user
+export const fetchUserChecklists = createAsyncThunk(
+  'checklists/fetchUserChecklists',
+  async (userId, { rejectWithValue }) => {
+    try {
+      if (!userId) return rejectWithValue('User ID is required');
+
+      const response = await getUserChecklists(userId);
+
+      if (!response.success) {
+        return rejectWithValue(
+          response.message || 'Failed to fetch checklists',
+        );
+      }
+
+      if (response.checklists && response.checklists.length > 0) {
+        return response.checklists[0].items || [];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Error fetching checklists:', error);
+      return rejectWithValue(
+        error.message || 'An error occurred fetching checklists',
+      );
+    }
+  },
+);
+
+// Update a checklist item
+export const updateTaskProgress = createAsyncThunk(
+  'checklists/updateTaskProgress',
+  async (updateData, { getState, rejectWithValue }) => {
+    try {
+      const state = getState();
+      const { checklist } = state.cardChecklist;
+
+      // Get user ID from localStorage
+      let userId = null;
+      try {
+        const storedUser = localStorage.getItem('loggedUser');
+        if (storedUser && storedUser !== 'undefined') {
+          userId = JSON.parse(storedUser)._id;
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        return rejectWithValue('User ID not found');
+      }
+
+      if (!userId) return rejectWithValue('User ID is required');
+
+      // Find item to update by _id
+      const itemIndex = checklist.findIndex(
+        (item) => item._id === updateData._id,
+      );
+      if (itemIndex === -1) return rejectWithValue('Checklist item not found');
+
+      // Create updated copy of the checklist
+      const updatedChecklist = [...checklist];
+
+      // Apply updates to the specific item
+      updatedChecklist[itemIndex] = {
+        ...updatedChecklist[itemIndex],
+        ...updateData,
+      };
+
+      // Always ensure status is set to inProgress if not completed
+      if (
+        !updatedChecklist[itemIndex].completed &&
+        updatedChecklist[itemIndex].status === 'not started'
+      ) {
+        updatedChecklist[itemIndex].status = 'inProgress';
+      }
+
+      // If completing the item, ensure proper status
+      if (updateData.completed) {
+        updatedChecklist[itemIndex].status = 'completed';
+        updatedChecklist[itemIndex].completionDate =
+          updatedChecklist[itemIndex].completionDate ||
+          new Date().toISOString();
+      }
+
+      // Prepare the payload for API
+      const apiPayload = {
+        user_id: userId,
+        items: updatedChecklist,
+      };
+
+      // Send update to API
+      await upsertUserChecklists(apiPayload);
+
+      // Return updated checklist for Redux state
+      return updatedChecklist;
+    } catch (error) {
+      console.error('Error updating checklist:', error);
+      return rejectWithValue(error.message || 'Failed to update checklist');
+    }
+  },
+);
+
+// Redux slice definition
+export const checklistSlice = createSlice({
   name: 'cardChecklist',
   initialState,
-  reducers: {
-    startTask: (state, action) => {
-      const card = state.cards.find((card) => card.id === action.payload);
-      if (card) {
-        card.status = 'inProgress';
-      }
-    },
-    completeTask: (state, action) => {
-      const card = state.cards.find((card) => card.id === action.payload);
-      if (card) {
-        card.status = 'completed';
-        card.completed = true;
-        card.completionDate = new Date().toISOString();
-      }
-    },
-    resetTask: (state, action) => {
-      const card = state.cards.find((card) => card.id === action.payload);
-      if (card) {
-        Object.assign(card, initialCardState);
-      }
-    },
-    resetAllTasks: (state) => {
-      state.cards.forEach((card) => {
-        Object.assign(card, initialCardState);
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Handle fetchUserChecklists
+      .addCase(fetchUserChecklists.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchUserChecklists.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.checklist = action.payload;
+        state.lastUpdated = new Date().toISOString();
+        state.error = null;
+      })
+      .addCase(fetchUserChecklists.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || 'Failed to fetch checklists';
+      })
+
+      // Handle updateTaskProgress
+      .addCase(updateTaskProgress.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateTaskProgress.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.checklist = action.payload;
+        state.lastUpdated = new Date().toISOString();
+        state.error = null;
+      })
+      .addCase(updateTaskProgress.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || 'Failed to update task progress';
       });
-    },
-    updateVideoProgress: (state, action) => {
-      const { id, videoProgress } = action.payload;
-      const card = state.cards.find((card) => card.id === id);
-      if (card) {
-        card.videoProgress = videoProgress;
-      }
-    },
-    updateTitle: (state, action) => {
-      const { id, title } = action.payload;
-      const card = state.cards.find((card) => card.id === id);
-      if (card) {
-        card.title = title;
-      }
-    },
-    updateCards: (state, action) => {
-      action.payload.forEach((updatedCard, index) => {
-        const card = state.cards.find((card) => card.id === index + 1);
-        if (card) {
-          Object.assign(card, updatedCard);
-        }
-      });
-    },
   },
 });
 
-export const {
-  startTask,
-  completeTask,
-  resetTask,
-  resetAllTasks,
-  updateTitle,
-  updateVideoProgress,
-  updateCards,
-} = cardSlice.actions;
+// Selectors
+export const selectAllChecklist = (state) => state.cardChecklist.checklist;
+export const selectChecklistStatus = (state) => state.cardChecklist.status;
+export const selectChecklistError = (state) => state.cardChecklist.error;
+export const selectCompletedCount = (state) =>
+  state.cardChecklist.checklist.filter((item) => item.completed).length;
 
-export default cardSlice.reducer;
+export default checklistSlice.reducer;

@@ -104,6 +104,7 @@ export const patchUserPreferencesApi = (data) =>
 // User Checklists
 export const getUserChecklists = (userID) =>
   api.get(`${USER_CHECKLISTS_URL}/${userID}`).then((response) => response.data);
+
 export const upsertUserChecklists = (checklist) =>
   api
     .post(USER_CHECKLISTS_UPSERT_URL, checklist)

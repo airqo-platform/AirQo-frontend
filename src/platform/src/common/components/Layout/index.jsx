@@ -9,7 +9,6 @@ import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '../MaintenanceBanner';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
-import useUserChecklists from '@/core/hooks/useUserChecklists';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
@@ -30,7 +29,6 @@ const Layout = ({
 
   // Initialize hooks
   useUserPreferences();
-  useUserChecklists();
   useInactivityLogout(userID);
 
   return (

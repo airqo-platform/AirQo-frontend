@@ -15,6 +15,7 @@ import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import PropTypes from 'prop-types';
+import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
 
 // Message types for footer component
 const MESSAGE_TYPES = {
@@ -240,6 +241,7 @@ const LocationsContent = ({
  */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
+  const { completeStep } = useChecklistSteps();
 
   // State management
   const [selectedSites, setSelectedSites] = useState([]);
@@ -504,6 +506,7 @@ const AddLocations = ({ onClose }) => {
           );
         }
         dispatch(setRefreshChart(true));
+        completeStep(1);
       })
       .catch((err) => {
         setError('Failed to update preferences.');

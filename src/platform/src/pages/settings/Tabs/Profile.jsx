@@ -13,7 +13,8 @@ import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import timeZones from 'timezones.json';
 import TextInputField from '@/components/TextInputField';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
-import { completeTask } from '@/lib/store/services/checklists/CheckList';
+
+import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
 countries.registerLocale(enLocale);
 
 const countryObj = countries.getNames('en', { select: 'official' });
@@ -67,24 +68,9 @@ const Profile = () => {
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const userInfo = useSelector((state) => state.login.userInfo);
-  const cardCheckList = useSelector((state) => state.cardChecklist.cards);
   const userToken = localStorage.getItem('token');
 
-  // checklist profile task
-  const handleProfileCompletion = (id) => {
-    const card = cardCheckList.find((card) => card.id === id);
-    if (card) {
-      switch (card.status) {
-        case 'inProgress':
-          dispatch(completeTask(id));
-          break;
-        default:
-          return;
-      }
-    } else {
-      console.log('Card not found');
-    }
-  };
+  const { completeStep } = useChecklistSteps();
 
   useEffect(() => {
     // Prevent running on the server
@@ -185,7 +171,7 @@ const Profile = () => {
         userData.country &&
         userData.timezone
       ) {
-        handleProfileCompletion(3);
+        completeStep(2);
       }
 
       // 6. Show success message
