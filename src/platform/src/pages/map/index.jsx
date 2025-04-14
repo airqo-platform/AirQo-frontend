@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import AirQoMap from '@/features/airQuality-map';
 import Sidebar from '@/features/airQuality-map/components/sidebar';
@@ -11,13 +11,7 @@ import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
 import { useWindowSize } from '@/lib/windowSize';
-import {
-  useRefreshMap,
-  useShareLocation,
-  useMapScreenshot,
-  IconButton,
-  LoadingOverlay,
-} from '@/features/airQuality-map/hooks';
+import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
 import {
   mapStyles,
   mapDetails,
@@ -33,8 +27,7 @@ import DotsVerticalIcon from '@/icons/map/dotsVerticalIcon';
 const Index = () => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
-  const mapConfigRef = useRef({ mapRef: null });
-  const controlsRef = useRef(null);
+  const airqoMapRef = useRef(null);
 
   // States
   const [isOpen, setIsOpen] = useState(false);
@@ -55,41 +48,6 @@ const Index = () => {
   const preferences =
     useSelector((state) => state.defaults.individual_preferences) || [];
   const selectedNode = useSelector((state) => state.map.selectedNode);
-
-  // Handle map ready event
-  const handleMapReady = useCallback((config) => {
-    mapConfigRef.current = config;
-  }, []);
-
-  // Custom map hooks - They need mapRef from the config
-  const refreshMap = useCallback(() => {
-    const { mapRef } = mapConfigRef.current;
-    if (!mapRef?.current) return;
-
-    const refreshHook = useRefreshMap(
-      setToastMessage,
-      mapRef,
-      dispatch,
-      selectedNode,
-    );
-    refreshHook();
-  }, [dispatch, selectedNode]);
-
-  const shareLocation = useCallback(() => {
-    const { mapRef } = mapConfigRef.current;
-    if (!mapRef?.current) return;
-
-    const shareHook = useShareLocation(setToastMessage, mapRef);
-    shareHook();
-  }, []);
-
-  const captureScreenshot = useCallback(() => {
-    const { mapRef } = mapConfigRef.current;
-    if (!mapRef?.current) return;
-
-    const screenshotHook = useMapScreenshot(mapRef, setToastMessage);
-    screenshotHook();
-  }, []);
 
   // Fetch grid data summary
   useEffect(() => {
@@ -148,10 +106,10 @@ const Index = () => {
     }
   }, []);
 
-  // Handle clicks outside controls
+  // Handle clicks outside controls (for mobile)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (controlsRef.current && !controlsRef.current.contains(event.target)) {
+      if (event.target.closest('.controls-container') === null) {
         setIsControlsExpanded(false);
       }
     };
@@ -188,10 +146,10 @@ const Index = () => {
           <div className="relative w-full h-full">
             {/* Main Map Component */}
             <AirQoMap
+              ref={airqoMapRef}
               mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
               customStyle="flex-grow h-full w-full relative bg-[#e6e4e0]"
               pollutant={pollutant}
-              onMapReady={handleMapReady}
               onToastMessage={setToastMessage}
               onLoadingChange={setLoading}
               onLoadingOthersChange={setLoadingOthers}
@@ -213,42 +171,42 @@ const Index = () => {
 
             {/* Map Controls */}
             {(width >= 1024 || !selectedNode) && (
-              <div className="absolute top-4 right-0 z-40">
+              <div className="absolute top-4 right-0 z-40 controls-container">
                 {width >= 1024 ? (
-                  // Desktop view - vertical stack
+                  // Desktop view – vertical stack of buttons
                   <div className="flex flex-col gap-4">
+                    <IconButton
+                      onClick={() => airqoMapRef.current?.refreshMap()}
+                      title="Refresh Map"
+                      icon={<RefreshIcon />}
+                    />
+                    <IconButton
+                      onClick={() => airqoMapRef.current?.shareLocation()}
+                      title="Share Location"
+                      icon={<ShareIcon />}
+                    />
+                    <IconButton
+                      onClick={() => airqoMapRef.current?.captureScreenshot()}
+                      title="Capture Screenshot"
+                      icon={<CameraIcon />}
+                    />
                     <IconButton
                       onClick={() => setIsOpen(true)}
                       title="Map Layers"
                       icon={<LayerIcon />}
                     />
-                    <IconButton
-                      onClick={refreshMap}
-                      title="Refresh Map"
-                      icon={<RefreshIcon />}
-                    />
-                    <IconButton
-                      onClick={shareLocation}
-                      title="Share Location"
-                      icon={<ShareIcon />}
-                    />
-                    <IconButton
-                      onClick={captureScreenshot}
-                      title="Capture Screenshot"
-                      icon={<CameraIcon />}
-                    />
                   </div>
                 ) : (
-                  // Mobile view - controls expand to the left
-                  <div className="relative" ref={controlsRef}>
+                  // Mobile view – controls expand to the left
+                  <div className="relative controls-container">
                     <div className="flex items-center">
                       {isControlsExpanded && (
                         <div
                           className={`
-                          absolute right-full mr-2 rounded-lg shadow-lg p-2 flex gap-2 z-[20000]
-                          transform transition-all duration-200 ease-in-out
-                          ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
-                        `}
+                            absolute right-full mr-2 rounded-lg shadow-lg p-2 flex gap-2 z-[20000]
+                            transform transition-all duration-200 ease-in-out
+                            ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
+                          `}
                         >
                           <IconButton
                             onClick={() => {
@@ -260,7 +218,7 @@ const Index = () => {
                           />
                           <IconButton
                             onClick={() => {
-                              refreshMap();
+                              airqoMapRef.current?.refreshMap();
                               setIsControlsExpanded(false);
                             }}
                             title="Refresh Map"
@@ -268,7 +226,7 @@ const Index = () => {
                           />
                           <IconButton
                             onClick={() => {
-                              shareLocation();
+                              airqoMapRef.current?.shareLocation();
                               setIsControlsExpanded(false);
                             }}
                             title="Share Location"
@@ -276,7 +234,7 @@ const Index = () => {
                           />
                           <IconButton
                             onClick={() => {
-                              captureScreenshot();
+                              airqoMapRef.current?.captureScreenshot();
                               setIsControlsExpanded(false);
                             }}
                             title="Capture Screenshot"
@@ -313,14 +271,12 @@ const Index = () => {
               mapDetails={mapDetails}
               disabled="Heatmap"
               onMapDetailsSelect={(type) => {
-                if (mapConfigRef.current?.setNodeType) {
-                  mapConfigRef.current.setNodeType(type);
-                }
+                airqoMapRef.current?.setNodeType &&
+                  airqoMapRef.current.setNodeType(type);
               }}
               onStyleSelect={(style) => {
-                if (mapConfigRef.current?.setMapStyle) {
-                  mapConfigRef.current.setMapStyle(style.url);
-                }
+                airqoMapRef.current?.setMapStyle &&
+                  airqoMapRef.current.setMapStyle(style.url);
               }}
             />
 
