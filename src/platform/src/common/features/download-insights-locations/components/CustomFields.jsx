@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import CheckIcon from '@/icons/tickIcon';
-import CustomDropdown from '@/components/Dropdowns/CustomDropdown';
+import CustomDropdown, {
+  DropdownItem,
+} from '@/components/Button/CustomDropdown';
 import DatePicker from '@/components/Calendar/DatePicker';
 
 /**
@@ -104,6 +105,11 @@ const CustomFields = ({
     [id, handleOptionSelect, textFormat],
   );
 
+  // Determine the display text for the dropdown button
+  const displayText = btnText
+    ? formatName(btnText, textFormat)
+    : formatFieldValue(selectedOption.name, id, textFormat, true);
+
   return (
     <div className={`w-full flex flex-col gap-2 ${className}`}>
       <div className="flex flex-col">
@@ -143,7 +149,6 @@ const CustomFields = ({
         />
       ) : useCalendar ? (
         <DatePicker
-          customPopperStyle={{ left: '-7px' }}
           onChange={(dates) => {
             handleSelect(dates);
           }}
@@ -153,38 +158,36 @@ const CustomFields = ({
           className={required && !selectedOption?.name ? 'border-red-300' : ''}
         />
       ) : (
-        <CustomDropdown
-          tabID={id}
-          isField={false}
-          tabStyle="w-full bg-white px-3 py-2"
-          dropdown
-          tabIcon={icon}
-          btnText={
-            btnText
-              ? formatName(btnText, textFormat)
-              : formatFieldValue(selectedOption.name, id, textFormat, true)
-          }
-          customPopperStyle={{ left: '-7px' }}
-          dropDownClass="w-full"
-          textFormat={textFormat}
-          required={required}
-          aria-required={required}
-        >
-          {options.map((option) => (
-            <span
-              key={option.id}
-              onClick={() => handleSelect(option)}
-              className={`cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center ${
-                selectedOption.id === option.id ? 'bg-[#EBF5FF] rounded-md' : ''
-              }`}
-            >
-              <span className="flex items-center space-x-2">
-                <span>{formatName(option.name, textFormat)}</span>
-              </span>
-              {selectedOption.id === option.id && <CheckIcon fill="#145FFF" />}
-            </span>
-          ))}
-        </CustomDropdown>
+        <div className="w-full relative">
+          <CustomDropdown
+            text={displayText}
+            icon={icon}
+            iconPosition="left"
+            className="w-full"
+            buttonClassName="w-full bg-white px-3 py-2 text-left"
+            menuClassName="w-full"
+            dropdownAlign="left"
+            disabled={
+              !edit &&
+              options.length > 0 &&
+              id !== 'dataType' &&
+              id !== 'organization' &&
+              id !== 'pollutant' &&
+              id !== 'frequency' &&
+              id !== 'fileType'
+            }
+          >
+            {options.map((option) => (
+              <DropdownItem
+                key={option.id}
+                onClick={() => handleSelect(option)}
+                active={selectedOption.id === option.id}
+              >
+                {formatName(option.name, textFormat)}
+              </DropdownItem>
+            ))}
+          </CustomDropdown>
+        </div>
       )}
     </div>
   );

@@ -14,7 +14,6 @@ import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
-import EditIcon from '@/icons/Analytics/EditIcon';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DeviceIcon from '@/icons/Analytics/deviceIcon';
 import DataTable from '../components/DataTable';
@@ -90,7 +89,6 @@ const SettingsSidebar = ({
   formData,
   handleOptionSelect,
   edit,
-  setEdit,
   filteredDataTypeOptions,
   ORGANIZATION_OPTIONS,
   durationGuidance,
@@ -124,49 +122,22 @@ const SettingsSidebar = ({
       initial="hidden"
       animate="visible"
     >
-      {/* Header */}
-      <motion.div
-        className="flex justify-between items-center mb-3"
-        variants={formItemVariants}
-      >
-        <h4 className="text-lg font-medium">Download Settings</h4>
-        <motion.button
-          type="button"
-          className={`text-sm text-blue-600 ${edit ? 'font-semibold' : 'opacity-80'}`}
-          onClick={() => setEdit(!edit)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {edit ? 'Done' : <EditIcon />}
-        </motion.button>
-      </motion.div>
-
       {/* Form Fields */}
       <motion.div className="space-y-4">
         <motion.div variants={formItemVariants}>
-          {edit ? (
-            <div className="mb-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={formData.title.name}
-                onChange={handleTitleChange}
-                autoFocus
-              />
-            </div>
-          ) : (
-            <CustomFields
-              field
-              title="Title"
-              edit={false}
-              id="title"
-              defaultOption={{ name: formData.title.name }}
-              handleOptionSelect={handleOptionSelect}
+          <div className="mb-2">
+            <label className="block text-sm font-medium dark:text-white mb-2">
+              Title
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border dark:bg-transparent dark:border-gray-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={formData.title.name}
+              onChange={handleTitleChange}
+              autoFocus
+              disabled={edit}
             />
-          )}
+          </div>
         </motion.div>
 
         <motion.div variants={formItemVariants}>

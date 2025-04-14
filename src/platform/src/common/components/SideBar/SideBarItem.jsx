@@ -101,8 +101,8 @@ const SidebarItem = ({
       : '#000000';
 
   const bgClass = isCurrentRoute
-    ? `${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'}`
-    : `${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`;
+    ? `${isDarkMode ? 'bg-gray-700/30' : 'bg-blue-100'}`
+    : `${isDarkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-100'}`;
 
   const commonClasses = `
     cursor-pointer transition-all duration-300 ease-in-out

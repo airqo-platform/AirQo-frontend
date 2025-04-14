@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Transition } from '@headlessui/react';
+import { usePopper } from 'react-popper';
 import { FiChevronDown } from 'react-icons/fi';
 import clsx from 'clsx';
+import PropTypes from 'prop-types';
 
 const CustomDropdown = ({
   text = '',
@@ -22,20 +24,66 @@ const CustomDropdown = ({
   isCollapsed = false,
   dropdownAlign = 'left',
   onClick,
+  dropdownWidth,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const buttonRef = useRef(null);
+  const popperRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Close dropdown when clicking outside the container.
+  // Set up popper with proper placement based on dropdownAlign
+  const { styles, attributes, update } = usePopper(
+    buttonRef.current,
+    popperRef.current,
+    {
+      placement: dropdownAlign === 'right' ? 'bottom-end' : 'bottom-start',
+      modifiers: [
+        {
+          name: 'offset',
+          options: {
+            offset: [0, 8],
+          },
+        },
+        {
+          name: 'preventOverflow',
+          options: {
+            padding: 8,
+            boundary: document.body,
+          },
+        },
+        {
+          name: 'flip',
+          options: {
+            fallbackPlacements: ['top-start', 'top-end'],
+          },
+        },
+      ],
+    },
+  );
+
+  // Close dropdown when clicking outside the container
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
-    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isOpen]);
+
+  // Update popper position when dropdown visibility changes
+  useEffect(() => {
+    if (isOpen && update) {
+      update();
+    }
+  }, [isOpen, update]);
 
   const toggleDropdown = () => {
     if (!disabled) {
@@ -44,7 +92,7 @@ const CustomDropdown = ({
     }
   };
 
-  // Base button classes.
+  // Base button classes
   const defaultButtonClasses =
     'flex items-center justify-between rounded-xl px-4 py-2 border focus:outline-none border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
   const collapsedButtonClasses =
@@ -65,8 +113,9 @@ const CustomDropdown = ({
     if (renderButton) {
       return (
         <div
+          ref={buttonRef}
           onClick={toggleDropdown}
-          className={disabled && 'opacity-60 cursor-not-allowed'}
+          className={disabled ? 'opacity-60 cursor-not-allowed' : ''}
         >
           {renderButton({ isOpen, toggleDropdown, disabled, isCollapsed })}
         </div>
@@ -75,8 +124,9 @@ const CustomDropdown = ({
     if (trigger) {
       return (
         <div
+          ref={buttonRef}
           onClick={toggleDropdown}
-          className={disabled && 'opacity-60 cursor-not-allowed'}
+          className={disabled ? 'opacity-60 cursor-not-allowed' : ''}
         >
           {trigger}
         </div>
@@ -84,6 +134,7 @@ const CustomDropdown = ({
     }
     return (
       <button
+        ref={buttonRef}
         onClick={toggleDropdown}
         type="button"
         aria-haspopup="true"
@@ -105,7 +156,7 @@ const CustomDropdown = ({
               <FiChevronDown
                 size={16}
                 className={clsx(
-                  'ml-2 transition-transform',
+                  'ml-2 transition-transform duration-200',
                   isOpen && 'rotate-180',
                 )}
               />
@@ -123,19 +174,33 @@ const CustomDropdown = ({
     >
       {renderTrigger()}
       {!isButton && !disabled && (
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
+        <div
+          ref={popperRef}
+          style={{
+            ...styles.popper,
+            ...(dropdownWidth
+              ? { width: dropdownWidth }
+              : { minWidth: buttonRef.current?.offsetWidth }),
+          }}
+          {...attributes.popper}
+          className="z-50 w-full"
+        >
+          <Transition
+            show={isOpen}
+            enter="transition ease-out duration-200"
+            enterFrom="opacity-0 translate-y-1"
+            enterTo="opacity-100 translate-y-0"
+            leave="transition ease-in duration-150"
+            leaveFrom="opacity-100 translate-y-0"
+            leaveTo="opacity-0 translate-y-1"
+          >
+            <div
               className={clsx(
-                'absolute z-50 mt-1 p-1 rounded-xl shadow-md border bg-white dark:border-gray-700 dark:bg-[#1d1f20]',
-                'w-full sm:min-w-[200px] sm:max-w-[250px]',
-                dropdownAlign === 'right' ? 'right-0' : 'left-0',
+                'mt-1 p-1 rounded-xl shadow-md border bg-white dark:border-gray-700 dark:bg-[#1d1f20]',
+                'w-full sm:min-w-[200px]',
                 menuClassName,
               )}
-              initial={{ opacity: 0, y: -2 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -2 }}
-              transition={{ duration: 0.2 }}
+              style={{ minWidth: buttonRef.current?.offsetWidth }}
             >
               {React.Children.map(children, (child) =>
                 child
@@ -147,12 +212,34 @@ const CustomDropdown = ({
                     })
                   : null,
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </Transition>
+        </div>
       )}
     </div>
   );
+};
+
+CustomDropdown.propTypes = {
+  text: PropTypes.string,
+  icon: PropTypes.node,
+  iconPosition: PropTypes.oneOf(['left', 'right']),
+  className: PropTypes.string,
+  buttonClassName: PropTypes.string,
+  buttonStyle: PropTypes.object,
+  menuClassName: PropTypes.string,
+  children: PropTypes.node,
+  defaultOpen: PropTypes.bool,
+  hideArrow: PropTypes.bool,
+  renderButton: PropTypes.func,
+  trigger: PropTypes.node,
+  isButton: PropTypes.bool,
+  showArrowWithButton: PropTypes.bool,
+  disabled: PropTypes.bool,
+  isCollapsed: PropTypes.bool,
+  dropdownAlign: PropTypes.oneOf(['left', 'right']),
+  onClick: PropTypes.func,
+  dropdownWidth: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export const DropdownItem = ({
@@ -161,7 +248,6 @@ export const DropdownItem = ({
   active = false,
   className,
   disabled = false,
-  // The checkIcon now uses Tailwind classes so that in light mode it appears dark blue.
   checkIcon = (
     <svg
       width="16"

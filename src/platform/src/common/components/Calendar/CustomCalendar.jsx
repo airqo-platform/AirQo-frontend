@@ -205,34 +205,6 @@ const CustomCalendar = ({
     });
   }, [initialStartDate, initialEndDate, computeDateLabel]);
 
-  /**
-   * Renders the Calendar component within a Transition for animation.
-   *
-   * @returns {JSX.Element}
-   */
-  const renderCalendar = () => (
-    <Transition
-      show={openDatePicker}
-      enter="transition ease-out duration-200"
-      enterFrom="transform opacity-0 scale-95"
-      enterTo="transform opacity-100 scale-100"
-      leave="transition ease-in duration-150"
-      leaveFrom="transform opacity-100 scale-100"
-      leaveTo="transform opacity-0 scale-95"
-    >
-      <div className={`absolute z-50 max-w-[350px] ${className}`}>
-        <Calendar
-          initialMonth1={
-            new Date(new Date().getFullYear(), new Date().getMonth() - 1)
-          }
-          initialMonth2={new Date()}
-          handleValueChange={handleValueChange}
-          closeDatePicker={handleCloseDatePicker}
-        />
-      </div>
-    </Transition>
-  );
-
   return (
     <div
       className="relative cursor-pointer date-picker-container"
@@ -246,8 +218,31 @@ const CustomCalendar = ({
         isButton={true}
         showArrowWithButton={true}
         disabled={isLoading}
+        className="w-full"
+        buttonClassName="w-full px-4 py-2 text-gray-700 dark:text-white"
       />
-      {renderCalendar()}
+
+      <Transition
+        show={openDatePicker}
+        enter="transition ease-out duration-200"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-150"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+        className="absolute z-50 mt-1"
+      >
+        <div className={`max-w-[350px] ${className}`}>
+          <Calendar
+            initialMonth1={
+              new Date(new Date().getFullYear(), new Date().getMonth() - 1)
+            }
+            initialMonth2={new Date()}
+            handleValueChange={handleValueChange}
+            closeDatePicker={handleCloseDatePicker}
+          />
+        </div>
+      </Transition>
     </div>
   );
 };
@@ -255,19 +250,17 @@ const CustomCalendar = ({
 CustomCalendar.propTypes = {
   initialStartDate: PropTypes.instanceOf(Date).isRequired,
   initialEndDate: PropTypes.instanceOf(Date).isRequired,
+  initial_label: PropTypes.string,
   onChange: PropTypes.func,
   className: PropTypes.string,
-  dropdown: PropTypes.bool,
   isLoading: PropTypes.bool,
-  darkMode: PropTypes.bool,
 };
 
 CustomCalendar.defaultProps = {
   onChange: null,
   className: '',
-  dropdown: false,
+  initial_label: '',
   isLoading: false,
-  darkMode: false,
 };
 
 export default CustomCalendar;

@@ -341,6 +341,7 @@ const ChartContainer = ({
           <CustomDropdown
             text="More"
             dropdownAlign="right"
+            dropdownWidth="180px"
             buttonStyle={{
               fontSize: '0.875rem',
               padding: '0.3rem 0.5rem',
