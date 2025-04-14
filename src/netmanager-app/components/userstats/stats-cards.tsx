@@ -11,7 +11,7 @@ export function StatsCards({ totalUsers, activeUsers, apiUsers }: StatsCardsProp
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Card className="overflow-hidden border-none shadow-md relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 dark:from-indigo-500/20 dark:to-indigo-600/10 z-0"></div>
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
           <CardTitle className="text-sm font-medium">Total Users</CardTitle>
           <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -25,7 +25,7 @@ export function StatsCards({ totalUsers, activeUsers, apiUsers }: StatsCardsProp
       </Card>
 
       <Card className="overflow-hidden border-none shadow-md relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-pink-600/5 z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-pink-600/5 dark:from-pink-500/20 dark:to-pink-600/10 z-0"></div>
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
           <CardTitle className="text-sm font-medium">Active Users</CardTitle>
           <div className="h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center">
@@ -39,7 +39,7 @@ export function StatsCards({ totalUsers, activeUsers, apiUsers }: StatsCardsProp
       </Card>
 
       <Card className="overflow-hidden border-none shadow-md relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 dark:from-cyan-500/20 dark:to-cyan-600/10 z-0"></div>
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
           <CardTitle className="text-sm font-medium">API Users</CardTitle>
           <div className="h-8 w-8 rounded-full bg-cyan-100 flex items-center justify-center">

@@ -17,6 +17,7 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     const ctx = canvasRef.current.getContext("2d")
     if (!ctx) return
 
+    // Set canvas dimensions with higher pixel density for sharper rendering
     const canvas = canvasRef.current
     const dpr = window.devicePixelRatio || 1
     const rect = canvas.getBoundingClientRect()
@@ -28,29 +29,44 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     canvas.style.width = `${rect.width}px`
     canvas.style.height = `${rect.height}px`
 
+    // Check if dark mode is active
+    const isDarkMode = document.documentElement.classList.contains("dark")
+
+    // Define attractive colors with gradients - adjusted for dark mode support
     const colors = {
       total: {
-        start: "#6366f1",
-        end: "#4f46e5",
+        start: "#6366f1", // Indigo
+        end: "#4f46e5", // Darker indigo
       },
       active: {
-        start: "#ec4899",
-        end: "#db2777",
+        start: "#ec4899", // Pink
+        end: "#db2777", // Darker pink
       },
       api: {
-        start: "#06b6d4",
-        end: "#0891b2",
+        start: "#06b6d4", // Cyan
+        end: "#0891b2", // Darker cyan
       },
     }
 
+    // Background and text colors based on theme
+    const bgColor = isDarkMode ? "#1e293b" : "#f1f5f9"
+    const textColor = isDarkMode ? "#e2e8f0" : "#0f172a"
+    const mutedTextColor = isDarkMode ? "#94a3b8" : "#64748b"
+    const gridLineColor = isDarkMode ? "#334155" : "#e2e8f0"
+
+    // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height)
 
+    // Chart dimensions and positioning
     const barWidth = 80
     const spacing = 60
     const startX = (rect.width - (barWidth * 3 + spacing * 2)) / 2
-    const maxHeight = rect.height - 120
+    const maxHeight = rect.height - 120 // Increased bottom padding for labels
     const cornerRadius = 8
 
+    // const topMargin = 50
+
+    // Function to draw a rounded rectangle
     const drawRoundedRect = (x: number, y: number, width: number, height: number, radius: number) => {
       ctx.beginPath()
       ctx.moveTo(x + radius, y)
@@ -65,6 +81,7 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       ctx.closePath()
     }
 
+    // Function to draw a bar with gradient and animation
     const drawBar = (
       x: number,
       height: number,
@@ -74,19 +91,24 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       value: number,
       percentage: number,
     ) => {
-      const y = rect.height - 80 - height
+      const y = rect.height - 80 - height // Adjusted for more bottom space
+
+      // Create gradient
       const gradient = ctx.createLinearGradient(x, y, x, y + height)
       gradient.addColorStop(0, colorStart)
       gradient.addColorStop(1, colorEnd)
 
-      ctx.fillStyle = "#f1f5f9"
+      // Draw bar background (subtle shadow)
+      ctx.fillStyle = bgColor
       drawRoundedRect(x - 2, y - 2, barWidth + 4, height + 4, cornerRadius)
       ctx.fill()
 
+      // Draw bar with gradient
       ctx.fillStyle = gradient
       drawRoundedRect(x, y, barWidth, height, cornerRadius)
       ctx.fill()
 
+      // Add subtle reflection effect
       const reflectionGradient = ctx.createLinearGradient(x, y, x + barWidth, y)
       reflectionGradient.addColorStop(0, "rgba(255, 255, 255, 0.1)")
       reflectionGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.2)")
@@ -96,26 +118,32 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       drawRoundedRect(x, y, barWidth, height * 0.2, cornerRadius)
       ctx.fill()
 
-      ctx.fillStyle = "#64748b"
+      // Draw label
+      ctx.fillStyle = mutedTextColor
       ctx.font = "600 14px Inter, system-ui, sans-serif"
       ctx.textAlign = "center"
-      ctx.fillText(label, x + barWidth / 2, rect.height - 40)
+      ctx.fillText(label, x + barWidth / 2, rect.height - 40) // Adjusted position
 
-      ctx.fillStyle = "#0f172a"
+      // Draw value
+      ctx.fillStyle = textColor
       ctx.font = "bold 16px Inter, system-ui, sans-serif"
       ctx.textAlign = "center"
       ctx.fillText(value.toString(), x + barWidth / 2, y - 16)
 
-      ctx.fillStyle = "#64748b"
+      // Draw percentage
+      ctx.fillStyle = mutedTextColor
       ctx.font = "500 12px Inter, system-ui, sans-serif"
       ctx.textAlign = "center"
       ctx.fillText(`${percentage}%`, x + barWidth / 2, y - 2)
     }
 
+    // Draw horizontal grid lines
     const gridLines = 5
-    ctx.strokeStyle = "#e2e8f0"
+    ctx.strokeStyle = gridLineColor
     ctx.lineWidth = 1
 
+    // Calculate a nice round number for the max scale value
+    // This ensures the scale is appropriate for the data
     const maxScaleValue = Math.ceil(totalUsers / 100) * 100
 
     for (let i = 0; i <= gridLines; i++) {
@@ -125,13 +153,15 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       ctx.lineTo(startX + barWidth * 3 + spacing * 2 + 20, y)
       ctx.stroke()
 
+      // Add grid labels with better scaling
       const gridValue = Math.round((maxScaleValue / gridLines) * i)
-      ctx.fillStyle = "#94a3b8"
+      ctx.fillStyle = mutedTextColor
       ctx.font = "12px Inter, system-ui, sans-serif"
       ctx.textAlign = "right"
       ctx.fillText(gridValue.toString(), startX - 25, y + 4)
     }
 
+    // Calculate heights based on proportions and the adjusted scale
     const scaleFactor = maxHeight / maxScaleValue
     const totalHeight = totalUsers * scaleFactor
     const activeHeight = activeUsers * scaleFactor
@@ -142,10 +172,10 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     const apiPercentage = Math.round((apiUsers / totalUsers) * 100)
 
     // Draw title
-    ctx.fillStyle = "#0f172a"
+    ctx.fillStyle = textColor
     ctx.font = "bold 16px Inter, system-ui, sans-serif"
     ctx.textAlign = "left"
-    // ctx.fillText("User Distribution", startX, 30)
+    ctx.fillText("User Distribution", startX, 30)
 
     // Draw bars
     drawBar(startX, totalHeight, colors.total.start, colors.total.end, "Total Users", totalUsers, 100)
@@ -170,9 +200,10 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       apiPercentage,
     )
 
+    // Add legend at the top of the chart, centered
     const legendY = 25
-    const legendWidth = 300
-    const legendX = (rect.width - legendWidth) / 2
+    const legendWidth = 300 // Approximate width of the legend
+    const legendX = (rect.width - legendWidth) / 2 // Center the legend
 
     const drawLegendItem = (x: number, color: string, label: string) => {
       ctx.fillStyle = color
@@ -180,12 +211,13 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       ctx.rect(x, legendY - 8, 12, 12)
       ctx.fill()
 
-      ctx.fillStyle = "#64748b"
+      ctx.fillStyle = mutedTextColor
       ctx.font = "13px Inter, system-ui, sans-serif"
       ctx.textAlign = "left"
       ctx.fillText(label, x + 18, legendY)
     }
 
+    // Space legend items evenly
     const legendSpacing = legendWidth / 3
     drawLegendItem(legendX, colors.total.start, "Total")
     drawLegendItem(legendX + legendSpacing, colors.active.start, "Active")

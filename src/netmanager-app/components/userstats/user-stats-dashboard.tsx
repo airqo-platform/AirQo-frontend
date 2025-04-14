@@ -29,7 +29,7 @@ export default function UserStatsDashboard() {
     }
   
     return (
-      <div className="container mx-auto py-10 px-4">
+      <div className="container mx-auto py-10 px-4 bg-background">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">User Statistics</h1>
           <p className="text-muted-foreground mt-1">Overview of all registered users in the system</p>
@@ -69,7 +69,7 @@ export default function UserStatsDashboard() {
                   </CardHeader>
                   <CardContent className="h-[300px] flex items-center justify-center relative z-10">
                     <div className="w-full max-w-[200px] aspect-square relative">
-                      <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
+                      <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
                         <div
                           className="absolute inset-0 rounded-full border-8 border-violet-500"
                           style={{
