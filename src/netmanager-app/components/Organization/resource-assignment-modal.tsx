@@ -52,24 +52,20 @@ export function ResourceAssignmentModal({
 
   const isPending = isAssigningSites || isAssigningDevices
 
-  // Filter resources based on search query
   const filteredSites = availableSites.filter((site) => site.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const filteredDevices = availableDevices.filter((device) =>
     device.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  // Handle selection of sites
   const handleSiteSelection = (siteId: string) => {
     setSelectedSites((prev) => (prev.includes(siteId) ? prev.filter((id) => id !== siteId) : [...prev, siteId]))
   }
 
-  // Handle selection of devices
   const handleDeviceSelection = (deviceId: string) => {
     setSelectedDevices((prev) => (prev.includes(deviceId) ? prev.filter((id) => id !== deviceId) : [...prev, deviceId]))
   }
 
-  // Handle select all for the current filtered list
   const handleSelectAll = () => {
     if (activeTab === "sites") {
       const allSiteIds = filteredSites.filter((site) => !site.assigned).map((site) => site.id)
@@ -88,7 +84,6 @@ export function ResourceAssignmentModal({
     }
   }
 
-  // Handle assignment submission
   const handleAssign = () => {
     if (activeTab === "sites" && selectedSites.length > 0) {
       assignSites(
@@ -122,7 +117,6 @@ export function ResourceAssignmentModal({
     onOpenChange(open)
   }
 
-  // Render loading skeletons
   const renderSkeletons = () => (
     <div className="space-y-2">
       {[1, 2, 3, 4, 5].map((i) => (

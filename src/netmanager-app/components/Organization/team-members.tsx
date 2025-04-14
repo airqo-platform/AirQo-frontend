@@ -94,7 +94,6 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
         setIsInviteDialogOpen(false);
       },
       onError: (error: Error) => {
-        console.error("Error inviting member:", error);
         toast({
           title: "Invitation Failed",
           description:
@@ -114,8 +113,7 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
         description: "The member's role has been successfully updated.",
       });
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error("Error updating role:", error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update role. Please try again.",

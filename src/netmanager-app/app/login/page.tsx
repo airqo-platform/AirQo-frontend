@@ -16,6 +16,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { useAuth } from "@/core/hooks/users"
 import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
+import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -28,9 +29,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading } = useAuth()
 
-  // Get URLs from environment variables
-  const forgotPasswordUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || ""
-  const signUpUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || ""
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),

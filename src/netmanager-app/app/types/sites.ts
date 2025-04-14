@@ -93,6 +93,26 @@ export interface Site {
     search_radius: number;
     waterway: string;
   };
+  geometry?: {
+    bounds: {
+      northeast: { lat: number; lng: number };
+      southwest: { lat: number; lng: number };
+    };
+    location: { lat: number; lng: number };
+    location_type: string;
+    viewport: {
+      northeast: { lat: number; lng: number };
+      southwest: { lat: number; lng: number };
+    };
+  };
+  landform_270?: number;
+  landform_90?: number;
+  aspect?: number;
+  distance_to_nearest_road?: number;
+  distance_to_nearest_secondary_road?: number;
+  distance_to_nearest_unclassified_road?: number;
+  distance_to_nearest_residential_road?: number;
+  share_links?: Record<string, unknown>;
 }
 
 export interface Device {

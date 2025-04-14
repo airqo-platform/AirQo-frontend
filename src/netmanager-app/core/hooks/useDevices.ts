@@ -8,6 +8,7 @@ import type {
   ReadingsApiResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
+import { useEffect, useMemo } from "react";
 
 interface ErrorResponse {
   message: string;
@@ -30,7 +31,17 @@ export const useDevices = () => {
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
     onSuccess: (data: DevicesSummaryResponse) => {
-      dispatch(setDevices(data.devices));
+      // Convert Device[] to DeviceStatus[]
+      const devicesWithStatus = data.devices.map(device => ({
+        ...device,
+        device_number: 0,
+        mobility: false,
+        maintenance_status: "good" as const,
+        powerType: "mains" as const,
+        elapsed_time: 0,
+        status: device.isOnline ? "online" as const : "offline" as const,
+      }));
+      dispatch(setDevices(devicesWithStatus));
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       dispatch(setError(error.message));
@@ -43,6 +54,54 @@ export const useDevices = () => {
     error: devicesQuery.error,
   };
 };
+
+export function useDeviceStatus() {
+  const dispatch = useDispatch();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["deviceStatus"],
+    queryFn: devices.getDevicesStatus,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const summary = useMemo(() => data?.data[0], [data]);
+  const allDevices = useMemo(() => 
+    summary ? [...summary.online_devices, ...summary.offline_devices] : []
+  , [summary]);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setDevices(allDevices));
+    }
+    if (error) {
+      dispatch(setError((error as Error).message));
+    }
+  }, [data, error, dispatch, allDevices]);
+
+  const deviceStats = useMemo(() => ({
+    total: summary?.total_active_device_count || 0,
+    online: summary?.count_of_online_devices || 0,
+    offline: summary?.count_of_offline_devices || 0,
+    maintenance: {
+      good: allDevices.filter(d => d.maintenance_status === "good").length,
+      due: summary?.count_due_maintenance || 0,
+      overdue: summary?.count_overdue_maintenance || 0,
+      unspecified: summary?.count_unspecified_maintenance || 0,
+    },
+    powerSource: {
+      solar: summary?.count_of_solar_devices || 0,
+      alternator: summary?.count_of_alternator_devices || 0,
+      mains: summary?.count_of_mains || 0,
+    },
+  }), [summary, allDevices]);
+
+  return {
+    devices: allDevices,
+    stats: deviceStats,
+    isLoading,
+    error: error ? (error as Error).message : null,
+  };
+}
 
 export const useMapReadings = () => {
   const dispatch = useDispatch();

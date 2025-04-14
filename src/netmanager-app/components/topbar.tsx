@@ -28,7 +28,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const [darkMode, setDarkMode] = useState(false)
   const { logout } = useAuth()
   const currentUser = useAppSelector((state) => state.user.userDetails)
-
+  const activeGroup = useAppSelector((state) => state.user.activeGroup)
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark")
@@ -81,8 +81,8 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-16 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-full items-center justify-between px-4">
+    <header className="flex h-16 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex w-full items-center justify-between px-4">
         {isMobileView && toggleSidebar && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
             <Menu className="h-5 w-5" />
@@ -207,12 +207,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
                   <AvatarImage src={currentUser?.profilePicture || ""} alt={getUserName()} />
                   <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
                 </Avatar>
-                <div className="hidden flex-col items-start text-left md:flex">
-                  <span className="text-sm font-medium leading-none">{getUserName()}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {currentUser?.organization || currentUser?.email}
-                  </span>
-                </div>
+                
                 <ChevronDown className="hidden h-4 w-4 opacity-50 md:inline-block" />
               </Button>
             </DropdownMenuTrigger>
@@ -226,7 +221,9 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
                 <>
                   <div className="p-2">
                     <p className="text-xs font-medium leading-none text-muted-foreground">ORGANIZATION</p>
-                    <p className="text-sm">{currentUser.organization}</p>
+                    <p className="text-sm">
+                      {activeGroup?.grp_title.replace(/-/g, " ").replace(/_/g, " ").toUpperCase()}
+                    </p>
                   </div>
                   <DropdownMenuSeparator />
                 </>
