@@ -57,7 +57,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height)
 
-    // Chart dimensions and positioning
     const barWidth = 80
     const spacing = 60
     const startX = (rect.width - (barWidth * 3 + spacing * 2)) / 2
