@@ -10,12 +10,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { CircuitBoard } from "lucide-react";
 
 interface SiteDevicesProps {
   devices: Device[];
 }
 
 export function SiteDevices({ devices }: SiteDevicesProps) {
+  if (!devices.length) {
+    return (
+      <div className="border rounded-lg p-8">
+        <div className="flex flex-col items-center justify-center text-center">
+          <CircuitBoard className="h-12 w-12 text-gray-400 mb-3" />
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No devices found</h3>
+          <p className="text-sm text-gray-500">
+            There are no devices deployed at this site yet.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border rounded-lg">
       <Table>

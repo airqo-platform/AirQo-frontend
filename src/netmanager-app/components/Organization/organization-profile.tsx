@@ -55,8 +55,7 @@ export function OrganizationProfile({
         description: "The organization profile has been successfully updated.",
       });
     },
-    onError: (error: Error) => {
-      console.error("Failed to update organization profile", error);
+    onError: () => {
       toast({
         title: "Update Failed",
         description:

@@ -39,7 +39,6 @@ export function AssignResourcesButton({
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
   const networkId = activeNetwork?.net_name || ""
 
-  // Fetch all available sites
   const { data: sitesData, isLoading: isLoadingSites } = useQuery({
     queryKey: ["all-sites", networkId],
     queryFn: async () => {
@@ -49,7 +48,6 @@ export function AssignResourcesButton({
     enabled: !!networkId && isModalOpen && (resourceType === "sites" || resourceType === "both"),
   })
 
-  // Fetch all available devices
   const { data: devicesData, isLoading: isLoadingDevices } = useQuery({
     queryKey: ["all-devices", networkId],
     queryFn: async () => {
@@ -59,7 +57,6 @@ export function AssignResourcesButton({
     enabled: !!networkId && isModalOpen && (resourceType === "devices" || resourceType === "both"),
   })
 
-  // Fetch sites already assigned to this organization
   const { data: assignedSitesData, isLoading: isLoadingAssignedSites } = useQuery({
     queryKey: ["sites-summary", networkId, organizationName],
     queryFn: async () => {
@@ -69,7 +66,6 @@ export function AssignResourcesButton({
     enabled: !!networkId && !!organizationName && isModalOpen && (resourceType === "sites" || resourceType === "both"),
   })
 
-  // Fetch devices already assigned to this organization
   const { data: assignedDevicesData, isLoading: isLoadingAssignedDevices } = useQuery({
     queryKey: ["devices-summary", networkId, organizationName],
     queryFn: async () => {
@@ -80,10 +76,8 @@ export function AssignResourcesButton({
       !!networkId && !!organizationName && isModalOpen && (resourceType === "devices" || resourceType === "both"),
   })
 
-  // Prepare site data with assignment status - handle the case where assignedSitesData is not an array
   const availableSites =
     sitesData?.map((site: Site) => {
-      // Check if assignedSitesData is an array before using .some()
       const isAssigned = Array.isArray(assignedSitesData)
         ? assignedSitesData.some((assignedSite: { id: string }) => assignedSite.id === site._id)
         : false
@@ -95,10 +89,8 @@ export function AssignResourcesButton({
       }
     }) || []
 
-  // Prepare device data with assignment status - handle the case where assignedDevicesData is not an array
   const availableDevices =
     devicesData?.map((device) => {
-      // Check if assignedDevicesData is an array before using .some()
       const isAssigned = Array.isArray(assignedDevicesData)
         ? assignedDevicesData.some((assignedDevice) => assignedDevice._id === device._id)
         : false
@@ -110,7 +102,6 @@ export function AssignResourcesButton({
       }
     }) || []
 
-  // Track overall loading state
   const isDataLoading = isLoadingSites || isLoadingDevices || isLoadingAssignedSites || isLoadingAssignedDevices
 
   const handleClick = () => {
@@ -123,7 +114,6 @@ export function AssignResourcesButton({
     }
   }
 
-  // Determine button text and icon based on resource type
   let buttonText = "Assign Resources"
   let buttonIcon = null
 

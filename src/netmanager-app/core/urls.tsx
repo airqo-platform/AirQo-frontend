@@ -8,3 +8,6 @@ export const SITES_MGT_URL = `${BASE_API_URL}/devices/sites`;
 export const ANALYTICS_MGT_URL = `${BASE_API_URL}/analytics`;
 export const EXCEEDANCES_DATA_URI = `${ANALYTICS_MGT_URL}/exceedances`;
 export const DEVICE_EXCEEDANCES_URI = `${ANALYTICS_MGT_URL}/dashboard/exceedances-devices`;
+
+export const forgotPasswordUrl = `${process.env.NEXT_PUBLIC_ANALYTICS_URL}/account/forgotPwd`;
+export const signUpUrl = `${process.env.NEXT_PUBLIC_ANALYTICS_URL}/account/creation`
