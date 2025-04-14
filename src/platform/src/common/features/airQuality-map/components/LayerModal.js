@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
-// Import Card wrapper component
 import Card from '@/components/CardWrapper';
 
 /**
  * Option component for rendering each selectable option.
- * Wrapped with React.memo for performance optimization.
+ * Uses React.memo to prevent unnecessary re-renders.
  */
 const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
   const handleClick = useCallback(() => {
@@ -21,16 +20,15 @@ const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
 
   const containerClasses = `
     flex flex-col items-center space-y-2 
-    transition-transform duration-200 transform 
-    ${isSelected ? 'border-blue-500 scale-105' : 'hover:scale-105'} 
+    transition-all duration-300 ease-in-out
+    ${isSelected ? 'scale-105' : 'hover:scale-105'} 
     ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
   `;
 
-  // Increased image size for better spacing.
   const imageContainerClasses = `
     relative w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 
-    transition-colors duration-200 
-    ${isSelected ? 'border-blue-500 ring-4 ring-light-blue-100' : 'border-gray-300'}
+    transition-all duration-300 ease-in-out
+    ${isSelected ? 'border-blue-500 ring-4 ring-blue-100' : 'border-gray-300'}
   `;
 
   return (
@@ -38,11 +36,13 @@ const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
       onClick={handleClick}
       className={containerClasses}
       disabled={disabled}
+      aria-pressed={isSelected}
+      type="button"
     >
       <div className={imageContainerClasses}>
         <Image
           src={image}
-          alt={children}
+          alt={`${children} option`}
           layout="fill"
           objectFit="cover"
           className="rounded-lg"
@@ -70,7 +70,8 @@ Option.defaultProps = {
 };
 
 /**
- * LayerModal component for selecting map style and details.
+ * LayerModal component for selecting map style and details
+ * with improved selection handling.
  */
 const LayerModal = ({
   isOpen,
@@ -81,24 +82,56 @@ const LayerModal = ({
   mapDetails,
   disabled,
 }) => {
-  const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
-  const [selectedMapDetail, setSelectedMapDetail] = useState(mapDetails[0]);
+  // Find the Streets option by default or use the first style
+  const defaultStyle =
+    mapStyles.find((style) => style.name === 'Streets') || mapStyles[0];
+  const defaultDetail =
+    mapDetails.find((detail) => detail.name === 'Emoji') || mapDetails[0];
 
-  // Reset selections when the provided options change
+  const [selectedStyle, setSelectedStyle] = useState(defaultStyle);
+  const [selectedMapDetail, setSelectedMapDetail] = useState(defaultDetail);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Reset selections when modal is opened
   useEffect(() => {
-    if (mapStyles[0]) setSelectedStyle(mapStyles[0]);
-    if (mapDetails[0]) setSelectedMapDetail(mapDetails[0]);
-  }, [mapStyles, mapDetails]);
+    if (isOpen) {
+      setHasChanges(false);
+    }
+  }, [isOpen]);
+
+  const handleSelectStyle = useCallback(
+    (style) => {
+      if (style.name !== selectedStyle.name) {
+        setSelectedStyle(style);
+        setHasChanges(true);
+      }
+    },
+    [selectedStyle],
+  );
+
+  const handleSelectDetail = useCallback(
+    (detail) => {
+      if (detail.name !== selectedMapDetail.name) {
+        setSelectedMapDetail(detail);
+        setHasChanges(true);
+      }
+    },
+    [selectedMapDetail],
+  );
 
   const handleApply = useCallback(() => {
     try {
-      onStyleSelect(selectedStyle);
-      onMapDetailsSelect(selectedMapDetail.name);
+      // Only apply changes if something actually changed
+      if (hasChanges) {
+        onStyleSelect(selectedStyle);
+        onMapDetailsSelect(selectedMapDetail.name);
+      }
       onClose();
     } catch (error) {
       console.error('Error applying layer modal selections:', error);
     }
   }, [
+    hasChanges,
     selectedStyle,
     selectedMapDetail,
     onStyleSelect,
@@ -106,30 +139,47 @@ const LayerModal = ({
     onClose,
   ]);
 
-  const handleSelectStyle = useCallback((style) => {
-    setSelectedStyle(style);
-  }, []);
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (isOpen && event.key === 'Escape') {
+        onClose();
+      }
+    };
 
-  const handleSelectDetail = useCallback((detail) => {
-    setSelectedMapDetail(detail);
-  }, []);
+    document.addEventListener('keydown', handleEscKey);
+    return () => document.removeEventListener('keydown', handleEscKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="absolute inset-0 w-full h-full flex items-center justify-center"
-      style={{ zIndex: 10000 }}
+      className="fixed inset-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-[10000]"
+      onClick={(e) => {
+        // Close if clicking the backdrop (not the card)
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <Card
         className="relative mx-4 max-w-lg w-full"
         padding="p-0"
-        shadow="shadow"
+        shadow="shadow-lg"
         rounded
         radius="rounded-xl"
       >
         <div className="p-6">
-          <h3 className="text-2xl font-semibold mb-4">Map Details</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-2xl font-semibold">Map Details</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+
           <div className="flex flex-wrap justify-around gap-6">
             {mapDetails.map((detail) => (
               <Option
@@ -143,7 +193,9 @@ const LayerModal = ({
               </Option>
             ))}
           </div>
+
           <div className="w-full h-px bg-gray-200 dark:bg-gray-700 my-6" />
+
           <h3 className="text-2xl font-semibold mb-4">Map Type</h3>
           <div className="flex flex-wrap justify-around gap-6">
             {mapStyles.map((style) => (
@@ -158,13 +210,8 @@ const LayerModal = ({
             ))}
           </div>
         </div>
-        <div
-          className="flex justify-end items-center w-full p-4 bg-gray-50 dark:bg-gray-700 space-x-4"
-          style={{
-            borderBottomLeftRadius: '0.75rem',
-            borderBottomRightRadius: '0.75rem',
-          }}
-        >
+
+        <div className="flex justify-end items-center w-full p-4 bg-gray-50 dark:bg-gray-700 space-x-4 rounded-b-xl">
           <button
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -173,7 +220,11 @@ const LayerModal = ({
           </button>
           <button
             onClick={handleApply}
-            className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700 transition-colors"
+            className={`
+              px-4 py-2 rounded-md text-white transition-colors
+              ${hasChanges ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-400'}
+            `}
+            disabled={!hasChanges}
           >
             Apply
           </button>
@@ -194,6 +245,7 @@ LayerModal.propTypes = {
     PropTypes.shape({
       name: PropTypes.string.isRequired,
       image: PropTypes.string.isRequired,
+      url: PropTypes.string.isRequired,
     }),
   ).isRequired,
   mapDetails: PropTypes.arrayOf(
@@ -209,4 +261,4 @@ LayerModal.defaultProps = {
   disabled: '',
 };
 
-export default LayerModal;
+export default memo(LayerModal);

@@ -43,36 +43,53 @@ const Index = () => {
     useSelector((state) => state.defaults.individual_preferences) || [];
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
-  // Fetch grid data summary
+  // Fetch grid data summary only once on mount
   useEffect(() => {
-    dispatch(getGridsDataSummary()).catch((error) => {
-      console.error('Failed to fetch grids data:', error);
-    });
+    const fetchGrids = async () => {
+      try {
+        await dispatch(getGridsDataSummary());
+      } catch (error) {
+        console.error('Failed to fetch grids data:', error);
+        setToastMessage({
+          message: 'Failed to load site data. Please try again.',
+          type: 'error',
+          bgColor: 'bg-red-500',
+        });
+      }
+    };
+
+    fetchGrids();
   }, [dispatch]);
 
   // Update site details when grids data summary changes
   useEffect(() => {
     if (Array.isArray(gridsDataSummary) && gridsDataSummary.length > 0) {
-      setSiteDetails(gridsDataSummary.flatMap((grid) => grid.sites || []));
+      const sites = gridsDataSummary.flatMap((grid) => grid.sites || []);
+      setSiteDetails(sites);
     }
   }, [gridsDataSummary]);
 
-  // Set suggested sites based on user preferences or random unique sites
+  // Set suggested sites based on preferences or random selection
   useEffect(() => {
+    // Wait until we have site data
+    if (siteDetails.length === 0) return;
+
     const preferencesSelectedSitesData = preferences.flatMap(
       (pref) => pref.selected_sites || [],
     );
+
     if (preferencesSelectedSitesData.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
-    } else if (siteDetails.length > 0) {
+    } else {
       // Get random unique sites
-      const uniqueSites = siteDetails.filter(
-        (site, index, self) =>
-          self.findIndex((s) => s._id === site._id) === index,
-      );
+      const uniqueSites = [
+        ...new Map(siteDetails.map((site) => [site._id, site])).values(),
+      ];
+
       const selectedSites = uniqueSites
         .sort(() => 0.5 - Math.random())
         .slice(0, 4);
+
       dispatch(addSuggestedSites(selectedSites));
     }
   }, [preferences, siteDetails, dispatch]);
@@ -81,7 +98,8 @@ const Index = () => {
   useEffect(() => {
     if (
       typeof window !== 'undefined' &&
-      !localStorage.getItem('userLocation')
+      !localStorage.getItem('userLocation') &&
+      navigator.geolocation
     ) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -101,38 +119,70 @@ const Index = () => {
   // Handle clicks outside controls (for mobile)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (event.target.closest('.controls-container') === null) {
+      if (
+        isControlsExpanded &&
+        event.target.closest('.controls-container') === null
+      ) {
         setIsControlsExpanded(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isControlsExpanded]);
 
-  // Responsive layout classes
+  // Responsive layout classes with smooth transitions
   const sidebarClassName =
     width < 1024
-      ? `${selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'}`
-      : 'h-full min-w-[380px] lg:w-[470px]';
+      ? `transition-all duration-500 ease-in-out ${
+          selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'
+        }`
+      : 'transition-all duration-300 h-full min-w-[380px] lg:w-[470px]';
+
   const mapClassName =
     width < 1024
-      ? `${selectedNode ? 'h-[30%]' : 'h-full w-full'}`
-      : 'h-full w-full';
+      ? `transition-all duration-500 ease-in-out ${
+          selectedNode ? 'h-[30%]' : 'h-full w-full'
+        }`
+      : 'transition-all duration-300 h-full w-full';
+
+  // Handler for map controls
+  const handleControlAction = (action) => {
+    if (!airqoMapRef.current) return;
+
+    switch (action) {
+      case 'refresh':
+        airqoMapRef.current.refreshMap();
+        break;
+      case 'share':
+        airqoMapRef.current.shareLocation();
+        break;
+      case 'capture':
+        airqoMapRef.current.captureScreenshot();
+        break;
+      case 'layers':
+        airqoMapRef.current.openLayerModal();
+        break;
+      default:
+        break;
+    }
+
+    // Close mobile controls after action
+    if (width < 1024) {
+      setIsControlsExpanded(false);
+    }
+  };
 
   return (
     <Layout noTopNav={width < 1024}>
-      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 transition-all duration-500 ease-in-out">
+      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 overflow-hidden">
         {/* Sidebar */}
-        <div
-          className={`${sidebarClassName} transition-all duration-500 ease-in-out`}
-        >
+        <div className={sidebarClassName}>
           <Sidebar siteDetails={siteDetails} isAdmin={true} />
         </div>
 
         {/* Map Container */}
-        <div
-          className={`${mapClassName} transition-all duration-500 ease-in-out`}
-        >
+        <div className={mapClassName}>
           <div className="relative w-full h-full">
             {/* Main Map Component */}
             <AirQoMap
@@ -154,7 +204,7 @@ const Index = () => {
 
             {/* Air Quality Legend */}
             {(width >= 1024 || !selectedNode) && (
-              <div className="absolute left-4 bottom-2 z-[10000]">
+              <div className="absolute left-4 bottom-2 z-[1000]">
                 <AirQualityLegend pollutant={pollutant} />
               </div>
             )}
@@ -166,22 +216,22 @@ const Index = () => {
                   // Desktop view – vertical stack of buttons
                   <div className="flex flex-col gap-4">
                     <IconButton
-                      onClick={() => airqoMapRef.current?.refreshMap()}
+                      onClick={() => handleControlAction('refresh')}
                       title="Refresh Map"
                       icon={<RefreshIcon />}
                     />
                     <IconButton
-                      onClick={() => airqoMapRef.current?.shareLocation()}
+                      onClick={() => handleControlAction('share')}
                       title="Share Location"
                       icon={<ShareIcon />}
                     />
                     <IconButton
-                      onClick={() => airqoMapRef.current?.captureScreenshot()}
+                      onClick={() => handleControlAction('capture')}
                       title="Capture Screenshot"
                       icon={<CameraIcon />}
                     />
                     <IconButton
-                      onClick={() => airqoMapRef.current?.openLayerModal()}
+                      onClick={() => handleControlAction('layers')}
                       title="Map Layers"
                       icon={<LayerIcon />}
                     />
@@ -193,40 +243,28 @@ const Index = () => {
                       {isControlsExpanded && (
                         <div
                           className={`
-                            absolute right-full mr-2 rounded-lg shadow-lg p-2 flex gap-2 z-[20000]
+                            absolute right-full mr-2 rounded-lg shadow-lg p-2 bg-white flex gap-2 z-[2000]
                             transform transition-all duration-200 ease-in-out
                             ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
                           `}
                         >
                           <IconButton
-                            onClick={() => {
-                              airqoMapRef.current?.openLayerModal();
-                              setIsControlsExpanded(false);
-                            }}
+                            onClick={() => handleControlAction('layers')}
                             title="Map Layers"
                             icon={<LayerIcon />}
                           />
                           <IconButton
-                            onClick={() => {
-                              airqoMapRef.current?.refreshMap();
-                              setIsControlsExpanded(false);
-                            }}
+                            onClick={() => handleControlAction('refresh')}
                             title="Refresh Map"
                             icon={<RefreshIcon />}
                           />
                           <IconButton
-                            onClick={() => {
-                              airqoMapRef.current?.shareLocation();
-                              setIsControlsExpanded(false);
-                            }}
+                            onClick={() => handleControlAction('share')}
                             title="Share Location"
                             icon={<ShareIcon />}
                           />
                           <IconButton
-                            onClick={() => {
-                              airqoMapRef.current?.captureScreenshot();
-                              setIsControlsExpanded(false);
-                            }}
+                            onClick={() => handleControlAction('capture')}
                             title="Capture Screenshot"
                             icon={<CameraIcon />}
                           />
