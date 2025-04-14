@@ -11,7 +11,11 @@ import { SkeletonCard } from './components/SkeletonCard';
 
 /**
  * AQNumberCard displays air quality information in a responsive grid.
- * It arranges the cards into 4 columns on large screens and adjusts columns on smaller screens.
+ * The grid adjusts columns based on screen size:
+ * - 1 column on extra small screens
+ * - 2 columns on small screens
+ * - 3 columns on medium screens
+ * - 4 columns on large screens and above
  */
 const AQNumberCard = ({ className = '' }) => {
   const dispatch = useDispatch();
@@ -62,11 +66,14 @@ const AQNumberCard = ({ className = '' }) => {
     [measurements],
   );
 
+  // Responsive grid classes: adjust columns for different screen sizes.
+  const gridClasses = `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 ${className}`;
+
   // Show skeleton cards while loading data
   if (isLoadingData) {
     return (
       <div
-        className={`grid grid-cols-4 gap-3 sm:gap-4 ${className}`}
+        className={gridClasses}
         aria-busy="true"
         aria-label="Loading air quality data"
       >
@@ -77,12 +84,9 @@ const AQNumberCard = ({ className = '' }) => {
     );
   }
 
-  // Render the cards grid (responsive with 4 columns on large screens)
+  // Render the cards grid
   return (
-    <div
-      className={`grid grid-cols-4 gap-3 sm:gap-4 ${className}`}
-      data-testid="aq-number-card-grid"
-    >
+    <div className={gridClasses} data-testid="aq-number-card-grid">
       {selectedSites.map((site) => (
         <SiteCard
           key={site._id}
