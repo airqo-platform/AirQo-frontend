@@ -174,7 +174,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     ctx.fillStyle = textColor
     ctx.font = "bold 16px Inter, system-ui, sans-serif"
     ctx.textAlign = "left"
-    ctx.fillText("User Distribution", startX, 30)
 
     // Draw bars
     drawBar(startX, totalHeight, colors.total.start, colors.total.end, "Total Users", totalUsers, 100)
