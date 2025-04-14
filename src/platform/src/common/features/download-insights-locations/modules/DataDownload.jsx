@@ -369,8 +369,10 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const [edit, setEdit] = useState(false);
   const [activeFilterKey, setActiveFilterKey] = useState('sites');
   const [selectedGridId, setSelectedGridId] = useState(null);
-  const { theme } = useTheme();
-  const darkMode = theme === 'dark';
+  const { theme, systemTheme } = useTheme();
+  const darkMode = useMemo(() => {
+    return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  }, [theme, systemTheme]);
 
   // Organization options derived from group list
   const ORGANIZATION_OPTIONS = useMemo(

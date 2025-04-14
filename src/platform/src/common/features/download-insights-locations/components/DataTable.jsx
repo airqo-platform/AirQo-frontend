@@ -57,8 +57,10 @@ function DataTable({
   const [activeFilter, setActiveFilter] = useState(filters[0] || null);
   const [searchResults, setSearchResults] = useState([]);
   const [filterErrors, setFilterErrors] = useState({});
-  const { theme } = useTheme();
-  const darkMode = theme === 'dark';
+  const { theme, systemTheme } = useTheme();
+  const darkMode = useMemo(() => {
+    return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  }, [theme, systemTheme]);
 
   /**
    * Deduplicate data by _id (if present)
@@ -101,7 +103,6 @@ function DataTable({
           }
         }
       } catch (err) {
-        console.error(`Filter error for ${activeFilter.key}:`, err);
         setFilterErrors((prev) => ({
           ...prev,
           [activeFilter.key]: err.message || 'Error applying filter',

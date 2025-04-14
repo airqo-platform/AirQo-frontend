@@ -219,23 +219,26 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   }, [selectedLocation, fetchWeeklyPredictions]);
 
   /**
-   * Handle location selection
+   * Handle location selection.
+   * The "type" parameter is optional and defaults to 'suggested'.
    */
   const handleLocationSelect = useCallback(
-    async (data) => {
+    async (data, type = 'suggested') => {
       try {
         let updatedData = data;
         let latitude, longitude;
 
+        // If the location has a place_id, get extra details
         if (data?.place_id) {
           const placeDetails = await getPlaceDetails(data.place_id);
-          if (placeDetails.latitude && placeDetails.longitude) {
-            updatedData = { ...updatedData, ...placeDetails };
-            ({ latitude, longitude } = placeDetails);
-          } else {
+          if (!placeDetails?.latitude || !placeDetails?.longitude) {
             throw new Error('Geolocation details are missing');
           }
+          // Merge the extra details into our location data
+          updatedData = { ...data, ...placeDetails };
+          ({ latitude, longitude } = placeDetails);
         } else {
+          // Otherwise, use coordinates from geometry or approximate fields
           latitude =
             data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
           longitude =
@@ -246,11 +249,15 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           throw new Error('Location coordinates are missing');
         }
 
+        // Always update the map center and zoom
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
-        dispatch(setSelectedLocation(updatedData));
-      } catch (err) {
-        console.error('Failed to select location:', err);
+
+        // If the type is not "suggested", also update the selected location
+        if (type !== 'suggested') {
+          dispatch(setSelectedLocation(updatedData));
+        }
+      } catch {
         setError({
           isError: true,
           message: 'Failed to select location',
@@ -435,7 +442,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               <LocationCards
                 searchResults={searchResults}
                 isLoading={isLoading}
-                handleLocationSelect={handleLocationSelect}
+                handleLocationSelect={(data) => handleLocationSelect(data)}
               />
             )}
           </>
@@ -452,22 +459,31 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           <>
             <div className="px-1">
               <Card className="mt-3" bordered={false}>
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-1">
-                    <span className="font-medium text-secondary-neutral-dark-400 text-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="sort-select"
+                      className="font-medium text-secondary-neutral-dark-400 text-sm dark:text-white"
+                    >
                       Sort by:
-                    </span>
-                    <select className="rounded-md m-0 p-0 text-sm font-medium text-secondary-neutral-dark-700 outline-none focus:outline-none border-none">
+                    </label>
+                    <select
+                      id="sort-select"
+                      className="rounded-md m-0 p-0 text-sm font-medium bg-white dark:bg-black-600 text-secondary-neutral-dark-700 dark:text-white outline-none border-none"
+                    >
                       <option value="custom">Suggested</option>
                     </select>
                   </div>
                 </div>
               </Card>
             </div>
+
             <LocationCards
               searchResults={suggestedSites}
               isLoading={isLoading}
-              handleLocationSelect={handleLocationSelect}
+              handleLocationSelect={(data) =>
+                handleLocationSelect(data, 'suggested')
+              }
             />
           </>
         ) : (
