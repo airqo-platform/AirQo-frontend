@@ -93,7 +93,7 @@ export const ThemeSheet = memo(() => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 right-0 w-72 h-full bg-white dark:bg-[#1d1f20] z-50 shadow-lg overflow-y-auto"
+            className="fixed top-0 right-0 w-72 h-full bg-white dark:bg-[#1d1f20] z-[20000] shadow-lg overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby="theme-sheet-title"
