@@ -208,7 +208,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       ctx.fillText(label, x + 18, legendY)
     }
 
-    // Space legend items evenly
     const legendSpacing = legendWidth / 3
     drawLegendItem(legendX, colors.total.start, "Total")
     drawLegendItem(legendX + legendSpacing, colors.active.start, "Active")
