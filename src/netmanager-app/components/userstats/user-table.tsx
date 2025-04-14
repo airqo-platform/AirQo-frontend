@@ -21,7 +21,7 @@ interface UserTableProps {
 
 export function UserTable({ users, searchTerm }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const itemsPerPage = 5
 
   // Filter users based on search term
   const filteredUsers = users.filter((user) => {
