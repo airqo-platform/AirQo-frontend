@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useImperativeHandle,
   forwardRef,
+  useState,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
@@ -25,6 +26,12 @@ import {
   useShareLocation,
   useMapScreenshot,
 } from './hooks';
+// Import the LayerModal component and the constants for map style settings
+import LayerModal from '@/features/airQuality-map/components/LayerModal';
+import {
+  mapStyles,
+  mapDetails,
+} from '@/features/airQuality-map/constants/constants';
 
 const AirQoMap = forwardRef(
   (
@@ -46,16 +53,17 @@ const AirQoMap = forwardRef(
     const mapData = useSelector((state) => state.map);
     const selectedNode = useSelector((state) => state.map.selectedNode);
 
+    // Internal state for the Layer Modal
+    const [layerModalOpen, setLayerModalOpen] = useState(false);
+
     // Parse URL parameters
     const urlParams = useMemo(() => {
       if (typeof window === 'undefined') return { valid: false };
-
       try {
         const params = new URLSearchParams(window.location.search);
         const lat = parseFloat(params.get('lat'));
         const lng = parseFloat(params.get('lng'));
         const zm = parseFloat(params.get('zm'));
-
         return {
           lat,
           lng,
@@ -91,7 +99,25 @@ const AirQoMap = forwardRef(
     const shareLocationFn = useShareLocation(onToastMessage, mapRef);
     const captureScreenshotFn = useMapScreenshot(mapRef, onToastMessage);
 
-    // Expose imperative methods so parent components can trigger these functionalities
+    // Function to handle selections from the layer modal.
+    const handleMapDetailsSelect = (type) => {
+      if (mapRef.current && typeof mapRef.current.setNodeType === 'function') {
+        mapRef.current.setNodeType(type);
+      } else {
+        console.warn('setNodeType function is not defined on mapRef');
+      }
+    };
+
+    const handleStyleSelect = (style) => {
+      if (mapRef.current) {
+        // Update the map's style using Mapbox GL's setStyle method
+        mapRef.current.setStyle(style.url);
+      } else {
+        console.warn('mapRef is not available to set style');
+      }
+    };
+
+    // Expose imperative methods so parent components can trigger functionalities
     useImperativeHandle(ref, () => ({
       refreshMap: () => {
         if (mapRef.current) {
@@ -107,6 +133,12 @@ const AirQoMap = forwardRef(
         if (mapRef.current) {
           captureScreenshotFn();
         }
+      },
+      openLayerModal: () => {
+        setLayerModalOpen(true);
+      },
+      closeLayerModal: () => {
+        setLayerModalOpen(false);
       },
     }));
 
@@ -135,13 +167,10 @@ const AirQoMap = forwardRef(
         const initializeMap = async () => {
           try {
             mapboxgl.accessToken = mapboxApiAccessToken;
-
             const initialCenter = urlParams.valid
               ? [urlParams.lng, urlParams.lat]
               : [mapData.center.longitude, mapData.center.latitude];
-
             const initialZoom = urlParams.valid ? urlParams.zm : mapData.zoom;
-
             const map = new mapboxgl.Map({
               container: mapContainerRef.current,
               style: 'mapbox://styles/mapbox/streets-v11',
@@ -149,14 +178,11 @@ const AirQoMap = forwardRef(
               zoom: initialZoom,
               preserveDrawingBuffer: true,
             });
-
             mapRef.current = map;
-
             map.on('load', () => {
               try {
                 map.resize();
-
-                // Add controls if space available
+                // Add controls if there is enough space
                 if (!(width < 1024 && selectedNode)) {
                   map.addControl(new CustomZoomControl(), 'bottom-right');
                   map.addControl(
@@ -164,8 +190,7 @@ const AirQoMap = forwardRef(
                     'bottom-right',
                   );
                 }
-
-                // Fetch data after map loads
+                // Fetch data after the map loads
                 fetchAndProcessData();
                 setLoading(false);
                 dispatch(setMapLoading(false));
@@ -173,7 +198,6 @@ const AirQoMap = forwardRef(
                 console.error('Map load error:', err);
               }
             });
-
             map.on('error', (e) => {
               console.error('Mapbox error:', e.error);
             });
@@ -187,10 +211,8 @@ const AirQoMap = forwardRef(
             setLoading(false);
           }
         };
-
         initializeMap();
       }
-
       // Cleanup map instance on unmount
       return () => {
         if (mapRef.current) {
@@ -271,16 +293,24 @@ const AirQoMap = forwardRef(
           console.error('Resize error:', error);
         }
       };
-
       window.addEventListener('resize', handleResize);
       handleResize();
-
       return () => window.removeEventListener('resize', handleResize);
     }, [selectedNode]);
 
     return (
       <div className="relative w-full h-full">
         <div ref={mapContainerRef} className={customStyle} />
+        {/* Render the LayerModal within AirQoMap */}
+        <LayerModal
+          isOpen={layerModalOpen}
+          onClose={() => setLayerModalOpen(false)}
+          mapStyles={mapStyles}
+          mapDetails={mapDetails}
+          disabled="Heatmap"
+          onMapDetailsSelect={handleMapDetailsSelect}
+          onStyleSelect={handleStyleSelect}
+        />
       </div>
     );
   },

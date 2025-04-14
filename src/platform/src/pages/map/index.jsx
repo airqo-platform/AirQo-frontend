@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import AirQoMap from '@/features/airQuality-map';
 import Sidebar from '@/features/airQuality-map/components/sidebar';
 import AirQualityLegend from '@/features/airQuality-map/components/Legend';
-import LayerModal from '@/features/airQuality-map/components/LayerModal';
 import Toast from '@/components/Toast';
 import Loader from '@/components/Spinner';
 import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
@@ -12,10 +11,6 @@ import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
 import { useWindowSize } from '@/lib/windowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
-import {
-  mapStyles,
-  mapDetails,
-} from '@/features/airQuality-map/constants/constants';
 
 // Import icons
 import LayerIcon from '@/icons/map/layerIcon';
@@ -30,7 +25,6 @@ const Index = () => {
   const airqoMapRef = useRef(null);
 
   // States
-  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingOthers, setLoadingOthers] = useState(false);
   const [toastMessage, setToastMessage] = useState({
@@ -56,19 +50,18 @@ const Index = () => {
     });
   }, [dispatch]);
 
-  // Set site details when grid data summary changes
+  // Update site details when grids data summary changes
   useEffect(() => {
     if (Array.isArray(gridsDataSummary) && gridsDataSummary.length > 0) {
       setSiteDetails(gridsDataSummary.flatMap((grid) => grid.sites || []));
     }
   }, [gridsDataSummary]);
 
-  // Set suggested sites based on user preferences or randomly selected sites
+  // Set suggested sites based on user preferences or random unique sites
   useEffect(() => {
     const preferencesSelectedSitesData = preferences.flatMap(
       (pref) => pref.selected_sites || [],
     );
-
     if (preferencesSelectedSitesData.length > 0) {
       dispatch(addSuggestedSites(preferencesSelectedSitesData));
     } else if (siteDetails.length > 0) {
@@ -80,7 +73,6 @@ const Index = () => {
       const selectedSites = uniqueSites
         .sort(() => 0.5 - Math.random())
         .slice(0, 4);
-
       dispatch(addSuggestedSites(selectedSites));
     }
   }, [preferences, siteDetails, dispatch]);
@@ -113,7 +105,6 @@ const Index = () => {
         setIsControlsExpanded(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -123,7 +114,6 @@ const Index = () => {
     width < 1024
       ? `${selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'}`
       : 'h-full min-w-[380px] lg:w-[470px]';
-
   const mapClassName =
     width < 1024
       ? `${selectedNode ? 'h-[30%]' : 'h-full w-full'}`
@@ -191,7 +181,7 @@ const Index = () => {
                       icon={<CameraIcon />}
                     />
                     <IconButton
-                      onClick={() => setIsOpen(true)}
+                      onClick={() => airqoMapRef.current?.openLayerModal()}
                       title="Map Layers"
                       icon={<LayerIcon />}
                     />
@@ -210,7 +200,7 @@ const Index = () => {
                         >
                           <IconButton
                             onClick={() => {
-                              setIsOpen(true);
+                              airqoMapRef.current?.openLayerModal();
                               setIsControlsExpanded(false);
                             }}
                             title="Map Layers"
@@ -262,23 +252,6 @@ const Index = () => {
                 <span className="ml-2 text-sm">Loading global AQI data...</span>
               </div>
             )}
-
-            {/* Layer Modal */}
-            <LayerModal
-              isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
-              mapStyles={mapStyles}
-              mapDetails={mapDetails}
-              disabled="Heatmap"
-              onMapDetailsSelect={(type) => {
-                airqoMapRef.current?.setNodeType &&
-                  airqoMapRef.current.setNodeType(type);
-              }}
-              onStyleSelect={(style) => {
-                airqoMapRef.current?.setMapStyle &&
-                  airqoMapRef.current.setMapStyle(style.url);
-              }}
-            />
 
             {/* Toast Notification */}
             {toastMessage.message && (
