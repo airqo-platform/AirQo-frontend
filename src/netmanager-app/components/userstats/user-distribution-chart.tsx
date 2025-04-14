@@ -192,10 +192,9 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       apiPercentage,
     )
 
-    // Add legend at the top of the chart, centered
     const legendY = 25
-    const legendWidth = 300 // Approximate width of the legend
-    const legendX = (rect.width - legendWidth) / 2 // Center the legend
+    const legendWidth = 300
+    const legendX = (rect.width - legendWidth) / 2
 
     const drawLegendItem = (x: number, color: string, label: string) => {
       ctx.fillStyle = color
