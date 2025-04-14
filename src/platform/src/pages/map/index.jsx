@@ -188,7 +188,7 @@ const Index = () => {
             <AirQoMap
               ref={airqoMapRef}
               mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-              customStyle="flex-grow h-full w-full relative bg-[#e6e4e0]"
+              customStyle="flex-grow h-full w-full relative dark:text-black-900"
               pollutant={pollutant}
               onToastMessage={setToastMessage}
               onLoadingChange={setLoading}
@@ -285,7 +285,7 @@ const Index = () => {
 
             {/* Secondary loading indicator for WAQ data */}
             {loadingOthers && (
-              <div className="absolute bg-white rounded-md p-2 top-4 right-16 flex items-center z-50">
+              <div className="absolute bg-white dark:text-black-900 rounded-md p-2 top-4 right-16 flex items-center z-50">
                 <Loader width={20} height={20} />
                 <span className="ml-2 text-sm">Loading global AQI data...</span>
               </div>

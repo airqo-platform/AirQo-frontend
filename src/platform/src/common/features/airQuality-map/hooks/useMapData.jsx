@@ -25,7 +25,13 @@ import {
 } from '../components/MapNodes';
 import { useWindowSize } from '@/lib/windowSize';
 
-const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
+const useMapData = ({
+  NodeType,
+  pollutant,
+  setLoading,
+  setLoadingOthers,
+  isDarkMode,
+}) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const indexRef = useRef(null);
@@ -35,7 +41,6 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
   const { width } = useWindowSize();
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
-  // Create a map feature object
   const createFeature = useCallback(
     (id, name, coordinates, aqi, no2, pm10, pm2_5, time, forecast) => ({
       type: 'Feature',
@@ -56,7 +61,6 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
     [],
   );
 
-  // Process forecast data
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData || !cityData.forecast?.daily) return null;
@@ -72,29 +76,23 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
     [pollutant],
   );
 
-  // Get two most common AQIs in a cluster
   const getTwoMostCommonAQIs = useCallback((cluster) => {
     if (!indexRef.current) return [];
-
     const leaves = indexRef.current.getLeaves(
       cluster.properties.cluster_id,
       Infinity,
     );
-
     const aqiCounts = {};
     leaves.forEach((leaf) => {
       const aqi = leaf.properties.airQuality;
       aqiCounts[aqi] = (aqiCounts[aqi] || 0) + 1;
     });
-
     const sortedAQIs = Object.entries(aqiCounts).sort((a, b) => b[1] - a[1]);
     const mostCommonAQIs =
       sortedAQIs.length > 1
         ? sortedAQIs.slice(0, 2)
         : [sortedAQIs[0], sortedAQIs[0]];
-
     const topAQICategories = mostCommonAQIs.map((aqi) => aqi[0]);
-
     return leaves
       .filter((leaf) => topAQICategories.includes(leaf.properties.airQuality))
       .map((leaf) => ({
@@ -105,11 +103,9 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
       }));
   }, []);
 
-  // Update clusters on map movement
   const clusterUpdate = useCallback(() => {
     const map = mapRef.current;
     if (!map || !indexRef.current) return;
-
     try {
       const zoom = map.getZoom();
       const bounds = map.getBounds();
@@ -119,47 +115,40 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
         bounds.getEast(),
         bounds.getNorth(),
       ];
-
       const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
-
-      // Remove existing markers
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
-
       clusters.forEach((feature) => {
         const el = document.createElement('div');
         el.style.cursor = 'pointer';
-
         if (!feature.properties.cluster) {
-          // Single marker
           el.style.zIndex = '1';
-          el.innerHTML = UnclusteredNode({ feature, NodeType, selectedNode });
-
+          el.innerHTML = UnclusteredNode({
+            feature,
+            NodeType,
+            selectedNode,
+            isDarkMode,
+          });
           const popup = new mapboxgl.Popup({
             offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
             closeButton: false,
             maxWidth: 'none',
             className: 'my-custom-popup hidden md:block',
-          }).setHTML(createPopupHTML({ feature, images }));
-
+          }).setHTML(createPopupHTML({ feature, images, isDarkMode }));
           const marker = new mapboxgl.Marker(el)
             .setLngLat(feature.geometry.coordinates)
             .setPopup(popup)
             .addTo(map);
-
           el.addEventListener('mouseenter', () => {
             marker.togglePopup();
             el.style.zIndex = '9999';
           });
-
           el.addEventListener('mouseleave', () => {
             marker.togglePopup();
             el.style.zIndex = '1';
           });
-
           el.addEventListener('click', () => {
             if (selectedNode === feature.properties._id) return;
-
             dispatch(setSelectedNode(feature.properties._id));
             dispatch(setSelectedWeeklyPrediction(null));
             dispatch(setMapLoading(true));
@@ -173,30 +162,23 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
             );
             dispatch(setZoom(15));
           });
-
           markersRef.current.push(marker);
         } else {
-          // Cluster marker
           el.style.zIndex = '444';
           el.className =
             'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-
           const mostCommonAQIs = getTwoMostCommonAQIs(feature);
           feature.properties.aqi = mostCommonAQIs;
-
-          el.innerHTML = createClusterNode({ feature, NodeType });
-
+          el.innerHTML = createClusterNode({ feature, NodeType, isDarkMode });
           const marker = new mapboxgl.Marker(el)
             .setLngLat(feature.geometry.coordinates)
             .addTo(map);
-
           el.addEventListener('click', () => {
             map.flyTo({
               center: feature.geometry.coordinates,
               zoom: zoom + 2,
             });
           });
-
           markersRef.current.push(marker);
         }
       });
@@ -206,15 +188,12 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
   }, [
     NodeType,
     getTwoMostCommonAQIs,
-    createPopupHTML,
-    UnclusteredNode,
-    createClusterNode,
     selectedNode,
     dispatch,
     width,
+    isDarkMode,
   ]);
 
-  // Fetch map readings data - primary data source (fast loading)
   const fetchAndProcessMapReadings = useCallback(async () => {
     setLoading(true);
     try {
@@ -222,7 +201,6 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
       if (!response.success || !response.measurements?.length) {
         throw new Error('No valid map readings data found.');
       }
-
       const readingsFeatures = response.measurements
         .filter(
           (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
@@ -244,7 +222,6 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
             null,
           );
         });
-
       dispatch(setMapReadingsData(readingsFeatures));
       return readingsFeatures;
     } catch (error) {
@@ -253,25 +230,19 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
     } finally {
       setLoading(false);
     }
-  }, [dispatch, createFeature, pollutant, setLoading, getAQICategory]);
+  }, [dispatch, createFeature, pollutant, setLoading]);
 
-  // Fetch WAQ data - secondary data source (collect all data before updating map)
   const fetchAndProcessWaqData = useCallback(
     async (cities) => {
       if (!cities || !cities.length) return [];
-
       setLoadingOthers(true);
       try {
-        // Process in batches to avoid overwhelming the API
         const batchSize = 5;
         const batches = [];
         let allWaqFeatures = [];
-
         for (let i = 0; i < cities.length; i += batchSize) {
           batches.push(cities.slice(i, i + batchSize));
         }
-
-        // Process all batches and collect results
         for (const batch of batches) {
           const batchPromises = batch.map((city) =>
             axios
@@ -279,14 +250,12 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
               .then((response) => {
                 const cityData = response.data?.data;
                 if (!cityData?.city) return null;
-
                 const waqiPollutant =
                   pollutant === 'pm2_5' ? 'pm25' : pollutant;
                 const aqi = getAQICategory(
                   pollutant,
                   cityData.iaqi[waqiPollutant]?.v,
                 );
-
                 return createFeature(
                   cityData.idx,
                   cityData.city.name,
@@ -306,20 +275,14 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
                 return null;
               }),
           );
-
           const batchResults = await Promise.all(batchPromises);
           const validResults = batchResults.filter(Boolean);
-
           if (validResults.length > 0) {
             allWaqFeatures = [...allWaqFeatures, ...validResults];
           }
         }
-
-        // Only update map once with all WAQ data
         if (allWaqFeatures.length > 0) {
           dispatch(setWaqData(allWaqFeatures));
-
-          // Update the map with combined data
           if (indexRef.current) {
             const combinedData = [
               ...(mapReadingsData || []),
@@ -329,7 +292,6 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
             clusterUpdate();
           }
         }
-
         return allWaqFeatures;
       } catch (error) {
         console.error('Error fetching WAQI data:', error);
@@ -344,55 +306,41 @@ const useMapData = ({ NodeType, pollutant, setLoading, setLoadingOthers }) => {
       getForecastForPollutant,
       pollutant,
       setLoadingOthers,
-      getAQICategory,
       mapReadingsData,
       clusterUpdate,
     ],
   );
 
-  // Two-phase loading strategy - load map readings first, then WAQ data
   const fetchAndProcessData = useCallback(async () => {
     try {
-      // Phase 1: Load map readings first (fast)
       const readingsData = await fetchAndProcessMapReadings();
-
       if (readingsData.length > 0 && indexRef.current) {
         indexRef.current.load(readingsData);
         clusterUpdate();
       }
-
-      // Phase 2: Load WAQ data without blocking (slower)
       fetchAndProcessWaqData(AQI_FOR_CITIES);
     } catch (error) {
       console.error('Error processing data:', error);
     }
   }, [fetchAndProcessMapReadings, fetchAndProcessWaqData]);
 
-  // Initialize Supercluster and event listeners
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-
     const index = new Supercluster({
       radius: NodeType === 'Emoji' ? 40 : NodeType === 'Node' ? 60 : 80,
       maxZoom: 20,
     });
     indexRef.current = index;
-
-    // Load initial data from store if available
     const combinedData = [...(mapReadingsData || []), ...(waqData || [])];
     if (combinedData.length > 0) {
       index.load(combinedData);
       clusterUpdate();
     }
-
-    // Set up event listeners for map movement
     const handleZoomEnd = () => clusterUpdate();
     const handleMoveEnd = () => clusterUpdate();
-
     map.on('zoomend', handleZoomEnd);
     map.on('moveend', handleMoveEnd);
-
     return () => {
       map.off('zoomend', handleZoomEnd);
       map.off('moveend', handleMoveEnd);

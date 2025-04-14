@@ -1,5 +1,6 @@
 import { renderToString } from 'react-dom/server';
 
+// Import icon components
 import GoodAir from '@/icons/Charts/GoodAir';
 import ModerateAir from '@/icons/Charts/Moderate';
 import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
@@ -8,7 +9,9 @@ import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
 import Invalid from '@/icons/Charts/Invalid';
 
-// icon images
+// -------------------------------------------------------------------
+// Icon Images: Encoded SVG images for use in markers/popups
+// -------------------------------------------------------------------
 export const images = {
   GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<GoodAir />))}`,
   ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<ModerateAir />))}`,
@@ -20,6 +23,9 @@ export const images = {
   undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
 };
 
+// -------------------------------------------------------------------
+// Marker thresholds and colors based on pollutant type
+// -------------------------------------------------------------------
 const markerDetails = {
   pm2_5: [
     { limit: 500.5, category: 'Invalid' },
@@ -88,19 +94,14 @@ const colors = {
   undefined: '#C6D1DB',
 };
 
-/**
- * Get AQI category based on pollutant and value
- * @param {String} pollutant
- * @param {Number} value
- * @returns {Object}
- */
+// -------------------------------------------------------------------
+// Get the AQI category for a pollutant value.
+// -------------------------------------------------------------------
 export const getAQICategory = (pollutant, value) => {
   if (!markerDetails[pollutant]) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
-
   const categories = markerDetails[pollutant];
-  // Loop through categories assuming they are ordered from highest threshold to lowest
   for (let i = 0; i < categories.length; i++) {
     if (value >= categories[i].limit) {
       return {
@@ -110,7 +111,7 @@ export const getAQICategory = (pollutant, value) => {
       };
     }
   }
-  // Fallback in case no category matched (should not happen if thresholds are complete)
+  // Fallback – ideally should not happen if thresholds are complete
   return {
     icon: 'Invalid',
     color: colors.Invalid,
@@ -118,11 +119,13 @@ export const getAQICategory = (pollutant, value) => {
   };
 };
 
+// -------------------------------------------------------------------
+// Get the AQI icon (category name) for a pollutant value.
+// -------------------------------------------------------------------
 export const getAQIcon = (pollutant, value) => {
   if (!markerDetails[pollutant]) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
-
   const categories = markerDetails[pollutant];
   for (let i = 0; i < categories.length; i++) {
     if (value >= categories[i].limit) {
@@ -132,13 +135,14 @@ export const getAQIcon = (pollutant, value) => {
   return 'Invalid';
 };
 
+// -------------------------------------------------------------------
+// Get a descriptive AQI message based on pollutant value and time period.
+// -------------------------------------------------------------------
 export const getAQIMessage = (pollutant, timePeriod, value) => {
   if (!markerDetails[pollutant]) {
     throw new Error(`Invalid pollutant: ${pollutant}`);
   }
-
   const aqiCategory = getAQICategory(pollutant, value);
-
   switch (aqiCategory.icon) {
     case 'GoodAir':
       return 'Enjoy the day with confidence in the clean air around you.';
@@ -161,62 +165,61 @@ export const getAQIMessage = (pollutant, timePeriod, value) => {
   }
 };
 
-/**
- * Create HTML for unClustered nodes
- * @param {Object} feature
- * @param {String} NodeType
- * @param {String} selectedNode
- * @returns {String}
- */
-export const UnclusteredNode = ({ feature, NodeType, selectedNode }) => {
+// -------------------------------------------------------------------
+// Create HTML for unclustered nodes.
+// Accepts an optional `isDarkMode` flag to adjust styling.
+// -------------------------------------------------------------------
+export const UnclusteredNode = ({
+  feature,
+  NodeType,
+  selectedNode,
+  isDarkMode = false,
+}) => {
   if (!feature?.properties?.aqi) {
     console.error('feature.properties.aqi is not defined', feature);
     return '';
   }
-
-  // Use a fallback to the 'Invalid' icon if the desired one isn’t available
+  // Fallback to 'Invalid' icon if needed
   const Icon = images[feature.properties.aqi.icon] || images['Invalid'];
   const isActive =
     selectedNode && selectedNode === feature.properties._id ? 'active' : '';
-
+  const darkClass = isDarkMode ? ' dark-marker' : '';
   if (NodeType === 'Number') {
     return `
       <div id="${feature.properties._id}" 
-        class="unClustered-Number shadow-md ${isActive}"
+        class="unClustered-Number shadow-md ${isActive}${darkClass}"
         style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 40px; height: 40px;">
         <p class="text-[#000] text-xs font-bold">${Number(feature.properties.pm2_5)?.toFixed(2) || 'N/A'}</p>
         <span class="arrow"></span>
       </div>
     `;
   }
-
   if (NodeType === 'Node') {
     return `
       <div id="${feature.properties._id}" 
-        class="unClustered-Node shadow-md ${isActive}"
+        class="unClustered-Node shadow-md ${isActive}${darkClass}"
         style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;">
         <span class="arrow"></span> 
       </div>
     `;
   }
-
   return `
-    <div id="${feature.properties._id}" class="unClustered shadow-md ${isActive}">
+    <div id="${feature.properties._id}" class="unClustered shadow-md ${isActive}${darkClass}">
       <img src="${Icon}" alt="AQI Icon" class="w-full h-full" />
       <span class="arrow"></span>
     </div>
   `;
 };
 
-/**
- * Create HTML for Clustered nodes
- * @param {Object} params
- * @param {Object} params.feature
- * @param {String} params.NodeType
- * @returns {String}
- */
-export const createClusterNode = ({ feature, NodeType }) => {
-  // Validate that feature and expected properties exist
+// -------------------------------------------------------------------
+// Create HTML for clustered nodes.
+// Accepts an optional `isDarkMode` flag to adjust styling.
+// -------------------------------------------------------------------
+export const createClusterNode = ({
+  feature,
+  NodeType,
+  isDarkMode = false,
+}) => {
   if (!feature || !feature.properties) {
     console.error(
       'Invalid feature or feature.properties is undefined',
@@ -224,8 +227,6 @@ export const createClusterNode = ({ feature, NodeType }) => {
     );
     return '';
   }
-
-  // Check that feature.properties.aqi exists and is an array with at least 2 elements
   if (
     !Array.isArray(feature.properties.aqi) ||
     feature.properties.aqi.length < 2
@@ -236,30 +237,24 @@ export const createClusterNode = ({ feature, NodeType }) => {
     );
     return '';
   }
-
   const [firstAQI, secondAQI] = feature.properties.aqi;
-
-  // Use default fallbacks if any expected nested data is missing
   const firstColor = colors[firstAQI?.aqi?.icon] || colors.undefined;
   const secondColor = colors[secondAQI?.aqi?.icon] || colors.undefined;
   const FirstIcon = images[firstAQI?.aqi?.icon] || images['Invalid'];
   const SecondIcon = images[secondAQI?.aqi?.icon] || images['Invalid'];
-
   const firstAQIValue = firstAQI.pm2_5 || firstAQI.no2 || firstAQI.pm10;
   const secondAQIValue = secondAQI.pm2_5 || secondAQI.no2 || secondAQI.pm10;
-
-  // Ensure numeric values for display, fallback to "N/A" if missing
   const formattedFirstAQI =
     typeof firstAQIValue === 'number' ? firstAQIValue.toFixed(2) : 'N/A';
   const formattedSecondAQI =
     typeof secondAQIValue === 'number' ? secondAQIValue.toFixed(2) : 'N/A';
-
   const count = feature.properties.point_count || 0;
   const countDisplay = count > 2 ? `${count - 2} + ` : '';
+  const darkClass = isDarkMode ? ' dark-marker' : '';
 
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
-      <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center">
+      <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center${darkClass}">
           <div class="w-8 h-8 z-20 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}">
             ${NodeType !== 'Node' ? formattedFirstAQI : ''}
           </div>
@@ -280,20 +275,16 @@ export const createClusterNode = ({ feature, NodeType }) => {
   `;
 };
 
-/**
- * Create HTML for Popup
- * @param {Object} params
- * @param {Object} params.feature
- * @param {Object} params.images
- * @returns {String}
- */
-export const createPopupHTML = ({ feature, images }) => {
+// -------------------------------------------------------------------
+// Create HTML for the popup.
+// Accepts an optional `isDarkMode` flag to adjust popup styling.
+// -------------------------------------------------------------------
+export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
   if (!feature || !feature.properties) {
     console.error('Invalid feature properties');
     return '';
   }
 
-  // Validate necessary data before proceeding
   if (typeof feature.properties.pm2_5 !== 'number' || !feature.properties.aqi) {
     console.error('Invalid AQI or PM2.5 data', feature.properties);
     return '';
@@ -307,23 +298,28 @@ export const createPopupHTML = ({ feature, images }) => {
     day: '2-digit',
   });
 
+  // Adjust popup background and text colors based on dark mode
+  const popupBgColor = isDarkMode ? '#333' : '#fff';
+  const popupTextColor = isDarkMode ? '#fff' : '#3C4555';
+
   return `
-    <div class="flex flex-col gap-2 p-3 bg-white rounded-lg shadow-lg" style="min-width: 250px; width: max-content;">
+    <div class="flex flex-col gap-2 p-3 rounded-lg shadow-lg" style="min-width: 250px; width: max-content; background-color: ${popupBgColor};">
       <div class="text-gray-500 text-xs font-normal font-sans leading-none">
         ${formattedDate}
       </div>
-  
       <div class="flex justify-between gap-2 w-full items-center">
         <div class="flex items-center space-x-2">
           <div class="rounded-full bg-blue-500 w-3 h-3"></div>
-          <div class="text-[#3C4555] font-semibold text-sm leading-4" style="width:25ch;">
+          <div class="font-semibold text-sm leading-4" style="width:25ch; color: ${popupTextColor};">
             ${feature.properties.location || 'Unknown Location'}
           </div>
         </div>
-        <div class="text-[#3C4555] font-semibold text-sm leading-4">${feature.properties.pm2_5.toFixed(2)} µg/m³</div>
+        <div class="font-semibold text-sm leading-4" style="color: ${popupTextColor};">
+          ${feature.properties.pm2_5.toFixed(2)} µg/m³
+        </div>
       </div>
       <div class="flex justify-between gap-5 items-center w-full">
-        <p class="font-semibold text-sm leading-4" style="color: ${feature.properties.aqi.color};width:30ch;">
+        <p class="font-semibold text-sm leading-4" style="color: ${feature.properties.aqi.color}; width:30ch;">
           Air Quality is ${String(feature.properties.airQuality)
             .replace(/([A-Z])/g, ' $1')
             .trim()}

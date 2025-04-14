@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
+import PropTypes from 'prop-types';
 import { useWindowSize } from '@/lib/windowSize';
 import {
   setMapLoading,
@@ -16,7 +17,6 @@ import {
   setCenter,
   setZoom,
 } from '@/lib/store/services/map/MapSlice';
-import PropTypes from 'prop-types';
 import {
   useMapData,
   CustomZoomControl,
@@ -31,6 +31,7 @@ import {
   mapStyles,
   mapDetails,
 } from '@/features/airQuality-map/constants/constants';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const AirQoMap = forwardRef(
   (
@@ -49,18 +50,27 @@ const AirQoMap = forwardRef(
     const { width } = useWindowSize();
     const controlsAddedRef = useRef(false);
 
+    // Dark mode support using custom hook
+    const { theme, systemTheme } = useTheme();
+    const isDarkMode = useMemo(
+      () => theme === 'dark' || (theme === 'system' && systemTheme === 'dark'),
+      [theme, systemTheme],
+    );
+
     // Redux state
     const mapData = useSelector((state) => state.map);
     const selectedNode = useSelector((state) => state.map.selectedNode);
 
-    // Internal states for the LayerModal, node type, and map style
+    // Local state: LayerModal, node type and map style.
+    // If in dark mode use Mapbox’s dark style.
     const [layerModalOpen, setLayerModalOpen] = useState(false);
     const [nodeType, setNodeType] = useState('Emoji');
-    const [currentMapStyle, setCurrentMapStyle] = useState(
-      'mapbox://styles/mapbox/streets-v11',
-    );
+    const defaultMapStyle = isDarkMode
+      ? 'mapbox://styles/mapbox/dark-v10'
+      : 'mapbox://styles/mapbox/streets-v11';
+    const [currentMapStyle, setCurrentMapStyle] = useState(defaultMapStyle);
 
-    // Loader state management
+    // Loader callbacks
     const setLoading = (val) => onLoadingChange?.(val);
     const setLoadingOthers = (val) => onLoadingOthersChange?.(val);
 
@@ -84,13 +94,14 @@ const AirQoMap = forwardRef(
       }
     }, []);
 
-    // Custom hook for data operations
+    // Initialize map data hook with dark mode flag passed in
     const { mapRef, fetchAndProcessData, clusterUpdate } = useMapData({
       NodeType: nodeType,
       mapStyle: currentMapStyle,
       pollutant,
       setLoading,
       setLoadingOthers,
+      isDarkMode,
     });
 
     // Hook-based utility functions
@@ -105,14 +116,12 @@ const AirQoMap = forwardRef(
 
     // Centralized function to add controls once
     const addControlsIfNeeded = () => {
-      // Only add controls if they haven't been added yet and map is ready
       if (
         mapRef.current &&
         !controlsAddedRef.current &&
         !(width < 1024 && selectedNode)
       ) {
         try {
-          // First check if controls already exist and remove them
           const existingControls = mapRef.current._controls || [];
           existingControls.forEach((control) => {
             if (
@@ -122,8 +131,6 @@ const AirQoMap = forwardRef(
               mapRef.current.removeControl(control);
             }
           });
-
-          // Add our controls
           mapRef.current.addControl(new CustomZoomControl(), 'bottom-right');
           mapRef.current.addControl(
             new CustomGeolocateControl((msg) => onToastMessage?.(msg)),
@@ -136,46 +143,29 @@ const AirQoMap = forwardRef(
       }
     };
 
-    // Change node type (map details) for markers
+    // When user selects a different node type
     const handleMapDetailsSelect = (detailName) => {
       setNodeType(detailName);
       if (mapRef.current) {
-        // Store the type in a custom property on the map
         mapRef.current.nodeType = detailName;
-
-        // Don't reload the entire map, just refresh markers
         fetchAndProcessData();
         clusterUpdate();
       }
     };
 
-    // Change map style without duplicating controls
+    // Change map style (reset controls and re-add data layers)
     const handleStyleSelect = (style) => {
-      // Only change if it's actually different
       if (style.url !== currentMapStyle) {
         setCurrentMapStyle(style.url);
-
         if (mapRef.current) {
-          // Reset controls flag
           controlsAddedRef.current = false;
-
-          // Store current state
           const currentCenter = mapRef.current.getCenter();
           const currentZoom = mapRef.current.getZoom();
-
-          // Apply new style
           mapRef.current.setStyle(style.url);
-
-          // After style loads, restore markers and controls
           mapRef.current.once('style.load', () => {
-            // Restore position
             mapRef.current.setCenter(currentCenter);
             mapRef.current.setZoom(currentZoom);
-
-            // Re-add controls
             addControlsIfNeeded();
-
-            // Re-add data layers
             fetchAndProcessData();
             clusterUpdate();
           });
@@ -183,7 +173,7 @@ const AirQoMap = forwardRef(
       }
     };
 
-    // Expose methods to parent via ref
+    // Expose functions to parent via ref
     useImperativeHandle(ref, () => ({
       refreshMap: refreshMapFn,
       shareLocation: shareLocationFn,
@@ -192,14 +182,14 @@ const AirQoMap = forwardRef(
       closeLayerModal: () => setLayerModalOpen(false),
     }));
 
-    // Cleanup: clear Redux data on unmount
+    // Clear Redux data on unmount
     useEffect(() => {
       return () => {
         dispatch(clearData());
       };
     }, [dispatch]);
 
-    // Handle URL parameters
+    // Handle URL parameter changes
     useEffect(() => {
       if (urlParams.valid) {
         dispatch(
@@ -211,10 +201,9 @@ const AirQoMap = forwardRef(
       }
     }, [dispatch, urlParams]);
 
-    // Initialize map only once
+    // Initialize the map instance only once
     useEffect(() => {
       if (!mapContainerRef.current || mapRef.current) return;
-
       const initializeMap = async () => {
         try {
           mapboxgl.accessToken = mapboxApiAccessToken;
@@ -222,7 +211,6 @@ const AirQoMap = forwardRef(
             ? [urlParams.lng, urlParams.lat]
             : [mapData.center.longitude, mapData.center.latitude];
           const initialZoom = urlParams.valid ? urlParams.zm : mapData.zoom;
-
           const mapInstance = new mapboxgl.Map({
             container: mapContainerRef.current,
             style: currentMapStyle,
@@ -230,23 +218,13 @@ const AirQoMap = forwardRef(
             zoom: initialZoom,
             preserveDrawingBuffer: true,
           });
-
           mapRef.current = mapInstance;
-
-          // Store nodeType on the map instance for persistence
           mapRef.current.nodeType = nodeType;
-
           mapInstance.on('load', () => {
             try {
               mapInstance.resize();
-
-              // Add controls on initial load
               addControlsIfNeeded();
-
-              // Fetch data once map loads
               fetchAndProcessData();
-
-              // Stop main loader
               setLoading(false);
               dispatch(setMapLoading(false));
             } catch (err) {
@@ -254,7 +232,6 @@ const AirQoMap = forwardRef(
               setLoading(false);
             }
           });
-
           mapInstance.on('error', (e) => {
             console.error('Mapbox error:', e.error);
             setLoading(false);
@@ -269,10 +246,7 @@ const AirQoMap = forwardRef(
           setLoading(false);
         }
       };
-
       initializeMap();
-
-      // Cleanup map instance on unmount
       return () => {
         if (mapRef.current) {
           mapRef.current.remove();
@@ -288,9 +262,10 @@ const AirQoMap = forwardRef(
       urlParams,
       dispatch,
       nodeType,
+      isDarkMode,
     ]);
 
-    // Loader timeout fallback
+    // Fallback loader timeout
     useEffect(() => {
       const loaderTimer = setTimeout(() => {
         setLoading(false);
@@ -298,10 +273,9 @@ const AirQoMap = forwardRef(
       return () => clearTimeout(loaderTimer);
     }, []);
 
-    // Handle selected node state
+    // If a selected node exists, update UI state without reloading the map
     useEffect(() => {
       if (selectedNode) {
-        // Don't reload the map for a selected node, just update the UI state
         const skeletonTimer = setTimeout(() => {
           dispatch(setMapLoading(false));
           setLoading(false);
@@ -310,19 +284,18 @@ const AirQoMap = forwardRef(
       }
     }, [selectedNode, dispatch]);
 
-    // Use the location boundaries hook
+    // Use location boundaries hook
     useLocationBoundaries({
       mapRef,
       mapData,
       setLoading,
     });
 
-    // Fly to new center/zoom when Redux changes (without reloading)
+    // Fly to a new center/zoom on Redux state change
     useEffect(() => {
       if (mapRef.current && mapData.center) {
         const { latitude, longitude } = mapData.center;
         if (latitude && longitude) {
-          // Use flyTo for smooth transitions
           mapRef.current.flyTo({
             center: [longitude, latitude],
             zoom: mapData.zoom,
@@ -332,26 +305,22 @@ const AirQoMap = forwardRef(
       }
     }, [mapData.center, mapData.zoom]);
 
-    // Handle window resize
+    // Handle window resize events
     useEffect(() => {
       const handleResize = () => {
         try {
-          if (mapRef.current && mapRef.current.resize) {
-            mapRef.current.resize();
-          }
+          mapRef.current?.resize();
         } catch (error) {
           console.error('Resize error:', error);
         }
       };
-
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Update controls based on screen size and node selection
+    // Re-add controls when screen size or node selection changes
     useEffect(() => {
       if (mapRef.current && mapRef.current.loaded()) {
-        // Reset controls flag when screen size or selection changes
         controlsAddedRef.current = false;
         addControlsIfNeeded();
       }
@@ -360,14 +329,12 @@ const AirQoMap = forwardRef(
     return (
       <div className="relative w-full h-full">
         <div ref={mapContainerRef} className={customStyle} />
-
-        {/* LayerModal for selecting map details and styles */}
         <LayerModal
           isOpen={layerModalOpen}
           onClose={() => setLayerModalOpen(false)}
           mapStyles={mapStyles}
           mapDetails={mapDetails}
-          disabled="Heatmap" // You could make this dynamic if needed
+          disabled="Heatmap"
           onMapDetailsSelect={handleMapDetailsSelect}
           onStyleSelect={handleStyleSelect}
         />
