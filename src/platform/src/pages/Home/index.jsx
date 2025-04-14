@@ -115,7 +115,7 @@ const Home = () => {
               aria-label="Play Analytics Video"
               data-testid="video-thumbnail"
             >
-              <div className="absolute z-10 inset-0 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+              <div className="absolute inset-0 flex items-center justify-center transition-transform duration-300 hover:scale-110">
                 <PlayIcon />
               </div>
               <Image

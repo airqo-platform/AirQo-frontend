@@ -67,9 +67,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
 
   // Video event handlers
   const handleVideoLoad = () => setLoading(false);
-  const handleVideoPause = () => {
-    updateVideoState();
-  };
+  const handleVideoPause = () => updateVideoState();
   const handleVideoEnd = () => {
     if (!videoChecklistItem?._id) return;
     dispatch(
@@ -100,9 +98,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
       <Card
         ref={backdropRef}
         width="w-full max-w-2xl"
-        height="h-[384px]"
         className="mx-4 md:mx-0 animate-slide-in relative"
-        padding="p-4"
       >
         <h1 className="text-sm md:text-xl w-full text-center font-medium text-gray-900 dark:text-white p-3">
           Introducing AirQo Analytics
@@ -116,7 +112,8 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
           <CloseIcon fill="#FFFFFF" />
           <span className="sr-only">Close modal</span>
         </button>
-        <div className="w-full h-[384px] relative">
+        {/* Video container uses min-h-[384px] */}
+        <div className="w-full min-h-96 relative">
           {loading && (
             <div className="absolute inset-0 flex justify-center items-center">
               <Spinner />
@@ -128,7 +125,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
             onCanPlayThrough={handleVideoLoad}
             onPause={handleVideoPause}
             onEnded={handleVideoEnd}
-            className={`w-full h-full ${loading ? 'hidden' : 'block'}`}
+            className={`w-full h-auto ${loading ? 'hidden' : 'block'}`}
             src={videoUrl}
             controls
             autoPlay

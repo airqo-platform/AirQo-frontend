@@ -21,7 +21,7 @@ const CustomDropdown = ({
   trigger = null,
   alignment = 'left',
   customPopperStyle = {},
-  dropdownStyle = {}, // Added to support custom dropdown styling
+  dropdownStyle = {},
   isField,
 }) => {
   const [isOpen, setIsOpen] = useState(openDropdown);
