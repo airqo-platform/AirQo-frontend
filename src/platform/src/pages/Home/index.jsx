@@ -51,6 +51,9 @@ const Home = () => {
   // Toggle the video modal
   const handleModal = () => setOpen((prev) => !prev);
 
+  // Function to open video modal (to pass to Checklist)
+  const openVideoModal = () => setOpen(true);
+
   // Show skeleton loader during initial load
   if (isLoading) {
     return (
@@ -74,8 +77,8 @@ const Home = () => {
           </h1>
         </div>
 
-        {/* Render Checklist component */}
-        <Checklist />
+        {/* Render Checklist component with video modal function */}
+        <Checklist openVideoModal={openVideoModal} />
 
         {/* Information and Video Section */}
         <Card className="w-full" padding="p-6">

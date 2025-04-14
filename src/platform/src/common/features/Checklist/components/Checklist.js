@@ -9,7 +9,7 @@ import {
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
 
-const Checklist = () => {
+const Checklist = ({ openVideoModal }) => {
   const dispatch = useDispatch();
   const [stepCount, setStepCount] = useState(0);
   const [allCompleted, setAllCompleted] = useState(false);
@@ -34,8 +34,8 @@ const Checklist = () => {
             setUserId(parsedUser._id);
           }
         }
-      } catch (error) {
-        console.error('Error getting user ID:', error);
+      } catch {
+        // empty for now
       }
     }
   }, []);
@@ -55,8 +55,23 @@ const Checklist = () => {
     (stepItem) => {
       if (!stepItem._id || !userId) return;
 
-      if (stepItem.status === 'not started') {
-        // For a new step, mark as in progress
+      // For step ID 1 (video step), open the video modal
+      if (stepItem.id === 1) {
+        if (openVideoModal) {
+          openVideoModal();
+        }
+
+        // If the step is "not started", update its status to "inProgress"
+        if (stepItem.status === 'not started') {
+          dispatch(
+            updateTaskProgress({
+              _id: stepItem._id,
+              status: 'inProgress',
+            }),
+          );
+        }
+      } else if (stepItem.status === 'not started') {
+        // For other new steps, mark as in progress
         dispatch(
           updateTaskProgress({
             _id: stepItem._id,
@@ -74,7 +89,7 @@ const Checklist = () => {
         );
       }
     },
-    [userId, dispatch],
+    [userId, dispatch, openVideoModal],
   );
 
   // Update step count when checklist data changes
