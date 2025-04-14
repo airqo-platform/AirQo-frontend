@@ -51,21 +51,17 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     // Background and text colors based on theme
     const bgColor = isDarkMode ? "#1e293b" : "#f1f5f9"
     const textColor = isDarkMode ? "#e2e8f0" : "#0f172a"
-    const mutedTextColor = isDarkMode ? "#94a3b8" : "#64748b"
+    const mutedTextColor = isDarkMode ? "#94a3b8" : "#0f172a"
     const gridLineColor = isDarkMode ? "#334155" : "#e2e8f0"
 
-    // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height)
 
     const barWidth = 80
     const spacing = 60
     const startX = (rect.width - (barWidth * 3 + spacing * 2)) / 2
-    const maxHeight = rect.height - 120 // Increased bottom padding for labels
+    const maxHeight = rect.height - 120
     const cornerRadius = 8
 
-    // const topMargin = 50
-
-    // Function to draw a rounded rectangle
     const drawRoundedRect = (x: number, y: number, width: number, height: number, radius: number) => {
       ctx.beginPath()
       ctx.moveTo(x + radius, y)
@@ -80,7 +76,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       ctx.closePath()
     }
 
-    // Function to draw a bar with gradient and animation
     const drawBar = (
       x: number,
       height: number,
@@ -90,7 +85,7 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       value: number,
       percentage: number,
     ) => {
-      const y = rect.height - 80 - height // Adjusted for more bottom space
+      const y = rect.height - 80 - height 
 
       // Create gradient
       const gradient = ctx.createLinearGradient(x, y, x, y + height)
