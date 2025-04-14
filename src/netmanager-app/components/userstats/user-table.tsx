@@ -23,7 +23,6 @@ interface UserTableProps {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
   
-    // Filter users based on search term
     const filteredUsers = users.filter((user) => {
       if (!searchTerm) return true
   
@@ -36,17 +35,14 @@ interface UserTableProps {
       )
     })
   
-    // Calculate pagination
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage)
   
-    // Generate initials for avatar
     const getInitials = (firstName: string, lastName: string) => {
       return `${firstName?.[0] || ""}${lastName?.[0] || ""}`
     }
   
-    // Generate pages array for pagination
     const getPageNumbers = () => {
       const pages = []
       const maxVisiblePages = 5
@@ -56,36 +52,29 @@ interface UserTableProps {
           pages.push(i)
         }
       } else {
-        // Always show first page
         pages.push(1)
   
-        // Calculate start and end of visible pages
         let start = Math.max(2, currentPage - 1)
         let end = Math.min(totalPages - 1, currentPage + 1)
   
-        // Adjust if we're at the beginning or end
         if (currentPage <= 2) {
           end = Math.min(totalPages - 1, 4)
         } else if (currentPage >= totalPages - 1) {
           start = Math.max(2, totalPages - 3)
         }
   
-        // Add ellipsis if needed
         if (start > 2) {
           pages.push("...")
         }
   
-        // Add middle pages
         for (let i = start; i <= end; i++) {
           pages.push(i)
         }
   
-        // Add ellipsis if needed
         if (end < totalPages - 1) {
           pages.push("...")
         }
   
-        // Always show last page
         pages.push(totalPages)
       }
   

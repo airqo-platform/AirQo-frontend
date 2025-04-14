@@ -178,8 +178,8 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     )
 
     const legendY = 25
-    const legendWidth = 300 // Approximate width of the legend
-    const legendX = (rect.width - legendWidth) / 2 // Center the legend
+    const legendWidth = 300
+    const legendX = (rect.width - legendWidth) / 2
 
     const drawLegendItem = (x: number, color: string, label: string) => {
       ctx.fillStyle = color
@@ -193,7 +193,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       ctx.fillText(label, x + 18, legendY)
     }
 
-    // Space legend items evenly
     const legendSpacing = legendWidth / 3
     drawLegendItem(legendX, colors.total.start, "Total")
     drawLegendItem(legendX + legendSpacing, colors.active.start, "Active")
