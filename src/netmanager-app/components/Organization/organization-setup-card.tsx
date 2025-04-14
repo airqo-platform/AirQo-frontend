@@ -13,10 +13,8 @@ interface OrganizationSetupCardProps {
 }
 
 export function OrganizationSetupCard({ organizationId, organizationName }: OrganizationSetupCardProps) {
-  // Use our hook to determine if the organization has sites, devices, and members assigned
   const { hasSites, hasDevices, hasMembers, isLoading, sites, devices, refetch } = useGroupResources(organizationId)
 
-  // If we're still loading the resource data, show a loading indicator
   if (isLoading) {
     return (
       <Card className="border-l-4 border-l-amber-500 mb-6">
@@ -30,7 +28,6 @@ export function OrganizationSetupCard({ organizationId, organizationName }: Orga
     )
   }
 
-  // If all setup tasks are complete, show a completion card
   const isSetupComplete = hasSites && hasDevices && hasMembers
   if (isSetupComplete) {
     return (

@@ -1,6 +1,7 @@
 export interface Permission {
     _id: string;
     permission: string;
+    description: string;
   }
   
 export interface Group {
