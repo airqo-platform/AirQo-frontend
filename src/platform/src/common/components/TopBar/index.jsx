@@ -138,7 +138,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   return (
     <div className="space-y-3">
       <nav
-        className={`z-50 w-full py-2 px-2 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
+        className={`z-50 w-full py-2 px-2 md:px-0 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
       >
         <div id="topBar-nav" className="flex justify-between items-center">
           <div className="block lg:hidden relative z-10 w-full">

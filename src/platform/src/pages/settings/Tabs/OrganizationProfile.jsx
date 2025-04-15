@@ -1,56 +1,71 @@
-import BorderlessContentBox from '@/components/Layout/borderless_content_box';
-import ContentBox from '@/components/Layout/content_box';
-import Button from '@/components/Button';
-import Modal from '@/components/Modal/Modal';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import GlobeIcon from '@/icons/Settings/globe.svg';
-import ClockIcon from '@/icons/Settings/clock.svg';
+import * as Yup from 'yup';
+import Modal from '@/components/Modal/Modal';
 import AlertBox from '@/components/AlertBox';
+import Button from '@/components/Button';
+import Card from '@/components/CardWrapper';
+import InputField from '@/components/InputField';
+import TextField from '@/components/TextInputField';
+import SelectDropdown from '@/components/SelectDropdown';
+import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
+import { updateGroupDetailsApi } from '@/core/apis/Account';
+import GlobeIcon from '@/icons/Settings/globe.svg';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import timeZones from 'timezones.json';
-import TextInputField from '@/components/TextInputField';
-import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
-import { updateGroupDetailsApi } from '@/core/apis/Account';
+
 countries.registerLocale(enLocale);
-
 const countryObj = countries.getNames('en', { select: 'official' });
-
-const countryArr = Object.entries(countryObj).map(([key, value]) => ({
+const countryOptions = Object.entries(countryObj).map(([key, value]) => ({
   label: value,
   value: key,
 }));
-
-const countryOptions = countryArr.map(({ label, value }) => ({
-  label: label,
-  value: value,
+const timeZonesArr = timeZones.map((tz) => ({
+  label: tz.text,
+  value: tz.text,
 }));
 
-const retrieveCountryCode = (countryName) => {
-  for (let i = 0; i < countryArr.length; i++) {
-    if (countryArr[i].label === countryName) {
-      return countryArr[i];
-    }
-  }
-  return '';
-};
-
-const timeZonesArr = timeZones.map((timeZone) => ({
-  label: timeZone.text,
-  value: timeZone.text,
+const industryOptions = [
+  'Textiles',
+  'Transport',
+  'Healthcare',
+  'Manufacturing',
+  'Agriculture',
+  'Information Technology',
+  'Policy & Government',
+  'Education & Research',
+  'Business',
+  'Mining',
+  'Hospitality',
+  'Food and Catering',
+  'Media & Journalism',
+].map((industry) => ({
+  label: industry,
+  value: industry,
 }));
 
-retrieveCountryCode('Uganda');
+// Yup validation schema for organization details
+const validationSchema = Yup.object().shape({
+  grp_title: Yup.string().required('Organization name is required'),
+  grp_website: Yup.string()
+    .url('Enter a valid website URL')
+    .required('Website is required'),
+  grp_industry: Yup.string().required('Industry is required'),
+  grp_description: Yup.string().required('Description is required'),
+  grp_country: Yup.string().required('Country is required'),
+  grp_timezone: Yup.string().required('Timezone is required'),
+});
 
 const OrganizationProfile = () => {
-  const [isError, setIsError] = useState({
+  const dispatch = useDispatch();
+  const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
     type: '',
   });
-  const dispatch = useDispatch();
+  const [validationErrors, setValidationErrors] = useState({});
   const [orgData, setOrgData] = useState({
     grp_title: '',
     grp_website: '',
@@ -60,203 +75,174 @@ const OrganizationProfile = () => {
     grp_timezone: '',
     grp_image: '',
   });
-  const industryList = [
-    'Textiles',
-    'Transport',
-    'Healthcare',
-    'Manufacturing',
-    'Agriculture',
-    'Information Technology',
-    'Policy & Government',
-    'Education & Research',
-    'Business',
-    'Mining',
-    'Hospitality',
-    'Food and Catering',
-    'Media & Journalism',
-  ];
   const [updatedProfilePicture, setUpdatedProfilePicture] = useState('');
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const orgInfo = useSelector((state) => state.groupInfo.groupInfo);
 
+  // Fetch group info on mount using active group ID from localStorage
   useEffect(() => {
-    setLoading(true);
-
+    setIsLoading(true);
+    const storedGroup = localStorage.getItem('activeGroup');
     let activeGroupId = null;
-    const storedActiveGroup = localStorage.getItem('activeGroup');
-
-    if (storedActiveGroup) {
+    if (storedGroup) {
       try {
-        const parsedActiveGroup = JSON.parse(storedActiveGroup);
-        activeGroupId = parsedActiveGroup?._id || null;
+        activeGroupId = JSON.parse(storedGroup)?._id || null;
       } catch (error) {
-        console.error('Error parsing "activeGroup" from localStorage:', error);
+        console.error('Error parsing "activeGroup":', error);
       }
     }
-
-    // If we have a valid ID, fetch group info
     if (activeGroupId) {
-      try {
-        dispatch(fetchGroupInfo(activeGroupId));
-      } catch (error) {
-        console.error(`Error fetching group info: ${error}`);
-      }
+      dispatch(fetchGroupInfo(activeGroupId));
     }
-
-    setLoading(false);
+    setIsLoading(false);
   }, [dispatch]);
 
+  // When orgInfo is updated, populate local state
   useEffect(() => {
     if (orgInfo) {
       setOrgData({
-        grp_title: orgInfo.grp_title,
-        grp_website: orgInfo.grp_website,
-        grp_industry: orgInfo.grp_industry,
-        grp_description: orgInfo.grp_description,
-        grp_country: orgInfo.grp_country,
-        grp_timezone: orgInfo.grp_timezone,
-        grp_image: orgInfo.grp_image,
+        grp_title: orgInfo.grp_title || '',
+        grp_website: orgInfo.grp_website || '',
+        grp_industry: orgInfo.grp_industry || '',
+        grp_description: orgInfo.grp_description || '',
+        grp_country: orgInfo.grp_country || '',
+        grp_timezone: orgInfo.grp_timezone || '',
+        grp_image: orgInfo.grp_image || '',
       });
     }
   }, [orgInfo]);
 
   const handleChange = (e) => {
-    setOrgData({ ...orgData, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    setOrgData({ ...orgData, [id]: value });
+    // Clear field-specific error when user types
+    if (validationErrors[id]) {
+      setValidationErrors({ ...validationErrors, [id]: '' });
+    }
   };
 
-  const handleSubmit = (e) => {
+  // Handlers for SelectDropdown fields
+  const handleCountryChange = (option) => {
+    setOrgData({ ...orgData, grp_country: option.value });
+    if (validationErrors.grp_country) {
+      setValidationErrors({ ...validationErrors, grp_country: '' });
+    }
+  };
+
+  const handleTimezoneChange = (option) => {
+    setOrgData({ ...orgData, grp_timezone: option.value });
+    if (validationErrors.grp_timezone) {
+      setValidationErrors({ ...validationErrors, grp_timezone: '' });
+    }
+  };
+
+  const handleIndustryChange = (option) => {
+    setOrgData({ ...orgData, grp_industry: option.value });
+    // Clear error if exists
+    if (validationErrors.grp_industry) {
+      setValidationErrors({ ...validationErrors, grp_industry: '' });
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Safely parse 'activeGroup' from localStorage
+    setIsLoading(true);
+    // Validate organization data using Yup schema
+    try {
+      await validationSchema.validate(orgData, { abortEarly: false });
+      setValidationErrors({});
+    } catch (validationError) {
+      const errors = {};
+      validationError.inner.forEach((err) => {
+        errors[err.path] = err.message;
+      });
+      setValidationErrors(errors);
+      setIsLoading(false);
+      return;
+    }
+    const storedGroup = localStorage.getItem('activeGroup');
     let activeGroupId = null;
-    const storedActiveGroup = localStorage.getItem('activeGroup');
-
-    if (storedActiveGroup) {
+    if (storedGroup) {
       try {
-        const parsedGroup = JSON.parse(storedActiveGroup);
-        activeGroupId = parsedGroup?._id || null;
-      } catch (error) {
-        console.error('Error parsing "activeGroup" from localStorage:', error);
-
-        setLoading(false);
+        activeGroupId = JSON.parse(storedGroup)?._id || null;
+      } catch {
+        setIsLoading(false);
         return;
       }
     }
-
-    // If no valid ID, stop here
     if (!activeGroupId) {
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
-
     try {
-      // Update group details with the parsed ID
-      updateGroupDetailsApi(activeGroupId, orgData)
-        .then(() => {
-          try {
-            // Fetch updated group info
-            dispatch(fetchGroupInfo(activeGroupId));
-            setIsError({
-              isError: true,
-              message: 'Organization details successfully updated',
-              type: 'success',
-            });
-          } catch (error) {
-            console.error(`Error fetching organization info: ${error}`);
-          } finally {
-            setLoading(false);
-          }
-        })
-        .catch((error) => {
-          console.error(`Error updating organization details: ${error}`);
-          setIsError({
-            isError: true,
-            message: error.message,
-            type: 'error',
-          });
-          setLoading(false);
-        });
-    } catch (error) {
-      // Catch any unexpected errors in the try block
-      console.error(`Error updating user cloudinary photo: ${error}`);
-      setIsError({
+      await updateGroupDetailsApi(activeGroupId, orgData);
+      dispatch(fetchGroupInfo(activeGroupId));
+      setErrorState({
         isError: true,
-        message: error.message,
-        type: 'error',
+        message: 'Organization details successfully updated',
+        type: 'success',
       });
-      setLoading(false);
+    } catch (error) {
+      setErrorState({ isError: true, message: error.message, type: 'error' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
-    setOrgData({
-      grp_title: orgInfo.grp_title,
-      grp_website: orgInfo.grp_website,
-      grp_industry: orgInfo.grp_industry,
-      grp_description: orgInfo.grp_description,
-      grp_country: orgInfo.grp_country,
-      grp_timezone: orgInfo.grp_timezone,
-      grp_image: orgInfo.grp_image,
-    });
+    if (orgInfo) {
+      setOrgData({
+        grp_title: orgInfo.grp_title || '',
+        grp_website: orgInfo.grp_website || '',
+        grp_industry: orgInfo.grp_industry || '',
+        grp_description: orgInfo.grp_description || '',
+        grp_country: orgInfo.grp_country || '',
+        grp_timezone: orgInfo.grp_timezone || '',
+        grp_image: orgInfo.grp_image || '',
+      });
+    }
+    setValidationErrors({});
   };
 
-  const cropImage = () => {
-    return new Promise((resolve, reject) => {
+  // Crop image function using window.Image to satisfy ESLint
+  const cropImage = () =>
+    new Promise((resolve, reject) => {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
-
       input.onchange = (event) => {
         const file = event.target.files[0];
-        const img = document.createElement('img');
         const reader = new FileReader();
-
-        reader.onload = function (e) {
-          img.onload = function () {
+        reader.onload = (e) => {
+          const img = new window.Image();
+          img.onload = () => {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            const aspectRatio = img.width / img.height;
             const maxSize = 200;
-
             let width = img.width;
             let height = img.height;
-
-            if (width > height) {
-              if (width > maxSize) {
-                height = Math.round(maxSize / aspectRatio);
-                width = maxSize;
-              }
-            } else {
-              if (height > maxSize) {
-                width = Math.round(maxSize * aspectRatio);
-                height = maxSize;
-              }
+            const aspectRatio = width / height;
+            if (width > height && width > maxSize) {
+              height = Math.round(maxSize / aspectRatio);
+              width = maxSize;
+            } else if (height > maxSize) {
+              width = Math.round(maxSize * aspectRatio);
+              height = maxSize;
             }
-
             canvas.width = width;
             canvas.height = height;
             context.drawImage(img, 0, 0, width, height);
-
-            const croppedUrl = canvas.toDataURL(file.type);
-            resolve(croppedUrl);
+            resolve(canvas.toDataURL(file.type));
           };
-
           img.src = e.target.result;
         };
-
-        reader.onerror = (error) => {
-          reject(error);
-        };
-
+        reader.onerror = reject;
         reader.readAsDataURL(file);
       };
-
       input.click();
     });
-  };
 
   const handleAvatarClick = () => {
     cropImage()
@@ -264,368 +250,288 @@ const OrganizationProfile = () => {
         setUpdatedProfilePicture(croppedUrl);
         setOrgData({ ...orgData, grp_image: croppedUrl });
       })
-      .catch(() => {
-        setIsError({
+      .catch(() =>
+        setErrorState({
           isError: true,
           message: 'Something went wrong',
           type: 'error',
-        });
-      });
+        }),
+      );
   };
 
   const handleProfileImageUpdate = async () => {
     if (!updatedProfilePicture) return;
-
     const formData = new FormData();
     formData.append('file', updatedProfilePicture);
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
     formData.append('folder', 'organization_profiles');
-
     setProfileUploading(true);
-
     try {
-      // 1. Upload the image to Cloudinary
       const responseData = await cloudinaryImageUpload(formData);
-
-      // 2. Update the orgData state with the new image URL
-      setOrgData((prev) => ({
-        ...prev,
-        grp_image: responseData.secure_url,
-      }));
-
-      // 3. Safely parse 'activeGroup' from localStorage
+      setOrgData((prev) => ({ ...prev, grp_image: responseData.secure_url }));
       let activeGroupId = null;
-      const storedActiveGroup = localStorage.getItem('activeGroup');
-      if (storedActiveGroup) {
+      const storedGroup = localStorage.getItem('activeGroup');
+      if (storedGroup) {
         try {
-          const parsedGroup = JSON.parse(storedActiveGroup);
-          activeGroupId = parsedGroup?._id || null;
+          activeGroupId = JSON.parse(storedGroup)?._id || null;
         } catch (error) {
-          console.error(
-            'Error parsing "activeGroup" from localStorage:',
-            error,
-          );
+          console.error('Error parsing "activeGroup":', error);
         }
       }
-
-      // If there's no valid ID, stop here
       if (!activeGroupId) {
         setProfileUploading(false);
-        setIsError({
+        setErrorState({
           isError: true,
-          message: 'No valid group ID found in localStorage.',
+          message: 'No valid group ID found.',
           type: 'error',
         });
         return;
       }
-
-      // 4. Update group details with the new image
-      try {
-        await updateGroupDetailsApi(activeGroupId, {
-          grp_image: responseData.secure_url,
-        });
-
-        // 5. Fetch updated group info
-        dispatch(fetchGroupInfo(activeGroupId));
-
-        // 6. Show success message
-        setIsError({
-          isError: true,
-          message: 'Organization image successfully added',
-          type: 'success',
-        });
-
-        // 7. Reset local states
-        setUpdatedProfilePicture('');
-      } catch (error) {
-        console.error('Error updating organization details:', error);
-        setIsError({
-          isError: true,
-          message: error.message,
-          type: 'error',
-        });
-        setUpdatedProfilePicture('');
-      } finally {
-        setProfileUploading(false);
-      }
-    } catch (error) {
-      // Handle any error from cloudinaryImageUpload
-      console.error('Error uploading to Cloudinary:', error);
-      setUpdatedProfilePicture('');
-      setProfileUploading(false);
-      setIsError({
-        isError: true,
-        message: error.message,
-        type: 'error',
+      await updateGroupDetailsApi(activeGroupId, {
+        grp_image: responseData.secure_url,
       });
+      dispatch(fetchGroupInfo(activeGroupId));
+      setErrorState({
+        isError: true,
+        message: 'Organization image successfully added',
+        type: 'success',
+      });
+      setUpdatedProfilePicture('');
+    } catch (error) {
+      console.error('Error uploading/updating organization image:', error);
+      setUpdatedProfilePicture('');
+      setErrorState({ isError: true, message: error.message, type: 'error' });
+    } finally {
+      setProfileUploading(false);
     }
   };
 
   const deleteProfileImage = () => {
-    // Reset local states
     setUpdatedProfilePicture('');
     setOrgData((prev) => ({ ...prev, grp_image: '' }));
-
-    // Safely retrieve and parse 'activeGroup'
     let activeGroupId = null;
-    const storedActiveGroup = localStorage.getItem('activeGroup');
-    if (storedActiveGroup) {
+    const storedGroup = localStorage.getItem('activeGroup');
+    if (storedGroup) {
       try {
-        const parsedGroup = JSON.parse(storedActiveGroup);
-        activeGroupId = parsedGroup?._id || null;
+        activeGroupId = JSON.parse(storedGroup)?._id || null;
       } catch (error) {
-        console.error('Error parsing "activeGroup" from localStorage:', error);
+        console.error('Error parsing "activeGroup":', error);
       }
     }
-
-    // If no valid ID, we can’t proceed with API call
     if (!activeGroupId) {
-      setIsError({
+      setErrorState({
         isError: true,
-        message: 'No valid group ID found in localStorage.',
+        message: 'No valid group ID found.',
         type: 'error',
       });
       return;
     }
-
-    // Update group details with an empty image
     updateGroupDetailsApi(activeGroupId, { grp_image: '' })
       .then(() => {
-        try {
-          dispatch(fetchGroupInfo(activeGroupId));
-          setShowDeleteProfileModal(false);
-          setIsError({
-            isError: true,
-            message: 'Profile image successfully deleted',
-            type: 'success',
-          });
-        } catch (error) {
-          console.log('Error fetching group info:', error);
-        }
+        dispatch(fetchGroupInfo(activeGroupId));
+        setShowDeleteProfileModal(false);
+        setErrorState({
+          isError: true,
+          message: 'Profile image successfully deleted',
+          type: 'success',
+        });
       })
       .catch((error) => {
-        console.error(`Error updating organization details: ${error}`);
-        setIsError({
-          isError: true,
-          message: error.message,
-          type: 'error',
-        });
+        setErrorState({ isError: true, message: error.message, type: 'error' });
       });
-  };
-
-  const confirmDeleteProfileImage = () => {
-    setShowDeleteProfileModal(true);
   };
 
   return (
     orgData &&
     orgData.grp_title && (
-      <BorderlessContentBox>
+      <div className="px-4 md:px-0 py-6">
         <AlertBox
-          message={isError.message}
-          type={isError.type}
-          show={isError.isError}
-          hide={() =>
-            setIsError({
-              isError: false,
-              message: '',
-              type: '',
-            })
-          }
+          message={errorState.message}
+          type={errorState.type}
+          show={errorState.isError}
+          hide={() => setErrorState({ isError: false, message: '', type: '' })}
         />
-        <div className="block lg:flex justify-start lg:gap-8 w-full">
+        <div className="flex flex-col lg:flex-row gap-8">
           <div className="mb-6">
-            <h3 className="text-sm font-medium leading-5 text-grey-710">
-              Organisation information
+            <h3 className="text-sm font-medium text-gray-700 dark:text-white">
+              Organization information
             </h3>
-            <p className="text-sm text-grey-500 leading-5">
-              Update your organisation and details here.
+            <p className="text-sm text-gray-500">
+              Update your organization details here.
             </p>
           </div>
-
           <div className="w-full mb-12">
-            <ContentBox noMargin>
-              <>
-                <div className="w-full p-3 md:p-6">
-                  <div className="flex items-center justify-between md:gap-6 w-full mb-6">
-                    <div
-                      className="w-16 h-16 bg-secondary-neutral-light-25 rounded-full flex justify-center items-center cursor-pointer"
-                      onClick={handleAvatarClick}
-                      title="Tap to change profile image"
-                    >
-                      {orgData.grp_image ? (
-                        <img
-                          src={orgData.grp_image}
-                          alt={`${
-                            orgData.grp_title[0] + ' ' + orgData.grp_title[1]
-                          } profile image`}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <h3 className="text-center text-2xl leading-8 font-medium text-blue-600 uppercase">
-                          {orgData.grp_title[0] + ' ' + orgData.grp_title[1]}
-                        </h3>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Button
-                        className="text-sm font-medium text-secondary-neutral-light-500"
-                        onClick={confirmDeleteProfileImage}
-                      >
-                        Delete
-                      </Button>
-                      <Button
-                        className={`text-sm font-medium ${
-                          !updatedProfilePicture
-                            ? 'text-secondary-neutral-light-500'
-                            : 'text-blue-600 bg-blue-50 rounded'
-                        }`}
-                        onClick={handleProfileImageUpdate}
-                        disabled={!updatedProfilePicture}
-                      >
-                        {updatedProfilePicture && !profileUploading
-                          ? 'Save photo'
-                          : profileUploading
-                            ? 'Uploading...'
-                            : 'Update'}
-                      </Button>
-                    </div>
+            <Card
+              bordered
+              rounded
+              radius="rounded-lg"
+              background="bg-white dark:bg-[#1d1f20]"
+            >
+              <div className="p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+                  <div
+                    className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
+                    onClick={handleAvatarClick}
+                    title="Tap to change profile image"
+                  >
+                    {orgData.grp_image ? (
+                      <img
+                        src={orgData.grp_image}
+                        alt={`${orgData.grp_title} profile image`}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <h3 className="text-2xl font-medium text-blue-600 uppercase">
+                        {orgData.grp_title[0] + orgData.grp_title[1]}
+                      </h3>
+                    )}
                   </div>
-                  <form className="grid grid-cols-2 gap-6">
-                    <div className="gap-[6px] col-span-full">
-                      <TextInputField
-                        id="grp_title"
-                        value={orgData.grp_title}
-                        onChange={handleChange}
-                        label="Organisation name"
-                        type="text"
-                      />
-                    </div>
-
-                    <div className="relative flex flex-col gap-[6px] col-span-full">
-                      <TextInputField
-                        id="grp_website"
-                        value={orgData.grp_website}
-                        onChange={handleChange}
-                        label="Website"
-                        type="text"
-                        Icon={GlobeIcon}
-                      />
-                    </div>
-
-                    <div className="relative flex flex-col gap-[6px] col-span-full">
-                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
-                        Industry
-                      </label>
-                      <div className="relative">
-                        <select
-                          type="text"
-                          id="grp_industry"
-                          value={orgData.grp_industry}
-                          onChange={handleChange}
-                          className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white"
-                          required
-                        >
-                          <option value="" disabled></option>
-                          {industryList.map((industry, index) => (
-                            <option value={industry} key={index}>
-                              {industry}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="relative flex flex-col gap-[6px] col-span-full">
-                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
-                        About
-                      </label>
-                      <textarea
-                        type="text"
-                        id="grp_description"
-                        value={orgData.grp_description}
-                        onChange={handleChange}
-                        className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full p-3 dark:placeholder-white-400 dark:text-white"
-                        required
-                      />
-                    </div>
-
-                    <div className="relative flex flex-col gap-[6px] md:col-span-1 col-span-full">
-                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
-                        Country
-                      </label>
-                      <div className="relative">
-                        <select
-                          type="text"
-                          id="grp_country"
-                          value={orgData.grp_country || ''}
-                          onChange={handleChange}
-                          className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm w-full rounded p-3 dark:placeholder-white-400 dark:text-white"
-                          required
-                        >
-                          <option value="" disabled></option>
-                          {countryOptions.map((country) => (
-                            <option value={country.label} key={country.value}>
-                              {country.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="relative flex flex-col gap-[6px] md:col-span-1 col-span-full">
-                      <label className="text-gray-720 text-sm leading-4 tracking-[-0.42px]">
-                        Timezone
-                      </label>
-                      <div className="absolute left-0 top-3 w-10 h-full flex items-center justify-center">
-                        <ClockIcon />
-                      </div>
-                      <select
-                        type="text"
-                        id="grp_timezone"
-                        value={orgData.grp_timezone || ''}
-                        onChange={handleChange}
-                        className="bg-white border border-gray-200 text-secondary-neutral-light-400 focus:border-gray-200 focus:bg-gray-100 text-sm rounded block w-full pl-10 pr-3 py-3 dark:placeholder-white-400 dark:text-white"
-                        required
-                      >
-                        <option value="" disabled></option>
-                        {timeZonesArr.map((timeZone) => (
-                          <option value={timeZone.value} key={timeZone.value}>
-                            {timeZone.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </form>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={deleteProfileImage}
+                      className="text-sm font-medium text-gray-600"
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      onClick={handleProfileImageUpdate}
+                      disabled={!updatedProfilePicture}
+                      className={`text-sm font-medium ${
+                        updatedProfilePicture
+                          ? 'text-blue-600 bg-blue-50 rounded'
+                          : 'text-gray-600'
+                      }`}
+                    >
+                      {updatedProfilePicture && !profileUploading
+                        ? 'Save photo'
+                        : profileUploading
+                          ? 'Uploading...'
+                          : 'Update'}
+                    </Button>
+                  </div>
                 </div>
-                <div className="col-span-full flex justify-end gap-3 border-t border-t-secondary-neutral-light-100 w-full px-3 py-4">
-                  <Button
-                    type="button"
-                    onClick={handleCancel}
-                    variant="outlined"
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Loading...' : 'Save'}
-                  </Button>
-                </div>
-              </>
-            </ContentBox>
+                <form
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  onSubmit={handleSubmit}
+                >
+                  {/* Row 1: Organization Name */}
+                  <InputField
+                    id="grp_title"
+                    value={orgData.grp_title}
+                    onChange={handleChange}
+                    label="Organization name"
+                    placeholder="Enter organization name"
+                    error={validationErrors.grp_title}
+                  />
+
+                  {/* Row 2: Website with Globe Icon */}
+                  <InputField
+                    id="grp_website"
+                    value={orgData.grp_website}
+                    onChange={handleChange}
+                    label="Website"
+                    placeholder="Enter website"
+                    Icon={GlobeIcon}
+                    error={validationErrors.grp_website}
+                  />
+
+                  {/* Row 3: Industry (SelectDropdown) */}
+                  <div className="flex flex-col">
+                    <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Industry
+                    </label>
+                    <SelectDropdown
+                      items={industryOptions}
+                      selected={
+                        industryOptions.find(
+                          (option) => option.value === orgData.grp_industry,
+                        ) || null
+                      }
+                      onChange={handleIndustryChange}
+                      placeholder="Select an industry"
+                      error={validationErrors.grp_industry}
+                    />
+                  </div>
+
+                  {/* Row 4: About / Description using TextField */}
+                  <div className="md:col-span-2">
+                    <TextField
+                      id="grp_description"
+                      value={orgData.grp_description}
+                      onChange={handleChange}
+                      label="About"
+                      placeholder="Enter organization description"
+                      error={validationErrors.grp_description}
+                      required
+                    />
+                  </div>
+
+                  {/* Row 5: Country (SelectDropdown) */}
+                  <div className="flex flex-col">
+                    <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Country
+                    </label>
+                    <SelectDropdown
+                      items={countryOptions}
+                      selected={
+                        countryOptions.find(
+                          (option) => option.value === orgData.grp_country,
+                        ) || null
+                      }
+                      onChange={handleCountryChange}
+                      placeholder="Select a country"
+                      error={validationErrors.grp_country}
+                    />
+                  </div>
+
+                  {/* Row 6: Timezone (SelectDropdown) */}
+                  <div className="relative flex flex-col gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Timezone
+                    </label>
+                    <SelectDropdown
+                      items={timeZonesArr}
+                      selected={
+                        timeZonesArr.find(
+                          (option) => option.value === orgData.grp_timezone,
+                        ) || null
+                      }
+                      onChange={handleTimezoneChange}
+                      placeholder="Select a timezone"
+                      error={validationErrors.grp_timezone}
+                      listClassName="pl-10"
+                    />
+                  </div>
+                </form>
+              </div>
+              <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+                <Button
+                  className="dark:bg-transparent"
+                  onClick={handleCancel}
+                  type="button"
+                  variant="outlined"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  type="button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Loading...' : 'Save'}
+                </Button>
+              </div>
+            </Card>
           </div>
         </div>
         <Modal
           display={showDeleteProfileModal}
           handleConfirm={deleteProfileImage}
           closeModal={() => setShowDeleteProfileModal(false)}
-          description={`Are you sure you want to delete the organization profile image?`}
+          description="Are you sure you want to delete the organization profile image?"
           confirmButton="Delete"
         />
-      </BorderlessContentBox>
+      </div>
     )
   );
 };

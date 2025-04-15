@@ -3,14 +3,13 @@ import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
 import EditIcon from '@/icons/Common/edit-pencil.svg';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Toast from '@/components/Toast';
 import {
   addClients,
   addClientsDetails,
   performRefresh,
 } from '@/lib/store/services/apiClient';
-import { useDispatch } from 'react-redux';
 import EditClientForm from './EditClientForm';
 import {
   generateTokenApi,
@@ -23,6 +22,7 @@ import CopyIcon from '@/icons/Common/copy.svg';
 import DialogWrapper from '../../Modal/DialogWrapper';
 import InfoCircleIcon from '@/icons/Common/info_circle.svg';
 import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
+import Card from '@/components/CardWrapper';
 
 const UserClientsTable = () => {
   const dispatch = useDispatch();
@@ -63,11 +63,11 @@ const UserClientsTable = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserDetails = async () => {
       setIsLoading(true);
       try {
         const res = await getUserDetails(userInfo?._id);
-        if (res.success === true) {
+        if (res.success) {
           dispatch(addClients(res.users[0].clients));
           setCurrentPage(1);
         }
@@ -77,15 +77,15 @@ const UserClientsTable = () => {
         setIsLoading(false);
       }
     };
-    fetchData();
+    fetchUserDetails();
   }, [refresh]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchClientsDetails = async () => {
       setIsLoading(true);
       try {
         const response = await getClientsApi(userInfo?._id);
-        if (response.success === true) {
+        if (response.success) {
           dispatch(addClientsDetails(response.clients));
         }
       } catch (error) {
@@ -94,42 +94,42 @@ const UserClientsTable = () => {
         setIsLoading(false);
       }
     };
-    fetchData();
+    fetchClientsDetails();
   }, [refresh]);
 
   const hasAccessToken = (clientId) => {
     const client =
       Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
-        ? clientsDetails?.find((client) => client._id === clientId)
-        : [];
+        ? clientsDetails.find((client) => client._id === clientId)
+        : null;
     return client && client.access_token;
   };
 
   const getClientToken = (clientID) => {
     const client =
       Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
-        ? clientsDetails?.find((client) => client._id === clientID)
-        : [];
+        ? clientsDetails.find((client) => client._id === clientID)
+        : null;
     return client && client.access_token && client.access_token.token;
   };
 
   const getClientTokenExpiryDate = (clientID) => {
     const client =
       Array.isArray(clientsDetails) && !isEmpty(clientsDetails)
-        ? clientsDetails?.find((client) => client._id === clientID)
-        : [];
+        ? clientsDetails.find((client) => client._id === clientID)
+        : null;
     return client && client.access_token && client.access_token.expires;
   };
 
-  const handleGenerateToken = async (res) => {
+  const handleGenerateToken = async (clientData) => {
     setIsLoadingToken(true);
-    if (!res?.isActive) {
+    if (!clientData?.isActive) {
       setShowInfoModal(true);
       setIsLoadingToken(false);
     } else {
       try {
-        const response = await generateTokenApi(res);
-        if (response.success === true) {
+        const response = await generateTokenApi(clientData);
+        if (response.success) {
           setErrorState('Token generated', 'success');
         }
         dispatch(performRefresh());
@@ -153,7 +153,7 @@ const UserClientsTable = () => {
     try {
       const clientID = selectedClient?._id;
       const response = await activationRequestApi(clientID);
-      if (response.success === true) {
+      if (response.success) {
         setShowInfoModal(false);
         setTimeout(() => {
           setActivationRequestErrorState(
@@ -172,118 +172,86 @@ const UserClientsTable = () => {
     }
   };
 
-  const displayIPAddresses = (client) => {
-    return Array.isArray(client.ip_addresses)
+  const displayIPAddresses = (client) =>
+    Array.isArray(client.ip_addresses)
       ? client.ip_addresses.join(', ')
       : client.ip_addresses;
-  };
 
   return (
-    <div className="overflow-x-scroll">
+    <Card padding="p-0" bordered={false} rounded={false} className="mb-2 ">
       {isError.isError && (
         <Toast type={isError.type} message={isError.message} />
       )}
-      <table
-        className="border-collapse rounded-lg text-xs text-left w-full mb-6"
-        data-testid="settings-clients-table"
-      >
-        <thead>
-          <tr className="text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25">
-            <th
-              scope="col"
-              className="font-medium w-[200px] px-4 py-3 opacity-40"
-            >
-              Client name
-            </th>
-            <th
-              scope="col"
-              className="font-medium w-[138px] px-4 py-3 opacity-40"
-            >
-              IP Address
-            </th>
-            <th
-              scope="col"
-              className="font-medium w-[142px] px-4 py-3 opacity-40"
-            >
-              Client Status
-            </th>
-            <th
-              scope="col"
-              className="font-medium w-[138px] px-4 py-3 opacity-40"
-            >
-              Created
-            </th>
-            <th
-              scope="col"
-              className="font-medium w-[138px] px-4 py-3 opacity-40"
-            >
-              Token
-            </th>
-            <th
-              scope="col"
-              className="font-medium w-[138px] px-4 py-3 opacity-40"
-            >
-              Expires
-            </th>
-            <th
-              scope="col"
-              className="font-medium w-24 px-4 py-3 opacity-40"
-            ></th>
-          </tr>
-        </thead>
-
-        {isLoading ? (
-          <Skeleton />
-        ) : (
-          <tbody>
-            {clients?.length > 0 ? (
-              clients
-                .slice(
-                  (currentPage - 1) * itemsPerPage,
-                  currentPage * itemsPerPage,
-                )
-                .map((client, index) => {
-                  return (
+      <div className="overflow-x-auto">
+        <table
+          className="w-full border-collapse rounded-lg text-xs text-left mb-6 dark:text-gray-100"
+          data-testid="settings-clients-table"
+        >
+          <thead>
+            <tr className="bg-gray-100 dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
+              <th className="w-[200px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
+                Client name
+              </th>
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
+                IP Address
+              </th>
+              <th className="w-[142px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
+                Client Status
+              </th>
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
+                Created
+              </th>
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
+                Token
+              </th>
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
+                Expires
+              </th>
+              <th className="w-24 px-4 py-3 opacity-90"></th>
+            </tr>
+          </thead>
+          {isLoading ? (
+            <Skeleton />
+          ) : (
+            <tbody>
+              {clients?.length > 0 ? (
+                clients
+                  .slice(
+                    (currentPage - 1) * itemsPerPage,
+                    currentPage * itemsPerPage,
+                  )
+                  .map((client, index) => (
                     <tr
-                      className={`border-b border-b-secondary-neutral-light-100`}
                       key={index}
+                      className="border-b border-gray-200 dark:border-gray-700"
                     >
-                      <td
-                        scope="row"
-                        className="w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase"
-                      >
+                      <td className="w-[200px] px-4 py-3 font-medium text-sm text-gray-800 dark:text-gray-100 uppercase">
                         {client?.name}
                       </td>
-                      <td
-                        scope="row"
-                        className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
-                      >
+                      <td className="w-[138px] px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300">
                         {displayIPAddresses(client)}
                       </td>
-                      <td scope="row" className="w-[142px] px-4 py-3">
+                      <td className="w-[142px] px-4 py-3">
                         <div
-                          className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                          className={`px-2 py-[2px] rounded-2xl inline-flex justify-center text-sm items-center mx-auto ${
                             client?.isActive
-                              ? 'bg-success-50 text-success-700'
-                              : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
+                              ? 'bg-green-100 dark:bg-green-800/40 dark:text-green-400 text-green-700'
+                              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300'
                           }`}
                         >
                           {client?.isActive ? 'Activated' : 'Not Activated'}
                         </div>
                       </td>
-                      <td
-                        scope="row"
-                        className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
-                      >
+                      <td className="w-[138px] px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300">
                         {moment(client?.createdAt).format('MMM DD, YYYY')}
                       </td>
-                      <td scope="row" className="w-[138px] px-4 py-3">
+                      <td className="w-[138px] px-4 py-3">
                         {getClientToken(client._id) ? (
-                          <span className="font-medium text-sm leading-5 text-secondary-neutral-light-400 flex items-center gap-2">
+                          <span className="font-medium text-sm text-gray-500 dark:text-gray-300 flex items-center gap-2">
                             {getClientToken(client._id).slice(0, 2)}....
                             {getClientToken(client._id).slice(-2)}
                             <div
-                              className="w-6 h-6 bg-white rounded border border-gray-200 flex justify-center items-center gap-2 cursor-pointer"
+                              className="w-6 h-6 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 flex justify-center items-center cursor-pointer"
                               onClick={() => {
                                 navigator.clipboard.writeText(
                                   getClientToken(client._id),
@@ -304,43 +272,35 @@ const UserClientsTable = () => {
                                 ? 'Tap to generate token'
                                 : 'Token already generated'
                             }
-                            className={`px-4 py-2 rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
+                            className={`px-4 py-2 rounded-2xl inline-flex justify-center items-center text-sm ${
                               !hasAccessToken(client._id)
-                                ? 'bg-success-700 text-success-50 cursor-pointer'
-                                : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
+                                ? 'bg-green-700 text-green-50 cursor-pointer'
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300'
                             }`}
                             disabled={isLoadingToken}
                             onClick={() => {
-                              let res = {
+                              const clientData = {
                                 name: client.name,
                                 client_id: client._id,
-                                isActive: client.isActive
-                                  ? client.isActive
-                                  : false,
+                                isActive: !!client.isActive,
                               };
                               setSelectedClient(client);
-                              handleGenerateToken(res);
+                              handleGenerateToken(clientData);
                             }}
                           >
                             Generate
                           </Button>
                         )}
                       </td>
-                      <td
-                        scope="row"
-                        className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
-                      >
+                      <td className="w-[138px] px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300">
                         {getClientTokenExpiryDate(client._id) &&
                           moment(getClientTokenExpiryDate(client._id)).format(
                             'MMM DD, YYYY',
                           )}
                       </td>
-                      <td
-                        scope="row"
-                        className="w-24 px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize"
-                      >
+                      <td className="w-24 px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300 capitalize">
                         <div
-                          className="w-9 h-9 p-2.5 bg-white rounded border border-gray-200 justify-center items-center gap-2 cursor-pointer"
+                          className="w-9 h-9 p-2.5 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 flex justify-center items-center cursor-pointer"
                           onClick={() => {
                             setOpenEditForm(true);
                             setSelectedClient(client);
@@ -350,18 +310,21 @@ const UserClientsTable = () => {
                         </div>
                       </td>
                     </tr>
-                  );
-                })
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center py-3 text-grey-300">
-                  No data found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        )}
-      </table>
+                  ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="text-center py-3 text-gray-400 dark:text-gray-500"
+                  >
+                    No data found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          )}
+        </table>
+      </div>
       <Pagination
         currentPage={currentPage}
         pageSize={itemsPerPage}
@@ -380,22 +343,21 @@ const UserClientsTable = () => {
         closeModal={() => setOpenEditForm(false)}
         data={selectedClient}
       />
-
       <DialogWrapper
         open={showInfoModal}
         onClose={() => setShowInfoModal(false)}
         handleClick={handleActivationRequest}
-        primaryButtonText={'Send activation request'}
+        primaryButtonText="Send activation request"
         loading={isLoadingActivationRequest}
         ModalIcon={InfoCircleIcon}
       >
-        <div className="text-slate-500 text-sm font-normal leading-tight">
-          You cannot generate a token for an inactive client, reach out to
+        <div className="text-gray-600 dark:text-gray-300 text-sm">
+          You cannot generate a token for an inactive client. Reach out to
           support for assistance at support@airqo.net or send an activation
-          request
+          request.
         </div>
       </DialogWrapper>
-    </div>
+    </Card>
   );
 };
 

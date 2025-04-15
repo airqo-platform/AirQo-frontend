@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import ContentBox from '@/components/Layout/content_box';
+import Card from '@/components/CardWrapper';
 import TeamsTable from '@/components/Settings/Teams/table';
 import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
@@ -8,6 +8,7 @@ import TeamInviteForm from '@/components/Settings/Teams/InviteForm';
 const Team = ({ users, loading }) => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [open, setOpen] = useState(false);
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -19,18 +20,18 @@ const Team = ({ users, loading }) => {
   }, [users]);
 
   return (
-    <div data-testid="team-tab">
-      <ContentBox>
+    <div data-testid="team-tab" className="px-4 md:px-0 py-4">
+      <Card bordered rounded padding="pb-6">
         <div className="flex justify-between items-center px-6 py-5 flex-wrap sm:flex-nowrap gap-2">
-          <h3 className="text-secondary-neutral-light-800 font-medium text-lg">
+          <h3 className="text-lg font-medium text-secondary-neutral-light-800 dark:text-white">
             Team members
           </h3>
           <Button type="button" onClick={() => setOpen(!open)}>
-            <AddIcon /> Invite member
+            <AddIcon className="mr-2" /> Invite member
           </Button>
         </div>
         <TeamsTable users={teamMembers} isLoading={loading} />
-      </ContentBox>
+      </Card>
       <TeamInviteForm open={open} closeModal={handleClose} />
     </div>
   );
