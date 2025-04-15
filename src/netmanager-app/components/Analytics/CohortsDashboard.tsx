@@ -1,16 +1,13 @@
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from 'lucide-react'
+
 import { PollutantCategory } from './PollutantCategory'
-import { LineCharts } from '../Charts/Line'
-import { BarCharts } from '../Charts/Bar'
+
 import { ExceedancesChart } from './ExceedanceLine'
 import { Cohort } from '@/app/types/cohorts'
 import { Device } from '@/app/types/devices'
+import { AveragesChart } from "./averages-chart";
 
 interface CohortDashboardProps {
   loading: boolean
@@ -19,7 +16,6 @@ interface CohortDashboardProps {
 }
 
 const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, cohorts }) => {
-  const [chartType, setChartType] = useState<'line' | 'bar'>('line')
   const [transformedDevices, setTransformedDevices] = useState<{ label: string; pm2_5: number }[]>([])
   const [analyticsDevices, setAnalyticsDevices] = useState<Device[]>([])
 
@@ -127,7 +123,7 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
       </div>
 
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
+        {/* <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Mean Daily PM 2.5 Over the Past 28 Days
@@ -152,8 +148,13 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
           <CardContent>
             {chartType === 'line' ? <LineCharts /> : <BarCharts />}
           </CardContent>
-        </Card>
-
+        </Card> */}
+        <AveragesChart 
+          isCohorts={false}
+          isGrids={true}
+          analyticsDevices={[]}
+          analyticsSites={analyticsDevices}
+        />
         <ExceedancesChart
           analyticsSites={[]}
           analyticsDevices={analyticsDevices}
