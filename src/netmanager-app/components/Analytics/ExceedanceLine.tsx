@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import createAxiosInstance from "@/core/apis/axiosConfig"
 import { EXCEEDANCES_DATA_URI, DEVICE_EXCEEDANCES_URI } from "@/core/urls"
+import { Device } from '@/app/types/devices'
 
 interface AnalyticsSite {
   _id: string
@@ -42,12 +43,6 @@ interface AnalyticsSite {
   generated_name?: string
 }
 
-interface Device {
-  _id: string
-  name: string
-  long_name: string
-  [key: string]: unknown
-}
 
 interface ChartData {
   name: string
