@@ -34,7 +34,7 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
     if (activeCohort?.devices) {
       const transformed = activeCohort.devices.map(device => ({
         label: device.long_name,
-        pm2_5: 0 // Default value, you may want to fetch actual PM2.5 values
+        pm2_5: 0
       }));
       setTransformedDevices(transformed);
 
