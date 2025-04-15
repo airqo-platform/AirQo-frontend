@@ -155,10 +155,12 @@ const LayerModal = ({
 
   return (
     <div
-      className="fixed inset-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-[10000]"
+      className="absolute inset-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50"
       onClick={(e) => {
-        // Close if clicking the backdrop (not the card)
         if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        zIndex: 10000,
       }}
     >
       <Card
@@ -169,15 +171,8 @@ const LayerModal = ({
         radius="rounded-xl"
       >
         <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-start items-center mb-4">
             <h3 className="text-2xl font-semibold">Map Details</h3>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-              aria-label="Close"
-            >
-              &times;
-            </button>
           </div>
 
           <div className="flex flex-wrap justify-around gap-6">
