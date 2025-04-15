@@ -62,24 +62,6 @@ const NewAnalytics: React.FC = () => {
     )
   }, [grids, cohorts])
 
-  // useEffect(()=>{
-  //   if(mapReadings) {
-  //     const values = transformDataToGeoJson(
-  //       mapReadings,
-  //       {
-  //         longitude: 'Longitude',
-  //         latitude: 'Latitude'
-  //       },
-  //       (feature) => [
-  //         feature.siteDetails && feature.siteDetails.approximate_longitude,
-  //         feature.siteDetails && feature.siteDetails.approximate_latitude
-  //       ]
-  //     );
-
-  //     setTransformedReadings(values);
-  //   }
-  // }, [mapReadings]);
-
   const handleSwitchGridsCohort = () => {
     setIsCohort(!isCohort)
   }
