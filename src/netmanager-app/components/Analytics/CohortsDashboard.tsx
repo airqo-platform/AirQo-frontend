@@ -111,9 +111,9 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
           <div className="flex flex-wrap justify-between gap-4">
             {categories.map((category, index) => (
               <div key={index} className="flex-1 min-w-[100px] max-w-[150px]">
-                <PollutantCategory 
-                  pm25level={category.pm25level} 
-                  iconClass={category.iconClass} 
+                <PollutantCategory
+                  pm25level={category.pm25level}
+                  iconClass={category.iconClass}
                   devices={transformedDevices}
                 />
               </div>
@@ -123,7 +123,7 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
       </div>
 
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        <AveragesChart 
+        <AveragesChart
           isCohorts={false}
           isGrids={true}
           analyticsDevices={[]}
