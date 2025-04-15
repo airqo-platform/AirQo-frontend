@@ -361,12 +361,7 @@ const OrganizationProfile = () => {
             </p>
           </div>
           <div className="w-full mb-12">
-            <Card
-              bordered
-              rounded
-              radius="rounded-lg"
-              background="bg-white dark:bg-[#1d1f20]"
-            >
+            <Card rounded radius="rounded-lg">
               <div className="p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
                   <div

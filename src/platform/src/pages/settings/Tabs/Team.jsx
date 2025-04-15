@@ -21,7 +21,7 @@ const Team = ({ users, loading }) => {
 
   return (
     <div data-testid="team-tab" className="px-4 md:px-0 py-4">
-      <Card bordered rounded padding="pb-6">
+      <Card rounded padding="pb-6">
         <div className="flex justify-between items-center px-6 py-5 flex-wrap sm:flex-nowrap gap-2">
           <h3 className="text-lg font-medium text-secondary-neutral-light-800 dark:text-white">
             Team members

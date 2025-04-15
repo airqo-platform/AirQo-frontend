@@ -134,12 +134,7 @@ const Password = () => {
           </p>
         </div>
         <div className="md:col-span-2">
-          <Card
-            bordered
-            rounded
-            radius="rounded-lg"
-            background="bg-white dark:bg-[#1d1f20]"
-          >
+          <Card rounded radius="rounded-lg">
             <div className="p-6">
               <form
                 className="flex flex-col gap-4"
