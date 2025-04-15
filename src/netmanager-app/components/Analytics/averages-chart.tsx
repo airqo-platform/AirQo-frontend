@@ -683,7 +683,7 @@ export const AveragesChart: React.FC<AveragesChartProps> = ({
                               <Line
                                 type="monotone"
                                 dataKey="value"
-                                stroke="var(--color-good)"
+                                stroke={chartConfig.moderate.color}
                                 strokeWidth={2}
                                 dot={{ r: 4 }}
                                 activeDot={{ r: 6 }}
