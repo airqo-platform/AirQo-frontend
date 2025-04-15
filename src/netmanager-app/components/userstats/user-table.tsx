@@ -22,6 +22,7 @@ interface UserTableProps {
   export function UserTable({ users, searchTerm }: UserTableProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 5
+    console.log("users", users)
   
     const filteredUsers = users.filter((user) => {
       if (!searchTerm) return true
@@ -90,7 +91,7 @@ interface UserTableProps {
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Username</TableHead>
-                <TableHead>ID</TableHead>
+                <TableHead>Last Login</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
