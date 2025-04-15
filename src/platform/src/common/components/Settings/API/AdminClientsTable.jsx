@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import Card from '@/components/CardWrapper';
 import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
 import CloseIcon from '@/icons/close_icon';
 import CheckIcon from '@/icons/tickIcon';
 import Toast from '@/components/Toast';
-import { useDispatch } from 'react-redux';
+import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
+import DialogWrapper from '../../Modal/DialogWrapper';
 import {
   getAllUserClientsApi,
   activateUserClientApi,
 } from '@/core/apis/Settings';
-import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
-import { useSelector } from 'react-redux';
 import { performRefresh } from '@/lib/store/services/apiClient';
-import DialogWrapper from '../../Modal/DialogWrapper';
 
 const AdminClientsTable = () => {
   const dispatch = useDispatch();
-  const [isError, setIsError] = useState({
+  const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
     type: '',
@@ -23,10 +23,8 @@ const AdminClientsTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
   const [isLoadingDeactivation, setIsLoadingDeactivation] = useState(false);
-  const [confirmClientActivation, setConfirmClientActivation] = useState(false);
-  const [confirmClientDeactivation, setConfirmClientDeactivation] =
-    useState(false);
-  const [isActivated, setIsActivated] = useState(false);
+  const [confirmActivation, setConfirmActivation] = useState(false);
+  const [confirmDeactivation, setConfirmDeactivation] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [clients, setClients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,12 +37,12 @@ const AdminClientsTable = () => {
       setIsLoading(true);
       try {
         const res = await getAllUserClientsApi();
-        if (res.success === true) {
+        if (res.success) {
           setClients(res.clients);
           setCurrentPage(1);
         }
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -52,209 +50,161 @@ const AdminClientsTable = () => {
     fetchData();
   }, [refresh, my_clients]);
 
-  const onPageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
+  const onPageChange = (newPage) => setCurrentPage(newPage);
 
-  const setErrorState = (message, type) => {
-    setIsError({
-      isError: true,
-      message,
-      type,
-    });
-  };
+  const setError = (message, type) =>
+    setErrorState({ isError: true, message, type });
 
   const handleActivate = async () => {
     setIsLoadingActivation(true);
-    const data = {
-      _id: selectedClient._id,
-      isActive: true,
-    };
-    await activateUserClientApi(data)
-      .then((response) => {
-        setErrorState('Client activated successfully', 'success');
-        dispatch(performRefresh());
-      })
-      .catch((error) => {
-        setErrorState('Failed to activate client', 'error');
-      })
-      .finally(() => {
-        setIsLoadingActivation(false);
-        setConfirmClientActivation(false);
-      });
+    const data = { _id: selectedClient._id, isActive: true };
+    try {
+      await activateUserClientApi(data);
+      setError('Client activated successfully', 'success');
+      dispatch(performRefresh());
+    } catch {
+      setError('Failed to activate client', 'error');
+    } finally {
+      setIsLoadingActivation(false);
+      setConfirmActivation(false);
+    }
   };
 
   const handleDeactivate = async () => {
     setIsLoadingDeactivation(true);
-    const data = {
-      _id: selectedClient._id,
-      isActive: false,
-    };
-    await activateUserClientApi(data)
-      .then((response) => {
-        setErrorState('Client deactivated successfully', 'success');
-        setSelectedClient(null);
-        dispatch(performRefresh());
-      })
-      .catch((error) => {
-        setErrorState('Failed to deactivate client', 'error');
-      })
-      .finally(() => {
-        setIsLoadingDeactivation(false);
-        setConfirmClientDeactivation(false);
-        setSelectedClient(null);
-      });
+    const data = { _id: selectedClient._id, isActive: false };
+    try {
+      await activateUserClientApi(data);
+      setError('Client deactivated successfully', 'success');
+      dispatch(performRefresh());
+    } catch {
+      setError('Failed to deactivate client', 'error');
+    } finally {
+      setIsLoadingDeactivation(false);
+      setConfirmDeactivation(false);
+      setSelectedClient(null);
+    }
   };
 
-  const displayIPAddresses = (client) => {
-    return Array.isArray(client.ip_addresses)
+  const displayIPAddresses = (client) =>
+    Array.isArray(client.ip_addresses)
       ? client.ip_addresses.join(', ')
       : client.ip_addresses;
-  };
 
   return (
-    <div>
-      <div className="overflow-x-scroll">
-        {isError.isError && (
-          <Toast type={isError.type} message={isError.message} />
-        )}
+    <Card padding="p-0" bordered={false} rounded={false} className="mb-2 ">
+      {errorState.isError && (
+        <Toast type={errorState.type} message={errorState.message} />
+      )}
+      <div className="overflow-x-auto">
         <table
-          className="border-collapse rounded-lg text-xs text-left w-full mb-6"
+          className="w-full border-collapse rounded-lg text-xs text-left mb-6"
           data-testid="settings-clients-table"
         >
           <thead>
-            <tr className="text-secondary-neutral-light-500 text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25">
-              <th
-                scope="col"
-                className="font-medium w-[200px] px-4 py-3 opacity-40"
-              >
+            <tr className="bg-gray-100 dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
+              <th className="w-[200px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
                 Client name
               </th>
-              <th
-                scope="col"
-                className="font-medium w-[138px] px-4 py-3 opacity-40"
-              >
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
                 Client ID
               </th>
-              <th
-                scope="col"
-                className="font-medium w-[138px] px-4 py-3 opacity-40"
-              >
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
                 IP Address
               </th>
-              <th
-                scope="col"
-                className="font-medium w-[138px] px-4 py-3 opacity-40"
-              >
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
                 Status
               </th>
-              <th
-                scope="col"
-                className="font-medium w-[138px] px-4 py-3 opacity-40"
-              >
+              <th className="w-[138px] px-4 py-3 text-gray-600 dark:text-gray-300 opacity-90">
                 Action
               </th>
             </tr>
           </thead>
-
           {isLoading ? (
             <Skeleton />
           ) : (
             <tbody>
-              {clients && clients.length > 0 ? (
+              {clients?.length > 0 ? (
                 clients
                   .slice(
                     (currentPage - 1) * itemsPerPage,
                     currentPage * itemsPerPage,
                   )
-                  .map((client, index) => {
-                    return (
-                      <tr
-                        className={`border-b border-b-secondary-neutral-light-100`}
-                        key={index}
-                      >
-                        <td
-                          scope="row"
-                          className="w-[200px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-800 uppercase"
+                  .map((client, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-200 dark:border-gray-700"
+                    >
+                      <td className="w-[200px] px-4 py-3 font-medium text-sm text-gray-800 dark:text-gray-100 uppercase">
+                        {client.name}
+                      </td>
+                      <td className="w-[138px] px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300">
+                        {client._id}
+                      </td>
+                      <td className="w-[138px] px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300">
+                        {displayIPAddresses(client)}
+                      </td>
+                      <td className="w-[138px] px-4 py-3">
+                        <div
+                          className={`px-2 py-[2px] rounded-2xl inline-flex justify-center text-sm items-center mx-auto ${
+                            client.isActive
+                              ? 'bg-green-100 dark:bg-green-800/40 dark:text-green-400 text-green-700'
+                              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300'
+                          }`}
                         >
-                          {client?.name}
-                        </td>
-                        <td
-                          scope="row"
-                          className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
-                        >
-                          {client?._id}
-                        </td>
-                        <td
-                          scope="row"
-                          className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400"
-                        >
-                          {displayIPAddresses(client)}
-                        </td>
-                        <td scope="row" className="w-[138px] px-4 py-3">
-                          <div
-                            className={`px-2 py-[2px] rounded-2xl w-auto inline-flex justify-center text-sm leading-5 items-center mx-auto ${
-                              client?.isActive
-                                ? 'bg-success-50 text-success-700'
-                                : 'bg-secondary-neutral-light-50 text-secondary-neutral-light-500'
-                            }`}
-                          >
-                            {client?.isActive ? 'Activated' : 'Not Activated'}
-                          </div>
-                        </td>
-                        <td
-                          scope="row"
-                          className="w-[138px] px-4 py-3 font-medium text-sm leading-5 text-secondary-neutral-light-400 capitalize flex items-center gap-2"
-                        >
-                          <div
-                            className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
-                              client?.isActive
-                                ? 'cursor-not-allowed'
-                                : 'cursor-pointer'
-                            }`}
-                            onClick={() => {
-                              if (client?.isActive) {
-                                return;
-                              }
-                              setConfirmClientActivation(true);
+                          {client.isActive ? 'Activated' : 'Not Activated'}
+                        </div>
+                      </td>
+                      <td className="w-[138px] px-4 py-3 font-medium text-sm text-gray-500 dark:text-gray-300 capitalize flex items-center gap-2">
+                        <div
+                          className={`w-9 h-9 p-2.5 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 flex justify-center items-center ${
+                            client.isActive
+                              ? 'cursor-not-allowed'
+                              : 'cursor-pointer'
+                          }`}
+                          onClick={() => {
+                            if (!client.isActive) {
+                              setConfirmActivation(true);
                               setSelectedClient(client);
-                            }}
-                            title={
-                              client?.isActive
-                                ? 'Client is already activated'
-                                : 'Activate client'
                             }
-                          >
-                            <CheckIcon />
-                          </div>
-                          <div
-                            className={`w-9 h-9 p-2.5 bg-white rounded border border-gray-200 flex justify-center items-center ${
-                              client?.isActive
-                                ? 'cursor-pointer'
-                                : 'cursor-not-allowed'
-                            }`}
-                            onClick={() => {
-                              if (!client?.isActive) {
-                                return;
-                              }
-                              setConfirmClientDeactivation(true);
+                          }}
+                          title={
+                            client.isActive
+                              ? 'Client is already activated'
+                              : 'Activate client'
+                          }
+                        >
+                          <CheckIcon />
+                        </div>
+                        <div
+                          className={`w-9 h-9 p-2.5 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 flex justify-center items-center ${
+                            client.isActive
+                              ? 'cursor-pointer'
+                              : 'cursor-not-allowed'
+                          }`}
+                          onClick={() => {
+                            if (client.isActive) {
+                              setConfirmDeactivation(true);
                               setSelectedClient(client);
-                            }}
-                            title={
-                              !client?.isActive
-                                ? 'Client is already deactivated'
-                                : 'Deactivate client'
                             }
-                          >
-                            <CloseIcon />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
+                          }}
+                          title={
+                            !client.isActive
+                              ? 'Client is already deactivated'
+                              : 'Deactivate client'
+                          }
+                        >
+                          <CloseIcon />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center py-3 text-grey-300">
+                  <td
+                    colSpan="6"
+                    className="text-center py-3 text-gray-400 dark:text-gray-500"
+                  >
                     No data found
                   </td>
                 </tr>
@@ -266,36 +216,36 @@ const AdminClientsTable = () => {
       <Pagination
         currentPage={currentPage}
         pageSize={itemsPerPage}
-        totalItems={clients?.length}
+        totalItems={clients.length}
         onPrevClick={() => onPageChange(currentPage - 1)}
         onNextClick={() => onPageChange(currentPage + 1)}
       />
 
       <DialogWrapper
-        open={confirmClientActivation}
-        onClose={() => setConfirmClientActivation(false)}
+        open={confirmActivation}
+        onClose={() => setConfirmActivation(false)}
         handleClick={handleActivate}
-        primaryButtonText={'Activate'}
+        primaryButtonText="Activate"
         loading={isLoadingActivation}
       >
-        <h3 className="self-stretch text-gray-700 text-lg font-medium leading-relaxed">
+        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
           Activate client
         </h3>
-        <div className="text-slate-500 text-sm font-normal leading-tight">{`Are you sure you want to activate ${selectedClient?.name} client?`}</div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{`Are you sure you want to activate ${selectedClient?.name} client?`}</p>
       </DialogWrapper>
       <DialogWrapper
-        open={confirmClientDeactivation}
-        onClose={() => setConfirmClientDeactivation(false)}
+        open={confirmDeactivation}
+        onClose={() => setConfirmDeactivation(false)}
         handleClick={handleDeactivate}
-        primaryButtonText={'Deactivate'}
+        primaryButtonText="Deactivate"
         loading={isLoadingDeactivation}
       >
-        <h3 className="self-stretch text-gray-700 text-lg font-medium leading-relaxed">
+        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
           Deactivate client
         </h3>
-        <div className="text-slate-500 text-sm font-normal leading-tight">{`Are you sure you want to deactivate ${selectedClient?.name} client?`}</div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{`Are you sure you want to deactivate ${selectedClient?.name} client?`}</p>
       </DialogWrapper>
-    </div>
+    </Card>
   );
 };
 

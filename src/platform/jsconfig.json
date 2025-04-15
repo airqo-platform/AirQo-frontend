@@ -9,7 +9,8 @@
       "@/icons/*": ["public/icons/*"],
       "@/components/*": ["src/common/components/*"],
       "@/pages/*": ["src/pages/*"],
-      "@/images/*": ["public/images/*"]
+      "@/images/*": ["public/images/*"],
+      "@/features/*": ["src/common/features/*"]
     }
   },
   "exclude": ["node_modules", ".next"],

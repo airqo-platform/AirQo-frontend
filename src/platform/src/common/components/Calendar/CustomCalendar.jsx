@@ -16,7 +16,7 @@ import {
   getYear,
 } from 'date-fns';
 import CalendarIcon from '@/icons/Analytics/calendarIcon';
-import TabButtons from '../Button/TabButtons';
+import CustomDropdown from '../Button/CustomDropdown';
 import Calendar from './Calendar';
 import { useOutsideClick } from '@/core/hooks';
 
@@ -31,7 +31,7 @@ const isValidDate = (date) => {
 };
 
 /**
- * CustomCalendar Component
+ * CustomCalendar Component with dark mode support and enhanced positioning control
  */
 const CustomCalendar = ({
   initialStartDate,
@@ -39,8 +39,16 @@ const CustomCalendar = ({
   initial_label,
   onChange,
   className = '',
-  dropdown = false,
   isLoading = false,
+  dropdownWidth,
+  dropdownAlign = 'left',
+  calendarPosition = 'bottom',
+  dropdownClassName = '',
+  dropdownButtonClassName = '',
+  dropdownMenuClassName = '',
+  horizontalOffset = 0, // New prop for horizontal adjustment
+  verticalOffset = 0, // New prop for vertical adjustment
+  dropdownStyle = {}, // Additional inline styles for dropdown positioning
 }) => {
   const containerRef = useRef(null);
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -171,17 +179,11 @@ const CustomCalendar = ({
 
   /**
    * Toggles the visibility of the date picker.
-   *
-   * @param {Event} event - Click event.
    */
-  const handleToggleDatePicker = useCallback(
-    (event) => {
-      if (isLoading) return; // Prevent toggling if loading
-      event.stopPropagation();
-      setOpenDatePicker((prev) => !prev);
-    },
-    [isLoading],
-  );
+  const handleToggleDatePicker = useCallback(() => {
+    if (isLoading) return; // Prevent toggling if loading
+    setOpenDatePicker((prev) => !prev);
+  }, [isLoading]);
 
   /**
    * Closes the date picker.
@@ -212,49 +214,78 @@ const CustomCalendar = ({
     });
   }, [initialStartDate, initialEndDate, computeDateLabel]);
 
-  /**
-   * Renders the Calendar component within a Transition for animation.
-   *
-   * @returns {JSX.Element}
-   */
-  const renderCalendar = () => (
-    <Transition
-      show={openDatePicker}
-      enter="transition ease-out duration-200"
-      enterFrom="transform opacity-0 scale-95"
-      enterTo="transform opacity-100 scale-100"
-      leave="transition ease-in duration-150"
-      leaveFrom="transform opacity-100 scale-100"
-      leaveTo="transform opacity-0 scale-95"
-    >
-      <div className={`absolute z-50 max-w-[350px] ${className}`}>
-        <Calendar
-          initialMonth1={
-            new Date(new Date().getFullYear(), new Date().getMonth() - 1)
-          }
-          initialMonth2={new Date()}
-          handleValueChange={handleValueChange}
-          closeDatePicker={handleCloseDatePicker}
-        />
-      </div>
-    </Transition>
-  );
+  // Determine the position class for the calendar dropdown
+  const getPositionClass = () => {
+    switch (calendarPosition) {
+      case 'top':
+        return 'bottom-full mb-1';
+      case 'right':
+        return 'left-full ml-1';
+      case 'left':
+        return 'right-full mr-1';
+      case 'bottom':
+      default:
+        return 'top-full mt-1';
+    }
+  };
+
+  // Create positioning style with offsets
+  const getPositionStyle = () => {
+    const style = { ...dropdownStyle };
+
+    if (horizontalOffset !== 0) {
+      style.left = `${horizontalOffset}px`;
+    }
+
+    if (verticalOffset !== 0) {
+      style.top = `${verticalOffset}px`;
+    }
+
+    return style;
+  };
 
   return (
     <div
-      className="relative cursor-pointer date-picker-container"
+      className={`relative cursor-pointer date-picker-container ${className}`}
       ref={containerRef}
     >
-      <TabButtons
-        Icon={<CalendarIcon />}
-        btnText={value.label || 'Select Date Range'}
-        dropdown={dropdown}
+      <CustomDropdown
+        text={value.label || 'Select Date Range'}
+        icon={<CalendarIcon fill="#536A87" />}
+        iconPosition="left"
         onClick={handleToggleDatePicker}
-        id="datePicker"
-        type="button"
+        isButton={true}
+        showArrowWithButton={true}
         disabled={isLoading}
+        className={`w-full ${dropdownClassName}`}
+        buttonClassName={`w-full px-4 py-2 text-gray-700 dark:text-white ${dropdownButtonClassName}`}
+        menuClassName={dropdownMenuClassName}
+        dropdownWidth={dropdownWidth}
+        dropdownAlign={dropdownAlign}
       />
-      {renderCalendar()}
+
+      <Transition
+        show={openDatePicker}
+        enter="transition ease-out duration-200"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-150"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+        className={`absolute z-50 ${getPositionClass()}`}
+        style={getPositionStyle()}
+      >
+        <div className="max-w-[350px]">
+          <Calendar
+            initialMonth1={
+              new Date(new Date().getFullYear(), new Date().getMonth() - 1)
+            }
+            initialMonth2={new Date()}
+            handleValueChange={handleValueChange}
+            closeDatePicker={handleCloseDatePicker}
+          />
+        </div>
+      </Transition>
     </div>
   );
 };
@@ -262,17 +293,34 @@ const CustomCalendar = ({
 CustomCalendar.propTypes = {
   initialStartDate: PropTypes.instanceOf(Date).isRequired,
   initialEndDate: PropTypes.instanceOf(Date).isRequired,
+  initial_label: PropTypes.string,
   onChange: PropTypes.func,
   className: PropTypes.string,
-  dropdown: PropTypes.bool,
   isLoading: PropTypes.bool,
+  dropdownWidth: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  dropdownAlign: PropTypes.oneOf(['left', 'right']),
+  calendarPosition: PropTypes.oneOf(['top', 'right', 'bottom', 'left']),
+  dropdownClassName: PropTypes.string,
+  dropdownButtonClassName: PropTypes.string,
+  dropdownMenuClassName: PropTypes.string,
+  horizontalOffset: PropTypes.number,
+  verticalOffset: PropTypes.number,
+  dropdownStyle: PropTypes.object,
 };
 
 CustomCalendar.defaultProps = {
   onChange: null,
   className: '',
-  dropdown: false,
+  initial_label: '',
   isLoading: false,
+  dropdownAlign: 'left',
+  calendarPosition: 'bottom',
+  dropdownClassName: '',
+  dropdownButtonClassName: '',
+  dropdownMenuClassName: '',
+  horizontalOffset: 0,
+  verticalOffset: 0,
+  dropdownStyle: {},
 };
 
 export default CustomCalendar;
