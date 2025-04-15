@@ -77,13 +77,13 @@ const ShortCuts = ({ setSelectedRange }) => {
   };
 
   return (
-    <div className="py-6 border-r border-gray-100 w-full md:w-[260px] max-h-[350px] overflow-y-auto">
-      <ul className="text-sm leading-5 font-normal flex flex-wrap md:flex-col lg:flex-col">
+    <div className="py-6 border-r border-gray-100 dark:border-gray-700 w-full md:w-[260px] max-h-[350px] overflow-y-auto">
+      <ul className="text-xs leading-5 font-normal flex flex-wrap md:flex-col lg:flex-col">
         {timePeriods.map((period) => (
           <li key={period.label}>
             <button
               onClick={() => handleShortcutClick(period.range)}
-              className="px-6 py-[10px] w-full leading-5 hover:bg-gray-50 text-gray-700 text-left"
+              className="px-6 py-[10px] w-full leading-5 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 text-left"
               aria-label={`Select ${period.label}`}
             >
               {period.label}

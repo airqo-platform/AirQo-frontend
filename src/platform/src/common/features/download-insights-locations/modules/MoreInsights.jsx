@@ -578,7 +578,7 @@ const MoreInsights = () => {
                   initialStartDate={new Date(dateRange.startDate)}
                   initialEndDate={new Date(dateRange.endDate)}
                   onChange={handleDateChange}
-                  className="-left-10 md:left-16 top-11"
+                  horizontalOffset={60}
                   dropdown
                 />
 
