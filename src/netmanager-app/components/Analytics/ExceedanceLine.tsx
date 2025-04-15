@@ -46,7 +46,7 @@ interface Device {
   _id: string
   name: string
   long_name: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface ChartData {
