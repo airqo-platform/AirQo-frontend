@@ -16,9 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Site } from "@/app/types/sites";
 
-interface Categories {
-  [key: string]: SiteWithPM25[];
-}
 
 interface SiteWithPM25 extends Site {
   pm2_5: number;
@@ -38,6 +35,7 @@ interface GridDashboardProps {
   grids: Grid[];
   recentEventsData: { features: RecentEventFeature[] };
 }
+
 
 const GridDashboard: React.FC<GridDashboardProps> = ({
   gridId,
@@ -69,24 +67,8 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
 
   useEffect(() => {
     if (!activeGrid || !recentEventsData?.features) return;
-
-    const categorizeSite = (
-      site: Site,
-      pm2_5: number,
-      categories: Categories
-    ) => {
-      Object.keys(PM_25_CATEGORY).forEach((key) => {
-        const [min, max] = PM_25_CATEGORY[key as keyof typeof PM_25_CATEGORY];
-        if (pm2_5 >= 0 && pm2_5 > min && pm2_5 <= max) {
-          const siteWithPM25: SiteWithPM25 = {
-            ...site,
-            pm2_5,
-            label: site.name || site.description || site.generated_name || ""
-          };
-          categories[key].push(siteWithPM25);
-        }
-      });
-    };
+    console.log("activeGrid", activeGrid);
+    console.log("recentEventsData", recentEventsData.features);
 
     const initialCount = {
       Good: [],
@@ -95,28 +77,35 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
       Unhealthy: [],
       VeryUnhealthy: [],
       Hazardous: [],
-    };
+    }
 
-    const gridSitesObj = activeGrid.sites.reduce(
-      (acc: Record<string, Site>, curr: Site) => {
-        acc[curr._id] = curr;
-        return acc;
-      },
-      {}
-    );
+    if (activeGrid && activeGrid.sites && activeGrid.sites.length > 0) {
+      const gridSites = activeGrid.sites
+      const gridSitesObj = gridSites.reduce((acc, curr) => {
+        acc[curr._id] = curr
+        return acc
+      }, {})
 
-    recentEventsData.features.forEach((feature: RecentEventFeature) => {
-      const siteId = feature.properties.site_id;
-      const site = gridSitesObj[siteId];
+      recentEventsData &&
+        recentEventsData.features &&
+        recentEventsData.features.forEach((feature) => {
+          const siteId = feature.properties.site_id
+          const site = gridSitesObj[siteId]
 
-      if (site) {
-        const pm2_5 = feature.properties.pm2_5?.value || 0;
-        categorizeSite(site, pm2_5, initialCount);
-      }
-    });
-
-    setPm2_5SiteCount(initialCount);
-  }, [activeGrid, recentEventsData]);
+          if (gridSitesObj[siteId]) {
+            const pm2_5 = feature.properties.pm2_5.value
+            Object.keys(PM_25_CATEGORY).map((key) => {
+              const valid = PM_25_CATEGORY[key]
+              if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+                initialCount[key].push({ ...site, pm2_5 })
+              }
+            })
+          }
+        })
+    }
+    // console.log(initialCount);
+    setPm2_5SiteCount(initialCount)
+  }, [recentEventsData, activeGrid, setPm2_5SiteCount])
 
   const categories: {
     pm25level: keyof typeof pm2_5SiteCount;
