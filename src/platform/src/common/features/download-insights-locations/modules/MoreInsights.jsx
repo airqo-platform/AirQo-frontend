@@ -560,6 +560,7 @@ const MoreInsights = () => {
             >
               <div className="space-x-2 flex items-center">
                 <CustomDropdown
+                  dropdownWidth="150px"
                   text={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
                   className="left-0"
                 >
@@ -585,6 +586,7 @@ const MoreInsights = () => {
                 <CustomDropdown
                   text={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                   className="left-0"
+                  dropdownWidth="150px"
                 >
                   {CHART_TYPE.map((option) => (
                     <DropdownItem

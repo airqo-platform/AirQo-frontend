@@ -23,12 +23,45 @@ import {
   colors,
 } from './components';
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
-import { formatYAxisTick, CustomizedAxisTick } from './utils';
+import { formatYAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { useSelector } from 'react-redux';
 import { MdInfoOutline, MdRefresh } from 'react-icons/md';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+
+// Format date for x-axis display based on frequency and available space
+const formatXAxisDate = (timestamp, frequency) => {
+  if (!timestamp) return '';
+
+  const date = new Date(timestamp);
+
+  // For smaller screens or when data density is high, use more compact formats
+  if (frequency === 'hourly') {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (frequency === 'daily') {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } else if (frequency === 'weekly') {
+    return `W${Math.ceil(date.getDate() / 7)} ${date.toLocaleDateString([], { month: 'short' })}`;
+  } else if (frequency === 'monthly') {
+    return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+  }
+
+  return date.toLocaleDateString();
+};
+
+// Custom axis tick component with improved spacing
+const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
+  const formattedValue = formatXAxisDate(payload.value, frequency);
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={16} textAnchor="middle" fill={fill} fontSize={12}>
+        {formattedValue}
+      </text>
+    </g>
+  );
+};
 
 /**
  * MoreInsightsChart Component - Displays pollution data with various chart options
@@ -54,6 +87,17 @@ const MoreInsightsChart = ({
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
 
+  // Determine max data points to display based on container width
+  const MAX_VISIBLE_TICKS = useMemo(() => {
+    // Base calculation on container width
+    if (containerWidth <= 0) return 10;
+
+    if (containerWidth < 600) return 6;
+    if (containerWidth < 960) return 8;
+    if (containerWidth < 1200) return 10;
+    return 12;
+  }, [containerWidth]);
+
   // Extract selected site IDs from the selectedSites prop
   const selectedSiteIds = useMemo(() => {
     if (!selectedSites.length) return [];
@@ -72,7 +116,7 @@ const MoreInsightsChart = ({
   }, [selectedSiteIds, visibleSiteIds]);
 
   // Process and organize the raw data for charting
-  const { sortedData: chartData, siteIdToName } = useMemo(() => {
+  const { sortedData: rawChartData, siteIdToName } = useMemo(() => {
     if (!Array.isArray(data) || data.length === 0 || !selectedSiteIds.length) {
       return { sortedData: [], siteIdToName: {} };
     }
@@ -112,6 +156,35 @@ const MoreInsightsChart = ({
     return { sortedData, siteIdToName };
   }, [data, selectedSiteIds]);
 
+  // When there's too much data, sample it to prevent x-axis congestion
+  const chartData = useMemo(() => {
+    if (!rawChartData.length) return [];
+
+    // If data is manageable, show it all
+    if (rawChartData.length <= MAX_VISIBLE_TICKS * 2) {
+      return rawChartData;
+    }
+
+    // For lots of data, intelligently sample based on frequency and data density
+    const dataLength = rawChartData.length;
+    const sampleRate = Math.max(1, Math.ceil(dataLength / MAX_VISIBLE_TICKS));
+
+    // Include first and last data points, then sample the rest
+    const sampledData = [rawChartData[0]];
+
+    // Add the appropriate number of intermediate points
+    for (let i = sampleRate; i < dataLength - sampleRate; i += sampleRate) {
+      sampledData.push(rawChartData[i]);
+    }
+
+    // Add the last point
+    if (dataLength > 1) {
+      sampledData.push(rawChartData[dataLength - 1]);
+    }
+
+    return sampledData;
+  }, [rawChartData, MAX_VISIBLE_TICKS]);
+
   // Extract data keys to be shown in the chart
   const dataKeys = useMemo(() => {
     if (!chartData.length) return [];
@@ -147,18 +220,14 @@ const MoreInsightsChart = ({
     [activeIndex],
   );
 
-  // Calculate step size for x-axis ticks based on container width
-  const calculateStep = useCallback(() => {
-    const minLabelWidth = 25;
-    if (containerWidth <= 0 || chartData.length === 0) return 1;
+  // Calculate how many ticks should be displayed based on available width
+  const xAxisTickCount = useMemo(() => {
+    // Determine appropriate number of ticks based on chart width
+    if (containerWidth <= 0) return 6;
 
-    return Math.max(
-      1,
-      Math.ceil(chartData.length / Math.floor(containerWidth / minLabelWidth)),
-    );
-  }, [containerWidth, chartData.length]);
-
-  const step = useMemo(() => calculateStep(), [calculateStep]);
+    // Calculated based on reasonable space between ticks for readability
+    return Math.min(MAX_VISIBLE_TICKS, chartData.length);
+  }, [containerWidth, chartData.length, MAX_VISIBLE_TICKS]);
 
   // Handle refresh button click
   const handleRefreshClick = useCallback(() => {
@@ -220,6 +289,15 @@ const MoreInsightsChart = ({
     return null;
   };
 
+  // Determine appropriate x-axis tick interval
+  const xAxisInterval = useMemo(() => {
+    const calculatedInterval = Math.max(
+      0,
+      Math.floor(chartData.length / xAxisTickCount) - 1,
+    );
+    return calculatedInterval;
+  }, [chartData.length, xAxisTickCount]);
+
   // Render chart based on chartType
   const renderChart = () => {
     if (
@@ -237,7 +315,7 @@ const MoreInsightsChart = ({
       <ResponsiveContainer width={width} height={height}>
         <ChartComponent
           data={chartData}
-          margin={{ top: 38, right: 10, left: -15, bottom: 20 }}
+          margin={{ top: 38, right: 10, left: -15, bottom: 40 }} // Increased bottom margin for rotated labels
           style={{ cursor: 'pointer' }}
         >
           <CartesianGrid
@@ -248,17 +326,19 @@ const MoreInsightsChart = ({
           <XAxis
             dataKey="time"
             tickLine={false}
-            tick={({ x, y, payload }) => (
-              <CustomizedAxisTick
-                x={x}
-                y={y}
-                payload={payload}
+            tick={(props) => (
+              <ImprovedAxisTick
+                {...props}
                 fill={isDark ? '#E5E7EB' : '#485972'}
                 frequency={frequency}
+                visibleTicksCount={xAxisTickCount}
               />
             )}
             axisLine={false}
-            interval={step}
+            interval={xAxisInterval}
+            angle={-25}
+            textAnchor="end"
+            height={60}
             padding={{ left: 30, right: 30 }}
           />
           <YAxis
