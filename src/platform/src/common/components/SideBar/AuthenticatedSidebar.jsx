@@ -231,12 +231,9 @@ const AuthenticatedSideBar = () => {
       >
         <Card
           className="h-full sidebar-card relative overflow-hidden"
-          background={styles.background}
           padding="p-3"
           overflow={true}
           overflowType="auto"
-          bordered={true}
-          borderColor={styles.border}
           contentClassName={`
             flex flex-col h-full overflow-x-hidden
             scrollbar-thin ${styles.scrollbar}
