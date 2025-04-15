@@ -147,11 +147,13 @@ const AirQoMap = forwardRef(
     const shareLocationFn = useShareLocation(onToastMessage, mapRef);
     const captureScreenshotFn = useMapScreenshot(mapRef, onToastMessage);
 
-    // Function to add map controls only once.
+    // Update the addControlsIfNeeded function to properly check and manage controls
     const addControlsIfNeeded = useCallback(() => {
-      if (mapRef.current && !controlsAddedRef.current && width >= 1024) {
+      if (mapRef.current && width >= 1024) {
         try {
-          (mapRef.current._controls || []).forEach((control) => {
+          // First, remove any existing custom controls
+          const existingControls = mapRef.current._controls || [];
+          [...existingControls].forEach((control) => {
             if (
               control instanceof CustomZoomControl ||
               control instanceof CustomGeolocateControl
@@ -159,6 +161,8 @@ const AirQoMap = forwardRef(
               mapRef.current.removeControl(control);
             }
           });
+
+          // Then add fresh controls
           mapRef.current.addControl(new CustomZoomControl(), 'bottom-right');
           mapRef.current.addControl(
             new CustomGeolocateControl((msg) => onToastMessage?.(msg)),
@@ -166,7 +170,7 @@ const AirQoMap = forwardRef(
           );
           controlsAddedRef.current = true;
         } catch (error) {
-          console.error('Error adding controls:', error);
+          console.error('Error managing controls:', error);
         }
       }
     }, [onToastMessage, width]);
@@ -183,19 +187,25 @@ const AirQoMap = forwardRef(
       [clusterUpdate],
     );
 
-    // Define handleStyleSelect to update the map style without re-fetching data.
+    // Update the handleStyleSelect function to reset controls properly
     const handleStyleSelect = useCallback(
       (style) => {
         if (style.url !== currentMapStyle && mapRef.current) {
           setCurrentMapStyle(style.url);
+          // Reset the controls flag to ensure we'll re-add controls after style loads
           controlsAddedRef.current = false;
+
           const currentCenter = mapRef.current.getCenter();
           const currentZoom = mapRef.current.getZoom();
+
           mapRef.current.setStyle(style.url);
+
           mapRef.current.once('style.load', () => {
             mapRef.current.setCenter(currentCenter);
             mapRef.current.setZoom(currentZoom);
+            // Add controls after style is loaded
             addControlsIfNeeded();
+
             const combined = [
               ...(mapData.mapReadingsData || []),
               ...(mapData.waqData || []),
