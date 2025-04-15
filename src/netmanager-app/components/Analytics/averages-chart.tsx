@@ -637,7 +637,7 @@ export const AveragesChart: React.FC<AveragesChartProps> = ({
                               />
                               <Bar
                                 dataKey="value"
-                                fill="var(--color-good)"
+                                fill={chartConfig.moderate.color}
                                 radius={[4, 4, 0, 0]}
                                 name={customisedLabel}
                               />
