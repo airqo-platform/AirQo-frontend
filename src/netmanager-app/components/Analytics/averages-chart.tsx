@@ -689,7 +689,7 @@ export const AveragesChart: React.FC<AveragesChartProps> = ({
                               <ReferenceLine
                                 y={customisedAnnotation.value}
                                 label={customisedAnnotation.label}
-                                stroke={chartConfig.moderate.color}
+                                stroke="#666"
                                 strokeDasharray="3 3"
                               />
                               <Line
