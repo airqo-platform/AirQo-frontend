@@ -19,7 +19,7 @@ import LocationCards from './components/LocationCards';
 import WeekPrediction from './components/Predictions';
 import PollutantCard from './components/PollutantCard';
 import LocationAlertCard from './components/LocationAlertCard';
-import ArrowLeftIcon from '@/icons/arrow_left.svg';
+import { GoArrowLeft } from 'react-icons/go';
 import {
   setOpenLocationDetails,
   setSelectedLocation,
@@ -259,16 +259,19 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     if (selectedLocation && !mapLoading) {
       return (
         <div className="px-3">
-          <div className="pt-3 pb-2 flex items-center gap-2 text-black-800 dark:text-white mb-3">
+          <div className="pt-3 pb-2 flex items-center gap-2 mb-3">
             <Button
               paddingStyles="p-0"
               onClick={handleExit}
               variant="text"
               type="button"
             >
-              <ArrowLeftIcon />
+              <GoArrowLeft
+                className="text-gray-400 dark:text-white"
+                size={25}
+              />
             </Button>
-            <h3 className="text-lg font-medium leading-6 truncate">
+            <h3 className="text-lg text-black-800 dark:text-white font-medium leading-6 truncate">
               {
                 capitalizeAllText(
                   selectedLocation?.description ||

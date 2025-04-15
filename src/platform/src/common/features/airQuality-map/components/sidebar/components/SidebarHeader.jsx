@@ -19,7 +19,7 @@ const SidebarHeader = ({
             onClick={handleHeaderClick}
             className="focus:outline-none border border-gray-300 dark:border-gray-600 rounded-xl hover:cursor-pointer p-2 hidden md:block bg-white dark:bg-gray-800"
           >
-            <CloseIcon className="text-gray-900 dark:text-gray-100" />
+            <CloseIcon fill="#536A87" />
           </button>
         )}
       </div>

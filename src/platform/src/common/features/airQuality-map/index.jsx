@@ -265,7 +265,7 @@ const AirQoMap = forwardRef(
           controlsAddedRef.current = false;
         }
       };
-    }, [mapboxApiAccessToken, isDarkMode, refreshMapFn, addControlsIfNeeded]);
+    }, [mapboxApiAccessToken, isDarkMode, addControlsIfNeeded]);
 
     // Resize the map on window changes.
     useEffect(() => {
