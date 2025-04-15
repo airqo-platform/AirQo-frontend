@@ -84,18 +84,18 @@ function App({ Component, ...rest }) {
   const getLayout = Component.getLayout || ((page) => page);
 
   return (
-    <Provider store={store}>
-      <PersistGate loading={<Loading />} persistor={store.__persistor}>
-        <ErrorBoundary name="AppRoot" feature="global">
+    <ErrorBoundary name="AppRoot" feature="global">
+      <Provider store={store}>
+        <PersistGate loading={<Loading />} persistor={store.__persistor}>
           <ThemeProvider>
             <GoogleAnalytics />
             {getLayout(<Component {...props.pageProps} />)}
             <ThemeCustomizer />
           </ThemeProvider>
-        </ErrorBoundary>
-        <Toaster expand={true} richColors />
-      </PersistGate>
-    </Provider>
+          <Toaster expand={true} richColors />
+        </PersistGate>
+      </Provider>
+    </ErrorBoundary>
   );
 }
 

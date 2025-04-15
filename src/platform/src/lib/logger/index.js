@@ -67,7 +67,6 @@ let lastErrorTime = 0;
 let lastErrorUrl = '';
 const ERROR_THRESHOLD_MS = 2000;
 
-// Enhanced logger methods
 const logger = {
   error(message, errorOrContext = {}, context = {}) {
     if (errorOrContext instanceof Error) {
