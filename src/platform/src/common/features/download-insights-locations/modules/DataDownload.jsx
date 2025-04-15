@@ -20,6 +20,8 @@ import DataTable from '../components/DataTable';
 import CustomFields from '../components/CustomFields';
 import Footer from '../components/Footer';
 
+import ErrorBoundary from '@/components/ErrorBoundary';
+
 import {
   POLLUTANT_OPTIONS,
   DATA_TYPE_OPTIONS,
@@ -554,7 +556,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     }
   }, [selectedGridId, isLoadingSiteIds, isSiteIdsError, siteAndDeviceIds]);
 
-  // Handle filter tab changes and clear selections
   useEffect(() => {
     if (
       refs.current.previousFilter &&
@@ -562,7 +563,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     ) {
       clearSelections();
 
-      // If switching to Countries or Cities and Raw Data is selected, switch to Calibrated Data
       if (
         (activeFilterKey === FILTER_TYPES.COUNTRIES ||
           activeFilterKey === FILTER_TYPES.CITIES) &&
@@ -705,13 +705,13 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     const frequencyLower = formData.frequency.name.toLowerCase();
     if (frequencyLower === 'hourly') {
       const diffMs = endDate - startDate;
-      const sixMonthsMs = 180 * 24 * 60 * 60 * 1000; // 180 days in milliseconds
+      const sixMonthsMs = 180 * 24 * 60 * 60 * 1000;
       if (diffMs > sixMonthsMs) {
         return 'For hourly data, please limit your selection to 6 months';
       }
     }
 
-    return null; // No errors
+    return null;
   }, []);
 
   // Handle download submission with improved error handling
@@ -731,7 +731,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       setFormError('');
 
       try {
-        // Enhanced validation with specific error messages
         const validationError = validateFormData(formData, selectedItems);
         if (validationError) {
           throw new Error(validationError);
@@ -1194,61 +1193,63 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   };
 
   return (
-    <motion.div
-      className="flex flex-col md:flex-row h-full overflow-hidden"
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-    >
-      {/* Settings Panel - Exactly 280px width */}
-      <SettingsSidebar
-        formData={formData}
-        handleOptionSelect={handleOptionSelect}
-        handleTitleChange={handleTitleChange}
-        edit={edit}
-        setEdit={setEdit}
-        filteredDataTypeOptions={filteredDataTypeOptions}
-        ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
-        durationGuidance={durationGuidance}
-        handleSubmit={handleSubmit}
-        sidebarBg={darkMode ? '' : sidebarBg}
-      />
-
-      {/* Main Content Section */}
-      <div className="flex-1 flex flex-col relative">
-        <DataContent
-          selectedItems={selectedItems}
-          clearSelections={clearSelections}
-          currentFilterData={currentFilterData}
-          activeFilterKey={activeFilterKey}
-          selectedRows={selectedItems}
-          setSelectedRows={setSelectedItems}
-          clearSelected={clearSelected}
-          isLoading={isLoading}
-          filterErrors={filterErrors}
-          handleToggleItem={handleToggleItem}
-          columnsByFilter={columnsByFilter}
-          filters={filters}
-          handleFilter={handleFilter}
-          searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
-          handleRetryLoad={handleRetryLoad}
-        />
-
-        <Footer
-          setError={setFormError}
-          messageType={footerInfo.type}
-          message={footerInfo.message}
-          selectedItems={selectedItems}
-          handleClearSelection={handleClearSelection}
+    <ErrorBoundary name="DataDownload" feature="Air Quality Data Download">
+      <motion.div
+        className="flex flex-col md:flex-row h-full overflow-hidden"
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
+        {/* Settings Panel - Exactly 280px width */}
+        <SettingsSidebar
+          formData={formData}
+          handleOptionSelect={handleOptionSelect}
+          handleTitleChange={handleTitleChange}
+          edit={edit}
+          setEdit={setEdit}
+          filteredDataTypeOptions={filteredDataTypeOptions}
+          ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
+          durationGuidance={durationGuidance}
           handleSubmit={handleSubmit}
-          onClose={onClose}
-          btnText={downloadLoading ? 'Downloading...' : 'Download'}
-          loading={downloadLoading}
-          disabled={isDownloadDisabled}
+          sidebarBg={darkMode ? '' : sidebarBg}
         />
-      </div>
-    </motion.div>
+
+        {/* Main Content Section */}
+        <div className="flex-1 flex flex-col relative">
+          <DataContent
+            selectedItems={selectedItems}
+            clearSelections={clearSelections}
+            currentFilterData={currentFilterData}
+            activeFilterKey={activeFilterKey}
+            selectedRows={selectedItems}
+            setSelectedRows={setSelectedItems}
+            clearSelected={clearSelected}
+            isLoading={isLoading}
+            filterErrors={filterErrors}
+            handleToggleItem={handleToggleItem}
+            columnsByFilter={columnsByFilter}
+            filters={filters}
+            handleFilter={handleFilter}
+            searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
+            handleRetryLoad={handleRetryLoad}
+          />
+
+          <Footer
+            setError={setFormError}
+            messageType={footerInfo.type}
+            message={footerInfo.message}
+            selectedItems={selectedItems}
+            handleClearSelection={handleClearSelection}
+            handleSubmit={handleSubmit}
+            onClose={onClose}
+            btnText={downloadLoading ? 'Downloading...' : 'Download'}
+            loading={downloadLoading}
+            disabled={isDownloadDisabled}
+          />
+        </div>
+      </motion.div>
+    </ErrorBoundary>
   );
 };
 

@@ -32,6 +32,7 @@ import {
   mapDetails,
 } from '@/features/airQuality-map/constants/constants';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AirQoMap = forwardRef(
   (
@@ -62,7 +63,6 @@ const AirQoMap = forwardRef(
     const selectedNode = useSelector((state) => state.map.selectedNode);
 
     // Local state: LayerModal, node type and map style.
-    // If in dark mode use Mapbox’s dark style.
     const [layerModalOpen, setLayerModalOpen] = useState(false);
     const [nodeType, setNodeType] = useState('Emoji');
     const defaultMapStyle = isDarkMode
@@ -327,18 +327,20 @@ const AirQoMap = forwardRef(
     }, [width, selectedNode]);
 
     return (
-      <div className="relative w-full h-full">
-        <div ref={mapContainerRef} className={customStyle} />
-        <LayerModal
-          isOpen={layerModalOpen}
-          onClose={() => setLayerModalOpen(false)}
-          mapStyles={mapStyles}
-          mapDetails={mapDetails}
-          disabled="Heatmap"
-          onMapDetailsSelect={handleMapDetailsSelect}
-          onStyleSelect={handleStyleSelect}
-        />
-      </div>
+      <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
+        <div className="relative w-full h-full">
+          <div ref={mapContainerRef} className={customStyle} />
+          <LayerModal
+            isOpen={layerModalOpen}
+            onClose={() => setLayerModalOpen(false)}
+            mapStyles={mapStyles}
+            mapDetails={mapDetails}
+            disabled="Heatmap"
+            onMapDetailsSelect={handleMapDetailsSelect}
+            onStyleSelect={handleStyleSelect}
+          />
+        </div>
+      </ErrorBoundary>
     );
   },
 );

@@ -8,14 +8,10 @@ import { useRecentMeasurements } from '@/core/hooks/analyticHooks';
 import { MAX_CARDS } from './constants';
 import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 /**
- * AQNumberCard displays air quality information in a responsive grid.
- * The grid adjusts columns based on screen size:
- * - 1 column on extra small screens
- * - 2 columns on small screens
- * - 3 columns on medium screens
- * - 4 columns on large screens and above
+ * AQNumberCard displays air quality information.
  */
 const AQNumberCard = ({ className = '' }) => {
   const dispatch = useDispatch();
@@ -69,38 +65,40 @@ const AQNumberCard = ({ className = '' }) => {
   // Responsive grid classes: adjust columns for different screen sizes.
   const gridClasses = `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 ${className}`;
 
-  // Show skeleton cards while loading data
   if (isLoadingData) {
     return (
-      <div
-        className={gridClasses}
-        aria-busy="true"
-        aria-label="Loading air quality data"
-      >
-        {Array.from({ length: MAX_CARDS }).map((_, index) => (
-          <SkeletonCard key={`skeleton-${index}`} />
-        ))}
-      </div>
+      <ErrorBoundary name="AQNumberCard" feature="Loading Skeleton">
+        <div
+          className={gridClasses}
+          aria-busy="true"
+          aria-label="Loading air quality data"
+        >
+          {Array.from({ length: MAX_CARDS }).map((_, index) => (
+            <SkeletonCard key={`skeleton-${index}`} />
+          ))}
+        </div>
+      </ErrorBoundary>
     );
   }
 
-  // Render the cards grid
   return (
-    <div className={gridClasses} data-testid="aq-number-card-grid">
-      {selectedSites.map((site) => (
-        <SiteCard
-          key={site._id}
-          site={site}
-          measurement={getMeasurementForSite(site._id)}
-          onOpenModal={handleOpenModal}
-          windowWidth={windowWidth}
-          pollutantType={pollutantType}
-        />
-      ))}
-      {(selectedSites.length < MAX_CARDS || selectedSites.length === 0) && (
-        <AddLocationCard onOpenModal={handleOpenModal} />
-      )}
-    </div>
+    <ErrorBoundary name="AQNumberCard" feature="Air Quality Card">
+      <div className={gridClasses} data-testid="aq-number-card-grid">
+        {selectedSites.map((site) => (
+          <SiteCard
+            key={site._id}
+            site={site}
+            measurement={getMeasurementForSite(site._id)}
+            onOpenModal={handleOpenModal}
+            windowWidth={windowWidth}
+            pollutantType={pollutantType}
+          />
+        ))}
+        {(selectedSites.length < MAX_CARDS || selectedSites.length === 0) && (
+          <AddLocationCard onOpenModal={handleOpenModal} />
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
 

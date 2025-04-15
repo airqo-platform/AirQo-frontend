@@ -8,6 +8,7 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Checklist = ({ openVideoModal }) => {
   const dispatch = useDispatch();
@@ -35,7 +36,7 @@ const Checklist = ({ openVideoModal }) => {
           }
         }
       } catch {
-        // empty for now
+        // Optionally log or handle parsing errors
       }
     }
   }, []);
@@ -107,39 +108,41 @@ const Checklist = ({ openVideoModal }) => {
   }
 
   return (
-    <div className={reduxStatus === 'loading' ? 'opacity-70' : ''}>
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div className="w-full md:w-1/2 flex flex-col">
-          <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
-            Onboarding Checklist
-          </h2>
-          <p className="text-sm md:text-base text-gray-500 dark:text-gray-300">
-            {allCompleted
-              ? "Great job! You've completed all onboarding steps."
-              : 'Continue with your onboarding journey.'}
-          </p>
+    <ErrorBoundary name="Checklist" feature="Onboarding">
+      <div className={reduxStatus === 'loading' ? 'opacity-70' : ''}>
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div className="w-full md:w-1/2 flex flex-col">
+            <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
+              Onboarding Checklist
+            </h2>
+            <p className="text-sm md:text-base text-gray-500 dark:text-gray-300">
+              {allCompleted
+                ? "Great job! You've completed all onboarding steps."
+                : 'Continue with your onboarding journey.'}
+            </p>
+          </div>
+          <div className="w-full md:w-1/2 mt-4 md:mt-0">
+            <StepProgress
+              step={stepCount}
+              totalSteps={totalSteps}
+              completed={allCompleted}
+            />
+          </div>
         </div>
-        <div className="w-full md:w-1/2 mt-4 md:mt-0">
-          <StepProgress
-            step={stepCount}
-            totalSteps={totalSteps}
-            completed={allCompleted}
-          />
-        </div>
-      </div>
 
-      {/* Checklist Grid */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-        {mergedSteps.map((stepItem) => (
-          <ChecklistStepCard
-            key={stepItem._id || stepItem.id}
-            stepItem={stepItem}
-            onClick={() => handleStepClick(stepItem)}
-          />
-        ))}
+        {/* Checklist Grid */}
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+          {mergedSteps.map((stepItem) => (
+            <ChecklistStepCard
+              key={stepItem._id || stepItem.id}
+              stepItem={stepItem}
+              onClick={() => handleStepClick(stepItem)}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 

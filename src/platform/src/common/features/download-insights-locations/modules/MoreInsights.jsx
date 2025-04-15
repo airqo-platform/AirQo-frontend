@@ -31,6 +31,7 @@ import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { DoneRefreshed } from '../constants/svgs';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import SelectionMessage from '../components/SelectionMessage';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const InSightsHeader = () => (
   <h3
@@ -511,200 +512,204 @@ const MoreInsights = () => {
   ]);
 
   return (
-    <motion.div
-      className="flex w-full h-full overflow-hidden"
-      variants={contentVariants}
-      initial="initial"
-      animate="animate"
-    >
-      {/* Sidebar */}
+    <ErrorBoundary name="MoreInsights" feature="Air Quality Insights">
       <motion.div
-        className="w-[280px] h-full overflow-y-auto border-r dark:border-gray-700 relative space-y-3 px-4 pt-2 pb-14"
-        variants={sidebarVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {allSites.length > 1 && (
-          <motion.div
-            className="text-sm text-gray-500 mb-4"
-            variants={itemVariants}
-          >
-            <p className="flex items-center">
-              <span>Click checkbox to toggle visibility</span>
-              <Tooltip
-                content="Checked sites will be included in downloads"
-                className="ml-1"
-              >
-                <MdInfo className="text-blue-500" />
-              </Tooltip>
-            </p>
-          </motion.div>
-        )}
-        {sidebarContent}
-      </motion.div>
-
-      {/* Main Content */}
-      <motion.div
-        className="relative flex-1 h-full overflow-hidden"
+        className="flex w-full h-full overflow-hidden"
         variants={contentVariants}
-        initial="hidden"
-        animate="visible"
+        initial="initial"
+        animate="animate"
       >
-        <div className="px-2 md:px-6 pt-4 pb-4 space-y-4 h-full flex flex-col">
-          {/* Controls Bar */}
-          <motion.div
-            variants={controlsVariants}
-            className="w-full flex flex-wrap gap-2 justify-between"
-          >
-            <div className="space-x-2 flex items-center">
-              <CustomDropdown
-                text={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
-                className="left-0"
-              >
-                {TIME_OPTIONS.map((option) => (
-                  <DropdownItem
-                    key={option}
-                    onClick={() => handleFrequencyChange(option)}
-                    active={frequency === option}
-                  >
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </DropdownItem>
-                ))}
-              </CustomDropdown>
-
-              <CustomCalendar
-                initialStartDate={new Date(dateRange.startDate)}
-                initialEndDate={new Date(dateRange.endDate)}
-                onChange={handleDateChange}
-                className="-left-10 md:left-16 top-11"
-                dropdown
-              />
-
-              <CustomDropdown
-                text={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
-                className="left-0"
-              >
-                {CHART_TYPE.map((option) => (
-                  <DropdownItem
-                    key={option.id}
-                    onClick={() => handleChartTypeChange(option.id)}
-                    active={chartType === option.id}
-                  >
-                    {option.name}
-                  </DropdownItem>
-                ))}
-              </CustomDropdown>
-
-              {RefreshButton}
-            </div>
-
-            <div>
-              <Tooltip
-                content={downloadTooltipContent}
-                className="w-auto text-center"
-              >
-                <CustomDropdown
-                  text={
-                    downloadLoading
-                      ? 'Downloading...'
-                      : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`
-                  }
-                  isButton
-                  onClick={handleDataDownload}
-                  buttonStyle={{
-                    backgroundColor: visibleSites.length
-                      ? '#2563EB'
-                      : '#9CA3AF',
-                    color: 'white',
-                    border: visibleSites.length
-                      ? '1px solid #2563EB'
-                      : '1px solid #9CA3AF',
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '0.75rem',
-                  }}
-                  disabled={downloadLoading}
-                />
-              </Tooltip>
-            </div>
-          </motion.div>
-
-          {/* Download Error Notification */}
-          <AnimatePresence>
-            {downloadError && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <SelectionMessage type="error">
-                  {downloadError}
-                </SelectionMessage>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Chart Container */}
-          <motion.div
-            variants={itemVariants}
-            className="w-full border dark:border-gray-700 rounded-xl p-2 relative overflow-hidden"
-          >
-            <AnimatePresence>
-              {refreshSuccess && !isValidating && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm"
+        {/* Sidebar */}
+        <motion.div
+          className="w-[280px] h-full overflow-y-auto border-r dark:border-gray-700 relative space-y-3 px-4 pt-2 pb-14"
+          variants={sidebarVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {allSites.length > 1 && (
+            <motion.div
+              className="text-sm text-gray-500 mb-4"
+              variants={itemVariants}
+            >
+              <p className="flex items-center">
+                <span>Click checkbox to toggle visibility</span>
+                <Tooltip
+                  content="Checked sites will be included in downloads"
+                  className="ml-1"
                 >
-                  <DoneRefreshed />
-                  <span className="text-sm font-medium">Data refreshed</span>
+                  <MdInfo className="text-blue-500" />
+                </Tooltip>
+              </p>
+            </motion.div>
+          )}
+          {sidebarContent}
+        </motion.div>
+
+        {/* Main Content */}
+        <motion.div
+          className="relative flex-1 h-full overflow-hidden"
+          variants={contentVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <div className="px-2 md:px-6 pt-4 pb-4 space-y-4 h-full flex flex-col">
+            {/* Controls Bar */}
+            <motion.div
+              variants={controlsVariants}
+              className="w-full flex flex-wrap gap-2 justify-between"
+            >
+              <div className="space-x-2 flex items-center">
+                <CustomDropdown
+                  text={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
+                  className="left-0"
+                >
+                  {TIME_OPTIONS.map((option) => (
+                    <DropdownItem
+                      key={option}
+                      onClick={() => handleFrequencyChange(option)}
+                      active={frequency === option}
+                    >
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </DropdownItem>
+                  ))}
+                </CustomDropdown>
+
+                <CustomCalendar
+                  initialStartDate={new Date(dateRange.startDate)}
+                  initialEndDate={new Date(dateRange.endDate)}
+                  onChange={handleDateChange}
+                  className="-left-10 md:left-16 top-11"
+                  dropdown
+                />
+
+                <CustomDropdown
+                  text={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
+                  className="left-0"
+                >
+                  {CHART_TYPE.map((option) => (
+                    <DropdownItem
+                      key={option.id}
+                      onClick={() => handleChartTypeChange(option.id)}
+                      active={chartType === option.id}
+                    >
+                      {option.name}
+                    </DropdownItem>
+                  ))}
+                </CustomDropdown>
+
+                {RefreshButton}
+              </div>
+
+              <div>
+                <Tooltip
+                  content={downloadTooltipContent}
+                  className="w-auto text-center"
+                >
+                  <CustomDropdown
+                    text={
+                      downloadLoading
+                        ? 'Downloading...'
+                        : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`
+                    }
+                    isButton
+                    onClick={handleDataDownload}
+                    buttonStyle={{
+                      backgroundColor: visibleSites.length
+                        ? '#2563EB'
+                        : '#9CA3AF',
+                      color: 'white',
+                      border: visibleSites.length
+                        ? '1px solid #2563EB'
+                        : '1px solid #9CA3AF',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '0.75rem',
+                    }}
+                    disabled={downloadLoading}
+                  />
+                </Tooltip>
+              </div>
+            </motion.div>
+
+            {/* Download Error Notification */}
+            <AnimatePresence>
+              {downloadError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <SelectionMessage type="error">
+                    {downloadError}
+                  </SelectionMessage>
                 </motion.div>
               )}
             </AnimatePresence>
-            <AnimatePresence>{chartContent}</AnimatePresence>
-          </motion.div>
 
-          {/* Selection Message for Hidden Sites */}
-          <AnimatePresence>
-            {dataLoadingSites.length > visibleSites.length && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <SelectionMessage type="info" className="flex items-center">
-                  <svg
-                    className="h-4 w-4 mr-2 text-blue-500"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+            {/* Chart Container */}
+            <motion.div
+              variants={itemVariants}
+              className="w-full border dark:border-gray-700 rounded-xl p-2 relative overflow-hidden"
+            >
+              <AnimatePresence>
+                {refreshSuccess && !isValidating && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-2 right-4 bg-green-50 text-green-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm"
                   >
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {dataLoadingSites.length - visibleSites.length} site(s) hidden
-                  and will not be included in downloads.
-                </SelectionMessage>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    <DoneRefreshed />
+                    <span className="text-sm font-medium">Data refreshed</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>{chartContent}</AnimatePresence>
+            </motion.div>
 
-          {/* Air Quality Card */}
-          <motion.div variants={itemVariants} className="flex-shrink-0">
-            <AirQualityCard
-              airQuality="--"
-              pollutionSource="--"
-              pollutant={chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'}
-              isLoading={chartLoading || isValidating}
-            />
-          </motion.div>
-        </div>
+            {/* Selection Message for Hidden Sites */}
+            <AnimatePresence>
+              {dataLoadingSites.length > visibleSites.length && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <SelectionMessage type="info" className="flex items-center">
+                    <svg
+                      className="h-4 w-4 mr-2 text-blue-500"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {dataLoadingSites.length - visibleSites.length} site(s)
+                    hidden and will not be included in downloads.
+                  </SelectionMessage>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Air Quality Card */}
+            <motion.div variants={itemVariants} className="flex-shrink-0">
+              <AirQualityCard
+                airQuality="--"
+                pollutionSource="--"
+                pollutant={
+                  chartData.pollutionType === 'pm2_5' ? 'PM2.5' : 'PM10'
+                }
+                isLoading={chartLoading || isValidating}
+              />
+            </motion.div>
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </ErrorBoundary>
   );
 };
 

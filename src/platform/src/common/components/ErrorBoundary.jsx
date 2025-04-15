@@ -11,7 +11,6 @@ class ErrorBoundary extends React.Component {
       errorInfo: null,
     };
     this.componentId = `${props.name || 'Component'}-${Math.random().toString(36).substr(2, 9)}`;
-    // Bind the resetErrorBoundary method to the class instance
     this.resetErrorBoundary = this.resetErrorBoundary.bind(this);
   }
 
