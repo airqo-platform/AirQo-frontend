@@ -1,4 +1,3 @@
-// utils/logger.js
 import log from 'loglevel';
 import axios from 'axios';
 
@@ -11,11 +10,9 @@ function configureLogLevel() {
   const allowDevTools = process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS;
 
   if (env === 'production') {
-    // Suppress all console logs in production
     return log.setLevel('silent');
   } else if (allowDevTools === 'staging') {
-    // For staging, either suppress all logs or only show warnings
-    return log.setLevel('silent'); // Change to 'warn' if you want to see warnings in staging
+    return log.setLevel('silent');
   } else {
     // Full logging in development
     return log.setLevel('debug');
@@ -68,12 +65,11 @@ function shouldSendToSlack() {
 // Track the last error time and URL to prevent similar errors
 let lastErrorTime = 0;
 let lastErrorUrl = '';
-const ERROR_THRESHOLD_MS = 2000; // 2 seconds threshold
+const ERROR_THRESHOLD_MS = 2000;
 
 // Enhanced logger methods
 const logger = {
   error(message, errorOrContext = {}, context = {}) {
-    // Standard console logging (will be suppressed in production based on log level)
     if (errorOrContext instanceof Error) {
       log.error(message, errorOrContext, context);
     } else {
@@ -97,12 +93,10 @@ const logger = {
 
   info(message, context = {}) {
     log.info(message, context);
-    // Info logs are not sent to Slack by default
   },
 
   debug(message, context = {}) {
     log.debug(message, context);
-    // Debug logs are never sent to Slack
   },
 };
 
@@ -290,7 +284,7 @@ function formatStackTrace(stack) {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .slice(0, 5); // Limit to 5 lines for readability
+    .slice(0, 5);
 }
 
 // Clean up the stack trace line
