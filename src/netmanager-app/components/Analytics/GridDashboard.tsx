@@ -70,38 +70,47 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
     console.log("activeGrid", activeGrid);
     console.log("recentEventsData", recentEventsData.features);
 
-    const initialCount = {
+    const initialCount: {
+      Good: SiteWithPM25[];
+      Moderate: SiteWithPM25[];
+      UHFSG: SiteWithPM25[];
+      Unhealthy: SiteWithPM25[];
+      VeryUnhealthy: SiteWithPM25[];
+      Hazardous: SiteWithPM25[];
+    } = {
       Good: [],
       Moderate: [],
       UHFSG: [],
       Unhealthy: [],
       VeryUnhealthy: [],
       Hazardous: [],
-    }
+    };
 
     if (activeGrid && activeGrid.sites && activeGrid.sites.length > 0) {
       const gridSites = activeGrid.sites
-      const gridSitesObj = gridSites.reduce((acc, curr) => {
-        acc[curr._id] = curr
-        return acc
-      }, {})
+      const gridSitesObj = gridSites.reduce<Record<string, Site>>((acc, curr) => {
+        acc[curr._id] = curr;
+        return acc;
+      }, {});
 
-      recentEventsData &&
-        recentEventsData.features &&
+      if (recentEventsData && recentEventsData.features) {
         recentEventsData.features.forEach((feature) => {
-          const siteId = feature.properties.site_id
-          const site = gridSitesObj[siteId]
+          const siteId = feature.properties.site_id;
+          const site = gridSitesObj[siteId];
 
           if (gridSitesObj[siteId]) {
-            const pm2_5 = feature.properties.pm2_5.value
-            Object.keys(PM_25_CATEGORY).map((key) => {
-              const valid = PM_25_CATEGORY[key]
-              if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
-                initialCount[key].push({ ...site, pm2_5 })
-              }
-            })
+            const pm2_5 = feature.properties.pm2_5?.value;
+            if (pm2_5 !== undefined) {
+              (Object.keys(PM_25_CATEGORY) as Array<keyof typeof PM_25_CATEGORY>).forEach((key) => {
+                const valid = PM_25_CATEGORY[key];
+                if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+                  initialCount[key].push({ ...site, pm2_5, label: site.name || "Unknown" });
+                }
+              });
+            }
           }
-        })
+        });
+      }
     }
     // console.log(initialCount);
     setPm2_5SiteCount(initialCount)
