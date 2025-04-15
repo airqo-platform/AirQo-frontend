@@ -1,4 +1,3 @@
-// MapSidebar.js
 import React, {
   useEffect,
   useState,
@@ -29,6 +28,7 @@ import {
   setMapLoading,
   setZoom,
   setCenter,
+  reSetMap,
 } from '@/lib/store/services/map/MapSlice';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import useGoogleMaps from '@/core/hooks/useGoogleMaps';
@@ -239,6 +239,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 
   const handleExit = useCallback(() => {
     setIsFocused(false);
+    dispatch(reSetMap());
     dispatch(setOpenLocationDetails(false));
     dispatch(setSelectedLocation(null));
     dispatch(addSearchTerm(''));
@@ -248,6 +249,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   }, [dispatch]);
 
   const handleAllSelection = useCallback(() => {
+    dispatch(reSetMap());
     setSelectedCountry(null);
     const sorted = siteDetails
       ?.slice()

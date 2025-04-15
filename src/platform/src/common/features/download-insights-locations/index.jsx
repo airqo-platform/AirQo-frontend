@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
@@ -25,8 +25,10 @@ const MODAL_CONFIGURATIONS = {
 
 const Modal = ({ isOpen, onClose }) => {
   const modalType = useSelector((state) => state.modal.modalType?.type);
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { theme, systemTheme } = useTheme();
+  const isDarkMode = useMemo(() => {
+    return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  }, [theme, systemTheme]);
 
   const ModalHeader =
     MODAL_CONFIGURATIONS[modalType]?.header ||
