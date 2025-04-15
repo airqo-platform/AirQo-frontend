@@ -13,18 +13,15 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   const lastUpdateRef = useRef(0);
   const [loading, setLoading] = useState(true);
 
-  // Get the video checklist item from Redux (assuming the first item is the video)
   const reduxChecklist = useSelector((state) => state.cardChecklist.checklist);
   const videoChecklistItem = reduxChecklist[0];
 
-  // Handler to close modal when clicking outside
   const handleClickOutside = useCallback((event) => {
     if (backdropRef.current && !backdropRef.current.contains(event.target)) {
       handleCloseModal();
     }
   }, []);
 
-  // Throttled updateVideoState: call at most once per 1000 ms
   const updateVideoState = useCallback(() => {
     if (!videoRef.current || !videoChecklistItem?._id) return;
     const now = Date.now();
@@ -46,7 +43,6 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
     );
   }, [dispatch, videoChecklistItem]);
 
-  // Set video position once metadata is loaded
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current && videoChecklistItem?.videoProgress) {
       const duration = videoRef.current.duration;
@@ -65,7 +61,6 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
     };
   }, [open, handleClickOutside]);
 
-  // Video event handlers
   const handleVideoLoad = () => setLoading(false);
   const handleVideoPause = () => updateVideoState();
   const handleVideoEnd = () => {
@@ -93,45 +88,67 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
       ref={modalRef}
       id="custom-modal"
       tabIndex="-1"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800/50 backdrop-blur-sm"
     >
-      <Card
-        ref={backdropRef}
-        width="w-full max-w-2xl"
-        className="mx-4 md:mx-0 animate-slide-in relative"
-      >
-        <h1 className="text-sm md:text-xl w-full text-center font-medium text-gray-900 dark:text-white p-3">
-          Introducing AirQo Analytics
-        </h1>
+      <div className="relative w-full max-w-2xl mx-4 md:mx-0">
+        {/* Close Button - Now outside the Card */}
         <button
           type="button"
           onClick={handleCloseModal}
-          className="absolute top-0 right-0 md:-top-[25px] md:-right-[24px] m-2 text-gray-400 bg-blue-600 hover:bg-blue-900 rounded-full text-sm w-8 h-8 inline-flex justify-center items-center"
+          className="absolute -top-4 right-0 z-10 bg-blue-600 hover:bg-blue-700 transition-colors duration-200 rounded-full text-sm w-8 h-8 flex justify-center items-center shadow-md"
           data-modal-hide="custom-modal"
         >
-          <CloseIcon fill="#FFFFFF" />
+          <CloseIcon fill="#FFFFFF" className="w-4 h-4" />
           <span className="sr-only">Close modal</span>
         </button>
-        {/* Video container uses min-h-[384px] */}
-        <div className="w-full min-h-96 relative">
-          {loading && (
-            <div className="absolute inset-0 flex justify-center items-center">
-              <Spinner />
+
+        <Card
+          ref={backdropRef}
+          width="w-full"
+          height="h-[520px]"
+          className="animate-slide-in relative transition-all duration-300"
+          contentClassName="flex flex-col h-full"
+          shadow="shadow-lg"
+        >
+          {/* Header Section */}
+          <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
+            <h1 className="text-base md:text-xl text-center font-semibold text-gray-900 dark:text-white">
+              Introducing AirQo Analytics
+            </h1>
+          </div>
+
+          {/* Video Container */}
+          <div className="flex-grow relative w-full bg-gray-100 dark:bg-gray-800">
+            {/* Loading State */}
+            {loading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 transition-opacity duration-300">
+                <Spinner className="w-8 h-8" />
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Loading video...
+                </p>
+              </div>
+            )}
+
+            {/* Video Player */}
+            <div className="w-full h-[432px]">
+              <video
+                ref={videoRef}
+                onLoadedMetadata={handleLoadedMetadata}
+                onCanPlayThrough={handleVideoLoad}
+                onPause={handleVideoPause}
+                onEnded={handleVideoEnd}
+                className={`w-full h-full object-contain ${
+                  loading ? 'opacity-0' : 'opacity-100'
+                } transition-opacity duration-300`}
+                src={videoUrl}
+                controls
+                autoPlay
+                playsInline
+              />
             </div>
-          )}
-          <video
-            ref={videoRef}
-            onLoadedMetadata={handleLoadedMetadata}
-            onCanPlayThrough={handleVideoLoad}
-            onPause={handleVideoPause}
-            onEnded={handleVideoEnd}
-            className={`w-full h-auto ${loading ? 'hidden' : 'block'}`}
-            src={videoUrl}
-            controls
-            autoPlay
-          />
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
