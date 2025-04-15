@@ -11,7 +11,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import type { User } from "@/app/types/userStats"
 
 interface UserTableProps {
@@ -91,7 +90,6 @@ interface UserTableProps {
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Username</TableHead>
-                <TableHead>Last Login</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -112,11 +110,7 @@ interface UserTableProps {
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.userName}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono text-xs">
-                        {user._id?.substring(0, 8)}...
-                      </Badge>
-                    </TableCell>
+
                   </TableRow>
                 ))
               ) : (
