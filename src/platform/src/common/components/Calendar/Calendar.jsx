@@ -37,7 +37,8 @@ const getDayClassNames = (day, month, selectedRange) => {
   let classNames = 'flex justify-center items-center ';
 
   if (isInBetween || isStartOrEndDay) {
-    classNames += 'bg-gray-100 text-gray-800 dark:bg-gray-800 ';
+    classNames +=
+      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 ';
   }
 
   if (
@@ -163,15 +164,15 @@ const Calendar = ({
                 }
                 ${
                   isToday
-                    ? 'text-blue-600'
+                    ? 'text-blue-600 dark:text-blue-400'
                     : isCurrentMonth
                       ? 'text-gray-800 dark:text-gray-200'
                       : showTwoCalendars
-                        ? 'text-gray-300'
+                        ? 'text-gray-300 dark:text-gray-600'
                         : 'hidden'
                 }
-                hover:border-blue-600 hover:text-blue-600 hover:rounded-full hover:border dark:hover:border-gray-500 
-                disabled:text-gray-300 disabled:pointer-events-none md:w-14 lg:w-16
+                hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 hover:rounded-full hover:border dark:hover:border-blue-500 
+                disabled:text-gray-300 dark:disabled:text-gray-600 disabled:pointer-events-none md:w-14 lg:w-16
               `}
               aria-pressed={
                 isSameDay(normalizedDay, selectedRange.start) ||
@@ -207,11 +208,11 @@ const Calendar = ({
         handleValueChange={handleValueChange}
         showTwoCalendars={showTwoCalendars}
       />
-      <div className="grid grid-cols-7 text-xs text-center text-gray-900 space-y-[1px]">
+      <div className="grid grid-cols-7 text-xs text-center text-gray-900 dark:text-gray-300 space-y-[1px]">
         {daysOfWeek.map((day) => (
           <span
             key={day}
-            className="flex text-gray-600 items-center justify-center w-10 h-10 font-semibold rounded-lg"
+            className="flex text-gray-600 dark:text-gray-400 items-center justify-center w-10 h-10 font-semibold rounded-lg"
           >
             {day}
           </span>
@@ -266,14 +267,17 @@ const Calendar = ({
       }`}
     >
       <div
-        className={`z-[1000] border border-gray-100 bg-white shadow-lg rounded-xl ${
+        style={{
+          zIndex: 10000,
+        }}
+        className={`border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1d1f20] dark:text-gray-100 shadow-lg rounded-xl ${
           showTwoCalendars
             ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[700px]'
             : 'w-full max-w-[241px]'
         }`}
       >
         <div className="flex flex-col">
-          <div className="divide-x flex flex-col md:flex-row lg:flex-row">
+          <div className="divide-x dark:divide-gray-700 flex flex-col md:flex-row lg:flex-row">
             {showTwoCalendars && (
               <ShortCuts setSelectedRange={setSelectedRange} />
             )}

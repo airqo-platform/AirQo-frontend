@@ -9,8 +9,7 @@ import Spinner from '@/components/Spinner';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
 import ChartIcon from '@/icons/Topbar/chartIcon';
-import CustomDropdown from '../Dropdowns/CustomDropdown';
-// import TopBarSearch from '../search/TopBarSearch';
+import CustomDropdown from '../Button/CustomDropdown';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import {
   setToggleDrawer,
@@ -86,7 +85,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
       <ul className="dropdown-list p-2">
         <li
           onClick={handleClick('/settings')}
-          className="flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2"
+          className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           <span className="mr-3">
             <UserIcon fill="#6F87A1" width={16} height={16} />
@@ -95,7 +94,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
         </li>
         <li
           onClick={handleClick('/settings')}
-          className="flex items-center text-gray-500 hover:text-gray-600 cursor-pointer p-2"
+          className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           <span className="mr-3">
             <SettingsIcon fill="#6F87A1" width={17} height={17} />
@@ -107,7 +106,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
       <ul className="dropdown-list p-2">
         <li
           onClick={handleLogout}
-          className="text-gray-500 hover:text-gray-600 cursor-pointer p-2"
+          className="text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           Log out
           {isLoading && (
@@ -126,10 +125,20 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
     [dispatch],
   );
 
+  const renderProfileTrigger = () => (
+    <div className="cursor-pointer">
+      <img
+        className="w-8 h-8 rounded-full object-cover"
+        src={userInfo.profilePicture || placeholderImage}
+        alt="User avatar"
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-3">
       <nav
-        className={`z-50 w-full py-2 px-2 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
+        className={`z-50 w-full py-2 px-2 md:px-0 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
       >
         <div id="topBar-nav" className="flex justify-between items-center">
           <div className="block lg:hidden relative z-10 w-full">
@@ -168,21 +177,9 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
             </Button> */}
 
             <CustomDropdown
-              tabIcon={
-                userInfo.profilePicture ? (
-                  <img
-                    className="w-8 h-8 rounded-full object-cover"
-                    src={userInfo.profilePicture || placeholderImage}
-                    alt="User avatar"
-                  />
-                ) : (
-                  <UserIcon />
-                )
-              }
-              alignment="right"
-              tabStyle={`border-none ${userInfo.profilePicture ? '' : 'bg-yellow-200 p-2'} shadow-none rounded-full`}
-              id="user"
-              className="right-0"
+              trigger={renderProfileTrigger()}
+              dropdownAlign="right"
+              dropdownWidth="200px"
             >
               {renderDropdownContent()}
             </CustomDropdown>

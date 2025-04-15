@@ -11,12 +11,11 @@ const CheckComponent = ({
   subText,
   titleFont,
   checked,
-  onChangeFunc,
   disabled,
 }) => {
   return (
     <div
-      className={`relative ${bgColor || 'bg-white'} ${padding || 'p-7'} ${
+      className={`relative dark:bg-transparent ${bgColor || 'bg-white'} ${padding || 'p-7'} ${
         width || 'lg:w-fit w-11/12'
       } border ${border || 'border-radio-border'} rounded-lg ${
         checked && 'ring-1 ring-blue-600 focus:shadow-lg focus:outline-blue-600'
