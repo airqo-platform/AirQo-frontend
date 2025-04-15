@@ -10,6 +10,9 @@ import {
   Legend,
   Line,
   LineChart,
+  PieChart,
+  Pie,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -102,7 +105,7 @@ const chartConfig = {
   Hazardous: { label: "Hazardous", color: "hsl(0, 0%, 20%)" },
 }
 
-type ChartType = "bar" | "line"
+type ChartType = "bar" | "line" | "pie"
 
 export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
   analyticsSites,
@@ -307,6 +310,41 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
       .catch((error) => console.error("Error printing chart:", error))
   }
 
+  const preparePieChartData = (data: ChartData[]) => {
+    // Initialize counters for each category
+    const totals = {
+      Good: 0,
+      Moderate: 0,
+      UHFSG: 0,
+      Unhealthy: 0,
+      VeryUnhealthy: 0,
+      Hazardous: 0,
+    }
+
+    // Sum up values across all locations
+    data.forEach((item) => {
+      const exceedanceData = isCohorts ? item.exceedances : item.exceedance
+      if (exceedanceData) {
+        totals.Good += exceedanceData.Good || 0
+        totals.Moderate += exceedanceData.Moderate || 0
+        totals.UHFSG += exceedanceData.UHFSG || 0
+        totals.Unhealthy += exceedanceData.Unhealthy || 0
+        totals.VeryUnhealthy += exceedanceData.VeryUnhealthy || 0
+        totals.Hazardous += exceedanceData.Hazardous || 0
+      }
+    })
+
+    // Convert to array format for pie chart
+    return [
+      { name: "Good", value: totals.Good, color: chartConfig.Good.color },
+      { name: "Moderate", value: totals.Moderate, color: chartConfig.Moderate.color },
+      { name: "Unhealthy for Sensitive Groups", value: totals.UHFSG, color: chartConfig.UHFSG.color },
+      { name: "Unhealthy", value: totals.Unhealthy, color: chartConfig.Unhealthy.color },
+      { name: "Very Unhealthy", value: totals.VeryUnhealthy, color: chartConfig.VeryUnhealthy.color },
+      { name: "Hazardous", value: totals.Hazardous, color: chartConfig.Hazardous.color },
+    ].filter((item) => item.value > 0) // Only include categories with values
+  }
+
   return (
     <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -494,15 +532,16 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                       activeDot={{ r: 6 }}
                     />
                   </LineChart>
-                )}
+                  )
+                }
               </ResponsiveContainer>
             </ChartContainer>
           </div>
         )}
         {dataset.length > 0 && (
-          <div className="flex justify-end ">
+          <div className="flex justify-end mt-4">
             <Button variant="link" onClick={() => setAllLocationsDialogOpen(true)}>
-              View all Exceedances <ArrowRight className="ml-2 h-2 w-4" />
+              View all Exceedances <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         )}
@@ -593,6 +632,19 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                 >
                   <LineChartIcon className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant={detailChartType === "pie" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="px-2 h-8"
+                  onClick={() => setDetailChartType("pie")}
+                >
+                  <span className="h-4 w-4 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 2a10 10 0 0 1 10 10" />
+                    </svg>
+                  </span>
+                </Button>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -619,9 +671,10 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
           </DialogHeader>
           <div ref={detailsChartRef}>
             <Tabs defaultValue="grid" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="grid">Grid View</TabsTrigger>
                 <TabsTrigger value="combined">Combined View</TabsTrigger>
+                <TabsTrigger value="pie">Pie Chart</TabsTrigger>
               </TabsList>
               <TabsContent value="grid" className="mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
@@ -671,77 +724,77 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                               className="w-full h-full"
                             >
                               <ResponsiveContainer width="100%" height="100%">
-                                {detailChartType === "bar" ? (
-                                  <BarChart
-                                    data={[
-                                      {
-                                        category: "AQI Levels",
-                                        ...exceedanceData,
-                                      },
-                                    ]}
-                                    margin={{
-                                      top: 10,
-                                      right: 10,
-                                      left: 10,
-                                      bottom: 20,
-                                    }}
-                                  >
-                                    <XAxis dataKey="category" />
-                                    <YAxis />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="Good" stackId="a" fill="var(--color-Good)" />
-                                    <Bar dataKey="Moderate" stackId="a" fill="var(--color-Moderate)" />
-                                    <Bar dataKey="UHFSG" stackId="a" fill="var(--color-UHFSG)" />
-                                    <Bar dataKey="Unhealthy" stackId="a" fill="var(--color-Unhealthy)" />
-                                    <Bar dataKey="VeryUnhealthy" stackId="a" fill="var(--color-VeryUnhealthy)" />
-                                    <Bar dataKey="Hazardous" stackId="a" fill="var(--color-Hazardous)" />
-                                  </BarChart>
-                                ) : (
-                                  <LineChart
-                                    data={[
-                                      {
-                                        category: "AQI Levels",
-                                        ...exceedanceData,
-                                      },
-                                    ]}
-                                    margin={{
-                                      top: 10,
-                                      right: 10,
-                                      left: 10,
-                                      bottom: 20,
-                                    }}
-                                  >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="category" />
-                                    <YAxis />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Line
-                                      type="monotone"
-                                      dataKey="Good"
-                                      stroke="var(--color-Good)"
-                                      strokeWidth={2}
-                                      dot={{ r: 4 }}
-                                      activeDot={{ r: 6 }}
-                                    />
-                                    <Line
-                                      type="monotone"
-                                      dataKey="Moderate"
-                                      stroke="var(--color-Moderate)"
-                                      strokeWidth={2}
-                                      dot={{ r: 4 }}
-                                      activeDot={{ r: 6 }}
-                                    />
-                                    <Line
-                                      type="monotone"
-                                      dataKey="UHFSG"
-                                      stroke="var(--color-UHFSG)"
-                                      strokeWidth={2}
-                                      dot={{ r: 4 }}
-                                      activeDot={{ r: 6 }}
-                                    />
-                                  </LineChart>
-                                )}
-                              </ResponsiveContainer>
+                                  {detailChartType === "bar" ? (
+                                    <BarChart
+                                      data={[
+                                        {
+                                          category: "AQI Levels",
+                                          ...exceedanceData,
+                                        },
+                                      ]}
+                                      margin={{
+                                        top: 10,
+                                        right: 10,
+                                        left: 10,
+                                        bottom: 20,
+                                      }}
+                                    >
+                                      <XAxis dataKey="category" />
+                                      <YAxis />
+                                      <Tooltip content={<CustomTooltip />} />
+                                      <Bar dataKey="Good" stackId="a" fill="var(--color-Good)" />
+                                      <Bar dataKey="Moderate" stackId="a" fill="var(--color-Moderate)" />
+                                      <Bar dataKey="UHFSG" stackId="a" fill="var(--color-UHFSG)" />
+                                      <Bar dataKey="Unhealthy" stackId="a" fill="var(--color-Unhealthy)" />
+                                      <Bar dataKey="VeryUnhealthy" stackId="a" fill="var(--color-VeryUnhealthy)" />
+                                      <Bar dataKey="Hazardous" stackId="a" fill="var(--color-Hazardous)" />
+                                    </BarChart>
+                                  ) : (
+                                    <LineChart
+                                      data={[
+                                        {
+                                          category: "AQI Levels",
+                                          ...exceedanceData,
+                                        },
+                                      ]}
+                                      margin={{
+                                        top: 10,
+                                        right: 10,
+                                        left: 10,
+                                        bottom: 20,
+                                      }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis dataKey="category" />
+                                      <YAxis />
+                                      <Tooltip content={<CustomTooltip />} />
+                                      <Line
+                                        type="monotone"
+                                        dataKey="Good"
+                                        stroke="var(--color-Good)"
+                                        strokeWidth={2}
+                                        dot={{ r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                      />
+                                      <Line
+                                        type="monotone"
+                                        dataKey="Moderate"
+                                        stroke="var(--color-Moderate)"
+                                        strokeWidth={2}
+                                        dot={{ r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                      />
+                                      <Line
+                                        type="monotone"
+                                        dataKey="UHFSG"
+                                        stroke="var(--color-UHFSG)"
+                                        strokeWidth={2}
+                                        dot={{ r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                      />
+                                    </LineChart>
+                                  )}
+                                </ResponsiveContainer>
                             </ChartContainer>
                           </div>
                         </CardContent>
@@ -834,7 +887,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                                 radius={[4, 4, 0, 0]}
                               />
                             </BarChart>
-                          ) : (
+                          ) : detailChartType === "line" ? (
                             <LineChart
                               data={allLocationsData}
                               margin={{
@@ -894,7 +947,89 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                                 activeDot={{ r: 6 }}
                               />
                             </LineChart>
+                          ) : (
+                            <PieChart>
+                              <Pie
+                                data={preparePieChartData(allLocationsData)}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={true}
+                                outerRadius={150}
+                                fill="#8884d8"
+                                dataKey="value"
+                                nameKey="name"
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {preparePieChartData(allLocationsData).map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => [`${value} exceedances`, ""]} />
+                              <Legend layout="vertical" verticalAlign="middle" align="right" />
+                            </PieChart>
                           )}
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="pie" className="mt-4">
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle className="text-center text-primary">Exceedance Distribution</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[400px]">
+                      <ChartContainer
+                        config={{
+                          Good: {
+                            label: "Good",
+                            color: chartConfig.Good.color,
+                          },
+                          Moderate: {
+                            label: "Moderate",
+                            color: chartConfig.Moderate.color,
+                          },
+                          UHFSG: {
+                            label: "Unhealthy for Sensitive Groups",
+                            color: chartConfig.UHFSG.color,
+                          },
+                          Unhealthy: {
+                            label: "Unhealthy",
+                            color: chartConfig.Unhealthy.color,
+                          },
+                          VeryUnhealthy: {
+                            label: "Very Unhealthy",
+                            color: chartConfig.VeryUnhealthy.color,
+                          },
+                          Hazardous: {
+                            label: "Hazardous",
+                            color: chartConfig.Hazardous.color,
+                          },
+                        }}
+                        className="w-full h-full"
+                      >
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={preparePieChartData(allLocationsData)}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={true}
+                              outerRadius={150}
+                              fill="#8884d8"
+                              dataKey="value"
+                              nameKey="name"
+                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            >
+                              {preparePieChartData(allLocationsData).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => [`${value} exceedances`, ""]} />
+                            <Legend layout="vertical" verticalAlign="middle" align="right" />
+                          </PieChart>
                         </ResponsiveContainer>
                       </ChartContainer>
                     </div>
