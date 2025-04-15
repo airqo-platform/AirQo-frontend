@@ -859,7 +859,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                                 tick={{ fontSize: 12 }}
                                 tickFormatter={truncateText}
                                 label={{
-                                  value: isCohorts ? "Devices" : "Locations",
+                                  value: isCohorts ? "Devices" : "",
                                   position: "insideBottom",
                                   offset: -10,
                                 }}
@@ -906,7 +906,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
                                 tick={{ fontSize: 12 }}
                                 tickFormatter={truncateText}
                                 label={{
-                                  value: isCohorts ? "Devices" : "Locations",
+                                  value: isCohorts ? "Devices" : "",
                                   position: "insideBottom",
                                   offset: -10,
                                 }}
