@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { usePopper } from 'react-popper';
 
 /**
  * SelectDropdown Component
@@ -33,6 +34,15 @@ const SelectDropdown = ({
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
+
+  // For Popper positioning
+  const [referenceElement, setReferenceElement] = useState(null);
+  const [popperElement, setPopperElement] = useState(null);
+  const { styles: popperStyles, attributes: popperAttributes } = usePopper(
+    referenceElement,
+    popperElement,
+    { placement: 'bottom-start' },
+  );
 
   const handleSelect = (item) => {
     onChange(item);
@@ -70,6 +80,7 @@ const SelectDropdown = ({
       <div className="relative">
         <button
           type="button"
+          ref={setReferenceElement}
           onClick={() => !disabled && setOpen((prev) => !prev)}
           disabled={disabled}
           className={`
@@ -116,8 +127,11 @@ const SelectDropdown = ({
         </button>
         {open && (
           <div
+            ref={setPopperElement}
+            style={popperStyles.popper}
+            {...popperAttributes.popper}
             className={`
-              absolute mt-1 w-full z-10 bg-white dark:bg-gray-800 
+              mt-1 w-full z-10 bg-white dark:bg-gray-800 
               rounded-md shadow-lg ring-1 ring-black ring-opacity-5
               border border-gray-400 dark:border-gray-700
               max-h-60 overflow-y-auto

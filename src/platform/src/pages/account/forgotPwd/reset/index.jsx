@@ -1,59 +1,54 @@
 import React, { useState } from 'react';
-import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
-import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
 import AccountPageLayout from '@/components/Account/Layout';
 import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
 import { useRouter } from 'next/router';
 import { resetPasswordApi } from '@/core/apis/Account';
+import InputField from '@/components/InputField';
+import * as Yup from 'yup';
 
-const index = () => {
+const ResetPasswordSchema = Yup.object().shape({
+  password: Yup.string().required('Password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password'), null], 'Passwords must match')
+    .required('Confirm password is required'),
+});
+
+const Index = () => {
   const router = useRouter();
-  const [Password, setPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordType, setPasswordType] = useState('password');
-  const [confirmPasswordType, setConfirmPasswordType] = useState('password');
-  const [toastMessage, setToastMessage] = useState({
-    message: '',
-    type: '',
-  });
+  const [toastMessage, setToastMessage] = useState({ message: '', type: '' });
   const { token } = router.query;
-
   const [loading, setLoading] = useState(false);
 
-  /**
-   * @description Handles the forgot password request
-   * @param {Object} e - The event object
-   * @returns {void} - Returns nothing
-   */
   const handlePasswordReset = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    if (Password !== confirmPassword) {
-      setLoading(false);
-      return setToastMessage({
-        message: 'Passwords do not match',
-        type: 'error',
-      });
+    // Validate using Yup schema
+    try {
+      await ResetPasswordSchema.validate(
+        { password, confirmPassword },
+        { abortEarly: false },
+      );
+    } catch (validationError) {
+      const messages = validationError.inner
+        .map((err) => err.message)
+        .join(', ');
+      return setToastMessage({ message: messages, type: 'error' });
     }
-
+    setLoading(true);
     const data = {
-      password: Password,
+      password,
       resetPasswordToken: token,
     };
-
     try {
       const response = await resetPasswordApi(data);
       setLoading(false);
-
       if (response.success) {
         setToastMessage({
           message: response.message,
           type: 'success',
         });
-
-        // redirect to login page after 1 second
         setTimeout(() => {
           router.push('/account/login');
         }, 1000);
@@ -63,7 +58,7 @@ const index = () => {
           type: 'error',
         });
       }
-    } catch (error) {
+    } catch {
       setLoading(false);
       setToastMessage({
         message: 'An error occurred. Please try again',
@@ -72,83 +67,46 @@ const index = () => {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setPasswordType(passwordType === 'password' ? 'text' : 'password');
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setConfirmPasswordType(
-      confirmPasswordType === 'password' ? 'text' : 'password',
-    );
-  };
-
   return (
     <AccountPageLayout
       pageTitle="AirQo Analytics | Forgot Password"
-      rightText={
-        "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }
+      rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
     >
       <div className="w-full">
-        <h2 className="text-3xl text-black-700 font-medium">
+        <h2 className="text-3xl font-medium text-gray-900 dark:text-white">
           Reset Your Password
         </h2>
-        <p className="text-xl text-black-700 font-normal mt-3">
-          Please enter your new password below. Make sure it's something secure
-          that you can remember.
+        <p className="text-xl font-normal mt-3 text-gray-800 dark:text-gray-300">
+          Please enter your new password below. Make sure it&apos;s something
+          secure that you can remember.
         </p>
         <form onSubmit={handlePasswordReset}>
-          <div className="mt-6">
-            <div className="w-full">
-              <div className="text-sm text-grey-300">Password</div>
-              <div className="mt-2 w-full relative">
-                <input
-                  onChange={(e) => setPassword(e.target.value)}
-                  type={passwordType}
-                  placeholder="******"
-                  className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
-                  required
-                />
-                <div className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer">
-                  <div onClick={togglePasswordVisibility}>
-                    {passwordType === 'password' && <VisibilityOffIcon />}
-                    {passwordType === 'text' && (
-                      <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Password Field */}
+          <div className="mt-6 relative">
+            <InputField
+              label="Password"
+              type="password"
+              placeholder="******"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
-          <div className="mt-6">
-            <div className="w-full">
-              <div className="text-sm text-grey-300">Confirm Password</div>
-              <div className="mt-2 w-full relative">
-                <input
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  type={confirmPasswordType}
-                  placeholder="******"
-                  className={`input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500`}
-                  required
-                />
-                <div className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer">
-                  <div onClick={toggleConfirmPasswordVisibility}>
-                    {confirmPasswordType === 'password' && (
-                      <VisibilityOffIcon />
-                    )}
-                    {confirmPasswordType === 'text' && (
-                      <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Confirm Password Field */}
+          <div className="mt-6 relative">
+            <InputField
+              label="Confirm Password"
+              type="password"
+              placeholder="******"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
           </div>
           <div className="mt-10">
             <button
               style={{ textTransform: 'none' }}
-              className="w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950"
+              className="w-full btn rounded-[12px] bg-blue-900 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
               type="submit"
+              disabled={loading}
             >
               {loading ? <Spinner width={25} height={25} /> : 'Reset Password'}
             </button>
@@ -167,4 +125,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;

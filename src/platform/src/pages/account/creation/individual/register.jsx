@@ -25,7 +25,7 @@ const IndividualAccountRegistration = () => {
   const [passwordType, setPasswordType] = useState('password');
   const [passwordWordErrors, setPasswordWordErrors] = useState(false);
   let passwordRegex = new RegExp(
-    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$'
+    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&]).{8,}$',
   );
 
   const dispatch = useDispatch();
@@ -288,8 +288,8 @@ const IndividualAccountRegistration = () => {
                     <HintIcon className="w-8 h-8 mr-2" aria-hidden="true" />
                     <span>
                       Password must be at least 8 characters and contain an
-                      uppercase letter (A-Z), lowercase letter (a-z), a
-                      number (0-9) and special character (#?!@$%^&)
+                      uppercase letter (A-Z), lowercase letter (a-z), a number
+                      (0-9) and special character (#?!@$%^&)
                     </span>
                   </div>
                 )}

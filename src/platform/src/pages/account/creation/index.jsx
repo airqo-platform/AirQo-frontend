@@ -45,12 +45,12 @@ const UserDesignation = () => {
   };
 
   return (
-    <div className="relative w-screen h-screen bg-white overflow-x-hidden">
+    <div className="relative w-screen h-screen bg-white dark:bg-transparent overflow-x-hidden">
       <div className="absolute left-0 right-0 top-0 bottom-0 mt-14 sm:mt-20 lg:mt-44 mx-auto w-11/12 lg:w-7/12 flex flex-col items-center">
-        <h2 className="text-3xl text-black-700 font-semibold text-center">
+        <h2 className="text-3xl text-black-700 dark:text-white font-semibold text-center">
           How are you planning to use AirQo Analytics?
         </h2>
-        <p className="text-xl text-black-700 font-normal mt-3 text-center">
+        <p className="text-xl text-black-700 dark:text-white font-normal mt-3 text-center">
           We&apos;ll streamline your setup experience accordingly
         </p>
         <div className="mt-10 flex justify-center items-center">

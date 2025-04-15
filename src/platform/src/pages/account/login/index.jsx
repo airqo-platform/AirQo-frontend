@@ -3,12 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import jwt_decode from 'jwt-decode';
+import * as Yup from 'yup';
 
 import AccountPageLayout from '@/components/Account/Layout';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
-import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
-import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
+import InputField from '@/components/InputField';
 
 import {
   setUserData,
@@ -21,10 +21,17 @@ import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
+// Yup schema for login
+const loginSchema = Yup.object().shape({
+  userName: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required'),
+  password: Yup.string().required('Password is required'),
+});
+
 const UserLogin = () => {
   const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
-  const [passwordType, setPasswordType] = useState('password');
 
   const dispatch = useDispatch();
   const router = useRouter();
@@ -48,12 +55,22 @@ const UserLogin = () => {
       setLoading(true);
       setErrorState('');
 
+      // Validate input using Yup
+      try {
+        await loginSchema.validate(userData, { abortEarly: false });
+      } catch (validationError) {
+        const messages = validationError.inner
+          .map((err) => err.message)
+          .join(', ');
+        setLoading(false);
+        return setErrorState(messages);
+      }
+
       try {
         // Get JWT token from login endpoint
         const { token } = await retryWithDelay(() =>
           postUserLoginDetails(userData),
         );
-
         localStorage.setItem('token', token);
         const decoded = jwt_decode(token);
 
@@ -99,12 +116,6 @@ const UserLogin = () => {
     [userData, dispatch, router],
   );
 
-  const togglePasswordVisibility = useCallback(() => {
-    setPasswordType((prevType) =>
-      prevType === 'password' ? 'text' : 'password',
-    );
-  }, []);
-
   const handleInputChange = useCallback(
     (key, value) => {
       dispatch(setUserData({ key, value }));
@@ -118,10 +129,10 @@ const UserLogin = () => {
       rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
     >
       <div className="w-full">
-        <h2 className="text-3xl text-black-700 font-medium">
+        <h2 className="text-3xl font-medium text-gray-900 dark:text-white">
           Let&apos;s get started
         </h2>
-        <p className="text-xl text-black-700 font-normal mt-3">
+        <p className="text-xl font-normal mt-3 text-gray-700 dark:text-gray-300">
           Get access to air quality analytics across Africa
         </p>
         {error && <Toast type="error" timeout={8000} message={error} />}
@@ -132,76 +143,27 @@ const UserLogin = () => {
           noValidate
         >
           <div className="mt-6">
-            <div className="w-full">
-              <label htmlFor="email" className="text-sm text-grey-300">
-                Email Address
-              </label>
-              <div className="mt-2 w-full">
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  data-testid="username"
-                  aria-required="true"
-                  aria-label="Email address"
-                  onChange={(e) =>
-                    handleInputChange('userName', e.target.value)
-                  }
-                  placeholder="e.g. greta.nagawa@gmail.com"
-                  className="input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500"
-                  required
-                />
-              </div>
-            </div>
+            <InputField
+              label="Email Address"
+              type="email"
+              placeholder="e.g. greta.nagawa@gmail.com"
+              onChange={(e) => handleInputChange('userName', e.target.value)}
+              required
+            />
           </div>
-          <div className="mt-6">
-            <div className="w-full">
-              <label htmlFor="password" className="text-sm text-grey-300">
-                Password
-              </label>
-              <div className="mt-2 w-full relative">
-                <input
-                  id="password"
-                  type={passwordType}
-                  name="password"
-                  autoComplete="current-password"
-                  data-testid="password"
-                  aria-required="true"
-                  aria-label="Password"
-                  onChange={(e) =>
-                    handleInputChange('password', e.target.value)
-                  }
-                  placeholder="******"
-                  className="input w-full p-3 rounded-[4px] border-gray-300 focus:outline-none focus:ring-0 placeholder-gray-300 focus:border-green-500"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                  aria-label={
-                    passwordType === 'password'
-                      ? 'Show password'
-                      : 'Hide password'
-                  }
-                >
-                  {passwordType === 'password' ? (
-                    <VisibilityOffIcon aria-hidden="true" />
-                  ) : (
-                    <VisibilityOnIcon
-                      className="stroke-1 stroke-svg-green"
-                      aria-hidden="true"
-                    />
-                  )}
-                </button>
-              </div>
-            </div>
+          <div className="mt-6 relative">
+            <InputField
+              label="Password"
+              type="password"
+              placeholder="******"
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              required
+            />
           </div>
           <div className="mt-10">
             <button
               data-testid="login-btn"
-              className="w-full btn bg-blue-900 rounded-[12px] text-white text-sm outline-none border-none hover:bg-blue-950"
+              className="w-full btn bg-blue-900 dark:bg-blue-700 rounded-lg text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-800"
               type="submit"
               disabled={loading}
               aria-label={loading ? 'Logging in...' : 'Login'}
@@ -216,17 +178,17 @@ const UserLogin = () => {
         </form>
         <div className="mt-8 w-full flex justify-center">
           <div>
-            <span className="text-sm text-grey-300">
+            <span className="text-sm text-gray-500 dark:text-gray-300">
               Don&apos;t have an account?{' '}
             </span>
-            <span className="text-sm text-blue-900 font-medium">
+            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
               <Link href="/account/creation">Register here</Link>
             </span>
           </div>
         </div>
         <div className="mt-8 flex justify-center w-full">
           <div>
-            <span className="text-sm text-blue-900 font-medium">
+            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
               <Link href="/account/forgotPwd">Forgot Password</Link>
             </span>
           </div>
