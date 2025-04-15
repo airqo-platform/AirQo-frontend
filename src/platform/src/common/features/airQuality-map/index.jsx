@@ -331,9 +331,11 @@ const AirQoMap = forwardRef(
         <div className="relative w-full h-full">
           <div ref={mapContainerRef} className={customStyle} />
           <DataLoadingIndicator />
-          <div className="w-full h-full absolute inset-0 flex items-center justify-center">
-            <LoadingOverlay showOverlay={showOverlay} />
-          </div>
+          {showOverlay && (
+            <div className="w-full h-full absolute inset-0 flex items-center justify-center">
+              <LoadingOverlay showOverlay={showOverlay} />
+            </div>
+          )}
           <LayerModal
             isOpen={layerModalOpen}
             onClose={() => setLayerModalOpen(false)}
