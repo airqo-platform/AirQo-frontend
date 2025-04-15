@@ -20,6 +20,9 @@ export const ThemeCustomizer = memo(() => {
           flex items-center justify-center rounded-l-lg"
         aria-label="Open Theme Settings"
         type="button"
+        style={{
+          zIndex: 10000,
+        }}
       >
         <FaCog size={16} />
       </button>

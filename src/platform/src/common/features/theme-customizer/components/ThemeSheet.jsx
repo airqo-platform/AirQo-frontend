@@ -75,7 +75,11 @@ export const ThemeSheet = memo(() => {
   return (
     <AnimatePresence>
       {isThemeSheetOpen && (
-        <>
+        <div
+          style={{
+            zIndex: 20000,
+          }}
+        >
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -182,7 +186,7 @@ export const ThemeSheet = memo(() => {
               </div>
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );

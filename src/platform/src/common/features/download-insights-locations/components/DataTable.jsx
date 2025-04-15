@@ -296,7 +296,7 @@ function DataTable({
   return (
     <div className="space-y-4">
       {/* Filters + Search */}
-      <div className="flex flex-wrap items-center justify-between mb-2">
+      <div className="flex flex-wrap gap-2 items-center justify-between mb-2">
         {/* Filter Buttons */}
         <div className="flex gap-2">
           {filters.map((filterDef) => {
