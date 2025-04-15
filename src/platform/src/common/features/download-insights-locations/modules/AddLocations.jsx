@@ -1,7 +1,9 @@
 'use client';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IoIosMenu } from 'react-icons/io';
+import Close from '@/icons/close_icon';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DataTable from '../components/DataTable';
 import EnhancedFooter from '../components/Footer';
@@ -17,14 +19,91 @@ import InfoMessage from '@/components/Messages/InfoMessage';
 import PropTypes from 'prop-types';
 import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
 
-// Message types for footer component
-const MESSAGE_TYPES = {
-  ERROR: 'error',
-  WARNING: 'warning',
-  INFO: 'info',
-};
-
+// Constants
+const MESSAGE_TYPES = { ERROR: 'error', WARNING: 'warning', INFO: 'info' };
 const MAX_LOCATIONS = 4;
+
+/**
+ * Custom hook for managing location selection logic
+ */
+const useLocationSelection = (filteredSites, initialSelectedIds = []) => {
+  const [selectedSites, setSelectedSites] = useState([]);
+  const [sidebarSites, setSidebarSites] = useState([]);
+  const [clearSelected, setClearSelected] = useState(false);
+  const [error, setError] = useState('');
+
+  // Initialize selected sites from preferences
+  useEffect(() => {
+    if (filteredSites.length > 0 && initialSelectedIds.length > 0) {
+      const matchingSites = filteredSites.filter((site) =>
+        initialSelectedIds.includes(site._id),
+      );
+
+      if (matchingSites.length > 0) {
+        setSelectedSites(matchingSites);
+        setSidebarSites(matchingSites);
+      }
+    }
+  }, [filteredSites, initialSelectedIds]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedSites([]);
+    setSidebarSites([]);
+    setClearSelected(true);
+    setTimeout(() => setClearSelected(false), 100);
+    setError('');
+  }, []);
+
+  const handleToggleSite = useCallback((site) => {
+    if (!site || !site._id) {
+      console.error('Invalid site object passed to handleToggleSite', site);
+      return;
+    }
+
+    setSelectedSites((prev) => {
+      const isSelected = prev.some((s) => s._id === site._id);
+
+      // If already selected, remove it
+      if (isSelected) {
+        const newSelection = prev.filter((s) => s._id !== site._id);
+        setSidebarSites((sidebarPrev) =>
+          sidebarPrev.filter((s) => s._id !== site._id),
+        );
+        setError('');
+        return newSelection;
+      }
+
+      // Check for maximum selection limit
+      if (prev.length >= MAX_LOCATIONS) {
+        setError(`You can select up to ${MAX_LOCATIONS} locations only.`);
+        return prev;
+      }
+
+      // Add the new selection
+      const newSelection = [...prev, site];
+      setSidebarSites((sidebarPrev) => {
+        if (!sidebarPrev.some((s) => s._id === site._id)) {
+          return [...sidebarPrev, site];
+        }
+        return sidebarPrev;
+      });
+
+      setError('');
+      return newSelection;
+    });
+  }, []);
+
+  return {
+    selectedSites,
+    setSelectedSites,
+    sidebarSites,
+    clearSelected,
+    error,
+    setError,
+    handleClearSelection,
+    handleToggleSite,
+  };
+};
 
 /**
  * Header component for the Add Location modal.
@@ -39,218 +118,15 @@ export const AddLocationHeader = () => (
 );
 
 /**
- * Sidebar component for AddLocations that displays selected locations
- */
-const LocationsSidebar = ({
-  sidebarSites,
-  selectedSites,
-  handleToggleSite,
-  loading,
-  filteredSites,
-}) => {
-  const sidebarVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.3, staggerChildren: 0.07 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="animate-pulse h-10 w-full bg-gray-200 rounded"
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-            />
-          ))}
-        </div>
-      );
-    }
-
-    if (!filteredSites.length) {
-      return (
-        <InfoMessage
-          title="No data available"
-          description="The system couldn't retrieve location data. Please try again later."
-          variant="info"
-        />
-      );
-    }
-
-    if (sidebarSites.length === 0) {
-      return (
-        <InfoMessage
-          title="No locations selected"
-          description="Select a location from the table to add it here."
-          variant="info"
-        />
-      );
-    }
-
-    return (
-      <motion.div
-        className="space-y-3"
-        variants={sidebarVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {sidebarSites.map((site) => {
-          const isSelected = selectedSites.some((s) => s._id === site._id);
-          return (
-            <motion.div key={site._id} variants={itemVariants} layout>
-              <LocationCard
-                site={site}
-                onToggle={() => handleToggleSite(site)}
-                isLoading={false}
-                isSelected={isSelected}
-                disableToggle={false}
-              />
-            </motion.div>
-          );
-        })}
-      </motion.div>
-    );
-  };
-
-  return (
-    <motion.div
-      className="w-[280px] min-h-[400px] max-h-[658px] overflow-y-auto overflow-x-hidden border-r dark:border-gray-700 relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0"
-      variants={sidebarVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {renderContent()}
-    </motion.div>
-  );
-};
-
-/**
- * Main content area component for AddLocations
- */
-const LocationsContent = ({
-  filteredSites,
-  selectedSites,
-  setSelectedSites,
-  clearSelected,
-  loading,
-  isError,
-  fetchError,
-  handleToggleSite,
-  columnsByFilter,
-  filters,
-  handleFilter,
-}) => {
-  const contentVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.3, staggerChildren: 0.07 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  const renderContent = () => {
-    if (isError) {
-      return (
-        <motion.div variants={itemVariants}>
-          <InfoMessage
-            title="Error Loading Data"
-            description={
-              fetchError?.message || 'Unable to fetch locations data.'
-            }
-            variant="error"
-          />
-        </motion.div>
-      );
-    }
-
-    if (filteredSites.length === 0 && !loading) {
-      return (
-        <motion.div variants={itemVariants}>
-          <InfoMessage
-            title="No Locations Found"
-            description="No locations are currently available for selection."
-            variant="info"
-          />
-        </motion.div>
-      );
-    }
-
-    return (
-      <motion.div variants={itemVariants}>
-        <DataTable
-          data={filteredSites}
-          selectedRows={selectedSites}
-          setSelectedRows={setSelectedSites}
-          clearSelectionTrigger={clearSelected}
-          loading={loading}
-          error={isError}
-          errorMessage={
-            fetchError?.message || 'Unable to fetch locations data.'
-          }
-          onToggleRow={handleToggleSite}
-          filters={filters}
-          columnsByFilter={columnsByFilter}
-          onFilter={handleFilter}
-          searchKeys={[
-            'location_name',
-            'search_name',
-            'name',
-            'city',
-            'country',
-            'data_provider',
-            'owner',
-            'organization',
-          ]}
-        />
-      </motion.div>
-    );
-  };
-
-  return (
-    <motion.div
-      className="flex-1 h-full px-2 sm:px-6 pt-6 pb-4 overflow-y-auto"
-      variants={contentVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {renderContent()}
-    </motion.div>
-  );
-};
-
-/**
- * AddLocations component allows users to select locations for monitoring.
- * @param {Object} props
- * @param {Function} props.onClose - Function to close the modal
+ * Combined component for AddLocations
  */
 const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
   const { completeStep } = useChecklistSteps();
-
-  // State management
-  const [selectedSites, setSelectedSites] = useState([]);
-  const [sidebarSites, setSidebarSites] = useState([]);
-  const [clearSelected, setClearSelected] = useState(false);
-  const [error, setError] = useState('');
   const [messageType, setMessageType] = useState(MESSAGE_TYPES.INFO);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
 
   // Get active group
   const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
@@ -259,6 +135,22 @@ const AddLocations = ({ onClose }) => {
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
+  const selectedSiteIds = useMemo(() => {
+    const firstPreference = preferencesData?.[0];
+    return firstPreference?.selected_sites?.map((site) => site._id) || [];
+  }, [preferencesData]);
+
+  // Get user ID
+  const userID = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem('loggedUser');
+      if (!storedUser) return null;
+      return JSON.parse(storedUser)?._id ?? null;
+    } catch (error) {
+      console.error('Error parsing loggedUser from localStorage:', error);
+      return null;
+    }
+  }, []);
 
   // Fetch sites data
   const {
@@ -287,95 +179,27 @@ const AddLocations = ({ onClose }) => {
     return sitesSummaryData;
   }, [sitesSummaryData]);
 
-  // Get user ID
-  const userID = useMemo(() => {
-    try {
-      const storedUser = localStorage.getItem('loggedUser');
-      if (!storedUser) return null;
-      const parsedUser = JSON.parse(storedUser);
-      return parsedUser?._id ?? null;
-    } catch (error) {
-      console.error('Error parsing loggedUser from localStorage:', error);
-      return null;
-    }
-  }, []);
+  // Use custom hook for location selection
+  const {
+    selectedSites,
+    setSelectedSites, // Make sure to include this in the hook return
+    sidebarSites,
+    clearSelected,
+    error,
+    setError,
+    handleClearSelection,
+    handleToggleSite,
+  } = useLocationSelection(filteredSites, selectedSiteIds);
 
-  // Get selected site IDs from preferences
-  const selectedSiteIds = useMemo(() => {
-    const firstPreference = preferencesData?.[0];
-    return firstPreference?.selected_sites?.map((site) => site._id) || [];
-  }, [preferencesData]);
+  // DataTable configuration
+  const filters = useMemo(
+    () => [
+      { key: 'all', label: 'All' },
+      { key: 'favorites', label: 'Favorites' },
+    ],
+    [],
+  );
 
-  // Initialize selected sites from preferences
-  useEffect(() => {
-    if (!loading && filteredSites.length > 0 && selectedSiteIds.length > 0) {
-      const matchingSites = filteredSites.filter((site) =>
-        selectedSiteIds.includes(site._id),
-      );
-
-      if (matchingSites.length > 0) {
-        setSelectedSites(matchingSites);
-        setSidebarSites(matchingSites);
-      }
-    }
-  }, [loading, filteredSites, selectedSiteIds]);
-
-  // Clear all selected sites
-  const handleClearSelection = useCallback(() => {
-    setSelectedSites([]);
-    setSidebarSites([]);
-    setClearSelected(true);
-
-    setTimeout(() => setClearSelected(false), 100);
-
-    setStatusMessage('');
-    setError('');
-  }, []);
-
-  // Toggle site selection
-  const handleToggleSite = useCallback((site) => {
-    if (!site || !site._id) {
-      console.error('Invalid site object passed to handleToggleSite', site);
-      return;
-    }
-
-    setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
-
-      // If already selected, allow deselection
-      if (isSelected) {
-        const newSelection = prev.filter((s) => s._id !== site._id);
-        setSidebarSites((sidebarPrev) =>
-          sidebarPrev.filter((s) => s._id !== site._id),
-        );
-        setError('');
-        return newSelection;
-      }
-
-      // Check for maximum selection limit
-      if (prev.length >= MAX_LOCATIONS) {
-        setError(`You can select up to ${MAX_LOCATIONS} locations only.`);
-        setMessageType(MESSAGE_TYPES.ERROR);
-        return prev;
-      }
-
-      // Add the new selection
-      const newSelection = [...prev, site];
-
-      // Update sidebar sites
-      setSidebarSites((sidebarPrev) => {
-        if (!sidebarPrev.some((s) => s._id === site._id)) {
-          return [...sidebarPrev, site];
-        }
-        return sidebarPrev;
-      });
-
-      setError('');
-      return newSelection;
-    });
-  }, []);
-
-  // Filter function for DataTable
   const handleFilter = useCallback(
     (data, activeFilter) => {
       if (activeFilter.key === 'favorites') {
@@ -388,36 +212,8 @@ const AddLocations = ({ onClose }) => {
     [selectedSites],
   );
 
-  // Define filters for DataTable
-  const filters = useMemo(
-    () => [
-      { key: 'all', label: 'All' },
-      { key: 'favorites', label: 'Favorites' },
-    ],
-    [],
-  );
-
-  // Define columns for DataTable
   const columnsByFilter = useMemo(() => {
-    // Render location name with icon
-    const renderLocationName = (item) => {
-      const displayName =
-        item.search_name ||
-        item.name ||
-        item.location_name ||
-        'Unknown Location';
-
-      return (
-        <div className="flex items-center">
-          <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-            <LocationIcon width={16} height={16} fill="#9EA3AA" />
-          </span>
-          <span className="ml-2">{displayName}</span>
-        </div>
-      );
-    };
-
-    // Get field with fallbacks
+    // Helper function to get field with fallbacks
     const getFieldWithFallback = (item, fields) => {
       for (const field of fields) {
         if (item[field]) return item[field];
@@ -429,7 +225,19 @@ const AddLocations = ({ onClose }) => {
       {
         key: 'name',
         label: 'Location',
-        render: renderLocationName,
+        render: (item) => (
+          <div className="flex items-center">
+            <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+              <LocationIcon width={16} height={16} fill="#9EA3AA" />
+            </span>
+            <span className="ml-2">
+              {item.search_name ||
+                item.name ||
+                item.location_name ||
+                'Unknown Location'}
+            </span>
+          </div>
+        ),
       },
       {
         key: 'city',
@@ -453,10 +261,7 @@ const AddLocations = ({ onClose }) => {
       },
     ];
 
-    return {
-      all: columns,
-      favorites: columns,
-    };
+    return { all: columns, favorites: columns };
   }, []);
 
   // Handle form submission
@@ -517,9 +322,17 @@ const AddLocations = ({ onClose }) => {
         setSubmitLoading(false);
         setStatusMessage('');
       });
-  }, [selectedSites, userID, dispatch, onClose, activeGroupId]);
+  }, [
+    selectedSites,
+    userID,
+    dispatch,
+    onClose,
+    activeGroupId,
+    setError,
+    completeStep,
+  ]);
 
-  // Get footer info
+  // Determine footer message and type
   const footerInfo = useMemo(() => {
     if (error) {
       return { message: error, type: MESSAGE_TYPES.ERROR };
@@ -550,45 +363,218 @@ const AddLocations = ({ onClose }) => {
   }, [error, statusMessage, messageType, selectedSites.length]);
 
   // Animation variants
-  const pageVariants = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, transition: { duration: 0.2 } },
+  const animations = {
+    pageVariants: {
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: { duration: 0.3 } },
+      exit: { opacity: 0, transition: { duration: 0.2 } },
+    },
+    sidebarVariants: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: { duration: 0.3, staggerChildren: 0.07 },
+      },
+    },
+    itemVariants: {
+      hidden: { opacity: 0, y: 10 },
+      visible: { opacity: 1, y: 0 },
+    },
+  };
+
+  // Sidebar content renderer
+  const renderSidebarContent = () => {
+    if (loading) {
+      return (
+        <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-start items-center space-y-2">
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="animate-pulse h-10 w-full bg-gray-200 rounded"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (!filteredSites.length) {
+      return (
+        <InfoMessage
+          title="No data available"
+          description="The system couldn't retrieve location data. Please try again later."
+          variant="info"
+        />
+      );
+    }
+
+    if (sidebarSites.length === 0) {
+      return (
+        <InfoMessage
+          title="No locations selected"
+          description="Select a location from the table to add it here."
+          variant="info"
+        />
+      );
+    }
+
+    return (
+      <motion.div
+        className="space-y-3"
+        variants={animations.sidebarVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {sidebarSites.map((site) => (
+          <motion.div key={site._id} variants={animations.itemVariants} layout>
+            <LocationCard
+              site={site}
+              onToggle={() => handleToggleSite(site)}
+              isLoading={false}
+              isSelected={selectedSites.some((s) => s._id === site._id)}
+              disableToggle={false}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    );
+  };
+
+  // Main content renderer
+  const renderMainContent = () => {
+    if (isError) {
+      return (
+        <motion.div variants={animations.itemVariants}>
+          <InfoMessage
+            title="Error Loading Data"
+            description={
+              fetchError?.message || 'Unable to fetch locations data.'
+            }
+            variant="error"
+          />
+        </motion.div>
+      );
+    }
+
+    if (filteredSites.length === 0 && !loading) {
+      return (
+        <motion.div variants={animations.itemVariants}>
+          <InfoMessage
+            title="No Locations Found"
+            description="No locations are currently available for selection."
+            variant="info"
+          />
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div variants={animations.itemVariants}>
+        <DataTable
+          data={filteredSites}
+          selectedRows={selectedSites}
+          setSelectedRows={setSelectedSites}
+          clearSelectionTrigger={clearSelected}
+          loading={loading}
+          error={isError}
+          errorMessage={
+            fetchError?.message || 'Unable to fetch locations data.'
+          }
+          onToggleRow={handleToggleSite}
+          filters={filters}
+          columnsByFilter={columnsByFilter}
+          onFilter={handleFilter}
+          searchKeys={[
+            'location_name',
+            'search_name',
+            'name',
+            'city',
+            'country',
+            'data_provider',
+            'owner',
+            'organization',
+          ]}
+        />
+      </motion.div>
+    );
   };
 
   return (
     <motion.div
-      className="flex flex-col md:flex-row h-full"
-      variants={pageVariants}
+      className="relative flex flex-col lg:flex-row h-full overflow-x-hidden"
+      variants={animations.pageVariants}
       initial="initial"
       animate="animate"
       exit="exit"
       data-testid="add-locations-container"
     >
-      {/* Sidebar */}
-      <LocationsSidebar
-        sidebarSites={sidebarSites}
-        selectedSites={selectedSites}
-        handleToggleSite={handleToggleSite}
-        loading={loading}
-        filteredSites={filteredSites}
-      />
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <motion.div
+          className="w-[280px] min-h-[400px] max-h-[658px] h-full overflow-y-auto overflow-x-hidden border-r dark:border-gray-700 relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0"
+          variants={animations.sidebarVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {renderSidebarContent()}
+        </motion.div>
+      </div>
+
+      {/* Mobile/Tablet Menu Button */}
+      <div className="lg:hidden px-4 md:px-6 pt-2">
+        <button
+          onClick={() => setMobileSidebarVisible(true)}
+          aria-label="Open sidebar menu"
+        >
+          <IoIosMenu size={24} />
+        </button>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isMobileSidebarVisible && (
+          <motion.div
+            className="absolute inset-0 z-50 flex h-full overflow-x-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-[280px] h-full bg-white dark:bg-[#1d1f20] overflow-x-hidden overflow-y-auto shadow-lg"
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+            >
+              <div className="p-2 flex justify-end">
+                <button
+                  onClick={() => setMobileSidebarVisible(false)}
+                  aria-label="Close sidebar menu"
+                >
+                  <Close />
+                </button>
+              </div>
+              <div className="px-2">{renderSidebarContent()}</div>
+            </motion.div>
+            <div
+              className="flex-1 h-full bg-black bg-opacity-50"
+              onClick={() => setMobileSidebarVisible(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col relative">
-        <LocationsContent
-          filteredSites={filteredSites}
-          selectedSites={selectedSites}
-          setSelectedSites={setSelectedSites}
-          clearSelected={clearSelected}
-          loading={loading}
-          isError={isError}
-          fetchError={fetchError}
-          handleToggleSite={handleToggleSite}
-          columnsByFilter={columnsByFilter}
-          filters={filters}
-          handleFilter={handleFilter}
-        />
+      <div className="flex-1 flex flex-col relative overflow-x-hidden">
+        <motion.div
+          className="flex-1 h-full px-2 sm:px-6 pt-6 pb-4 overflow-y-auto overflow-x-hidden"
+          variants={animations.sidebarVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {renderMainContent()}
+        </motion.div>
 
         <EnhancedFooter
           btnText={submitLoading ? 'Saving...' : 'Save'}
