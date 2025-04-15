@@ -173,7 +173,7 @@ const AuthenticatedSideBar = () => {
           <div
             ref={dropdownRef}
             className={`
-              fixed left-24 top-[300px] w-48 z-50
+              fixed left-[86px] top-[280px] w-48 z-50
               ${styles.dropdownBackground} border ${styles.border}
               shadow-lg rounded-xl p-2 space-y-1
             `}

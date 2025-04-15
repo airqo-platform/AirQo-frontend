@@ -1,4 +1,3 @@
-// components/ErrorBoundary.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
 import logger from '../../lib/logger';
