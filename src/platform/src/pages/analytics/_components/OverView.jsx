@@ -163,7 +163,7 @@ const OverView = () => {
       <div className="space-y-8">
         {/* Controls Section */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
-          <div className="space-x-2 flex">
+          <div className="flex flex-wrap gap-2">
             {/* Time Frame Dropdown */}
             <CustomDropdown text={chartData.timeFrame} dropdownWidth="150px">
               <div className="py-1">
