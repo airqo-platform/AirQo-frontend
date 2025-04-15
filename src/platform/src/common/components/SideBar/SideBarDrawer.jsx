@@ -132,7 +132,7 @@ const SideBarDrawer = () => {
       <Card
         width={drawerWidth}
         className="fixed right-0 top-0 h-full z-[999999] border-l-grey-750 border-l-[1px] transition-all duration-200 ease-in-out overflow-hidden"
-        contentClassName="flex p-4 bg-white h-full flex-col overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
+        contentClassName="flex p-4 h-full flex-col overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
       >
         <div className="pb-4 flex justify-between items-center">
           {width < 1024 ? (
