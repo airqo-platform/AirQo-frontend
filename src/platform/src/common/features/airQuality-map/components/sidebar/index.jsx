@@ -1,3 +1,4 @@
+// MapSidebar.js
 import React, {
   useEffect,
   useState,
@@ -7,49 +8,37 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-
-// UI Components
 import Button from '@/components/Button';
 import SearchField from '@/components/search/SearchField';
 import Toast from '@/components/Toast';
 import Card from '@/components/CardWrapper';
 import SearchResultsSkeleton from './components/SearchResultsSkeleton';
-
-// Child Components / Utils
 import SidebarHeader from './components/SidebarHeader';
 import CountryList from './components/CountryList';
 import LocationCards from './components/LocationCards';
 import WeekPrediction from './components/Predictions';
 import PollutantCard from './components/PollutantCard';
 import LocationAlertCard from './components/LocationAlertCard';
-
-// Icons & Assets
 import ArrowLeftIcon from '@/icons/arrow_left.svg';
-
-// Hooks & Redux
 import {
   setOpenLocationDetails,
   setSelectedLocation,
   addSuggestedSites,
-  reSetMap,
   setSelectedNode,
   setSelectedWeeklyPrediction,
   setMapLoading,
-  setCenter,
   setZoom,
+  setCenter,
 } from '@/lib/store/services/map/MapSlice';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 import useGoogleMaps from '@/core/hooks/useGoogleMaps';
 import { useRecentMeasurements } from '@/core/hooks/analyticHooks';
-
-// APIs & Utils
 import { dailyPredictionsApi } from '@/core/apis/predict';
 import { capitalizeAllText } from '@/core/utils/strings';
 import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 import allCountries from '../../constants/countries.json';
 
-// Section Components
 const SectionDivider = () => (
   <div className="border border-secondary-neutral-light-100 dark:border-gray-700 my-3" />
 );
@@ -80,8 +69,6 @@ const LoadingSkeleton = () => (
 const MapSidebar = ({ siteDetails, isAdmin }) => {
   const dispatch = useDispatch();
   const contentRef = useRef(null);
-
-  // Local state
   const [isFocused, setIsFocused] = useState(false);
   const [countryData, setCountryData] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -91,13 +78,10 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const [error, setError] = useState({ isError: false, message: '', type: '' });
   const [contentOverflows, setContentOverflows] = useState(false);
 
-  // Redux selectors
   const openLocationDetails = useSelector(
     (state) => state.map.showLocationDetails,
   );
-  const selectedLocation = useSelector(
-    (state) => state.map.selectedLocation ?? null,
-  );
+  const selectedLocation = useSelector((state) => state.map.selectedLocation);
   const mapLoading = useSelector((state) => state.map.mapLoading);
   const reduxSearchTerm = useSelector(
     (state) => state.locationSearch.searchTerm,
@@ -111,12 +95,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const googleMapsLoaded = useGoogleMaps(
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
   );
-
-  // Google Maps session token for auto-complete
   const autoCompleteSessionToken = useMemo(() => {
-    if (googleMapsLoaded && window.google) {
+    if (googleMapsLoaded && window.google)
       return new window.google.maps.places.AutocompleteSessionToken();
-    }
     return null;
   }, [googleMapsLoaded]);
 
@@ -124,37 +105,26 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     selectedLocation ? { site_id: selectedLocation._id } : null,
   );
 
-  /**
-   * Check if content overflows using window resize event
-   */
   useEffect(() => {
     if (contentRef.current) {
       const checkOverflow = () => {
-        const hasOverflow =
-          contentRef.current.scrollHeight > contentRef.current.clientHeight;
-        setContentOverflows(hasOverflow);
+        setContentOverflows(
+          contentRef.current.scrollHeight > contentRef.current.clientHeight,
+        );
       };
-
       checkOverflow();
       window.addEventListener('resize', checkOverflow);
       return () => window.removeEventListener('resize', checkOverflow);
     }
   }, [selectedLocation, searchResults, suggestedSites]);
 
-  /**
-   * Fetch weekly predictions for the selected location
-   */
   const fetchWeeklyPredictions = useCallback(async () => {
-    if (!selectedLocation?._id) {
-      setWeeklyPredictions([]);
-      return;
-    }
-
+    if (!selectedLocation?._id) return setWeeklyPredictions([]);
     setLoading(true);
     try {
-      if (selectedLocation?.forecast?.length > 0) {
+      if (selectedLocation?.forecast?.length > 0)
         setWeeklyPredictions(selectedLocation.forecast);
-      } else {
+      else {
         const response = await dailyPredictionsApi(selectedLocation._id);
         setWeeklyPredictions(response?.forecasts || []);
       }
@@ -170,93 +140,60 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [selectedLocation]);
 
-  /**
-   * Initialize country data from siteDetails
-   */
   useEffect(() => {
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
-      const uniqueCountries = siteDetails.reduce((acc, site) => {
+      const unique = siteDetails.reduce((acc, site) => {
         const country = allCountries.find((c) => c.country === site.country);
         if (country && !acc.some((item) => item.country === site.country)) {
           acc.push({ ...site, ...country });
         }
         return acc;
       }, []);
-      setCountryData(uniqueCountries);
+      setCountryData(unique);
     }
   }, [siteDetails]);
 
-  /**
-   * Reset map on mount
-   */
+  // On mount, reset sidebar search state without resetting the map.
   useEffect(() => {
     dispatch(setOpenLocationDetails(false));
     dispatch(setSelectedLocation(null));
     dispatch(addSearchTerm(''));
     setIsFocused(false);
-
-    return () => {
-      // Cleanup on unmount
-      dispatch(reSetMap());
-    };
   }, [dispatch]);
 
-  /**
-   * Map loading indicator
-   */
   useEffect(() => {
     const timer = setTimeout(() => dispatch(setMapLoading(false)), 2000);
     return () => clearTimeout(timer);
   }, [dispatch, selectedLocation]);
 
-  /**
-   * When a location is selected, fetch weekly predictions
-   */
   useEffect(() => {
-    if (selectedLocation) {
-      fetchWeeklyPredictions();
-    }
+    if (selectedLocation) fetchWeeklyPredictions();
   }, [selectedLocation, fetchWeeklyPredictions]);
 
-  /**
-   * Handle location selection.
-   * The "type" parameter is optional and defaults to 'suggested'.
-   */
+  // When a location is selected, update center/zoom without refetching data.
   const handleLocationSelect = useCallback(
     async (data, type = 'suggested') => {
       try {
-        let updatedData = data;
-        let latitude, longitude;
-
-        // If the location has a place_id, get extra details
+        let updated = data,
+          latitude,
+          longitude;
         if (data?.place_id) {
-          const placeDetails = await getPlaceDetails(data.place_id);
-          if (!placeDetails?.latitude || !placeDetails?.longitude) {
+          const details = await getPlaceDetails(data.place_id);
+          if (!details?.latitude || !details?.longitude)
             throw new Error('Geolocation details are missing');
-          }
-          // Merge the extra details into our location data
-          updatedData = { ...data, ...placeDetails };
-          ({ latitude, longitude } = placeDetails);
+          updated = { ...data, ...details };
+          ({ latitude, longitude } = details);
         } else {
-          // Otherwise, use coordinates from geometry or approximate fields
           latitude =
             data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
           longitude =
             data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
         }
-
-        if (!latitude || !longitude) {
+        if (!latitude || !longitude)
           throw new Error('Location coordinates are missing');
-        }
-
-        // Always update the map center and zoom
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
-
-        // If the type is not "suggested", also update the selected location
-        if (type !== 'suggested') {
-          dispatch(setSelectedLocation(updatedData));
-        }
+        if (type !== 'suggested') dispatch(setSelectedLocation(updated));
       } catch {
         setError({
           isError: true,
@@ -268,29 +205,22 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     [dispatch],
   );
 
-  /**
-   * Handle search functionality
-   */
   const handleSearch = useCallback(async () => {
     if (!reduxSearchTerm || reduxSearchTerm.length <= 1) {
       setSearchResults([]);
       return;
     }
-
     if (!googleMapsLoaded || !autoCompleteSessionToken) {
       console.error('Google Maps API is not loaded yet.');
       return;
     }
-
     setLoading(true);
     setIsFocused(true);
-
     try {
       const predictions = await getAutocompleteSuggestions(
         reduxSearchTerm,
         autoCompleteSessionToken,
       );
-
       setSearchResults(
         predictions?.length
           ? predictions.map(({ description, place_id }) => ({
@@ -307,9 +237,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     }
   }, [reduxSearchTerm, autoCompleteSessionToken, googleMapsLoaded]);
 
-  /**
-   * Handle exit from search or details view
-   */
   const handleExit = useCallback(() => {
     setIsFocused(false);
     dispatch(setOpenLocationDetails(false));
@@ -318,65 +245,50 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     setSearchResults([]);
     dispatch(setSelectedNode(null));
     dispatch(setSelectedWeeklyPrediction(null));
-    dispatch(reSetMap());
   }, [dispatch]);
 
-  /**
-   * Handle selection of all sites
-   */
   const handleAllSelection = useCallback(() => {
     setSelectedCountry(null);
-    dispatch(reSetMap());
-
-    const sortedSites = siteDetails
-      ? [...siteDetails].sort((a, b) => a.name.localeCompare(b.name))
-      : [];
-
-    dispatch(addSuggestedSites(sortedSites));
+    const sorted = siteDetails
+      ?.slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
+    dispatch(addSuggestedSites(sorted));
   }, [dispatch, siteDetails]);
 
-  // Render the main sidebar section based on current state
-  const renderMainContent = () => {
-    // Location Details View
+  const renderMainContent = useCallback(() => {
     if (selectedLocation && !mapLoading) {
       return (
         <div className="px-3">
-          <div className="pt-3 pb-2">
-            <div className="flex items-center gap-2 text-black-800 dark:text-white mb-3">
-              <Button
-                paddingStyles="p-0"
-                onClick={handleExit}
-                variant="text"
-                type="button"
-              >
-                <ArrowLeftIcon />
-              </Button>
-              <h3 className="text-lg font-medium leading-6 truncate">
-                {
-                  capitalizeAllText(
-                    selectedLocation?.description ||
-                      selectedLocation?.search_name ||
-                      selectedLocation?.location,
-                  )?.split(',')[0]
-                }
-              </h3>
-            </div>
-
-            <WeekPrediction
-              selectedSite={selectedLocation}
-              weeklyPredictions={weeklyPredictions}
-              loading={isLoading}
-            />
+          <div className="pt-3 pb-2 flex items-center gap-2 text-black-800 dark:text-white mb-3">
+            <Button
+              paddingStyles="p-0"
+              onClick={handleExit}
+              variant="text"
+              type="button"
+            >
+              <ArrowLeftIcon />
+            </Button>
+            <h3 className="text-lg font-medium leading-6 truncate">
+              {
+                capitalizeAllText(
+                  selectedLocation?.description ||
+                    selectedLocation?.search_name ||
+                    selectedLocation?.location,
+                )?.split(',')[0]
+              }
+            </h3>
           </div>
-
+          <WeekPrediction
+            selectedSite={selectedLocation}
+            weeklyPredictions={weeklyPredictions}
+            loading={isLoading}
+          />
           <SectionDivider />
-
           <div className="mb-3 flex flex-col gap-3">
             <PollutantCard
               selectedSite={selectedLocation}
               selectedWeeklyPrediction={selectedWeeklyPrediction}
             />
-
             <LocationAlertCard
               title="Air Quality Alerts"
               selectedSite={selectedLocation}
@@ -386,8 +298,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         </div>
       );
     }
-
-    // Search Results View
     if (isSearchFocused) {
       return (
         <div className="flex flex-col w-full">
@@ -404,121 +314,114 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               showSearchResultsNumber
             />
           </div>
-
           {reduxSearchTerm === '' && <SectionDivider />}
-
           {reduxSearchTerm && (
             <div className="border border-secondary-neutral-light-100 mt-2" />
           )}
-
-          <>
-            {reduxSearchTerm === '' ? (
-              <div className="px-3 pt-3">
-                <NoResults hasSearched={false} />
-              </div>
-            ) : error.isError ? (
-              <Toast
-                message={error.message}
-                clearData={() =>
-                  setError({ isError: false, message: '', type: '' })
-                }
-                type={error.type}
-                timeout={3000}
-                dataTestId="sidebar-toast"
-                size="lg"
-                position="bottom"
-              />
-            ) : isLoading &&
-              searchResults.length === 0 &&
-              measurementsLoading ? (
-              <div className="px-3 pt-3">
-                <SearchResultsSkeleton />
-              </div>
-            ) : searchResults.length === 0 && !isLoading ? (
-              <div className="px-3 pt-3">
-                <NoResults hasSearched={true} />
-              </div>
-            ) : (
-              <LocationCards
-                searchResults={searchResults}
-                isLoading={isLoading}
-                handleLocationSelect={(data) => handleLocationSelect(data)}
-              />
-            )}
-          </>
+          {reduxSearchTerm === '' ? (
+            <div className="px-3 pt-3">
+              <NoResults hasSearched={false} />
+            </div>
+          ) : error.isError ? (
+            <Toast
+              message={error.message}
+              clearData={() =>
+                setError({ isError: false, message: '', type: '' })
+              }
+              type={error.type}
+              timeout={3000}
+              size="lg"
+              position="bottom"
+            />
+          ) : isLoading && searchResults.length === 0 && measurementsLoading ? (
+            <div className="px-3 pt-3">
+              <SearchResultsSkeleton />
+            </div>
+          ) : searchResults.length === 0 && !isLoading ? (
+            <div className="px-3 pt-3">
+              <NoResults hasSearched />
+            </div>
+          ) : (
+            <LocationCards
+              searchResults={searchResults}
+              isLoading={isLoading}
+              handleLocationSelect={(data) => handleLocationSelect(data)}
+            />
+          )}
         </div>
       );
     }
-
-    // Suggested Sites View
-    return (
+    return mapLoading || !suggestedSites || suggestedSites.length === 0 ? (
+      <LoadingSkeleton />
+    ) : (
       <>
-        {mapLoading || !suggestedSites || suggestedSites.length === 0 ? (
-          <LoadingSkeleton />
-        ) : suggestedSites.length > 0 ? (
-          <>
-            <div className="px-1">
-              <Card className="mt-3" bordered={false}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <label
-                      htmlFor="sort-select"
-                      className="font-medium text-secondary-neutral-dark-400 text-sm dark:text-white"
-                    >
-                      Sort by:
-                    </label>
-                    <select
-                      id="sort-select"
-                      className="rounded-md m-0 p-0 text-sm font-medium bg-white dark:bg-black-600 text-secondary-neutral-dark-700 dark:text-white outline-none border-none"
-                    >
-                      <option value="custom">Suggested</option>
-                    </select>
-                  </div>
-                </div>
-              </Card>
+        <div className="px-1">
+          <Card className="mt-3" bordered={false}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="sort-select"
+                  className="font-medium text-secondary-neutral-dark-400 text-sm dark:text-white"
+                >
+                  Sort by:
+                </label>
+                <select
+                  id="sort-select"
+                  className="rounded-md m-0 p-0 text-sm font-medium bg-white dark:bg-black-600 text-secondary-neutral-dark-700 dark:text-white outline-none border-none"
+                >
+                  <option value="custom">Suggested</option>
+                </select>
+              </div>
             </div>
-
-            <LocationCards
-              searchResults={suggestedSites}
-              isLoading={isLoading}
-              handleLocationSelect={(data) =>
-                handleLocationSelect(data, 'suggested')
-              }
-            />
-          </>
-        ) : (
-          <NoResults hasSearched={false} />
-        )}
+          </Card>
+        </div>
+        <LocationCards
+          searchResults={suggestedSites}
+          isLoading={isLoading}
+          handleLocationSelect={(data) =>
+            handleLocationSelect(data, 'suggested')
+          }
+        />
       </>
     );
-  };
+  }, [
+    isSearchFocused,
+    mapLoading,
+    selectedLocation,
+    weeklyPredictions,
+    isLoading,
+    selectedWeeklyPrediction,
+    reduxSearchTerm,
+    error,
+    measurementsLoading,
+    searchResults,
+    suggestedSites,
+    isAdmin,
+    handleExit,
+    handleSearch,
+    handleLocationSelect,
+  ]);
 
   return (
     <Card
       className="relative w-full h-full rounded-l-xl shadow-sm text-left"
       padding="p-0"
-      overflow={true}
+      overflow
     >
       <div className="h-full flex flex-col">
-        {/* Sidebar Header Section - only shown in main view */}
         {!isSearchFocused && !openLocationDetails && (
           <div className="pt-3 px-3 space-y-3 flex-shrink-0">
             <SidebarHeader isAdmin={isAdmin} />
-
             {!isAdmin && <hr className="my-2" />}
-
             <div onClick={() => setIsFocused(true)}>
               <SearchField showSearchResultsNumber={false} focus={false} />
             </div>
-
             <div className="flex py-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 hide-scrollbar">
               <Button
                 type="button"
                 variant="filled"
                 onClick={handleAllSelection}
-                style={{
-                  borderRadius: '9999px',
-                }}
+                style={{ borderRadius: '9999px' }}
                 className="px-3 border-none text-md font-medium h-10 flex items-center"
               >
                 All
@@ -532,19 +435,12 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                 />
               </div>
             </div>
-
             <SectionDivider />
           </div>
         )}
-
-        {/* Content Area with conditional scrolling */}
         <div
           ref={contentRef}
-          className={`sidebar-content-wrapper flex-grow ${
-            contentOverflows
-              ? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
-              : 'overflow-hidden'
-          }`}
+          className={`sidebar-content-wrapper flex-grow ${contentOverflows ? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent' : 'overflow-hidden'}`}
         >
           {renderMainContent()}
         </div>
@@ -558,8 +454,6 @@ MapSidebar.propTypes = {
   isAdmin: PropTypes.bool,
 };
 
-MapSidebar.defaultProps = {
-  isAdmin: false,
-};
+MapSidebar.defaultProps = { isAdmin: false };
 
 export default MapSidebar;

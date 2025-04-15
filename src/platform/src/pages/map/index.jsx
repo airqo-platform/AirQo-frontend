@@ -12,7 +12,7 @@ import Layout from '@/components/Layout';
 import { useWindowSize } from '@/lib/windowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
 
-// Import icons
+// Icons
 import LayerIcon from '@/icons/map/layerIcon';
 import RefreshIcon from '@/icons/map/refreshIcon';
 import ShareIcon from '@/icons/map/shareIcon';
@@ -23,8 +23,6 @@ const Index = () => {
   const dispatch = useDispatch();
   const { width } = useWindowSize();
   const airqoMapRef = useRef(null);
-
-  // States
   const [loading, setLoading] = useState(true);
   const [loadingOthers, setLoadingOthers] = useState(false);
   const [toastMessage, setToastMessage] = useState({
@@ -36,14 +34,13 @@ const Index = () => {
   const [siteDetails, setSiteDetails] = useState([]);
   const [pollutant] = useState('pm2_5');
 
-  // Redux selectors
   const gridsDataSummary =
     useSelector((state) => state.grids.gridsDataSummary?.grids) || [];
   const preferences =
     useSelector((state) => state.defaults.individual_preferences) || [];
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
-  // Fetch grid data summary only once on mount
+  // Fetch grids data summary on mount.
   useEffect(() => {
     const fetchGrids = async () => {
       try {
@@ -57,44 +54,37 @@ const Index = () => {
         });
       }
     };
-
     fetchGrids();
   }, [dispatch]);
 
-  // Update site details when grids data summary changes
+  // Update site details when grid data changes.
   useEffect(() => {
-    if (Array.isArray(gridsDataSummary) && gridsDataSummary.length > 0) {
+    if (gridsDataSummary.length) {
       const sites = gridsDataSummary.flatMap((grid) => grid.sites || []);
       setSiteDetails(sites);
     }
   }, [gridsDataSummary]);
 
-  // Set suggested sites based on preferences or random selection
+  // Set suggested sites.
   useEffect(() => {
-    // Wait until we have site data
-    if (siteDetails.length === 0) return;
-
-    const preferencesSelectedSitesData = preferences.flatMap(
+    if (!siteDetails.length) return;
+    const preferredSites = preferences.flatMap(
       (pref) => pref.selected_sites || [],
     );
-
-    if (preferencesSelectedSitesData.length > 0) {
-      dispatch(addSuggestedSites(preferencesSelectedSitesData));
+    if (preferredSites.length) {
+      dispatch(addSuggestedSites(preferredSites));
     } else {
-      // Get random unique sites
       const uniqueSites = [
         ...new Map(siteDetails.map((site) => [site._id, site])).values(),
       ];
-
       const selectedSites = uniqueSites
         .sort(() => 0.5 - Math.random())
         .slice(0, 4);
-
       dispatch(addSuggestedSites(selectedSites));
     }
   }, [preferences, siteDetails, dispatch]);
 
-  // Get user's current location
+  // Save user's location (if not already saved).
   useEffect(() => {
     if (
       typeof window !== 'undefined' &&
@@ -116,40 +106,30 @@ const Index = () => {
     }
   }, []);
 
-  // Handle clicks outside controls (for mobile)
+  // Close mobile controls when clicking outside.
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        isControlsExpanded &&
-        event.target.closest('.controls-container') === null
-      ) {
+      if (isControlsExpanded && !event.target.closest('.controls-container')) {
         setIsControlsExpanded(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isControlsExpanded]);
 
-  // Responsive layout classes with smooth transitions
+  // Responsive layout classes.
   const sidebarClassName =
     width < 1024
-      ? `transition-all duration-500 ease-in-out ${
-          selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'
-        }`
+      ? `transition-all duration-500 ease-in-out ${selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'}`
       : 'transition-all duration-300 h-full min-w-[380px] lg:w-[470px]';
-
   const mapClassName =
     width < 1024
-      ? `transition-all duration-500 ease-in-out ${
-          selectedNode ? 'h-[30%]' : 'h-full w-full'
-        }`
+      ? `transition-all duration-500 ease-in-out ${selectedNode ? 'h-[30%]' : 'h-full w-full'}`
       : 'transition-all duration-300 h-full w-full';
 
-  // Handler for map controls
+  // Map control actions.
   const handleControlAction = (action) => {
     if (!airqoMapRef.current) return;
-
     switch (action) {
       case 'refresh':
         airqoMapRef.current.refreshMap();
@@ -166,25 +146,17 @@ const Index = () => {
       default:
         break;
     }
-
-    // Close mobile controls after action
-    if (width < 1024) {
-      setIsControlsExpanded(false);
-    }
+    if (width < 1024) setIsControlsExpanded(false);
   };
 
   return (
     <Layout noTopNav={width < 1024}>
       <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 overflow-hidden">
-        {/* Sidebar */}
         <div className={sidebarClassName}>
           <Sidebar siteDetails={siteDetails} isAdmin={true} />
         </div>
-
-        {/* Map Container */}
         <div className={mapClassName}>
           <div className="relative w-full h-full">
-            {/* Main Map Component */}
             <AirQoMap
               ref={airqoMapRef}
               mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
@@ -194,26 +166,19 @@ const Index = () => {
               onLoadingChange={setLoading}
               onLoadingOthersChange={setLoadingOthers}
             />
-
-            {/* Map loading overlay */}
             {loading && (
               <LoadingOverlay size={70}>
                 <Loader width={32} height={32} />
               </LoadingOverlay>
             )}
-
-            {/* Air Quality Legend */}
             {(width >= 1024 || !selectedNode) && (
               <div className="absolute left-4 bottom-2 z-[1000]">
                 <AirQualityLegend pollutant={pollutant} />
               </div>
             )}
-
-            {/* Map Controls */}
             {(width >= 1024 || !selectedNode) && (
               <div className="absolute top-4 right-0 z-40 controls-container">
                 {width >= 1024 ? (
-                  // Desktop view – vertical stack of buttons
                   <div className="flex flex-col gap-4">
                     <IconButton
                       onClick={() => handleControlAction('refresh')}
@@ -237,7 +202,6 @@ const Index = () => {
                     />
                   </div>
                 ) : (
-                  // Mobile view – controls expand to the left
                   <div className="relative controls-container">
                     <div className="flex items-center">
                       {isControlsExpanded && (
@@ -282,16 +246,12 @@ const Index = () => {
                 )}
               </div>
             )}
-
-            {/* Secondary loading indicator for WAQ data */}
             {loadingOthers && (
               <div className="absolute bg-white dark:text-black-900 rounded-md p-2 top-4 right-16 flex items-center z-50">
                 <Loader width={20} height={20} />
                 <span className="ml-2 text-sm">Loading global AQI data...</span>
               </div>
             )}
-
-            {/* Toast Notification */}
             {toastMessage.message && (
               <Toast
                 message={toastMessage.message}
