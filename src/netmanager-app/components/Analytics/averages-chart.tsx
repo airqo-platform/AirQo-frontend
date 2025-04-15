@@ -16,10 +16,22 @@ import {
 } from "recharts"
 import { toPng } from "html-to-image"
 import { jsPDF } from "jspdf"
-import { ArrowRight, BarChart3, Download, LineChartIcon, MoreHorizontal, Printer } from "lucide-react"
+import { ArrowRight, 
+    BarChart3, 
+    Download, 
+    LineChartIcon, 
+    MoreHorizontal, 
+    Printer 
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { 
+    Card, 
+    CardContent, 
+    CardHeader, 
+    CardTitle, 
+    CardFooter 
+} from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
