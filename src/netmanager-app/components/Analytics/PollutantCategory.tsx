@@ -10,7 +10,6 @@ interface Site {
   pm2_5: number
 }
 
-
 interface PollutantCategoryProps {
   pm25level: string
   iconClass: string
