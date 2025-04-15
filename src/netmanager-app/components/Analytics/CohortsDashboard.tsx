@@ -123,32 +123,6 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
       </div>
 
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        {/* <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Mean Daily PM 2.5 Over the Past 28 Days
-            </CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setChartType('line')}>
-                  Line Chart
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setChartType('bar')}>
-                  Bar Chart
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardHeader>
-          <CardContent>
-            {chartType === 'line' ? <LineCharts /> : <BarCharts />}
-          </CardContent>
-        </Card> */}
         <AveragesChart 
           isCohorts={false}
           isGrids={true}
