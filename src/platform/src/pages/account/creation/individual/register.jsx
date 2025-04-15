@@ -13,6 +13,7 @@ import {
 import Spinner from '@/components/Spinner';
 import InputField from '@/components/InputField';
 import Toast from '@/components/Toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const IndividualAccountRegistration = () => {
   const [firstName, setFirstName] = useState('');
@@ -90,176 +91,188 @@ const IndividualAccountRegistration = () => {
   };
 
   return (
-    <AccountPageLayout
-      childrenHeight={'lg:h-[680]'}
-      childrenTop={'mt-16'}
-      pageTitle={'Create Account | AirQo'}
+    <ErrorBoundary
+      name="IndividualAccountRegistration"
+      feature="User Account Registration"
     >
-      <div className="w-full">
-        <h2 className="text-3xl text-gray-900 dark:text-white font-medium">
-          Let&apos;s get started
-        </h2>
-        <p className="text-xl text-gray-800 dark:text-gray-300 font-normal mt-3">
-          Get access to air quality analytics across Africa
-        </p>
+      <AccountPageLayout
+        childrenHeight={'lg:h-[680]'}
+        childrenTop={'mt-16'}
+        pageTitle={'Create Account | AirQo'}
+      >
+        <div className="w-full">
+          <h2 className="text-3xl text-gray-900 dark:text-white font-medium">
+            Let&apos;s get started
+          </h2>
+          <p className="text-xl text-gray-800 dark:text-gray-300 font-normal mt-3">
+            Get access to air quality analytics across Africa
+          </p>
 
-        {/* Display creation errors using Toast */}
-        {creationErrors.state && (
-          <Toast type="error" timeout={8000} message={creationErrors.message} />
-        )}
+          {/* Display creation errors using Toast */}
+          {creationErrors.state && (
+            <Toast
+              type="error"
+              timeout={8000}
+              message={creationErrors.message}
+            />
+          )}
 
-        <form
-          onSubmit={handleSubmit}
-          aria-label="Account registration form"
-          noValidate
-          className="mt-6"
-        >
-          {/* Name Fields */}
-          <div
-            role="group"
-            aria-label="Name fields"
-            className="flex flex-col md:flex-row md:gap-4"
+          <form
+            onSubmit={handleSubmit}
+            aria-label="Account registration form"
+            noValidate
+            className="mt-6"
           >
-            <div className="flex-1">
-              <InputField
-                label="First name"
-                type="text"
-                placeholder="Enter your name"
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-                error={
-                  firstName && firstName.length < 3
-                    ? 'Must contain at least 3 letters'
-                    : ''
-                }
-              />
-            </div>
-            <div className="flex-1">
-              <InputField
-                label="Last name"
-                type="text"
-                placeholder="Enter your name"
-                onChange={(e) => setLastName(e.target.value)}
-                required
-                error={
-                  lastName && lastName.length < 2
-                    ? 'Must contain at least 2 letters'
-                    : ''
-                }
-              />
-            </div>
-          </div>
-          {/* Email Field */}
-          <div className="mt-6">
-            <InputField
-              label="Email address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              error={
-                email.length >= 3 && !email.includes('@')
-                  ? 'Please provide a valid email address'
-                  : ''
-              }
-            />
-          </div>
-          {/* Password Field */}
-          <div className="mt-6">
-            <InputField
-              label="Password"
-              type="password"
-              placeholder="Create password"
-              onChange={(e) => {
-                setPassword(e.target.value);
-                validatePassword(e.target.value);
-              }}
-              required
-              error={
-                passwordWordErrors
-                  ? 'Password must be at least 8 characters and contain an uppercase letter, lowercase letter, a number, and a special character (#?!@$%^&)'
-                  : ''
-              }
-            />
-            <span id="password-requirements" className="text-gray-400 text-sm">
-              Must be at least 8 characters
-            </span>
-          </div>
-          {/* Terms & Conditions Checkbox */}
-          <div className="mt-6 flex flex-row items-center">
-            <input
-              type="checkbox"
-              className="h-6 w-6 rounded border border-gray-300 dark:border-gray-600 checked:bg-blue-900 focus:border-blue-500 cursor-pointer"
-              onChange={() => toggleChecked()}
-              required
-            />
-            <div className="ml-3">
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                I agree to the{' '}
-                <a
-                  href="https://airqo.net/legal?tab=terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a
-                  href="https://airqo.net/legal?tab=privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  Privacy Policy
-                </a>
-              </p>
-            </div>
-          </div>
-          {/* Submit Button */}
-          <div className="mt-10 mb-3">
-            <button
-              type="submit"
-              style={{ textTransform: 'none' }}
-              className={`w-full btn dark:text-white rounded-[12px] text-sm outline-none border-none ${
-                firstName &&
-                lastName &&
-                email &&
-                password &&
-                !passwordWordErrors &&
-                checked
-                  ? 'bg-blue-900 text-white hover:bg-blue-950'
-                  : 'btn-disabled bg-white'
-              }`}
-              disabled={
-                loading ||
-                !firstName ||
-                !lastName ||
-                !email ||
-                !password ||
-                passwordWordErrors ||
-                !checked
-              }
+            {/* Name Fields */}
+            <div
+              role="group"
+              aria-label="Name fields"
+              className="flex flex-col md:flex-row md:gap-4"
             >
-              {loading ? <Spinner width={25} height={25} /> : 'Continue'}
-            </button>
-          </div>
-          {/* Already have an account */}
-          <div className="mt-8 flex justify-center w-full">
-            <div>
-              <span className="text-sm text-gray-500">
-                Already have an account?
-              </span>
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-400">
-                {' '}
-                <Link href="/account/login">Log in</Link>
+              <div className="flex-1">
+                <InputField
+                  label="First name"
+                  type="text"
+                  placeholder="Enter your name"
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  error={
+                    firstName && firstName.length < 3
+                      ? 'Must contain at least 3 letters'
+                      : ''
+                  }
+                />
+              </div>
+              <div className="flex-1">
+                <InputField
+                  label="Last name"
+                  type="text"
+                  placeholder="Enter your name"
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  error={
+                    lastName && lastName.length < 2
+                      ? 'Must contain at least 2 letters'
+                      : ''
+                  }
+                />
+              </div>
+            </div>
+            {/* Email Field */}
+            <div className="mt-6">
+              <InputField
+                label="Email address"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+                error={
+                  email.length >= 3 && !email.includes('@')
+                    ? 'Please provide a valid email address'
+                    : ''
+                }
+              />
+            </div>
+            {/* Password Field */}
+            <div className="mt-6">
+              <InputField
+                label="Password"
+                type="password"
+                placeholder="Create password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validatePassword(e.target.value);
+                }}
+                required
+                error={
+                  passwordWordErrors
+                    ? 'Password must be at least 8 characters and contain an uppercase letter, lowercase letter, a number, and a special character (#?!@$%^&)'
+                    : ''
+                }
+              />
+              <span
+                id="password-requirements"
+                className="text-gray-400 text-sm"
+              >
+                Must be at least 8 characters
               </span>
             </div>
-          </div>
-        </form>
-      </div>
-    </AccountPageLayout>
+            {/* Terms & Conditions Checkbox */}
+            <div className="mt-6 flex flex-row items-center">
+              <input
+                type="checkbox"
+                className="h-6 w-6 rounded border border-gray-300 dark:border-gray-600 checked:bg-blue-900 focus:border-blue-500 cursor-pointer"
+                onChange={() => toggleChecked()}
+                required
+              />
+              <div className="ml-3">
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  I agree to the{' '}
+                  <a
+                    href="https://airqo.net/legal?tab=terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a
+                    href="https://airqo.net/legal?tab=privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    Privacy Policy
+                  </a>
+                </p>
+              </div>
+            </div>
+            {/* Submit Button */}
+            <div className="mt-10 mb-3">
+              <button
+                type="submit"
+                style={{ textTransform: 'none' }}
+                className={`w-full btn dark:text-white rounded-[12px] text-sm outline-none border-none ${
+                  firstName &&
+                  lastName &&
+                  email &&
+                  password &&
+                  !passwordWordErrors &&
+                  checked
+                    ? 'bg-blue-900 text-white hover:bg-blue-950'
+                    : 'btn-disabled bg-white'
+                }`}
+                disabled={
+                  loading ||
+                  !firstName ||
+                  !lastName ||
+                  !email ||
+                  !password ||
+                  passwordWordErrors ||
+                  !checked
+                }
+              >
+                {loading ? <Spinner width={25} height={25} /> : 'Continue'}
+              </button>
+            </div>
+            {/* Already have an account */}
+            <div className="mt-8 flex justify-center w-full">
+              <div>
+                <span className="text-sm text-gray-500">
+                  Already have an account?
+                </span>
+                <span className="text-sm font-medium text-blue-900 dark:text-blue-400">
+                  {' '}
+                  <Link href="/account/login">Log in</Link>
+                </span>
+              </div>
+            </div>
+          </form>
+        </div>
+      </AccountPageLayout>
+    </ErrorBoundary>
   );
 };
 

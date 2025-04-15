@@ -16,6 +16,7 @@ import {
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
 
 const MAX_RETRIES = 3;
@@ -124,77 +125,79 @@ const UserLogin = () => {
   );
 
   return (
-    <AccountPageLayout
-      pageTitle="AirQo Analytics | Login"
-      rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
-    >
-      <div className="w-full">
-        <h2 className="text-3xl font-medium text-gray-900 dark:text-white">
-          Let&apos;s get started
-        </h2>
-        <p className="text-xl font-normal mt-3 text-gray-700 dark:text-gray-300">
-          Get access to air quality analytics across Africa
-        </p>
-        {error && <Toast type="error" timeout={8000} message={error} />}
-        <form
-          onSubmit={handleLogin}
-          data-testid="login-form"
-          aria-label="Login form"
-          noValidate
-        >
-          <div className="mt-6">
-            <InputField
-              label="Email Address"
-              type="email"
-              placeholder="e.g. greta.nagawa@gmail.com"
-              onChange={(e) => handleInputChange('userName', e.target.value)}
-              required
-            />
+    <ErrorBoundary name="UserLogin" feature="User Authentication">
+      <AccountPageLayout
+        pageTitle="AirQo Analytics | Login"
+        rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
+      >
+        <div className="w-full">
+          <h2 className="text-3xl font-medium text-gray-900 dark:text-white">
+            Let&apos;s get started
+          </h2>
+          <p className="text-xl font-normal mt-3 text-gray-700 dark:text-gray-300">
+            Get access to air quality analytics across Africa
+          </p>
+          {error && <Toast type="error" timeout={8000} message={error} />}
+          <form
+            onSubmit={handleLogin}
+            data-testid="login-form"
+            aria-label="Login form"
+            noValidate
+          >
+            <div className="mt-6">
+              <InputField
+                label="Email Address"
+                type="email"
+                placeholder="e.g. greta.nagawa@gmail.com"
+                onChange={(e) => handleInputChange('userName', e.target.value)}
+                required
+              />
+            </div>
+            <div className="mt-6 relative">
+              <InputField
+                label="Password"
+                type="password"
+                placeholder="******"
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                required
+              />
+            </div>
+            <div className="mt-10">
+              <button
+                data-testid="login-btn"
+                className="w-full btn bg-blue-900 dark:bg-blue-700 rounded-lg text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-800"
+                type="submit"
+                disabled={loading}
+                aria-label={loading ? 'Logging in...' : 'Login'}
+              >
+                {loading ? (
+                  <Spinner data-testid="spinner" width={25} height={25} />
+                ) : (
+                  'Login'
+                )}
+              </button>
+            </div>
+          </form>
+          <div className="mt-8 w-full flex justify-center">
+            <div>
+              <span className="text-sm text-gray-500 dark:text-gray-300">
+                Don&apos;t have an account?{' '}
+              </span>
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                <Link href="/account/creation">Register here</Link>
+              </span>
+            </div>
           </div>
-          <div className="mt-6 relative">
-            <InputField
-              label="Password"
-              type="password"
-              placeholder="******"
-              onChange={(e) => handleInputChange('password', e.target.value)}
-              required
-            />
-          </div>
-          <div className="mt-10">
-            <button
-              data-testid="login-btn"
-              className="w-full btn bg-blue-900 dark:bg-blue-700 rounded-lg text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-800"
-              type="submit"
-              disabled={loading}
-              aria-label={loading ? 'Logging in...' : 'Login'}
-            >
-              {loading ? (
-                <Spinner data-testid="spinner" width={25} height={25} />
-              ) : (
-                'Login'
-              )}
-            </button>
-          </div>
-        </form>
-        <div className="mt-8 w-full flex justify-center">
-          <div>
-            <span className="text-sm text-gray-500 dark:text-gray-300">
-              Don&apos;t have an account?{' '}
-            </span>
-            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-              <Link href="/account/creation">Register here</Link>
-            </span>
+          <div className="mt-8 flex justify-center w-full">
+            <div>
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                <Link href="/account/forgotPwd">Forgot Password</Link>
+              </span>
+            </div>
           </div>
         </div>
-        <div className="mt-8 flex justify-center w-full">
-          <div>
-            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-              <Link href="/account/forgotPwd">Forgot Password</Link>
-            </span>
-          </div>
-        </div>
-      </div>
-    </AccountPageLayout>
+      </AccountPageLayout>
+    </ErrorBoundary>
   );
 };
 
