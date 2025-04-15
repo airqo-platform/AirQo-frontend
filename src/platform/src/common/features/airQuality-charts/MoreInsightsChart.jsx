@@ -26,10 +26,13 @@ import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { formatYAxisTick, CustomizedAxisTick } from './utils';
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { useSelector } from 'react-redux';
-import { MdInfoOutline } from 'react-icons/md';
+import { MdInfoOutline, MdRefresh } from 'react-icons/md';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
+/**
+ * MoreInsightsChart Component - Displays pollution data with various chart options
+ */
 const MoreInsightsChart = ({
   data = [],
   selectedSites = [],
@@ -51,50 +54,10 @@ const MoreInsightsChart = ({
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
 
-  const effectiveVisibleSiteIds = useMemo(() => {
-    if (visibleSiteIds.length) return visibleSiteIds;
-    if (selectedSites.length) {
-      return typeof selectedSites[0] === 'object'
-        ? selectedSites
-            .map((site) => site._id || site.id || site.site_id)
-            .filter(Boolean)
-        : selectedSites;
-    }
-    return [];
-  }, [selectedSites, visibleSiteIds]);
-
-  const processChartData = useCallback((rawData, selectedSiteIds) => {
-    if (!Array.isArray(rawData) || rawData.length === 0)
-      return { sortedData: [], siteIdToName: {} };
-    const combinedData = {};
-    const siteIdToName = {};
-    rawData.forEach(({ site_id, name, value, time }) => {
-      if (
-        !site_id ||
-        !name ||
-        value === undefined ||
-        !time ||
-        !selectedSiteIds.includes(site_id)
-      )
-        return;
-      siteIdToName[site_id] = name;
-      const date = parseAndValidateISODate(time);
-      if (!date) return;
-      const formattedTime = date.toISOString();
-      combinedData[formattedTime] = {
-        ...combinedData[formattedTime],
-        time: formattedTime,
-        [site_id]: value,
-      };
-    });
-    const sortedData = Object.values(combinedData).sort(
-      (a, b) => new Date(a.time) - new Date(b.time),
-    );
-    return { sortedData, siteIdToName };
-  }, []);
-
+  // Extract selected site IDs from the selectedSites prop
   const selectedSiteIds = useMemo(() => {
     if (!selectedSites.length) return [];
+
     return typeof selectedSites[0] === 'object'
       ? selectedSites
           .map((site) => site._id || site.id || site.site_id)
@@ -102,27 +65,78 @@ const MoreInsightsChart = ({
       : selectedSites;
   }, [selectedSites]);
 
-  const { sortedData: chartData, siteIdToName } = useMemo(
-    () => processChartData(data, selectedSiteIds),
-    [data, selectedSiteIds, processChartData],
-  );
+  // Determine which site IDs should be visible in the chart
+  const effectiveVisibleSiteIds = useMemo(() => {
+    if (visibleSiteIds.length) return visibleSiteIds;
+    return selectedSiteIds;
+  }, [selectedSiteIds, visibleSiteIds]);
 
+  // Process and organize the raw data for charting
+  const { sortedData: chartData, siteIdToName } = useMemo(() => {
+    if (!Array.isArray(data) || data.length === 0 || !selectedSiteIds.length) {
+      return { sortedData: [], siteIdToName: {} };
+    }
+
+    const combinedData = {};
+    const siteIdToName = {};
+
+    // Single loop through data to organize by timestamp
+    for (const item of data) {
+      const { site_id, name, value, time } = item;
+
+      if (
+        !site_id ||
+        !name ||
+        value === undefined ||
+        !time ||
+        !selectedSiteIds.includes(site_id)
+      )
+        continue;
+
+      siteIdToName[site_id] = name;
+      const date = parseAndValidateISODate(time);
+      if (!date) continue;
+
+      const formattedTime = date.toISOString();
+      combinedData[formattedTime] = {
+        ...combinedData[formattedTime],
+        time: formattedTime,
+        [site_id]: value,
+      };
+    }
+
+    const sortedData = Object.values(combinedData).sort(
+      (a, b) => new Date(a.time) - new Date(b.time),
+    );
+
+    return { sortedData, siteIdToName };
+  }, [data, selectedSiteIds]);
+
+  // Extract data keys to be shown in the chart
   const dataKeys = useMemo(() => {
     if (!chartData.length) return [];
+
+    // Use Set for efficient key collection
     const keys = new Set();
-    chartData.forEach((item) =>
-      Object.keys(item).forEach((key) => key !== 'time' && keys.add(key)),
-    );
+    for (const item of chartData) {
+      for (const key of Object.keys(item)) {
+        if (key !== 'time') keys.add(key);
+      }
+    }
+
+    // Filter for visible sites
     return Array.from(keys).filter((key) =>
       effectiveVisibleSiteIds.includes(key),
     );
   }, [chartData, effectiveVisibleSiteIds]);
 
+  // Get the WHO standard value for the current pollutant type
   const WHO_STANDARD_VALUE = useMemo(
     () => aqStandard?.value?.[pollutantType] || 0,
     [aqStandard, pollutantType],
   );
 
+  // Handle chart interactions
   const handleMouseLeave = useCallback(() => setActiveIndex(null), []);
 
   const getColor = useCallback(
@@ -133,9 +147,11 @@ const MoreInsightsChart = ({
     [activeIndex],
   );
 
+  // Calculate step size for x-axis ticks based on container width
   const calculateStep = useCallback(() => {
     const minLabelWidth = 25;
     if (containerWidth <= 0 || chartData.length === 0) return 1;
+
     return Math.max(
       1,
       Math.ceil(chartData.length / Math.floor(containerWidth / minLabelWidth)),
@@ -144,11 +160,13 @@ const MoreInsightsChart = ({
 
   const step = useMemo(() => calculateStep(), [calculateStep]);
 
+  // Handle refresh button click
   const handleRefreshClick = useCallback(() => {
     if (!isRefreshing && refreshChart) refreshChart();
   }, [isRefreshing, refreshChart]);
 
-  const renderChartContent = useMemo(() => {
+  // Render empty state messages
+  const renderEmptyState = () => {
     if (!selectedSiteIds.length) {
       return (
         <InfoMessage
@@ -159,6 +177,7 @@ const MoreInsightsChart = ({
         />
       );
     }
+
     if (!effectiveVisibleSiteIds.length) {
       return (
         <div className="flex flex-col justify-center items-center h-full p-4 text-gray-500">
@@ -171,6 +190,7 @@ const MoreInsightsChart = ({
         </div>
       );
     }
+
     if (!chartData.length) {
       return (
         <InfoMessage
@@ -188,7 +208,7 @@ const MoreInsightsChart = ({
                 }`}
                 aria-label="Refresh chart data"
               >
-                <MdInfoOutline className="h-5 w-5 mr-1" />
+                <MdRefresh className="h-5 w-5 mr-1" />
                 Refresh Chart
               </button>
             )
@@ -196,8 +216,23 @@ const MoreInsightsChart = ({
         />
       );
     }
+
+    return null;
+  };
+
+  // Render chart based on chartType
+  const renderChart = () => {
+    if (
+      !chartData.length ||
+      !effectiveVisibleSiteIds.length ||
+      !selectedSiteIds.length
+    ) {
+      return renderEmptyState();
+    }
+
     const ChartComponent = chartType === 'line' ? LineChart : BarChart;
     const DataComponent = chartType === 'line' ? Line : Bar;
+
     return (
       <ResponsiveContainer width={width} height={height}>
         <ChartComponent
@@ -255,6 +290,7 @@ const MoreInsightsChart = ({
               <CustomGraphTooltip
                 pollutionType={pollutantType}
                 activeIndex={activeIndex}
+                siteIdToName={siteIdToName}
               />
             }
             cursor={
@@ -268,6 +304,7 @@ const MoreInsightsChart = ({
                 : { fill: isDark ? '#444' : '#eee', fillOpacity: 0.3 }
             }
           />
+
           {dataKeys.map((key, index) => (
             <DataComponent
               key={key}
@@ -285,6 +322,7 @@ const MoreInsightsChart = ({
               onMouseLeave={handleMouseLeave}
             />
           ))}
+
           {WHO_STANDARD_VALUE > 0 && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}
@@ -296,34 +334,15 @@ const MoreInsightsChart = ({
         </ChartComponent>
       </ResponsiveContainer>
     );
-  }, [
-    selectedSiteIds.length,
-    effectiveVisibleSiteIds.length,
-    chartData,
-    chartType,
-    width,
-    height,
-    step,
-    getColor,
-    handleMouseLeave,
-    activeIndex,
-    pollutantType,
-    WHO_STANDARD_VALUE,
-    dataKeys,
-    frequency,
-    siteIdToName,
-    refreshChart,
-    isRefreshing,
-    aqStandard?.name,
-    handleRefreshClick,
-    isDark,
-  ]);
+  };
 
   return (
     <div id={id} ref={containerRef} className="w-auto h-full pt-4 relative">
-      {renderChartContent}
+      {renderChart()}
     </div>
   );
 };
+
+MoreInsightsChart.displayName = 'MoreInsightsChart';
 
 export default React.memo(MoreInsightsChart);

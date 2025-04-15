@@ -76,7 +76,7 @@ export const CustomGraphTooltip = ({
                   }`}
                 />
                 <span
-                  className={`text-sm font-medium ${
+                  className={`text-sm font-medium dark:text-gray-300 ${
                     isHovered ? 'text-blue-600' : 'text-gray-600'
                   }`}
                 >
