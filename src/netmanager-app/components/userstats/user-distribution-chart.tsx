@@ -83,7 +83,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
     ) => {
       const y = rect.height - 80 - height 
 
-      // Create gradient
       const gradient = ctx.createLinearGradient(x, y, x, y + height)
       gradient.addColorStop(0, colorStart)
       gradient.addColorStop(1, colorEnd)
