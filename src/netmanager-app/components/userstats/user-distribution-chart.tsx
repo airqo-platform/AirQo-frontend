@@ -88,7 +88,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       gradient.addColorStop(0, colorStart)
       gradient.addColorStop(1, colorEnd)
 
-      // Draw bar background (subtle shadow)
       ctx.fillStyle = bgColor
       drawRoundedRect(x - 2, y - 2, barWidth + 4, height + 4, cornerRadius)
       ctx.fill()
