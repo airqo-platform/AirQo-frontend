@@ -93,7 +93,6 @@ export function UserDistributionChart({ totalUsers, activeUsers, apiUsers }: Use
       drawRoundedRect(x - 2, y - 2, barWidth + 4, height + 4, cornerRadius)
       ctx.fill()
 
-      // Draw bar with gradient
       ctx.fillStyle = gradient
       drawRoundedRect(x, y, barWidth, height, cornerRadius)
       ctx.fill()
