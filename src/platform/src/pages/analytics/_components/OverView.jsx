@@ -165,7 +165,10 @@ const OverView = () => {
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="flex flex-wrap gap-2">
             {/* Time Frame Dropdown */}
-            <CustomDropdown text={chartData.timeFrame} dropdownWidth="150px">
+            <CustomDropdown
+              text={<span className="capitalize">{chartData.timeFrame}</span>}
+              dropdownWidth="150px"
+            >
               <div className="py-1">
                 {TIME_OPTIONS.map((option) => (
                   <DropdownItem

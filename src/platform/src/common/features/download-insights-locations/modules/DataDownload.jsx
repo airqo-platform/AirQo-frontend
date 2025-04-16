@@ -7,17 +7,11 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import WorldIcon from '@/icons/SideBar/world_Icon';
-import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
-import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
-import WindIcon from '@/icons/Analytics/windIcon';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DeviceIcon from '@/icons/Analytics/deviceIcon';
-import DataTable from '../components/DataTable';
-import CustomFields from '../components/CustomFields';
 import Footer from '../components/Footer';
 
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -43,8 +37,11 @@ import CustomToast from '@/components/Toast/CustomToast';
 import { format } from 'date-fns';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { event } from '@/core/hooks/useGoogleAnalytics';
-import SelectionMessage from '../components/SelectionMessage';
-
+import SettingsSidebar from '../components/datadownload/SettingsSidebar';
+import DataContent, {
+  FILTER_TYPES,
+} from '../components/datadownload/DataContent';
+import { getMimeType } from '../utils';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 /**
@@ -59,280 +56,11 @@ export const DownloadDataHeader = () => (
   </h3>
 );
 
-// Filter type constants
-const FILTER_TYPES = {
-  COUNTRIES: 'countries',
-  CITIES: 'cities',
-  SITES: 'sites',
-  DEVICES: 'devices',
-};
-
 // Message types for footer component
 const MESSAGE_TYPES = {
   ERROR: 'error',
   WARNING: 'warning',
   INFO: 'info',
-};
-
-// MIME type mapping with fallback
-const getMimeType = (fileType) => {
-  const mimeTypes = {
-    csv: 'text/csv;charset=utf-8;',
-    pdf: 'application/pdf',
-    json: 'application/json',
-  };
-  return mimeTypes[fileType] || 'application/octet-stream';
-};
-
-/**
- * SettingsSidebar component for DataDownload
- */
-const SettingsSidebar = ({
-  formData,
-  handleOptionSelect,
-  edit,
-  filteredDataTypeOptions,
-  ORGANIZATION_OPTIONS,
-  durationGuidance,
-  handleSubmit,
-  handleTitleChange,
-  sidebarBg = '#f6f6f7',
-}) => {
-  // Animation variants for sidebar
-  const sidebarVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        staggerChildren: 0.07,
-      },
-    },
-  };
-
-  const formItemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  return (
-    <motion.form
-      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
-      style={{ backgroundColor: sidebarBg }}
-      onSubmit={handleSubmit}
-      variants={sidebarVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Form Fields */}
-      <motion.div className="space-y-4">
-        <motion.div variants={formItemVariants}>
-          <div className="mb-2">
-            <label className="block text-sm font-medium dark:text-white mb-2">
-              Title
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border dark:bg-transparent dark:border-gray-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={formData.title.name}
-              onChange={handleTitleChange}
-              autoFocus
-              disabled={edit}
-            />
-          </div>
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="Organization"
-            options={ORGANIZATION_OPTIONS}
-            id="organization"
-            icon={<WorldIcon width={16} height={16} fill="#000" />}
-            defaultOption={formData.organization}
-            handleOptionSelect={handleOptionSelect}
-            textFormat="uppercase"
-          />
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="Data type"
-            options={filteredDataTypeOptions}
-            id="dataType"
-            icon={<CalibrateIcon />}
-            defaultOption={formData.dataType}
-            handleOptionSelect={handleOptionSelect}
-          />
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="Pollutant"
-            options={POLLUTANT_OPTIONS}
-            id="pollutant"
-            icon={<WindIcon />}
-            defaultOption={formData.pollutant}
-            handleOptionSelect={handleOptionSelect}
-          />
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="Duration"
-            id="duration"
-            useCalendar
-            required={true}
-            requiredText={`${!formData.duration ? 'please select a date range' : ''}`}
-            defaultOption={formData.duration}
-            handleOptionSelect={handleOptionSelect}
-          />
-
-          {durationGuidance && (
-            <div className="text-xs text-blue-600 -mt-2 ml-1">
-              {durationGuidance}
-            </div>
-          )}
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="Frequency"
-            options={FREQUENCY_OPTIONS}
-            id="frequency"
-            icon={<FrequencyIcon />}
-            defaultOption={formData.frequency}
-            handleOptionSelect={handleOptionSelect}
-          />
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="File type"
-            options={FILE_TYPE_OPTIONS}
-            id="fileType"
-            icon={<FileTypeIcon />}
-            defaultOption={formData.fileType}
-            handleOptionSelect={handleOptionSelect}
-          />
-        </motion.div>
-      </motion.div>
-    </motion.form>
-  );
-};
-
-/**
- * DataContent component for DataDownload
- */
-const DataContent = ({
-  selectedItems,
-  clearSelections,
-  currentFilterData,
-  activeFilterKey,
-  selectedRows,
-  setSelectedRows,
-  clearSelected,
-  isLoading,
-  filterErrors,
-  handleToggleItem,
-  columnsByFilter,
-  filters,
-  handleFilter,
-  searchKeysByFilter,
-  handleRetryLoad,
-}) => {
-  // Animation variants for content area
-  const contentVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  return (
-    <motion.div
-      className="flex-1 h-full px-2 md:px-6 pt-4 pb-4 overflow-y-auto flex flex-col"
-      variants={contentVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Selection info with SelectionMessage component */}
-      <AnimatePresence>
-        {selectedItems.length > 0 && (
-          <motion.div
-            variants={itemVariants}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <SelectionMessage type="info" onClear={clearSelections}>
-              {activeFilterKey === FILTER_TYPES.COUNTRIES && selectedItems[0]
-                ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'Country'} selected for data download`
-                : activeFilterKey === FILTER_TYPES.CITIES && selectedItems[0]
-                  ? `${selectedItems[0]?.name || selectedItems[0]?.long_name || 'City'} selected for data download`
-                  : `${selectedItems.length} ${
-                      selectedItems.length === 1
-                        ? activeFilterKey === FILTER_TYPES.SITES
-                          ? 'monitoring site'
-                          : 'device'
-                        : activeFilterKey === FILTER_TYPES.SITES
-                          ? 'monitoring sites'
-                          : 'devices'
-                    } selected for data download`}
-            </SelectionMessage>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Selection guidance with SelectionMessage component */}
-      <AnimatePresence>
-        {selectedItems.length === 0 && (
-          <motion.div
-            variants={itemVariants}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <SelectionMessage type="info">
-              {activeFilterKey === FILTER_TYPES.COUNTRIES ||
-              activeFilterKey === FILTER_TYPES.CITIES
-                ? `Please select a ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city'} to download air quality data (only one selection allowed)`
-                : `Please select one or more ${activeFilterKey === FILTER_TYPES.SITES ? 'monitoring sites' : 'devices'} to download air quality data`}
-            </SelectionMessage>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Data table */}
-      <motion.div className="flex-grow mt-4" variants={itemVariants}>
-        <DataTable
-          data={currentFilterData}
-          selectedRows={selectedRows}
-          setSelectedRows={setSelectedRows}
-          clearSelectionTrigger={clearSelected}
-          loading={isLoading}
-          error={!!filterErrors[activeFilterKey]}
-          errorMessage={filterErrors[activeFilterKey]}
-          onToggleRow={handleToggleItem}
-          columnsByFilter={columnsByFilter}
-          filters={filters}
-          onFilter={handleFilter}
-          searchKeys={searchKeysByFilter}
-          onRetry={() => handleRetryLoad(activeFilterKey)}
-        />
-      </motion.div>
-    </motion.div>
-  );
 };
 
 /**
@@ -794,7 +522,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
             setMessageType(MESSAGE_TYPES.ERROR);
             setDownloadLoading(false);
           }
-        }, 60000); // 60-second timeout
+        }, 60000);
 
         try {
           // Make API call
@@ -907,9 +635,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           throw error;
         }
       } catch (error) {
-        console.error('Download error:', error);
-
-        // Skip analytics tracking for aborted requests
         if (error.name !== 'AbortError') {
           event({
             action: 'download_error',

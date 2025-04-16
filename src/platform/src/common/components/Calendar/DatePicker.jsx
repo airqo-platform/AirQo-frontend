@@ -202,7 +202,7 @@ const DatePicker = ({
       <div ref={setReferenceElement}>
         <CustomDropdown
           text={btnText}
-          icon={<CalendarIcon />}
+          icon={<CalendarIcon fill="#536A87" />}
           iconPosition="left"
           onClick={toggleOpen}
           isButton={true}
