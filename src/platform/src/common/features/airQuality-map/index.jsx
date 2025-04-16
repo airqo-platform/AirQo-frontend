@@ -1,4 +1,3 @@
-// AirQoMap.js
 import React, {
   useEffect,
   useRef,
@@ -14,7 +13,6 @@ import PropTypes from 'prop-types';
 import { useWindowSize } from '@/lib/windowSize';
 import {
   setMapLoading,
-  clearData,
   setCenter,
   setZoom,
 } from '@/lib/store/services/map/MapSlice';
@@ -33,6 +31,7 @@ import {
 } from '@/features/airQuality-map/constants/constants';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import LoadingOverlay from './components/LoadingOverlay';
 
 const AirQoMap = forwardRef(
   (
@@ -58,9 +57,12 @@ const AirQoMap = forwardRef(
 
     const mapData = useSelector((state) => state.map);
     const selectedNode = useSelector((state) => state.map.selectedNode);
-    // Local state used for modal and to store a node configuration.
+
+    // Local state
     const [layerModalOpen, setLayerModalOpen] = useState(false);
     const [nodeType, setNodeType] = useState('Emoji');
+    const [showOverlay, setShowOverlay] = useState(true);
+
     const defaultMapStyle = isDarkMode
       ? 'mapbox://styles/mapbox/dark-v10'
       : 'mapbox://styles/mapbox/streets-v11';
@@ -89,8 +91,7 @@ const AirQoMap = forwardRef(
           zm,
           valid: !isNaN(lat) && !isNaN(lng) && !isNaN(zm),
         };
-      } catch (error) {
-        console.error('Error parsing URL parameters:', error);
+      } catch {
         return { valid: false };
       }
     }, []);
@@ -115,6 +116,27 @@ const AirQoMap = forwardRef(
       handleWaqLoading(isWaqLoading);
     }, [isWaqLoading, handleWaqLoading]);
 
+    // Overlay timer logic - always hide after 10 seconds
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setShowOverlay(false);
+      }, 10000);
+
+      return () => clearTimeout(timer);
+    }, []);
+
+    // Hide overlay when nodes are loaded
+    useEffect(() => {
+      const combined = [
+        ...(mapData.mapReadingsData || []),
+        ...(mapData.waqData || []),
+      ];
+
+      if (combined.length > 0) {
+        setShowOverlay(false);
+      }
+    }, [mapData.mapReadingsData, mapData.waqData]);
+
     // Map action hooks.
     const refreshMapFn = useRefreshMap(
       onToastMessage,
@@ -125,11 +147,13 @@ const AirQoMap = forwardRef(
     const shareLocationFn = useShareLocation(onToastMessage, mapRef);
     const captureScreenshotFn = useMapScreenshot(mapRef, onToastMessage);
 
-    // Function to add map controls only once. (Avoid re‑adding on location change.)
+    // Update the addControlsIfNeeded function to properly check and manage controls
     const addControlsIfNeeded = useCallback(() => {
-      if (mapRef.current && !controlsAddedRef.current && width >= 1024) {
+      if (mapRef.current && width >= 1024) {
         try {
-          (mapRef.current._controls || []).forEach((control) => {
+          // First, remove any existing custom controls
+          const existingControls = mapRef.current._controls || [];
+          [...existingControls].forEach((control) => {
             if (
               control instanceof CustomZoomControl ||
               control instanceof CustomGeolocateControl
@@ -137,6 +161,8 @@ const AirQoMap = forwardRef(
               mapRef.current.removeControl(control);
             }
           });
+
+          // Then add fresh controls
           mapRef.current.addControl(new CustomZoomControl(), 'bottom-right');
           mapRef.current.addControl(
             new CustomGeolocateControl((msg) => onToastMessage?.(msg)),
@@ -144,7 +170,7 @@ const AirQoMap = forwardRef(
           );
           controlsAddedRef.current = true;
         } catch (error) {
-          console.error('Error adding controls:', error);
+          console.error('Error managing controls:', error);
         }
       }
     }, [onToastMessage, width]);
@@ -161,19 +187,25 @@ const AirQoMap = forwardRef(
       [clusterUpdate],
     );
 
-    // Define handleStyleSelect to update the map style without re-fetching data.
+    // Update the handleStyleSelect function to reset controls properly
     const handleStyleSelect = useCallback(
       (style) => {
         if (style.url !== currentMapStyle && mapRef.current) {
           setCurrentMapStyle(style.url);
+          // Reset the controls flag to ensure we'll re-add controls after style loads
           controlsAddedRef.current = false;
+
           const currentCenter = mapRef.current.getCenter();
           const currentZoom = mapRef.current.getZoom();
+
           mapRef.current.setStyle(style.url);
+
           mapRef.current.once('style.load', () => {
             mapRef.current.setCenter(currentCenter);
             mapRef.current.setZoom(currentZoom);
+            // Add controls after style is loaded
             addControlsIfNeeded();
+
             const combined = [
               ...(mapData.mapReadingsData || []),
               ...(mapData.waqData || []),
@@ -198,9 +230,6 @@ const AirQoMap = forwardRef(
       openLayerModal: () => setLayerModalOpen(true),
       closeLayerModal: () => setLayerModalOpen(false),
     }));
-
-    // Clear Redux map state on unmount.
-    useEffect(() => () => dispatch(clearData()), [dispatch]);
 
     // Set initial view using URL parameters.
     useEffect(() => {
@@ -265,7 +294,7 @@ const AirQoMap = forwardRef(
           controlsAddedRef.current = false;
         }
       };
-    }, [mapboxApiAccessToken, isDarkMode, refreshMapFn, addControlsIfNeeded]);
+    }, [mapboxApiAccessToken, addControlsIfNeeded]);
 
     // Resize the map on window changes.
     useEffect(() => {
@@ -274,7 +303,7 @@ const AirQoMap = forwardRef(
       return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // On window resize, update controls (do not re-add on each location change).
+    // On window resize, update controls.
     useEffect(() => {
       if (mapRef.current && mapRef.current.loaded()) {
         addControlsIfNeeded();
@@ -312,6 +341,11 @@ const AirQoMap = forwardRef(
         <div className="relative w-full h-full">
           <div ref={mapContainerRef} className={customStyle} />
           <DataLoadingIndicator />
+          {showOverlay && (
+            <div className="w-full h-full absolute inset-0 flex items-center justify-center">
+              <LoadingOverlay showOverlay={showOverlay} />
+            </div>
+          )}
           <LayerModal
             isOpen={layerModalOpen}
             onClose={() => setLayerModalOpen(false)}

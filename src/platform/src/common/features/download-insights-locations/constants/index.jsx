@@ -98,3 +98,11 @@ export const tableData = [
     owner: 'AirQo',
   },
 ];
+
+// Constants
+export const MESSAGE_TYPES = {
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+};
+export const MAX_LOCATIONS = 4;

@@ -45,7 +45,7 @@ export const mapSlice = createSlice({
       const { country = '', city = '' } = action.payload || {};
       state.location = { country, city };
     },
-    clearData: (state) => {
+    clearData: () => {
       return initialState;
     },
     reSetMap: (state) => {
