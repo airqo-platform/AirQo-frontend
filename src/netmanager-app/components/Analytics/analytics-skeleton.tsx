@@ -17,9 +17,8 @@ export const AnalyticsSkeleton: React.FC = () => {
           </div>
         </div>
 
-        {/* Dashboard content skeleton */}
         <div className="space-y-4">
-          {/* Chart skeletons */}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Skeleton className="h-64 w-full rounded-md" />
             <Skeleton className="h-64 w-full rounded-md" />
