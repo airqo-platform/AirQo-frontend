@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+
 import PropTypes from 'prop-types';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const AirQualityCard = ({
-  airQuality,
-  pollutionSource,
+  // airQuality,
+  // pollutionSource,
   pollutant,
   isLoading = false,
 }) => {
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const { theme, systemTheme } = useTheme();
+  const isDarkMode = useMemo(() => {
+    return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  }, [theme, systemTheme]);
+
   return (
     <div
       className={`flex flex-col sm:flex-row border ${isDarkMode ? 'border-gray-700' : 'border-gray-200 bg-gray-50'} rounded-lg p-4 shadow-sm space-y-4 sm:space-y-0`}

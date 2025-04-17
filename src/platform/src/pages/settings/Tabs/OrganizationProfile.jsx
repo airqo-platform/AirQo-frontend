@@ -344,7 +344,7 @@ const OrganizationProfile = () => {
   return (
     orgData &&
     orgData.grp_title && (
-      <div className="px-4 md:px-0 py-6">
+      <div>
         <AlertBox
           message={errorState.message}
           type={errorState.type}
@@ -362,143 +362,141 @@ const OrganizationProfile = () => {
           </div>
           <div className="w-full mb-12">
             <Card rounded radius="rounded-lg">
-              <div className="p-6">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
-                  <div
-                    className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
-                    onClick={handleAvatarClick}
-                    title="Tap to change profile image"
-                  >
-                    {orgData.grp_image ? (
-                      <img
-                        src={orgData.grp_image}
-                        alt={`${orgData.grp_title} profile image`}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <h3 className="text-2xl font-medium text-blue-600 uppercase">
-                        {orgData.grp_title[0] + orgData.grp_title[1]}
-                      </h3>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      onClick={deleteProfileImage}
-                      className="text-sm font-medium text-gray-600"
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}
-                      className={`text-sm font-medium ${
-                        updatedProfilePicture
-                          ? 'text-blue-600 bg-blue-50 rounded'
-                          : 'text-gray-600'
-                      }`}
-                    >
-                      {updatedProfilePicture && !profileUploading
-                        ? 'Save photo'
-                        : profileUploading
-                          ? 'Uploading...'
-                          : 'Update'}
-                    </Button>
-                  </div>
-                </div>
-                <form
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                  onSubmit={handleSubmit}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+                <div
+                  className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
+                  onClick={handleAvatarClick}
+                  title="Tap to change profile image"
                 >
-                  {/* Row 1: Organization Name */}
-                  <InputField
-                    id="grp_title"
-                    value={orgData.grp_title}
-                    onChange={handleChange}
-                    label="Organization name"
-                    placeholder="Enter organization name"
-                    error={validationErrors.grp_title}
-                  />
-
-                  {/* Row 2: Website with Globe Icon */}
-                  <InputField
-                    id="grp_website"
-                    value={orgData.grp_website}
-                    onChange={handleChange}
-                    label="Website"
-                    placeholder="Enter website"
-                    Icon={GlobeIcon}
-                    error={validationErrors.grp_website}
-                  />
-
-                  {/* Row 3: Industry (SelectDropdown) */}
-                  <div className="flex flex-col">
-                    <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Industry
-                    </label>
-                    <SelectDropdown
-                      items={industryOptions}
-                      selected={
-                        industryOptions.find(
-                          (option) => option.value === orgData.grp_industry,
-                        ) || null
-                      }
-                      onChange={handleIndustryChange}
-                      placeholder="Select an industry"
-                      error={validationErrors.grp_industry}
+                  {orgData.grp_image ? (
+                    <img
+                      src={orgData.grp_image}
+                      alt={`${orgData.grp_title} profile image`}
+                      className="w-full h-full rounded-full object-cover"
                     />
-                  </div>
-
-                  {/* Row 4: About / Description using TextField */}
-                  <div className="md:col-span-2">
-                    <TextField
-                      id="grp_description"
-                      value={orgData.grp_description}
-                      onChange={handleChange}
-                      label="About"
-                      placeholder="Enter organization description"
-                      error={validationErrors.grp_description}
-                      required
-                    />
-                  </div>
-
-                  {/* Row 5: Country (SelectDropdown) */}
-                  <div className="flex flex-col">
-                    <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Country
-                    </label>
-                    <SelectDropdown
-                      items={countryOptions}
-                      selected={
-                        countryOptions.find(
-                          (option) => option.value === orgData.grp_country,
-                        ) || null
-                      }
-                      onChange={handleCountryChange}
-                      placeholder="Select a country"
-                      error={validationErrors.grp_country}
-                    />
-                  </div>
-
-                  {/* Row 6: Timezone (SelectDropdown) */}
-                  <div className="relative flex flex-col gap-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Timezone
-                    </label>
-                    <SelectDropdown
-                      items={timeZonesArr}
-                      selected={
-                        timeZonesArr.find(
-                          (option) => option.value === orgData.grp_timezone,
-                        ) || null
-                      }
-                      onChange={handleTimezoneChange}
-                      placeholder="Select a timezone"
-                      error={validationErrors.grp_timezone}
-                      listClassName="pl-10"
-                    />
-                  </div>
-                </form>
+                  ) : (
+                    <h3 className="text-2xl font-medium text-blue-600 uppercase">
+                      {orgData.grp_title[0] + orgData.grp_title[1]}
+                    </h3>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={deleteProfileImage}
+                    className="text-sm font-medium text-gray-600"
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    onClick={handleProfileImageUpdate}
+                    disabled={!updatedProfilePicture}
+                    className={`text-sm font-medium ${
+                      updatedProfilePicture
+                        ? 'text-blue-600 bg-blue-50 rounded'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {updatedProfilePicture && !profileUploading
+                      ? 'Save photo'
+                      : profileUploading
+                        ? 'Uploading...'
+                        : 'Update'}
+                  </Button>
+                </div>
               </div>
+              <form
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                onSubmit={handleSubmit}
+              >
+                {/* Row 1: Organization Name */}
+                <InputField
+                  id="grp_title"
+                  value={orgData.grp_title}
+                  onChange={handleChange}
+                  label="Organization name"
+                  placeholder="Enter organization name"
+                  error={validationErrors.grp_title}
+                />
+
+                {/* Row 2: Website with Globe Icon */}
+                <InputField
+                  id="grp_website"
+                  value={orgData.grp_website}
+                  onChange={handleChange}
+                  label="Website"
+                  placeholder="Enter website"
+                  Icon={GlobeIcon}
+                  error={validationErrors.grp_website}
+                />
+
+                {/* Row 3: Industry (SelectDropdown) */}
+                <div className="flex flex-col">
+                  <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Industry
+                  </label>
+                  <SelectDropdown
+                    items={industryOptions}
+                    selected={
+                      industryOptions.find(
+                        (option) => option.value === orgData.grp_industry,
+                      ) || null
+                    }
+                    onChange={handleIndustryChange}
+                    placeholder="Select an industry"
+                    error={validationErrors.grp_industry}
+                  />
+                </div>
+
+                {/* Row 4: About / Description using TextField */}
+                <div className="md:col-span-2">
+                  <TextField
+                    id="grp_description"
+                    value={orgData.grp_description}
+                    onChange={handleChange}
+                    label="About"
+                    placeholder="Enter organization description"
+                    error={validationErrors.grp_description}
+                    required
+                  />
+                </div>
+
+                {/* Row 5: Country (SelectDropdown) */}
+                <div className="flex flex-col">
+                  <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Country
+                  </label>
+                  <SelectDropdown
+                    items={countryOptions}
+                    selected={
+                      countryOptions.find(
+                        (option) => option.value === orgData.grp_country,
+                      ) || null
+                    }
+                    onChange={handleCountryChange}
+                    placeholder="Select a country"
+                    error={validationErrors.grp_country}
+                  />
+                </div>
+
+                {/* Row 6: Timezone (SelectDropdown) */}
+                <div className="relative flex flex-col gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Timezone
+                  </label>
+                  <SelectDropdown
+                    items={timeZonesArr}
+                    selected={
+                      timeZonesArr.find(
+                        (option) => option.value === orgData.grp_timezone,
+                      ) || null
+                    }
+                    onChange={handleTimezoneChange}
+                    placeholder="Select a timezone"
+                    error={validationErrors.grp_timezone}
+                    listClassName="pl-10"
+                  />
+                </div>
+              </form>
               <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
                 <Button
                   className="dark:bg-transparent"

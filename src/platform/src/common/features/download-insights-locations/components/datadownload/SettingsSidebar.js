@@ -45,7 +45,7 @@ const SettingsSidebar = ({
 
   return (
     <motion.form
-      className="w-[280px] min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
+      className="w-[280px] h-full min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
       onSubmit={handleSubmit}
       variants={sidebarVariants}

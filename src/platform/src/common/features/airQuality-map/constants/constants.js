@@ -12,12 +12,20 @@ export const BOUNDARY_URL = 'https://nominatim.openstreetmap.org/search';
 
 export const mapStyles = [
   {
-    url: 'mapbox://styles/mapbox/streets-v11',
+    url: 'mapbox://styles/mapbox/streets-v12',
     name: 'Streets',
     image: StreetsMode,
   },
-  { url: 'mapbox://styles/mapbox/light-v10', name: 'Light', image: LightMode },
-  { url: 'mapbox://styles/mapbox/dark-v10', name: 'Dark', image: DarkMode },
+  {
+    url: 'mapbox://styles/mapbox/light-v11',
+    name: 'Light',
+    image: LightMode,
+  },
+  {
+    url: 'mapbox://styles/mapbox/dark-v11',
+    name: 'Dark',
+    image: DarkMode,
+  },
   {
     url: 'mapbox://styles/mapbox/satellite-v9',
     name: 'Satellite',

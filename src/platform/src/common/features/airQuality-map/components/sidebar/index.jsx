@@ -39,6 +39,8 @@ import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 import allCountries from '../../constants/countries.json';
 
+import { useWindowSize } from '@/lib/windowSize';
+
 const SectionDivider = () => (
   <div className="border border-secondary-neutral-light-100 dark:border-gray-700 my-3" />
 );
@@ -76,7 +78,8 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [error, setError] = useState({ isError: false, message: '', type: '' });
-  const [contentOverflows, setContentOverflows] = useState(false);
+
+  const { width } = useWindowSize();
 
   const openLocationDetails = useSelector(
     (state) => state.map.showLocationDetails,
@@ -104,19 +107,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const { isLoading: measurementsLoading } = useRecentMeasurements(
     selectedLocation ? { site_id: selectedLocation._id } : null,
   );
-
-  useEffect(() => {
-    if (contentRef.current) {
-      const checkOverflow = () => {
-        setContentOverflows(
-          contentRef.current.scrollHeight > contentRef.current.clientHeight,
-        );
-      };
-      checkOverflow();
-      window.addEventListener('resize', checkOverflow);
-      return () => window.removeEventListener('resize', checkOverflow);
-    }
-  }, [selectedLocation, searchResults, suggestedSites]);
 
   const fetchWeeklyPredictions = useCallback(async () => {
     if (!selectedLocation?._id) return setWeeklyPredictions([]);
@@ -360,26 +350,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       <LoadingSkeleton />
     ) : (
       <>
-        <div className="px-1">
-          <Card className="mt-3" bordered={false}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="sort-select"
-                  className="font-medium text-secondary-neutral-dark-400 text-sm dark:text-white"
-                >
-                  Sort by:
-                </label>
-                <select
-                  id="sort-select"
-                  className="rounded-md m-0 p-0 text-sm font-medium bg-white dark:bg-black-600 text-secondary-neutral-dark-700 dark:text-white outline-none border-none"
-                >
-                  <option value="custom">Suggested</option>
-                </select>
-              </div>
-            </div>
-          </Card>
-        </div>
         <LocationCards
           searchResults={suggestedSites}
           isLoading={isLoading}
@@ -409,19 +379,20 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 
   return (
     <Card
-      className="relative w-full h-full rounded-l-xl shadow-sm text-left"
+      className="relative w-full h-full shadow-sm text-left"
+      rounded={false}
       padding="p-0"
-      overflow
+      overflow={true}
     >
       <div className="h-full flex flex-col">
         {!isSearchFocused && !openLocationDetails && (
-          <div className="pt-3 px-3 space-y-3 flex-shrink-0">
+          <div className="pt-3 flex flex-col gap-3 flex-shrink-0">
             <SidebarHeader isAdmin={isAdmin} />
             {!isAdmin && <hr className="my-2" />}
-            <div onClick={() => setIsFocused(true)}>
+            <div className="px-3" onClick={() => setIsFocused(true)}>
               <SearchField showSearchResultsNumber={false} focus={false} />
             </div>
-            <div className="flex py-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 hide-scrollbar">
+            <div className="flex pl-3 py-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 hide-scrollbar">
               <Button
                 type="button"
                 variant="filled"
@@ -445,7 +416,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         )}
         <div
           ref={contentRef}
-          className={`sidebar-content-wrapper flex-grow ${contentOverflows ? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent' : 'overflow-hidden'}`}
+          style={{
+            paddingBottom: width > 1024 ? '0' : '100px',
+          }}
         >
           {renderMainContent()}
         </div>

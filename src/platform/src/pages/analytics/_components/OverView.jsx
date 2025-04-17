@@ -213,7 +213,7 @@ const OverView = () => {
             </CustomDropdown>
           </div>
 
-          <div className="space-x-2 flex">
+          <div className="gap-2 flex flex-wrap">
             {/* Add Location Button */}
             <CustomDropdown
               text="Add location"
