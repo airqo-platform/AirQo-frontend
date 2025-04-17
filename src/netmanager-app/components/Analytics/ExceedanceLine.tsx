@@ -198,7 +198,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
         const mainChartData = processedData.slice(0, 10)
         setDataset(mainChartData)
         setAllLocationsData(processedData)
-      } catch (error) {
+      } catch {
         setDataset([])
         setAllLocationsData([])
       }
@@ -328,7 +328,6 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
       }
     })
 
-    // Convert to array format for pie chart
     return [
       { name: "Good", value: totals.Good, color: chartConfig.Good.color },
       { name: "Moderate", value: totals.Moderate, color: chartConfig.Moderate.color },
@@ -336,7 +335,7 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
       { name: "Unhealthy", value: totals.Unhealthy, color: chartConfig.Unhealthy.color },
       { name: "Very Unhealthy", value: totals.VeryUnhealthy, color: chartConfig.VeryUnhealthy.color },
       { name: "Hazardous", value: totals.Hazardous, color: chartConfig.Hazardous.color },
-    ].filter((item) => item.value > 0) // Only include categories with values
+    ].filter((item) => item.value > 0)
   }
 
   return (
