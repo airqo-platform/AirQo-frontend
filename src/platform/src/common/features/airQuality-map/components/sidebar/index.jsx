@@ -360,26 +360,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       <LoadingSkeleton />
     ) : (
       <>
-        <div className="px-1">
-          <Card className="mt-3" bordered={false}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="sort-select"
-                  className="font-medium text-secondary-neutral-dark-400 text-sm dark:text-white"
-                >
-                  Sort by:
-                </label>
-                <select
-                  id="sort-select"
-                  className="rounded-md m-0 p-0 text-sm font-medium bg-white dark:bg-black-600 text-secondary-neutral-dark-700 dark:text-white outline-none border-none"
-                >
-                  <option value="custom">Suggested</option>
-                </select>
-              </div>
-            </div>
-          </Card>
-        </div>
         <LocationCards
           searchResults={suggestedSites}
           isLoading={isLoading}
