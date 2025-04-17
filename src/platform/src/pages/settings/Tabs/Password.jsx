@@ -117,7 +117,7 @@ const Password = () => {
   };
 
   return (
-    <div data-testid="tab-content" className="px-4 md:px-0 py-6">
+    <div data-testid="tab-content">
       <AlertBox
         message={errorState.message}
         type={errorState.type}
@@ -135,44 +135,42 @@ const Password = () => {
         </div>
         <div className="md:col-span-2">
           <Card rounded radius="rounded-lg">
-            <div className="p-6">
-              <form
-                className="flex flex-col gap-4"
-                onSubmit={handleSubmit}
-                data-testid="form-box"
-              >
-                <InputField
-                  id="currentPassword"
-                  type="password"
-                  value={passwords.currentPassword}
-                  onChange={handleChange}
-                  label="Current Password"
-                  placeholder="•••••••••"
-                  error={fieldErrors.currentPassword}
-                  required
-                />
-                <InputField
-                  id="newPassword"
-                  type="password"
-                  value={passwords.newPassword}
-                  onChange={handleChange}
-                  label="New Password"
-                  placeholder="•••••••••"
-                  error={fieldErrors.newPassword}
-                  required
-                />
-                <InputField
-                  id="confirmNewPassword"
-                  type="password"
-                  value={passwords.confirmNewPassword}
-                  onChange={handleChange}
-                  label="Confirm New Password"
-                  placeholder="•••••••••"
-                  error={fieldErrors.confirmNewPassword}
-                  required
-                />
-              </form>
-            </div>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleSubmit}
+              data-testid="form-box"
+            >
+              <InputField
+                id="currentPassword"
+                type="password"
+                value={passwords.currentPassword}
+                onChange={handleChange}
+                label="Current Password"
+                placeholder="•••••••••"
+                error={fieldErrors.currentPassword}
+                required
+              />
+              <InputField
+                id="newPassword"
+                type="password"
+                value={passwords.newPassword}
+                onChange={handleChange}
+                label="New Password"
+                placeholder="•••••••••"
+                error={fieldErrors.newPassword}
+                required
+              />
+              <InputField
+                id="confirmNewPassword"
+                type="password"
+                value={passwords.confirmNewPassword}
+                onChange={handleChange}
+                label="Confirm New Password"
+                placeholder="•••••••••"
+                error={fieldErrors.confirmNewPassword}
+                required
+              />
+            </form>
             <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
               <Button
                 onClick={handleReset}

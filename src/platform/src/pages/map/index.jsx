@@ -207,16 +207,16 @@ const Index = () => {
                       {isControlsExpanded && (
                         <div
                           className={`
-                            absolute right-full mr-2 rounded-lg shadow-lg p-2 bg-white flex gap-2 z-[2000]
+                            absolute right-full mr-2 flex gap-2 z-[2000]
                             transform transition-all duration-200 ease-in-out
                             ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
                           `}
                         >
-                          <IconButton
+                          {/* <IconButton
                             onClick={() => handleControlAction('layers')}
                             title="Map Layers"
                             icon={<LayerIcon />}
-                          />
+                          /> */}
                           <IconButton
                             onClick={() => handleControlAction('refresh')}
                             title="Refresh Map"

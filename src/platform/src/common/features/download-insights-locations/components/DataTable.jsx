@@ -298,12 +298,12 @@ function DataTable({
       {/* Filters + Search */}
       <div className="flex flex-wrap gap-2 items-center justify-between mb-2">
         {/* Filter Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {filters.map((filterDef) => {
             const isActive = activeFilter?.key === filterDef.key;
             const hasError = !!filterErrors[filterDef.key];
 
-            const activeBgColor = '#2563eb'; // same for light or dark in this example
+            const activeBgColor = '#2563eb';
             const errorBgColor = '#dc2626';
             const defaultBgColor = darkMode ? '' : '#fff';
 

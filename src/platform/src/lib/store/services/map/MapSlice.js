@@ -6,10 +6,10 @@ const initialState = {
     city: '',
   },
   center: {
-    latitude: 9.7037,
-    longitude: 19.9573,
+    latitude: 5.5863,
+    longitude: 17.2321,
   },
-  zoom: 3.27,
+  zoom: 2.73,
   showLocationDetails: false,
   selectedLocation: null,
   mapLoading: false,

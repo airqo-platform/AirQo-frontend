@@ -7,11 +7,13 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
+import { IoIosMenu } from 'react-icons/io';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
 import DeviceIcon from '@/icons/Analytics/deviceIcon';
+import Close from '@/icons/close_icon';
 import Footer from '../components/Footer';
 
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -43,6 +45,7 @@ import DataContent, {
 } from '../components/datadownload/DataContent';
 import { getMimeType } from '../utils';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import InfoMessage from '@/components/Messages/InfoMessage';
 
 /**
  * Header component for the Download Data modal.
@@ -66,7 +69,7 @@ const MESSAGE_TYPES = {
 /**
  * DataDownload component allows users to download air quality data
  * with various filtering options.
- * Refactored with exact 280px sidebar width and consistent animations.
+ * Refactored for better mobile responsiveness with a toggleable sidebar.
  *
  * @param {Object} props
  * @param {Function} props.onClose - Function to close the modal
@@ -79,6 +82,9 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     previousFilter: null,
     errorTimeout: null,
   });
+
+  // Mobile UI state
+  const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
 
   // Get active group info
   const {
@@ -219,6 +225,18 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         clearTimeout(refs.current.errorTimeout);
       }
     };
+  }, []);
+
+  // Close mobile sidebar when resizing to larger screen
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileSidebarVisible(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Set initial organization once data is loaded
@@ -449,6 +467,11 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         e.preventDefault();
       }
 
+      // Close mobile sidebar if open
+      if (isMobileSidebarVisible) {
+        setMobileSidebarVisible(false);
+      }
+
       // Abort any existing request
       if (refs.current.abortController) {
         refs.current.abortController.abort();
@@ -662,6 +685,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       onClose,
       validateFormData,
       resetErrorAfterDelay,
+      isMobileSidebarVisible,
     ],
   );
 
@@ -910,62 +934,197 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     selectedItems.length,
   ]);
 
-  // Main component animation variants
-  const pageVariants = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, transition: { duration: 0.2 } },
+  // Animation variants
+  const animations = {
+    pageVariants: {
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: { duration: 0.3 } },
+      exit: { opacity: 0, transition: { duration: 0.2 } },
+    },
+    sidebarVariants: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: { duration: 0.3, staggerChildren: 0.07 },
+      },
+    },
+    itemVariants: {
+      hidden: { opacity: 0, y: 10 },
+      visible: { opacity: 1, y: 0 },
+    },
+  };
+
+  // Render sidebar content based on loading state
+  const renderSidebarContent = () => {
+    if (Object.values(ORGANIZATION_OPTIONS).length === 0) {
+      return (
+        <motion.div
+          className="animate-pulse space-y-4 p-4"
+          variants={animations.itemVariants}
+        >
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full"
+            />
+          ))}
+        </motion.div>
+      );
+    }
+
+    return (
+      <SettingsSidebar
+        formData={formData}
+        handleOptionSelect={handleOptionSelect}
+        handleTitleChange={handleTitleChange}
+        edit={edit}
+        setEdit={setEdit}
+        filteredDataTypeOptions={filteredDataTypeOptions}
+        ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
+        durationGuidance={durationGuidance}
+        handleSubmit={handleSubmit}
+        sidebarBg={darkMode ? '' : sidebarBg}
+        isMobile={isMobileSidebarVisible}
+      />
+    );
+  };
+
+  // Render main content area with error handling
+  const renderMainContent = () => {
+    const isError = sitesError || devicesError || countriesError || citiesError;
+    const errorMessage =
+      sitesErrorMsg?.message ||
+      devicesErrorMsg?.message ||
+      countriesErrorMsg?.message ||
+      citiesErrorMsg?.message ||
+      'Error loading data. Please try again.';
+
+    if (isError && !isLoading) {
+      return (
+        <motion.div
+          className="p-4"
+          variants={animations.itemVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <InfoMessage
+            title="Error Loading Data"
+            description={errorMessage}
+            variant="error"
+          />
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div variants={animations.itemVariants}>
+        <DataContent
+          selectedItems={selectedItems}
+          clearSelections={clearSelections}
+          currentFilterData={currentFilterData}
+          activeFilterKey={activeFilterKey}
+          selectedRows={selectedItems}
+          setSelectedRows={setSelectedItems}
+          clearSelected={clearSelected}
+          isLoading={isLoading}
+          filterErrors={filterErrors}
+          handleToggleItem={handleToggleItem}
+          columnsByFilter={columnsByFilter}
+          filters={filters}
+          handleFilter={handleFilter}
+          searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
+          handleRetryLoad={handleRetryLoad}
+        />
+      </motion.div>
+    );
   };
 
   return (
     <ErrorBoundary name="DataDownload" feature="Air Quality Data Download">
       <motion.div
-        className="flex flex-col md:flex-row h-full overflow-hidden"
-        variants={pageVariants}
+        className="relative flex flex-col lg:flex-row h-full overflow-hidden"
+        variants={animations.pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
+        data-testid="data-download-container"
       >
-        {/* Settings Panel - Exactly 280px width */}
-        <SettingsSidebar
-          formData={formData}
-          handleOptionSelect={handleOptionSelect}
-          handleTitleChange={handleTitleChange}
-          edit={edit}
-          setEdit={setEdit}
-          filteredDataTypeOptions={filteredDataTypeOptions}
-          ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
-          durationGuidance={durationGuidance}
-          handleSubmit={handleSubmit}
-          sidebarBg={darkMode ? '' : sidebarBg}
-        />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <motion.div
+            className="w-[280px] min-h-[400px] max-h-[658px] h-full overflow-y-auto overflow-x-hidden border-r dark:border-gray-700 relative"
+            variants={animations.sidebarVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {renderSidebarContent()}
+          </motion.div>
+        </div>
 
-        {/* Main Content Section */}
-        <div className="flex-1 flex flex-col relative">
-          <DataContent
-            selectedItems={selectedItems}
-            clearSelections={clearSelections}
-            currentFilterData={currentFilterData}
-            activeFilterKey={activeFilterKey}
-            selectedRows={selectedItems}
-            setSelectedRows={setSelectedItems}
-            clearSelected={clearSelected}
-            isLoading={isLoading}
-            filterErrors={filterErrors}
-            handleToggleItem={handleToggleItem}
-            columnsByFilter={columnsByFilter}
-            filters={filters}
-            handleFilter={handleFilter}
-            searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
-            handleRetryLoad={handleRetryLoad}
-          />
+        {/* Mobile/Tablet Menu Button */}
+        <div className="lg:hidden px-4 md:px-6 pt-2">
+          <button
+            onClick={() => setMobileSidebarVisible(true)}
+            aria-label="Open settings menu"
+            className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-200"
+          >
+            <IoIosMenu size={24} className="mr-1" />
+            <span>Settings</span>
+          </button>
+        </div>
+
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {isMobileSidebarVisible && (
+            <motion.div
+              className="absolute inset-0 z-50 flex h-full overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="w-[280px] h-full relative dark:bg-[#1d1f20] overflow-x-hidden overflow-y-auto shadow-lg"
+                initial={{ x: -350 }}
+                animate={{ x: 0 }}
+                exit={{ x: -350 }}
+              >
+                <div className="p-2 absolute z-50 top-0 right-0">
+                  <button
+                    onClick={() => setMobileSidebarVisible(false)}
+                    aria-label="Close sidebar menu"
+                  >
+                    <Close />
+                  </button>
+                </div>
+                {renderSidebarContent()}
+              </motion.div>
+              <div
+                className="flex-1 h-full bg-black bg-opacity-50"
+                onClick={() => setMobileSidebarVisible(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col relative overflow-x-hidden">
+          <motion.div
+            className="flex-1 h-full overflow-y-auto overflow-x-hidden"
+            variants={animations.sidebarVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {renderMainContent()}
+          </motion.div>
 
           <Footer
             setError={setFormError}
             messageType={footerInfo.type}
             message={footerInfo.message}
             selectedItems={selectedItems}
-            handleClearSelection={handleClearSelection}
+            handleClearSelection={
+              selectedItems.length > 0 ? handleClearSelection : undefined
+            }
             handleSubmit={handleSubmit}
             onClose={onClose}
             btnText={downloadLoading ? 'Downloading...' : 'Download'}

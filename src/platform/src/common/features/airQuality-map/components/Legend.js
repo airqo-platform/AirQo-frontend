@@ -124,7 +124,7 @@ const AirQualityLegend = ({ pollutant }) => {
     >
       <button
         onClick={() => setShow((prev) => !prev)}
-        className="rounded-full p-2 mb-1 last:mb-0 transition-transform duration-300"
+        className="rounded-full p-2 transition-transform duration-300"
         aria-label="Air Quality Control"
       >
         {show ? <DownArrow /> : <UpArrow />}
@@ -138,7 +138,7 @@ const AirQualityLegend = ({ pollutant }) => {
         {levels.map((level, index) => (
           <button
             key={index}
-            className="bg-transparent rounded-full mb-2 last:mb-0"
+            className="bg-transparent rounded-full"
             aria-label={level.label}
             data-tippy-content={`${level.label}\n${level.range}`}
             ref={(el) => (legendButtonsRef.current[index] = el)}
