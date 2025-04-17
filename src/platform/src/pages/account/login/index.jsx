@@ -17,12 +17,15 @@ import {
   setError,
 } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { postUserLoginDetails, getUserDetails } from '@/core/apis/Account';
+import {
+  postUserLoginDetails,
+  getUserDetails,
+  recentUserPreferencesAPI,
+} from '@/core/apis/Account';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
-// Yup schema for login
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
     .email('Invalid email address')
@@ -41,12 +44,12 @@ const UserLogin = () => {
   const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
     try {
       return await fn();
-    } catch (error) {
-      if (retries > 0 && error.response?.status === 429) {
-        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+    } catch (err) {
+      if (retries > 0 && err.response?.status === 429) {
+        await new Promise((res) => setTimeout(res, RETRY_DELAY));
         return retryWithDelay(fn, retries - 1);
       }
-      throw error;
+      throw err;
     }
   };
 
@@ -56,7 +59,7 @@ const UserLogin = () => {
       setLoading(true);
       setErrorState('');
 
-      // Validate input using Yup
+      // 1️⃣ Validate credentials
       try {
         await loginSchema.validate(userData, { abortEarly: false });
       } catch (validationError) {
@@ -68,46 +71,53 @@ const UserLogin = () => {
       }
 
       try {
-        // Get JWT token from login endpoint
+        // 2️⃣ Authenticate → get JWT
         const { token } = await retryWithDelay(() =>
           postUserLoginDetails(userData),
         );
         localStorage.setItem('token', token);
         const decoded = jwt_decode(token);
 
-        // Get user details with token
-        const response = await retryWithDelay(() =>
+        // 3️⃣ Fetch full user object
+        const userRes = await retryWithDelay(() =>
           getUserDetails(decoded._id, token),
         );
-        const user = response.users[0];
-
-        // Validate that user has at least one group
-        if (!user.groups || user.groups.length === 0) {
+        const user = userRes.users[0];
+        if (!user.groups?.length) {
           throw new Error(
             'Server error. Contact support to add you to the AirQo Organisation',
           );
         }
 
-        // Store user in localStorage
-        localStorage.setItem('loggedUser', JSON.stringify(user));
+        // 4️⃣ Fetch the most recent preference
+        let activeGroup = user.groups[0]; // default
+        try {
+          const prefRes = await retryWithDelay(() =>
+            recentUserPreferencesAPI(user._id),
+          );
+          if (prefRes.success && prefRes.preference) {
+            const { group_id } = prefRes.preference;
+            const matched = user.groups.find((g) => g._id === group_id);
+            if (matched) activeGroup = matched;
+          }
+        } catch {
+          // swallow and keep default
+        }
 
-        // Set active group from the first group in the groups array
-        const activeGroup = user.groups[0];
+        // 5️⃣ Persist & dispatch
+        localStorage.setItem('loggedUser', JSON.stringify(user));
         localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
-        // Update Redux state
         dispatch(setUserInfo(user));
         dispatch(setSuccess(true));
-
-        // Redirect to home page
         router.push('/Home');
-      } catch (error) {
+      } catch (err) {
         dispatch(setSuccess(false));
         const errorMessage =
-          error.response?.data?.message ||
-          (error.response?.status === 401
+          err.response?.data?.message ||
+          (err.response?.status === 401
             ? 'Invalid credentials. Please check your email and password.'
-            : error.message || 'Something went wrong, please try again');
+            : err.message || 'Something went wrong, please try again');
         dispatch(setError(errorMessage));
         setErrorState(errorMessage);
       } finally {
@@ -138,12 +148,7 @@ const UserLogin = () => {
             Get access to air quality analytics across Africa
           </p>
           {error && <Toast type="error" timeout={8000} message={error} />}
-          <form
-            onSubmit={handleLogin}
-            data-testid="login-form"
-            aria-label="Login form"
-            noValidate
-          >
+          <form onSubmit={handleLogin} noValidate>
             <div className="mt-6">
               <InputField
                 label="Email Address"
@@ -153,7 +158,7 @@ const UserLogin = () => {
                 required
               />
             </div>
-            <div className="mt-6 relative">
+            <div className="mt-6">
               <InputField
                 label="Password"
                 type="password"
@@ -164,36 +169,27 @@ const UserLogin = () => {
             </div>
             <div className="mt-10">
               <button
-                data-testid="login-btn"
-                className="w-full btn bg-blue-900 dark:bg-blue-700 rounded-lg text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-800"
+                className="w-full btn bg-blue-900 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-950 dark:hover:bg-blue-800"
                 type="submit"
                 disabled={loading}
-                aria-label={loading ? 'Logging in...' : 'Login'}
               >
-                {loading ? (
-                  <Spinner data-testid="spinner" width={25} height={25} />
-                ) : (
-                  'Login'
-                )}
+                {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>
             </div>
           </form>
-          <div className="mt-8 w-full flex justify-center">
-            <div>
-              <span className="text-sm text-gray-500 dark:text-gray-300">
-                Don&apos;t have an account?{' '}
-              </span>
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                <Link href="/account/creation">Register here</Link>
-              </span>
-            </div>
-          </div>
-          <div className="mt-8 flex justify-center w-full">
-            <div>
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                <Link href="/account/forgotPwd">Forgot Password</Link>
-              </span>
-            </div>
+          <div className="mt-8 flex justify-center space-x-4 text-sm">
+            <Link
+              href="/account/creation"
+              className="font-medium text-blue-600 dark:text-blue-400"
+            >
+              Register
+            </Link>
+            <Link
+              href="/account/forgotPwd"
+              className="font-medium text-blue-600 dark:text-blue-400"
+            >
+              Forgot Password
+            </Link>
           </div>
         </div>
       </AccountPageLayout>
