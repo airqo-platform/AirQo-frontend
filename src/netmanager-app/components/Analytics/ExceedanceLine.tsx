@@ -194,7 +194,6 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
           }
         })
 
-        // Limit to 10 locations for main chart
         const mainChartData = processedData.slice(0, 10)
         setDataset(mainChartData)
         setAllLocationsData(processedData)
