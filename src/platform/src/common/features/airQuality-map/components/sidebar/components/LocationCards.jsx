@@ -60,7 +60,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
     <Card
       background="bg-transparent"
       bordered={false}
-      className="pb-[350px] h-dvh my-5"
+      className="pb-[350px] my-5"
       padding="p-4"
     >
       <div className="flex flex-col gap-4">

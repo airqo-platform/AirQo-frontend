@@ -321,7 +321,10 @@ const AirQoMap = forwardRef(
     return (
       <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
         <div className="relative w-full h-full">
-          <div ref={mapContainerRef} className={customStyle} />
+          <div ref={mapContainerRef} className={customStyle}>
+            {showOverlay && <LoadingOverlay showOverlay={showOverlay} />}
+          </div>
+
           {isWaqLoading && (
             <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow z-10 text-sm flex items-center">
               <div className="animate-pulse mr-2 h-2 w-2 rounded-full bg-blue-500" />
@@ -330,7 +333,7 @@ const AirQoMap = forwardRef(
               </span>
             </div>
           )}
-          {showOverlay && <LoadingOverlay showOverlay={showOverlay} />}
+
           <LayerModal
             isOpen={layerModalOpen}
             onClose={() => setLayerModalOpen(false)}
