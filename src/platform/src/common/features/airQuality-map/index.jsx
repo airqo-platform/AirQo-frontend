@@ -51,11 +51,19 @@ const AirQoMap = forwardRef(
     const mapContainerRef = useRef(null);
     const { width } = useWindowSize();
     const controlsAddedRef = useRef(false);
+    const timeoutRef = useRef(null);
+    const mapInitializedRef = useRef(false);
 
     // Redux state
     const mapData = useSelector((state) => state.map);
     const { zoom: reduxZoom, center: reduxCenter } = mapData;
     const selectedNode = mapData.selectedNode;
+
+    // Local state
+    const [layerModalOpen, setLayerModalOpen] = useState(false);
+    const [nodeType, setNodeType] = useState('Emoji');
+    const [showOverlay, setShowOverlay] = useState(true);
+    const [styleUrl, setStyleUrl] = useState('');
 
     const { theme, systemTheme } = useTheme();
     const isDarkMode = useMemo(
@@ -63,7 +71,7 @@ const AirQoMap = forwardRef(
       [theme, systemTheme],
     );
 
-    // Style URL
+    // Get default style URL based on theme
     const defaultStyleUrl = useMemo(() => {
       if (!Array.isArray(mapStyles)) {
         const light = mapStyles.light?.url;
@@ -77,26 +85,18 @@ const AirQoMap = forwardRef(
       const found = mapStyles.find((s) => s.id === key || s.key === key);
       return found?.url || mapStyles[0]?.url;
     }, [isDarkMode]);
-    const [currentMapStyle, setCurrentMapStyle] = useState(defaultStyleUrl);
-    useEffect(() => setCurrentMapStyle(defaultStyleUrl), [defaultStyleUrl]);
 
-    // Local state
-    const [layerModalOpen, setLayerModalOpen] = useState(false);
-    const [nodeType, setNodeType] = useState('Emoji');
-    const [showOverlay, setShowOverlay] = useState(true);
+    // Set style URL only once on initial render or when isDarkMode changes
+    useEffect(() => {
+      if (!styleUrl) {
+        setStyleUrl(defaultStyleUrl);
+      }
+    }, [defaultStyleUrl, styleUrl]);
 
-    const handleMainLoading = useCallback(
-      (loading) => onLoadingChange?.(loading),
-      [onLoadingChange],
-    );
-    const handleWaqLoading = useCallback(
-      (loading) => onLoadingOthersChange?.(loading),
-      [onLoadingOthersChange],
-    );
-
-    // URL override
+    // URL parameters for initial map position
     const urlParams = useMemo(() => {
       try {
+        if (typeof window === 'undefined') return { valid: false };
         const p = new URLSearchParams(window.location.search);
         const lat = parseFloat(p.get('lat'));
         const lng = parseFloat(p.get('lng'));
@@ -117,14 +117,30 @@ const AirQoMap = forwardRef(
         urlParams.valid
           ? [urlParams.lng, urlParams.lat]
           : [reduxCenter.longitude, reduxCenter.latitude],
-      [urlParams, reduxCenter],
+      [urlParams, reduxCenter.longitude, reduxCenter.latitude],
     );
+
     const initialZoom = useMemo(
       () => (urlParams.valid ? urlParams.zm : reduxZoom),
       [urlParams, reduxZoom],
     );
 
-    // Data hook
+    // Safe callbacks for loading indicators
+    const handleMainLoading = useCallback(
+      (loading) => {
+        if (onLoadingChange) onLoadingChange(loading);
+      },
+      [onLoadingChange],
+    );
+
+    const handleWaqLoading = useCallback(
+      (loading) => {
+        if (onLoadingOthersChange) onLoadingOthersChange(loading);
+      },
+      [onLoadingOthersChange],
+    );
+
+    // Initialize map data hooks
     const {
       mapRef,
       fetchAndProcessData,
@@ -139,96 +155,153 @@ const AirQoMap = forwardRef(
       isDarkMode,
     });
 
-    // Overlay
-    useEffect(
-      () => handleWaqLoading(isWaqLoading),
-      [isWaqLoading, handleWaqLoading],
-    );
+    // Setup overlay timeout
     useEffect(() => {
-      const t = setTimeout(() => setShowOverlay(false), 40000);
-      return () => clearTimeout(t);
-    }, []);
-    useEffect(() => {
-      if ([...mapData.mapReadingsData, ...mapData.waqData].length)
-        setShowOverlay(false);
-    }, [mapData.mapReadingsData, mapData.waqData]);
+      // Only set timeout if overlay is showing
+      if (showOverlay) {
+        timeoutRef.current = setTimeout(() => {
+          setShowOverlay(false);
+        }, 50000); // 50 seconds timeout
+      }
 
-    // Imperative APIs
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+      };
+    }, [showOverlay]);
+
+    // Check for loaded nodes and hide overlay when they appear
+    useEffect(() => {
+      const hasNodes =
+        [...mapData.mapReadingsData, ...mapData.waqData].length > 0;
+      if (hasNodes && showOverlay) {
+        setShowOverlay(false);
+      }
+    }, [mapData.mapReadingsData, mapData.waqData, showOverlay]);
+
+    // Track WAQ loading state
+    useEffect(() => {
+      handleWaqLoading(isWaqLoading);
+    }, [isWaqLoading, handleWaqLoading]);
+
+    // Initialize imperative APIs
     const refreshMap = useRefreshMap(
       onToastMessage,
       mapRef,
       dispatch,
       selectedNode,
     );
+
     const shareLocation = useShareLocation(onToastMessage, mapRef);
     const captureScreenshot = useMapScreenshot(mapRef, onToastMessage);
 
-    // Controls: Globe, Zoom In, Geolocate
+    // Add map controls
     const addControls = useCallback(() => {
       const map = mapRef.current;
-      if (map && width >= 1024 && !controlsAddedRef.current) {
-        (map._controls || []).slice().forEach((ctrl) => {
-          if (
-            ctrl instanceof GlobeControl ||
-            ctrl instanceof CustomZoomControl ||
-            ctrl instanceof CustomGeolocateControl
-          ) {
-            map.removeControl(ctrl);
-          }
-        });
-        map.addControl(new GlobeControl(), 'bottom-right');
-        map.addControl(new CustomZoomControl(), 'bottom-right');
-        map.addControl(
-          new CustomGeolocateControl(onToastMessage),
-          'bottom-right',
-        );
-        controlsAddedRef.current = true;
-      }
+      if (!map || width < 1024 || controlsAddedRef.current) return;
+
+      // Remove existing controls if any
+      (map._controls || []).slice().forEach((ctrl) => {
+        if (
+          ctrl instanceof GlobeControl ||
+          ctrl instanceof CustomZoomControl ||
+          ctrl instanceof CustomGeolocateControl
+        ) {
+          map.removeControl(ctrl);
+        }
+      });
+
+      // Add new controls
+      map.addControl(new GlobeControl(), 'bottom-right');
+      map.addControl(new CustomZoomControl(), 'bottom-right');
+      map.addControl(
+        new CustomGeolocateControl(onToastMessage),
+        'bottom-right',
+      );
+
+      controlsAddedRef.current = true;
     }, [onToastMessage, width]);
 
+    // Handle map node type change
     const onMapDetail = useCallback(
       (detail) => {
-        setNodeType(detail);
-        if (mapRef.current) {
-          mapRef.current.nodeType = detail;
-          clusterUpdate();
+        if (detail !== nodeType) {
+          setNodeType(detail);
+          if (mapRef.current) {
+            mapRef.current.nodeType = detail;
+            clusterUpdate();
+          }
         }
       },
-      [clusterUpdate],
+      [clusterUpdate, nodeType],
     );
 
+    // Handle map style change
     const onStyleChange = useCallback(
       ({ url }) => {
         const map = mapRef.current;
-        if (map && url !== currentMapStyle) {
-          setCurrentMapStyle(url);
-          controlsAddedRef.current = false;
-          const center = map.getCenter();
-          const zoom = map.getZoom();
-          map.setStyle(url);
-          map.once('style.load', () => {
-            map.setCenter(center);
-            map.setZoom(zoom);
-            addControls();
-            updateMapData([...mapData.mapReadingsData, ...mapData.waqData]);
-          });
-        }
+        if (!map || url === styleUrl) return;
+
+        setStyleUrl(url);
+        controlsAddedRef.current = false;
+
+        // Store current state
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+
+        // Apply new style
+        map.setStyle(url);
+
+        // Restore state and data when style loads
+        map.once('style.load', () => {
+          map.setCenter(center);
+          map.setZoom(zoom);
+          addControls();
+          updateMapData([...mapData.mapReadingsData, ...mapData.waqData]);
+        });
       },
-      [currentMapStyle, mapData, updateMapData, addControls],
+      [
+        styleUrl,
+        mapData.mapReadingsData,
+        mapData.waqData,
+        updateMapData,
+        addControls,
+      ],
     );
 
-    useImperativeHandle(ref, () => ({
-      refreshMap,
-      shareLocation,
-      captureScreenshot,
-      openLayerModal: () => setLayerModalOpen(true),
-      closeLayerModal: () => setLayerModalOpen(false),
-    }));
+    // Expose methods via ref
+    useImperativeHandle(
+      ref,
+      () => ({
+        refreshMap,
+        shareLocation,
+        captureScreenshot,
+        openLayerModal: () => setLayerModalOpen(true),
+        closeLayerModal: () => setLayerModalOpen(false),
+      }),
+      [refreshMap, shareLocation, captureScreenshot],
+    );
 
-    // clear on unmount
-    useEffect(() => () => dispatch(clearData()), [dispatch]);
+    // Clean up on unmount
+    useEffect(() => {
+      return () => {
+        dispatch(clearData());
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
+        controlsAddedRef.current = false;
+        mapInitializedRef.current = false;
+      };
+    }, [dispatch]);
 
-    // URL sync
+    // Sync URL parameters to Redux
     useEffect(() => {
       if (urlParams.valid) {
         dispatch(
@@ -236,45 +309,68 @@ const AirQoMap = forwardRef(
         );
         dispatch(setZoom(urlParams.zm));
       }
-    }, [dispatch, urlParams]);
+    }, [dispatch, urlParams.valid, urlParams.lat, urlParams.lng, urlParams.zm]);
 
-    // Init/cleanup
+    // Initialize map
     useEffect(() => {
+      // Skip if already initialized or no container
+      if (mapInitializedRef.current || !mapContainerRef.current || !styleUrl) {
+        return;
+      }
+
+      // Clean up existing map if any
       if (mapRef.current) {
         mapRef.current.remove();
-        controlsAddedRef.current = false;
         mapRef.current = null;
       }
-      const container = mapContainerRef.current;
-      if (!container) return;
-      const init = async () => {
+      controlsAddedRef.current = false;
+
+      const initMap = async () => {
         handleMainLoading(true);
         dispatch(setMapLoading(true));
+
         try {
           mapboxgl.accessToken = mapboxApiAccessToken;
           const map = new mapboxgl.Map({
-            container,
-            style: currentMapStyle,
+            container: mapContainerRef.current,
+            style: styleUrl,
             projection: 'mercator',
             center: initialCenter,
             zoom: initialZoom,
             preserveDrawingBuffer: true,
           });
+
           mapRef.current = map;
           map.nodeType = nodeType;
+
           map.on('load', () => {
             map.resize();
             addControls();
-            fetchAndProcessData();
+            fetchAndProcessData().catch((err) => {
+              console.error('Failed to fetch map data:', err);
+              setShowOverlay(false);
+              onToastMessage?.({
+                message: 'Failed to load map data',
+                type: 'error',
+                bgColor: 'bg-red-500',
+              });
+            });
             handleMainLoading(false);
             dispatch(setMapLoading(false));
           });
-          map.on('zoomend', () => clusterUpdate());
+
+          map.on('zoomend', () => {
+            if (mapRef.current) clusterUpdate();
+          });
+
           map.on('error', (e) => {
             console.error('Mapbox error:', e.error);
             handleMainLoading(false);
             dispatch(setMapLoading(false));
+            setShowOverlay(false);
           });
+
+          mapInitializedRef.current = true;
         } catch (err) {
           console.error('Map init error:', err);
           onToastMessage?.({
@@ -284,39 +380,67 @@ const AirQoMap = forwardRef(
           });
           handleMainLoading(false);
           dispatch(setMapLoading(false));
+          setShowOverlay(false);
+          mapInitializedRef.current = false;
         }
       };
-      init();
-      return () => {
-        if (mapRef.current) {
-          mapRef.current.remove();
-          controlsAddedRef.current = false;
-          mapRef.current = null;
-        }
-      };
-    }, [mapboxApiAccessToken, addControls]);
 
-    // Resize
+      initMap();
+
+      // No cleanup here - we handle it in the main unmount effect
+    }, [
+      mapboxApiAccessToken,
+      styleUrl,
+      initialCenter,
+      initialZoom,
+      nodeType,
+      dispatch,
+      handleMainLoading,
+      addControls,
+      fetchAndProcessData,
+      onToastMessage,
+      clusterUpdate,
+    ]);
+
+    // Handle window resize
     useEffect(() => {
-      const onResize = () => mapRef.current?.resize();
-      window.addEventListener('resize', onResize);
-      return () => window.removeEventListener('resize', onResize);
+      const handleResize = () => {
+        if (mapRef.current?.loaded()) {
+          mapRef.current.resize();
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
     }, []);
-    useEffect(() => {
-      if (mapRef.current?.loaded()) addControls();
-    }, [width]);
 
-    // FlyTo
+    // Update controls when width changes
+    useEffect(() => {
+      if (
+        mapRef.current?.loaded() &&
+        !controlsAddedRef.current &&
+        width >= 1024
+      ) {
+        addControls();
+      }
+    }, [width, addControls]);
+
+    // Fly to location when Redux center/zoom changes
     useEffect(() => {
       const { latitude, longitude } = reduxCenter;
-      if (mapRef.current && latitude != null && longitude != null) {
+      if (
+        mapRef.current?.loaded() &&
+        latitude != null &&
+        longitude != null &&
+        mapInitializedRef.current
+      ) {
         mapRef.current.flyTo({
           center: [longitude, latitude],
           zoom: reduxZoom,
           essential: true,
         });
       }
-    }, [reduxCenter, reduxZoom]);
+    }, [reduxCenter.latitude, reduxCenter.longitude, reduxZoom]);
 
     return (
       <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
