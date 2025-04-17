@@ -32,7 +32,7 @@ const Layout = ({
   useInactivityLogout(userID);
 
   return (
-    <div className="flex min-h-screen bg-background" data-testid="layout">
+    <div className="flex overflow-hidden min-h-screen" data-testid="layout">
       <Head>
         <title>{pageTitle}</title>
         <meta property="og:title" content={pageTitle} key="title" />
