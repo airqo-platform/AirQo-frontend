@@ -15,11 +15,13 @@ import {
   setMapLoading,
   setCenter,
   setZoom,
+  clearData,
 } from '@/lib/store/services/map/MapSlice';
 import {
   useMapData,
   CustomZoomControl,
   CustomGeolocateControl,
+  GlobeControl,
   useRefreshMap,
   useShareLocation,
   useMapScreenshot,
@@ -36,7 +38,7 @@ import LoadingOverlay from './components/LoadingOverlay';
 const AirQoMap = forwardRef(
   (
     {
-      customStyle,
+      customStyle = 'w-full h-full',
       mapboxApiAccessToken,
       pollutant,
       onToastMessage,
@@ -49,42 +51,56 @@ const AirQoMap = forwardRef(
     const mapContainerRef = useRef(null);
     const { width } = useWindowSize();
     const controlsAddedRef = useRef(false);
+
+    // Redux state
+    const mapData = useSelector((state) => state.map);
+    const { zoom: reduxZoom, center: reduxCenter } = mapData;
+    const selectedNode = mapData.selectedNode;
+
     const { theme, systemTheme } = useTheme();
     const isDarkMode = useMemo(
       () => theme === 'dark' || (theme === 'system' && systemTheme === 'dark'),
       [theme, systemTheme],
     );
 
-    const mapData = useSelector((state) => state.map);
-    const selectedNode = useSelector((state) => state.map.selectedNode);
+    // Style URL
+    const defaultStyleUrl = useMemo(() => {
+      if (!Array.isArray(mapStyles)) {
+        const light = mapStyles.light?.url;
+        const dark = mapStyles.dark?.url;
+        const fallback = Object.values(mapStyles)[0]?.url;
+        return isDarkMode
+          ? dark || light || fallback
+          : light || dark || fallback;
+      }
+      const key = isDarkMode ? 'dark' : 'light';
+      const found = mapStyles.find((s) => s.id === key || s.key === key);
+      return found?.url || mapStyles[0]?.url;
+    }, [isDarkMode]);
+    const [currentMapStyle, setCurrentMapStyle] = useState(defaultStyleUrl);
+    useEffect(() => setCurrentMapStyle(defaultStyleUrl), [defaultStyleUrl]);
 
     // Local state
     const [layerModalOpen, setLayerModalOpen] = useState(false);
     const [nodeType, setNodeType] = useState('Emoji');
     const [showOverlay, setShowOverlay] = useState(true);
 
-    const defaultMapStyle = isDarkMode
-      ? 'mapbox://styles/mapbox/dark-v10'
-      : 'mapbox://styles/mapbox/streets-v11';
-    const [currentMapStyle, setCurrentMapStyle] = useState(defaultMapStyle);
-
-    // Update parent loading handlers.
     const handleMainLoading = useCallback(
-      (isLoading) => onLoadingChange && onLoadingChange(isLoading),
+      (loading) => onLoadingChange?.(loading),
       [onLoadingChange],
     );
     const handleWaqLoading = useCallback(
-      (isLoading) => onLoadingOthersChange && onLoadingOthersChange(isLoading),
+      (loading) => onLoadingOthersChange?.(loading),
       [onLoadingOthersChange],
     );
 
-    // Parse URL parameters for initial view.
+    // URL override
     const urlParams = useMemo(() => {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const lat = parseFloat(params.get('lat'));
-        const lng = parseFloat(params.get('lng'));
-        const zm = parseFloat(params.get('zm'));
+        const p = new URLSearchParams(window.location.search);
+        const lat = parseFloat(p.get('lat'));
+        const lng = parseFloat(p.get('lng'));
+        const zm = parseFloat(p.get('zm'));
         return {
           lat,
           lng,
@@ -96,7 +112,19 @@ const AirQoMap = forwardRef(
       }
     }, []);
 
-    // Get map data and related functions from our custom hook.
+    const initialCenter = useMemo(
+      () =>
+        urlParams.valid
+          ? [urlParams.lng, urlParams.lat]
+          : [reduxCenter.longitude, reduxCenter.latitude],
+      [urlParams, reduxCenter],
+    );
+    const initialZoom = useMemo(
+      () => (urlParams.valid ? urlParams.zm : reduxZoom),
+      [urlParams, reduxZoom],
+    );
+
+    // Data hook
     const {
       mapRef,
       fetchAndProcessData,
@@ -111,127 +139,96 @@ const AirQoMap = forwardRef(
       isDarkMode,
     });
 
-    // Update WAQ loading state.
+    // Overlay
+    useEffect(
+      () => handleWaqLoading(isWaqLoading),
+      [isWaqLoading, handleWaqLoading],
+    );
     useEffect(() => {
-      handleWaqLoading(isWaqLoading);
-    }, [isWaqLoading, handleWaqLoading]);
-
-    // Overlay timer logic - always hide after 10 seconds
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setShowOverlay(false);
-      }, 40000);
-
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setShowOverlay(false), 40000);
+      return () => clearTimeout(t);
     }, []);
-
-    // Hide overlay when nodes are loaded
     useEffect(() => {
-      const combined = [
-        ...(mapData.mapReadingsData || []),
-        ...(mapData.waqData || []),
-      ];
-
-      if (combined.length > 0) {
+      if ([...mapData.mapReadingsData, ...mapData.waqData].length)
         setShowOverlay(false);
-      }
     }, [mapData.mapReadingsData, mapData.waqData]);
 
-    // Map action hooks.
-    const refreshMapFn = useRefreshMap(
+    // Imperative APIs
+    const refreshMap = useRefreshMap(
       onToastMessage,
       mapRef,
       dispatch,
       selectedNode,
     );
-    const shareLocationFn = useShareLocation(onToastMessage, mapRef);
-    const captureScreenshotFn = useMapScreenshot(mapRef, onToastMessage);
+    const shareLocation = useShareLocation(onToastMessage, mapRef);
+    const captureScreenshot = useMapScreenshot(mapRef, onToastMessage);
 
-    // Update the addControlsIfNeeded function to properly check and manage controls
-    const addControlsIfNeeded = useCallback(() => {
-      if (mapRef.current && width >= 1024) {
-        try {
-          // First, remove any existing custom controls
-          const existingControls = mapRef.current._controls || [];
-          [...existingControls].forEach((control) => {
-            if (
-              control instanceof CustomZoomControl ||
-              control instanceof CustomGeolocateControl
-            ) {
-              mapRef.current.removeControl(control);
-            }
-          });
-
-          // Then add fresh controls
-          mapRef.current.addControl(new CustomZoomControl(), 'bottom-right');
-          mapRef.current.addControl(
-            new CustomGeolocateControl((msg) => onToastMessage?.(msg)),
-            'bottom-right',
-          );
-          controlsAddedRef.current = true;
-        } catch (error) {
-          console.error('Error managing controls:', error);
-        }
+    // Controls: Globe, Zoom In, Geolocate
+    const addControls = useCallback(() => {
+      const map = mapRef.current;
+      if (map && width >= 1024 && !controlsAddedRef.current) {
+        (map._controls || []).slice().forEach((ctrl) => {
+          if (
+            ctrl instanceof GlobeControl ||
+            ctrl instanceof CustomZoomControl ||
+            ctrl instanceof CustomGeolocateControl
+          ) {
+            map.removeControl(ctrl);
+          }
+        });
+        map.addControl(new GlobeControl(), 'bottom-right');
+        map.addControl(new CustomZoomControl(), 'bottom-right');
+        map.addControl(
+          new CustomGeolocateControl(onToastMessage),
+          'bottom-right',
+        );
+        controlsAddedRef.current = true;
       }
     }, [onToastMessage, width]);
 
-    // Define handleMapDetailsSelect to update the node type and then re-run clustering.
-    const handleMapDetailsSelect = useCallback(
-      (detailName) => {
-        setNodeType(detailName);
+    const onMapDetail = useCallback(
+      (detail) => {
+        setNodeType(detail);
         if (mapRef.current) {
-          mapRef.current.nodeType = detailName;
+          mapRef.current.nodeType = detail;
           clusterUpdate();
         }
       },
       [clusterUpdate],
     );
 
-    // Update the handleStyleSelect function to reset controls properly
-    const handleStyleSelect = useCallback(
-      (style) => {
-        if (style.url !== currentMapStyle && mapRef.current) {
-          setCurrentMapStyle(style.url);
-          // Reset the controls flag to ensure we'll re-add controls after style loads
+    const onStyleChange = useCallback(
+      ({ url }) => {
+        const map = mapRef.current;
+        if (map && url !== currentMapStyle) {
+          setCurrentMapStyle(url);
           controlsAddedRef.current = false;
-
-          const currentCenter = mapRef.current.getCenter();
-          const currentZoom = mapRef.current.getZoom();
-
-          mapRef.current.setStyle(style.url);
-
-          mapRef.current.once('style.load', () => {
-            mapRef.current.setCenter(currentCenter);
-            mapRef.current.setZoom(currentZoom);
-            // Add controls after style is loaded
-            addControlsIfNeeded();
-
-            const combined = [
-              ...(mapData.mapReadingsData || []),
-              ...(mapData.waqData || []),
-            ];
-            if (combined.length) updateMapData(combined);
+          const center = map.getCenter();
+          const zoom = map.getZoom();
+          map.setStyle(url);
+          map.once('style.load', () => {
+            map.setCenter(center);
+            map.setZoom(zoom);
+            addControls();
+            updateMapData([...mapData.mapReadingsData, ...mapData.waqData]);
           });
         }
       },
-      [
-        currentMapStyle,
-        mapData.mapReadingsData,
-        mapData.waqData,
-        updateMapData,
-        addControlsIfNeeded,
-      ],
+      [currentMapStyle, mapData, updateMapData, addControls],
     );
 
     useImperativeHandle(ref, () => ({
-      refreshMap: refreshMapFn,
-      shareLocation: shareLocationFn,
-      captureScreenshot: captureScreenshotFn,
+      refreshMap,
+      shareLocation,
+      captureScreenshot,
       openLayerModal: () => setLayerModalOpen(true),
       closeLayerModal: () => setLayerModalOpen(false),
     }));
 
-    // Set initial view using URL parameters.
+    // clear on unmount
+    useEffect(() => () => dispatch(clearData()), [dispatch]);
+
+    // URL sync
     useEffect(() => {
       if (urlParams.valid) {
         dispatch(
@@ -241,44 +238,47 @@ const AirQoMap = forwardRef(
       }
     }, [dispatch, urlParams]);
 
-    // Initialize the map instance only once.
+    // Init/cleanup
     useEffect(() => {
-      if (!mapContainerRef.current || mapRef.current) return;
-      const initializeMap = async () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        controlsAddedRef.current = false;
+        mapRef.current = null;
+      }
+      const container = mapContainerRef.current;
+      if (!container) return;
+      const init = async () => {
         handleMainLoading(true);
         dispatch(setMapLoading(true));
         try {
           mapboxgl.accessToken = mapboxApiAccessToken;
-          const initialCenter = urlParams.valid
-            ? [urlParams.lng, urlParams.lat]
-            : [mapData.center.longitude, mapData.center.latitude];
-          const initialZoom = urlParams.valid ? urlParams.zm : mapData.zoom;
-          const mapInstance = new mapboxgl.Map({
-            container: mapContainerRef.current,
+          const map = new mapboxgl.Map({
+            container,
             style: currentMapStyle,
+            projection: 'mercator',
             center: initialCenter,
             zoom: initialZoom,
             preserveDrawingBuffer: true,
           });
-          mapRef.current = mapInstance;
-          mapRef.current.nodeType = nodeType;
-          mapInstance.on('load', () => {
-            mapInstance.resize();
-            addControlsIfNeeded();
-            // Fetch data only once. Subsequent location selections only trigger fly-to.
+          mapRef.current = map;
+          map.nodeType = nodeType;
+          map.on('load', () => {
+            map.resize();
+            addControls();
             fetchAndProcessData();
             handleMainLoading(false);
             dispatch(setMapLoading(false));
           });
-          mapInstance.on('error', (e) => {
+          map.on('zoomend', () => clusterUpdate());
+          map.on('error', (e) => {
             console.error('Mapbox error:', e.error);
             handleMainLoading(false);
             dispatch(setMapLoading(false));
           });
-        } catch (error) {
-          console.error('Map initialization error:', error);
+        } catch (err) {
+          console.error('Map init error:', err);
           onToastMessage?.({
-            message: 'Failed to initialize the map.',
+            message: 'Failed to load map',
             type: 'error',
             bgColor: 'bg-red-500',
           });
@@ -286,74 +286,59 @@ const AirQoMap = forwardRef(
           dispatch(setMapLoading(false));
         }
       };
-      initializeMap();
+      init();
       return () => {
         if (mapRef.current) {
           mapRef.current.remove();
-          mapRef.current = null;
           controlsAddedRef.current = false;
+          mapRef.current = null;
         }
       };
-    }, [mapboxApiAccessToken, addControlsIfNeeded]);
+    }, [mapboxApiAccessToken, addControls]);
 
-    // Resize the map on window changes.
+    // Resize
     useEffect(() => {
-      const handleResize = () => mapRef.current?.resize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
+      const onResize = () => mapRef.current?.resize();
+      window.addEventListener('resize', onResize);
+      return () => window.removeEventListener('resize', onResize);
     }, []);
-
-    // On window resize, update controls.
     useEffect(() => {
-      if (mapRef.current && mapRef.current.loaded()) {
-        addControlsIfNeeded();
-      }
-    }, [width, addControlsIfNeeded]);
+      if (mapRef.current?.loaded()) addControls();
+    }, [width]);
 
-    // When Redux center/zoom changes, fly to that view.
+    // FlyTo
     useEffect(() => {
-      if (mapRef.current && mapData.center) {
-        const { latitude, longitude } = mapData.center;
-        if (latitude && longitude) {
-          mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: mapData.zoom,
-            essential: true,
-          });
-        }
+      const { latitude, longitude } = reduxCenter;
+      if (mapRef.current && latitude != null && longitude != null) {
+        mapRef.current.flyTo({
+          center: [longitude, latitude],
+          zoom: reduxZoom,
+          essential: true,
+        });
       }
-    }, [mapData.center, mapData.zoom]);
-
-    const DataLoadingIndicator = () => {
-      if (!isWaqLoading) return null;
-      return (
-        <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow-md z-10 text-sm flex items-center">
-          <div className="animate-pulse mr-2 h-2 w-2 rounded-full bg-blue-500"></div>
-          <span className="text-blue-700 dark:text-blue-300">
-            Loading additional city data...
-          </span>
-        </div>
-      );
-    };
+    }, [reduxCenter, reduxZoom]);
 
     return (
       <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
         <div className="relative w-full h-full">
           <div ref={mapContainerRef} className={customStyle} />
-          <DataLoadingIndicator />
-          {showOverlay && (
-            <div className="w-full h-full absolute inset-0 flex items-center justify-center">
-              <LoadingOverlay showOverlay={showOverlay} />
+          {isWaqLoading && (
+            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow z-10 text-sm flex items-center">
+              <div className="animate-pulse mr-2 h-2 w-2 rounded-full bg-blue-500" />
+              <span className="text-blue-700 dark:text-blue-300">
+                Loading additional city data...
+              </span>
             </div>
           )}
+          {showOverlay && <LoadingOverlay showOverlay={showOverlay} />}
           <LayerModal
             isOpen={layerModalOpen}
             onClose={() => setLayerModalOpen(false)}
             mapStyles={mapStyles}
             mapDetails={mapDetails}
             disabled="Heatmap"
-            onMapDetailsSelect={handleMapDetailsSelect}
-            onStyleSelect={handleStyleSelect}
+            onMapDetailsSelect={onMapDetail}
+            onStyleSelect={onStyleChange}
           />
         </div>
       </ErrorBoundary>

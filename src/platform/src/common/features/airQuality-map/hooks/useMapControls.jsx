@@ -5,6 +5,107 @@ import MinusIcon from '@/icons/map/minusIcon';
 import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import { setSelectedNode } from '@/lib/store/services/map/MapSlice';
+import { FaGlobe } from 'react-icons/fa';
+
+/**
+ * GlobeControl
+ */
+export class GlobeControl {
+  constructor(initiallyActive = false) {
+    this.map = null;
+    this.active = initiallyActive; // Default to inactive (flat Mercator)
+    this.container = this._createContainer();
+    this.button = this._createButton(
+      'Toggle Globe View',
+      <FaGlobe size={20} />,
+      this._toggleGlobe.bind(this),
+    );
+    this.container.appendChild(this.button);
+  }
+
+  _createContainer() {
+    const c = document.createElement('div');
+    c.className =
+      'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-1 m-1 md:p-2 md:m-2';
+    return c;
+  }
+
+  _createButton(title, component, onClick) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.title = title;
+    btn.className =
+      'inline-flex items-center justify-center w-[50px] h-[50px] rounded-full bg-white focus:outline-none';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center justify-center h-full w-full';
+    btn.appendChild(wrapper);
+
+    createRoot(wrapper).render(component);
+    btn.addEventListener('click', onClick);
+
+    return btn;
+  }
+
+  onAdd(map) {
+    this.map = map;
+
+    // Set initial appearance based on active state
+    if (this.active) {
+      this.button.classList.add(
+        'bg-blue-100',
+        'ring-2',
+        'ring-offset-2',
+        'ring-blue-500',
+      );
+      // Ensure map starts with globe projection if active is true
+      if (map.getProjection().name !== 'globe') {
+        map.setProjection({ name: 'globe' });
+      }
+    } else {
+      // Ensure map starts with mercator projection if active is false
+      if (map.getProjection().name !== 'mercator') {
+        map.setProjection({ name: 'mercator' });
+      }
+    }
+
+    return this.container;
+  }
+
+  onRemove() {
+    this.container.remove();
+    this.map = null;
+  }
+
+  _toggleGlobe() {
+    if (!this.map) return;
+
+    const proj = this.map.getProjection().name;
+    const nowGlobe = proj !== 'globe';
+
+    // Update map projection
+    this.map.setProjection({ name: nowGlobe ? 'globe' : 'mercator' });
+
+    // Update button appearance
+    this.active = nowGlobe;
+
+    if (this.active) {
+      this.button.classList.add(
+        'bg-blue-100',
+        'ring-2',
+        'ring-offset-2',
+        'ring-blue-500',
+      );
+    } else {
+      this.button.classList.remove(
+        'bg-blue-100',
+        'ring-2',
+        'ring-offset-2',
+        'ring-blue-500',
+      );
+    }
+  }
+}
 
 /**
  * CustomZoomControl
