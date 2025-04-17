@@ -163,4 +163,3 @@ interface UserTableProps {
       </div>
     )
   }
-  
