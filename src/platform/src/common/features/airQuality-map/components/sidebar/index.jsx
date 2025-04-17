@@ -380,8 +380,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   return (
     <Card
       className="relative w-full h-full shadow-sm text-left"
-      rounded
-      radius="rounded-t-xl md:rounded-l-lg"
+      rounded={false}
       padding="p-0"
       overflow={true}
     >
