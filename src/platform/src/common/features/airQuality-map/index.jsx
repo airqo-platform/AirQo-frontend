@@ -120,7 +120,7 @@ const AirQoMap = forwardRef(
     useEffect(() => {
       const timer = setTimeout(() => {
         setShowOverlay(false);
-      }, 10000);
+      }, 40000);
 
       return () => clearTimeout(timer);
     }, []);
