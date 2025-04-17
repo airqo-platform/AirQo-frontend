@@ -199,7 +199,6 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
         setDataset(mainChartData)
         setAllLocationsData(processedData)
       } catch (error) {
-        console.error("Error fetching exceedance data:", error)
         setDataset([])
         setAllLocationsData([])
       }
@@ -247,8 +246,8 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
       link.download = `exceedance-chart-${new Date().toISOString().split("T")[0]}.png`
       link.href = dataUrl
       link.click()
-    } catch (error) {
-      console.error("Error exporting to PNG:", error)
+    } catch {
+      return
     }
   }
 

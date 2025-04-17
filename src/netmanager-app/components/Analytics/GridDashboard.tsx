@@ -100,7 +100,6 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
         });
       }
     }
-    // console.log(initialCount);
     setPm2_5SiteCount(initialCount)
   }, [recentEventsData, activeGrid, setPm2_5SiteCount])
 
