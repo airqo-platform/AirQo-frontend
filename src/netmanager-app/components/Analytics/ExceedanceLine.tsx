@@ -229,13 +229,11 @@ export const ExceedancesChart: React.FC<ExceedancesChartProps> = ({
     return null
   }
 
-  // Function to truncate text to 4 characters
   const truncateText = (text: string | undefined) => {
     if (!text) return ""
     return text.length > 4 ? `${text.substring(0, 4)}...` : text
   }
 
-  // Export functions
   const exportToPNG = async (ref: React.RefObject<HTMLDivElement>) => {
     if (!ref.current) return
 
