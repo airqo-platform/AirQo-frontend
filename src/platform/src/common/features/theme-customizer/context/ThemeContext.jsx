@@ -9,105 +9,83 @@ import React, {
 } from 'react';
 import {
   applyTheme,
+  applyPrimaryColor,
   getInitialTheme,
   getInitialSkin,
+  getInitialPrimaryColor,
 } from '../utils/themeUtils';
 import {
   THEME_STORAGE_KEY,
   SKIN_STORAGE_KEY,
+  PRIMARY_COLOR_STORAGE_KEY,
 } from '../constants/themeConstants';
 
 export const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  // Initialize states with getter functions
-  const [theme, setTheme] = useState(getInitialTheme);
-  const [skin, setSkin] = useState(getInitialSkin);
+  // default if nothing stored
+  const [theme, setTheme] = useState(() => getInitialTheme());
+  const [skin, setSkin] = useState(() => getInitialSkin());
+  const [primaryColor, setPrimaryColor] = useState(() =>
+    getInitialPrimaryColor(),
+  );
   const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
   const [systemTheme, setSystemTheme] = useState(null);
 
-  // Handle system theme changes
+  // watch system preference
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e) => setSystemTheme(e.matches ? 'dark' : 'light');
+    onChange(mq);
+    const add = mq.addEventListener ?? mq.addListener;
+    const remove = mq.removeEventListener ?? mq.removeListener;
+    add.call(mq, 'change', onChange);
+    return () => remove.call(mq, 'change', onChange);
+  }, []);
 
-    // Set initial value
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-
-    // Event handler for system theme changes
-    const handleChange = (e) => {
-      const newSystemTheme = e.matches ? 'dark' : 'light';
-      setSystemTheme(newSystemTheme);
-
-      // Apply new theme if in system mode
-      if (theme === 'system') {
-        applyTheme('system', newSystemTheme);
-      }
-    };
-
-    // Use the appropriate event listener method
-    const addListener = mediaQuery.addEventListener
-      ? mediaQuery.addEventListener.bind(mediaQuery)
-      : mediaQuery.addListener?.bind(mediaQuery);
-
-    const removeListener = mediaQuery.removeEventListener
-      ? mediaQuery.removeEventListener.bind(mediaQuery)
-      : mediaQuery.removeListener?.bind(mediaQuery);
-
-    if (addListener) addListener('change', handleChange);
-
-    // Cleanup
-    return () => {
-      if (removeListener) removeListener('change', handleChange);
-    };
-  }, [theme]);
-
-  // Apply theme effect
+  // apply & persist theme
   useEffect(() => {
     applyTheme(theme, systemTheme);
-
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch (error) {
-      console.warn('Could not save theme preference to localStorage:', error);
+    } catch {
+      // empty
     }
   }, [theme, systemTheme]);
 
-  // Apply skin effect
+  // apply & persist skin
   useEffect(() => {
     document.documentElement.setAttribute('data-skin', skin);
-
     try {
       localStorage.setItem(SKIN_STORAGE_KEY, skin);
-    } catch (error) {
-      console.warn('Could not save skin preference to localStorage:', error);
+    } catch {
+      // empty
     }
   }, [skin]);
 
-  // Memoized callbacks
-  const toggleTheme = useCallback((newTheme) => setTheme(newTheme), []);
-  const toggleSkin = useCallback((newSkin) => setSkin(newSkin), []);
+  // apply & persist primary color
+  useEffect(() => {
+    applyPrimaryColor(primaryColor);
+    try {
+      localStorage.setItem(PRIMARY_COLOR_STORAGE_KEY, primaryColor);
+    } catch {
+      // empty
+    }
+  }, [primaryColor]);
 
-  const openThemeSheet = useCallback(() => {
-    setIsThemeSheetOpen(true);
-
-    // Handle escape key
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') setIsThemeSheetOpen(false);
-    };
-
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
-  }, []);
-
+  const toggleTheme = useCallback((t) => setTheme(t), []);
+  const toggleSkin = useCallback((s) => setSkin(s), []);
+  const openThemeSheet = useCallback(() => setIsThemeSheetOpen(true), []);
   const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), []);
 
-  // Memoize context value
   const contextValue = useMemo(
     () => ({
       theme,
       toggleTheme,
       skin,
       toggleSkin,
+      primaryColor,
+      setPrimaryColor,
       isThemeSheetOpen,
       openThemeSheet,
       closeThemeSheet,
@@ -118,6 +96,8 @@ export const ThemeProvider = ({ children }) => {
       toggleTheme,
       skin,
       toggleSkin,
+      primaryColor,
+      setPrimaryColor,
       isThemeSheetOpen,
       openThemeSheet,
       closeThemeSheet,

@@ -6,6 +6,7 @@
 :root {
   /* Light mode defaults */
   --color-primary: #145FFF;
+  --color-primary-rgb: 20, 95, 255;
 
   --background:      #f6f6f7;
   --text:            #1f2937;

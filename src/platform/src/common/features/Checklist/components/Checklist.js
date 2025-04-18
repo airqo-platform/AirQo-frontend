@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import StepProgress from '@/components/steppers/CircularStepper';
+import StepProgress from './CircularStepper';
 import ChecklistStepCard from './ChecklistStepCard';
 import ChecklistSkeleton from './ChecklistSkeleton';
 import { createSteps, mergeStepsWithChecklist } from '../utils/steps';

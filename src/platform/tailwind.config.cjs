@@ -9,10 +9,12 @@ module.exports = {
   ],
   theme: {
     extend: {
-      /* Use your CSS var for all primary utilities */
       colors: {
-        primary: {
-          DEFAULT: 'var(--color-primary)',
+        primary: ({ opacityValue }) => {
+          if (opacityValue !== undefined) {
+            return `rgba(var(--color-primary-rgb), ${opacityValue})`;
+          }
+          return `rgb(var(--color-primary-rgb))`;
         },
       },
       keyframes: {
@@ -54,8 +56,7 @@ module.exports = {
     themes: [
       {
         light: {
-          /* DaisyUI’s primary token also points to your var */
-          primary: 'var(--color-primary)',
+          primary: 'var(--color-primary)', // still for DaisyUI
           ...require('daisyui/src/colors/themes')['[data-theme=light]'],
           'base-200': '#ebf0f9',
           'base-300': '#e2faff',
