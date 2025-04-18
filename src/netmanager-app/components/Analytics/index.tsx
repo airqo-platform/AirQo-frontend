@@ -16,21 +16,12 @@ import { useToast } from "@/components/ui/use-toast"
 import type { Cohort } from "@/app/types/cohorts"
 import type { Grid } from "@/app/types/grids"
 import { useMapReadings } from "@/core/hooks/useDevices"
-// import { AnalyticsSkeleton } from "./analytics-skeleton"
 
 const NewAnalytics: React.FC = () => {
   const [isCohort, setIsCohort] = useState(false)
   const [downloadingData, setDownloadingData] = useState(false)
   const [activeGrid, setActiveGrid] = useState<Grid>()
   const [activeCohort, setActiveCohort] = useState<Cohort>()
-  // const [transformedReadings, setTransformedReadings] = useState<{
-  //   type: string
-  //   features: {
-  //     type: "Feature"
-  //     properties: unknown
-  //     geometry: { type: "Point"; coordinates: [number, number] }
-  //   }[] // Updated type
-  // } | null>(null)
 
   const { toast } = useToast()
   const { grids, isLoading: isGridsLoading } = useGrids()
@@ -70,24 +61,6 @@ const NewAnalytics: React.FC = () => {
         : (cohorts && cohorts[0]) || null,
     )
   }, [grids, cohorts])
-
-  // useEffect(()=>{
-  //   if(mapReadings) {
-  //     const values = transformDataToGeoJson(
-  //       mapReadings,
-  //       {
-  //         longitude: 'Longitude',
-  //         latitude: 'Latitude'
-  //       },
-  //       (feature) => [
-  //         feature.siteDetails && feature.siteDetails.approximate_longitude,
-  //         feature.siteDetails && feature.siteDetails.approximate_latitude
-  //       ]
-  //     );
-
-  //     setTransformedReadings(values);
-  //   }
-  // }, [mapReadings]);
 
   const handleSwitchGridsCohort = () => {
     setIsCohort(!isCohort)
