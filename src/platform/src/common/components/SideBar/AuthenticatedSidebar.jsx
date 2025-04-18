@@ -230,7 +230,7 @@ const AuthenticatedSideBar = () => {
         `}
       >
         <Card
-          className="h-full sidebar-card relative overflow-hidden"
+          className="h-full relative overflow-hidden"
           padding="p-3"
           overflow={true}
           overflowType="auto"
