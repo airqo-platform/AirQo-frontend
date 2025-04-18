@@ -10,7 +10,6 @@ interface Site {
   pm2_5: number
 }
 
-
 interface PollutantCategoryProps {
   pm25level: string
   iconClass: string
@@ -22,9 +21,20 @@ export function PollutantCategory({ pm25level, iconClass, sites, devices }: Poll
   const [show, setShow] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
+  const compare = (a: Site, b: Site): number => {
+    if (a.pm2_5 < b.pm2_5) return 1;
+    if (a.pm2_5 > b.pm2_5) return -1;
+    return 0;
+  };
+
   const toggleShow = () => setShow(!show)
 
-  const sortedData = [...(sites || devices || [])].sort((a, b) => b.pm2_5 - a.pm2_5)
+ let sortedData: Site[] = []
+  if (sites) {
+    sortedData = sites.sort(compare);
+  } else if (devices) {
+    sortedData = devices.sort(compare);
+  }
 
   useEffect(() => {
     const checkIfClickedOutside = (e: MouseEvent) => {

@@ -1,24 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { PollutantCategory } from "./PollutantCategory";
-import { LineCharts } from "../Charts/Line";
-import { BarCharts } from "../Charts/Bar";
 import { ExceedancesChart } from "./ExceedanceLine";
 import { PM_25_CATEGORY } from "@/core/hooks/categories";
 import { Grid } from "@/app/types/grids";
+import { AveragesChart } from "./averages-chart";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { Site } from "@/app/types/sites";
 
-interface Categories {
-  [key: string]: SiteWithPM25[];
-}
 
 interface SiteWithPM25 extends Site {
   pm2_5: number;
@@ -39,13 +27,13 @@ interface GridDashboardProps {
   recentEventsData: { features: RecentEventFeature[] };
 }
 
+
 const GridDashboard: React.FC<GridDashboardProps> = ({
   gridId,
   loading,
   grids,
   recentEventsData,
 }) => {
-  const [chartType, setChartType] = useState<"line" | "bar">("line");
   const [pm2_5SiteCount, setPm2_5SiteCount] = useState<{
     Good: SiteWithPM25[];
     Moderate: SiteWithPM25[];
@@ -70,25 +58,14 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
   useEffect(() => {
     if (!activeGrid || !recentEventsData?.features) return;
 
-    const categorizeSite = (
-      site: Site,
-      pm2_5: number,
-      categories: Categories
-    ) => {
-      Object.keys(PM_25_CATEGORY).forEach((key) => {
-        const [min, max] = PM_25_CATEGORY[key as keyof typeof PM_25_CATEGORY];
-        if (pm2_5 >= 0 && pm2_5 > min && pm2_5 <= max) {
-          const siteWithPM25: SiteWithPM25 = {
-            ...site,
-            pm2_5,
-            label: site.name || site.description || site.generated_name || ""
-          };
-          categories[key].push(siteWithPM25);
-        }
-      });
-    };
-
-    const initialCount = {
+    const initialCount: {
+      Good: SiteWithPM25[];
+      Moderate: SiteWithPM25[];
+      UHFSG: SiteWithPM25[];
+      Unhealthy: SiteWithPM25[];
+      VeryUnhealthy: SiteWithPM25[];
+      Hazardous: SiteWithPM25[];
+    } = {
       Good: [],
       Moderate: [],
       UHFSG: [],
@@ -97,26 +74,34 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
       Hazardous: [],
     };
 
-    const gridSitesObj = activeGrid.sites.reduce(
-      (acc: Record<string, Site>, curr: Site) => {
+    if (activeGrid && activeGrid.sites && activeGrid.sites.length > 0) {
+      const gridSites = activeGrid.sites
+      const gridSitesObj = gridSites.reduce<Record<string, Site>>((acc, curr) => {
         acc[curr._id] = curr;
         return acc;
-      },
-      {}
-    );
+      }, {});
 
-    recentEventsData.features.forEach((feature: RecentEventFeature) => {
-      const siteId = feature.properties.site_id;
-      const site = gridSitesObj[siteId];
+      if (recentEventsData && recentEventsData.features) {
+        recentEventsData.features.forEach((feature) => {
+          const siteId = feature.properties.site_id;
+          const site = gridSitesObj[siteId];
 
-      if (site) {
-        const pm2_5 = feature.properties.pm2_5?.value || 0;
-        categorizeSite(site, pm2_5, initialCount);
+          if (gridSitesObj[siteId]) {
+            const pm2_5 = feature.properties.pm2_5?.value;
+            if (pm2_5 !== undefined) {
+              (Object.keys(PM_25_CATEGORY) as Array<keyof typeof PM_25_CATEGORY>).forEach((key) => {
+                const valid = PM_25_CATEGORY[key];
+                if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+                  initialCount[key].push({ ...site, pm2_5, label: site.name || "Unknown" });
+                }
+              });
+            }
+          }
+        });
       }
-    });
-
-    setPm2_5SiteCount(initialCount);
-  }, [activeGrid, recentEventsData]);
+    }
+    setPm2_5SiteCount(initialCount)
+  }, [recentEventsData, activeGrid, setPm2_5SiteCount])
 
   const categories: {
     pm25level: keyof typeof pm2_5SiteCount;
@@ -177,7 +162,7 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
       </div>
 
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
+        {/* <Card className="col-span-12 rounded-sm border border-stroke bg-white px-5 pb-5 pt-7.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-6">
           <CardHeader>
             <div className="flex justify-between items-center">
               <h4>Mean Daily PM 2.5 Over the Past 28 Days</h4>
@@ -217,7 +202,13 @@ const GridDashboard: React.FC<GridDashboardProps> = ({
           <CardContent>
             {chartType === "line" ? <LineCharts /> : <BarCharts />}
           </CardContent>
-        </Card>
+        </Card> */}
+        <AveragesChart 
+          isCohorts={false}
+          isGrids={true}
+          analyticsDevices={[]}
+          analyticsSites={activeGrid?.sites || []}
+        />
         <ExceedancesChart
           isCohorts={false}
           isGrids={true}
