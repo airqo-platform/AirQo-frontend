@@ -242,7 +242,7 @@ const AuthenticatedSideBar = () => {
           {/* Logo Section */}
           <div className="pb-4 flex justify-between items-center">
             <Button
-              paddingStyles="p-0 m-0"
+              padding="p-0 m-0"
               onClick={() => router.push('/Home')}
               variant="text"
             >

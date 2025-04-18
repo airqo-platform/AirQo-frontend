@@ -27,7 +27,7 @@ const ChecklistStepCard = memo(({ stepItem, onClick }) => {
         <CheckIcon fill="#FFFFFF" />
       </div>
     ) : (
-      <div className="w-12 h-12 text-lg font-medium flex text-blue-600 justify-center items-center rounded-full bg-blue-50">
+      <div className="w-12 h-12 text-lg font-medium flex text-blue-600 justify-center items-center rounded-full bg-blue-600/10">
         {stepItem.id}
       </div>
     );

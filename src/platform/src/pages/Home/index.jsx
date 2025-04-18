@@ -94,18 +94,20 @@ const Home = () => {
               <div className="flex items-center space-x-4 mt-4">
                 <Button
                   path="/analytics"
-                  className="bg-blue-900 text-white rounded-lg w-32 h-12"
+                  className="w-32 h-12"
                   dataTestId="get-started-button"
                 >
                   Start here
                 </Button>
-                <button
+                <Button
+                  variant="text"
+                  padding="p-0 shadow-none"
                   onClick={handleModal}
                   className="text-blue-600 text-sm font-normal hover:underline"
                   data-testid="show-video-button"
                 >
                   Show me how
-                </button>
+                </Button>
               </div>
             </div>
             <div
