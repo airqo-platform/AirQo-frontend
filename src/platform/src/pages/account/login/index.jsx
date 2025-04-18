@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import jwt_decode from 'jwt-decode';
 import * as Yup from 'yup';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 import AccountPageLayout from '@/components/Account/Layout';
 import Spinner from '@/components/Spinner';
@@ -36,6 +37,7 @@ const loginSchema = Yup.object().shape({
 const UserLogin = () => {
   const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const router = useRouter();
@@ -134,6 +136,10 @@ const UserLogin = () => {
     [dispatch],
   );
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <ErrorBoundary name="UserLogin" feature="User Authentication">
       <AccountPageLayout
@@ -159,13 +165,29 @@ const UserLogin = () => {
               />
             </div>
             <div className="mt-6">
-              <InputField
-                label="Password"
-                type="password"
-                placeholder="******"
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                required
-              />
+              <div className="relative">
+                <InputField
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="******"
+                  onChange={(e) =>
+                    handleInputChange('password', e.target.value)
+                  }
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash size={20} />
+                  ) : (
+                    <FaEye size={20} />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="mt-10">
               <button
@@ -177,13 +199,16 @@ const UserLogin = () => {
               </button>
             </div>
           </form>
-          <div className="mt-8 flex justify-center space-x-4 text-sm">
-            <Link
-              href="/account/creation"
-              className="font-medium text-blue-600 dark:text-blue-400"
-            >
-              Register
-            </Link>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
+            <span>
+              Don&apos;t have an account?
+              <Link
+                href="/account/creation"
+                className="font-medium text-blue-600 ml-2 dark:text-blue-400"
+              >
+                Register
+              </Link>
+            </span>
             <Link
               href="/account/forgotPwd"
               className="font-medium text-blue-600 dark:text-blue-400"

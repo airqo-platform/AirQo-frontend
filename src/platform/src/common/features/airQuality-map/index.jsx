@@ -33,7 +33,6 @@ import {
 } from '@/features/airQuality-map/constants/constants';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import LoadingOverlay from './components/LoadingOverlay';
 
 const AirQoMap = forwardRef(
   (
@@ -58,7 +57,6 @@ const AirQoMap = forwardRef(
     const { zoom: reduxZoom, center: reduxCenter } = mapData;
 
     // Overlay state
-    const [showOverlay, setShowOverlay] = useState(true);
     const [layerModalOpen, setLayerModalOpen] = useState(false);
     const [nodeType, setNodeType] = useState('Emoji');
     const [styleUrl, setStyleUrl] = useState('');
@@ -87,14 +85,6 @@ const AirQoMap = forwardRef(
     useEffect(() => {
       setStyleUrl(defaultStyleUrl);
     }, [defaultStyleUrl]);
-
-    // Overlay timeout: hide after 50s
-    useEffect(() => {
-      timeoutRef.current = setTimeout(() => {
-        setShowOverlay(false);
-      }, 50000);
-      return () => clearTimeout(timeoutRef.current);
-    }, []);
 
     // Callbacks for loading indicators
     const handleMainLoading = useCallback(
@@ -246,10 +236,9 @@ const AirQoMap = forwardRef(
         map.resize();
         addControls();
         fetchAndProcessData()
-          .then(() => setShowOverlay(false))
           .catch((err) => {
             console.error('Data fetch error:', err);
-            setShowOverlay(false);
+
             onToastMessage?.({
               message: 'Failed to load map data',
               type: 'error',
@@ -268,7 +257,6 @@ const AirQoMap = forwardRef(
 
       map.on('error', (e) => {
         console.error('Mapbox error:', e.error);
-        setShowOverlay(false);
         handleMainLoading(false);
         dispatch(setMapLoading(false));
       });
@@ -342,9 +330,7 @@ const AirQoMap = forwardRef(
     return (
       <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
         <div className="relative w-full h-full">
-          <div ref={mapContainerRef} className={customStyle}>
-            {showOverlay && <LoadingOverlay />}
-          </div>
+          <div ref={mapContainerRef} className={customStyle}></div>
           {isWaqLoading && (
             <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow z-10 text-sm flex items-center">
               <div className="animate-pulse mr-2 h-2 w-2 rounded-full bg-blue-500" />

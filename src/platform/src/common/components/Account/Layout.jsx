@@ -28,7 +28,7 @@ const AccountPageLayout = ({
       </Head>
       <div className="h-full w-auto">
         <div className="grid md:grid-cols-1 lg:grid-cols-11 w-full h-full ">
-          <div className="lg:col-span-5 bg-white dark:bg-transparent py-10 px-6 lg:px-20 h-full flex justify-center items-center">
+          <div className="lg:col-span-5 bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 h-full flex justify-center items-center">
             <div className="w-full lg:w-auto">
               <div>
                 <SmallLogo />
@@ -44,10 +44,12 @@ const AccountPageLayout = ({
           </div>
           <div
             className={`lg:col-span-6 lg:grid hidden ${
-              sideBackgroundColor ? sideBackgroundColor : 'bg-green-150'
+              sideBackgroundColor
+                ? sideBackgroundColor
+                : 'bg-green-150 dark:bg-[#252627]'
             } flex items-center justify-center w-full`}
           >
-            <div className="px-[64px] py-[26px] relative dark:text-black-600 max-w-4xl h-auto">
+            <div className="px-[64px] py-[26px] relative dark:text-white max-w-4xl h-auto">
               <h1 className="relative font-medium leading-9 text-[29px] mb-6">
                 {rightText
                   ? rightText
