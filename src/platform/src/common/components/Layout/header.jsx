@@ -2,7 +2,7 @@ import React from 'react';
 
 const HeaderNav = ({ category, component, children }) => {
   return (
-    <div className="px-4 md:px-6 lg:px-10 py-8 flex flex-wrap justify-between items-center space-y-4 lg:space-y-0">
+    <div className="py-8 flex flex-wrap justify-between items-center gap-4">
       <div>
         <span className="text-xl opacity-50 mr-4">{category}</span>
         <span className="font-mono opacity-10 text-xl mr-4">{'>'}</span>
