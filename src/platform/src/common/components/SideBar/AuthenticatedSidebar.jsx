@@ -13,7 +13,7 @@ import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
+import OrganizationDropdown from './OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
 import { useSelector, useDispatch } from 'react-redux';
 import {
