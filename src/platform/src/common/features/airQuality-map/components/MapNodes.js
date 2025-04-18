@@ -9,6 +9,8 @@ import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
 import Invalid from '@/icons/Charts/Invalid';
 
+import { parseISO, format } from 'date-fns';
+
 // -------------------------------------------------------------------
 // Icon Images: Encoded SVG images for use in markers/popups
 // -------------------------------------------------------------------
@@ -280,51 +282,89 @@ export const createClusterNode = ({
 // Accepts an optional `isDarkMode` flag to adjust popup styling.
 // -------------------------------------------------------------------
 export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
+  // 1) Basic validations
   if (!feature || !feature.properties) {
-    console.error('Invalid feature properties');
+    console.error('Invalid feature object', feature);
     return '';
   }
 
-  if (typeof feature.properties.pm2_5 !== 'number' || !feature.properties.aqi) {
-    console.error('Invalid AQI or PM2.5 data', feature.properties);
+  const {
+    pm2_5,
+    aqi,
+    location = 'Unknown Location',
+    time,
+  } = feature.properties;
+
+  if (typeof pm2_5 !== 'number' || !aqi || typeof time !== 'string') {
+    console.error(
+      'Missing or invalid PM2.5, AQI or timestamp',
+      feature.properties,
+    );
     return '';
   }
 
-  const formattedDate = new Date(
-    feature.properties.createdAt,
-  ).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: '2-digit',
-  });
+  // 2) Parse + format date with date‑fns
+  let parsedDate = parseISO(time);
+  if (isNaN(parsedDate)) {
+    console.error('Invalid date string', time);
+    return '';
+  }
+  const formattedDate = format(parsedDate, 'MMMM dd, yyyy'); // e.g. "April 18, 2025"
 
-  // Adjust popup background and text colors based on dark mode
+  // 3) Choose dark/light colors
   const popupBgColor = isDarkMode ? '#333' : '#fff';
   const popupTextColor = isDarkMode ? '#fff' : '#3C4555';
 
+  // 4) Return HTML string
   return `
-    <div class="flex flex-col gap-2 p-3 rounded-lg shadow-lg" style="min-width: 250px; width: max-content; background-color: ${popupBgColor};">
-      <div class="text-gray-500 text-xs font-normal font-sans leading-none">
+    <div
+      class="flex flex-col gap-2 p-3 rounded-lg shadow-lg"
+      style="
+        min-width: 250px;
+        width: max-content;
+        background-color: ${popupBgColor};
+      "
+    >
+      <div
+        class="text-gray-500 text-xs font-normal font-sans leading-none"
+        style="color: ${popupTextColor};"
+      >
         ${formattedDate}
       </div>
+
       <div class="flex justify-between gap-2 w-full items-center">
         <div class="flex items-center space-x-2">
           <div class="rounded-full bg-blue-500 w-3 h-3"></div>
-          <div class="font-semibold text-sm leading-4" style="width:25ch; color: ${popupTextColor};">
-            ${feature.properties.location || 'Unknown Location'}
+          <div
+            class="font-semibold text-sm leading-4"
+            style="width:25ch; color: ${popupTextColor};"
+          >
+            ${location}
           </div>
         </div>
-        <div class="font-semibold text-sm leading-4" style="color: ${popupTextColor};">
-          ${feature.properties.pm2_5.toFixed(2)} µg/m³
+        <div
+          class="font-semibold text-sm leading-4"
+          style="color: ${popupTextColor};"
+        >
+          ${pm2_5.toFixed(2)} µg/m³
         </div>
       </div>
+
       <div class="flex justify-between gap-5 items-center w-full">
-        <p class="font-semibold text-sm leading-4" style="color: ${feature.properties.aqi.color}; width:30ch;">
-          Air Quality is ${String(feature.properties.airQuality)
+        <p
+          class="font-semibold text-sm leading-4"
+          style="color: ${aqi.color}; width:30ch;"
+        >
+          Air Quality is
+          ${String(feature.properties.airQuality)
             .replace(/([A-Z])/g, ' $1')
             .trim()}
         </p>
-        <img src="${images[feature.properties.aqi.icon] || images['Invalid']}" alt="AQI Icon" class="w-8 h-8">
+        <img
+          src="${images[aqi.icon] || images['Invalid']}"
+          alt="AQI Icon"
+          class="w-8 h-8"
+        />
       </div>
     </div>
   `;

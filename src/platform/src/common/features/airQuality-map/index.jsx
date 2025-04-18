@@ -264,7 +264,6 @@ const AirQoMap = forwardRef(
       mapInitializedRef.current = true;
     }, [
       mapboxApiAccessToken,
-      styleUrl,
       initialCenter,
       initialZoom,
       nodeType,
