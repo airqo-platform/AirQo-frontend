@@ -479,7 +479,12 @@ export const IconButton = ({ onClick, title, icon }) => (
  * LoadingOverlay - Display a loading overlay centered on the screen
  */
 export const LoadingOverlay = ({ children, size = 70 }) => (
-  <div className="absolute inset-0 flex items-center justify-center z-[10000]">
+  <div
+    className="absolute inset-0 flex items-center justify-center"
+    style={{
+      zIndex: 10000,
+    }}
+  >
     <div
       className={`bg-white w-${size} h-${size} flex justify-center items-center rounded-md shadow-md p-3`}
     >
