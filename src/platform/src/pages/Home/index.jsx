@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
-import PlayIcon from '@/images/Home/playIcon.svg';
+import PlayIcon from '@/images/Home/PlayIcon';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import VideoModal from '@/features/video-players/Intro-video-modal';
 import Card from '@/components/CardWrapper';
@@ -118,7 +118,7 @@ const Home = () => {
               data-testid="video-thumbnail"
             >
               <div className="absolute inset-0 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <PlayIcon />
+                <PlayIcon className="text-primary" />
               </div>
               <Image
                 src={AnalyticsImage}

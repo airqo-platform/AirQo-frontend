@@ -94,7 +94,7 @@ const CustomDropdown = ({
 
   // Base button classes
   const defaultButtonClasses =
-    'flex items-center justify-between rounded-xl px-4 py-2 border focus:outline-none border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
+    'flex items-center justify-between rounded-xl px-4 py-2 border focus:outline-none border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition transform active:scale-95';
   const collapsedButtonClasses =
     'flex items-center justify-center rounded-xl px-4 py-3 border focus:outline-none border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
 

@@ -1,10 +1,9 @@
+'use client';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
 import { Tooltip } from 'flowbite-react';
 import { pollutantRanges, categoryDetails } from '../constants';
-
-export const colors = ['#11225A', '#0A46EB', '#297EFF', '#B8D9FF'];
 
 export const reduceDecimalPlaces = (num) =>
   Math.round((num + Number.EPSILON) * 10000) / 10000;
@@ -24,11 +23,10 @@ export const getAirQualityLevelText = (value, pollutionType) => {
     console.error(`Invalid pollution type: ${pollutionType}`);
     return categoryDetails['Invalid'];
   }
-  for (let i = 0; i < ranges.length; i++) {
-    const current = ranges[i];
-    const previous = ranges[i - 1];
-    if (value >= current.limit && (!previous || value < previous.limit)) {
-      return categoryDetails[current.category];
+  for (let i = ranges.length - 1; i >= 0; i--) {
+    const { limit, category } = ranges[i];
+    if (value >= limit) {
+      return categoryDetails[category];
     }
   }
   return categoryDetails['Invalid'];
@@ -65,27 +63,31 @@ export const CustomGraphTooltip = ({
           return (
             <div
               key={index}
-              className={`flex justify-between items-center p-2 rounded-md ${
-                isHovered ? 'bg-gray-100 dark:bg-gray-700' : ''
+              className={`flex justify-between items-center p-2 rounded-md transition-colors ${
+                isHovered ? 'bg-primary/10 dark:bg-primary/20' : ''
               }`}
             >
               <div className="flex items-center">
                 <div
-                  className={`w-2.5 h-2.5 rounded-full mr-3 ${
-                    isHovered ? 'bg-blue-600' : 'bg-gray-400'
+                  className={`w-2.5 h-2.5 rounded-full mr-3 transition-colors ${
+                    isHovered ? 'bg-primary' : 'bg-gray-400'
                   }`}
                 />
                 <span
-                  className={`text-sm font-medium dark:text-gray-300 ${
-                    isHovered ? 'text-blue-600' : 'text-gray-600'
+                  className={`text-sm font-medium transition-colors ${
+                    isHovered
+                      ? 'text-primary'
+                      : 'text-gray-600 dark:text-gray-300'
                   }`}
                 >
                   {truncate(point.name)}
                 </span>
               </div>
               <span
-                className={`text-sm ${
-                  isHovered ? 'text-blue-600 font-medium' : 'text-gray-500'
+                className={`text-sm transition-colors ${
+                  isHovered
+                    ? 'text-primary font-medium'
+                    : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
                 {reduceDecimalPlaces(point.value)} μg/m³
@@ -147,7 +149,7 @@ export const CustomizedAxisTick = ({
         y={0}
         dy={16}
         textAnchor="middle"
-        fill={fill || '#485972'}
+        fill={fill || 'var(--color-primary)'}
         fontSize={12}
       >
         {formatted}
@@ -166,7 +168,7 @@ CustomizedAxisTick.propTypes = {
 
 export const CustomDot = ({ cx, cy, fill, payload }) => {
   if (!payload.active) return null;
-  return <circle cx={cx} cy={cy} r={6} fill={fill} />;
+  return <circle cx={cx} cy={cy} r={6} fill={fill || 'var(--color-primary)'} />;
 };
 
 CustomDot.propTypes = {
@@ -194,18 +196,22 @@ export const renderCustomizedLegend = ({ payload }) => {
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
-          className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap"
+          className="flex items-center gap-1 text-xs dark:text-gray-300 whitespace-nowrap"
         >
           <span
             className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: entry.color }}
+            style={{ backgroundColor: entry.color || 'var(--color-primary)' }}
           />
           {truncateLegend ? (
             <Tooltip content={entry.value} className="w-auto">
-              <div className="truncate max-w-[100px]">{entry.value}</div>
+              <div className="truncate max-w-[100px] text-gray-700 dark:text-gray-200">
+                {entry.value}
+              </div>
             </Tooltip>
           ) : (
-            <div>{entry.value}</div>
+            <div className="text-gray-700 dark:text-gray-200">
+              {entry.value}
+            </div>
           )}
         </div>
       ))}
@@ -224,7 +230,7 @@ export const CustomReferenceLabel = ({ viewBox, name }) => {
       <foreignObject x={x + width - 40} y={y} width={40} height={25}>
         <div
           xmlns="http://www.w3.org/1999/xhtml"
-          className="flex justify-center text-center text-white text-sm bg-red-500"
+          className="flex justify-center items-center text-white text-sm bg-red-500"
           style={{
             width: '100%',
             height: '100%',
@@ -251,7 +257,7 @@ export const CustomBar = ({ fill, x, y, width, height }) => (
       <div
         xmlns="http://www.w3.org/1999/xhtml"
         className="w-full h-full rounded"
-        style={{ backgroundColor: fill }}
+        style={{ backgroundColor: fill || 'var(--color-primary)' }}
       />
     </foreignObject>
   </g>

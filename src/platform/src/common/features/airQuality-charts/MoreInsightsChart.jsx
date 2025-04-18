@@ -20,7 +20,6 @@ import {
   CustomBar,
   CustomGraphTooltip,
   CustomReferenceLabel,
-  colors,
 } from './components';
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { formatYAxisTick } from './utils';
@@ -30,42 +29,36 @@ import { MdInfoOutline, MdRefresh } from 'react-icons/md';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
-// Format date for x-axis display based on frequency and available space
+// Formats timestamps for the X-axis based on frequency
 const formatXAxisDate = (timestamp, frequency) => {
   if (!timestamp) return '';
-
   const date = new Date(timestamp);
-
-  // For smaller screens or when data density is high, use more compact formats
-  if (frequency === 'hourly') {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else if (frequency === 'daily') {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  } else if (frequency === 'weekly') {
-    return `W${Math.ceil(date.getDate() / 7)} ${date.toLocaleDateString([], { month: 'short' })}`;
-  } else if (frequency === 'monthly') {
-    return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+  switch (frequency) {
+    case 'hourly':
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    case 'daily':
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    case 'weekly':
+      return `W${Math.ceil(date.getDate() / 7)} ${date.toLocaleDateString([], { month: 'short' })}`;
+    case 'monthly':
+      return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+    default:
+      return date.toLocaleDateString();
   }
-
-  return date.toLocaleDateString();
 };
 
-// Custom axis tick component with improved spacing
-const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
-  const formattedValue = formatXAxisDate(payload.value, frequency);
+// Custom tick for X-axis
+const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => (
+  <g transform={`translate(${x},${y})`}>
+    <text x={0} y={0} dy={16} textAnchor="middle" fill={fill} fontSize={12}>
+      {formatXAxisDate(payload.value, frequency)}
+    </text>
+  </g>
+);
 
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={16} textAnchor="middle" fill={fill} fontSize={12}>
-        {formattedValue}
-      </text>
-    </g>
-  );
-};
-
-/**
- * MoreInsightsChart Component - Displays pollution data with various chart options
- */
 const MoreInsightsChart = ({
   data = [],
   selectedSites = [],
@@ -87,21 +80,21 @@ const MoreInsightsChart = ({
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
 
-  // Determine max data points to display based on container width
+  // Determine how many ticks we can show
   const MAX_VISIBLE_TICKS = useMemo(() => {
-    // Base calculation on container width
     if (containerWidth <= 0) return 10;
-
     if (containerWidth < 600) return 6;
     if (containerWidth < 960) return 8;
     if (containerWidth < 1200) return 10;
     return 12;
   }, [containerWidth]);
 
-  // Extract selected site IDs from the selectedSites prop
+  // Compute dynamic label angle for mobile
+  const xAxisAngle = containerWidth < 480 ? -45 : -25;
+
+  // Derive site IDs
   const selectedSiteIds = useMemo(() => {
     if (!selectedSites.length) return [];
-
     return typeof selectedSites[0] === 'object'
       ? selectedSites
           .map((site) => site._id || site.id || site.site_id)
@@ -109,214 +102,150 @@ const MoreInsightsChart = ({
       : selectedSites;
   }, [selectedSites]);
 
-  // Determine which site IDs should be visible in the chart
-  const effectiveVisibleSiteIds = useMemo(() => {
-    if (visibleSiteIds.length) return visibleSiteIds;
-    return selectedSiteIds;
-  }, [selectedSiteIds, visibleSiteIds]);
+  const effectiveVisibleSiteIds = useMemo(
+    () => (visibleSiteIds.length ? visibleSiteIds : selectedSiteIds),
+    [visibleSiteIds, selectedSiteIds],
+  );
 
-  // Process and organize the raw data for charting
+  // Organize raw data by timestamp
   const { sortedData: rawChartData, siteIdToName } = useMemo(() => {
-    if (!Array.isArray(data) || data.length === 0 || !selectedSiteIds.length) {
+    if (!Array.isArray(data) || !data.length || !selectedSiteIds.length) {
       return { sortedData: [], siteIdToName: {} };
     }
-
-    const combinedData = {};
-    const siteIdToName = {};
-
-    // Single loop through data to organize by timestamp
-    for (const item of data) {
-      const { site_id, name, value, time } = item;
-
+    const combined = {};
+    const names = {};
+    for (const { site_id, name, value, time } of data) {
       if (
         !site_id ||
-        !name ||
-        value === undefined ||
+        value == null ||
         !time ||
         !selectedSiteIds.includes(site_id)
       )
         continue;
-
-      siteIdToName[site_id] = name;
+      names[site_id] = name;
       const date = parseAndValidateISODate(time);
       if (!date) continue;
-
-      const formattedTime = date.toISOString();
-      combinedData[formattedTime] = {
-        ...combinedData[formattedTime],
-        time: formattedTime,
-        [site_id]: value,
-      };
+      const iso = date.toISOString();
+      combined[iso] = { ...(combined[iso] || {}), time: iso, [site_id]: value };
     }
-
-    const sortedData = Object.values(combinedData).sort(
+    const sorted = Object.values(combined).sort(
       (a, b) => new Date(a.time) - new Date(b.time),
     );
-
-    return { sortedData, siteIdToName };
+    return { sortedData: sorted, siteIdToName: names };
   }, [data, selectedSiteIds]);
 
-  // When there's too much data, sample it to prevent x-axis congestion
+  // Sample if too many points
   const chartData = useMemo(() => {
-    if (!rawChartData.length) return [];
-
-    // If data is manageable, show it all
-    if (rawChartData.length <= MAX_VISIBLE_TICKS * 2) {
-      return rawChartData;
+    if (rawChartData.length <= MAX_VISIBLE_TICKS * 2) return rawChartData;
+    const step = Math.ceil(rawChartData.length / MAX_VISIBLE_TICKS);
+    const sampled = rawChartData.filter((_, idx) => idx % step === 0);
+    if (sampled[sampled.length - 1] !== rawChartData[rawChartData.length - 1]) {
+      sampled.push(rawChartData[rawChartData.length - 1]);
     }
-
-    // For lots of data, intelligently sample based on frequency and data density
-    const dataLength = rawChartData.length;
-    const sampleRate = Math.max(1, Math.ceil(dataLength / MAX_VISIBLE_TICKS));
-
-    // Include first and last data points, then sample the rest
-    const sampledData = [rawChartData[0]];
-
-    // Add the appropriate number of intermediate points
-    for (let i = sampleRate; i < dataLength - sampleRate; i += sampleRate) {
-      sampledData.push(rawChartData[i]);
-    }
-
-    // Add the last point
-    if (dataLength > 1) {
-      sampledData.push(rawChartData[dataLength - 1]);
-    }
-
-    return sampledData;
+    return sampled;
   }, [rawChartData, MAX_VISIBLE_TICKS]);
 
-  // Extract data keys to be shown in the chart
+  // Keys for series
   const dataKeys = useMemo(() => {
-    if (!chartData.length) return [];
-
-    // Use Set for efficient key collection
     const keys = new Set();
-    for (const item of chartData) {
-      for (const key of Object.keys(item)) {
-        if (key !== 'time') keys.add(key);
-      }
+    for (const row of chartData) {
+      Object.keys(row).forEach((k) => k !== 'time' && keys.add(k));
     }
-
-    // Filter for visible sites
-    return Array.from(keys).filter((key) =>
-      effectiveVisibleSiteIds.includes(key),
-    );
+    return Array.from(keys).filter((k) => effectiveVisibleSiteIds.includes(k));
   }, [chartData, effectiveVisibleSiteIds]);
 
-  // Get the WHO standard value for the current pollutant type
+  // WHO standard line
   const WHO_STANDARD_VALUE = useMemo(
     () => aqStandard?.value?.[pollutantType] || 0,
     [aqStandard, pollutantType],
   );
 
-  // Handle chart interactions
-  const handleMouseLeave = useCallback(() => setActiveIndex(null), []);
-
+  // Opacity/color logic
+  const opacities = [1, 0.9, 0.8, 0.7];
   const getColor = useCallback(
-    (index) =>
-      activeIndex === null || index === activeIndex
-        ? colors[index % colors.length]
-        : '#ccc',
+    (i) => {
+      const alpha = opacities[i % opacities.length];
+      const base = `rgba(var(--color-primary-rgb), ${alpha})`;
+      return activeIndex === null || activeIndex === i ? base : '#ccc';
+    },
     [activeIndex],
   );
 
-  // Calculate how many ticks should be displayed based on available width
-  const xAxisTickCount = useMemo(() => {
-    // Determine appropriate number of ticks based on chart width
-    if (containerWidth <= 0) return 6;
+  const handleMouseLeave = useCallback(() => setActiveIndex(null), []);
 
-    // Calculated based on reasonable space between ticks for readability
-    return Math.min(MAX_VISIBLE_TICKS, chartData.length);
-  }, [containerWidth, chartData.length, MAX_VISIBLE_TICKS]);
-
-  // Handle refresh button click
+  // Refresh
   const handleRefreshClick = useCallback(() => {
     if (!isRefreshing && refreshChart) refreshChart();
   }, [isRefreshing, refreshChart]);
 
-  // Render empty state messages
+  // Determine tick count & interval
+  const xAxisTickCount = useMemo(
+    () => Math.min(MAX_VISIBLE_TICKS, chartData.length),
+    [MAX_VISIBLE_TICKS, chartData.length],
+  );
+
+  const xAxisInterval = useMemo(
+    () => Math.max(0, Math.floor(chartData.length / xAxisTickCount) - 1),
+    [chartData.length, xAxisTickCount],
+  );
+
+  // Empty states
   const renderEmptyState = () => {
     if (!selectedSiteIds.length) {
       return (
         <InfoMessage
           title="No Sites Selected"
-          description="Please select one or more sites to view the chart."
+          description="Select sites to view."
           variant="info"
-          className="w-full h-full flex justify-center items-center flex-col"
+          className="w-full h-full flex items-center justify-center"
         />
       );
     }
-
     if (!effectiveVisibleSiteIds.length) {
       return (
-        <div className="flex flex-col justify-center items-center h-full p-4 text-gray-500">
+        <div className="flex flex-col items-center justify-center h-full text-gray-500">
           <MdInfoOutline className="text-4xl mb-2" />
-          <p className="text-lg font-medium mb-1">All Sites Hidden</p>
-          <p className="text-sm text-center">
-            All sites are currently hidden. Click on a site in the sidebar to
-            show it on the chart.
-          </p>
+          <p>All Sites Hidden</p>
         </div>
       );
     }
-
     if (!chartData.length) {
       return (
         <InfoMessage
-          title="No Data Available"
-          description="There's no data to display for the selected criteria. Try adjusting your filters or refreshing the chart."
-          variant="info"
-          className="w-full h-full flex justify-center items-center flex-col"
+          title="No Data"
+          description="Try refreshing or adjusting filters."
           action={
             refreshChart && (
               <button
                 onClick={handleRefreshClick}
                 disabled={isRefreshing}
-                className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center ${
-                  isRefreshing ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
-                aria-label="Refresh chart data"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center"
               >
-                <MdRefresh className="h-5 w-5 mr-1" />
-                Refresh Chart
+                <MdRefresh className="mr-1" /> Refresh
               </button>
             )
           }
+          variant="info"
+          className="w-full h-full flex items-center justify-center"
         />
       );
     }
-
     return null;
   };
 
-  // Determine appropriate x-axis tick interval
-  const xAxisInterval = useMemo(() => {
-    const calculatedInterval = Math.max(
-      0,
-      Math.floor(chartData.length / xAxisTickCount) - 1,
-    );
-    return calculatedInterval;
-  }, [chartData.length, xAxisTickCount]);
-
-  // Render chart based on chartType
+  // Main rendering
   const renderChart = () => {
-    if (
-      !chartData.length ||
-      !effectiveVisibleSiteIds.length ||
-      !selectedSiteIds.length
-    ) {
+    if (!chartData.length || !effectiveVisibleSiteIds.length)
       return renderEmptyState();
-    }
-
-    const ChartComponent = chartType === 'line' ? LineChart : BarChart;
-    const DataComponent = chartType === 'line' ? Line : Bar;
-
+    const Chart = chartType === 'line' ? LineChart : BarChart;
+    const Series = chartType === 'line' ? Line : Bar;
     return (
       <ResponsiveContainer width={width} height={height}>
-        <ChartComponent
+        <Chart
           data={chartData}
-          margin={{ top: 38, right: 10, left: -15, bottom: 40 }} // Increased bottom margin for rotated labels
+          margin={{ top: 38, right: 10, left: -15, bottom: 40 }}
           style={{ cursor: 'pointer' }}
+          {...(chartType === 'bar' && { barGap: 8, barCategoryGap: '20%' })}
         >
           <CartesianGrid
             stroke={isDark ? '#555' : '#ccc'}
@@ -331,12 +260,11 @@ const MoreInsightsChart = ({
                 {...props}
                 fill={isDark ? '#E5E7EB' : '#485972'}
                 frequency={frequency}
-                visibleTicksCount={xAxisTickCount}
               />
             )}
             axisLine={false}
             interval={xAxisInterval}
-            angle={-25}
+            angle={xAxisAngle}
             textAnchor="end"
             height={60}
             padding={{ left: 30, right: 30 }}
@@ -344,7 +272,6 @@ const MoreInsightsChart = ({
           <YAxis
             domain={[0, 'auto']}
             axisLine={false}
-            fontSize={12}
             tickLine={false}
             tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20' }}
             tickFormatter={formatYAxisTick}
@@ -384,34 +311,32 @@ const MoreInsightsChart = ({
                 : { fill: isDark ? '#444' : '#eee', fillOpacity: 0.3 }
             }
           />
-
-          {dataKeys.map((key, index) => (
-            <DataComponent
+          {dataKeys.map((key, idx) => (
+            <Series
               key={key}
               dataKey={key}
-              name={siteIdToName[key] || 'Unknown Location'}
+              name={siteIdToName[key] || key}
               type={chartType === 'line' ? 'monotone' : undefined}
-              stroke={chartType === 'line' ? getColor(index) : undefined}
+              stroke={chartType === 'line' ? getColor(idx) : undefined}
+              fill={chartType === 'bar' ? getColor(idx) : undefined}
               strokeWidth={chartType === 'line' ? 4 : undefined}
-              fill={chartType === 'bar' ? getColor(index) : undefined}
               barSize={chartType === 'bar' ? 12 : undefined}
               dot={chartType === 'line' ? <CustomDot /> : undefined}
               activeDot={chartType === 'line' ? { r: 6 } : undefined}
               shape={chartType === 'bar' ? <CustomBar /> : undefined}
-              onMouseEnter={() => setActiveIndex(index)}
+              onMouseEnter={() => setActiveIndex(idx)}
               onMouseLeave={handleMouseLeave}
             />
           ))}
-
           {WHO_STANDARD_VALUE > 0 && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}
               label={<CustomReferenceLabel name={aqStandard?.name || 'WHO'} />}
-              ifOverflow="extendDomain"
               stroke="red"
+              ifOverflow="extendDomain"
             />
           )}
-        </ChartComponent>
+        </Chart>
       </ResponsiveContainer>
     );
   };
@@ -424,5 +349,4 @@ const MoreInsightsChart = ({
 };
 
 MoreInsightsChart.displayName = 'MoreInsightsChart';
-
 export default React.memo(MoreInsightsChart);
