@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import LocationIcon from '@/icons/LocationIcon';
+import LocationIcon from '@/icons/Analytics/LocationIcon';
 import { capitalizeAllText } from '@/core/utils/strings';
 import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
@@ -94,7 +94,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                   </span>
                 </div>
                 <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
-                  <LocationIcon fill="#3B82F6" />
+                  <LocationIcon />
                 </div>
               </div>
             </Card>
@@ -103,9 +103,9 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
         {searchResults.length > 6 && !showAllResults && (
           <div className="flex justify-center my-4">
             <Button
-              variant="primaryText"
+              variant="text"
               className="text-sm font-medium"
-              paddingStyles="py-4"
+              padding="p-0 shadow-none"
               onClick={handleShowMore}
             >
               Show More

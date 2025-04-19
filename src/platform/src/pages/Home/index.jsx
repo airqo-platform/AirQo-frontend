@@ -103,7 +103,7 @@ const Home = () => {
                   variant="text"
                   padding="p-0 shadow-none"
                   onClick={handleModal}
-                  className="text-blue-600 text-sm font-normal hover:underline"
+                  className="text-primary text-sm font-normal hover:underline"
                   data-testid="show-video-button"
                 >
                   Show me how

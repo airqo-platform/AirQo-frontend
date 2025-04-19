@@ -156,10 +156,10 @@ const OrganizationDropdown = ({ className = '' }) => {
     <div
       className={clsx(
         'w-7 h-7 flex items-center justify-center rounded-full',
-        isDarkMode ? 'bg-gray-600' : 'bg-yellow-200',
+        isDarkMode ? 'bg-primary/20' : 'bg-primary/10',
       )}
     >
-      <GoOrganization className="text-slate-600 text-lg" />
+      <GoOrganization className="text-primary text-lg" />
     </div>
   );
 
@@ -206,8 +206,8 @@ const OrganizationDropdown = ({ className = '' }) => {
                   'p-1 rounded-lg mb-1',
                   activeGroupId === group._id
                     ? isDarkMode
-                      ? 'bg-blue-900/30'
-                      : 'bg-blue-50'
+                      ? 'bg-primary/10'
+                      : 'bg-primary/5'
                     : '',
                 )}
               >
@@ -218,8 +218,8 @@ const OrganizationDropdown = ({ className = '' }) => {
                     isDarkMode ? 'text-white' : 'text-gray-800',
                     activeGroupId === group._id
                       ? isDarkMode
-                        ? 'text-blue-400'
-                        : 'text-blue-600'
+                        ? 'text-primary'
+                        : 'text-primary'
                       : isDarkMode
                         ? 'hover:bg-gray-700'
                         : 'hover:bg-gray-100',
@@ -230,10 +230,10 @@ const OrganizationDropdown = ({ className = '' }) => {
                     <div
                       className={clsx(
                         'w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full',
-                        isDarkMode ? 'bg-gray-600' : 'bg-yellow-200',
+                        isDarkMode ? 'bg-primary/20' : 'bg-primary/10',
                       )}
                     >
-                      <GoOrganization className="text-slate-600 text-lg" />
+                      <GoOrganization className="text-primary text-lg" />
                     </div>
                     <div
                       className="text-sm font-medium truncate"
@@ -252,21 +252,14 @@ const OrganizationDropdown = ({ className = '' }) => {
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className={
-                          isDarkMode ? 'text-blue-400' : 'text-blue-500'
-                        }
+                        className="text-primary"
                       >
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill={isDarkMode ? '#60a5fa' : '#3b82f6'}
-                        />
+                        <circle cx="12" cy="12" r="8" fill="currentColor" />
                         <circle
                           cx="12"
                           cy="12"
                           r="11"
-                          stroke={isDarkMode ? '#60a5fa' : '#3b82f6'}
+                          stroke="currentColor"
                           strokeWidth="2"
                         />
                       </svg>
@@ -317,7 +310,7 @@ const OrganizationDropdown = ({ className = '' }) => {
           'hover:bg-opacity-90',
         )}
         menuClassName={clsx(
-          'p-2 max-h-[260px] overflow-y-auto custom-scrollbar',
+          'max-h-[260px] overflow-y-auto relative -left-1 custom-scrollbar',
           isDarkMode
             ? 'scrollbar-thumb-gray-600 scrollbar-track-gray-800 bg-gray-800'
             : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100',
@@ -333,8 +326,8 @@ const OrganizationDropdown = ({ className = '' }) => {
                 'p-1 rounded-lg mb-1',
                 activeGroupId === group._id
                   ? isDarkMode
-                    ? 'bg-blue-900/30'
-                    : 'bg-blue-50'
+                    ? 'bg-primary/10'
+                    : 'bg-primary/5'
                   : '',
               )}
             >
@@ -345,8 +338,8 @@ const OrganizationDropdown = ({ className = '' }) => {
                   isDarkMode ? 'text-white' : 'text-gray-800',
                   activeGroupId === group._id
                     ? isDarkMode
-                      ? 'text-blue-400'
-                      : 'text-blue-600'
+                      ? 'text-primary'
+                      : 'text-primary'
                     : isDarkMode
                       ? 'hover:bg-gray-700'
                       : 'hover:bg-gray-100',
@@ -357,10 +350,10 @@ const OrganizationDropdown = ({ className = '' }) => {
                   <div
                     className={clsx(
                       'w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full',
-                      isDarkMode ? 'bg-gray-600' : 'bg-yellow-200',
+                      isDarkMode ? 'bg-primary/20' : 'bg-primary/10',
                     )}
                   >
-                    <GoOrganization className="text-slate-600 text-lg" />
+                    <GoOrganization className="text-primary text-lg" />
                   </div>
                   <div
                     className="text-sm font-medium truncate"
@@ -379,19 +372,14 @@ const OrganizationDropdown = ({ className = '' }) => {
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      className={isDarkMode ? 'text-blue-400' : 'text-blue-500'}
+                      className="text-primary"
                     >
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="8"
-                        fill={isDarkMode ? '#60a5fa' : '#3b82f6'}
-                      />
+                      <circle cx="12" cy="12" r="8" fill="currentColor" />
                       <circle
                         cx="12"
                         cy="12"
                         r="11"
-                        stroke={isDarkMode ? '#60a5fa' : '#3b82f6'}
+                        stroke="currentColor"
                         strokeWidth="2"
                       />
                     </svg>

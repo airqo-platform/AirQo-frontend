@@ -6,14 +6,14 @@ import PropTypes from 'prop-types';
 const TabItem = React.memo(({ label, index, isActive, onClick }) => {
   const className = useMemo(() => {
     return isActive
-      ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+      ? 'border-primary text-primary dark:border-primary dark:text-primary'
       : 'border-transparent hover:text-gray-700 dark:hover:text-gray-300 text-gray-500/50 dark:text-white hover:border-gray-200 dark:hover:border-gray-600';
   }, [isActive]);
 
   return (
     <li
       role="presentation"
-      className={`${className} whitespace-nowrap py-2 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer`}
+      className={`${className} whitespace-nowrap py-2 border-b-2 rounded-tl-full rounded-tr-full font-medium text-sm focus:outline-none mr-2 cursor-pointer transition-colors duration-200`}
       onClick={() => onClick(index)}
     >
       {label}
@@ -74,9 +74,9 @@ const Tabs = ({ children, childrenRight, positionFixed }) => {
       <div
         className={`${
           positionFixed ? 'fixed' : ''
-        } w-full h-14 border-b border-gray-200 dark:border-gray-700 flex items-end z-20 ${
+        } w-full h-14 border-b border-gray-200 dark:border-gray-700 flex items-end px-2 z-20 ${
           childrenRight ? 'justify-between' : ''
-        }`}
+        } bg-white dark:bg-gray-800`}
       >
         <ul className="flex overflow-x-auto map-scrollbar gap-6 text-sm font-medium text-center">
           {tabItems}

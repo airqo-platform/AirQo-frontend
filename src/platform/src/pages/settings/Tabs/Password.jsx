@@ -134,7 +134,7 @@ const Password = () => {
           </p>
         </div>
         <div className="md:col-span-2">
-          <Card rounded radius="rounded-lg">
+          <Card>
             <form
               className="flex flex-col gap-4"
               onSubmit={handleSubmit}
