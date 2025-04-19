@@ -107,7 +107,38 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
   const chartRef = useRef(null);
+  const opacities = [0, 0.15, 0.3, 0.85]; // darkness steps
 
+  const getColor = useCallback(
+    (idx) => {
+      // SSR‐safe guard
+      if (typeof window === 'undefined') {
+        return 'rgba(20,95,255,1)';
+      }
+
+      // Read the up‑to‑date CSS variable each time
+      const css = window.getComputedStyle(document.documentElement);
+      const raw = css.getPropertyValue('--color-primary-rgb').trim();
+      const [r, g, b] = raw
+        .split(',')
+        .map((v) => parseInt(v, 10))
+        .filter((n) => !isNaN(n));
+
+      // Compute a darkness factor from opacities
+      const pct = opacities[idx % opacities.length];
+      const factor = 1 - pct;
+
+      const dr = Math.round(r * factor);
+      const dg = Math.round(g * factor);
+      const db = Math.round(b * factor);
+      const activeColor = `rgb(${dr}, ${dg}, ${db})`;
+
+      return activeIndex === null || activeIndex === idx
+        ? activeColor
+        : 'rgba(204, 204, 204, 0.5)';
+    },
+    [activeIndex, theme, systemTheme],
+  );
   // Enhanced tick count calculation
   const tickCount = useMemo(() => {
     if (containerWidth < 480) return 4;
@@ -194,21 +225,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
 
   // Get WHO standard value for reference line
   const WHO_STANDARD_VALUE = aqStandard?.value?.[pollutantType] || 0;
-
-  // Define opacity levels for visual hierarchy
-  const opacities = [1, 0.85, 0.65, 0.45];
-
-  // Color generation with active state handling
-  const getColor = useCallback(
-    (idx) => {
-      const alpha = opacities[idx % opacities.length];
-      const base = `rgba(var(--color-primary-rgb), ${alpha})`;
-      return activeIndex === null || activeIndex === idx
-        ? base
-        : 'rgba(204, 204, 204, 0.5)';
-    },
-    [activeIndex],
-  );
 
   // Handle chart refresh
   const handleRefresh = useCallback(() => {
