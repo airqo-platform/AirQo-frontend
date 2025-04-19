@@ -9,49 +9,68 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 const STORAGE_KEY_PREFIX = 'groupLogoUrl';
 
 const GroupLogo = ({ className, style, width, height }) => {
+  // Hooks
   const dispatch = useDispatch();
   const { id: activeGroupId, loading: fetchingGroup } = useGetActiveGroup();
   const { groupInfo: orgInfo, loading: fetchingProfile } = useSelector(
-    (s) => s.groupInfo,
+    (state) => state.groupInfo,
   );
-
-  const profilePic = orgInfo?.grp_image;
-  const title = orgInfo?.grp_title || 'Group logo';
 
   const [persistedLogo, setPersistedLogo] = useState(null);
   const [displaySrc, setDisplaySrc] = useState(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  // Effect: clear cache & fetch group info
   useEffect(() => {
     setImgError(false);
+    setPersistedLogo(null);
+    setDisplaySrc(null);
+
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.startsWith(STORAGE_KEY_PREFIX) &&
+          key !== `${STORAGE_KEY_PREFIX}_${activeGroupId}`
+        ) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {
+      // empty for now
+    }
 
     if (activeGroupId) {
+      // Load cached logo
       try {
         const saved = localStorage.getItem(
           `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
         );
-        setPersistedLogo(saved);
+        if (saved) {
+          setPersistedLogo(saved);
+          setDisplaySrc(saved);
+        }
       } catch {
-        // silent
+        // empty for now
       }
 
       dispatch(fetchGroupInfo(activeGroupId))
         .unwrap()
         .catch(() => setImgError(true));
-    } else {
-      setPersistedLogo(null);
     }
   }, [activeGroupId, dispatch]);
 
+  // Effect: update displaySrc when orgInfo or persistedLogo changes
   useEffect(() => {
-    if (profilePic) {
-      setDisplaySrc(profilePic);
-    } else {
+    const pic = orgInfo?.grp_image || null;
+    if (pic) {
+      setDisplaySrc(pic);
+    } else if (!displaySrc) {
       setDisplaySrc(persistedLogo);
     }
-  }, [profilePic, persistedLogo]);
+  }, [orgInfo, persistedLogo]);
 
+  // Effect: set loading state when displaySrc changes
   useEffect(() => {
     if (displaySrc) {
       setIsImageLoading(true);
@@ -59,36 +78,23 @@ const GroupLogo = ({ className, style, width, height }) => {
     }
   }, [displaySrc]);
 
+  // Effect: cache new logo
   useEffect(() => {
-    if (profilePic && activeGroupId) {
+    const pic = orgInfo?.grp_image;
+    if (pic && activeGroupId) {
       try {
-        localStorage.setItem(
-          `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
-          profilePic,
-        );
-        setPersistedLogo(profilePic);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}_${activeGroupId}`, pic);
+        setPersistedLogo(pic);
       } catch {
-        // silent
+        // empty for now
       }
     }
-  }, [profilePic, activeGroupId]);
+  }, [orgInfo, activeGroupId]);
 
-  const handleLoadComplete = () => setIsImageLoading(false);
-
-  const handleLoadError = () => {
-    setImgError(true);
-    setIsImageLoading(false);
-    if (activeGroupId) {
-      try {
-        localStorage.removeItem(`${STORAGE_KEY_PREFIX}_${activeGroupId}`);
-      } catch {
-        // silent
-      }
-    }
-    setPersistedLogo(null);
-  };
-
-  const isDataLoading = fetchingGroup || fetchingProfile;
+  // Pure JS logic
+  const profilePic = orgInfo?.grp_image || null;
+  const title = orgInfo?.grp_title || 'Group logo';
+  const isAirqoGroup = title.trim().toLowerCase() === 'airqo';
 
   const defaultW = 80;
   const defaultH = 80;
@@ -102,12 +108,10 @@ const GroupLogo = ({ className, style, width, height }) => {
     ...style,
   };
 
-  // if orgInfo loaded without grp_image and no persisted logo, show default
-  if (
-    orgInfo &&
-    !Object.prototype.hasOwnProperty.call(orgInfo, 'grp_image') &&
-    !persistedLogo
-  ) {
+  const isDataLoading = fetchingGroup || fetchingProfile;
+
+  // Render logic
+  if (isAirqoGroup) {
     return (
       <div className={className} style={wrapperStyle}>
         <AirqoLogo width={width || defaultW} height={height || defaultH} />
@@ -115,7 +119,14 @@ const GroupLogo = ({ className, style, width, height }) => {
     );
   }
 
-  // skeleton when loading and no cached logo
+  if ((!profilePic && !persistedLogo) || imgError) {
+    return (
+      <div className={className} style={wrapperStyle}>
+        <AirqoLogo width={width || defaultW} height={height || defaultH} />
+      </div>
+    );
+  }
+
   if (isDataLoading && !persistedLogo) {
     return (
       <div
@@ -125,8 +136,7 @@ const GroupLogo = ({ className, style, width, height }) => {
     );
   }
 
-  // show fetched or cached image
-  if (displaySrc && !imgError) {
+  if (displaySrc) {
     return (
       <div className={className} style={wrapperStyle}>
         {isImageLoading && (
@@ -141,15 +151,25 @@ const GroupLogo = ({ className, style, width, height }) => {
             quality={90}
             priority
             className="object-contain"
-            onLoadingComplete={handleLoadComplete}
-            onError={handleLoadError}
+            onLoadingComplete={() => setIsImageLoading(false)}
+            onError={() => {
+              setImgError(true);
+              setIsImageLoading(false);
+              try {
+                localStorage.removeItem(
+                  `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
+                );
+                setPersistedLogo(null);
+              } catch {
+                // empty for now
+              }
+            }}
           />
         </div>
       </div>
     );
   }
 
-  // fallback default logo
   return (
     <div className={className} style={wrapperStyle}>
       <AirqoLogo width={width || defaultW} height={height || defaultH} />
