@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 export default function Error({
   error,
@@ -10,6 +11,7 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+    const router = useRouter()
   useEffect(() => {
     console.error("Application error:", error)
   }, [error])
@@ -22,7 +24,7 @@ export default function Error({
           We apologize for the inconvenience. The application encountered an unexpected error.
         </p>
         <div className="flex justify-center gap-4">
-          <Button onClick={() => (window.location.href = "/login")} variant="outline">
+        <Button onClick={() => router.push("/login")} variant="outline">
             Go to Login
           </Button>
           <Button onClick={() => reset()}>Try again</Button>
