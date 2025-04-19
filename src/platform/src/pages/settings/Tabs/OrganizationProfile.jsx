@@ -425,7 +425,6 @@ const OrganizationProfile = () => {
                   onChange={handleChange}
                   label="Website"
                   placeholder="Enter website"
-                  Icon={GlobeIcon}
                   error={validationErrors.grp_website}
                 />
 
