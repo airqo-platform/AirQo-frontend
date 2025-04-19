@@ -48,23 +48,23 @@ export function PollutantCategory({ pm25level, iconClass, sites, devices }: Poll
   }, [show])
 
   return (
-    <div className="relative w-full" ref={ref}>
+    <div className="relative" ref={ref}>
       <Card className="cursor-pointer transition-all hover:shadow-md w-full" onClick={toggleShow}>
-        <CardContent className="flex items-center p-4">
-          <div className="flex-grow mr-4">
-            <h3 className="text-sm font-semibold text-gray-500 break-words">{pm25level}</h3>
-          </div>
-          <div className="flex-shrink-0">
-            <Avatar className={cn("h-12 w-12", iconClass)} style={{ backgroundColor: getPm25LevelHexColor(pm25level) }}>
-              <AvatarFallback>{sortedData.length}</AvatarFallback>
+        <CardContent className="p-3">
+          <div className="flex justify-between items-center">
+            <div className="max-w-[60%]">
+              <p className="text-xs font-bold text-gray-500 truncate">{pm25level}</p>
+            </div>
+            <Avatar className={cn("h-10 w-10", iconClass)} style={{ backgroundColor: getPm25LevelHexColor(pm25level) }}>
+              <AvatarFallback className="text-sm">{sortedData.length}</AvatarFallback>
             </Avatar>
           </div>
         </CardContent>
       </Card>
       {show && (
-        <ul className="absolute z-10 w-full mt-2 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+        <ul className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
           {sortedData.length === 0 ? (
-            <li className="p-2 text-gray-500">No data</li>
+            <li className="p-2 text-gray-500">no data</li>
           ) : (
             sortedData.map((data, index) => (
               <li key={index} className="p-2 hover:bg-gray-100">
@@ -84,15 +84,15 @@ export function PollutantCategory({ pm25level, iconClass, sites, devices }: Poll
 const PM25_LEVEL_COLORS = {
   good: { class: "green-500", hex: "#10B981" },
   moderate: { class: "yellow-500", hex: "#FBBF24" },
-  "unhealthy for sensitive groups": { class: "orange-500", hex: "#F97316" },
+  uhfsg: { class: "orange-500", hex: "#F97316" },
   unhealthy: { class: "red-500", hex: "#EF4444" },
-  "very unhealthy": { class: "purple-500", hex: "#8B5CF6" },
+  veryunhealthy: { class: "purple-500", hex: "#8B5CF6" },
   hazardous: { class: "rose-900", hex: "#9B1C31" },
   default: { class: "gray-500", hex: "#6B7280" },
 } as const
 
 function getPm25LevelColors(level: string) {
-  const key = level.toLowerCase() as keyof typeof PM25_LEVEL_COLORS
+  const key = level.toLowerCase().replace(/\s+/g, "") as keyof typeof PM25_LEVEL_COLORS
   return PM25_LEVEL_COLORS[key] || PM25_LEVEL_COLORS.default
 }
 
