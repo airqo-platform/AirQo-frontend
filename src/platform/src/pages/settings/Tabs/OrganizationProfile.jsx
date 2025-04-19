@@ -10,7 +10,6 @@ import TextField from '@/components/TextInputField';
 import SelectDropdown from '@/components/SelectDropdown';
 import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
 import { updateGroupDetailsApi } from '@/core/apis/Account';
-import GlobeIcon from '@/icons/Settings/globe.svg';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
@@ -362,24 +361,31 @@ const OrganizationProfile = () => {
           </div>
           <div className="w-full mb-12">
             <Card>
+              {/* Avatar & Upload Controls */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
-                <div
-                  className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
-                  onClick={handleAvatarClick}
-                  title="Tap to change profile image"
-                >
-                  {orgData.grp_image ? (
-                    <img
-                      src={orgData.grp_image}
-                      alt={`${orgData.grp_title} profile image`}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <h3 className="text-2xl font-medium text-primary uppercase">
-                      {orgData.grp_title[0] + orgData.grp_title[1]}
-                    </h3>
-                  )}
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
+                    onClick={handleAvatarClick}
+                    title="Tap to change profile image"
+                  >
+                    {orgData.grp_image ? (
+                      <img
+                        src={orgData.grp_image}
+                        alt={`${orgData.grp_title} profile image`}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <h3 className="text-2xl font-medium text-primary uppercase">
+                        {orgData.grp_title.slice(0, 2)}
+                      </h3>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    Recommended format: SVG with transparent background
+                  </p>
                 </div>
+
                 <div className="flex items-center gap-4">
                   <Button
                     onClick={deleteProfileImage}
@@ -404,6 +410,7 @@ const OrganizationProfile = () => {
                   </Button>
                 </div>
               </div>
+
               <form
                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
                 onSubmit={handleSubmit}

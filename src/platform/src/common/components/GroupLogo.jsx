@@ -83,7 +83,7 @@ const GroupLogo = ({ className, style, width, height }) => {
             sizes={`${typeof width === 'number' ? width : defaultW}px`}
             quality={90}
             priority
-            className="object-contain"
+            className="object-contain  mix-blend-multiply"
             onLoadingComplete={handleLoadComplete}
             onError={handleLoadError}
           />
