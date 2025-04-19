@@ -13,7 +13,7 @@ const GroupLogo = ({ className, style, width, height }) => {
     (s) => s.groupInfo,
   );
 
-  const profilePic = orgInfo?.grp_profile_picture;
+  const profilePic = orgInfo?.grp_image;
   const title = orgInfo?.grp_title || 'Group logo';
 
   const [imgLoading, setImgLoading] = useState(true);
