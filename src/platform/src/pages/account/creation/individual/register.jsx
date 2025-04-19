@@ -241,7 +241,7 @@ const IndividualAccountRegistration = () => {
                   password &&
                   !passwordWordErrors &&
                   checked
-                    ? 'bg-primary text-white hover:bg-primary/95'
+                    ? 'text-white bg-blue-600 hover:bg-blue-500'
                     : 'btn-disabled bg-white'
                 }`}
                 disabled={

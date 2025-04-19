@@ -137,7 +137,7 @@ export default function IndividualAccountInterest() {
             className={`w-full rounded-[12px] text-sm outline-none border-none transition \
               ${
                 isFormValid
-                  ? 'btn bg-blue-900 hover:bg-blue-950'
+                  ? 'btn bg-blue-600 hover:bg-blue-500'
                   : 'btn-disabled bg-white'
               }`}
             style={{ textTransform: 'none' }}
