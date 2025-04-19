@@ -64,7 +64,7 @@ const IndividualAccountVerification = () => {
             Not seeing the email?
           </span>
           <span
-            className="text-sm font-medium text-blue-900 dark:text-blue-400 hover:cursor-pointer"
+            className="text-sm font-medium text-primary dark:text-primary/40 hover:cursor-pointer"
             onClick={handleSubmit}
           >
             {' '}

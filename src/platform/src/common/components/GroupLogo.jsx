@@ -27,28 +27,23 @@ const GroupLogo = ({ className, style, width, height }) => {
     setImgError(false);
 
     if (activeGroupId) {
-      // load last‑saved logo for this group
       try {
         const saved = localStorage.getItem(
           `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
         );
         setPersistedLogo(saved);
       } catch {
-        // empty
+        // silent
       }
 
-      // fetch latest groupInfo
       dispatch(fetchGroupInfo(activeGroupId))
         .unwrap()
-        .catch(() => {
-          setImgError(true);
-        });
+        .catch(() => setImgError(true));
     } else {
       setPersistedLogo(null);
     }
   }, [activeGroupId, dispatch]);
 
-  // Decide which URL to display: fetched > persisted
   useEffect(() => {
     if (profilePic) {
       setDisplaySrc(profilePic);
@@ -57,7 +52,6 @@ const GroupLogo = ({ className, style, width, height }) => {
     }
   }, [profilePic, persistedLogo]);
 
-  // Kick off image load whenever displaySrc changes
   useEffect(() => {
     if (displaySrc) {
       setIsImageLoading(true);
@@ -65,7 +59,6 @@ const GroupLogo = ({ className, style, width, height }) => {
     }
   }, [displaySrc]);
 
-  // When a new profilePic loads successfully, persist it
   useEffect(() => {
     if (profilePic && activeGroupId) {
       try {
@@ -75,7 +68,7 @@ const GroupLogo = ({ className, style, width, height }) => {
         );
         setPersistedLogo(profilePic);
       } catch {
-        // empty
+        // silent
       }
     }
   }, [profilePic, activeGroupId]);
@@ -85,12 +78,11 @@ const GroupLogo = ({ className, style, width, height }) => {
   const handleLoadError = () => {
     setImgError(true);
     setIsImageLoading(false);
-    // clear bad URL
     if (activeGroupId) {
       try {
         localStorage.removeItem(`${STORAGE_KEY_PREFIX}_${activeGroupId}`);
       } catch {
-        // empty
+        // silent
       }
     }
     setPersistedLogo(null);
@@ -110,7 +102,20 @@ const GroupLogo = ({ className, style, width, height }) => {
     ...style,
   };
 
-  // If still fetching group info *and* there's no persisted logo yet, show skeleton
+  // if orgInfo loaded without grp_image and no persisted logo, show default
+  if (
+    orgInfo &&
+    !Object.prototype.hasOwnProperty.call(orgInfo, 'grp_image') &&
+    !persistedLogo
+  ) {
+    return (
+      <div className={className} style={wrapperStyle}>
+        <AirqoLogo width={width || defaultW} height={height || defaultH} />
+      </div>
+    );
+  }
+
+  // skeleton when loading and no cached logo
   if (isDataLoading && !persistedLogo) {
     return (
       <div
@@ -120,11 +125,10 @@ const GroupLogo = ({ className, style, width, height }) => {
     );
   }
 
-  // If we have a URL to show and it hasn’t errored, render it
+  // show fetched or cached image
   if (displaySrc && !imgError) {
     return (
       <div className={className} style={wrapperStyle}>
-        {/* overlay pulse while the image is loading */}
         {isImageLoading && (
           <div className="absolute inset-0 z-10 animate-pulse bg-gray-200 rounded" />
         )}
@@ -145,6 +149,7 @@ const GroupLogo = ({ className, style, width, height }) => {
     );
   }
 
+  // fallback default logo
   return (
     <div className={className} style={wrapperStyle}>
       <AirqoLogo width={width || defaultW} height={height || defaultH} />
