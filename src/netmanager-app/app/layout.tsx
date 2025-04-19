@@ -3,8 +3,6 @@ import type { Metadata } from "next"
 import "./globals.css"
 import ClientLayout from "./client-layout"
 
-
-// Define metadata using Next.js Metadata API (server component only)
 export const metadata: Metadata = {
   title: {
     template: "%s | AirQo Analytics",
@@ -23,7 +21,7 @@ export const metadata: Metadata = {
     url: "https://airqo.net",
     images: [
       {
-        url: "/og-image.png",
+        url: "/images/airqo-logo.svg",
         width: 1200,
         height: 630,
         alt: "AirQo Analytics",
@@ -34,11 +32,11 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AirQo Analytics",
     description: "Africa's leading air quality monitoring network.",
-    images: ["/twitter-image.png"],
+    images: ["/favicon.ico"],
   },
   icons: {
     icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    apple: "/favicon.ico",
   },
 }
 
