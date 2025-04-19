@@ -50,16 +50,15 @@ export function PollutantCategory({ pm25level, iconClass, sites, devices }: Poll
   return (
     <div className="relative w-full" ref={ref}>
       <Card className="cursor-pointer transition-all hover:shadow-md w-full" onClick={toggleShow}>
-        <CardContent className="flex items-center p-4 gap-3">
-          <div className="flex-1 min-w-0 pr-2">
-            <h3 className="text-sm font-semibold text-gray-500 truncate">{pm25level}</h3>
+        <CardContent className="flex items-center p-4">
+          <div className="flex-grow mr-4">
+            <h3 className="text-sm font-semibold text-gray-500 break-words">{pm25level}</h3>
           </div>
-          <Avatar
-            className={cn("h-12 w-12 flex-shrink-0", iconClass)}
-            style={{ backgroundColor: getPm25LevelHexColor(pm25level) }}
-          >
-            <AvatarFallback>{sortedData.length}</AvatarFallback>
-          </Avatar>
+          <div className="flex-shrink-0">
+            <Avatar className={cn("h-12 w-12", iconClass)} style={{ backgroundColor: getPm25LevelHexColor(pm25level) }}>
+              <AvatarFallback>{sortedData.length}</AvatarFallback>
+            </Avatar>
+          </div>
         </CardContent>
       </Card>
       {show && (
