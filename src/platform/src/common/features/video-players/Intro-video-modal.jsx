@@ -6,7 +6,7 @@ import { updateTaskProgress } from '@/lib/store/services/checklists/CheckList';
 import CloseIcon from '@/icons/close_icon';
 import Spinner from '@/components/Spinner';
 import Card from '@/components/CardWrapper';
-import ErrorBoundary from '@/components/ErrorBoundary'; // Adjust the import path as needed
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const VideoModal = ({ open, setOpen, videoUrl }) => {
   const dispatch = useDispatch();
@@ -99,7 +99,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
           <button
             type="button"
             onClick={handleCloseModal}
-            className="absolute -top-4 right-0 z-10 bg-blue-600 hover:bg-blue-700 transition-colors duration-200 rounded-full text-sm w-8 h-8 flex justify-center items-center shadow-md"
+            className="absolute -top-4 -right-2 z-10 bg-primary hover:bg-primary/70 transition-colors duration-200 rounded-full text-sm w-8 h-8 flex justify-center items-center shadow-md"
             data-modal-hide="custom-modal"
           >
             <CloseIcon fill="#FFFFFF" className="w-4 h-4" />
