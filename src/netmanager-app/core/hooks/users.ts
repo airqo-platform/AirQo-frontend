@@ -21,6 +21,7 @@ import type {
   UserDetailsResponse,
 } from "@/app/types/users";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react"
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -129,16 +130,28 @@ export const useAuth = () => {
     },
   });
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userDetails");
-    localStorage.removeItem("activeNetwork");
-    localStorage.removeItem("availableNetworks");
-    localStorage.removeItem("activeGroup");
-    localStorage.removeItem("userGroups");
-    dispatch(logout());
-    router.push("/login");
-  };
+  // Memoize the logout function to prevent recreating it on each render
+  const handleLogout = useCallback(() => {
+    try {
+      // First dispatch the logout action to clear Redux state
+      dispatch(logout())
+
+      // Then clear localStorage
+      localStorage.removeItem("token")
+      localStorage.removeItem("userDetails")
+      localStorage.removeItem("activeNetwork")
+      localStorage.removeItem("availableNetworks")
+      localStorage.removeItem("activeGroup")
+      localStorage.removeItem("userGroups")
+
+      // Finally navigate to login page
+      router.push("/login")
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Force navigation to login even if there was an error
+      router.push("/login")
+    }
+  }, [dispatch, router])
 
   const restoreSession = () => {
     try {
