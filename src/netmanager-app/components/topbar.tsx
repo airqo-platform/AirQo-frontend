@@ -13,11 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/core/hooks/users"
+import { logout as reduxLogout } from "@/core/redux/slices/userSlice";
 import { useAppSelector } from "@/core/redux/hooks"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useDispatch } from "react-redux"
+import { useRouter } from "next/navigation"
 
 interface TopbarProps {
   isMobileView: boolean
@@ -26,9 +28,10 @@ interface TopbarProps {
 
 const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const [darkMode, setDarkMode] = useState(false)
-  const { logout } = useAuth()
   const currentUser = useAppSelector((state) => state.user.userDetails)
   const activeGroup = useAppSelector((state) => state.user.activeGroup)
+  const dispatch = useDispatch();
+  const router = useRouter();
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark")
@@ -40,6 +43,18 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
   }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userDetails");
+    localStorage.removeItem("activeNetwork");
+    localStorage.removeItem("availableNetworks");
+    localStorage.removeItem("activeGroup");
+    localStorage.removeItem("userGroups");
+    dispatch(reduxLogout());
+    router.push("/login");
+  };
+  
 
   const apps = [
     {
@@ -67,6 +82,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
       icon: "🔍",
     },
   ]
+  
 
   // Get user initials for avatar fallback
   const getInitials = () => {
@@ -90,69 +106,10 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
           </Button>
         )}
 
-        {/* Left side - can add logo or breadcrumbs here */}
         <div className="flex items-center gap-2">
         </div>
 
-        {/* Right side - actions */}
         <div className="flex items-center gap-1 md:gap-2">
-          {/* <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <HelpCircle className="h-5 w-5" />
-                  <span className="sr-only">Help</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Help & Resources</TooltipContent>
-            </Tooltip>
-          </TooltipProvider> */}
-
-          {/* <DropdownMenu>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                      <Bell className="h-5 w-5" />
-                      <span className="sr-only">Notifications</span>
-                      <Badge className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full p-0 text-[10px]">3</Badge>
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel className="flex items-center justify-between">
-                <span>Notifications</span>
-                <Button variant="ghost" size="sm" className="h-auto p-0 text-xs font-normal text-primary">
-                  Mark all as read
-                </Button>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-80 overflow-y-auto">
-                {[1, 2, 3].map((i) => (
-                  <DropdownMenuItem key={i} className="flex flex-col items-start p-3">
-                    <div className="flex w-full items-center gap-2">
-                      <div className="flex-shrink-0">
-                        <Badge variant="outline" className="h-2 w-2 rounded-full bg-blue-500 p-0" />
-                      </div>
-                      <div className="flex-1 text-sm font-medium">Device status update</div>
-                      <div className="text-xs text-muted-foreground">2h ago</div>
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Device AQ-045 is now online and transmitting data.
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="justify-center text-center text-sm font-medium text-primary">
-                <Link href="/notifications">View all notifications</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
 
           <DropdownMenu>
             <TooltipProvider>
@@ -241,7 +198,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="flex items-center gap-2 text-destructive focus:text-destructive"
-                onClick={logout}
+                onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
                 <span>Log out</span>
