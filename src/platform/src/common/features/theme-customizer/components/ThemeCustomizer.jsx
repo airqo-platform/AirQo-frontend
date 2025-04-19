@@ -10,7 +10,6 @@ export const ThemeCustomizer = memo(() => {
 
   return (
     <>
-      {/* Theme Toggle Button */}
       <button
         onClick={openThemeSheet}
         className="fixed right-0 top-1/2 transform -translate-y-1/2 
@@ -26,12 +25,9 @@ export const ThemeCustomizer = memo(() => {
       >
         <FaCog size={16} />
       </button>
-
-      {/* Theme Sheet */}
       <ThemeSheet />
     </>
   );
 });
 
-// Add display name for better debugging
 ThemeCustomizer.displayName = 'ThemeCustomizer';

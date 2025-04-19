@@ -14,11 +14,11 @@ import { useTheme } from '../hooks/useTheme';
 import { THEME_MODES, THEME_SKINS } from '../constants/themeConstants';
 
 const PRESET_COLORS = [
-  '#145FFF', // deep blue
-  '#6B7280', // cool gray
-  '#FBBF24', // amber
-  '#10B981', // emerald
-  '#0EA5E9', // sky
+  '#145FFF', // original deep blue
+  '#B8860B', // KCCA Uganda: dark goldenrod
+  '#006400', // NEMA Uganda: dark green
+  '#2F4F4F', // NEMA Kenya: dark slate gray (instead of black)
+  '#005757', // LASEPA Nigeria: dark teal
 ];
 
 export const ThemeSheet = memo(() => {
