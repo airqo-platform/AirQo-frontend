@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import StepProgress from './CircularStepper';
 import ChecklistStepCard from './ChecklistStepCard';
@@ -12,8 +12,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Checklist = ({ openVideoModal }) => {
   const dispatch = useDispatch();
-  const [stepCount, setStepCount] = useState(0);
-  const [allCompleted, setAllCompleted] = useState(false);
   const [userId, setUserId] = useState(null);
 
   // Get checklist data from Redux
@@ -21,40 +19,80 @@ const Checklist = ({ openVideoModal }) => {
   const reduxStatus = useSelector((state) => state.cardChecklist.status);
   const totalSteps = 4;
 
-  // Create static steps
-  const staticSteps = createSteps(() => {});
+  // Create static steps - use useMemo to avoid recreating on each render
+  const staticSteps = useMemo(() => createSteps(() => {}), []);
 
-  // Get user ID from localStorage
+  // Derived states using useMemo to avoid unnecessary calculations on re-renders
+  const stepCount = useMemo(() => {
+    return reduxChecklist.filter((item) => item.completed).length;
+  }, [reduxChecklist]);
+
+  const allCompleted = useMemo(() => {
+    return stepCount === totalSteps;
+  }, [stepCount, totalSteps]);
+
+  // Get user ID from localStorage only once when component mounts
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedUser = localStorage.getItem('loggedUser');
-        if (storedUser && storedUser !== 'undefined') {
-          const parsedUser = JSON.parse(storedUser);
-          if (parsedUser?._id) {
-            setUserId(parsedUser._id);
+    const getUserFromStorage = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const storedUser = localStorage.getItem('loggedUser');
+          if (storedUser && storedUser !== 'undefined') {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser?._id) {
+              setUserId(parsedUser._id);
+            }
           }
+        } catch (error) {
+          console.error('Error parsing user from localStorage:', error);
         }
-      } catch {
-        // Optionally log or handle parsing errors
       }
-    }
+    };
+
+    getUserFromStorage();
   }, []);
 
-  // Fetch checklist data when component mounts or userId changes
+  // Fetch checklist data when component mounts, userId changes, or when we need a refresh
   useEffect(() => {
-    if (userId && (reduxStatus === 'idle' || reduxChecklist.length === 0)) {
-      dispatch(fetchUserChecklists(userId));
-    }
-  }, [userId, reduxStatus, reduxChecklist.length, dispatch]);
+    let isMounted = true;
 
-  // Merge static steps with API data
-  const mergedSteps = mergeStepsWithChecklist(staticSteps, reduxChecklist);
+    const fetchData = async () => {
+      if (userId && isMounted) {
+        // Always fetch fresh data on mount
+        await dispatch(fetchUserChecklists(userId));
+      }
+    };
 
-  // Handle step click
+    fetchData();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, dispatch]);
+
+  // Merge static steps with API data - using useMemo to avoid recalculating on every render
+  const mergedSteps = useMemo(() => {
+    return mergeStepsWithChecklist(staticSteps, reduxChecklist);
+  }, [staticSteps, reduxChecklist]);
+
+  // Handle step click with useCallback to avoid recreation on every render
   const handleStepClick = useCallback(
     (stepItem) => {
       if (!stepItem._id || !userId) return;
+
+      // For step ID 4, directly mark as completed if not already completed
+      if (stepItem.id === 4 && !stepItem.completed) {
+        dispatch(
+          updateTaskProgress({
+            _id: stepItem._id,
+            status: 'completed',
+            completed: true,
+            completionDate: new Date().toISOString(),
+          }),
+        );
+        return;
+      }
 
       // For step ID 1 (video step), open the video modal
       if (stepItem.id === 1) {
@@ -79,28 +117,10 @@ const Checklist = ({ openVideoModal }) => {
             status: 'inProgress',
           }),
         );
-      } else if (stepItem.id === 4 && !stepItem.completed) {
-        dispatch(
-          updateTaskProgress({
-            _id: stepItem._id,
-            status: 'completed',
-            completed: true,
-            completionDate: new Date().toISOString(),
-          }),
-        );
       }
     },
     [userId, dispatch, openVideoModal],
   );
-
-  // Update step count when checklist data changes
-  useEffect(() => {
-    if (reduxChecklist.length > 0) {
-      const completedItems = reduxChecklist.filter((item) => item.completed);
-      setStepCount(completedItems.length);
-      setAllCompleted(completedItems.length === totalSteps);
-    }
-  }, [reduxChecklist, totalSteps]);
 
   // Show loading skeleton during initial load
   if (reduxStatus === 'loading' && reduxChecklist.length === 0) {
