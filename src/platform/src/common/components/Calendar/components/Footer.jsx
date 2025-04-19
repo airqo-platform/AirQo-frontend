@@ -33,7 +33,7 @@ const Footer = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-between px-6 py-4 border-t border-gray-100 md:flex-row">
+    <div className="flex flex-col items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700 md:flex-row">
       <form className="hidden md:flex md:items-center md:space-x-2">
         <input
           type="text"
@@ -43,13 +43,15 @@ const Footer = ({
               ? format(selectedRange.start, 'MMM d, yyyy')
               : ''
           }
-          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
+          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
           placeholder="Start date"
           disabled
           aria-label="Start Date"
         />
         <div className="px-2">
-          <span className="text-gray-600 text-[16px]">-</span>
+          <span className="text-gray-600 dark:text-gray-400 text-[16px]">
+            -
+          </span>
         </div>
         <input
           type="text"
@@ -57,7 +59,7 @@ const Footer = ({
           value={
             selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''
           }
-          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
+          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
           placeholder="End date"
           disabled
           aria-label="End Date"
@@ -70,6 +72,7 @@ const Footer = ({
           type="button"
           variant="outlined"
           aria-label="Cancel Selection"
+          className="dark:bg-transparent"
         >
           Cancel
         </Button>
@@ -84,7 +87,9 @@ const Footer = ({
       </div>
 
       {errorMsg && (
-        <div className="text-red-500 text-sm mt-2 md:mt-0">{errorMsg}</div>
+        <div className="text-red-500 dark:text-red-400 text-sm mt-2 md:mt-0">
+          {errorMsg}
+        </div>
       )}
     </div>
   );

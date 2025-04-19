@@ -104,7 +104,7 @@ const AddClientForm = ({ open, closeModal }) => {
       {isError?.isError && (
         <Toast type={isError?.type} message={isError?.message} />
       )}
-      <h3 className="text-lg font-medium text-secondary-neutral-light-800 leading-[26px] mb-2">
+      <h3 className="text-lg font-medium text-secondary-neutral-light-800 dark:text-white leading-[26px] mb-2">
         Create new client
       </h3>
 
@@ -113,7 +113,7 @@ const AddClientForm = ({ open, closeModal }) => {
           <input
             type="text"
             placeholder="Enter client name"
-            className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
+            className="input input-bordered dark:bg-transparent dark:text-white w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
             value={clientName}
             onChange={(e) =>
               handleInputValueChange('clientName', e.target.value)
@@ -134,7 +134,7 @@ const AddClientForm = ({ open, closeModal }) => {
             <input
               type="text"
               placeholder={`${index > 0 ? `Enter IP address ${index + 1}` : 'Enter IP address (Optional)'}`}
-              className="input input-bordered w-full pl-3 placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
+              className="input input-bordered w-full pl-3 dark:bg-transparent dark:text-white placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
               value={ip}
               onChange={(e) =>
                 handleInputValueChange('ipAddress', e.target.value, index)
@@ -145,7 +145,7 @@ const AddClientForm = ({ open, closeModal }) => {
                 className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
                 onClick={() => handleRemoveInputValue('ipAddress', index)}
               >
-                <DeleteIcon />
+                <DeleteIcon fill={'#6b7280'} />
               </button>
             )}
           </div>
@@ -155,7 +155,7 @@ const AddClientForm = ({ open, closeModal }) => {
           onClick={handleAddIpAddress}
           className="flex items-center justify-start text-sm text-blue-600 hover:text-blue-800"
         >
-          <PlusIcon size={16} className="mr-1" fill={'black'} />
+          <PlusIcon size={16} className="mr-1" fill={'#6b7280'} />
           Add another IP address
         </button>
       </div>

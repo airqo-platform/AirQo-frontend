@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-netmanager-app
-  tag: stage-1f705ce4-1744615338
+  tag: stage-868f0d0b-1744971439
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''

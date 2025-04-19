@@ -1,13 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { DEVICES } from '@/core/urls/deviceRegistry';
-import createAxiosInstance from '@/core/apis/axiosConfig';
+import { publicApi } from '@/core/utils/apiClient';
 
+// Async thunk for fetching collocation devices
 export const getCollocationDevices = createAsyncThunk(
   'deviceRegistry/getCollocationDevices',
   async () => {
-    const response = await createAxiosInstance(false).get(
-      `${DEVICES}/events/running`,
-    );
+    const response = await publicApi.get(`${DEVICES}/events/running`);
     return response.data;
   },
 );

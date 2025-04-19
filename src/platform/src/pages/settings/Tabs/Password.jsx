@@ -1,83 +1,93 @@
 import React, { useState } from 'react';
-import Lock from '@/icons/Settings/lock.svg';
+import * as Yup from 'yup';
 import { updateUserPasswordApi } from '@/core/apis/Settings';
 import { useSelector } from 'react-redux';
 import AlertBox from '@/components/AlertBox';
 import Spinner from '@/components/Spinner';
-import ContentBox from '@/components/Layout/content_box';
+import Card from '@/components/CardWrapper';
 import Button from '@/components/Button';
+import InputField from '@/components/InputField';
+
+// Define the password complexity regex
+const passwordRegex =
+  /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$/;
+
+// Yup validation schema for password fields
+const passwordSchema = Yup.object().shape({
+  currentPassword: Yup.string().required('Current password is required'),
+  newPassword: Yup.string()
+    .matches(
+      passwordRegex,
+      'Password must contain at least 6 characters including UPPER/lowercase, numbers and special characters.',
+    )
+    .required('New password is required'),
+  confirmNewPassword: Yup.string()
+    .oneOf(
+      [Yup.ref('newPassword'), null],
+      'New password and confirmation do not match.',
+    )
+    .required('Confirmation is required'),
+});
 
 const Password = () => {
   const userInfo = useSelector((state) => state.login.userInfo);
   const [isDisabled, setIsDisabled] = useState(false);
-  let passwordRegex = new RegExp(
-    '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&.*,]).{6,}$',
-  );
-  const [isError, setIsError] = useState({
+  const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
     type: '',
   });
+  // Local state for field values and field-level errors
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
     confirmNewPassword: '',
   });
+  const [fieldErrors, setFieldErrors] = useState({});
 
+  // Handle change for InputField components
   const handleChange = (e) => {
-    setPasswords({ ...passwords, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    setPasswords({ ...passwords, [id]: value });
+    // Clear individual field error if present
+    if (fieldErrors[id]) {
+      setFieldErrors({ ...fieldErrors, [id]: '' });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userId = userInfo._id;
-    const tenant = userInfo.organization;
-    const { newPassword, currentPassword, confirmNewPassword } = passwords;
-
-    if (!newPassword || !currentPassword || !confirmNewPassword) {
-      setIsError({
-        isError: true,
-        message: 'Please fill in all fields.',
-        type: 'error',
+    // Validate password fields using Yup
+    try {
+      await passwordSchema.validate(passwords, { abortEarly: false });
+      // Clear field errors if validation passes
+      setFieldErrors({});
+    } catch (validationError) {
+      const errors = {};
+      validationError.inner.forEach((err) => {
+        errors[err.path] = err.message;
       });
+      setFieldErrors(errors);
       return;
     }
 
-    if (!passwordRegex.test(newPassword)) {
-      setIsError({
-        isError: true,
-        message:
-          'Password must contain at least 6 characters, including UPPER/lowercase and numbers and special characters (e.g. !@#$%^&*).',
-        type: 'error',
-      });
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      setIsError({
-        isError: true,
-        message: 'New password and confirmation password do not match.',
-        type: 'error',
-      });
-      return;
-    }
-
-    const pwdData = {
-      password: newPassword,
-      old_password: currentPassword,
-    };
+    const { currentPassword, newPassword } = passwords;
+    const pwdData = { password: newPassword, old_password: currentPassword };
 
     try {
       setIsDisabled(true);
-      const response = await updateUserPasswordApi(userId, tenant, pwdData);
-
+      const response = await updateUserPasswordApi(
+        userInfo._id,
+        userInfo.organization,
+        pwdData,
+      );
       if (response.success) {
         setPasswords({
           currentPassword: '',
           newPassword: '',
           confirmNewPassword: '',
         });
-        setIsError({
+        setErrorState({
           isError: true,
           message: 'Password updated successfully.',
           type: 'success',
@@ -86,8 +96,7 @@ const Password = () => {
         throw new Error(response.message);
       }
     } catch (error) {
-      console.log(error);
-      setIsError({
+      setErrorState({
         isError: true,
         message:
           error.message || 'Something went wrong. Please try again later.',
@@ -104,109 +113,94 @@ const Password = () => {
       newPassword: '',
       confirmNewPassword: '',
     });
+    setFieldErrors({});
   };
 
   return (
     <div data-testid="tab-content">
       <AlertBox
-        message={isError.message}
-        type={isError.type}
-        show={isError.isError}
-        hide={() =>
-          setIsError({
-            isError: false,
-            message: '',
-            type: '',
-          })
-        }
+        message={errorState.message}
+        type={errorState.type}
+        show={errorState.isError}
+        hide={() => setErrorState({ isError: false, message: '', type: '' })}
       />
-      <div
-        className="grid 
-          grid-cols-1 md:grid-cols-3 gap-2 items-start
-          "
-      >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         <div>
-          <h1 className="text-2xl font-medium">Password</h1>
+          <h1 className="text-2xl font-medium text-gray-700 dark:text-white">
+            Password
+          </h1>
           <p className="text-sm text-gray-500">
             Enter your current password to change your password.
           </p>
         </div>
         <div className="md:col-span-2">
-          <ContentBox>
-            <div className="w-full ">
-              <div className="border-[0.5px] rounded-lg border-grey-150">
-                <div className="flex flex-col w-full">
-                  <form
-                    className="flex flex-col gap-4 p-6"
-                    data-testid="form-box"
-                  >
-                    {[
-                      'currentPassword',
-                      'newPassword',
-                      'confirmNewPassword',
-                    ].map((field) => (
-                      <div key={field}>
-                        <label
-                          htmlFor={field}
-                          className="block mb-2 text-sm font-medium text-gray-500 dark:text-white"
-                        >
-                          {field
-                            .replace(/([a-z])([A-Z])/g, '$1 $2')
-                            .replace(/^\w/, (c) => c.toUpperCase())}
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                            <Lock />
-                          </div>
-                          <input
-                            type="password"
-                            id={field}
-                            value={passwords[field]}
-                            onChange={handleChange}
-                            className="bg-white border border-gray-200 focus:border-gray-200 focus:bg-gray-100 text-gray-900 text-sm rounded-lg block w-full pl-10 p-3 dark:placeholder-white-400 dark:text-white"
-                            placeholder="•••••••••"
-                            required
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </form>
-                  <div className="border-b border-gray-200 dark:border-gray-700" />
-                  <div className="flex justify-end p-4 gap-2">
-                    <Button
-                      type="button"
-                      onClick={handleReset}
-                      variant="outlined"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="button"
-                      data-testid="save-button"
-                      onClick={handleSubmit}
-                      disabled={isDisabled}
-                      className={` ${
-                        isDisabled
-                          ? 'bg-blue-300 opacity-50 cursor-not-allowed'
-                          : 'bg-blue-600 hover:bg-blue-700'
-                      }`}
-                    >
-                      {isDisabled ? (
-                        <div className="flex">
-                          <span className="mb-1 mr-1">
-                            <Spinner width={16} height={16} />
-                          </span>
-                          Saving...
-                        </div>
-                      ) : (
-                        'Save'
-                      )}
-                    </Button>
+          <Card rounded radius="rounded-lg">
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleSubmit}
+              data-testid="form-box"
+            >
+              <InputField
+                id="currentPassword"
+                type="password"
+                value={passwords.currentPassword}
+                onChange={handleChange}
+                label="Current Password"
+                placeholder="•••••••••"
+                error={fieldErrors.currentPassword}
+                required
+              />
+              <InputField
+                id="newPassword"
+                type="password"
+                value={passwords.newPassword}
+                onChange={handleChange}
+                label="New Password"
+                placeholder="•••••••••"
+                error={fieldErrors.newPassword}
+                required
+              />
+              <InputField
+                id="confirmNewPassword"
+                type="password"
+                value={passwords.confirmNewPassword}
+                onChange={handleChange}
+                label="Confirm New Password"
+                placeholder="•••••••••"
+                error={fieldErrors.confirmNewPassword}
+                required
+              />
+            </form>
+            <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+              <Button
+                onClick={handleReset}
+                type="button"
+                variant="outlined"
+                className="py-3 px-4 text-sm dark:bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                type="button"
+                disabled={isDisabled}
+                className={`py-3 px-4 text-sm rounded ${
+                  isDisabled
+                    ? 'bg-blue-300 opacity-50 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {isDisabled ? (
+                  <div className="flex items-center gap-1">
+                    <Spinner width={16} height={16} />
+                    <span>Saving...</span>
                   </div>
-                </div>
-              </div>
+                ) : (
+                  'Save'
+                )}
+              </Button>
             </div>
-          </ContentBox>
+          </Card>
         </div>
       </div>
     </div>
