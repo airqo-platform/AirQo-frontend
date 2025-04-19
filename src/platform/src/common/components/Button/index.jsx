@@ -6,7 +6,7 @@ const Button = React.forwardRef(
   (
     {
       variant = 'filled', // filled | outlined | text | disabled
-      padding = 'py-2 px-4 shadow-sm',
+      padding = 'py-2 px-4',
       className,
       disabled = false,
       path,
@@ -20,7 +20,7 @@ const Button = React.forwardRef(
     ref,
   ) => {
     const base =
-      'flex items-center justify-center rounded-xl shadow-sm transition dark:border-gray-700 transform active:scale-95';
+      'flex items-center justify-center rounded-xl transition dark:border-gray-700 transform active:scale-95';
     const variantMap = {
       filled: clsx('bg-primary', 'text-white'),
       outlined: clsx(
