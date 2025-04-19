@@ -1,116 +1,109 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
-const GroupLogo = ({ className = '', style = {}, width = 40, height = 40 }) => {
-  const [loadError, setLoadError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+const GroupLogo = ({ className, style, width, height }) => {
   const dispatch = useDispatch();
-  const { id: activeGroupId, loading: isFetchingActiveGroup } =
-    useGetActiveGroup();
+  const { id: activeGroupId, loading: fetchingGroup } = useGetActiveGroup();
+  const { groupInfo: orgInfo, loading: fetchingProfile } = useSelector(
+    (s) => s.groupInfo,
+  );
 
-  // Theme hook
-  const { theme, systemTheme } = useTheme();
-  const isDarkMode =
-    theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  const profilePic = orgInfo?.grp_profile_picture;
+  const title = orgInfo?.grp_title || 'Group logo';
 
+  const [imgLoading, setImgLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
+
+  // fetch / refetch
   useEffect(() => {
     if (activeGroupId) {
-      setLoadError(false);
-      setIsLoading(true);
+      setImgLoading(true);
+      setImgError(false);
       dispatch(fetchGroupInfo(activeGroupId));
     }
   }, [activeGroupId, dispatch]);
 
-  // Grab both the profile state and the loading flag for the slice
-  const { groupInfo: orgInfo, loading: isProfileLoading } = useSelector(
-    (s) => s.groupInfo,
-  );
+  // theme
+  const { theme, systemTheme } = useTheme();
+  const isDarkMode =
+    theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
 
-  console.log(orgInfo);
-
-  const profilePic = orgInfo?.grp_profile_picture;
-  const title = orgInfo?.grp_title;
-
-  // Reset error state when profile picture changes
-  useEffect(() => {
-    if (profilePic) {
-      setLoadError(false);
-      setIsLoading(true);
-    }
-  }, [profilePic]);
-
-  const handleImgError = () => {
-    setLoadError(true);
-    setIsLoading(false);
+  const wrapperStyle = {
+    position: 'relative',
+    width,
+    height,
+    ...style,
   };
 
-  const handleImgLoad = () => {
-    setIsLoading(false);
+  const imgStyle = {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+    visibility: imgLoading ? 'hidden' : 'visible',
   };
 
-  // Determine dimensions
-  const imgWidth = style.width || width;
-  const imgHeight = style.height || height;
-
-  // Loading skeleton
-  if (isFetchingActiveGroup || isProfileLoading) {
+  // loading skeleton
+  if (fetchingGroup || fetchingProfile) {
     return (
       <div
-        className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded-md ${className}`}
-        style={{
-          width: imgWidth,
-          height: imgHeight,
-          ...style,
-        }}
+        className={`${className} animate-pulse bg-gray-200 dark:bg-gray-700 rounded`}
+        style={wrapperStyle}
       />
     );
   }
 
-  // If we have a profile picture URL and haven't encountered an error
-  if (profilePic && !loadError) {
+  // show fetched image
+  if (profilePic && !imgError) {
     return (
-      <div className="relative" style={{ width: imgWidth, height: imgHeight }}>
-        {isLoading && (
+      <div className={className} style={wrapperStyle}>
+        {imgLoading && (
           <div
-            className={`absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-md ${className}`}
-            style={{
-              width: imgWidth,
-              height: imgHeight,
-            }}
+            className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 rounded"
+            style={{ width: '100%', height: '100%' }}
           />
         )}
         <img
-          key={profilePic}
           src={profilePic}
-          alt={title ? `${title} logo` : 'Group logo'}
-          onError={handleImgError}
-          onLoad={handleImgLoad}
-          className={`${className} ${isLoading ? 'invisible' : 'visible'} w-full h-full object-contain`}
-          style={{
-            ...style,
-            width: imgWidth,
-            height: imgHeight,
+          alt={title}
+          onLoad={() => setImgLoading(false)}
+          onError={() => {
+            setImgError(true);
+            setImgLoading(false);
           }}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          style={imgStyle}
         />
       </div>
     );
   }
 
-  // Fallback to AirqoLogo
+  // fallback SVG
   return (
-    <div style={{ width: imgWidth, height: imgHeight }}>
-      <AirqoLogo
-        key={isDarkMode ? 'dark' : 'light'}
-        className={className}
-        fill={isDarkMode ? '#FFFFFF' : undefined}
-        style={{ width: '100%', height: '100%' }}
-      />
+    <div className={className} style={wrapperStyle}>
+      <AirqoLogo fill={isDarkMode ? '#FFFFFF' : undefined} />
     </div>
   );
+};
+
+GroupLogo.propTypes = {
+  className: PropTypes.string,
+  style: PropTypes.object,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+};
+
+GroupLogo.defaultProps = {
+  className: '',
+  style: {},
+  width: 40,
+  height: 40,
 };
 
 export default GroupLogo;
