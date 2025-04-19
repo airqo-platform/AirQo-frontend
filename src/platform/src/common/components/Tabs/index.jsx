@@ -76,7 +76,7 @@ const Tabs = ({ children, childrenRight, positionFixed }) => {
           positionFixed ? 'fixed' : ''
         } w-full h-14 border-b border-gray-200 dark:border-gray-700 flex items-end px-2 z-20 ${
           childrenRight ? 'justify-between' : ''
-        } bg-white dark:bg-gray-800`}
+        } bg-white dark:bg-[#1d1f20]`}
       >
         <ul className="flex overflow-x-auto map-scrollbar gap-6 text-sm font-medium text-center">
           {tabItems}
