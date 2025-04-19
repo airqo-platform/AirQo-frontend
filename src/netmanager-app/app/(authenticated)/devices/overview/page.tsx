@@ -40,6 +40,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAppSelector } from "@/core/redux/hooks";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ImportDeviceForm } from "@/components/devices/import-device-form";
+import { AddAirQoDeviceForm } from "@/components/devices/add-airqo-device-form";
+import { useRouter } from "next/navigation";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -53,6 +64,7 @@ export default function DevicesPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const { devices, isLoading, error } = useDevices();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const router = useRouter();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -153,6 +165,10 @@ export default function DevicesPage() {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   };
 
+  const handleDeviceClick = (deviceId: string) => {
+    router.push(`/devices/${deviceId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -179,15 +195,42 @@ export default function DevicesPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Device Registry</h1>
           <div className="flex gap-2">
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" />
-              Import Device
-            </Button>
-            {activeNetwork?.net_name?.toLowerCase() === "airqo" && (
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Device
-              </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Device
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Import Existing Device</DialogTitle>
+                  <DialogDescription>
+                    Enter the details of an existing device to import it into the system.
+                  </DialogDescription>
+                </DialogHeader>
+                <ImportDeviceForm />
+              </DialogContent>
+            </Dialog>
+
+            {activeNetwork?.net_name === "airqo" && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add AirQo Device
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Add AirQo Device</DialogTitle>
+                    <DialogDescription>
+                      Register a new AirQo device in the system.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AddAirQoDeviceForm />
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </div>
@@ -260,7 +303,11 @@ export default function DevicesPage() {
             </TableHeader>
             <TableBody>
               {currentDevices.map((device: Device) => (
-                <TableRow key={device._id}>
+                <TableRow 
+                  key={device._id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleDeviceClick(device._id)}
+                >
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <TooltipProvider>

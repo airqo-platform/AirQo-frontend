@@ -48,6 +48,86 @@ export interface DeviceStatusResponse {
   data: DeviceStatusSummary[];
 }
 
+interface CreateDeviceRequest {
+  long_name: string;
+  category: string;
+  network: string;
+}
+
+interface ImportDeviceRequest {
+  device_number?: number;
+  long_name: string;
+  description?: string;
+  createdAt?: string;
+  generation_version?: number;
+  generation_count?: number;
+  writeKey?: string;
+  readKey?: string;
+  category: string;
+  visibility?: boolean;
+  network: string;
+}
+
+interface DeviceResponse {
+  success: boolean;
+  message: string;
+  created_device: {
+    visibility: boolean;
+    tags: string[];
+    mobility: boolean;
+    height: number;
+    isPrimaryInLocation: boolean;
+    nextMaintenance: string;
+    category: string;
+    isActive: boolean;
+    pictures: unknown[];
+    _id: string;
+    long_name: string;
+    generation_version: number;
+    generation_count: number;
+    device_number: number;
+    writeKey: string;
+    readKey: string;
+    name: string;
+    deployment_date: string;
+    maintenance_date: string;
+    recall_date: string;
+    createdAt: string;
+    updatedAt: string;
+    description?: string;
+  };
+}
+
+interface DeviceDetailsResponse {
+  message: string;
+  data: {
+    id: string;
+    name: string;
+    alias: string;
+    mobility: boolean;
+    network: string;
+    groups: string[];
+    serial_number: string;
+    authRequired: boolean;
+    long_name: string;
+    createdAt: string;
+    visibility: boolean;
+    isPrimaryInLocation: boolean;
+    nextMaintenance: string;
+    device_number: number;
+    status: string;
+    isActive: boolean;
+    writeKey: string;
+    isOnline: boolean;
+    readKey: string;
+    pictures: unknown[];
+    height: number;
+    device_codes: string[];
+    category: string;
+    cohorts: unknown[];
+  };
+}
+
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
@@ -92,7 +172,6 @@ export const devices = {
   },
 
   getDevicesStatus: async (): Promise<DeviceStatusResponse> => {
-    // Get today's date and yesterday's date
     const endDate = new Date().toISOString();
     const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const limit = 1;
@@ -102,4 +181,68 @@ export const devices = {
     );
     return response.data;
   },
+
+  createDevice: async (data: CreateDeviceRequest): Promise<DeviceResponse> => {
+    try {
+      const cleanedData = {
+        network: data.network,
+        ...Object.fromEntries(
+          Object.entries(data).filter(([key, value]) => 
+            key === 'network' || (value !== undefined && value !== null && value !== '')
+          )
+        ),
+      };
+
+      const response = await axiosInstance.post<DeviceResponse>(
+        `${DEVICES_MGT_URL}`,
+        cleanedData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to create device"
+      );
+    }
+  },
+
+  importDevice: async (data: ImportDeviceRequest): Promise<DeviceResponse> => {
+    try {
+      const cleanedData = {
+        network: data.network,
+        ...Object.fromEntries(
+          Object.entries(data).filter(([key, value]) => 
+            key === 'network' || (value !== undefined && value !== null && value !== '')
+          )
+        ),
+      };
+
+      const response = await axiosInstance.post<DeviceResponse>(
+        `${DEVICES_MGT_URL}/soft`,
+        cleanedData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to import device"
+      );
+    }
+  },
+
+  getDeviceDetails: async (deviceId: string): Promise<DeviceDetailsResponse> => {
+    try {
+      const response = await axiosInstance.get<DeviceDetailsResponse>(
+        `${DEVICES_MGT_URL}/${deviceId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device details"
+      );
+    }
+  },
 };
+
+export type { DeviceDetailsResponse };
