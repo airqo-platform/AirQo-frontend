@@ -12,23 +12,18 @@ const ChecklistStepCard = memo(({ stepItem, onClick }) => {
   const hasProgress =
     stepItem.id === 1 && stepItem.videoProgress > 0 && !isCompleted;
 
-  // use primary token instead of hard‑coded blue
-  const buttonText = isCompleted
-    ? 'Complete'
-    : isInProgress
-      ? 'Resume'
-      : 'Start';
-  const buttonColor = isCompleted ? 'text-green-600' : 'text-primary';
+  const buttonText = isCompleted ? 'Done' : isInProgress ? 'Resume' : 'Start';
+  const buttonColor = 'text-primary';
 
   const cardStyle = isCompleted
-    ? 'border-green-200 bg-green-50'
+    ? 'border-primary/20 bg-primary/10'
     : isInProgress
       ? 'border-primary/20'
       : '';
 
   const StepIcon = () =>
     isCompleted ? (
-      <div className="w-12 h-12 flex justify-center items-center rounded-full bg-green-600">
+      <div className="w-12 h-12 flex justify-center items-center rounded-full bg-primary">
         <CheckIcon fill="#FFFFFF" />
       </div>
     ) : (
@@ -53,7 +48,9 @@ const ChecklistStepCard = memo(({ stepItem, onClick }) => {
 
   const ActionButton = () =>
     isCompleted ? (
-      <span className="text-green-600 font-medium">{buttonText}</span>
+      <div className="flex justify-end">
+        <span className={`${buttonColor} font-medium`}>{buttonText}</span>
+      </div>
     ) : (
       <div className="flex justify-between w-full gap-4 items-center">
         <Link
@@ -102,7 +99,7 @@ const ChecklistStepCard = memo(({ stepItem, onClick }) => {
       {/* Progress Bar */}
       <ProgressBar />
 
-      {/* Action Button */}
+      {/* Action Button (or Done text at end) */}
       <div>
         <ActionButton />
       </div>
