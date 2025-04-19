@@ -14,6 +14,10 @@ module.exports = withTM(
           protocol: 'https',
           hostname: 'asset.cloudinary.com',
         },
+        {
+          protocol: 'https',
+          hostname: 'res.cloudinary.com',
+        },
       ],
     },
     reactStrictMode: true,

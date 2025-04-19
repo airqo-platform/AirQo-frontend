@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
+import Image from 'next/image';
 import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const GroupLogo = ({ className, style, width, height }) => {
   const dispatch = useDispatch();
@@ -16,78 +16,81 @@ const GroupLogo = ({ className, style, width, height }) => {
   const profilePic = orgInfo?.grp_image;
   const title = orgInfo?.grp_title || 'Group logo';
 
-  const [imgLoading, setImgLoading] = useState(true);
+  // loading + error flags
+  const [isLoading, setIsLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
 
-  // fetch / refetch
+  // on group change: reset state & fetch
   useEffect(() => {
+    setIsLoading(true);
+    setImgError(false);
+
     if (activeGroupId) {
-      setImgLoading(true);
-      setImgError(false);
-      dispatch(fetchGroupInfo(activeGroupId));
+      dispatch(fetchGroupInfo(activeGroupId))
+        .unwrap()
+        .catch(() => {
+          // if fetching fails, stop loading & trigger fallback
+          setImgError(true);
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
     }
   }, [activeGroupId, dispatch]);
 
-  // theme
-  const { theme, systemTheme } = useTheme();
-  const isDarkMode =
-    theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  const handleLoadComplete = () => setIsLoading(false);
+  const handleLoadError = () => {
+    setImgError(true);
+    setIsLoading(false);
+  };
 
+  // sizing
+  const defaultW = 80,
+    defaultH = 80;
   const wrapperStyle = {
     position: 'relative',
-    width,
-    height,
+    width: width || defaultW,
+    height: height || defaultH,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     ...style,
   };
 
-  const imgStyle = {
-    width: '100%',
-    height: '100%',
-    objectFit: 'contain',
-    visibility: imgLoading ? 'hidden' : 'visible',
-  };
+  // show skeleton *only* when there's an image to load
+  const showSkeleton =
+    !!profilePic && (fetchingGroup || fetchingProfile || isLoading);
 
-  // loading skeleton
-  if (fetchingGroup || fetchingProfile) {
-    return (
-      <div
-        className={`${className} animate-pulse bg-gray-200 dark:bg-gray-700 rounded`}
-        style={wrapperStyle}
-      />
-    );
-  }
-
-  // show fetched image
-  if (profilePic && !imgError) {
-    return (
-      <div className={className} style={wrapperStyle}>
-        {imgLoading && (
-          <div
-            className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700 rounded"
-            style={{ width: '100%', height: '100%' }}
-          />
-        )}
-        <img
-          src={profilePic}
-          alt={title}
-          onLoad={() => setImgLoading(false)}
-          onError={() => {
-            setImgError(true);
-            setImgLoading(false);
-          }}
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          style={imgStyle}
-        />
-      </div>
-    );
-  }
-
-  // fallback SVG
   return (
     <div className={className} style={wrapperStyle}>
-      <AirqoLogo fill={isDarkMode ? '#FFFFFF' : undefined} />
+      {/*
+        Pulse skeleton on top of the image container while loading
+      */}
+      {showSkeleton && (
+        <div className="absolute inset-0 z-10 animate-pulse bg-gray-200 rounded" />
+      )}
+
+      {/*
+        If we have a valid picture URL and no error, render it.
+        Otherwise, fallback to the AirqoLogo SVG.
+      */}
+      {profilePic && !imgError ? (
+        <div className="relative w-full h-full z-0">
+          <Image
+            src={profilePic}
+            alt={title}
+            fill
+            sizes={`${typeof width === 'number' ? width : defaultW}px`}
+            quality={90}
+            priority
+            className="object-contain"
+            onLoadingComplete={handleLoadComplete}
+            onError={handleLoadError}
+          />
+        </div>
+      ) : (
+        <AirqoLogo width={width || defaultW} height={height || defaultH} />
+      )}
     </div>
   );
 };
@@ -102,8 +105,6 @@ GroupLogo.propTypes = {
 GroupLogo.defaultProps = {
   className: '',
   style: {},
-  width: 40,
-  height: 40,
 };
 
 export default GroupLogo;
