@@ -90,7 +90,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
           </Button>
         )}
 
-        {/* Left side - can add logo or breadcrumbs here */}
         <div className="flex items-center gap-2">
         </div>
 
