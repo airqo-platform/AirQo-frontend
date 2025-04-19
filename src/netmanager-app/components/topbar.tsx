@@ -13,11 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/core/hooks/users"
+import { logout as reduxLogout } from "@/core/redux/slices/userSlice";
 import { useAppSelector } from "@/core/redux/hooks"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useDispatch } from "react-redux"
+import { useRouter } from "next/navigation"
 
 interface TopbarProps {
   isMobileView: boolean
@@ -26,9 +28,10 @@ interface TopbarProps {
 
 const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const [darkMode, setDarkMode] = useState(false)
-  const { logout } = useAuth()
   const currentUser = useAppSelector((state) => state.user.userDetails)
   const activeGroup = useAppSelector((state) => state.user.activeGroup)
+  const dispatch = useDispatch();
+  const router = useRouter();
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark")
@@ -40,6 +43,18 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
   }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");              // Logs user out
+    localStorage.removeItem("userDetails");        // Clears user info
+    localStorage.removeItem("activeNetwork");      // Clears selected network
+    localStorage.removeItem("availableNetworks");  // Clears cached networks
+    localStorage.removeItem("activeGroup");        // Clears selected group
+    localStorage.removeItem("userGroups");         // Clears cached groups
+    dispatch(reduxLogout());             // Clears Redux state (user, etc)
+    router.push("/login");         // Navigates to login page
+  };
+  
 
   const apps = [
     {
@@ -183,7 +198,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="flex items-center gap-2 text-destructive focus:text-destructive"
-                onClick={() => logout()}
+                onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
                 <span>Log out</span>
