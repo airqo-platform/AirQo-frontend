@@ -94,65 +94,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
         <div className="flex items-center gap-2">
         </div>
 
-        {/* Right side - actions */}
         <div className="flex items-center gap-1 md:gap-2">
-          {/* <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <HelpCircle className="h-5 w-5" />
-                  <span className="sr-only">Help</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Help & Resources</TooltipContent>
-            </Tooltip>
-          </TooltipProvider> */}
-
-          {/* <DropdownMenu>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                      <Bell className="h-5 w-5" />
-                      <span className="sr-only">Notifications</span>
-                      <Badge className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full p-0 text-[10px]">3</Badge>
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel className="flex items-center justify-between">
-                <span>Notifications</span>
-                <Button variant="ghost" size="sm" className="h-auto p-0 text-xs font-normal text-primary">
-                  Mark all as read
-                </Button>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-80 overflow-y-auto">
-                {[1, 2, 3].map((i) => (
-                  <DropdownMenuItem key={i} className="flex flex-col items-start p-3">
-                    <div className="flex w-full items-center gap-2">
-                      <div className="flex-shrink-0">
-                        <Badge variant="outline" className="h-2 w-2 rounded-full bg-blue-500 p-0" />
-                      </div>
-                      <div className="flex-1 text-sm font-medium">Device status update</div>
-                      <div className="text-xs text-muted-foreground">2h ago</div>
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Device AQ-045 is now online and transmitting data.
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="justify-center text-center text-sm font-medium text-primary">
-                <Link href="/notifications">View all notifications</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
 
           <DropdownMenu>
             <TooltipProvider>
