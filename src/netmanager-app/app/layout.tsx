@@ -1,18 +1,10 @@
-"use client"
-
 import type React from "react"
-
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { cn } from "@/lib/utils"
-import Providers from "./providers"
-import { Toaster } from "@/components/ui/sonner"
-import { usePathname } from "next/navigation"
 import type { Metadata } from "next"
+import "./globals.css"
+import ClientLayout from "./client-layout"
 
-const inter = Inter({ subsets: ["latin"] })
 
-// Define metadata using Next.js Metadata API
+// Define metadata using Next.js Metadata API (server component only)
 export const metadata: Metadata = {
   title: {
     template: "%s | AirQo Analytics",
@@ -24,7 +16,6 @@ export const metadata: Metadata = {
   authors: [{ name: "AirQo Team" }],
   creator: "AirQo",
   publisher: "AirQo",
-  viewport: "width=device-width, initial-scale=1",
   openGraph: {
     title: "AirQo Analytics | Air Quality Monitoring",
     description: "Africa's leading air quality monitoring network using low-cost technologies and AI.",
@@ -56,17 +47,5 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
-  const isNetworkMap = pathname === "/network-map"
-
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(inter.className, "min-h-screen bg-background antialiased", isNetworkMap && "overflow-hidden")}
-      >
-        <Providers>{children}</Providers>
-        <Toaster />
-      </body>
-    </html>
-  )
+  return <ClientLayout>{children}</ClientLayout>
 }
