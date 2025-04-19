@@ -33,6 +33,7 @@ import { DoneRefreshed } from '../constants/svgs';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import SelectionMessage from '../components/SelectionMessage';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import Button from '@/components/Button';
 
 export const InSightsHeader = () => (
   <h3
@@ -518,22 +519,14 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                       : `Download (${visibleSites.length})`
                   }
                 >
-                  <CustomDropdown
-                    isButton
+                  <Button
                     onClick={handleDataDownload}
                     disabled={downloadLoading}
-                    text={
-                      downloadLoading
-                        ? 'Downloading...'
-                        : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`
-                    }
-                    buttonStyle={{
-                      color: visibleSites.length ? '#fff' : '#ccc',
-                      backgroundColor: visibleSites.length
-                        ? '#2563EB'
-                        : '#9CA3AF',
-                    }}
-                  />
+                  >
+                    {downloadLoading
+                      ? 'Downloading...'
+                      : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`}
+                  </Button>
                 </Tooltip>
               </div>
             </motion.div>

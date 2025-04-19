@@ -86,11 +86,7 @@ const LocationCard = ({
           animate={isSelected ? { rotate: [0, 15, 0] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <LocationIcon
-            width={20}
-            height={20}
-            fill={isSelected ? '#3B82F6' : '#9EA3AA'}
-          />
+          <LocationIcon width={20} height={20} />
         </motion.div>
         <div className="flex flex-col">
           <h3 className="text-sm font-medium dark:text-white">{displayName}</h3>

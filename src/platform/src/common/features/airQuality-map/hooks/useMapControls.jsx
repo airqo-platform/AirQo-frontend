@@ -35,7 +35,7 @@ export class GlobeControl {
     btn.type = 'button';
     btn.title = title;
     btn.className =
-      'inline-flex items-center justify-center w-[50px] h-[50px] rounded-full bg-white focus:outline-none';
+      'inline-flex items-center justify-center w-[50px] dark:text-black h-[50px] rounded-full bg-white focus:outline-none';
 
     const wrapper = document.createElement('div');
     wrapper.className = 'flex items-center justify-center h-full w-full';
@@ -144,7 +144,7 @@ export class CustomZoomControl {
   createContainer() {
     const container = document.createElement('div');
     container.className =
-      'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col bg-white rounded-full shadow-md overflow-hidden';
+      'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col bg-white dark:text-black rounded-full shadow-md overflow-hidden';
     return container;
   }
 
