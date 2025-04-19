@@ -47,19 +47,13 @@ const Collocate = () => {
           />
         )}
 
-        {(isLoading || deviceStatusSummary) && (
+        {(isLoading || !deviceStatusSummary) && (
           <div className="flex gap-4">
-            <Button
-              disabled
-              className="bg-white text-black-600 border border-black-600 opacity-30 font-medium text-sm"
-            >
+            <Button disabled>
               <UploadIcon className="mr-2" />
               Import data
             </Button>
-            <Button
-              path="/collocation/add_monitor"
-              className="rounded-none bg-blue-900 border-blue-900 hover:bg-dark-blue hover:border-dark-blue text-white font-medium text-sm"
-            >
+            <Button path="/collocation/add_monitor">
               <BoxedAddIcon className="mr-2" />
               Add monitors
             </Button>

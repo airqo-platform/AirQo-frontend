@@ -1,51 +1,41 @@
-const Table = () => {
-  return (
-    <div className="w-full">
-      <div className="flex justify-between items-center flex-wrap md:flex-nowrap w-auto mb-3 px-6">
-        <div className="md:mb-0 w-[280px] h-9">
-          <div className="h-9 w-full bg-skeleton md:max-w-[280px] rounded-[4px]" />
-        </div>
-        <div className="flex justify-end items-center w-full">
-          <div
-            className={
-              'h-9 w-full max-w-[114px] bg-skeleton rounded-[4px] mr-2'
-            }
-          />
-          <div
-            className={'h-9 w-full bg-skeleton max-w-[124px] rounded-[4px]'}
-          />
-        </div>
-      </div>
-      <div className="overflow-x-scroll md:overflow-x-hidden">
-        <div className="w-full mb-6">
-          <div>
-            <div className="flex items-center pl-[21px] h-10 border-b border-b-skeleton pb-[14px]">
-              <div className="w-5 h-[15px] mr-[31px] rounded bg-skeleton"></div>
-              <div className="w-[84px] h-3 mr-[60px] rounded bg-skeleton"></div>
-              <div className="w-[84px] h-3 mr-[55px] rounded bg-skeleton"></div>
-              <div className="w-[84px] h-3 mr-[60px] rounded bg-skeleton"></div>
-              <div className="w-[84px] h-3 mr-[55px] rounded bg-skeleton"></div>
-            </div>
-          </div>
-          <div>
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                className="flex pl-[21px] items-center border-b border-b-skeleton h-14"
-                key={index}
-              >
-                <div className="w-5 h-[15px] mr-[31px] rounded bg-skeleton"></div>
-                <div className="w-[62px] h-3 mr-[60px] rounded bg-skeleton"></div>
-                <div className="w-[88px] h-3 mr-[55px] rounded bg-skeleton"></div>
-                <div className="w-[119px] h-3 mr-[60px] rounded bg-skeleton"></div>
-                <div className="w-[119px] h-3 mr-[55px] rounded bg-skeleton"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="w-[83px] h-7 bg-skeleton rounded-[5px] flex items-center justify-center mx-auto mb-[39px]"></div>
+import React from 'react';
+import { Skeleton } from './Skeleton';
+
+export const Table = () => (
+  <div className="w-full">
+    <div className="flex justify-between items-center flex-wrap mb-3 px-6">
+      <Skeleton className="w-[280px] h-9" />
+      <div className="flex space-x-2 grow justify-end">
+        <Skeleton className="w-[114px] h-9" />
+        <Skeleton className="w-[124px] h-9" />
       </div>
     </div>
-  );
-};
+
+    <div className="overflow-x-scroll md:overflow-x-hidden">
+      <div className="mb-6">
+        <div className="flex items-center pl-5 h-10 border-b border-skeleton pb-3 space-x-8">
+          <Skeleton className="w-5 h-[15px]" />
+          <Skeleton className="w-[84px] h-3" />
+          <Skeleton className="w-[84px] h-3" />
+          <Skeleton className="w-[84px] h-3" />
+          <Skeleton className="w-[84px] h-3" />
+        </div>
+        {Array.from({ length: 8 }).map((_, idx) => (
+          <div
+            key={idx}
+            className="flex items-center pl-5 h-14 border-b border-skeleton space-x-8"
+          >
+            <Skeleton className="w-5 h-[15px]" />
+            <Skeleton className="w-[62px] h-3" />
+            <Skeleton className="w-[88px] h-3" />
+            <Skeleton className="w-[119px] h-3" />
+            <Skeleton className="w-[119px] h-3" />
+          </div>
+        ))}
+      </div>
+      <Skeleton className="w-[83px] h-7 mx-auto mb-10" />
+    </div>
+  </div>
+);
 
 export default Table;

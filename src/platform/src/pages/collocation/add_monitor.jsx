@@ -1,4 +1,3 @@
-// src/pages/collocation/add_monitor.jsx
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
@@ -127,7 +126,7 @@ const AddMonitor = () => {
                 <Button
                   onClick={handleCollocation}
                   disabled={!canStart}
-                  className={`rounded-none bg-blue-900 border-blue-900 font-medium text-white ${
+                  className={`rounded-none bg-primary border-primary/90 font-medium text-white ${
                     canStart
                       ? 'cursor-pointer'
                       : 'opacity-40 cursor-not-allowed'
