@@ -189,8 +189,8 @@ export const UnclusteredNode = ({
   if (NodeType === 'Number') {
     return `
       <div id="${feature.properties._id}" 
-        class="unClustered-Number shadow-md ${isActive}${darkClass}"
-        style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 40px; height: 40px;">
+        class="unClustered-Number shadow-md rounded-full ${isActive}${darkClass}"
+        style="background: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 40px; height: 40px;">
         <p class="text-[#000] text-xs font-bold">${Number(feature.properties.pm2_5)?.toFixed(2) || 'N/A'}</p>
         <span class="arrow"></span>
       </div>
@@ -199,8 +199,8 @@ export const UnclusteredNode = ({
   if (NodeType === 'Node') {
     return `
       <div id="${feature.properties._id}" 
-        class="unClustered-Node shadow-md ${isActive}${darkClass}"
-        style="background-color: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;">
+        class="unClustered-Node shadow-md rounded-full ${isActive}${darkClass}"
+        style="background: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;">
         <span class="arrow"></span> 
       </div>
     `;

@@ -88,7 +88,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
           className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           <span className="mr-3">
-            <UserIcon fill="#6F87A1" width={16} height={16} />
+            <UserIcon width={16} height={16} />
           </span>
           My profile
         </li>
@@ -97,7 +97,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
           className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           <span className="mr-3">
-            <SettingsIcon fill="#6F87A1" width={17} height={17} />
+            <SettingsIcon width={17} height={17} />
           </span>
           Settings
         </li>

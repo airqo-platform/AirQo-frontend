@@ -61,7 +61,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
       background="bg-transparent"
       bordered={false}
       className="pb-[350px] my-5"
-      padding="p-4"
+      padding="px-4"
     >
       <div className="flex flex-col gap-4">
         {visibleResults.map((grid) => {

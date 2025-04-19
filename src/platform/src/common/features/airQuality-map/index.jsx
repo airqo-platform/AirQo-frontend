@@ -51,6 +51,9 @@ const AirQoMap = forwardRef(
     const controlsAddedRef = useRef(false);
     const mapInitializedRef = useRef(false);
     const timeoutRef = useRef(null);
+    const prevNodeTypeRef = useRef(null);
+    const prevStyleUrlRef = useRef(null);
+    const isReloadingRef = useRef(false);
 
     const { width } = useWindowSize();
     const mapData = useSelector((state) => state.map);
@@ -67,6 +70,7 @@ const AirQoMap = forwardRef(
       () => theme === 'dark' || (theme === 'system' && systemTheme === 'dark'),
       [theme, systemTheme],
     );
+
     const defaultStyleUrl = useMemo(() => {
       if (!Array.isArray(mapStyles)) {
         const light = mapStyles.light?.url;
@@ -81,10 +85,13 @@ const AirQoMap = forwardRef(
       return found?.url || mapStyles[0]?.url;
     }, [isDarkMode]);
 
-    // Initialize styleUrl
+    // Initialize styleUrl once
     useEffect(() => {
-      setStyleUrl(defaultStyleUrl);
-    }, [defaultStyleUrl]);
+      if (!styleUrl) {
+        setStyleUrl(defaultStyleUrl);
+        prevStyleUrlRef.current = defaultStyleUrl;
+      }
+    }, [defaultStyleUrl, styleUrl]);
 
     // Callbacks for loading indicators
     const handleMainLoading = useCallback(
@@ -93,6 +100,7 @@ const AirQoMap = forwardRef(
       },
       [onLoadingChange],
     );
+
     const handleOthersLoading = useCallback(
       (loading) => {
         onLoadingOthersChange?.(loading);
@@ -101,25 +109,26 @@ const AirQoMap = forwardRef(
     );
 
     // Data hooks
-    const {
-      mapRef,
-      fetchAndProcessData,
-      clusterUpdate,
-      isWaqLoading,
-      updateMapData,
-    } = useMapData({
-      NodeType: nodeType,
-      pollutant,
-      setLoading: handleMainLoading,
-      setLoadingOthers: handleOthersLoading,
-      isDarkMode,
-    });
+    const { mapRef, fetchAndProcessData, clusterUpdate, updateMapData } =
+      useMapData({
+        NodeType: nodeType,
+        pollutant,
+        setLoading: handleMainLoading,
+        setLoadingOthers: handleOthersLoading,
+        isDarkMode,
+      });
 
-    // Add map controls once
+    // Add map controls function
     const addControls = useCallback(() => {
       const map = mapRef.current;
-      if (!map || width < 1024 || controlsAddedRef.current) return;
-      (map._controls || []).forEach((ctrl) => {
+      if (!map) return;
+
+      // Only check width restriction if explicitly needed
+      if (width < 1024) return;
+
+      // First remove any existing controls to avoid duplicates
+      const existingControls = map._controls || [];
+      [...existingControls].forEach((ctrl) => {
         if (
           ctrl instanceof GlobeControl ||
           ctrl instanceof CustomZoomControl ||
@@ -128,14 +137,29 @@ const AirQoMap = forwardRef(
           map.removeControl(ctrl);
         }
       });
-      map.addControl(new GlobeControl(), 'bottom-right');
-      map.addControl(new CustomZoomControl(), 'bottom-right');
-      map.addControl(
-        new CustomGeolocateControl(onToastMessage),
-        'bottom-right',
-      );
-      controlsAddedRef.current = true;
+
+      // Add controls
+      try {
+        map.addControl(new GlobeControl(), 'bottom-right');
+        map.addControl(new CustomZoomControl(), 'bottom-right');
+        map.addControl(
+          new CustomGeolocateControl(onToastMessage),
+          'bottom-right',
+        );
+        controlsAddedRef.current = true;
+        console.log('Map controls added successfully');
+      } catch (err) {
+        console.error('Error adding map controls:', err);
+        controlsAddedRef.current = false;
+      }
     }, [onToastMessage, width]);
+
+    // Ensure controls are added when map is ready
+    const ensureControls = useCallback(() => {
+      if (!controlsAddedRef.current && mapRef.current?.loaded()) {
+        addControls();
+      }
+    }, [addControls]);
 
     // Handle URL params for center/zoom
     const urlParams = useMemo(() => {
@@ -154,6 +178,7 @@ const AirQoMap = forwardRef(
           : [reduxCenter.longitude, reduxCenter.latitude],
       [urlParams, reduxCenter],
     );
+
     const initialZoom = useMemo(
       () => (urlParams.valid ? urlParams.zm : reduxZoom),
       [urlParams, reduxZoom],
@@ -166,8 +191,10 @@ const AirQoMap = forwardRef(
       dispatch,
       mapData.selectedNode,
     );
+
     const shareLocation = useShareLocation(onToastMessage, mapRef);
     const captureScreenshot = useMapScreenshot(mapRef, onToastMessage);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -191,6 +218,7 @@ const AirQoMap = forwardRef(
         }
         controlsAddedRef.current = false;
         mapInitializedRef.current = false;
+        isReloadingRef.current = false;
       };
     }, [dispatch]);
 
@@ -205,18 +233,23 @@ const AirQoMap = forwardRef(
     }, [dispatch, urlParams]);
 
     // Initialize map
-    useEffect(() => {
-      if (mapInitializedRef.current || !mapContainerRef.current || !styleUrl) {
+    const initializeMap = useCallback(() => {
+      if (!mapContainerRef.current || !styleUrl || isReloadingRef.current) {
         return;
       }
+
+      // Store current values to detect changes
+      prevNodeTypeRef.current = nodeType;
+      prevStyleUrlRef.current = styleUrl;
 
       // Remove existing map
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
-        controlsAddedRef.current = false;
       }
 
+      controlsAddedRef.current = false;
+      isReloadingRef.current = true;
       dispatch(setMapLoading(true));
       handleMainLoading(true);
 
@@ -229,16 +262,26 @@ const AirQoMap = forwardRef(
         zoom: initialZoom,
         preserveDrawingBuffer: true,
       });
+
       mapRef.current = map;
       map.nodeType = nodeType;
 
       map.on('load', () => {
         map.resize();
+
+        // Try to add controls immediately after map load
         addControls();
+
+        // Also set up a check a bit later to ensure controls are added
+        setTimeout(() => {
+          if (!controlsAddedRef.current) {
+            addControls();
+          }
+        }, 500);
+
         fetchAndProcessData()
           .catch((err) => {
             console.error('Data fetch error:', err);
-
             onToastMessage?.({
               message: 'Failed to load map data',
               type: 'error',
@@ -248,66 +291,157 @@ const AirQoMap = forwardRef(
           .finally(() => {
             handleMainLoading(false);
             dispatch(setMapLoading(false));
+            isReloadingRef.current = false;
+            mapInitializedRef.current = true;
+
+            // One more check to ensure controls are added
+            ensureControls();
           });
       });
 
       map.on('zoomend', () => {
-        clusterUpdate();
+        if (!isReloadingRef.current) {
+          clusterUpdate();
+        }
+      });
+
+      map.on('idle', () => {
+        // Ensure controls on idle state
+        ensureControls();
       });
 
       map.on('error', (e) => {
         console.error('Mapbox error:', e.error);
         handleMainLoading(false);
         dispatch(setMapLoading(false));
+        isReloadingRef.current = false;
       });
-
-      mapInitializedRef.current = true;
     }, [
       mapboxApiAccessToken,
       initialCenter,
       initialZoom,
       nodeType,
+      styleUrl,
+      fetchAndProcessData,
+      clusterUpdate,
+      addControls,
       dispatch,
       handleMainLoading,
-      fetchAndProcessData,
-      addControls,
-      clusterUpdate,
       onToastMessage,
+      ensureControls,
     ]);
+
+    // Handle map initialization and reinitialization
+    useEffect(() => {
+      if (!styleUrl) return;
+
+      const needsReload =
+        // First initialization
+        (!mapInitializedRef.current && !isReloadingRef.current) ||
+        // Style changed
+        (prevStyleUrlRef.current !== styleUrl &&
+          prevStyleUrlRef.current !== null);
+
+      if (needsReload) {
+        initializeMap();
+      }
+    }, [styleUrl, initializeMap]);
+
+    // Handle nodeType changes
+    useEffect(() => {
+      if (
+        !mapRef.current ||
+        !mapInitializedRef.current ||
+        isReloadingRef.current
+      )
+        return;
+
+      if (
+        prevNodeTypeRef.current !== nodeType &&
+        prevNodeTypeRef.current !== null
+      ) {
+        // Update map's nodeType without full reload
+        mapRef.current.nodeType = nodeType;
+        prevNodeTypeRef.current = nodeType;
+        clusterUpdate();
+      }
+    }, [nodeType, clusterUpdate]);
+
+    // Periodically check if controls need to be added (as a fallback)
+    useEffect(() => {
+      if (!mapInitializedRef.current || !mapRef.current) return;
+
+      const checkControls = () => {
+        if (!controlsAddedRef.current && mapRef.current?.loaded()) {
+          addControls();
+        }
+      };
+
+      // Initial check
+      checkControls();
+
+      // Set up interval for periodic checks
+      const interval = setInterval(checkControls, 2000);
+
+      return () => clearInterval(interval);
+    }, [addControls, mapInitializedRef.current]);
 
     // Style change handler
     const onStyleChange = useCallback(
       ({ url }) => {
+        if (url === styleUrl || isReloadingRef.current) return;
+
         const map = mapRef.current;
-        if (!map || url === styleUrl) return;
-        setStyleUrl(url);
-        controlsAddedRef.current = false;
+        if (!map) {
+          setStyleUrl(url);
+          return;
+        }
+
+        // Save current viewport state
         const center = map.getCenter();
         const zoom = map.getZoom();
+
+        // Set flag to prevent concurrent operations
+        isReloadingRef.current = true;
+        controlsAddedRef.current = false;
+        handleMainLoading(true);
+
+        setStyleUrl(url);
         map.setStyle(url);
+
         map.once('style.load', () => {
+          // Restore viewport
           map.setCenter(center);
           map.setZoom(zoom);
+
+          // Add controls and update data
           addControls();
           updateMapData([...mapData.mapReadingsData, ...mapData.waqData]);
+
+          // Set a timeout to ensure controls are added
+          setTimeout(() => {
+            if (!controlsAddedRef.current) {
+              addControls();
+            }
+          }, 500);
+
+          // Reset flags
+          handleMainLoading(false);
+          isReloadingRef.current = false;
+          prevStyleUrlRef.current = url;
         });
       },
-      [styleUrl, mapData, updateMapData, addControls],
+      [styleUrl, mapData, updateMapData, addControls, handleMainLoading],
     );
 
     // Handle detail change
     const onMapDetail = useCallback(
       (detail) => {
-        if (detail !== nodeType) {
+        if (detail !== nodeType && !isReloadingRef.current) {
           setNodeType(detail);
-          const map = mapRef.current;
-          if (map) {
-            map.nodeType = detail;
-            clusterUpdate();
-          }
         }
       },
-      [nodeType, clusterUpdate],
+      [nodeType],
     );
 
     // Fly to new center/zoom
@@ -315,6 +449,7 @@ const AirQoMap = forwardRef(
       if (
         mapRef.current?.loaded() &&
         mapInitializedRef.current &&
+        !isReloadingRef.current &&
         reduxCenter.latitude != null &&
         reduxCenter.longitude != null
       ) {
@@ -330,14 +465,6 @@ const AirQoMap = forwardRef(
       <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
         <div className="relative w-full h-full">
           <div ref={mapContainerRef} className={customStyle}></div>
-          {isWaqLoading && (
-            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-md shadow z-10 text-sm flex items-center">
-              <div className="animate-pulse mr-2 h-2 w-2 rounded-full bg-blue-500" />
-              <span className="text-blue-700 dark:text-blue-300">
-                Loading additional city data...
-              </span>
-            </div>
-          )}
           <LayerModal
             isOpen={layerModalOpen}
             onClose={() => setLayerModalOpen(false)}
@@ -346,6 +473,8 @@ const AirQoMap = forwardRef(
             disabled="Heatmap"
             onMapDetailsSelect={onMapDetail}
             onStyleSelect={onStyleChange}
+            currentNodeType={nodeType}
+            currentStyleUrl={styleUrl}
           />
         </div>
       </ErrorBoundary>

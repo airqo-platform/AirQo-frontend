@@ -263,7 +263,7 @@ const IndividualAccountRegistration = () => {
                 <span className="text-sm text-gray-500">
                   Already have an account?
                 </span>
-                <span className="text-sm font-medium text-blue-900 dark:text-blue-400">
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                   {' '}
                   <Link href="/account/login">Log in</Link>
                 </span>

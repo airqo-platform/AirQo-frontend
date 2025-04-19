@@ -46,7 +46,7 @@ const AccountPageLayout = ({
             className={`lg:col-span-6 lg:grid hidden ${
               sideBackgroundColor
                 ? sideBackgroundColor
-                : 'bg-green-150 dark:bg-[#252627]'
+                : 'bg-blue-50 dark:bg-[#252627]'
             } flex items-center justify-center w-full`}
           >
             <div className="px-[64px] py-[26px] relative dark:text-white max-w-4xl h-auto">

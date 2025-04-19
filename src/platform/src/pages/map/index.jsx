@@ -177,7 +177,12 @@ const Index = () => {
               </div>
             )}
             {(width >= 1024 || !selectedNode) && (
-              <div className="absolute top-4 right-0 z-40 controls-container">
+              <div
+                className="absolute top-4 right-0 controls-container"
+                style={{
+                  zIndex: 10000,
+                }}
+              >
                 {width >= 1024 ? (
                   <div className="flex flex-col gap-4">
                     <IconButton

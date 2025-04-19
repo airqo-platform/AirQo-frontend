@@ -148,7 +148,7 @@ body > div#__next {
   transition: transform 0.3s ease-in-out;
 }
 .unClustered {
-  border-radius: 9999px;
+  border-radius: 100%;
   padding: 5px;
   width: 56px;
   height: 56px;

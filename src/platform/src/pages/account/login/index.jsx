@@ -191,7 +191,7 @@ const UserLogin = () => {
             </div>
             <div className="mt-10">
               <button
-                className="w-full btn bg-blue-900 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-950 dark:hover:bg-blue-800"
+                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
                 type="submit"
                 disabled={loading}
               >
