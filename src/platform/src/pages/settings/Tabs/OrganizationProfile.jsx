@@ -377,7 +377,7 @@ const OrganizationProfile = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <h3 className="text-2xl font-medium text-blue-600 uppercase">
+                    <h3 className="text-2xl font-medium text-primary uppercase">
                       {orgData.grp_title[0] + orgData.grp_title[1]}
                     </h3>
                   )}
