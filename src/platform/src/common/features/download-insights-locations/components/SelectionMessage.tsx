@@ -9,11 +9,11 @@ const SelectionMessage = ({
 }) => {
   const colorSchemes = {
     info: {
-      bg: 'bg-blue-50 dark:bg-blue-900',
-      border: 'border-blue-400 dark:border-blue-600',
-      text: 'text-blue-800 dark:text-white',
-      buttonHover: 'hover:text-blue-800 dark:hover:text-white',
-      buttonText: 'text-blue-600 dark:text-white',
+      bg: 'bg-primary/10 dark:bg-primary',
+      border: 'border-primary/40 dark:border-primary',
+      text: 'text-primary/80 dark:text-white',
+      buttonHover: 'hover:text-primary/80 dark:hover:text-white',
+      buttonText: 'text-primary dark:text-white',
     },
     success: {
       bg: 'bg-green-50 dark:bg-green-900',

@@ -147,7 +147,7 @@ const CustomDropdown = ({
           <span>{icon}</span>
         ) : (
           <>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
               {icon && iconPosition === 'left' && <span>{icon}</span>}
               {text && <span className="truncate">{text}</span>}
               {icon && iconPosition === 'right' && <span>{icon}</span>}
@@ -255,7 +255,7 @@ export const DropdownItem = ({
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="text-blue-700 dark:text-blue-300"
+      className="text-primary dark:text-blue-300"
     >
       <path
         d="M13.3334 4L6.00002 11.3333L2.66669 8"
@@ -272,9 +272,8 @@ export const DropdownItem = ({
     type="button"
     disabled={disabled}
     className={clsx(
-      'w-full px-4 py-2 text-left rounded-xl flex items-center text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700',
-      active &&
-        'bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+      'w-full px-4 py-2 text-left rounded-xl flex items-center text-gray-700 dark:text-gray-200 hover:bg-primary/10 dark:hover:bg-primary/20',
+      active && 'bg-primary/20 dark:bg-primary/40',
       disabled && 'opacity-60 cursor-not-allowed hover:bg-transparent',
       className,
     )}

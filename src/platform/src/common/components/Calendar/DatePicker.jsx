@@ -5,7 +5,6 @@ import { Transition } from '@headlessui/react';
 import Calendar from './Calendar';
 import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import CustomDropdown from '../Button/CustomDropdown';
-
 /**
  * DatePicker component that integrates Calendar with react-popper.
  * It manages its open/close state and renders the calendar in a popper with an arrow.

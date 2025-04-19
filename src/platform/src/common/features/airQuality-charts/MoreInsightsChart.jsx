@@ -1,5 +1,11 @@
-'use client';
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from 'react';
+import PropTypes from 'prop-types';
 import {
   LineChart,
   Line,
@@ -14,6 +20,12 @@ import {
   Legend,
   ReferenceLine,
 } from 'recharts';
+import { useSelector } from 'react-redux';
+import { MdInfoOutline, MdRefresh } from 'react-icons/md';
+import useResizeObserver from '@/core/utils/useResizeObserver';
+import { parseAndValidateISODate } from '@/core/utils/dateUtils';
+import { formatYAxisTick } from './utils';
+import InfoMessage from '@/components/Messages/InfoMessage';
 import {
   renderCustomizedLegend,
   CustomDot,
@@ -21,57 +33,71 @@ import {
   CustomGraphTooltip,
   CustomReferenceLabel,
 } from './components';
-import { parseAndValidateISODate } from '@/core/utils/dateUtils';
-import { formatYAxisTick } from './utils';
-import useResizeObserver from '@/core/utils/useResizeObserver';
-import { useSelector } from 'react-redux';
-import { MdInfoOutline, MdRefresh } from 'react-icons/md';
-import InfoMessage from '@/components/Messages/InfoMessage';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import Button from '@/components/Button';
 
-// Formats timestamps for the X-axis based on frequency
-const formatXAxisDate = (timestamp, frequency) => {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
+// Custom tick renderer with improved readability
+const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
+  const date = new Date(payload.value);
+  let label;
   switch (frequency) {
     case 'hourly':
-      return date.toLocaleTimeString([], {
+      label = date.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
       });
+      break;
     case 'daily':
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      label = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      break;
     case 'weekly':
-      return `W${Math.ceil(date.getDate() / 7)} ${date.toLocaleDateString([], { month: 'short' })}`;
+      label = `W${Math.ceil(date.getDate() / 7)} ${date.toLocaleDateString([], { month: 'short' })}`;
+      break;
     case 'monthly':
-      return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+      label = date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+      break;
     default:
-      return date.toLocaleDateString();
+      label = date.toLocaleDateString();
   }
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="middle"
+        fill={fill}
+        fontSize={12}
+        className="chart-tick-text"
+      >
+        {label}
+      </text>
+    </g>
+  );
 };
 
-// Custom tick for X-axis
-const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => (
-  <g transform={`translate(${x},${y})`}>
-    <text x={0} y={0} dy={16} textAnchor="middle" fill={fill} fontSize={12}>
-      {formatXAxisDate(payload.value, frequency)}
-    </text>
-  </g>
-);
+ImprovedAxisTick.propTypes = {
+  x: PropTypes.number,
+  y: PropTypes.number,
+  payload: PropTypes.object,
+  fill: PropTypes.string,
+  frequency: PropTypes.oneOf(['hourly', 'daily', 'weekly', 'monthly']),
+};
 
-const MoreInsightsChart = ({
-  data = [],
-  selectedSites = [],
-  visibleSiteIds = [],
-  chartType = 'line',
-  frequency = 'daily',
-  width = '100%',
-  height = '300px',
+const MoreInsightsChart = React.memo(function MoreInsightsChart({
+  data,
+  selectedSites,
+  visibleSiteIds,
+  chartType,
+  frequency,
   id,
   pollutantType,
   refreshChart,
-  isRefreshing = false,
-}) => {
+  isRefreshing,
+  width = '100%',
+  height = '100%',
+}) {
   const { theme, systemTheme } = useTheme();
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
@@ -79,119 +105,118 @@ const MoreInsightsChart = ({
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
+  const chartRef = useRef(null);
 
-  // Determine how many ticks we can show
-  const MAX_VISIBLE_TICKS = useMemo(() => {
-    if (containerWidth <= 0) return 10;
-    if (containerWidth < 600) return 6;
-    if (containerWidth < 960) return 8;
-    if (containerWidth < 1200) return 10;
+  // Enhanced tick count calculation
+  const tickCount = useMemo(() => {
+    if (containerWidth < 480) return 4;
+    if (containerWidth < 768) return 6;
+    if (containerWidth < 1024) return 8;
     return 12;
   }, [containerWidth]);
 
-  // Compute dynamic label angle for mobile
-  const xAxisAngle = containerWidth < 480 ? -45 : -25;
-
-  // Derive site IDs
-  const selectedSiteIds = useMemo(() => {
-    if (!selectedSites.length) return [];
+  // Normalize selected site IDs for consistent processing
+  const normalizedSelectedIds = useMemo(() => {
+    if (!selectedSites?.length) return [];
     return typeof selectedSites[0] === 'object'
-      ? selectedSites
-          .map((site) => site._id || site.id || site.site_id)
-          .filter(Boolean)
+      ? selectedSites.map((s) => s._id || s.id || s.site_id).filter(Boolean)
       : selectedSites;
   }, [selectedSites]);
 
-  const effectiveVisibleSiteIds = useMemo(
-    () => (visibleSiteIds.length ? visibleSiteIds : selectedSiteIds),
-    [visibleSiteIds, selectedSiteIds],
-  );
+  // Prepare chart data with improved performance
+  const { chartData, siteIdToName } = useMemo(() => {
+    if (!Array.isArray(data) || !normalizedSelectedIds.length)
+      return { chartData: [], siteIdToName: {} };
 
-  // Organize raw data by timestamp
-  const { sortedData: rawChartData, siteIdToName } = useMemo(() => {
-    if (!Array.isArray(data) || !data.length || !selectedSiteIds.length) {
-      return { sortedData: [], siteIdToName: {} };
-    }
     const combined = {};
     const names = {};
-    for (const { site_id, name, value, time } of data) {
-      if (
-        !site_id ||
-        value == null ||
-        !time ||
-        !selectedSiteIds.includes(site_id)
-      )
-        continue;
+
+    // Use a single loop for better performance
+    data.forEach(({ site_id, name, value, time }) => {
+      if (value == null || !normalizedSelectedIds.includes(site_id)) return;
+
       names[site_id] = name;
       const date = parseAndValidateISODate(time);
-      if (!date) continue;
+
+      if (!date) return;
       const iso = date.toISOString();
-      combined[iso] = { ...(combined[iso] || {}), time: iso, [site_id]: value };
-    }
+
+      if (!combined[iso]) {
+        combined[iso] = { time: iso };
+      }
+
+      combined[iso][site_id] = value;
+    });
+
+    // Create sorted array from the combined object
     const sorted = Object.values(combined).sort(
       (a, b) => new Date(a.time) - new Date(b.time),
     );
-    return { sortedData: sorted, siteIdToName: names };
-  }, [data, selectedSiteIds]);
 
-  // Sample if too many points
-  const chartData = useMemo(() => {
-    if (rawChartData.length <= MAX_VISIBLE_TICKS * 2) return rawChartData;
-    const step = Math.ceil(rawChartData.length / MAX_VISIBLE_TICKS);
-    const sampled = rawChartData.filter((_, idx) => idx % step === 0);
-    if (sampled[sampled.length - 1] !== rawChartData[rawChartData.length - 1]) {
-      sampled.push(rawChartData[rawChartData.length - 1]);
+    return { chartData: sorted, siteIdToName: names };
+  }, [data, normalizedSelectedIds]);
+
+  // Calculate x-axis ticks for even distribution
+  const xTicks = useMemo(() => {
+    if (!chartData.length) return [];
+
+    // Calculate step size for even distribution
+    const step = Math.max(1, Math.ceil(chartData.length / tickCount));
+
+    // Generate ticks at regular intervals
+    const ticks = [];
+    for (let i = 0; i < chartData.length; i += step) {
+      ticks.push(chartData[i].time);
     }
-    return sampled;
-  }, [rawChartData, MAX_VISIBLE_TICKS]);
 
-  // Keys for series
-  const dataKeys = useMemo(() => {
-    const keys = new Set();
-    for (const row of chartData) {
-      Object.keys(row).forEach((k) => k !== 'time' && keys.add(k));
+    // Always include the last data point
+    const last = chartData[chartData.length - 1].time;
+    if (ticks[ticks.length - 1] !== last) {
+      ticks.push(last);
     }
-    return Array.from(keys).filter((k) => effectiveVisibleSiteIds.includes(k));
-  }, [chartData, effectiveVisibleSiteIds]);
 
-  // WHO standard line
-  const WHO_STANDARD_VALUE = useMemo(
-    () => aqStandard?.value?.[pollutantType] || 0,
-    [aqStandard, pollutantType],
-  );
+    return ticks;
+  }, [chartData, tickCount]);
 
-  // Opacity/color logic
-  const opacities = [1, 0.9, 0.8, 0.7];
+  // Determine which series to display based on visibility settings
+  const seriesKeys = useMemo(() => {
+    if (!chartData.length) return [];
+
+    const activeIds = visibleSiteIds?.length
+      ? visibleSiteIds
+      : normalizedSelectedIds;
+
+    return Object.keys(chartData[0] || {}).filter(
+      (k) => k !== 'time' && activeIds.includes(k),
+    );
+  }, [chartData, visibleSiteIds, normalizedSelectedIds]);
+
+  // Get WHO standard value for reference line
+  const WHO_STANDARD_VALUE = aqStandard?.value?.[pollutantType] || 0;
+
+  // Define opacity levels for visual hierarchy
+  const opacities = [1, 0.85, 0.65, 0.45];
+
+  // Color generation with active state handling
   const getColor = useCallback(
-    (i) => {
-      const alpha = opacities[i % opacities.length];
+    (idx) => {
+      const alpha = opacities[idx % opacities.length];
       const base = `rgba(var(--color-primary-rgb), ${alpha})`;
-      return activeIndex === null || activeIndex === i ? base : '#ccc';
+      return activeIndex === null || activeIndex === idx
+        ? base
+        : 'rgba(204, 204, 204, 0.5)';
     },
     [activeIndex],
   );
 
-  const handleMouseLeave = useCallback(() => setActiveIndex(null), []);
-
-  // Refresh
-  const handleRefreshClick = useCallback(() => {
+  // Handle chart refresh
+  const handleRefresh = useCallback(() => {
     if (!isRefreshing && refreshChart) refreshChart();
   }, [isRefreshing, refreshChart]);
 
-  // Determine tick count & interval
-  const xAxisTickCount = useMemo(
-    () => Math.min(MAX_VISIBLE_TICKS, chartData.length),
-    [MAX_VISIBLE_TICKS, chartData.length],
-  );
-
-  const xAxisInterval = useMemo(
-    () => Math.max(0, Math.floor(chartData.length / xAxisTickCount) - 1),
-    [chartData.length, xAxisTickCount],
-  );
-
-  // Empty states
-  const renderEmptyState = () => {
-    if (!selectedSiteIds.length) {
+  // Render empty state with appropriate message
+  const renderEmpty = () => {
+    if (!normalizedSelectedIds.length) {
       return (
         <InfoMessage
           title="No Sites Selected"
@@ -201,7 +226,7 @@ const MoreInsightsChart = ({
         />
       );
     }
-    if (!effectiveVisibleSiteIds.length) {
+    if (!seriesKeys.length) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-gray-500">
           <MdInfoOutline className="text-4xl mb-2" />
@@ -216,13 +241,13 @@ const MoreInsightsChart = ({
           description="Try refreshing or adjusting filters."
           action={
             refreshChart && (
-              <button
-                onClick={handleRefreshClick}
+              <Button
+                onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center"
+                className="px-4 py-2 disabled:opacity-50 flex items-center"
               >
                 <MdRefresh className="mr-1" /> Refresh
-              </button>
+              </Button>
             )
           }
           variant="info"
@@ -233,120 +258,195 @@ const MoreInsightsChart = ({
     return null;
   };
 
-  // Main rendering
-  const renderChart = () => {
-    if (!chartData.length || !effectiveVisibleSiteIds.length)
-      return renderEmptyState();
-    const Chart = chartType === 'line' ? LineChart : BarChart;
-    const Series = chartType === 'line' ? Line : Bar;
-    return (
-      <ResponsiveContainer width={width} height={height}>
-        <Chart
-          data={chartData}
-          margin={{ top: 38, right: 10, left: -15, bottom: 40 }}
-          style={{ cursor: 'pointer' }}
-          {...(chartType === 'bar' && { barGap: 8, barCategoryGap: '20%' })}
-        >
-          <CartesianGrid
-            stroke={isDark ? '#555' : '#ccc'}
-            strokeDasharray="5 5"
-            vertical={false}
-          />
-          <XAxis
-            dataKey="time"
-            tickLine={false}
-            tick={(props) => (
-              <ImprovedAxisTick
-                {...props}
-                fill={isDark ? '#E5E7EB' : '#485972'}
-                frequency={frequency}
-              />
-            )}
-            axisLine={false}
-            interval={xAxisInterval}
-            angle={xAxisAngle}
-            textAnchor="end"
-            height={60}
-            padding={{ left: 30, right: 30 }}
-          />
-          <YAxis
-            domain={[0, 'auto']}
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20' }}
-            tickFormatter={formatYAxisTick}
-          >
-            <Label
-              value={
-                pollutantType === 'pm2_5'
-                  ? 'PM2.5'
-                  : pollutantType === 'pm10'
-                    ? 'PM10'
-                    : 'Pollutant'
-              }
-              position="top"
-              fill={isDark ? '#D1D5DB' : '#1C1D20'}
-              fontSize={12}
-              dy={-20}
-              style={{ textAnchor: 'start' }}
-            />
-          </YAxis>
-          <Legend content={renderCustomizedLegend} />
-          <Tooltip
-            content={
-              <CustomGraphTooltip
-                pollutionType={pollutantType}
-                activeIndex={activeIndex}
-                siteIdToName={siteIdToName}
-              />
-            }
-            cursor={
-              chartType === 'line'
-                ? {
-                    stroke: isDark ? '#888' : '#aaa',
-                    strokeOpacity: 0.3,
-                    strokeWidth: 2,
-                    strokeDasharray: '3 3',
-                  }
-                : { fill: isDark ? '#444' : '#eee', fillOpacity: 0.3 }
-            }
-          />
-          {dataKeys.map((key, idx) => (
-            <Series
-              key={key}
-              dataKey={key}
-              name={siteIdToName[key] || key}
-              type={chartType === 'line' ? 'monotone' : undefined}
-              stroke={chartType === 'line' ? getColor(idx) : undefined}
-              fill={chartType === 'bar' ? getColor(idx) : undefined}
-              strokeWidth={chartType === 'line' ? 4 : undefined}
-              barSize={chartType === 'bar' ? 12 : undefined}
-              dot={chartType === 'line' ? <CustomDot /> : undefined}
-              activeDot={chartType === 'line' ? { r: 6 } : undefined}
-              shape={chartType === 'bar' ? <CustomBar /> : undefined}
-              onMouseEnter={() => setActiveIndex(idx)}
-              onMouseLeave={handleMouseLeave}
-            />
-          ))}
-          {WHO_STANDARD_VALUE > 0 && (
-            <ReferenceLine
-              y={WHO_STANDARD_VALUE}
-              label={<CustomReferenceLabel name={aqStandard?.name || 'WHO'} />}
-              stroke="red"
-              ifOverflow="extendDomain"
-            />
-          )}
-        </Chart>
-      </ResponsiveContainer>
-    );
-  };
+  // Ensure chart is properly rendered for exports
+  useEffect(() => {
+    // Add specific styles for export context
+    if (containerRef.current) {
+      const parent = containerRef.current.closest('.exporting');
+      if (parent) {
+        // Force chart to be fully visible during export
+        const style = document.createElement('style');
+        style.textContent = `
+          .recharts-wrapper {
+            overflow: visible !important;
+          }
+          .recharts-legend-wrapper {
+            overflow: visible !important;
+          }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+          document.head.removeChild(style);
+        };
+      }
+    }
+  }, []);
+
+  // Choose chart component based on chart type
+  const ChartComponent = chartType === 'bar' ? BarChart : LineChart;
+  const SeriesComponent = chartType === 'bar' ? Bar : Line;
 
   return (
-    <div id={id} ref={containerRef} className="w-auto h-full pt-4 relative">
-      {renderChart()}
+    <div
+      id={id}
+      ref={containerRef}
+      className="w-full h-full pt-4 relative chart-container"
+      data-chart-id={id}
+    >
+      {chartData.length && seriesKeys.length ? (
+        <ResponsiveContainer width={width} height={height}>
+          <ChartComponent
+            ref={chartRef}
+            data={chartData}
+            margin={{ top: 25, right: 10, left: -20, bottom: 10 }}
+            className="chart-component"
+          >
+            <CartesianGrid
+              stroke={isDark ? '#555' : '#ccc'}
+              strokeDasharray="5 5"
+              vertical={false}
+              className="chart-grid"
+            />
+            <XAxis
+              dataKey="time"
+              ticks={xTicks}
+              tickLine={false}
+              tick={(props) => (
+                <ImprovedAxisTick
+                  {...props}
+                  fill={isDark ? '#E5E7EB' : '#485972'}
+                  frequency={frequency}
+                />
+              )}
+              axisLine={false}
+              interval={0}
+              angle={containerWidth < 480 ? -45 : -25}
+              textAnchor="end"
+              height={60}
+              className="chart-x-axis"
+            />
+            <YAxis
+              domain={[0, 'auto']}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20' }}
+              tickFormatter={formatYAxisTick}
+              className="chart-y-axis"
+            >
+              <Label
+                value={
+                  pollutantType === 'pm2_5'
+                    ? 'PM2.5'
+                    : pollutantType === 'pm10'
+                      ? 'PM10'
+                      : 'Pollutant'
+                }
+                position="insideTopLeft"
+                fill={isDark ? '#D1D5DB' : '#1C1D20'}
+                fontSize={12}
+                dy={-30}
+                dx={28}
+                style={{ textAnchor: 'start' }}
+                className="chart-y-label"
+              />
+            </YAxis>
+
+            <Legend
+              content={renderCustomizedLegend}
+              wrapperClassName="chart-legend-wrapper"
+            />
+
+            <Tooltip
+              content={
+                <CustomGraphTooltip
+                  pollutionType={pollutantType}
+                  activeIndex={activeIndex}
+                  siteIdToName={siteIdToName}
+                />
+              }
+              cursor={
+                chartType === 'line'
+                  ? {
+                      stroke: isDark ? '#888' : '#aaa',
+                      strokeOpacity: 0.3,
+                      strokeWidth: 2,
+                      strokeDasharray: '3 3',
+                      className: 'chart-cursor',
+                    }
+                  : {
+                      fill: isDark ? '#444' : '#eee',
+                      fillOpacity: 0.3,
+                      className: 'chart-cursor',
+                    }
+              }
+              className="chart-tooltip"
+            />
+
+            {seriesKeys.map((key, idx) => (
+              <SeriesComponent
+                key={key}
+                dataKey={key}
+                name={siteIdToName[key] || key}
+                type={chartType === 'line' ? 'monotone' : undefined}
+                stroke={chartType === 'line' ? getColor(idx) : undefined}
+                fill={chartType === 'bar' ? getColor(idx) : undefined}
+                strokeWidth={chartType === 'line' ? 3 : undefined}
+                barSize={chartType === 'bar' ? 8 : undefined}
+                dot={chartType === 'line' ? <CustomDot /> : undefined}
+                activeDot={chartType === 'line' ? { r: 5 } : undefined}
+                shape={chartType === 'bar' ? <CustomBar /> : undefined}
+                onMouseEnter={() => setActiveIndex(idx)}
+                onMouseLeave={() => setActiveIndex(null)}
+                className={`chart-series chart-series-${idx}`}
+                isAnimationActive={!document.querySelector('.exporting')} // Disable animations during export
+              />
+            ))}
+
+            {WHO_STANDARD_VALUE > 0 && (
+              <ReferenceLine
+                y={WHO_STANDARD_VALUE}
+                label={
+                  <CustomReferenceLabel name={aqStandard?.name || 'WHO'} />
+                }
+                stroke="red"
+                strokeDasharray="3 3"
+                ifOverflow="extendDomain"
+                className="chart-reference-line"
+              />
+            )}
+          </ChartComponent>
+        </ResponsiveContainer>
+      ) : (
+        renderEmpty()
+      )}
     </div>
   );
+});
+
+MoreInsightsChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  selectedSites: PropTypes.array.isRequired,
+  visibleSiteIds: PropTypes.array,
+  chartType: PropTypes.oneOf(['line', 'bar']),
+  frequency: PropTypes.oneOf(['hourly', 'daily', 'weekly', 'monthly']),
+  id: PropTypes.string,
+  pollutantType: PropTypes.string.isRequired,
+  refreshChart: PropTypes.func,
+  isRefreshing: PropTypes.bool,
+  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-MoreInsightsChart.displayName = 'MoreInsightsChart';
-export default React.memo(MoreInsightsChart);
+MoreInsightsChart.defaultProps = {
+  visibleSiteIds: [],
+  chartType: 'line',
+  frequency: 'daily',
+  id: undefined,
+  refreshChart: null,
+  isRefreshing: false,
+  width: '100%',
+  height: '100%',
+};
+
+export default MoreInsightsChart;

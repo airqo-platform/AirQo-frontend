@@ -192,14 +192,14 @@ export const renderCustomizedLegend = ({ payload }) => {
     return brightness(a.color) - brightness(b.color);
   });
   return (
-    <div className="flex flex-wrap justify-end gap-2 w-full p-2">
+    <div className="flex flex-wrap relative justify-end gap-2 w-full">
       {sortedPayload.map((entry, index) => (
         <div
           key={index}
           className="flex items-center gap-1 text-xs dark:text-gray-300 whitespace-nowrap"
         >
           <span
-            className="w-2 h-2 rounded-full"
+            className="w-3 h-3 rounded-full"
             style={{ backgroundColor: entry.color || 'var(--color-primary)' }}
           />
           {truncateLegend ? (

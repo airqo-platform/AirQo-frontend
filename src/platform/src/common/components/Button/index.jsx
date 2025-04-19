@@ -20,10 +20,14 @@ const Button = React.forwardRef(
     ref,
   ) => {
     const base =
-      'flex items-center justify-center rounded-xl transition transform active:scale-95';
+      'flex items-center justify-center rounded-xl shadow-sm transition dark:border-gray-700 transform active:scale-95';
     const variantMap = {
       filled: clsx('bg-primary', 'text-white'),
-      outlined: clsx('bg-transparent', 'border border-primary', 'text-primary'),
+      outlined: clsx(
+        'bg-transparent',
+        'border border-gray-300',
+        'text-current',
+      ),
       text: clsx('bg-transparent', 'text-primary'),
       disabled: clsx('bg-gray-300', 'text-gray-500'),
     };
