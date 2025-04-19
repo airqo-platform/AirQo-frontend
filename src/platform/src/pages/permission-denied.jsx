@@ -1,4 +1,4 @@
-import AirQologo from '@/icons/airqo_logo.svg';
+import GroupLogo from '../common/components/GroupLogo';
 import OopsIcon from '@/icons/Errors/OopsIcon';
 import Button from '@/components/Button';
 
@@ -7,7 +7,7 @@ const Error403 = () => {
     <div className="relative w-screen h-screen bg-white overflow-x-hidden">
       {/* Header */}
       <div className="fixed top-0 w-full z-10 px-4 py-3 h-16 box-border border-b-[0.5px] border-b-grey-750 bg-white">
-        <AirQologo />
+        <GroupLogo />
       </div>
 
       {/* Content */}

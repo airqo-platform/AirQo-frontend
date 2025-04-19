@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
 import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
-import AirqoLogo from '@/icons/airqo_logo.svg';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
@@ -27,6 +26,7 @@ import Link from 'next/link';
 import Button from '../Button';
 import Card from '../CardWrapper';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import GroupLogo from '../GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -249,11 +249,7 @@ const AuthenticatedSideBar = () => {
               <div
                 className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
               >
-                {isDarkMode ? (
-                  <AirqoLogo className="w-full h-full" fill="ffffff" />
-                ) : (
-                  <AirqoLogo className="w-full h-full" />
-                )}
+                <GroupLogo />
               </div>
             </Button>
           </div>

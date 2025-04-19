@@ -81,6 +81,8 @@ const OrganizationProfile = () => {
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const orgInfo = useSelector((state) => state.groupInfo.groupInfo);
 
+  console.info(orgInfo);
+
   // Fetch group info on mount using active group ID from localStorage
   useEffect(() => {
     setIsLoading(true);

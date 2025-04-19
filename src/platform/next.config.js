@@ -10,6 +10,10 @@ module.exports = withTM(
           protocol: 'https',
           hostname: 'flagsapi.com',
         },
+        {
+          protocol: 'https',
+          hostname: 'asset.cloudinary.com',
+        },
       ],
     },
     reactStrictMode: true,

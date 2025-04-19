@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Button from '../Button';
 import MenuBarIcon from '@/icons/menu_bar';
-import AirqoLogo from '@/icons/airqo_logo.svg';
 import Spinner from '@/components/Spinner';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
@@ -16,6 +15,7 @@ import {
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import LogoutUser from '@/core/utils/LogoutUser';
+import GroupLogo from '../GroupLogo';
 
 const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   const router = useRouter();
@@ -149,7 +149,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               }}
               variant="text"
             >
-              <AirqoLogo className="w-[46.56px] h-8" />
+              <GroupLogo />
             </Button>
           </div>
 
