@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,13 +26,9 @@ interface TopbarProps {
 
 const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const [darkMode, setDarkMode] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { logout } = useAuth()
   const currentUser = useAppSelector((state) => state.user.userDetails)
   const activeGroup = useAppSelector((state) => state.user.activeGroup)
-  // Use a ref to track if logout has been triggered
-  const logoutTriggered = useRef(false)
-
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark")
@@ -44,27 +40,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
   }
-
-  // Memoize the logout handler to prevent recreating it on each render
-  const handleLogout = useCallback(() => {
-    // Prevent multiple logout calls
-    if (logoutTriggered.current) return
-
-    // Mark logout as triggered
-    logoutTriggered.current = true
-
-    // Close the dropdown menu first to prevent state updates during unmount
-    setIsMenuOpen(false)
-
-    // Use setTimeout to ensure the menu close operation completes before logout
-    setTimeout(() => {
-      logout()
-      // Reset the flag after a delay
-      setTimeout(() => {
-        logoutTriggered.current = false
-      }, 500)
-    }, 50)
-  }, [logout])
 
   const apps = [
     {
@@ -92,6 +67,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
       icon: "🔍",
     },
   ]
+  
 
   // Get user initials for avatar fallback
   const getInitials = () => {
@@ -115,9 +91,11 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
           </Button>
         )}
 
-        <div className="flex items-center gap-2"></div>
+        <div className="flex items-center gap-2">
+        </div>
 
         <div className="flex items-center gap-1 md:gap-2">
+
           <DropdownMenu>
             <TooltipProvider>
               <Tooltip>
@@ -164,14 +142,14 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
 
           <Separator orientation="vertical" className="mx-1 h-6" />
 
-          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 px-2 md:pl-2 md:pr-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={currentUser?.profilePicture || ""} alt={getUserName()} />
                   <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
                 </Avatar>
-
+                
                 <ChevronDown className="hidden h-4 w-4 opacity-50 md:inline-block" />
               </Button>
             </DropdownMenuTrigger>
@@ -205,7 +183,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="flex items-center gap-2 text-destructive focus:text-destructive"
-                onClick={handleLogout}
+                onClick={() => logout()}
               >
                 <LogOut className="h-4 w-4" />
                 <span>Log out</span>
@@ -219,3 +197,4 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
 }
 
 export default Topbar
+

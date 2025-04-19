@@ -51,6 +51,13 @@ const userSlice = createSlice({
     setAvailableNetworks(state: UserState, action: PayloadAction<Network[]>) {
       state.availableNetworks = action.payload;
     },
+    logout(state: UserState) {
+      state.isAuthenticated = false;
+      state.userDetails = null;
+      state.activeNetwork = null;
+      state.availableNetworks = [];
+      state.currentRole = null;
+    },
     setInitialized(state) {
       state.isInitialized = true;
     },
@@ -66,6 +73,7 @@ const userSlice = createSlice({
 export const {
   setUserDetails,
   setActiveNetwork,
+  logout,
   setAvailableNetworks,
   setInitialized,
   setActiveGroup,

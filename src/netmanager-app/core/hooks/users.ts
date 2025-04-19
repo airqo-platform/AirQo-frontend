@@ -6,6 +6,7 @@ import {
   setUserDetails,
   setActiveNetwork,
   setActiveGroup,
+  logout,
   setAvailableNetworks,
   setUserGroups,
   setInitialized,
@@ -20,7 +21,6 @@ import type {
   UserDetailsResponse,
 } from "@/app/types/users";
 import { useRouter } from "next/navigation";
-import { RESET_STORE } from "@/core/redux/store"
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -130,29 +130,15 @@ export const useAuth = () => {
   });
 
   const handleLogout = () => {
-    try {
-      // First clear all localStorage items
-      localStorage.removeItem("token")
-      localStorage.removeItem("userDetails")
-      localStorage.removeItem("activeNetwork")
-      localStorage.removeItem("availableNetworks")
-      localStorage.removeItem("activeGroup")
-      localStorage.removeItem("userGroups")
-
-      // Reset the entire Redux store with a single action
-      dispatch({ type: RESET_STORE })
-
-      // Navigate to login page after a small delay
-      // This ensures the store reset completes before navigation
-      setTimeout(() => {
-        router.push("/login")
-      }, 50)
-    } catch (error) {
-      console.error("Logout error:", error)
-      // Force navigation to login even if there was an error
-      router.push("/login")
-    }
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("userDetails");
+    localStorage.removeItem("activeNetwork");
+    localStorage.removeItem("availableNetworks");
+    localStorage.removeItem("activeGroup");
+    localStorage.removeItem("userGroups");
+    dispatch(logout());
+    router.push("/login");
+  };
 
   const restoreSession = () => {
     try {
