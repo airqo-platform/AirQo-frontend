@@ -273,7 +273,7 @@ export const DropdownItem = ({
     disabled={disabled}
     className={clsx(
       'w-full px-4 py-2 text-left rounded-xl flex items-center text-gray-700 dark:text-gray-200 hover:bg-primary/10 dark:hover:bg-primary/20',
-      active && 'bg-primary/20 dark:bg-primary/40',
+      active && 'bg-primary/10 dark:bg-primary/40',
       disabled && 'opacity-60 cursor-not-allowed hover:bg-transparent',
       className,
     )}

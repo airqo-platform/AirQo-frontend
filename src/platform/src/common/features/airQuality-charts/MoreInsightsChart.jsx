@@ -102,6 +102,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   const [activeIndex, setActiveIndex] = useState(null);
+  const [legendLocked, setLegendLocked] = useState(false);
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
@@ -213,6 +214,53 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const handleRefresh = useCallback(() => {
     if (!isRefreshing && refreshChart) refreshChart();
   }, [isRefreshing, refreshChart]);
+
+  // Legend interaction handlers
+  const handleLegendMouseEnter = useCallback(
+    (index) => {
+      if (!legendLocked) {
+        setActiveIndex(index);
+      }
+    },
+    [legendLocked],
+  );
+
+  const handleLegendMouseLeave = useCallback(() => {
+    if (!legendLocked) {
+      setActiveIndex(null);
+    }
+  }, [legendLocked]);
+
+  const handleLegendClick = useCallback(
+    (index) => {
+      if (legendLocked && activeIndex === index) {
+        // If clicking the already active legend item, unlock and reset
+        setLegendLocked(false);
+        setActiveIndex(null);
+      } else {
+        // Otherwise lock to this item
+        setLegendLocked(true);
+        setActiveIndex(index);
+      }
+    },
+    [activeIndex, legendLocked],
+  );
+
+  // Handle series hover
+  const handleSeriesMouseEnter = useCallback(
+    (index) => {
+      if (!legendLocked) {
+        setActiveIndex(index);
+      }
+    },
+    [legendLocked],
+  );
+
+  const handleSeriesMouseLeave = useCallback(() => {
+    if (!legendLocked) {
+      setActiveIndex(null);
+    }
+  }, [legendLocked]);
 
   // Render empty state with appropriate message
   const renderEmpty = () => {
@@ -353,7 +401,15 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
             </YAxis>
 
             <Legend
-              content={renderCustomizedLegend}
+              content={(props) =>
+                renderCustomizedLegend({
+                  ...props,
+                  activeIndex: activeIndex,
+                  onMouseEnter: handleLegendMouseEnter,
+                  onMouseLeave: handleLegendMouseLeave,
+                  onClick: handleLegendClick,
+                })
+              }
               wrapperClassName="chart-legend-wrapper"
             />
 
@@ -383,25 +439,32 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               className="chart-tooltip"
             />
 
-            {seriesKeys.map((key, idx) => (
-              <SeriesComponent
-                key={key}
-                dataKey={key}
-                name={siteIdToName[key] || key}
-                type={chartType === 'line' ? 'monotone' : undefined}
-                stroke={chartType === 'line' ? getColor(idx) : undefined}
-                fill={chartType === 'bar' ? getColor(idx) : undefined}
-                strokeWidth={chartType === 'line' ? 3 : undefined}
-                barSize={chartType === 'bar' ? 8 : undefined}
-                dot={chartType === 'line' ? <CustomDot /> : undefined}
-                activeDot={chartType === 'line' ? { r: 5 } : undefined}
-                shape={chartType === 'bar' ? <CustomBar /> : undefined}
-                onMouseEnter={() => setActiveIndex(idx)}
-                onMouseLeave={() => setActiveIndex(null)}
-                className={`chart-series chart-series-${idx}`}
-                isAnimationActive={!document.querySelector('.exporting')} // Disable animations during export
-              />
-            ))}
+            {seriesKeys.map((key, idx) => {
+              const isActive = activeIndex === null || activeIndex === idx;
+
+              return (
+                <SeriesComponent
+                  key={key}
+                  dataKey={key}
+                  name={siteIdToName[key] || key}
+                  type={chartType === 'line' ? 'monotone' : undefined}
+                  stroke={chartType === 'line' ? getColor(idx) : undefined}
+                  fill={chartType === 'bar' ? getColor(idx) : undefined}
+                  strokeWidth={
+                    chartType === 'line' ? (isActive ? 3 : 1.5) : undefined
+                  }
+                  barSize={chartType === 'bar' ? (isActive ? 8 : 6) : undefined}
+                  opacity={isActive ? 1 : 0.5}
+                  dot={chartType === 'line' ? <CustomDot /> : undefined}
+                  activeDot={chartType === 'line' ? { r: 5 } : undefined}
+                  shape={chartType === 'bar' ? <CustomBar /> : undefined}
+                  onMouseEnter={() => handleSeriesMouseEnter(idx)}
+                  onMouseLeave={handleSeriesMouseLeave}
+                  className={`chart-series chart-series-${idx} ${isActive ? 'chart-series-active' : 'chart-series-inactive'}`}
+                  isAnimationActive={!document.querySelector('.exporting')} // Disable animations during export
+                />
+              );
+            })}
 
             {WHO_STANDARD_VALUE > 0 && (
               <ReferenceLine

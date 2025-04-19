@@ -178,7 +178,13 @@ CustomDot.propTypes = {
   payload: PropTypes.object,
 };
 
-export const renderCustomizedLegend = ({ payload }) => {
+export const renderCustomizedLegend = ({
+  payload,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+  activeIndex,
+}) => {
   const truncateLegend = payload.length > 3;
   const sortedPayload = [...payload].sort((a, b) => {
     const brightness = (color) => {
@@ -191,30 +197,41 @@ export const renderCustomizedLegend = ({ payload }) => {
     };
     return brightness(a.color) - brightness(b.color);
   });
+
   return (
     <div className="flex flex-wrap relative justify-end gap-2 w-full">
-      {sortedPayload.map((entry, index) => (
-        <div
-          key={index}
-          className="flex items-center gap-1 text-xs dark:text-gray-300 whitespace-nowrap"
-        >
-          <span
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: entry.color || 'var(--color-primary)' }}
-          />
-          {truncateLegend ? (
-            <Tooltip content={entry.value} className="w-auto">
-              <div className="truncate max-w-[100px] text-gray-700 dark:text-gray-200">
+      {sortedPayload.map((entry, index) => {
+        const isActive = activeIndex === null || activeIndex === index;
+
+        return (
+          <div
+            key={index}
+            className={`flex items-center gap-1 text-xs dark:text-gray-300 whitespace-nowrap cursor-pointer transition-opacity duration-200 ${!isActive ? 'opacity-50' : 'opacity-100'}`}
+            onMouseEnter={() => onMouseEnter(index)}
+            onMouseLeave={() => onMouseLeave()}
+            onClick={() => onClick(index)}
+          >
+            <span
+              className="w-3 h-3 rounded-full transition-transform duration-200"
+              style={{
+                backgroundColor: entry.color || 'var(--color-primary)',
+                transform: isActive ? 'scale(1.2)' : 'scale(1)',
+              }}
+            />
+            {truncateLegend ? (
+              <Tooltip content={entry.value} className="w-auto">
+                <div className="truncate max-w-[100px] text-gray-700 dark:text-gray-200">
+                  {entry.value}
+                </div>
+              </Tooltip>
+            ) : (
+              <div className="text-gray-700 dark:text-gray-200">
                 {entry.value}
               </div>
-            </Tooltip>
-          ) : (
-            <div className="text-gray-700 dark:text-gray-200">
-              {entry.value}
-            </div>
-          )}
-        </div>
-      ))}
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
