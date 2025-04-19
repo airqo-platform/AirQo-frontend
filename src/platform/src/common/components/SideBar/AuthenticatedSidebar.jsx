@@ -255,10 +255,8 @@ const AuthenticatedSideBar = () => {
           </div>
 
           {/* Organization Dropdown */}
-          <div className="mt-4">
-            <OrganizationDropdown
-              className={isDarkMode ? 'dark-dropdown' : ''}
-            />
+          <div>
+            <OrganizationDropdown />
           </div>
 
           {/* Navigation Items */}

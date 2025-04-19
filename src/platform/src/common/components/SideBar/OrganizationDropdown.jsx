@@ -291,7 +291,7 @@ const OrganizationDropdown = ({ className = '' }) => {
   };
 
   return (
-    <div className={clsx('relative', className)} ref={buttonRef}>
+    <div className={clsx('relative mt-4', className)} ref={buttonRef}>
       <CustomDropdown
         icon={orgIcon}
         text={
