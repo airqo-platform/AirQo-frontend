@@ -6,6 +6,8 @@ import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
+const STORAGE_KEY_PREFIX = 'groupLogoUrl';
+
 const GroupLogo = ({ className, style, width, height }) => {
   const dispatch = useDispatch();
   const { id: activeGroupId, loading: fetchingGroup } = useGetActiveGroup();
@@ -16,37 +18,88 @@ const GroupLogo = ({ className, style, width, height }) => {
   const profilePic = orgInfo?.grp_image;
   const title = orgInfo?.grp_title || 'Group logo';
 
-  // loading + error flags
-  const [isLoading, setIsLoading] = useState(true);
+  const [persistedLogo, setPersistedLogo] = useState(null);
+  const [displaySrc, setDisplaySrc] = useState(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // on group change: reset state & fetch
   useEffect(() => {
-    setIsLoading(true);
     setImgError(false);
 
     if (activeGroupId) {
+      // load last‑saved logo for this group
+      try {
+        const saved = localStorage.getItem(
+          `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
+        );
+        setPersistedLogo(saved);
+      } catch {
+        // empty
+      }
+
+      // fetch latest groupInfo
       dispatch(fetchGroupInfo(activeGroupId))
         .unwrap()
         .catch(() => {
-          // if fetching fails, stop loading & trigger fallback
           setImgError(true);
-          setIsLoading(false);
         });
     } else {
-      setIsLoading(false);
+      setPersistedLogo(null);
     }
   }, [activeGroupId, dispatch]);
 
-  const handleLoadComplete = () => setIsLoading(false);
+  // Decide which URL to display: fetched > persisted
+  useEffect(() => {
+    if (profilePic) {
+      setDisplaySrc(profilePic);
+    } else {
+      setDisplaySrc(persistedLogo);
+    }
+  }, [profilePic, persistedLogo]);
+
+  // Kick off image load whenever displaySrc changes
+  useEffect(() => {
+    if (displaySrc) {
+      setIsImageLoading(true);
+      setImgError(false);
+    }
+  }, [displaySrc]);
+
+  // When a new profilePic loads successfully, persist it
+  useEffect(() => {
+    if (profilePic && activeGroupId) {
+      try {
+        localStorage.setItem(
+          `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
+          profilePic,
+        );
+        setPersistedLogo(profilePic);
+      } catch {
+        // empty
+      }
+    }
+  }, [profilePic, activeGroupId]);
+
+  const handleLoadComplete = () => setIsImageLoading(false);
+
   const handleLoadError = () => {
     setImgError(true);
-    setIsLoading(false);
+    setIsImageLoading(false);
+    // clear bad URL
+    if (activeGroupId) {
+      try {
+        localStorage.removeItem(`${STORAGE_KEY_PREFIX}_${activeGroupId}`);
+      } catch {
+        // empty
+      }
+    }
+    setPersistedLogo(null);
   };
 
-  // sizing
-  const defaultW = 80,
-    defaultH = 80;
+  const isDataLoading = fetchingGroup || fetchingProfile;
+
+  const defaultW = 80;
+  const defaultH = 80;
   const wrapperStyle = {
     position: 'relative',
     width: width || defaultW,
@@ -57,40 +110,44 @@ const GroupLogo = ({ className, style, width, height }) => {
     ...style,
   };
 
-  // show skeleton *only* when there's an image to load
-  const showSkeleton =
-    !!profilePic && (fetchingGroup || fetchingProfile || isLoading);
+  // If still fetching group info *and* there's no persisted logo yet, show skeleton
+  if (isDataLoading && !persistedLogo) {
+    return (
+      <div
+        className={`${className} animate-pulse bg-gray-200 rounded`}
+        style={wrapperStyle}
+      />
+    );
+  }
 
-  return (
-    <div className={className} style={wrapperStyle}>
-      {/*
-        Pulse skeleton on top of the image container while loading
-      */}
-      {showSkeleton && (
-        <div className="absolute inset-0 z-10 animate-pulse bg-gray-200 rounded" />
-      )}
-
-      {/*
-        If we have a valid picture URL and no error, render it.
-        Otherwise, fallback to the AirqoLogo SVG.
-      */}
-      {profilePic && !imgError ? (
-        <div className="relative w-full h-full z-0">
+  // If we have a URL to show and it hasn’t errored, render it
+  if (displaySrc && !imgError) {
+    return (
+      <div className={className} style={wrapperStyle}>
+        {/* overlay pulse while the image is loading */}
+        {isImageLoading && (
+          <div className="absolute inset-0 z-10 animate-pulse bg-gray-200 rounded" />
+        )}
+        <div className="relative w-full h-full">
           <Image
-            src={profilePic}
+            src={displaySrc}
             alt={title}
             fill
             sizes={`${typeof width === 'number' ? width : defaultW}px`}
             quality={90}
             priority
-            className="object-contain  mix-blend-multiply"
+            className="object-contain"
             onLoadingComplete={handleLoadComplete}
             onError={handleLoadError}
           />
         </div>
-      ) : (
-        <AirqoLogo width={width || defaultW} height={height || defaultH} />
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={className} style={wrapperStyle}>
+      <AirqoLogo width={width || defaultW} height={height || defaultH} />
     </div>
   );
 };
