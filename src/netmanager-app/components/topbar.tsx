@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,8 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   const { logout } = useAuth()
   const currentUser = useAppSelector((state) => state.user.userDetails)
   const activeGroup = useAppSelector((state) => state.user.activeGroup)
+  // Use a ref to track if logout has been triggered
+  const logoutTriggered = useRef(false)
 
   useEffect(() => {
     if (darkMode) {
@@ -45,12 +47,23 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
 
   // Memoize the logout handler to prevent recreating it on each render
   const handleLogout = useCallback(() => {
+    // Prevent multiple logout calls
+    if (logoutTriggered.current) return
+
+    // Mark logout as triggered
+    logoutTriggered.current = true
+
     // Close the dropdown menu first to prevent state updates during unmount
     setIsMenuOpen(false)
+
     // Use setTimeout to ensure the menu close operation completes before logout
     setTimeout(() => {
       logout()
-    }, 0)
+      // Reset the flag after a delay
+      setTimeout(() => {
+        logoutTriggered.current = false
+      }, 500)
+    }, 50)
   }, [logout])
 
   const apps = [
