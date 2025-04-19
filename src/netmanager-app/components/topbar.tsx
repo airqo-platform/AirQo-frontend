@@ -45,14 +45,14 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("token");              // Logs user out
-    localStorage.removeItem("userDetails");        // Clears user info
-    localStorage.removeItem("activeNetwork");      // Clears selected network
-    localStorage.removeItem("availableNetworks");  // Clears cached networks
-    localStorage.removeItem("activeGroup");        // Clears selected group
-    localStorage.removeItem("userGroups");         // Clears cached groups
-    dispatch(reduxLogout());             // Clears Redux state (user, etc)
-    router.push("/login");         // Navigates to login page
+    localStorage.removeItem("token");
+    localStorage.removeItem("userDetails");
+    localStorage.removeItem("activeNetwork");
+    localStorage.removeItem("availableNetworks");
+    localStorage.removeItem("activeGroup");
+    localStorage.removeItem("userGroups");
+    dispatch(reduxLogout());
+    router.push("/login");
   };
   
 
