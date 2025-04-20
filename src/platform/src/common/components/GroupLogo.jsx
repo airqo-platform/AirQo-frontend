@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import Image from 'next/image';
@@ -6,187 +6,115 @@ import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
-const STORAGE_KEY_PREFIX = 'groupLogoUrl';
+const STORAGE_KEY = 'groupLogoUrl';
 
-const GroupLogo = ({ className, style, width, height }) => {
-  // Hooks
+const GroupLogo = ({ className = '', style = {} }) => {
   const dispatch = useDispatch();
   const { id: activeGroupId, loading: fetchingGroup } = useGetActiveGroup();
   const { groupInfo: orgInfo, loading: fetchingProfile } = useSelector(
     (state) => state.groupInfo,
   );
 
-  const [persistedLogo, setPersistedLogo] = useState(null);
   const [displaySrc, setDisplaySrc] = useState(null);
-  const [isImageLoading, setIsImageLoading] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const prevIdRef = useRef(null);
 
-  // Effect: clear cache & fetch group info
+  // Fetch only when groupId truly changes
   useEffect(() => {
-    setImgError(false);
-    setPersistedLogo(null);
+    if (!activeGroupId || prevIdRef.current === activeGroupId) return;
+
+    // clear cached logo
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      //empty
+    }
+
+    setHasError(false);
     setDisplaySrc(null);
 
-    try {
-      Object.keys(localStorage).forEach((key) => {
-        if (
-          key.startsWith(STORAGE_KEY_PREFIX) &&
-          key !== `${STORAGE_KEY_PREFIX}_${activeGroupId}`
-        ) {
-          localStorage.removeItem(key);
-        }
-      });
-    } catch {
-      // empty for now
-    }
+    dispatch(fetchGroupInfo(activeGroupId))
+      .unwrap()
+      .catch(() => setHasError(true));
 
-    if (activeGroupId) {
-      // Load cached logo
-      try {
-        const saved = localStorage.getItem(
-          `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
-        );
-        if (saved) {
-          setPersistedLogo(saved);
-          setDisplaySrc(saved);
-        }
-      } catch {
-        // empty for now
-      }
-
-      dispatch(fetchGroupInfo(activeGroupId))
-        .unwrap()
-        .catch(() => setImgError(true));
-    }
+    prevIdRef.current = activeGroupId;
   }, [activeGroupId, dispatch]);
 
-  // Effect: update displaySrc when orgInfo or persistedLogo changes
+  // Cache new logo when received
   useEffect(() => {
-    const pic = orgInfo?.grp_image || null;
+    const pic = orgInfo?.grp_image;
     if (pic) {
       setDisplaySrc(pic);
-    } else if (!displaySrc) {
-      setDisplaySrc(persistedLogo);
+      try {
+        localStorage.setItem(STORAGE_KEY, pic);
+      } catch {
+        //empty
+      }
     }
-  }, [orgInfo, persistedLogo]);
+  }, [orgInfo]);
 
-  // Effect: set loading state when displaySrc changes
+  // Trigger skeleton overlay while image loads
   useEffect(() => {
     if (displaySrc) {
-      setIsImageLoading(true);
-      setImgError(false);
+      setIsLoadingImage(true);
+      setHasError(false);
     }
   }, [displaySrc]);
 
-  // Effect: cache new logo
-  useEffect(() => {
-    const pic = orgInfo?.grp_image;
-    if (pic && activeGroupId) {
-      try {
-        localStorage.setItem(`${STORAGE_KEY_PREFIX}_${activeGroupId}`, pic);
-        setPersistedLogo(pic);
-      } catch {
-        // empty for now
-      }
-    }
-  }, [orgInfo, activeGroupId]);
-
-  // Pure JS logic
-  const profilePic = orgInfo?.grp_image || null;
-  const title = orgInfo?.grp_title || 'Group logo';
-  const isAirqoGroup = title.trim().toLowerCase() === 'airqo';
-
-  const defaultW = 80;
-  const defaultH = 80;
-  const wrapperStyle = {
+  const isFetching = fetchingGroup || fetchingProfile;
+  const containerStyle = {
     position: 'relative',
-    width: width || defaultW,
-    height: height || defaultH,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     ...style,
   };
 
-  const isDataLoading = fetchingGroup || fetchingProfile;
+  const renderSkeleton = () => (
+    <div
+      className={`${className} animate-pulse bg-gray-200 rounded`}
+      style={containerStyle}
+    />
+  );
 
-  // Render logic
-  if (isAirqoGroup) {
-    return (
-      <div className={className} style={wrapperStyle}>
-        <AirqoLogo width={width || defaultW} height={height || defaultH} />
-      </div>
-    );
-  }
+  const renderFallback = () => (
+    <div className={className} style={containerStyle}>
+      <AirqoLogo />
+    </div>
+  );
 
-  if ((!profilePic && !persistedLogo) || imgError) {
-    return (
-      <div className={className} style={wrapperStyle}>
-        <AirqoLogo width={width || defaultW} height={height || defaultH} />
-      </div>
-    );
-  }
-
-  if (isDataLoading && !persistedLogo) {
-    return (
-      <div
-        className={`${className} animate-pulse bg-gray-200 rounded`}
-        style={wrapperStyle}
-      />
-    );
-  }
+  if (!activeGroupId || hasError) return renderFallback();
+  if (isFetching && !displaySrc) return renderSkeleton();
 
   if (displaySrc) {
     return (
-      <div className={className} style={wrapperStyle}>
-        {isImageLoading && (
-          <div className="absolute inset-0 z-10 animate-pulse bg-gray-200 rounded" />
-        )}
-        <div className="relative w-full h-full">
+      <div className={className} style={containerStyle}>
+        {isLoadingImage && renderSkeleton()}
+        <div style={{ position: 'relative', width: '50px', height: '50px' }}>
           <Image
+            key={displaySrc}
             src={displaySrc}
-            alt={title}
+            alt={orgInfo?.grp_title || 'Group logo'}
             fill
-            sizes={`${typeof width === 'number' ? width : defaultW}px`}
-            quality={90}
-            priority
-            className="object-contain"
-            onLoadingComplete={() => setIsImageLoading(false)}
+            onLoadingComplete={() => setIsLoadingImage(false)}
             onError={() => {
-              setImgError(true);
-              setIsImageLoading(false);
-              try {
-                localStorage.removeItem(
-                  `${STORAGE_KEY_PREFIX}_${activeGroupId}`,
-                );
-                setPersistedLogo(null);
-              } catch {
-                // empty for now
-              }
+              setHasError(true);
+              setIsLoadingImage(false);
             }}
+            className="object-contain w-full h-full"
           />
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={className} style={wrapperStyle}>
-      <AirqoLogo width={width || defaultW} height={height || defaultH} />
-    </div>
-  );
+  return renderFallback();
 };
 
 GroupLogo.propTypes = {
   className: PropTypes.string,
   style: PropTypes.object,
-  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-};
-
-GroupLogo.defaultProps = {
-  className: '',
-  style: {},
 };
 
 export default GroupLogo;
