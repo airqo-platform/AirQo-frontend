@@ -21,22 +21,28 @@ const TrendIndicator = memo(({ trendData }) => {
           className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
           aria-label="No trend data available"
         >
-          <FiArrowDown className="w-4 h-4 text-gray-400 dark:text-white" />
+          <FiArrowDown className="w-4 h-4 text-gray-400 dark:text-gray-300" />
         </div>
       </Tooltip>
     );
   }
+
   const { trendTooltip, isIncreasing } = trendData;
   const TrendIcon = isIncreasing ? FiArrowUp : FiArrowDown;
-  const bgColor = isIncreasing ? 'bg-gray-100' : 'bg-blue-100';
-  const textColor = isIncreasing ? 'text-gray-400' : 'text-blue-500';
+
+  // Worsened (increasing) = red theme, Improved = green theme
+  const bgColor = isIncreasing
+    ? 'bg-gray-100 dark:bg-gray-100/10'
+    : 'bg-primary/10';
+  const iconColor = isIncreasing ? 'text-gray-500' : 'text-primary';
+
   return (
     <Tooltip content={trendTooltip} placement="top" className="w-64">
       <div
-        className={`w-8 h-8 flex items-center justify-center rounded-full ${bgColor} dark:bg-gray-700`}
+        className={`w-8 h-8 flex items-center justify-center rounded-full ${bgColor}`}
         aria-label={trendTooltip}
       >
-        <TrendIcon className={`w-4 h-4 ${textColor} dark:text-white`} />
+        <TrendIcon className={`w-4 h-4 ${iconColor}`} />
       </div>
     </Tooltip>
   );
@@ -193,9 +199,9 @@ const AddLocationCard = memo(({ onOpenModal }) => {
   return (
     <Card
       bordered={true}
-      borderColor="border-blue-400 dark:border-blue-400"
+      borderColor="border-primary/50 dark:border-primary/80"
       height={CARD_HEIGHT}
-      background="bg-blue-50 dark:bg-gray-800"
+      background="bg-primary/10 dark:bg-primary/20"
       onClick={handleClick}
       role="button"
       tabIndex={0}
@@ -203,7 +209,7 @@ const AddLocationCard = memo(({ onOpenModal }) => {
       className="border-dashed border-2 flex justify-center items-center transition-transform transform hover:scale-95 cursor-pointer"
       padding="p-6"
     >
-      <span className="font-medium text-blue-500 dark:text-white">
+      <span className="font-medium text-primary dark:text-primary/80">
         + Add Location
       </span>
     </Card>

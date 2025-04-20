@@ -106,7 +106,7 @@ const Index = () => {
             <div className="mt-10">
               <button
                 style={{ textTransform: 'none' }}
-                className="w-full btn rounded-[12px] bg-blue-900 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
+                className="w-full btn rounded-[12px] bg-blue-600 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
                 type="submit"
                 disabled={loading}
               >

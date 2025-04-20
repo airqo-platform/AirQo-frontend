@@ -2,8 +2,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
-import CustomDropdown from '@/components/Button/CustomDropdown';
 import Spinner from '@/components/Spinner';
+import Button from '@/components/Button';
 
 export const MESSAGE_TYPES = {
   ERROR: 'error',
@@ -62,9 +62,9 @@ const EnhancedFooter = ({
       [MESSAGE_TYPES.ERROR]: 'text-red-600',
       [MESSAGE_TYPES.WARNING]: 'text-amber-600',
       [MESSAGE_TYPES.SUCCESS]: 'text-green-600',
-      [MESSAGE_TYPES.INFO]: 'text-blue-600',
+      [MESSAGE_TYPES.INFO]: 'text-primary',
     };
-    return styleMap[messageType] || 'text-blue-600';
+    return styleMap[messageType] || 'text-primary';
   }, [messageType]);
 
   // Determine if clear button should be shown
@@ -72,39 +72,6 @@ const EnhancedFooter = ({
     // Only show if we have items selected AND more than the minimum required
     return selectedItems.length > minimumSelection && handleClearSelection;
   }, [selectedItems.length, handleClearSelection, minimumSelection]);
-
-  // Framer Motion button variants
-  const buttonVariants = {
-    idle: { scale: 1 },
-    hover: { scale: 1.03 },
-    tap: { scale: 0.98 },
-    disabled: { opacity: 0.7 },
-  };
-
-  // Inline style objects for each button, now with a border radius corresponding to rounded-xl (≈ 0.75rem)
-  const clearButtonStyle = {
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    transition:
-      'background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out',
-  };
-
-  const cancelButtonStyle = {
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    transition:
-      'background-color 0.15s ease-in-out, color 0.15s ease-in-out, border-color 0.15s ease-in-out',
-  };
-
-  const submitButtonStyle = {
-    padding: '0.5rem 1rem',
-    border: 'none',
-    fontSize: '0.875rem',
-    borderRadius: '0.75rem',
-    backgroundColor: '#2563eb',
-    color: '#FFFFFF',
-    transition: 'background-color 0.15s ease-in-out',
-  };
 
   return (
     <div className="sticky bottom-0 left-0 right-0 bg-background border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between shadow-lg z-10">
@@ -141,73 +108,34 @@ const EnhancedFooter = ({
       {/* Action buttons */}
       <div className="flex w-full md:w-auto gap-2 justify-end">
         {/* Clear Button (conditionally rendered) */}
-        <AnimatePresence>
-          {showClearButton && (
-            <motion.div
-              variants={buttonVariants}
-              initial="idle"
-              animate="idle"
-              whileHover={!loading ? 'hover' : 'disabled'}
-              whileTap={!loading ? 'tap' : 'disabled'}
-              exit={{ opacity: 0, width: 0, padding: 0, margin: 0 }}
-            >
-              <CustomDropdown
-                isButton={true}
-                text="Clear"
-                buttonClassName="dark:text-white"
-                buttonStyle={clearButtonStyle}
-                onClick={handleClearSelection}
-                disabled={loading}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {showClearButton && (
+          <Button
+            onClick={handleClearSelection}
+            variant="outlined"
+            disabled={loading}
+          >
+            Clear
+          </Button>
+        )}
 
         {/* Cancel Button */}
-        <motion.div
-          variants={buttonVariants}
-          initial="idle"
-          animate="idle"
-          whileHover={!loading ? 'hover' : 'disabled'}
-          whileTap={!loading ? 'tap' : 'disabled'}
-        >
-          <CustomDropdown
-            isButton={true}
-            text="Cancel"
-            buttonClassName="dark:text-white"
-            buttonStyle={cancelButtonStyle}
-            onClick={onClose}
-            disabled={loading}
-          />
-        </motion.div>
+        <Button onClick={onClose} variant="outlined" disabled={loading}>
+          Cancel
+        </Button>
 
         {/* Submit Button */}
-        <motion.div
-          variants={buttonVariants}
-          initial="idle"
-          animate={disabled || loading ? 'disabled' : 'idle'}
-          whileHover={!disabled && !loading ? 'hover' : 'disabled'}
-          whileTap={!disabled && !loading ? 'tap' : 'disabled'}
-        >
-          <CustomDropdown
-            isButton={true}
-            text={
-              loading ? (
-                <span className="flex items-center justify-center">
-                  <span className="mr-2">
-                    <Spinner width={12} height={12} />
-                  </span>
-                  {btnText}
-                </span>
-              ) : (
-                btnText
-              )
-            }
-            buttonStyle={submitButtonStyle}
-            onClick={handleSubmit}
-            disabled={disabled || loading}
-          />
-        </motion.div>
+        <Button onClick={handleSubmit} disabled={disabled || loading}>
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <span className="mr-2">
+                <Spinner width={12} height={12} />
+              </span>
+              {btnText}
+            </span>
+          ) : (
+            btnText
+          )}
+        </Button>
       </div>
     </div>
   );

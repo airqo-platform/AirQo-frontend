@@ -9,7 +9,7 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
-import OrganizationDropdown from '../Dropdowns/OrganizationDropdown';
+import OrganizationDropdown from './OrganizationDropdown';
 import { checkAccess } from '@/core/utils/protectedRoute';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';

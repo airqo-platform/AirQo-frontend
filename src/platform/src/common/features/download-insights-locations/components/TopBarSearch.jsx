@@ -4,6 +4,10 @@ import SearchIcon from '@/icons/Common/search_md.svg';
 import CloseIcon from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 
+/**
+ * TopBarSearch - A search input with fuzzy-matching powered by Fuse.js
+ * Uses primary theme color for borders, icons, and focus states.
+ */
 const TopBarSearch = React.memo(
   ({
     data,
@@ -25,7 +29,7 @@ const TopBarSearch = React.memo(
     const fuseRef = useRef(null);
 
     useEffect(() => {
-      if (data && data.length > 0) {
+      if (data?.length) {
         fuseRef.current = new Fuse(data, fuseOptions);
       }
     }, [data, fuseOptions]);
@@ -34,20 +38,17 @@ const TopBarSearch = React.memo(
       if (focus && inputRef.current) {
         inputRef.current.focus();
       }
-      return () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-      };
+      return () => clearTimeout(debounceRef.current);
     }, [focus]);
 
     const handleSearch = useCallback(
-      (event) => {
-        const value = event.target.value;
-        setSearchTerm(value);
-        if (debounceRef.current) clearTimeout(debounceRef.current);
+      (e) => {
+        const val = e.target.value;
+        setSearchTerm(val);
+        clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
-          if (value.trim() && fuseRef.current) {
-            const results = fuseRef.current.search(value);
-            onSearch(results);
+          if (val.trim() && fuseRef.current) {
+            onSearch(fuseRef.current.search(val));
           } else {
             onSearch([]);
           }
@@ -63,28 +64,35 @@ const TopBarSearch = React.memo(
 
     return (
       <div
-        className={`relative flex w-full ${customWidth} bg-transparent items-center justify-center ${className}`}
+        className={`relative flex w-full ${customWidth} items-center ${className}`}
       >
-        {/* Search Icon Container */}
-        <div className="absolute left-0 flex items-center justify-center pl-3 dark:bg-transparent border h-9 rounded-xl rounded-r-none border-r-0 border-input-light-outline dark:border-gray-700 focus:border-input-light-outline">
-          <SearchIcon />
-        </div>
+        {/* Floating Search Icon */}
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+
         {/* Input Field */}
         <input
           ref={inputRef}
+          type="text"
           placeholder={placeholder}
-          className="input pl-9 text-sm text-secondary-neutral-light-800 dark:text-white w-full h-9 ml-0 rounded-xl dark:bg-transparent border-input-light-outline dark:border-gray-700 focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500"
           value={searchTerm}
           onChange={handleSearch}
+          className={
+            `w-full h-9 text-sm rounded-xl border border-primary ` +
+            `pl-12 pr-10 text-primary dark:text-white bg-transparent ` +
+            `focus:border-primary focus:ring-2 focus:ring-primary outline-none`
+          }
         />
-        {/* Clear Icon */}
+
+        {/* Clear Button */}
         {searchTerm && (
-          <span
-            className="absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer dark:text-white"
+          <button
+            type="button"
             onClick={clearSearch}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 p-1 rounded-full text-primary hover:bg-primary/10 focus:outline-none"
           >
-            <CloseIcon />
-          </span>
+            <CloseIcon className="w-full h-full" />
+          </button>
         )}
       </div>
     );
@@ -94,15 +102,15 @@ const TopBarSearch = React.memo(
 TopBarSearch.displayName = 'TopBarSearch';
 
 TopBarSearch.propTypes = {
-  customWidth: PropTypes.string,
   data: PropTypes.array,
-  onSearch: PropTypes.func,
+  onSearch: PropTypes.func.isRequired,
   onClearSearch: PropTypes.func,
   focus: PropTypes.bool,
   placeholder: PropTypes.string,
   className: PropTypes.string,
   debounceTime: PropTypes.number,
   fuseOptions: PropTypes.object,
+  customWidth: PropTypes.string,
 };
 
 export default TopBarSearch;

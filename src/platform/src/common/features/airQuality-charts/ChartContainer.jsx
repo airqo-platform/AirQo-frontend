@@ -19,7 +19,6 @@ import useOutsideClick from '@/core/hooks/useOutsideClick';
 import StandardsMenu from './components/StandardsMenu';
 import Card from '@/components/CardWrapper';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
-
 import Spinner from '@/components/Spinner';
 
 const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];
@@ -41,6 +40,7 @@ const ChartContainer = ({
 }) => {
   const dispatch = useDispatch();
   const chartRef = useRef(null);
+  const chartContentRef = useRef(null);
   const dropdownRef = useRef(null);
   const refreshTimerRef = useRef(null);
 
@@ -60,13 +60,14 @@ const ChartContainer = ({
   const [showSkeleton, setShowSkeleton] = useState(chartLoading);
   const [isManualRefresh, setIsManualRefresh] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [exportError, setExportError] = useState(null);
 
   useOutsideClick(dropdownRef, () => {
     dropdownRef.current?.classList.remove('show');
     setDownloadComplete(null);
   });
 
-  // Handle skeleton visibility based on loading state.
+  // Handle skeleton visibility based on loading state
   useEffect(() => {
     let timer;
     if (!chartLoading) {
@@ -77,7 +78,7 @@ const ChartContainer = ({
     return () => timer && clearTimeout(timer);
   }, [chartLoading]);
 
-  // Handle refresh indicator state.
+  // Handle refresh indicator state
   useEffect(() => {
     let timer;
     if (!isManualRefresh) return;
@@ -92,46 +93,96 @@ const ChartContainer = ({
     return () => timer && clearTimeout(timer);
   }, [isValidating, chartLoading, isRefreshing, isManualRefresh]);
 
-  // Cleanup timer on unmount.
+  // Cleanup timer on unmount
   useEffect(() => {
     return () =>
       refreshTimerRef.current && clearTimeout(refreshTimerRef.current);
   }, []);
 
-  // Export chart with canvas background matching theme.
+  // Improved export chart function
   const exportChart = useCallback(
     async (format) => {
-      if (!chartRef.current || !EXPORT_FORMATS.includes(format)) return;
+      if (!chartContentRef.current || !EXPORT_FORMATS.includes(format)) return;
+
       setDownloadComplete(null);
       setLoadingFormat(format);
+      setExportError(null);
 
       try {
-        const canvas = await html2canvas(chartRef.current, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: isDark ? '#1F2937' : '#FFFFFF', // match theme background
-        });
+        // Wait a tick to ensure chart rendering is complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
+        // Set up improved html2canvas options
+        const options = {
+          scale: 2, // Higher scale for better quality
+          useCORS: true,
+          logging: false,
+          backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+          allowTaint: true,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: document.documentElement.offsetWidth,
+          windowHeight: document.documentElement.offsetHeight,
+          width: chartContentRef.current.offsetWidth,
+          height: chartContentRef.current.offsetHeight,
+        };
+
+        // Apply a temporary class to enhance export visibility
+        chartContentRef.current.classList.add('exporting');
+
+        // Convert chart to canvas
+        const canvas = await html2canvas(chartContentRef.current, options);
+
+        // Remove temporary class
+        chartContentRef.current.classList.remove('exporting');
+
+        // Process export based on format
         if (format === 'pdf') {
-          const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'px',
-            format: [canvas.width, canvas.height],
-          });
+          // For PDF, we need to maintain aspect ratio
+          const imgWidth = 210;
+          const pageHeight = 297;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          let heightLeft = imgHeight;
+          let position = 0;
+
+          const pdf = new jsPDF('p', 'mm', 'a4');
           pdf.addImage(
-            canvas.toDataURL('image/png', 0.8),
+            canvas.toDataURL('image/png', 1.0),
             'PNG',
             0,
-            0,
-            canvas.width,
-            canvas.height,
+            position,
+            imgWidth,
+            imgHeight,
           );
-          pdf.save('airquality-data.pdf');
+
+          // For multi-page handling if needed
+          heightLeft -= pageHeight;
+          while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(
+              canvas.toDataURL('image/png', 1.0),
+              'PNG',
+              0,
+              position,
+              imgWidth,
+              imgHeight,
+            );
+            heightLeft -= pageHeight;
+          }
+
+          pdf.save(
+            `air-quality-chart-${new Date().toISOString().slice(0, 10)}.pdf`,
+          );
         } else {
+          // For PNG/JPG, create download link
           const link = document.createElement('a');
-          link.href = canvas.toDataURL(`image/${format}`, 0.8);
-          link.download = `airquality-data.${format}`;
+          const quality = format === 'jpg' ? 0.95 : 1.0;
+          link.href = canvas.toDataURL(`image/${format}`, quality);
+          link.download = `air-quality-chart-${new Date().toISOString().slice(0, 10)}.${format}`;
+          document.body.appendChild(link);
           link.click();
+          document.body.removeChild(link);
         }
 
         setDownloadComplete(format);
@@ -141,6 +192,7 @@ const ChartContainer = ({
         });
       } catch (error) {
         console.error('Error exporting chart:', error);
+        setExportError(error.message || 'Export failed');
         CustomToast({
           message: `Failed to export chart as ${format.toUpperCase()}.`,
           type: 'error',
@@ -152,19 +204,23 @@ const ChartContainer = ({
     [isDark],
   );
 
-  // Refresh chart data.
+  // Refresh chart data
   const handleRefreshChart = useCallback(() => {
     setIsManualRefresh(true);
     setIsRefreshing(true);
     refetch();
+
+    // Cleanup any existing timer
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+
+    // Set timeout for auto-resetting refresh state
     refreshTimerRef.current = setTimeout(() => {
       setIsRefreshing(false);
       setIsManualRefresh(false);
     }, REFRESH_TIMEOUT);
   }, [refetch]);
 
-  // Open modal for additional insights.
+  // Open modal for additional insights
   const handleOpenModal = useCallback(() => {
     dispatch(
       setModalType({ type: 'inSights', ids: [], data: userSelectedSites }),
@@ -172,7 +228,7 @@ const ChartContainer = ({
     dispatch(setOpenModal(true));
   }, [dispatch, userSelectedSites]);
 
-  // Dropdown menu content with dark mode support.
+  // Dropdown menu content with dark mode support
   const renderDropdownContent = useMemo(
     () => (
       <>
@@ -248,7 +304,7 @@ const ChartContainer = ({
     () =>
       isManualRefresh &&
       isRefreshing && (
-        <div className="absolute top-12 right-4 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
+        <div className="absolute top-12 left-4 bg-blue-50 text-primary px-3 py-1.5 rounded-md flex items-center z-20 shadow-sm">
           <Spinner width={12} height={12} />
           <span className="text-sm font-medium ml-2">Refreshing data</span>
         </div>
@@ -256,7 +312,7 @@ const ChartContainer = ({
     [isManualRefresh, isRefreshing],
   );
 
-  // Error Overlay if no sites to display.
+  // Error Overlay if no sites to display
   const ErrorOverlay = useMemo(() => {
     if (!error || chartSites.length > 0) return null;
     return (
@@ -300,7 +356,7 @@ const ChartContainer = ({
           </p>
           <button
             onClick={refetch}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            className="px-4 py-2 bg-primary text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
           >
             Try Again
           </button>
@@ -309,7 +365,7 @@ const ChartContainer = ({
     );
   }, [error, chartSites.length, refetch, isDark]);
 
-  // Optional card header.
+  // Optional card header
   const cardHeader = useMemo(() => {
     if (!showTitle) return null;
     return (
@@ -339,26 +395,35 @@ const ChartContainer = ({
     );
   }, [showTitle, chartTitle, renderDropdownContent, isDark]);
 
-  // Main chart content with overlay for skeleton or error.
+  // Main chart content with overlay for skeleton or error
   const chartContent = useMemo(
     () => (
-      <div className="relative" style={{ width, height }}>
+      <div
+        className="relative export-chart-container"
+        style={{ width, height }}
+      >
         {ErrorOverlay}
         {showSkeleton ? (
           <SkeletonLoader width={width} height={height} />
         ) : (
-          <MoreInsightsChart
-            data={data}
-            selectedSites={chartSites}
-            chartType={chartType}
-            frequency={timeFrame}
-            width="100%"
-            height={height}
-            id={id}
-            pollutantType={pollutionType}
-            refreshChart={handleRefreshChart}
-            isRefreshing={isRefreshing}
-          />
+          <div
+            ref={chartContentRef}
+            className="w-full h-full chart-content"
+            style={{ padding: '4px 4px 16px 4px' }}
+          >
+            <MoreInsightsChart
+              data={data}
+              selectedSites={chartSites}
+              chartType={chartType}
+              frequency={timeFrame}
+              id={id}
+              pollutantType={pollutionType}
+              refreshChart={handleRefreshChart}
+              isRefreshing={isRefreshing}
+              width="100%"
+              height="100%"
+            />
+          </div>
         )}
       </div>
     ),
@@ -378,26 +443,58 @@ const ChartContainer = ({
     ],
   );
 
+  // Add CSS styles to help with export
+  useEffect(() => {
+    const styleTag = document.createElement('style');
+    styleTag.innerHTML = `
+      .export-chart-container {
+        position: relative;
+        overflow: visible !important;
+      }
+      .chart-content {
+        transform-origin: top left;
+      }
+      .chart-content.exporting {
+        overflow: visible !important;
+        height: auto !important;
+      }
+      .chart-content.exporting .recharts-wrapper,
+      .chart-content.exporting .recharts-surface {
+        overflow: visible !important;
+      }
+    `;
+    document.head.appendChild(styleTag);
+
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, []);
+
   return (
-    <div className="relative" id={id}>
+    <div className="relative" id={id} ref={chartRef}>
       {RefreshIndicator}
       <Card
         header={cardHeader}
         padding="p-0"
         width="w-full"
         overflow={false}
-        className={`relative overflow-hidden ${
+        className={`relative ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}
-        contentClassName="p-0"
+        contentClassName="p-0 m-0"
         headerProps={{
           className: 'pt-4 pb-2 px-6 flex items-center justify-between',
         }}
       >
-        <div ref={chartRef} className="p-4 pt-0">
-          {chartContent}
-        </div>
+        <div className="px-4 pb-2 pt-0 chart-container">{chartContent}</div>
       </Card>
+
+      {/* Export error message if any */}
+      {exportError && (
+        <div className="absolute bottom-2 right-2 bg-red-100 text-red-700 px-3 py-1 rounded text-sm">
+          {exportError}
+        </div>
+      )}
     </div>
   );
 };

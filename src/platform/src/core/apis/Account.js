@@ -101,6 +101,12 @@ export const patchUserPreferencesApi = (data) =>
     .patch(`${USER_PREFERENCES_URL}/replace`, data)
     .then((response) => response.data);
 
+export const recentUserPreferencesAPI = (identifier) => {
+  return api
+    .get(`${USER_PREFERENCES_URL}/recent/${identifier}`)
+    .then((response) => response.data);
+};
+
 // User Checklists
 export const getUserChecklists = (userID) =>
   api.get(`${USER_CHECKLISTS_URL}/${userID}`).then((response) => response.data);

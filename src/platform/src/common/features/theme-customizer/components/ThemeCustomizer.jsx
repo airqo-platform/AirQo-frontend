@@ -4,34 +4,35 @@ import React, { memo } from 'react';
 import { FaCog } from 'react-icons/fa';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeSheet } from './ThemeSheet';
+import { usePathname } from 'next/navigation';
 
 export const ThemeCustomizer = memo(() => {
   const { openThemeSheet } = useTheme();
+  const pathname = usePathname();
+
+  // Hide on any /account* route
+  if (pathname?.startsWith('/account')) {
+    return null;
+  }
 
   return (
     <>
-      {/* Theme Toggle Button */}
       <button
         onClick={openThemeSheet}
         className="fixed right-0 top-1/2 transform -translate-y-1/2 
-          bg-blue-600 text-white p-3 
-          shadow-md hover:bg-blue-700 
+          bg-primary text-white p-3 
+          shadow-md hover:bg-primary/70 
           transition-all duration-300 z-50 
           flex items-center justify-center rounded-l-lg"
         aria-label="Open Theme Settings"
         type="button"
-        style={{
-          zIndex: 10000,
-        }}
+        style={{ zIndex: 10000 }}
       >
         <FaCog size={16} />
       </button>
-
-      {/* Theme Sheet */}
       <ThemeSheet />
     </>
   );
 });
 
-// Add display name for better debugging
 ThemeCustomizer.displayName = 'ThemeCustomizer';

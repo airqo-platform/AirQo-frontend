@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
-import PlayIcon from '@/images/Home/playIcon.svg';
+import PlayIcon from '@/images/Home/PlayIcon';
 import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
 import VideoModal from '@/features/video-players/Intro-video-modal';
 import Card from '@/components/CardWrapper';
@@ -94,18 +94,20 @@ const Home = () => {
               <div className="flex items-center space-x-4 mt-4">
                 <Button
                   path="/analytics"
-                  className="bg-blue-900 text-white rounded-lg w-32 h-12"
+                  className="w-32 h-12"
                   dataTestId="get-started-button"
                 >
                   Start here
                 </Button>
-                <button
+                <Button
+                  variant="text"
+                  padding="p-0 shadow-none"
                   onClick={handleModal}
-                  className="text-blue-600 text-sm font-normal hover:underline"
+                  className="text-primary text-sm font-normal hover:underline"
                   data-testid="show-video-button"
                 >
                   Show me how
-                </button>
+                </Button>
               </div>
             </div>
             <div
@@ -116,7 +118,7 @@ const Home = () => {
               data-testid="video-thumbnail"
             >
               <div className="absolute inset-0 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <PlayIcon />
+                <PlayIcon className="text-primary" />
               </div>
               <Image
                 src={AnalyticsImage}

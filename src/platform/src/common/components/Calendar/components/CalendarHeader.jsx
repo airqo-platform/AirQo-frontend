@@ -1,4 +1,3 @@
-// CalendarHeader.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
@@ -22,21 +21,23 @@ const CalendarHeader = ({
         <>
           <Button
             onClick={onPrev}
-            Icon={ShortLeftArrow}
             variant="outlined"
-            paddingStyles="p-2"
+            padding="p-2"
             aria-label="Previous Month"
-          />
+          >
+            <ShortLeftArrow />
+          </Button>
           <div className="text-sm text-gray-700 dark:text-gray-200 font-semibold">
             {month}
           </div>
           <Button
             onClick={onNext}
-            Icon={ShortRightArrow}
             variant="outlined"
-            paddingStyles="p-2"
+            padding="p-2"
             aria-label="Next Month"
-          />
+          >
+            <ShortRightArrow />
+          </Button>
         </>
       ) : (
         <div className="flex flex-col">
@@ -49,7 +50,7 @@ const CalendarHeader = ({
                   ? format(selectedRange.start, 'MMM d, yyyy')
                   : ''
               }
-              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none"
               placeholder="Start date"
               disabled
               aria-label="Start Date"
@@ -67,7 +68,7 @@ const CalendarHeader = ({
                   ? format(selectedRange.end, 'MMM d, yyyy')
                   : ''
               }
-              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none"
               placeholder="End date"
               disabled
               aria-label="End Date"

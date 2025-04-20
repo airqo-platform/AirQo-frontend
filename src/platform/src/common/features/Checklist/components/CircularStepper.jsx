@@ -1,5 +1,12 @@
 import React from 'react';
-const StepProgress = ({ step, totalSteps }) => {
+
+/**
+ * Circular progress indicator showing step/totalSteps.
+ * @param {number} step - Current completed steps.
+ * @param {number} totalSteps - Total number of steps.
+ * @param {string} color - Tailwind color token (e.g., 'primary', 'blue-500').
+ */
+const StepProgress = ({ step, totalSteps, color = 'primary' }) => {
   const radius = 45;
   const stroke = 10;
   const normalizedRadius = radius - stroke * 2;
@@ -7,10 +14,12 @@ const StepProgress = ({ step, totalSteps }) => {
   const strokeDashoffset = circumference - (step / totalSteps) * circumference;
 
   return (
-    <div className="flex items-center justify-end">
+    <div className={`flex items-center justify-end text-${color}`}>
+      {' '}
+      {/* sets currentColor */}
       <svg height={radius * 2} width={radius * 2}>
         <defs>
-          <mask id="round">
+          <mask id="progress-mask">
             <rect width="100%" height="100%" fill="#fff" />
             <circle
               cx={radius}
@@ -20,19 +29,23 @@ const StepProgress = ({ step, totalSteps }) => {
             />
           </mask>
         </defs>
+
+        {/* Background track */}
         <circle
-          stroke="#E1E7EC"
+          className="stroke-gray-200 dark:stroke-gray-700"
           fill="transparent"
           strokeWidth={stroke}
           r={normalizedRadius}
           cx={radius}
           cy={radius}
         />
+
+        {/* Progress indicator */}
         <circle
-          stroke="#145FFF"
+          className="stroke-current"
           fill="transparent"
           strokeWidth={stroke}
-          strokeDasharray={circumference + ' ' + circumference}
+          strokeDasharray={`${circumference} ${circumference}`}
           style={{
             strokeDashoffset,
             transform: 'rotate(-90deg)',
@@ -41,13 +54,15 @@ const StepProgress = ({ step, totalSteps }) => {
           r={normalizedRadius}
           cx={radius}
           cy={radius}
-          mask="url(#round)"
+          mask="url(#progress-mask)"
         />
+
+        {/* Center text */}
         <text
           x="50%"
           y="50%"
           textAnchor="middle"
-          fill="#536A87"
+          fill="currentColor"
           fontSize="18px"
           dy=".4em"
         >

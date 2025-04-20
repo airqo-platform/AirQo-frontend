@@ -9,8 +9,8 @@ import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
-import CustomDropdown from '@/components/Button/CustomDropdown';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import Button from '@/components/Button';
 
 /**
  * DataTable Props:
@@ -248,7 +248,7 @@ function DataTable({
           {onRetry && (
             <button
               onClick={() => onRetry(activeFilter.key)}
-              className="inline-flex items-center px-3 py-1.5 space-x-2 text-xs text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              className="inline-flex items-center px-3 py-1.5 space-x-2 text-xs text-white bg-primary rounded-md hover:bg-primary/70"
             >
               <MdRefresh size={16} />
               <span>Retry Loading</span>
@@ -276,7 +276,7 @@ function DataTable({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="inline-flex items-center px-4 py-2 space-x-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 space-x-2 text-sm text-white bg-primary rounded-md hover:bg-primary/70 focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <MdRefresh size={18} />
             <span>Try Again</span>
@@ -301,53 +301,15 @@ function DataTable({
         <div className="flex flex-wrap gap-2">
           {filters.map((filterDef) => {
             const isActive = activeFilter?.key === filterDef.key;
-            const hasError = !!filterErrors[filterDef.key];
-
-            const activeBgColor = '#2563eb';
-            const errorBgColor = '#dc2626';
-            const defaultBgColor = darkMode ? '' : '#fff';
-
-            const activeBorderColor = '#2563eb';
-            const errorBorderColor = '#fca5a5';
-            const defaultBorderColor = darkMode ? '#4b5563' : '#d1d5db';
-
-            const defaultTextColor = darkMode ? '#e5e7eb' : '#374151';
-            const errorTextColor = darkMode ? '#f87171' : '#b91c1c';
-
-            const buttonStyle = {
-              padding: '0.5rem 1rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              transition:
-                'background-color 0.3s, color 0.3s, border-color 0.3s',
-              position: 'relative',
-              backgroundColor: isActive
-                ? hasError
-                  ? errorBgColor
-                  : activeBgColor
-                : defaultBgColor,
-              color: isActive
-                ? '#ffffff'
-                : hasError
-                  ? errorTextColor
-                  : defaultTextColor,
-              borderColor: isActive
-                ? hasError
-                  ? errorBorderColor
-                  : activeBorderColor
-                : hasError
-                  ? errorBorderColor
-                  : defaultBorderColor,
-            };
 
             return (
-              <CustomDropdown
+              <Button
                 key={filterDef.key}
-                isButton={true}
-                text={filterDef.label}
-                buttonStyle={buttonStyle}
+                variant={isActive ? 'filled' : 'outlined'}
                 onClick={() => handleFilterChange(filterDef)}
-              />
+              >
+                {filterDef.label}
+              </Button>
             );
           })}
         </div>
@@ -409,7 +371,7 @@ function DataTable({
                     {indeterminate ? (
                       <button
                         type="button"
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
+                        className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
                         onClick={handleSelectAllChange}
                         aria-label="Select all items"
                       >
@@ -419,7 +381,7 @@ function DataTable({
                       <input
                         id="checkbox-all-search"
                         type="checkbox"
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
                         checked={selectAll}
                         onChange={handleSelectAllChange}
                         aria-label="Select all items"
@@ -458,7 +420,7 @@ function DataTable({
                       <div className="flex items-center">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary/50"
                           checked={isSelected}
                           onChange={() => handleRowToggle(item)}
                         />
@@ -499,35 +461,25 @@ function DataTable({
 
       {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div className="flex justify-end items-center mt-2">
-          <button
+        <div className="flex justify-end items-center gap-2 mt-2">
+          <Button
+            variant="outlined"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             aria-label="Previous page"
-            className={`mr-2 w-8 h-8 flex items-center justify-center rounded-md border ${
-              darkMode ? 'border-gray-700' : 'border-gray-200'
-            } ${
-              currentPage === 1
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            padding="p-2"
           >
             <ShortLeftArrow />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outlined"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             aria-label="Next page"
-            className={`w-8 h-8 flex items-center justify-center rounded-md border ${
-              darkMode ? 'border-gray-700' : 'border-gray-200'
-            } ${
-              currentPage === totalPages
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            padding="p-2"
           >
             <ShortRightArrow />
-          </button>
+          </Button>
         </div>
       )}
     </div>

@@ -19,23 +19,14 @@ const EmptyState = () => (
         </p>
       </div>
       <div className="flex justify-center items-center mt-6">
-        <Button
-          className={
-            'rounded-none text-white bg-blue-900 border border-blue-900 hover:bg-dark-blue hover:border-dark-blue font-medium'
-          }
-          path="/collocation/add_monitor"
-        >
+        <Button path="/collocation/add_monitor">
           <div className="mr-[10px]">
             <BoxedAddIcon />
           </div>
           Add monitors
         </Button>
         <div className="mr-[14px]"></div>
-        <Button
-          className={
-            'bg-white text-black-600 border border-black-600 opacity-30 hover:cursor-not-allowed font-medium'
-          }
-        >
+        <Button disabled>
           <div className="mr-[10px]">
             <UploadIcon />
           </div>

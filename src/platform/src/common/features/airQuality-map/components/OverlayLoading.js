@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 import Logo from '@/icons/airqo_logo.svg';
 
-const LoadingOverlay = ({ showOverlay }) => {
+const OverlayLoading = ({ showOverlay }) => {
   if (!showOverlay) return null;
 
   return (
@@ -26,4 +26,4 @@ const LoadingOverlay = ({ showOverlay }) => {
   );
 };
 
-export default LoadingOverlay;
+export default OverlayLoading;

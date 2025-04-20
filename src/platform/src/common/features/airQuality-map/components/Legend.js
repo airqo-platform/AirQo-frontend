@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
-import tippy from 'tippy.js';
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/animations/scale.css';
-import 'tippy.js/animations/scale-subtle.css';
-import 'tippy.js/animations/scale-extreme.css';
-import 'tippy.js/themes/light.css';
+import { Tooltip } from 'flowbite-react';
+import { useWindowSize } from '@/lib/windowSize';
 
 // Icons
 import GoodAir from '@/icons/Charts/GoodAir';
@@ -16,7 +12,7 @@ import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
 import Hazardous from '@/icons/Charts/Hazardous';
 import UpArrow from '@/icons/map/upArrow';
 import DownArrow from '@/icons/map/downArrow';
-import { useWindowSize } from '@/lib/windowSize';
+
 // Import Card wrapper component
 import Card from '@/components/CardWrapper';
 
@@ -24,52 +20,27 @@ const AirQualityLegend = ({ pollutant }) => {
   const [show, setShow] = useState(true);
   const { width } = useWindowSize();
   const size = width < 1024 ? 30 : 40;
-  const legendButtonsRef = useRef([]);
   const contentRef = useRef(null);
   const [contentHeight, setContentHeight] = useState('auto');
 
-  // Listen to window resize and conditionally show the legend (optional additional logic)
+  // Listen to window resize and conditionally show the legend
   useEffect(() => {
     const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        setShow(window.innerWidth > 768);
-      }
+      setShow(window.innerWidth > 768);
     };
 
     window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Measure the content height whenever the legend or its contents change
+  // Update content height whenever legend or its contents change
   useEffect(() => {
     if (contentRef.current) {
-      // When expanded, set to scrollHeight; when collapsed, set to 0.
       setContentHeight(show ? `${contentRef.current.scrollHeight}px` : '0px');
     }
   }, [show, size, pollutant]);
 
-  // Initialize tooltips using tippy.js with updated configuration to allow HTML
-  useEffect(() => {
-    legendButtonsRef.current.forEach((button) => {
-      if (button) {
-        tippy(button, {
-          // Replace newline characters with <br/> for proper formatting
-          content: button
-            .getAttribute('data-tippy-content')
-            .replace(/\n/g, '<br/>'),
-          allowHTML: true,
-          theme: 'light',
-          placement: 'right',
-          animation: 'scale',
-          arrow: true,
-        });
-      }
-    });
-  }, [show, legendButtonsRef]);
-
-  // Memoize the pollutant levels based on pollutant and size
+  // Define pollutant levels with icons
   const pollutantLevels = useMemo(
     () => ({
       pm2_5: [
@@ -104,7 +75,7 @@ const AirQualityLegend = ({ pollutant }) => {
           icon: <Hazardous width={size} height={size} />,
         },
       ],
-      // Add similar levels for pm10 and no2...
+      // Additional pollutant levels can go here
     }),
     [size],
   );
@@ -125,26 +96,53 @@ const AirQualityLegend = ({ pollutant }) => {
       <button
         onClick={() => setShow((prev) => !prev)}
         className="rounded-full p-2 transition-transform duration-300"
-        aria-label="Air Quality Control"
+        aria-label="Toggle Air Quality Legend"
       >
         {show ? <DownArrow /> : <UpArrow />}
       </button>
-      {/* Container for the collapsible legend */}
+
       <div
         ref={contentRef}
         className="overflow-hidden transition-all duration-300 ease-in-out flex flex-col items-center gap-2"
         style={{ maxHeight: contentHeight }}
       >
-        {levels.map((level, index) => (
-          <button
-            key={index}
-            className="bg-transparent rounded-full"
-            aria-label={level.label}
-            data-tippy-content={`${level.label}\n${level.range}`}
-            ref={(el) => (legendButtonsRef.current[index] = el)}
+        {levels.map((level, idx) => (
+          <Tooltip
+            key={idx}
+            content={
+              <div className="text-center w-[250px] whitespace-normal">
+                <p className="font-medium text-sm md:text-base">
+                  {level.label}
+                </p>
+                <p className="text-xs md:text-sm">{level.range}</p>
+              </div>
+            }
+            placement="right"
+            style="light"
+            arrow={true}
+            animation="duration-300"
+            popperOptions={{
+              modifiers: [
+                { name: 'offset', options: { offset: [0, 16] } },
+                {
+                  name: 'preventOverflow',
+                  options: {
+                    padding: 8,
+                    boundary: 'viewport',
+                  },
+                },
+              ],
+            }}
+            className="w-auto"
+            contentClassName="w-auto min-w-[160px] max-w-xs px-4 py-2 break-words"
           >
-            {level.icon}
-          </button>
+            <button
+              className="bg-transparent rounded-full"
+              aria-label={level.label}
+            >
+              {level.icon}
+            </button>
+          </Tooltip>
         ))}
       </div>
     </Card>

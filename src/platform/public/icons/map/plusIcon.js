@@ -1,18 +1,20 @@
 import React from 'react';
 
-const plusIcon = ({ width, height, fill }) => {
+const plusIcon = ({ size = 24, strokeWidth = 2, className = '', ...props }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={width || '24'}
-      height={height || '24'}
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
+      className={className}
+      {...props}
       fill="none"
     >
       <path
         d="M12 5V19M5 12H19"
-        stroke={fill || '#536A87'}
-        strokeWidth="2"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

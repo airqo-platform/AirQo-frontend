@@ -2,7 +2,7 @@ import React from 'react';
 import Card from '@/components/CardWrapper';
 
 const SkeletonCard = () => (
-  <Card width="w-full" padding="py-4 px-3" contentClassName="space-y-4">
+  <Card width="w-full" padding="py-8 px-3" contentClassName="space-y-4">
     <div className="w-14 h-14 rounded-full bg-gray-200 animate-pulse" />
     <div className="space-y-2">
       <div className="w-3/4 h-5 bg-gray-200 rounded animate-pulse" />

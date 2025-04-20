@@ -21,7 +21,7 @@ const IndividualAccountCreationSuccess = () => {
         </div>
         <div className="mt-12">
           <Link href="/analytics">
-            <button className="w-full btn bg-blue-900 rounded-none text-sm outline-none border-none hover:bg-blue-950 px-12">
+            <button className="w-full btn bg-blue-600 rounded-none text-sm outline-none border-none hover:bg-blue-700 px-12">
               Let&apos;s get started
             </button>
           </Link>

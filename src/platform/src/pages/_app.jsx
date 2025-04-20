@@ -1,4 +1,4 @@
-import '@/styles/global.scss';
+import '../styles/globals.css';
 import { Provider } from 'react-redux';
 import { useEffect } from 'react';
 import { wrapper } from '@/lib/store';

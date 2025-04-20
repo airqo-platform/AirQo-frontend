@@ -1,19 +1,25 @@
 import React from 'react';
 
-const longArrowLeft = ({ className, fill, height, width }) => {
+const longArrowLeft = ({
+  size = 24,
+  strokeWidth = 1.5,
+  className = '',
+  ...props
+}) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={width || 24}
-      height={height || 24}
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       className={className}
+      {...props}
     >
       <path
         d="M20 12H4m0 0l6 6m-6-6l6-6"
-        stroke="#1C1D20"
-        strokeWidth={1.5}
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

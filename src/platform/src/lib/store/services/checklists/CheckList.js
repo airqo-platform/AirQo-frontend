@@ -8,146 +8,137 @@ const initialState = {
   lastUpdated: null,
 };
 
-// Fetch checklist data for a user
+// Fetch user checklist; initialize if none and refetch for _id
 export const fetchUserChecklists = createAsyncThunk(
   'checklists/fetchUserChecklists',
   async (userId, { rejectWithValue }) => {
     try {
-      if (!userId) return rejectWithValue('User ID is required');
+      if (!userId) throw new Error('User ID is required');
 
+      // Try fetching existing checklists
       const response = await getUserChecklists(userId);
-
       if (!response.success) {
         return rejectWithValue(
           response.message || 'Failed to fetch checklists',
         );
       }
 
-      if (response.checklists && response.checklists.length > 0) {
-        return response.checklists[0].items || [];
+      let items = [];
+      if (response.checklists?.length > 0) {
+        items = response.checklists[0].items || [];
+      } else {
+        // No existing: initialize four blank items
+        const initialItems = [1, 2, 3, 4].map(() => ({
+          title: '',
+          completed: false,
+          completionDate: '',
+          videoProgress: 0,
+          status: 'not started',
+        }));
+        // Upsert to create in DB
+        await upsertUserChecklists({ user_id: userId, items: initialItems });
+        // Refetch to retrieve generated _id
+        const newResp = await getUserChecklists(userId);
+        if (newResp.success && newResp.checklists?.length > 0) {
+          items = newResp.checklists[0].items || [];
+        } else {
+          items = initialItems;
+        }
       }
 
-      return [];
+      return items;
     } catch (error) {
-      console.error('Error fetching checklists:', error);
-      return rejectWithValue(
-        error.message || 'An error occurred fetching checklists',
-      );
+      console.error('Error in fetchUserChecklists:', error);
+      return rejectWithValue(error.message || 'Error fetching checklists');
     }
   },
 );
 
-// Update a checklist item
+// Update a single checklist item
 export const updateTaskProgress = createAsyncThunk(
   'checklists/updateTaskProgress',
   async (updateData, { getState, rejectWithValue }) => {
     try {
       const state = getState();
-      const { checklist } = state.cardChecklist;
+      const existing = state.cardChecklist.checklist;
 
-      // Get user ID from localStorage
-      let userId = null;
+      // Retrieve user ID
+      let userId;
       try {
-        const storedUser = localStorage.getItem('loggedUser');
-        if (storedUser && storedUser !== 'undefined') {
-          userId = JSON.parse(storedUser)._id;
-        }
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        return rejectWithValue('User ID not found');
+        const stored = localStorage.getItem('loggedUser');
+        const parsed =
+          stored && stored !== 'undefined' ? JSON.parse(stored) : null;
+        userId = parsed?._id;
+      } catch (err) {
+        console.error('Error parsing user ID:', err);
       }
-
       if (!userId) return rejectWithValue('User ID is required');
 
-      // Find item to update by _id
-      const itemIndex = checklist.findIndex(
-        (item) => item._id === updateData._id,
-      );
-      if (itemIndex === -1) return rejectWithValue('Checklist item not found');
+      // Find and update item
+      const index = existing.findIndex((item) => item._id === updateData._id);
+      if (index === -1) return rejectWithValue('Checklist item not found');
 
-      // Create updated copy of the checklist
-      const updatedChecklist = [...checklist];
+      const updatedList = [...existing];
+      updatedList[index] = { ...updatedList[index], ...updateData };
 
-      // Apply updates to the specific item
-      updatedChecklist[itemIndex] = {
-        ...updatedChecklist[itemIndex],
-        ...updateData,
-      };
-
-      // Always ensure status is set to inProgress if not completed
+      // Enforce status logic
       if (
-        !updatedChecklist[itemIndex].completed &&
-        updatedChecklist[itemIndex].status === 'not started'
+        !updatedList[index].completed &&
+        updatedList[index].status === 'not started'
       ) {
-        updatedChecklist[itemIndex].status = 'inProgress';
+        updatedList[index].status = 'inProgress';
       }
-
-      // If completing the item, ensure proper status
       if (updateData.completed) {
-        updatedChecklist[itemIndex].status = 'completed';
-        updatedChecklist[itemIndex].completionDate =
-          updatedChecklist[itemIndex].completionDate ||
-          new Date().toISOString();
+        updatedList[index].status = 'completed';
+        updatedList[index].completionDate =
+          updatedList[index].completionDate || new Date().toISOString();
       }
 
-      // Prepare the payload for API
-      const apiPayload = {
-        user_id: userId,
-        items: updatedChecklist,
-      };
-
-      // Send update to API
-      await upsertUserChecklists(apiPayload);
-
-      // Return updated checklist for Redux state
-      return updatedChecklist;
+      // Upsert full list
+      await upsertUserChecklists({ user_id: userId, items: updatedList });
+      return updatedList;
     } catch (error) {
-      console.error('Error updating checklist:', error);
+      console.error('Error in updateTaskProgress:', error);
       return rejectWithValue(error.message || 'Failed to update checklist');
     }
   },
 );
 
-// Redux slice definition
 export const checklistSlice = createSlice({
   name: 'cardChecklist',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Handle fetchUserChecklists
       .addCase(fetchUserChecklists.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(fetchUserChecklists.fulfilled, (state, action) => {
+      .addCase(fetchUserChecklists.fulfilled, (state, { payload }) => {
         state.status = 'succeeded';
-        state.checklist = action.payload;
-        state.lastUpdated = new Date().toISOString();
+        state.checklist = payload;
         state.error = null;
+        state.lastUpdated = new Date().toISOString();
       })
       .addCase(fetchUserChecklists.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || 'Failed to fetch checklists';
       })
-
-      // Handle updateTaskProgress
       .addCase(updateTaskProgress.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(updateTaskProgress.fulfilled, (state, action) => {
+      .addCase(updateTaskProgress.fulfilled, (state, { payload }) => {
         state.status = 'succeeded';
-        state.checklist = action.payload;
-        state.lastUpdated = new Date().toISOString();
+        state.checklist = payload;
         state.error = null;
+        state.lastUpdated = new Date().toISOString();
       })
       .addCase(updateTaskProgress.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Failed to update task progress';
+        state.error = action.payload || 'Failed to update checklist';
       });
   },
 });
 
-// Selectors
 export const selectAllChecklist = (state) => state.cardChecklist.checklist;
 export const selectChecklistStatus = (state) => state.cardChecklist.status;
 export const selectChecklistError = (state) => state.cardChecklist.error;

@@ -17,11 +17,12 @@ import CustomDropdown, {
 } from '@/components/Button/CustomDropdown';
 import PlusIcon from '@/icons/map/plusIcon';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import SettingsIcon from '@/icons/settings.svg';
+import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import Modal from '@/features/download-insights-locations';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import Button from '@/components/Button';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -224,18 +225,15 @@ const OverView = () => {
             />
 
             <CustomDropdown
-              text="Download Data"
-              icon={<DownloadIcon width={16} height={17} color="white" />}
-              iconPosition="left"
               isButton
-              onClick={() => handleOpenModal('download')}
-              buttonStyle={{
-                backgroundColor: '#2563EB',
-                color: 'white',
-                border: '1px solid #2563EB',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.75rem',
-              }}
+              trigger={
+                <Button
+                  onClick={() => handleOpenModal('download')}
+                  Icon={DownloadIcon}
+                >
+                  Download Data
+                </Button>
+              }
             />
           </div>
         </div>
