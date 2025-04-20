@@ -16,6 +16,7 @@ const DatePicker = ({
   initialValue = null,
   className = '',
   required = false,
+  mobileCollapse,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState(null);
@@ -205,6 +206,7 @@ const DatePicker = ({
           iconPosition="left"
           onClick={toggleOpen}
           isButton={true}
+          disableMobileCollapse={mobileCollapse}
           showArrowWithButton={true}
           buttonClassName={`w-full overflow-hidden bg-white px-4 py-2 ${requiredClass}`}
           className="w-full"

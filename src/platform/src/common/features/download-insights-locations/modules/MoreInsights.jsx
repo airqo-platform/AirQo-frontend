@@ -34,6 +34,8 @@ import InfoMessage from '@/components/Messages/InfoMessage';
 import SelectionMessage from '../components/SelectionMessage';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Button from '@/components/Button';
+import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
+import LineChartIcon from '@/icons/Charts/LineChartIcon';
 
 export const InSightsHeader = () => (
   <h3
@@ -411,7 +413,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="lg:hidden p-4">
+        <div className="lg:hidden px-4 pt-2">
           <button
             aria-label="Open sidebar"
             onClick={() => setMobileSidebarVisible(true)}
@@ -441,10 +443,6 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                   </div>
                   {renderSidebar()}
                 </motion.div>
-                <div
-                  className="flex-1 bg-black bg-opacity-50"
-                  onClick={() => setMobileSidebarVisible(false)}
-                />
               </motion.div>
             </>
           )}
@@ -452,7 +450,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 flex flex-col space-y-4 h-full">
+          <div className="px-4 sm:px-6 py-4 flex flex-col space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
             {/* Controls Bar */}
             <motion.div
               variants={variants.controls}
@@ -461,6 +459,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
               <div className="flex flex-wrap gap-2 items-center">
                 <CustomDropdown
                   dropdownWidth="150px"
+                  icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
                   text={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
                 >
                   {TIME_OPTIONS.map((opt) => (
@@ -484,6 +483,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
 
                 <CustomDropdown
                   dropdownWidth="150px"
+                  icon={window.innerWidth < 640 ? <LineChartIcon /> : undefined}
                   text={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
                 >
                   {CHART_TYPE.map((opt) => (
@@ -501,7 +501,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                   <button
                     onClick={handleManualRefresh}
                     disabled={isValidating}
-                    className="p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    className="p-1 md:p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                   >
                     {isValidating && isManualRefresh ? (
                       <RefreshIcon className="animate-spin" />
@@ -549,7 +549,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
             {/* Chart Container */}
             <motion.div
               variants={variants.item}
-              className="relative border dark:border-gray-700 rounded-xl p-2 overflow-hidden"
+              className="relative border dark:border-gray-700 rounded-xl p-2 h-full"
             >
               <AnimatePresence>
                 {refreshSuccess && !isValidating && (

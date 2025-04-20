@@ -475,10 +475,6 @@ const AddLocations = ({ onClose }) => {
                 </div>
                 <div className="px-2">{renderSidebarContent()}</div>
               </motion.div>
-              <div
-                className="flex-1 h-full bg-black bg-opacity-50"
-                onClick={() => setMobileSidebarVisible(false)}
-              />
             </motion.div>
           )}
         </AnimatePresence>

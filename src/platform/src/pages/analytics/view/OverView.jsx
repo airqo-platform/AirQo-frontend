@@ -22,6 +22,7 @@ import Modal from '@/features/download-insights-locations';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import Button from '@/components/Button';
+import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 
 const OverView = () => {
   const dispatch = useDispatch();
@@ -166,6 +167,7 @@ const OverView = () => {
           <div className="flex flex-wrap gap-2">
             {/* Time Frame Dropdown */}
             <CustomDropdown
+              icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
               text={<span className="capitalize">{chartData.timeFrame}</span>}
               dropdownWidth="150px"
             >
