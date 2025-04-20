@@ -1,18 +1,19 @@
 'use client';
 
-import React, { memo, useCallback, useContext } from 'react';
+import React, { memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaTimes,
   FaSun,
   FaMoon,
   FaDesktop,
-  FaBorderStyle,
+  FaTable,
+  FaBorderAll,
   FaPalette,
-  FaTh,
-  FaThLarge,
+  FaGripHorizontal,
+  FaColumns,
 } from 'react-icons/fa';
-import { ThemeContext } from '../context/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 import {
   THEME_MODES,
   THEME_SKINS,
@@ -23,7 +24,7 @@ const PRESET_COLORS = [
   '#145FFF', // original deep blue
   '#B8860B', // KCCA Uganda: dark goldenrod
   '#006400', // NEMA Uganda: dark green
-  '#2F4F4F', // NEMA Kenya: dark slate gray (instead of black)
+  '#2F4F4F', // NEMA Kenya: dark slate gray
   '#005757', // LASEPA Nigeria: dark teal
 ];
 
@@ -37,11 +38,9 @@ export const ThemeSheet = memo(() => {
     setPrimaryColor,
     layout,
     setLayout,
-    // semiDark,
-    // toggleSemiDark,
     isThemeSheetOpen,
     closeThemeSheet,
-  } = useContext(ThemeContext);
+  } = useTheme();
 
   const themeOptions = [
     { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
@@ -53,249 +52,230 @@ export const ThemeSheet = memo(() => {
     {
       value: THEME_SKINS.DEFAULT,
       label: 'Default',
-      description: 'Clean, subtle shadows',
+      description: 'Clean, minimal design',
+      icon: FaTable,
     },
     {
       value: THEME_SKINS.BORDERED,
       label: 'Bordered',
       description: 'Enhanced borders',
-      icon: FaBorderStyle,
+      icon: FaBorderAll,
     },
   ];
 
-  const onPrimaryPick = useCallback(
-    (e) => {
-      setPrimaryColor(e.target.value);
-    },
+  const handleColorChange = useCallback(
+    (e) => setPrimaryColor(e.target.value),
     [setPrimaryColor],
   );
 
+  if (!isThemeSheetOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isThemeSheetOpen && (
-        <div
-          className="fixed inset-0"
-          style={{
-            zIndex: 10000,
-          }}
+    <div className="fixed inset-0 z-[10000]">
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 bg-black/40 dark:bg-black/80"
+          onClick={closeThemeSheet}
+        />
+
+        <motion.div
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="fixed top-0 right-0 w-80 h-full bg-white dark:bg-neutral-900 shadow-lg overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="theme-sheet-title"
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 dark:bg-black/80"
-            onClick={closeThemeSheet}
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 right-0 w-80 h-full bg-white dark:bg-[#1d1f20] shadow-lg overflow-y-auto"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="theme-sheet-title"
-          >
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <header className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-                <h2
-                  id="theme-sheet-title"
-                  className="text-lg font-bold dark:text-white"
-                >
-                  Theme Settings
-                </h2>
-                <button
-                  onClick={closeThemeSheet}
-                  className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  aria-label="Close theme settings"
-                >
-                  <FaTimes
-                    className="text-gray-600 dark:text-gray-300"
-                    size={18}
-                  />
-                </button>
-              </header>
+          {/* Header */}
+          <header className="flex items-center justify-between p-4 border-b dark:border-neutral-800">
+            <h2
+              id="theme-sheet-title"
+              className="text-lg font-bold dark:text-white"
+            >
+              Theme Settings
+            </h2>
+            <button
+              onClick={closeThemeSheet}
+              className="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Close theme settings"
+            >
+              <FaTimes
+                className="text-neutral-600 dark:text-neutral-300"
+                size={18}
+              />
+            </button>
+          </header>
 
-              <div className="flex-1 p-4 space-y-6">
-                {/* Primary Color (now at top) */}
-                <section className="space-y-2">
-                  <h3 className="text-base font-semibold dark:text-white">
-                    Primary Color
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    {PRESET_COLORS.map((col) => (
-                      <button
-                        key={col}
-                        onClick={() => setPrimaryColor(col)}
-                        className={`
-                          w-8 h-8 flex items-center justify-center
-                          bg-white dark:bg-gray-800
-                          rounded-md shadow-sm
-                          transition
-                          ${
-                            primaryColor === col
-                              ? 'ring-2 ring-primary'
-                              : 'ring-1 ring-transparent hover:ring-gray-300 dark:hover:ring-gray-600'
-                          }`}
-                        aria-label={`Select color ${col}`}
-                        type="button"
-                      >
-                        <span
-                          className="w-5 h-5 rounded-full"
-                          style={{ backgroundColor: col }}
-                        />
-                      </button>
-                    ))}
-
-                    {/* custom picker */}
-                    <div className="relative">
-                      <label
-                        htmlFor="primary-color-picker"
-                        className={`
-                          w-8 h-8 flex items-center justify-center
-                          bg-white dark:bg-gray-800
-                          rounded-md shadow-sm
-                          transition
-                          ${
-                            !PRESET_COLORS.includes(primaryColor)
-                              ? 'ring-2 ring-primary'
-                              : 'ring-1 ring-transparent hover:ring-gray-300 dark:hover:ring-gray-600'
-                          }`}
-                        aria-label="Custom color picker"
-                      >
-                        <FaPalette
-                          size={16}
-                          className="text-gray-600 dark:text-gray-300"
-                        />
-                      </label>
-                      <input
-                        id="primary-color-picker"
-                        type="color"
-                        value={primaryColor}
-                        onChange={onPrimaryPick}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        aria-label="Pick a custom primary color"
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                {/* Mode */}
-                <section className="space-y-2">
-                  <h3 className="text-base font-semibold dark:text-white">
-                    Mode
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {themeOptions.map(({ value, icon: Icon, label }) => (
-                      <button
-                        key={value}
-                        onClick={() => toggleTheme(value)}
-                        className={`
-                          flex flex-col items-center p-2 rounded-md transition-all
-                          ${
-                            theme === value
-                              ? 'bg-primary text-white'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                          }`}
-                        aria-pressed={theme === value}
-                        aria-label={`Set theme to ${label}`}
-                        type="button"
-                      >
-                        <Icon size={18} />
-                        <span className="text-xs mt-1">{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Skin */}
-                <section className="space-y-2">
-                  <h3 className="text-base font-semibold dark:text-white">
-                    Skin
-                  </h3>
-                  <div className="space-y-2">
-                    {skinOptions.map(
-                      ({ value, label, description, icon: SkinIcon }) => (
-                        <button
-                          key={value}
-                          onClick={() => toggleSkin(value)}
-                          className={`
-                          w-full text-left p-2 rounded-md transition-all
-                          ${
-                            skin === value
-                              ? 'bg-primary text-white'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                          }`}
-                          aria-pressed={skin === value}
-                          aria-label={`Set skin to ${label}`}
-                          type="button"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-sm">{label}</div>
-                              <div className="text-xs mt-0.5 opacity-80">
-                                {description}
-                              </div>
-                            </div>
-                            {SkinIcon && <SkinIcon size={16} />}
-                          </div>
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </section>
-
-                {/* Layout */}
-                <section className="space-y-2">
-                  <h3 className="text-base font-semibold dark:text-white">
-                    Content
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setLayout(THEME_LAYOUT.COMPACT)}
-                      className={`flex flex-col items-center p-2 rounded-md transition-all ${layout === THEME_LAYOUT.COMPACT ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-                      aria-pressed={layout === THEME_LAYOUT.COMPACT}
-                      type="button"
-                    >
-                      <FaTh size={18} />
-                      <span className="text-xs mt-1">Compact</span>
-                    </button>
-                    <button
-                      onClick={() => setLayout(THEME_LAYOUT.WIDE)}
-                      className={`flex flex-col items-center p-2 rounded-md transition-all ${layout === THEME_LAYOUT.WIDE ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-                      aria-pressed={layout === THEME_LAYOUT.WIDE}
-                      type="button"
-                    >
-                      <FaThLarge size={18} />
-                      <span className="text-xs mt-1">Wide</span>
-                    </button>
-                  </div>
-                </section>
-
-                {/* Semi Dark */}
-                {/* <section className="flex items-center justify-between">
-                  <span className="text-base font-semibold dark:text-white">
-                    Semi Dark
-                  </span>
-                  <label className="inline-flex relative items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={semiDark}
-                      onChange={toggleSemiDark}
+          <div className="flex-1 p-4 space-y-6">
+            {/* Primary Color */}
+            <section className="space-y-3">
+              <h3 className="text-base font-semibold dark:text-white">
+                Primary Color
+              </h3>
+              <div className="flex items-center gap-2">
+                {PRESET_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setPrimaryColor(color)}
+                    className={`
+                      w-8 h-8 rounded-md flex items-center justify-center
+                      ${
+                        primaryColor === color
+                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-primary'
+                          : 'hover:ring-1 hover:ring-neutral-300 dark:hover:ring-neutral-700'
+                      }
+                    `}
+                    aria-label={`Select color ${color}`}
+                  >
+                    <span
+                      className="w-5 h-5 rounded-full"
+                      style={{ backgroundColor: color }}
                     />
-                    <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors" />
-                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform" />
+                  </button>
+                ))}
+
+                {/* Custom color picker */}
+                <div className="relative">
+                  <label
+                    htmlFor="primary-color-picker"
+                    className={`
+                      w-8 h-8 rounded-md flex items-center justify-center bg-white dark:bg-neutral-800
+                      ${
+                        !PRESET_COLORS.includes(primaryColor)
+                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-primary'
+                          : 'hover:ring-1 hover:ring-neutral-300 dark:hover:ring-neutral-700'
+                      }
+                    `}
+                  >
+                    <FaPalette
+                      size={16}
+                      className="text-neutral-600 dark:text-neutral-300"
+                    />
                   </label>
-                </section> */}
+                  <input
+                    id="primary-color-picker"
+                    type="color"
+                    value={primaryColor}
+                    onChange={handleColorChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    aria-label="Pick a custom primary color"
+                  />
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+            </section>
+
+            {/* Mode */}
+            <section className="space-y-3">
+              <h3 className="text-base font-semibold dark:text-white">Mode</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {themeOptions.map(({ value, icon: Icon, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => toggleTheme(value)}
+                    className={`
+                      flex flex-col items-center p-2 rounded-md transition-all
+                      ${
+                        theme === value
+                          ? 'bg-primary text-white'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                      }
+                    `}
+                    aria-pressed={theme === value}
+                    aria-label={`Set theme to ${label}`}
+                  >
+                    <Icon size={18} />
+                    <span className="text-xs mt-1">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Skin */}
+            <section className="space-y-3">
+              <h3 className="text-base font-semibold dark:text-white">
+                Interface Style
+              </h3>
+              <div className="space-y-2">
+                {skinOptions.map(
+                  ({ value, label, description, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => toggleSkin(value)}
+                      className={`
+                      w-full text-left p-3 rounded-md transition-all
+                      ${
+                        skin === value
+                          ? 'bg-primary text-white'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                      }
+                    `}
+                      aria-pressed={skin === value}
+                      aria-label={`Set interface style to ${label}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{label}</div>
+                          <div className="text-xs mt-0.5 opacity-90">
+                            {description}
+                          </div>
+                        </div>
+                        {Icon && <Icon size={16} />}
+                      </div>
+                    </button>
+                  ),
+                )}
+              </div>
+            </section>
+
+            {/* Layout */}
+            <section className="space-y-3">
+              <h3 className="text-base font-semibold dark:text-white">
+                Content Layout
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setLayout(THEME_LAYOUT.COMPACT)}
+                  className={`
+                    flex flex-col items-center p-2 rounded-md transition-all
+                    ${
+                      layout === THEME_LAYOUT.COMPACT
+                        ? 'bg-primary text-white'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    }
+                  `}
+                  aria-pressed={layout === THEME_LAYOUT.COMPACT}
+                >
+                  <FaGripHorizontal size={18} />
+                  <span className="text-xs mt-1">Compact</span>
+                </button>
+
+                <button
+                  onClick={() => setLayout(THEME_LAYOUT.WIDE)}
+                  className={`
+                    flex flex-col items-center p-2 rounded-md transition-all
+                    ${
+                      layout === THEME_LAYOUT.WIDE
+                        ? 'bg-primary text-white'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    }
+                  `}
+                  aria-pressed={layout === THEME_LAYOUT.WIDE}
+                >
+                  <FaColumns size={18} />
+                  <span className="text-xs mt-1">Wide</span>
+                </button>
+              </div>
+            </section>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 });
 

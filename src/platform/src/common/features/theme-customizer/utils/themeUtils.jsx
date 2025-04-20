@@ -1,78 +1,63 @@
-import {
-  THEME_STORAGE_KEY,
-  SKIN_STORAGE_KEY,
-  PRIMARY_COLOR_STORAGE_KEY,
-  LAYOUT_STORAGE_KEY,
-  SEMI_DARK_STORAGE_KEY,
-  THEME_MODES,
-  THEME_SKINS,
-  THEME_LAYOUT,
-} from '../constants/themeConstants';
+import { THEME_MODES } from '../constants/themeConstants';
 
+/**
+ * Convert hex color to RGB components
+ */
 function hexToRgb(hex) {
-  let cleaned = hex.replace('#', '');
-  if (cleaned.length === 3)
-    cleaned = cleaned
-      .split('')
-      .map((c) => c + c)
-      .join('');
-  const intVal = parseInt(cleaned, 16);
+  const cleaned = hex.replace('#', '');
+  const expanded =
+    cleaned.length === 3
+      ? cleaned
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : cleaned;
+
+  const intVal = parseInt(expanded, 16);
   return [(intVal >> 16) & 255, (intVal >> 8) & 255, intVal & 255];
 }
 
-export function applyTheme(mode, systemTheme) {
-  document.documentElement.classList.remove('light', 'dark');
-  const effective =
-    mode === THEME_MODES.SYSTEM && systemTheme ? systemTheme : mode;
-  document.documentElement.classList.add(effective);
-  document.documentElement.setAttribute('data-theme', effective);
+/**
+ * Apply all theme styles at once
+ */
+export function applyStyles({ theme, skin, primaryColor, layout, semiDark }) {
+  // Apply theme mode
+  const root = document.documentElement;
+  const effectiveTheme =
+    theme.value === THEME_MODES.SYSTEM && theme.system
+      ? theme.system
+      : theme.value;
+
+  root.classList.remove('light', 'dark');
+  root.classList.add(effectiveTheme);
+  root.setAttribute('data-theme', effectiveTheme);
+
+  // Apply skin
+  root.setAttribute('data-skin', skin);
+
+  // Apply primary color
+  if (primaryColor) {
+    const [r, g, b] = hexToRgb(primaryColor);
+    root.style.setProperty('--color-primary', primaryColor);
+    root.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
+  }
+
+  // Apply layout
+  root.setAttribute('data-layout', layout);
+
+  // Apply semi-dark mode
+  root.setAttribute('data-semi-dark', semiDark ? 'true' : 'false');
 }
 
-export function applyPrimaryColor(hex) {
-  document.documentElement.style.setProperty('--color-primary', hex);
-  const [r, g, b] = hexToRgb(hex);
-  document.documentElement.style.setProperty(
-    '--color-primary-rgb',
-    `${r}, ${g}, ${b}`,
-  );
-}
-
-export function applyLayout(layout) {
-  document.documentElement.setAttribute('data-layout', layout);
-}
-
-export function applySemiDark(enabled) {
-  document.documentElement.setAttribute(
-    'data-semi-dark',
-    enabled ? 'true' : 'false',
-  );
-}
-
-function getLocalStorageItem(key, fallback) {
+/**
+ * Safe localStorage getter with fallback
+ */
+export function getStoredValue(key, fallback) {
   if (typeof window === 'undefined') return fallback;
+
   try {
     return localStorage.getItem(key) || fallback;
   } catch {
     return fallback;
   }
-}
-
-export function getInitialTheme() {
-  return getLocalStorageItem(THEME_STORAGE_KEY, THEME_MODES.LIGHT);
-}
-
-export function getInitialSkin() {
-  return getLocalStorageItem(SKIN_STORAGE_KEY, THEME_SKINS.BORDERED);
-}
-
-export function getInitialPrimaryColor() {
-  return getLocalStorageItem(PRIMARY_COLOR_STORAGE_KEY, '#145FFF');
-}
-
-export function getInitialLayout() {
-  return getLocalStorageItem(LAYOUT_STORAGE_KEY, THEME_LAYOUT.WIDE);
-}
-
-export function getInitialSemiDark() {
-  return getLocalStorageItem(SEMI_DARK_STORAGE_KEY, 'false') === 'true';
 }

@@ -6,98 +6,78 @@ import React, {
   useMemo,
 } from 'react';
 import {
-  applyTheme,
-  applyPrimaryColor,
-  applyLayout,
-  applySemiDark,
-  getInitialTheme,
-  getInitialSkin,
-  getInitialPrimaryColor,
-  getInitialLayout,
-  getInitialSemiDark,
-} from '../utils/themeUtils';
-import {
-  THEME_STORAGE_KEY,
-  SKIN_STORAGE_KEY,
-  PRIMARY_COLOR_STORAGE_KEY,
-  LAYOUT_STORAGE_KEY,
-  SEMI_DARK_STORAGE_KEY,
+  THEME_MODES,
+  THEME_SKINS,
+  THEME_LAYOUT,
+  STORAGE_KEYS,
 } from '../constants/themeConstants';
+import { getStoredValue, applyStyles } from '../utils/themeUtils';
 
 export const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => getInitialTheme());
-  const [skin, setSkin] = useState(() => getInitialSkin());
-  const [primaryColor, setPrimaryColor] = useState(() =>
-    getInitialPrimaryColor(),
+  // Initialize states with stored values or defaults
+  const [theme, setTheme] = useState(() =>
+    getStoredValue(STORAGE_KEYS.THEME, THEME_MODES.LIGHT),
   );
-  const [layout, setLayout] = useState(() => getInitialLayout());
-  const [semiDark, setSemiDark] = useState(() => getInitialSemiDark());
+  const [skin, setSkin] = useState(() =>
+    getStoredValue(STORAGE_KEYS.SKIN, THEME_SKINS.BORDERED),
+  );
+  const [primaryColor, setPrimaryColor] = useState(() =>
+    getStoredValue(STORAGE_KEYS.PRIMARY_COLOR, '#145FFF'),
+  );
+  const [layout, setLayout] = useState(() =>
+    getStoredValue(STORAGE_KEYS.LAYOUT, THEME_LAYOUT.COMPACT),
+  ); // Changed default to COMPACT
+  const [semiDark, setSemiDark] = useState(
+    () => getStoredValue(STORAGE_KEYS.SEMI_DARK, 'false') === 'true',
+  );
   const [systemTheme, setSystemTheme] = useState(null);
   const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
 
+  // System theme detection
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e) => setSystemTheme(e.matches ? 'dark' : 'light');
-    onChange(mq);
-    const add = mq.addEventListener ?? mq.addListener;
-    const remove = mq.removeEventListener ?? mq.removeListener;
-    add.call(mq, 'change', onChange);
-    return () => remove.call(mq, 'change', onChange);
+    const handleChange = (e) => setSystemTheme(e.matches ? 'dark' : 'light');
+
+    handleChange(mq);
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
   }, []);
 
+  // Apply theme changes
   useEffect(() => {
-    applyTheme(theme, systemTheme);
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      //empty
-    }
-  }, [theme, systemTheme]);
+    applyStyles({
+      theme: { value: theme, system: systemTheme },
+      skin,
+      primaryColor,
+      layout,
+      semiDark,
+    });
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-skin', skin);
+    // Save to localStorage
     try {
-      localStorage.setItem(SKIN_STORAGE_KEY, skin);
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
+      localStorage.setItem(STORAGE_KEYS.SKIN, skin);
+      localStorage.setItem(STORAGE_KEYS.PRIMARY_COLOR, primaryColor);
+      localStorage.setItem(STORAGE_KEYS.LAYOUT, layout);
+      localStorage.setItem(STORAGE_KEYS.SEMI_DARK, String(semiDark));
     } catch {
-      //empty
+      // Silent fail for localStorage errors
     }
-  }, [skin]);
+  }, [theme, skin, primaryColor, layout, semiDark, systemTheme]);
 
-  useEffect(() => {
-    applyPrimaryColor(primaryColor);
-    try {
-      localStorage.setItem(PRIMARY_COLOR_STORAGE_KEY, primaryColor);
-    } catch {
-      //empty
-    }
-  }, [primaryColor]);
-
-  useEffect(() => {
-    applyLayout(layout);
-    try {
-      localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
-    } catch {
-      //empty
-    }
-  }, [layout]);
-
-  useEffect(() => {
-    applySemiDark(semiDark);
-    try {
-      localStorage.setItem(SEMI_DARK_STORAGE_KEY, semiDark.toString());
-    } catch {
-      //empty
-    }
-  }, [semiDark]);
-
+  // Action handlers
   const toggleTheme = useCallback((t) => setTheme(t), []);
   const toggleSkin = useCallback((s) => setSkin(s), []);
-  const openThemeSheet = useCallback(() => setIsThemeSheetOpen(true), []);
-  const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), []);
-  const setLayoutOption = useCallback((l) => setLayout(l), []);
-  const toggleSemiDark = useCallback(() => setSemiDark((sd) => !sd), []);
+  const toggleSemiDark = useCallback(() => setSemiDark((prev) => !prev), []);
+  const themeSheetActions = useMemo(
+    () => ({
+      open: () => setIsThemeSheetOpen(true),
+      close: () => setIsThemeSheetOpen(false),
+    }),
+    [],
+  );
 
   const contextValue = useMemo(
     () => ({
@@ -108,12 +88,12 @@ export const ThemeProvider = ({ children }) => {
       primaryColor,
       setPrimaryColor,
       layout,
-      setLayout: setLayoutOption,
+      setLayout,
       semiDark,
       toggleSemiDark,
       isThemeSheetOpen,
-      openThemeSheet,
-      closeThemeSheet,
+      openThemeSheet: themeSheetActions.open,
+      closeThemeSheet: themeSheetActions.close,
       systemTheme,
     }),
     [
@@ -124,12 +104,11 @@ export const ThemeProvider = ({ children }) => {
       primaryColor,
       setPrimaryColor,
       layout,
-      setLayoutOption,
+      setLayout,
       semiDark,
       toggleSemiDark,
       isThemeSheetOpen,
-      openThemeSheet,
-      closeThemeSheet,
+      themeSheetActions,
       systemTheme,
     ],
   );
