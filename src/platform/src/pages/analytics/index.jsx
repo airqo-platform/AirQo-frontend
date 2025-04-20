@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import withAuth from '@/core/utils/protectedRoute';
 import Layout from '@/components/Layout';
 import { useDispatch, useSelector } from 'react-redux';
-import OverView from './_components/OverView';
+import OverView from './view/OverView';
 import AlertBox from '@/components/AlertBox';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';

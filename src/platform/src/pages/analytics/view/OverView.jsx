@@ -160,7 +160,7 @@ const OverView = () => {
 
   return (
     <>
-      <div className="space-y-8">
+      <div className="flex flex-col gap-8">
         {/* Controls Section */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="flex flex-wrap gap-2">

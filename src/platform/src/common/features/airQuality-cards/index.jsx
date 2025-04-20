@@ -13,7 +13,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 /**
  * AQNumberCard displays air quality information.
  */
-const AQNumberCard = ({ className = '' }) => {
+const AQNumberCard = () => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
 
@@ -63,7 +63,8 @@ const AQNumberCard = ({ className = '' }) => {
   );
 
   // Responsive grid classes: adjust columns for different screen sizes.
-  const gridClasses = `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 ${className}`;
+  const gridClasses =
+    'w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 ';
 
   if (isLoadingData) {
     return (
