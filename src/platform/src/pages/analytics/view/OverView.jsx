@@ -10,7 +10,6 @@ import {
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import ChartContainer from '@/features/airQuality-charts/ChartContainer';
 import AQNumberCard from '@/features/airQuality-cards';
-import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CustomDropdown, {
   DropdownItem,
@@ -160,7 +159,7 @@ const OverView = () => {
   const isChartLoading = chartLoading || (!allSiteData && !isError);
 
   return (
-    <BorderlessContentBox>
+    <>
       <div className="space-y-8">
         {/* Controls Section */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
@@ -269,7 +268,7 @@ const OverView = () => {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
-    </BorderlessContentBox>
+    </>
   );
 };
 

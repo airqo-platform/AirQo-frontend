@@ -52,7 +52,7 @@ const Layout = ({
         <div
           className={`overflow-hidden ${
             !isMapPage &&
-            'max-w-[1200px] mx-auto space-y-8 px-4 py-8 sm:px-6 lg:px-8'
+            'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
           }`}
         >
           {/* Maintenance Banner */}
