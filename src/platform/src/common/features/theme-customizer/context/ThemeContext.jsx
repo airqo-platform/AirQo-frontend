@@ -1,5 +1,3 @@
-'use client';
-
 import React, {
   createContext,
   useState,
@@ -10,29 +8,35 @@ import React, {
 import {
   applyTheme,
   applyPrimaryColor,
+  applyLayout,
+  applySemiDark,
   getInitialTheme,
   getInitialSkin,
   getInitialPrimaryColor,
+  getInitialLayout,
+  getInitialSemiDark,
 } from '../utils/themeUtils';
 import {
   THEME_STORAGE_KEY,
   SKIN_STORAGE_KEY,
   PRIMARY_COLOR_STORAGE_KEY,
+  LAYOUT_STORAGE_KEY,
+  SEMI_DARK_STORAGE_KEY,
 } from '../constants/themeConstants';
 
 export const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  // default if nothing stored
   const [theme, setTheme] = useState(() => getInitialTheme());
   const [skin, setSkin] = useState(() => getInitialSkin());
   const [primaryColor, setPrimaryColor] = useState(() =>
     getInitialPrimaryColor(),
   );
-  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
+  const [layout, setLayout] = useState(() => getInitialLayout());
+  const [semiDark, setSemiDark] = useState(() => getInitialSemiDark());
   const [systemTheme, setSystemTheme] = useState(null);
+  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
 
-  // watch system preference
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const onChange = (e) => setSystemTheme(e.matches ? 'dark' : 'light');
@@ -43,40 +47,57 @@ export const ThemeProvider = ({ children }) => {
     return () => remove.call(mq, 'change', onChange);
   }, []);
 
-  // apply & persist theme
   useEffect(() => {
     applyTheme(theme, systemTheme);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
-      // empty
+      //empty
     }
   }, [theme, systemTheme]);
 
-  // apply & persist skin
   useEffect(() => {
     document.documentElement.setAttribute('data-skin', skin);
     try {
       localStorage.setItem(SKIN_STORAGE_KEY, skin);
     } catch {
-      // empty
+      //empty
     }
   }, [skin]);
 
-  // apply & persist primary color
   useEffect(() => {
     applyPrimaryColor(primaryColor);
     try {
       localStorage.setItem(PRIMARY_COLOR_STORAGE_KEY, primaryColor);
     } catch {
-      // empty
+      //empty
     }
   }, [primaryColor]);
+
+  useEffect(() => {
+    applyLayout(layout);
+    try {
+      localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
+    } catch {
+      //empty
+    }
+  }, [layout]);
+
+  useEffect(() => {
+    applySemiDark(semiDark);
+    try {
+      localStorage.setItem(SEMI_DARK_STORAGE_KEY, semiDark.toString());
+    } catch {
+      //empty
+    }
+  }, [semiDark]);
 
   const toggleTheme = useCallback((t) => setTheme(t), []);
   const toggleSkin = useCallback((s) => setSkin(s), []);
   const openThemeSheet = useCallback(() => setIsThemeSheetOpen(true), []);
   const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), []);
+  const setLayoutOption = useCallback((l) => setLayout(l), []);
+  const toggleSemiDark = useCallback(() => setSemiDark((sd) => !sd), []);
 
   const contextValue = useMemo(
     () => ({
@@ -86,6 +107,10 @@ export const ThemeProvider = ({ children }) => {
       toggleSkin,
       primaryColor,
       setPrimaryColor,
+      layout,
+      setLayout: setLayoutOption,
+      semiDark,
+      toggleSemiDark,
       isThemeSheetOpen,
       openThemeSheet,
       closeThemeSheet,
@@ -98,6 +123,10 @@ export const ThemeProvider = ({ children }) => {
       toggleSkin,
       primaryColor,
       setPrimaryColor,
+      layout,
+      setLayoutOption,
+      semiDark,
+      toggleSemiDark,
       isThemeSheetOpen,
       openThemeSheet,
       closeThemeSheet,

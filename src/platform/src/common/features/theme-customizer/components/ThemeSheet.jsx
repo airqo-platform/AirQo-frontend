@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaTimes,
@@ -9,9 +9,15 @@ import {
   FaDesktop,
   FaBorderStyle,
   FaPalette,
+  FaTh,
+  FaThLarge,
 } from 'react-icons/fa';
-import { useTheme } from '../hooks/useTheme';
-import { THEME_MODES, THEME_SKINS } from '../constants/themeConstants';
+import { ThemeContext } from '../context/ThemeContext';
+import {
+  THEME_MODES,
+  THEME_SKINS,
+  THEME_LAYOUT,
+} from '../constants/themeConstants';
 
 const PRESET_COLORS = [
   '#145FFF', // original deep blue
@@ -29,9 +35,13 @@ export const ThemeSheet = memo(() => {
     toggleSkin,
     primaryColor,
     setPrimaryColor,
+    layout,
+    setLayout,
+    // semiDark,
+    // toggleSemiDark,
     isThemeSheetOpen,
     closeThemeSheet,
-  } = useTheme();
+  } = useContext(ThemeContext);
 
   const themeOptions = [
     { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
@@ -236,6 +246,50 @@ export const ThemeSheet = memo(() => {
                     )}
                   </div>
                 </section>
+
+                {/* Layout */}
+                <section className="space-y-2">
+                  <h3 className="text-base font-semibold dark:text-white">
+                    Content
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setLayout(THEME_LAYOUT.COMPACT)}
+                      className={`flex flex-col items-center p-2 rounded-md transition-all ${layout === THEME_LAYOUT.COMPACT ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                      aria-pressed={layout === THEME_LAYOUT.COMPACT}
+                      type="button"
+                    >
+                      <FaTh size={18} />
+                      <span className="text-xs mt-1">Compact</span>
+                    </button>
+                    <button
+                      onClick={() => setLayout(THEME_LAYOUT.WIDE)}
+                      className={`flex flex-col items-center p-2 rounded-md transition-all ${layout === THEME_LAYOUT.WIDE ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+                      aria-pressed={layout === THEME_LAYOUT.WIDE}
+                      type="button"
+                    >
+                      <FaThLarge size={18} />
+                      <span className="text-xs mt-1">Wide</span>
+                    </button>
+                  </div>
+                </section>
+
+                {/* Semi Dark */}
+                {/* <section className="flex items-center justify-between">
+                  <span className="text-base font-semibold dark:text-white">
+                    Semi Dark
+                  </span>
+                  <label className="inline-flex relative items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={semiDark}
+                      onChange={toggleSemiDark}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors" />
+                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform" />
+                  </label>
+                </section> */}
               </div>
             </div>
           </motion.div>
