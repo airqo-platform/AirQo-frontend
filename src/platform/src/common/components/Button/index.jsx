@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
+import { useMediaQuery } from 'react-responsive';
 
 const Button = React.forwardRef(
   (
@@ -15,12 +16,14 @@ const Button = React.forwardRef(
       dataTestId,
       Icon,
       children,
+      showTextOnMobile = false,
       ...rest
     },
     ref,
   ) => {
+    // Base styles
     const base =
-      'flex items-center justify-center rounded-xl transition dark:border-gray-700 transform active:scale-95';
+      'flex items-center justify-center rounded-xl transition transform active:scale-95';
     const variantMap = {
       filled: clsx('bg-primary', 'text-white'),
       outlined: clsx(
@@ -35,6 +38,13 @@ const Button = React.forwardRef(
     const variantStyles = variantMap[activeVariant] || variantMap.filled;
     const disabledStyles = disabled && 'cursor-not-allowed opacity-50';
 
+    // Responsive detection
+    const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+    // Determine if text should be hidden
+    const hideText = isMobile && Icon && !showTextOnMobile;
+    // Only apply right margin on icon when there's visible text
+    const iconMargin = hideText ? '' : 'mr-2';
+
     const btnClass = clsx(
       base,
       padding,
@@ -45,8 +55,8 @@ const Button = React.forwardRef(
 
     const Content = (
       <>
-        {Icon && <Icon className="w-4 h-4 mr-2" />}
-        {children}
+        {Icon && <Icon className={clsx('w-4 h-4', iconMargin)} />}
+        {!hideText && children}
       </>
     );
 
@@ -94,6 +104,15 @@ Button.propTypes = {
   dataTestId: PropTypes.string,
   Icon: PropTypes.elementType,
   children: PropTypes.node.isRequired,
+  showTextOnMobile: PropTypes.bool,
+};
+
+Button.defaultProps = {
+  variant: 'filled',
+  padding: 'py-2 px-4',
+  disabled: false,
+  type: 'button',
+  showTextOnMobile: false,
 };
 
 export default Button;

@@ -294,6 +294,7 @@ const OrganizationDropdown = ({ className = '' }) => {
     <div className={clsx('relative mt-4', className)} ref={buttonRef}>
       <CustomDropdown
         icon={orgIcon}
+        disableMobileCollapse
         text={
           <div className="max-w-[100px] truncate">
             {cleanGroupName(activeGroupTitle)}
