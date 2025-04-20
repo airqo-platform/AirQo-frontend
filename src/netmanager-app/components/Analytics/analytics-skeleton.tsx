@@ -6,7 +6,6 @@ export const AnalyticsSkeleton: React.FC = () => {
   return (
     <Card className="p-4">
       <CardContent className="space-y-6">
-        {/* Header section skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 mb-6">
           <div className="col-span-1 sm:col-span-2 lg:col-span-6 mb-4 sm:mb-0">
             <Skeleton className="h-10 w-full rounded-md" />
@@ -18,9 +17,8 @@ export const AnalyticsSkeleton: React.FC = () => {
           </div>
         </div>
 
-        {/* Dashboard content skeleton */}
         <div className="space-y-4">
-          {/* Chart skeletons */}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Skeleton className="h-64 w-full rounded-md" />
             <Skeleton className="h-64 w-full rounded-md" />

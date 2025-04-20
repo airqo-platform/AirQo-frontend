@@ -3,25 +3,17 @@ import { getUserChecklists, upsertUserChecklists } from '@/core/apis/Account';
 
 export const fetchUserChecklists = createAsyncThunk(
   'checklists/fetchUserChecklists',
-  async (userID, { rejectWithValue }) => {
-    try {
-      const response = await getUserChecklists(userID);
-      return response.checklists;
-    } catch (err) {
-      return rejectWithValue(err.response.data);
-    }
+  async (userID) => {
+    const response = await getUserChecklists(userID);
+    return response.checklists;
   },
 );
 
 export const updateUserChecklists = createAsyncThunk(
   'checklists/updateUserChecklists',
-  async (checklist, { rejectWithValue }) => {
-    try {
-      const response = await upsertUserChecklists(checklist);
-      return response.data;
-    } catch (err) {
-      return rejectWithValue(err.response.data);
-    }
+  async (checklist) => {
+    const response = await upsertUserChecklists(checklist);
+    return response.data;
   },
 );
 
@@ -39,13 +31,9 @@ const checklistsSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(fetchUserChecklists.fulfilled, (state, action) => {
-        if (action.payload.length === 0) {
-          state.status = 'succeeded';
-          state.checklist = 'Empty';
-        } else {
-          state.status = 'succeeded';
-          state.checklist = action.payload;
-        }
+        state.status = 'succeeded';
+        state.checklist =
+          action.payload.length === 0 ? 'Empty' : action.payload;
       })
       .addCase(fetchUserChecklists.rejected, (state, action) => {
         state.status = 'failed';
@@ -60,11 +48,8 @@ const checklistsSlice = createSlice({
           state.checklist = state.checklist.map((entity) =>
             entity.id === action.payload.id ? action.payload : entity,
           );
-        } else {
-          return;
         }
       })
-
       .addCase(updateUserChecklists.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;

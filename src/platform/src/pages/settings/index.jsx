@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import Profile from './Tabs/Profile';
 import OrganizationProfile from './Tabs/OrganizationProfile';
-
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './Tabs/API';
 
@@ -42,9 +42,7 @@ const Settings = () => {
     let parsedActiveGroup = null;
     try {
       parsedActiveGroup = JSON.parse(storedActiveGroup);
-    } catch (error) {
-      console.error('Error parsing "activeGroup" from localStorage:', error);
-
+    } catch {
       setLoading(false);
       return;
     }
@@ -67,47 +65,46 @@ const Settings = () => {
       .then((response) => {
         setTeamMembers(response.group_members);
       })
-      .catch((error) => {
-        console.error(`Error fetching user details: ${error}`);
-      })
       .finally(() => {
         setLoading(false);
       });
   }, [userInfo, preferences, dispatch]);
 
   return (
-    <Layout topbarTitle={'Settings'} noBorderBottom pageTitle="Settings">
-      <Tabs>
-        <div label="My profile">
-          <Profile />
-        </div>
-        <div label="Password">
-          <Password />
-        </div>
-        <div label="API">
-          <API userPermissions={userPermissions} />
-        </div>
-        {userPermissions &&
-          checkAccess(
-            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-            userPermissions,
-          ) && (
-            <div label="Organisation">
-              <OrganizationProfile />
-            </div>
-          )}
-        {userGroup &&
-          userPermissions &&
-          checkAccess(
-            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-            userPermissions,
-          ) && (
-            <div label="Team">
-              <Team users={teamMembers} loading={loading} />
-            </div>
-          )}
-      </Tabs>
-    </Layout>
+    <ErrorBoundary name="Settings" feature="User Account Settings">
+      <Layout topbarTitle={'Settings'} noBorderBottom pageTitle="Settings">
+        <Tabs>
+          <div label="My profile">
+            <Profile />
+          </div>
+          <div label="Password">
+            <Password />
+          </div>
+          <div label="API">
+            <API userPermissions={userPermissions} />
+          </div>
+          {userPermissions &&
+            checkAccess(
+              'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+              userPermissions,
+            ) && (
+              <div label="Organisation">
+                <OrganizationProfile />
+              </div>
+            )}
+          {userGroup &&
+            userPermissions &&
+            checkAccess(
+              'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+              userPermissions,
+            ) && (
+              <div label="Team">
+                <Team users={teamMembers} loading={loading} />
+              </div>
+            )}
+        </Tabs>
+      </Layout>
+    </ErrorBoundary>
   );
 };
 

@@ -27,7 +27,9 @@ const CalendarHeader = ({
             paddingStyles="p-2"
             aria-label="Previous Month"
           />
-          <div className="text-sm text-gray-700 font-semibold">{month}</div>
+          <div className="text-sm text-gray-700 dark:text-gray-200 font-semibold">
+            {month}
+          </div>
           <Button
             onClick={onNext}
             Icon={ShortRightArrow}
@@ -47,13 +49,15 @@ const CalendarHeader = ({
                   ? format(selectedRange.start, 'MMM d, yyyy')
                   : ''
               }
-              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none"
               placeholder="Start date"
               disabled
               aria-label="Start Date"
             />
             <div className="px-2">
-              <span className="text-gray-600 text-[16px]">-</span>
+              <span className="text-gray-600 dark:text-gray-400 text-[16px]">
+                -
+              </span>
             </div>
             <input
               type="text"
@@ -63,14 +67,16 @@ const CalendarHeader = ({
                   ? format(selectedRange.end, 'MMM d, yyyy')
                   : ''
               }
-              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 text-gray-600 rounded-xl focus:bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              className="flex items-center shadow-sm w-[98px] h-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none"
               placeholder="End date"
               disabled
               aria-label="End Date"
             />
           </form>
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700 font-semibold">{month}</div>
+            <div className="text-sm text-gray-700 dark:text-gray-200 font-semibold">
+              {month}
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 onClick={onPrev}

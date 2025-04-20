@@ -3,6 +3,7 @@ import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
+import InputField from '@/components/InputField';
 
 const IndividualAccountVerification = () => {
   const userData = useSelector((state) => state.creation.userData);
@@ -25,10 +26,10 @@ const IndividualAccountVerification = () => {
   };
 
   return (
-    <AccountPageLayout pageTitle={'Verify Email | AirQo'}>
+    <AccountPageLayout pageTitle="Verify Email | AirQo">
       {verificationErrors && (
         <Toast
-          type={'error'}
+          type="error"
           timeout={5000}
           message={`${
             errors.email ||
@@ -40,28 +41,31 @@ const IndividualAccountVerification = () => {
         />
       )}
       <div className="w-full">
-        <h2 className="text-3xl text-black-700 font-semibold lg:w-10/12 md:mt-20 lg:mt-2">
+        <h2 className="text-3xl font-semibold text-gray-900 dark:text-white lg:w-10/12 md:mt-20 lg:mt-2">
           Please confirm your email address
         </h2>
-        <p className="text-xl text-grey-350 font-normal mt-6 lg:w-10/12">
+        <p className="text-xl font-normal mt-6 text-gray-600 dark:text-gray-300 lg:w-10/12">
           An email with confirmation instructions was sent to
         </p>
         <div className="mt-6">
           <div className="w-full">
-            <input
+            <InputField
+              label="Email Address"
               type="email"
-              placeholder={`${userData.email}`}
-              className="input border border-input-light-outline h-16 w-full text-lg"
-              style={{ backgroundColor: '#F9FAFB', fontWeight: '500' }}
+              value={userData.email}
               disabled
+              className="text-lg"
+              containerClassName="w-full"
             />
           </div>
         </div>
         <div className="mt-6">
-          <span className="text-sm text-grey-300">Not seeing the email?</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Not seeing the email?
+          </span>
           <span
-            className="text-sm text-blue-900 font-medium hover:cursor-pointer"
-            onClick={() => handleSubmit()}
+            className="text-sm font-medium text-blue-900 dark:text-blue-400 hover:cursor-pointer"
+            onClick={handleSubmit}
           >
             {' '}
             Resend

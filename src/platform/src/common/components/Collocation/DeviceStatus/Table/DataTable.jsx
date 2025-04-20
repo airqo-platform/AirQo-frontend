@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  addDevices,
-  removeDevices,
-} from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
+import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Skeleton from './Skeleton';
 import moment from 'moment';
 import { useRouter } from 'next/router';
@@ -12,7 +9,7 @@ import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 import Dropdown from '@/components/Dropdowns/Dropdown';
 import InfoIcon from '@/icons/Common/info_circle.svg';
 import Modal from '@/components/Modal/Modal';
-import createAxiosInstance from '@/core/apis/axiosConfig';
+import createAxiosInstance from '@/core/utils/apiClient';
 import { DELETE_COLLOCATION_DEVICE } from '@/core/urls/deviceMonitoring';
 import ReportDetailCard from '../ReportDetailPopup';
 
