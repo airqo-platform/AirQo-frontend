@@ -85,7 +85,7 @@ const AirQualityLegend = ({ pollutant }) => {
   return (
     <Card
       className="flex flex-col items-center"
-      padding="p-1 md:p-2"
+      padding="p-0 md:p-2"
       shadow="shadow"
       rounded
       background="bg-white dark:bg-[#1d1f20]"
@@ -103,7 +103,7 @@ const AirQualityLegend = ({ pollutant }) => {
 
       <div
         ref={contentRef}
-        className="overflow-hidden transition-all duration-300 ease-in-out flex flex-col items-center gap-2"
+        className="overflow-hidden transition-all duration-300 ease-in-out flex flex-col items-center md:gap-2"
         style={{ maxHeight: contentHeight }}
       >
         {levels.map((level, idx) => (
