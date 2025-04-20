@@ -24,11 +24,15 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import Button from '@/components/Button';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 
+import { useMediaQuery } from 'react-responsive';
+
 const OverView = () => {
   const dispatch = useDispatch();
   const isModalOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
   const { title: groupTitle } = useGetActiveGroup();
+
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
 
   const defaultDateRange = useMemo(
     () => ({
@@ -190,7 +194,7 @@ const OverView = () => {
               initialEndDate={dateRange.endDate}
               initial_label={dateRange.label}
               onChange={handleDateChange}
-              horizontalOffset={75}
+              horizontalOffset={isMobile ? 0 : 75}
               dropdown
               data-testid="date-range-picker"
             />

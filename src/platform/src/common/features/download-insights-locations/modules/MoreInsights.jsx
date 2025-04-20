@@ -37,6 +37,8 @@ import Button from '@/components/Button';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import LineChartIcon from '@/icons/Charts/LineChartIcon';
 
+import { useMediaQuery } from 'react-responsive';
+
 export const InSightsHeader = () => (
   <h3
     className="flex text-lg leading-6 font-medium dark:text-white"
@@ -58,6 +60,8 @@ const MoreInsights = () => {
   const [refreshSuccess, setRefreshSuccess] = useState(false);
   const controllersRef = useRef({});
   const fetchData = useDataDownload();
+
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
 
   const allSites = useMemo(
     () => (Array.isArray(modalData) ? modalData : modalData ? [modalData] : []),
@@ -477,7 +481,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                   initialStartDate={new Date(dateRange.startDate)}
                   initialEndDate={new Date(dateRange.endDate)}
                   onChange={handleDateChange}
-                  horizontalOffset={60}
+                  horizontalOffset={isMobile ? 0 : 60}
                   dropdown
                 />
 
