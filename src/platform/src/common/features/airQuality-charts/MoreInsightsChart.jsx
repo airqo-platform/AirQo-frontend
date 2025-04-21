@@ -389,6 +389,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               textAnchor="end"
               height={60}
               className="chart-x-axis"
+              padding={{ left: 10, right: 10 }}
             />
             <YAxis
               domain={[0, 'auto']}
