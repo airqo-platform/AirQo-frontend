@@ -202,7 +202,7 @@ const IndividualAccountRegistration = () => {
             <div className="mt-6 flex flex-row items-center">
               <input
                 type="checkbox"
-                className="h-6 w-6 rounded border border-gray-300 dark:border-gray-600 checked:bg-blue-900 focus:border-blue-500 cursor-pointer"
+                className="h-6 w-6 rounded border border-gray-300 dark:border-gray-600 checked:bg-primary focus:border-primary/50 cursor-pointer"
                 onChange={() => toggleChecked()}
                 required
               />
@@ -241,7 +241,7 @@ const IndividualAccountRegistration = () => {
                   password &&
                   !passwordWordErrors &&
                   checked
-                    ? 'bg-blue-900 text-white hover:bg-blue-950'
+                    ? 'text-white bg-blue-600 hover:bg-blue-500'
                     : 'btn-disabled bg-white'
                 }`}
                 disabled={
@@ -263,7 +263,7 @@ const IndividualAccountRegistration = () => {
                 <span className="text-sm text-gray-500">
                   Already have an account?
                 </span>
-                <span className="text-sm font-medium text-blue-900 dark:text-blue-400">
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                   {' '}
                   <Link href="/account/login">Log in</Link>
                 </span>

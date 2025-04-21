@@ -25,64 +25,60 @@ const CustomDropdown = ({
   dropdownAlign = 'left',
   onClick,
   dropdownWidth,
+  // mobile-specific props
+  disableMobileCollapse = false,
+  mobileMinWidth = 120,
+  mobileMaxWidth = 300,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false,
+  );
   const buttonRef = useRef(null);
   const popperRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Set up popper with proper placement based on dropdownAlign
+  // detect mobile viewport
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // setup popper
   const { styles, attributes, update } = usePopper(
     buttonRef.current,
     popperRef.current,
     {
       placement: dropdownAlign === 'right' ? 'bottom-end' : 'bottom-start',
       modifiers: [
-        {
-          name: 'offset',
-          options: {
-            offset: [0, 8],
-          },
-        },
+        { name: 'offset', options: { offset: [0, 8] } },
         {
           name: 'preventOverflow',
-          options: {
-            padding: 8,
-            boundary: document.body,
-          },
+          options: { padding: 8, boundary: document.body },
         },
         {
           name: 'flip',
-          options: {
-            fallbackPlacements: ['top-start', 'top-end'],
-          },
+          options: { fallbackPlacements: ['top-start', 'top-end'] },
         },
       ],
     },
   );
 
-  // Close dropdown when clicking outside the container
+  // close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Update popper position when dropdown visibility changes
+  // update popper position on open
   useEffect(() => {
-    if (isOpen && update) {
-      update();
-    }
+    if (isOpen && update) update();
   }, [isOpen, update]);
 
   const toggleDropdown = () => {
@@ -92,19 +88,22 @@ const CustomDropdown = ({
     }
   };
 
-  // Base button classes
-  const defaultButtonClasses =
-    'flex items-center justify-between rounded-xl px-4 py-2 border focus:outline-none border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
-  const collapsedButtonClasses =
-    'flex items-center justify-center rounded-xl px-4 py-3 border focus:outline-none border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
+  // determine collapse conditions for mobile
+  const collapseMobile = isMobile && icon && !disableMobileCollapse;
 
-  const mergedButtonClasses = clsx(
-    isCollapsed ? collapsedButtonClasses : defaultButtonClasses,
+  // button class definitions
+  const defaultBtnClasses =
+    'flex items-center justify-between rounded-xl px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition active:scale-95';
+  const collapsedBtnClasses =
+    'flex items-center justify-center rounded-xl px-4 py-3 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
+
+  const mergedBtnClasses = clsx(
+    isCollapsed ? collapsedBtnClasses : defaultBtnClasses,
     disabled && 'opacity-60 cursor-not-allowed',
     buttonClassName,
   );
 
-  const shouldShowArrow =
+  const showArrow =
     !isCollapsed &&
     !hideArrow &&
     (!isButton || (isButton && showArrowWithButton));
@@ -140,19 +139,21 @@ const CustomDropdown = ({
         aria-haspopup="true"
         aria-expanded={isOpen}
         disabled={disabled}
-        className={mergedButtonClasses}
+        className={mergedBtnClasses}
         style={buttonStyle}
       >
         {isCollapsed ? (
           <span>{icon}</span>
         ) : (
           <>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
               {icon && iconPosition === 'left' && <span>{icon}</span>}
-              {text && <span className="truncate">{text}</span>}
+              {!collapseMobile && text && (
+                <span className="truncate">{text}</span>
+              )}
               {icon && iconPosition === 'right' && <span>{icon}</span>}
             </div>
-            {shouldShowArrow && (
+            {!collapseMobile && showArrow && (
               <FiChevronDown
                 size={16}
                 className={clsx(
@@ -167,6 +168,16 @@ const CustomDropdown = ({
     );
   };
 
+  // compute popper style for width
+  const popperStyle = {
+    ...styles.popper,
+    ...(dropdownWidth
+      ? { width: dropdownWidth }
+      : collapseMobile
+        ? { minWidth: mobileMinWidth, maxWidth: mobileMaxWidth }
+        : { minWidth: buttonRef.current?.offsetWidth }),
+  };
+
   return (
     <div
       ref={containerRef}
@@ -176,12 +187,7 @@ const CustomDropdown = ({
       {!isButton && !disabled && (
         <div
           ref={popperRef}
-          style={{
-            ...styles.popper,
-            ...(dropdownWidth
-              ? { width: dropdownWidth }
-              : { minWidth: buttonRef.current?.offsetWidth }),
-          }}
+          style={popperStyle}
           {...attributes.popper}
           className="z-50 w-full"
         >
@@ -240,6 +246,9 @@ CustomDropdown.propTypes = {
   dropdownAlign: PropTypes.oneOf(['left', 'right']),
   onClick: PropTypes.func,
   dropdownWidth: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  disableMobileCollapse: PropTypes.bool,
+  mobileMinWidth: PropTypes.number,
+  mobileMaxWidth: PropTypes.number,
 };
 
 export const DropdownItem = ({
@@ -255,7 +264,7 @@ export const DropdownItem = ({
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="text-blue-700 dark:text-blue-300"
+      className="text-primary dark:text-blue-300"
     >
       <path
         d="M13.3334 4L6.00002 11.3333L2.66669 8"
@@ -272,9 +281,8 @@ export const DropdownItem = ({
     type="button"
     disabled={disabled}
     className={clsx(
-      'w-full px-4 py-2 text-left rounded-xl flex items-center text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700',
-      active &&
-        'bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+      'w-full px-4 py-2 text-left rounded-xl flex items-center text-gray-700 dark:text-gray-200 hover:bg-primary/10 dark:hover:bg-primary/20',
+      active && 'bg-primary/10 dark:bg-primary/40',
       disabled && 'opacity-60 cursor-not-allowed hover:bg-transparent',
       className,
     )}

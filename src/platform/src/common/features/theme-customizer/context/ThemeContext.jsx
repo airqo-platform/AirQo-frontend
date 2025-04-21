@@ -1,5 +1,3 @@
-'use client';
-
 import React, {
   createContext,
   useState,
@@ -8,109 +6,94 @@ import React, {
   useMemo,
 } from 'react';
 import {
-  applyTheme,
-  getInitialTheme,
-  getInitialSkin,
-} from '../utils/themeUtils';
-import {
-  THEME_STORAGE_KEY,
-  SKIN_STORAGE_KEY,
+  THEME_MODES,
+  THEME_SKINS,
+  THEME_LAYOUT,
+  STORAGE_KEYS,
 } from '../constants/themeConstants';
+import { getStoredValue, applyStyles } from '../utils/themeUtils';
 
 export const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
-  // Initialize states with getter functions
-  const [theme, setTheme] = useState(getInitialTheme);
-  const [skin, setSkin] = useState(getInitialSkin);
-  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
+  // Initialize states with stored values or defaults
+  const [theme, setTheme] = useState(() =>
+    getStoredValue(STORAGE_KEYS.THEME, THEME_MODES.LIGHT),
+  );
+  const [skin, setSkin] = useState(() =>
+    getStoredValue(STORAGE_KEYS.SKIN, THEME_SKINS.BORDERED),
+  );
+  const [primaryColor, setPrimaryColor] = useState(() =>
+    getStoredValue(STORAGE_KEYS.PRIMARY_COLOR, '#145FFF'),
+  );
+  const [layout, setLayout] = useState(() =>
+    getStoredValue(STORAGE_KEYS.LAYOUT, THEME_LAYOUT.COMPACT),
+  ); // Changed default to COMPACT
+  const [semiDark, setSemiDark] = useState(
+    () => getStoredValue(STORAGE_KEYS.SEMI_DARK, 'false') === 'true',
+  );
   const [systemTheme, setSystemTheme] = useState(null);
+  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
 
-  // Handle system theme changes
+  // System theme detection
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => setSystemTheme(e.matches ? 'dark' : 'light');
 
-    // Set initial value
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-
-    // Event handler for system theme changes
-    const handleChange = (e) => {
-      const newSystemTheme = e.matches ? 'dark' : 'light';
-      setSystemTheme(newSystemTheme);
-
-      // Apply new theme if in system mode
-      if (theme === 'system') {
-        applyTheme('system', newSystemTheme);
-      }
-    };
-
-    // Use the appropriate event listener method
-    const addListener = mediaQuery.addEventListener
-      ? mediaQuery.addEventListener.bind(mediaQuery)
-      : mediaQuery.addListener?.bind(mediaQuery);
-
-    const removeListener = mediaQuery.removeEventListener
-      ? mediaQuery.removeEventListener.bind(mediaQuery)
-      : mediaQuery.removeListener?.bind(mediaQuery);
-
-    if (addListener) addListener('change', handleChange);
-
-    // Cleanup
-    return () => {
-      if (removeListener) removeListener('change', handleChange);
-    };
-  }, [theme]);
-
-  // Apply theme effect
-  useEffect(() => {
-    applyTheme(theme, systemTheme);
-
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch (error) {
-      console.warn('Could not save theme preference to localStorage:', error);
-    }
-  }, [theme, systemTheme]);
-
-  // Apply skin effect
-  useEffect(() => {
-    document.documentElement.setAttribute('data-skin', skin);
-
-    try {
-      localStorage.setItem(SKIN_STORAGE_KEY, skin);
-    } catch (error) {
-      console.warn('Could not save skin preference to localStorage:', error);
-    }
-  }, [skin]);
-
-  // Memoized callbacks
-  const toggleTheme = useCallback((newTheme) => setTheme(newTheme), []);
-  const toggleSkin = useCallback((newSkin) => setSkin(newSkin), []);
-
-  const openThemeSheet = useCallback(() => {
-    setIsThemeSheetOpen(true);
-
-    // Handle escape key
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') setIsThemeSheetOpen(false);
-    };
-
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    handleChange(mq);
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
   }, []);
 
-  const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), []);
+  // Apply theme changes
+  useEffect(() => {
+    applyStyles({
+      theme: { value: theme, system: systemTheme },
+      skin,
+      primaryColor,
+      layout,
+      semiDark,
+    });
 
-  // Memoize context value
+    // Save to localStorage
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
+      localStorage.setItem(STORAGE_KEYS.SKIN, skin);
+      localStorage.setItem(STORAGE_KEYS.PRIMARY_COLOR, primaryColor);
+      localStorage.setItem(STORAGE_KEYS.LAYOUT, layout);
+      localStorage.setItem(STORAGE_KEYS.SEMI_DARK, String(semiDark));
+    } catch {
+      // Silent fail for localStorage errors
+    }
+  }, [theme, skin, primaryColor, layout, semiDark, systemTheme]);
+
+  // Action handlers
+  const toggleTheme = useCallback((t) => setTheme(t), []);
+  const toggleSkin = useCallback((s) => setSkin(s), []);
+  const toggleSemiDark = useCallback(() => setSemiDark((prev) => !prev), []);
+  const themeSheetActions = useMemo(
+    () => ({
+      open: () => setIsThemeSheetOpen(true),
+      close: () => setIsThemeSheetOpen(false),
+    }),
+    [],
+  );
+
   const contextValue = useMemo(
     () => ({
       theme,
       toggleTheme,
       skin,
       toggleSkin,
+      primaryColor,
+      setPrimaryColor,
+      layout,
+      setLayout,
+      semiDark,
+      toggleSemiDark,
       isThemeSheetOpen,
-      openThemeSheet,
-      closeThemeSheet,
+      openThemeSheet: themeSheetActions.open,
+      closeThemeSheet: themeSheetActions.close,
       systemTheme,
     }),
     [
@@ -118,9 +101,14 @@ export const ThemeProvider = ({ children }) => {
       toggleTheme,
       skin,
       toggleSkin,
+      primaryColor,
+      setPrimaryColor,
+      layout,
+      setLayout,
+      semiDark,
+      toggleSemiDark,
       isThemeSheetOpen,
-      openThemeSheet,
-      closeThemeSheet,
+      themeSheetActions,
       systemTheme,
     ],
   );

@@ -10,24 +10,29 @@ import {
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import ChartContainer from '@/features/airQuality-charts/ChartContainer';
 import AQNumberCard from '@/features/airQuality-cards';
-import BorderlessContentBox from '@/components/Layout/borderless_content_box';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
 import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
 import PlusIcon from '@/icons/map/plusIcon';
 import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import SettingsIcon from '@/icons/settings.svg';
+import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import Modal from '@/features/download-insights-locations';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import Button from '@/components/Button';
+import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
+
+import { useMediaQuery } from 'react-responsive';
 
 const OverView = () => {
   const dispatch = useDispatch();
   const isModalOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
   const { title: groupTitle } = useGetActiveGroup();
+
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
 
   const defaultDateRange = useMemo(
     () => ({
@@ -159,13 +164,14 @@ const OverView = () => {
   const isChartLoading = chartLoading || (!allSiteData && !isError);
 
   return (
-    <BorderlessContentBox>
-      <div className="space-y-8">
+    <>
+      <div className="flex flex-col gap-8">
         {/* Controls Section */}
         <div className="w-full flex flex-wrap gap-2 justify-between">
           <div className="flex flex-wrap gap-2">
             {/* Time Frame Dropdown */}
             <CustomDropdown
+              icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
               text={<span className="capitalize">{chartData.timeFrame}</span>}
               dropdownWidth="150px"
             >
@@ -188,7 +194,7 @@ const OverView = () => {
               initialEndDate={dateRange.endDate}
               initial_label={dateRange.label}
               onChange={handleDateChange}
-              horizontalOffset={75}
+              horizontalOffset={isMobile ? 0 : 75}
               dropdown
               data-testid="date-range-picker"
             />
@@ -224,18 +230,15 @@ const OverView = () => {
             />
 
             <CustomDropdown
-              text="Download Data"
-              icon={<DownloadIcon width={16} height={17} color="white" />}
-              iconPosition="left"
               isButton
-              onClick={() => handleOpenModal('download')}
-              buttonStyle={{
-                backgroundColor: '#2563EB',
-                color: 'white',
-                border: '1px solid #2563EB',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.75rem',
-              }}
+              trigger={
+                <Button
+                  onClick={() => handleOpenModal('download')}
+                  Icon={DownloadIcon}
+                >
+                  Download Data
+                </Button>
+              }
             />
           </div>
         </div>
@@ -271,7 +274,7 @@ const OverView = () => {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
-    </BorderlessContentBox>
+    </>
   );
 };
 

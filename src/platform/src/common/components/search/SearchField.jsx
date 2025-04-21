@@ -42,16 +42,16 @@ const SearchField = ({
         <input
           ref={inputRef}
           placeholder="Search villages, cities or country"
-          className="input pl-10 text-sm text-secondary-neutral-light-800 dark:text-white w-full h-12 ml-0 rounded-lg bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500"
+          className="input pl-10 text-sm text-secondary-neutral-light-800 dark:text-white w-full h-12 ml-0 rounded-lg bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/30 dark:focus:ring-primary/50"
           value={reduxSearchTerm}
           onChange={handleSearch}
         />
         {reduxSearchTerm && (
           <span
-            className="absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer"
+            className="absolute flex justify-center items-center mr-2 h-5 w-5 right-0 pb-[2px] cursor-pointer hover:text-primary transition-colors duration-200"
             onClick={clearSearch}
           >
-            <CloseIcon className="text-gray-600 dark:text-gray-300" />
+            <CloseIcon className="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary" />
           </span>
         )}
       </div>
@@ -61,7 +61,7 @@ const SearchField = ({
         (reduxSearchTerm.length < 2 ? (
           <div className="bg-secondary-neutral-dark-50 dark:bg-gray-700 rounded-lg w-full h-5" />
         ) : (
-          <p className="text-sm font-medium leading-tight text-secondary-neutral-dark-400 dark:text-white">
+          <p className="text-sm font-medium leading-tight text-primary dark:text-primary">
             Results for &quot;{reduxSearchTerm}&quot;
           </p>
         ))}
