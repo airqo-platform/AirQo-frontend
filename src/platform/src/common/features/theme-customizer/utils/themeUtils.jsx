@@ -1,51 +1,63 @@
-'use client';
-
-import {
-  THEME_STORAGE_KEY,
-  SKIN_STORAGE_KEY,
-  THEME_SKINS,
-  THEME_MODES,
-} from '../constants/themeConstants';
+import { THEME_MODES } from '../constants/themeConstants';
 
 /**
- * Apply the chosen theme (light, dark, or system) to the <html> element.
+ * Convert hex color to RGB components
  */
-export const applyTheme = (mode, systemTheme) => {
-  // Remove any existing light/dark classes
-  document.documentElement.classList.remove('light', 'dark');
+function hexToRgb(hex) {
+  const cleaned = hex.replace('#', '');
+  const expanded =
+    cleaned.length === 3
+      ? cleaned
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : cleaned;
 
-  // Determine which theme to actually apply
+  const intVal = parseInt(expanded, 16);
+  return [(intVal >> 16) & 255, (intVal >> 8) & 255, intVal & 255];
+}
+
+/**
+ * Apply all theme styles at once
+ */
+export function applyStyles({ theme, skin, primaryColor, layout, semiDark }) {
+  // Apply theme mode
+  const root = document.documentElement;
   const effectiveTheme =
-    mode === THEME_MODES.SYSTEM && systemTheme ? systemTheme : mode;
+    theme.value === THEME_MODES.SYSTEM && theme.system
+      ? theme.system
+      : theme.value;
 
-  // Add the correct class and data attribute
-  document.documentElement.classList.add(effectiveTheme);
-  document.documentElement.setAttribute('data-theme', effectiveTheme);
-};
+  root.classList.remove('light', 'dark');
+  root.classList.add(effectiveTheme);
+  root.setAttribute('data-theme', effectiveTheme);
+
+  // Apply skin
+  root.setAttribute('data-skin', skin);
+
+  // Apply primary color
+  if (primaryColor) {
+    const [r, g, b] = hexToRgb(primaryColor);
+    root.style.setProperty('--color-primary', primaryColor);
+    root.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
+  }
+
+  // Apply layout
+  root.setAttribute('data-layout', layout);
+
+  // Apply semi-dark mode
+  root.setAttribute('data-semi-dark', semiDark ? 'true' : 'false');
+}
 
 /**
- * Safe localStorage getter with a fallback.
+ * Safe localStorage getter with fallback
  */
-const getLocalStorageItem = (key, defaultValue) => {
-  if (typeof window === 'undefined') return defaultValue;
+export function getStoredValue(key, fallback) {
+  if (typeof window === 'undefined') return fallback;
 
   try {
-    const value = localStorage.getItem(key);
-    return value || defaultValue;
-  } catch (err) {
-    console.warn(`Could not access localStorage for ${key}:`, err);
-    return defaultValue;
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
   }
-};
-
-/**
- * Initialize theme state: load from storage or default to LIGHT.
- */
-export const getInitialTheme = () =>
-  getLocalStorageItem(THEME_STORAGE_KEY, THEME_MODES.LIGHT);
-
-/**
- * Initialize skin state: load from storage or default to BORDERED.
- */
-export const getInitialSkin = () =>
-  getLocalStorageItem(SKIN_STORAGE_KEY, THEME_SKINS.BORDERED);
+}

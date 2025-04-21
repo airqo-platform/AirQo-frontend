@@ -152,6 +152,7 @@ const CustomFields = ({
           onChange={(dates) => {
             handleSelect(dates);
           }}
+          mobileCollapse={true}
           initialValue={selectedOption}
           required={required}
           aria-required={required}
@@ -167,6 +168,7 @@ const CustomFields = ({
             buttonClassName="w-full bg-white px-3 py-2 text-left"
             menuClassName="w-full"
             dropdownAlign="left"
+            disableMobileCollapse
             disabled={
               !edit &&
               options.length > 0 &&

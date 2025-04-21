@@ -1,4 +1,4 @@
-import React, { memo, useState, useRef, useCallback } from 'react';
+import React, { memo, useRef, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
 import { useResizeObserver } from '@/core/hooks/useResizeObserver';
@@ -6,37 +6,39 @@ import { AQI_CATEGORY_MAP, IconMap } from '../constants';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import Card from '@/components/CardWrapper';
 
-const CARD_HEIGHT = 'h-44'; // Fixed height (~190px)
+const CARD_HEIGHT = 'h-44';
 
-/* --- TrendIndicator Component --- */
+// helpers
+const getMeasurementValue = (measurement, pollutantType) =>
+  measurement?.[pollutantType]?.value != null
+    ? measurement[pollutantType].value.toFixed(2)
+    : '--';
+
+/** Trend arrow with tooltip */
 const TrendIndicator = memo(({ trendData }) => {
-  if (!trendData) {
-    return (
-      <Tooltip
-        content="No trend data available"
-        placement="top"
-        className="w-64"
-      >
-        <div
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
-          aria-label="No trend data available"
-        >
-          <FiArrowDown className="w-4 h-4 text-gray-400 dark:text-white" />
-        </div>
-      </Tooltip>
-    );
-  }
-  const { trendTooltip, isIncreasing } = trendData;
-  const TrendIcon = isIncreasing ? FiArrowUp : FiArrowDown;
-  const bgColor = isIncreasing ? 'bg-gray-100' : 'bg-blue-100';
-  const textColor = isIncreasing ? 'text-gray-400' : 'text-blue-500';
+  const Icon = trendData?.isIncreasing ? FiArrowUp : FiArrowDown;
+  const bgClass = trendData
+    ? trendData.isIncreasing
+      ? 'bg-gray-100 dark:bg-gray-100/10'
+      : 'bg-primary/10'
+    : 'bg-gray-100 dark:bg-gray-700';
+  const colorClass = trendData
+    ? trendData.isIncreasing
+      ? 'text-gray-500'
+      : 'text-primary'
+    : 'text-gray-400 dark:text-gray-300';
+
   return (
-    <Tooltip content={trendTooltip} placement="top" className="w-64">
+    <Tooltip
+      content={trendData?.trendTooltip ?? 'No trend data available'}
+      placement="top"
+      className="w-64"
+    >
       <div
-        className={`w-8 h-8 flex items-center justify-center rounded-full ${bgColor} dark:bg-gray-700`}
-        aria-label={trendTooltip}
+        className={`w-8 h-8 flex items-center justify-center rounded-full ${bgClass}`}
+        aria-label={trendData?.trendTooltip ?? 'No trend data available'}
       >
-        <TrendIcon className={`w-4 h-4 ${textColor} dark:text-white`} />
+        <Icon className={`w-4 h-4 ${colorClass}`} />
       </div>
     </Tooltip>
   );
@@ -49,17 +51,10 @@ TrendIndicator.propTypes = {
   }),
 };
 
-/* --- Helper Function --- */
-const getMeasurementValue = (measurement, pollutantType) =>
-  measurement &&
-  measurement[pollutantType] &&
-  typeof measurement[pollutantType].value === 'number'
-    ? measurement[pollutantType].value.toFixed(2)
-    : '--';
-
-/* --- SiteCard Component --- */
+/** Single site card */
 const SiteCard = memo(
   ({ site, measurement, onOpenModal, windowWidth, pollutantType }) => {
+    // truncation refs
     const nameRef = useRef(null);
     const countryRef = useRef(null);
     const [isNameTruncated, setIsNameTruncated] = useState(false);
@@ -77,51 +72,32 @@ const SiteCard = memo(
         );
       }
     }, []);
-
     useResizeObserver(nameRef, checkTruncation);
     useResizeObserver(countryRef, checkTruncation);
 
-    const aqiCategory = measurement?.aqi_category || 'Unknown';
-    const statusKey = AQI_CATEGORY_MAP[aqiCategory] || 'unknown';
-    const airQualityText = `Air Quality is ${aqiCategory}`;
-    const AirQualityIcon = IconMap[statusKey] || IconMap.unknown;
-    const percentageDiff = measurement?.averages?.percentageDifference;
+    // AQI data
+    const aqiCategory = measurement?.aqi_category ?? 'Unknown';
+    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? 'unknown';
+    const AirQualityIcon = IconMap[statusKey] ?? IconMap.unknown;
+    const pctDiff = measurement?.averages?.percentageDifference;
     const trendData =
-      percentageDiff !== undefined
+      pctDiff != null
         ? {
-            trendTooltip:
-              Math.abs(percentageDiff) +
-              `% ${percentageDiff > 0 ? 'worsened' : 'improved'} compared to last week.`,
-            isIncreasing: percentageDiff > 0,
+            trendTooltip: `${Math.abs(pctDiff)}% ${
+              pctDiff > 0 ? 'worsened' : 'improved'
+            } compared to last week.`,
+            isIncreasing: pctDiff > 0,
           }
         : null;
 
+    // display values
     const pollutantDisplay = pollutantType === 'pm2_5' ? 'PM2.5' : 'PM10';
     const measurementValue = getMeasurementValue(measurement, pollutantType);
     const siteName = site.name || '---';
     const siteCountry = site.country || '---';
 
-    const renderSiteName = (
-      <span
-        className="block overflow-hidden text-ellipsis whitespace-nowrap font-medium text-lg text-left pr-2 dark:text-white"
-        ref={nameRef}
-        title={isNameTruncated ? siteName : ''}
-      >
-        {siteName}
-      </span>
-    );
-    const renderSiteCountry = (
-      <span
-        className="block overflow-hidden text-ellipsis whitespace-nowrap text-sm text-gray-400 capitalize text-left pr-2 dark:text-white"
-        ref={countryRef}
-        title={isCountryTruncated ? siteCountry : ''}
-      >
-        {siteCountry}
-      </span>
-    );
-
     const handleClick = useCallback(() => {
-      if (typeof onOpenModal === 'function') onOpenModal('inSights', [], site);
+      onOpenModal('inSights', [], site);
     }, [onOpenModal, site]);
 
     return (
@@ -130,36 +106,51 @@ const SiteCard = memo(
         role="button"
         tabIndex={0}
         height={CARD_HEIGHT}
-        className="w-full hover:shadow-md transition-shadow duration-200 ease-in-out cursor-pointer"
         padding="p-4 sm:p-5"
+        className="relative w-full max-w-full overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
       >
-        <div className="flex justify-between items-start gap-3 pb-2 mb-2">
-          <div className="min-w-0 flex-grow max-w-[calc(100%-40px)]">
-            {renderSiteName}
-            {renderSiteCountry}
-          </div>
-          <div className="flex-shrink-0 ml-auto">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-2 overflow-hidden">
+            <div className="flex-1 min-w-0 pr-2">
+              <h3
+                ref={nameRef}
+                title={isNameTruncated ? siteName : ''}
+                className="text-lg font-medium truncate dark:text-white"
+              >
+                {siteName}
+              </h3>
+              <p
+                ref={countryRef}
+                title={isCountryTruncated ? siteCountry : ''}
+                className="text-sm text-gray-400 truncate capitalize dark:text-white"
+              >
+                {siteCountry}
+              </p>
+            </div>
             <TrendIndicator trendData={trendData} />
           </div>
-        </div>
-        <div className="flex justify-between items-center mt-auto pt-2">
-          <div className="flex flex-col text-left min-w-0 max-w-[60%]">
-            <div className="text-3xl font-bold truncate text-gray-800 dark:text-white">
-              {measurementValue}
+
+          {/* Value + Icon */}
+          <div className="flex items-center justify-between mt-auto overflow-hidden">
+            <div className="flex-1 min-w-0 pr-2">
+              <p className="text-3xl font-bold truncate text-gray-800 dark:text-white">
+                {measurementValue}
+              </p>
+              <p className="text-sm truncate text-gray-500 dark:text-white">
+                {pollutantDisplay} • μg/m³
+              </p>
             </div>
-            <div className="text-sm truncate text-gray-500 dark:text-white whitespace-nowrap">
-              {pollutantDisplay} • μg/m³
-            </div>
+            <Tooltip
+              content={`Air Quality is ${aqiCategory}`}
+              placement={windowWidth > 1024 ? 'top' : 'left'}
+              className="w-52"
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
+                <AirQualityIcon className="w-full h-full" aria-hidden="true" />
+              </div>
+            </Tooltip>
           </div>
-          <Tooltip
-            content={airQualityText}
-            placement={windowWidth > 1024 ? 'top' : 'left'}
-            className="w-52"
-          >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
-              <AirQualityIcon className="w-full h-full" aria-hidden="true" />
-            </div>
-          </Tooltip>
         </div>
       </Card>
     );
@@ -183,7 +174,7 @@ SiteCard.propTypes = {
   pollutantType: PropTypes.oneOf(['pm2_5', 'pm10']).isRequired,
 };
 
-/* --- AddLocationCard Component --- */
+/** “+ Add Location” dashed card */
 const AddLocationCard = memo(({ onOpenModal }) => {
   const handleClick = useCallback(
     () => onOpenModal('addLocation'),
@@ -192,18 +183,15 @@ const AddLocationCard = memo(({ onOpenModal }) => {
 
   return (
     <Card
-      bordered={true}
-      borderColor="border-blue-400 dark:border-blue-400"
-      height={CARD_HEIGHT}
-      background="bg-blue-50 dark:bg-gray-800"
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      width="w-full"
-      className="border-dashed border-2 flex justify-center items-center transition-transform transform hover:scale-95 cursor-pointer"
+      height={CARD_HEIGHT}
       padding="p-6"
+      className="relative w-full max-w-full overflow-hidden border-2 border-dashed border-primary/50 dark:border-primary/80 flex items-center justify-center cursor-pointer hover:scale-95 transition-transform duration-200"
+      background="bg-primary/10 dark:bg-primary/20"
     >
-      <span className="font-medium text-blue-500 dark:text-white">
+      <span className="text-base font-medium text-primary dark:text-primary/80">
         + Add Location
       </span>
     </Card>

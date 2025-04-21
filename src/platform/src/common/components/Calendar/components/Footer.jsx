@@ -1,4 +1,3 @@
-// Footer.js
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
@@ -43,7 +42,7 @@ const Footer = ({
               ? format(selectedRange.start, 'MMM d, yyyy')
               : ''
           }
-          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
+          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
           placeholder="Start date"
           disabled
           aria-label="Start Date"
@@ -59,7 +58,7 @@ const Footer = ({
           value={
             selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''
           }
-          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-blue-600 focus:outline-none md:w-32"
+          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-xl focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
           placeholder="End date"
           disabled
           aria-label="End Date"

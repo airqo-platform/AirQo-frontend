@@ -5,7 +5,7 @@ const Spinner = ({ width, height }) => (
         aria-hidden="true"
         width={width || 32}
         height={height || 32}
-        className="inline text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+        className="inline text-gray-200 animate-spin dark:text-gray-600 fill-primary"
         viewBox="0 0 100 101"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

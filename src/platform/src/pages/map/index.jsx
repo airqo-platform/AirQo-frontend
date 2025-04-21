@@ -117,15 +117,22 @@ const Index = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isControlsExpanded]);
 
-  // Responsive layout classes.
-  const sidebarClassName =
-    width < 1024
-      ? `transition-all duration-500 ease-in-out ${selectedNode ? 'h-[70%]' : 'h-full w-full sidebar-scroll-bar'}`
-      : 'transition-all duration-300 h-full min-w-[380px] lg:w-[470px]';
-  const mapClassName =
-    width < 1024
-      ? `transition-all duration-500 ease-in-out ${selectedNode ? 'h-[30%]' : 'h-full w-full'}`
-      : 'transition-all duration-300 h-full w-full';
+  // Responsive layout classes based on screen size
+  const isMobile = width < 1024;
+
+  // Mobile layout: Map (40% height) on top, Sidebar (60% height) at bottom
+  // Desktop layout: Sidebar on left, Map on right (full height for both)
+  const containerClassName = isMobile
+    ? 'flex flex-col w-full h-dvh overflow-hidden'
+    : 'flex flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 overflow-hidden';
+
+  const sidebarClassName = isMobile
+    ? 'transition-all duration-500 ease-in-out h-[60%] w-full sidebar-scroll-bar order-2'
+    : 'transition-all duration-300 h-full min-w-[380px] lg:w-[470px]';
+
+  const mapClassName = isMobile
+    ? 'transition-all duration-500 ease-in-out h-[40%] w-full order-1'
+    : 'transition-all duration-300 h-full w-full';
 
   // Map control actions.
   const handleControlAction = (action) => {
@@ -146,12 +153,12 @@ const Index = () => {
       default:
         break;
     }
-    if (width < 1024) setIsControlsExpanded(false);
+    if (isMobile) setIsControlsExpanded(false);
   };
 
   return (
-    <Layout noTopNav={width < 1024}>
-      <div className="relative flex flex-col-reverse lg:flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 overflow-hidden">
+    <Layout noTopNav={isMobile}>
+      <div className={containerClassName}>
         <div className={sidebarClassName}>
           <Sidebar siteDetails={siteDetails} isAdmin={true} />
         </div>
@@ -171,13 +178,20 @@ const Index = () => {
                 <Loader width={32} height={32} />
               </LoadingOverlay>
             )}
+            {/* Show legend only when appropriate */}
             {(width >= 1024 || !selectedNode) && (
               <div className="absolute left-4 bottom-2 z-[1000]">
                 <AirQualityLegend pollutant={pollutant} />
               </div>
             )}
+            {/* Map controls */}
             {(width >= 1024 || !selectedNode) && (
-              <div className="absolute top-4 right-0 z-40 controls-container">
+              <div
+                className="absolute top-4 right-0 controls-container"
+                style={{
+                  zIndex: 10000,
+                }}
+              >
                 {width >= 1024 ? (
                   <div className="flex flex-col gap-4">
                     <IconButton
@@ -212,11 +226,6 @@ const Index = () => {
                             ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
                           `}
                         >
-                          {/* <IconButton
-                            onClick={() => handleControlAction('layers')}
-                            title="Map Layers"
-                            icon={<LayerIcon />}
-                          /> */}
                           <IconButton
                             onClick={() => handleControlAction('refresh')}
                             title="Refresh Map"

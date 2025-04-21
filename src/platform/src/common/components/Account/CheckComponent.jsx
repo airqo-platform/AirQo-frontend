@@ -28,7 +28,7 @@ const CheckComponent = ({
       )}
       <div className="flex flex-col justify-start">
         {checked ? (
-          <div className="w-8 h-8 mb-3 flex justify-center items-center rounded-full bg-blue-900">
+          <div className="w-8 h-8 mb-3 flex justify-center items-center rounded-full bg-blue-600">
             <CheckIcon fill="#FFFFFF" />
           </div>
         ) : (

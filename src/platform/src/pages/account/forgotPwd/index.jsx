@@ -90,7 +90,7 @@ const ForgotPassword = () => {
             <div className="mt-10">
               <button
                 style={{ textTransform: 'none' }}
-                className="w-full btn rounded-[12px] bg-blue-900 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
+                className="w-full btn rounded-[12px] bg-blue-600 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
                 type="submit"
                 disabled={loading}
               >
@@ -103,7 +103,7 @@ const ForgotPassword = () => {
               <span className="text-sm text-gray-500 dark:text-gray-300">
                 Don&apos;t have an account?{' '}
               </span>
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-400">
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                 <Link href="/account/login">Login</Link>
               </span>
             </div>

@@ -737,8 +737,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           label: 'Country',
           render: (item) => (
             <div className="flex items-center capitalize">
-              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                <WorldIcon width={16} height={16} fill="#9EA3AA" />
+              <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
+                <WorldIcon width={16} height={16} />
               </span>
               <span>{item.name || item.long_name || 'N/A'}</span>
             </div>
@@ -756,8 +756,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           label: 'City',
           render: (item) => (
             <div className="flex items-center">
-              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
+                <LocationIcon width={16} height={16} />
               </span>
               <span>
                 {(item.name || item.long_name || '')
@@ -791,8 +791,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           label: 'Location',
           render: (item) => (
             <div className="flex items-center">
-              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-                <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
+                <LocationIcon width={16} height={16} />
               </span>
               <span>{item.search_name || 'N/A'}</span>
             </div>
@@ -808,7 +808,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           label: 'Device Name',
           render: (item) => (
             <div className="flex items-center capitalize">
-              <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+              <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
                 <DeviceIcon width={16} height={16} />
               </span>
               <span>{item.name || item.long_name || 'N/A'}</span>
@@ -1098,10 +1098,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
                 </div>
                 {renderSidebarContent()}
               </motion.div>
-              <div
-                className="flex-1 h-full bg-black bg-opacity-50"
-                onClick={() => setMobileSidebarVisible(false)}
-              />
             </motion.div>
           )}
         </AnimatePresence>
