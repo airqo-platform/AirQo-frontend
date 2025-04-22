@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import RadioComponent from '@/components/Account/RadioComponent';
 import {
@@ -11,177 +11,141 @@ import Spinner from '@/components/Spinner';
 import { postUserDefaults } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useDispatch } from 'react-redux';
 
-const IndividualAccountInterest = () => {
+const radioOptions = [
+  'Health Professional',
+  'Software Developer',
+  'Community Champion',
+  'Environmental Scientist',
+  'Student',
+  'Policy Maker',
+  'Researcher',
+  'Air Quality Partner',
+];
+
+export default function IndividualAccountInterest() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { id } = router.query;
-  const { token } = router.query;
+  const { id: userId, token } = useMemo(
+    () => ({ id: router.query.id, token: router.query.token }),
+    [router.query],
+  );
 
-  const radioButtonText = [
-    'Health Professional',
-    'Software Developer',
-    'Community Champion',
-    'Environmental Scientist',
-    'Student',
-    'Policy Maker',
-    'Researcher',
-    'Air Quality Partner',
-  ];
-  const [clickedButton, setClickedButton] = useState('');
-  const [interest, setInterest] = useState(null);
-  const [userData, setUserData] = useState({});
-  const [updateError, setUpdateError] = useState({
-    state: false,
-    message: '',
-  });
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [interestDetails, setInterestDetails] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const verifyUserEmail = async (userId, userToken) => {
-    try {
-      await verifyUserEmailApi(userId, userToken);
-    } catch {}
-  };
-
+  // Verify email on mount
   useEffect(() => {
-    verifyUserEmail(id, token);
-  }, [router, id, token]);
+    if (userId && token) {
+      verifyUserEmailApi(userId, token).catch(() => {
+        // optional: handle verification failure
+      });
+    }
+  }, [userId, token]);
 
-  // TODO: check post user defaults
-  const handleUpdate = async () => {
+  const handleUpdate = useCallback(async () => {
     setLoading(true);
-    setUpdateError({
-      state: false,
-      message: '',
-    });
-    setUserData({
-      industry: clickedButton,
-      interest,
-    });
-    const userDefaults = {
-      user: id,
+    setError('');
+
+    const payload = {
+      industry: selectedIndustry,
+      interest: interestDetails,
     };
-    try {
-      const response = await updateUserCreationDetails(userData, id);
-      if (!response.success) {
-        setUpdateError({
-          state: true,
-          message: response.message,
-        });
-      } else {
-        router.push('/account/creation/get-started');
-      }
-    } catch (error) {
-      throw error;
-    }
 
     try {
-      const response = await dispatch(postUserDefaults(userDefaults));
-      if (response.payload.success) {
-        router.push('/account/creation/get-started');
-      } else {
-        setUpdateError({
-          state: true,
-          message: response.payload.message,
-        });
-      }
-    } catch (error) {
-      throw error;
+      const updateResp = await updateUserCreationDetails(payload, userId);
+      if (!updateResp.success) throw new Error(updateResp.message);
+
+      const defaultsResp = await dispatch(
+        postUserDefaults({ user: userId }),
+      ).unwrap();
+      if (!defaultsResp.success) throw new Error(defaultsResp.message);
+
+      router.push('/account/creation/get-started');
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [selectedIndustry, interestDetails, userId, dispatch, router]);
+
+  const isFormValid = Boolean(selectedIndustry && interestDetails.trim());
 
   return (
     <AccountPageLayout
-      childrenHeight={'lg:h-[580]'}
-      pageTitle={'Interest | AirQo'}
-      rightText={
-        "What you've built here is so much better for air pollution monitoring than anything else on the market!"
-      }
+      childrenHeight="lg:h-[580]"
+      pageTitle="Interest | AirQo"
+      rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
     >
-      {updateError.state && (
-        <Toast type={'error'} timeout={5000} message={updateError.message} />
-      )}
-      <div className="w-full px-[2px]">
-        <h2 className="text-3xl text-black-700 font-medium">
+      {error && <Toast type="error" timeout={5000} message={error} />}
+
+      <div className="w-full px-0 md:px-2">
+        <h2 className="text-3xl font-medium text-black-700">
           Help us understand your interest
         </h2>
-        <p className="text-xl text-black-700 font-normal mt-3">
+        <p className="mt-3 text-xl font-normal text-black-700">
           We will help you get started based on your response
         </p>
-        <div className="mt-6">
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-4">
-            {clickedButton === ''
-              ? radioButtonText.map((text, index) => (
-                  <div
-                    key={index}
-                    className="w-full"
-                    onClick={() => setClickedButton(text)}
-                  >
-                    <RadioComponent
-                      text={text}
-                      titleFont={'text-md font-normal'}
-                      padding={'px-3 py-4'}
-                      width={'w-full'}
-                    />
-                  </div>
-                ))
-              : radioButtonText
-                  .filter((button) => button === clickedButton)
-                  .map((text, index) => (
-                    <div key={index} className="w-full col-span-2">
-                      <RadioComponent
-                        text={text}
-                        titleFont={'text-md font-normal'}
-                        padding={'px-3 py-4'}
-                        width={'w-full'}
-                        checked={true}
-                      />
-                      <div className="mt-6">
-                        <div className="w-full">
-                          <div className="text-sm">
-                            Give us more details about your interests?
-                          </div>
-                          <div className="mt-2 w-full">
-                            <textarea
-                              onChange={(e) => setInterest(e.target.value)}
-                              rows="3"
-                              className="textarea textarea-lg w-full bg-white rounded-lg border-input-light-outline focus:border-input-outline"
-                              placeholder="Type here"
-                            ></textarea>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-          </div>
+
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {selectedIndustry ? (
+            <div className="col-span-2">
+              <RadioComponent
+                text={selectedIndustry}
+                checked
+                titleFont="text-md font-normal"
+                padding="px-3 py-4"
+                width="w-full"
+              />
+              <div className="mt-6">
+                <label className="block text-sm">
+                  Give us more details about your interests?
+                </label>
+                <textarea
+                  value={interestDetails}
+                  onChange={(e) => setInterestDetails(e.target.value)}
+                  rows={3}
+                  className="textarea textarea-lg w-full mt-2 bg-white rounded-lg border-input-light-outline focus:border-input-outline"
+                  placeholder="Type here"
+                />
+              </div>
+            </div>
+          ) : (
+            radioOptions.map((label) => (
+              <div
+                key={label}
+                className="w-full"
+                onClick={() => setSelectedIndustry(label)}
+              >
+                <RadioComponent
+                  text={label}
+                  titleFont="text-md font-normal"
+                  padding="px-3 py-4"
+                  width="w-full"
+                />
+              </div>
+            ))
+          )}
         </div>
-        <div className="mt-10">
-          <div className="lg:w-1/3 mt-6 md:mt-0 md:w-full">
-            {clickedButton === '' && interest === null ? (
-              <button
-                style={{ textTransform: 'none' }}
-                className="w-full btn btn-disabled bg-white rounded-[12px] text-sm outline-none border-none"
-              >
-                {loading ? (
-                  <Spinner data-testid="spinner" width={25} height={25} />
-                ) : (
-                  'Continue'
-                )}
-              </button>
-            ) : (
-              <button
-                style={{ textTransform: 'none' }}
-                className="w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950"
-                onClick={() => handleUpdate()}
-              >
-                Continue
-              </button>
-            )}
-          </div>
+
+        <div className="mt-10 md:w-1/3">
+          <button
+            type="button"
+            disabled={!isFormValid || loading}
+            onClick={handleUpdate}
+            className={`w-full rounded-[12px] text-sm outline-none border-none transition \
+              ${
+                isFormValid
+                  ? 'btn bg-blue-600 hover:bg-blue-500'
+                  : 'btn-disabled bg-white'
+              }`}
+            style={{ textTransform: 'none' }}
+          >
+            {loading ? <Spinner width={25} height={25} /> : 'Continue'}
+          </button>
         </div>
       </div>
     </AccountPageLayout>
   );
-};
-
-export default IndividualAccountInterest;
+}

@@ -59,7 +59,7 @@ const LocationCard = ({
     <motion.div
       className={`flex justify-between bg-gray-100 dark:bg-gray-800 items-center p-3 border ${
         isSelected
-          ? 'border-blue-300 dark:border-blue-500 ring-1 ring-blue-500'
+          ? 'border-primary/30 dark:border-primary/50 ring-1 ring-primary/50'
           : 'border-gray-200 dark:border-gray-700'
       } rounded-lg shadow-sm w-full ${disableToggle ? 'opacity-90' : ''}`}
       variants={cardVariants}
@@ -86,11 +86,7 @@ const LocationCard = ({
           animate={isSelected ? { rotate: [0, 15, 0] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <LocationIcon
-            width={20}
-            height={20}
-            fill={isSelected ? '#3B82F6' : '#9EA3AA'}
-          />
+          <LocationIcon width={20} height={20} />
         </motion.div>
         <div className="flex flex-col">
           <h3 className="text-sm font-medium dark:text-white">{displayName}</h3>
@@ -115,7 +111,7 @@ const LocationCard = ({
             e.stopPropagation();
             if (!disableToggle) onToggle(site);
           }}
-          className={`w-4 h-4 text-blue-600 bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-500 rounded focus:ring-blue-500 ${
+          className={`w-4 h-4 text-primary bg-white dark:bg-gray-800 border-primary/30 dark:border-primary/50 rounded focus:ring-primary/50 ${
             disableToggle ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
           }`}
           aria-label={`Select ${displayName}`}

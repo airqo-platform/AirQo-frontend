@@ -1,79 +1,118 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import clsx from 'clsx';
+import { useMediaQuery } from 'react-responsive';
 
-const Button = ({
-  onClick,
-  className = '',
-  path,
-  children,
-  dataTestId,
-  disabled = false,
-  type = 'button',
-  variant = 'filled',
-  color,
-  bgColor,
-  Icon,
-  paddingStyles = 'py-2 px-4 shadow-sm',
-  ...rest
-}) => {
-  // Determine styles based on the variant
-  const variantStyles = {
-    filled: {
-      backgroundColor: bgColor || 'bg-blue-600',
-      textColor: color || 'text-white',
-      border: '',
+const Button = React.forwardRef(
+  (
+    {
+      variant = 'filled', // filled | outlined | text | disabled
+      padding = 'py-2 px-4',
+      className,
+      disabled = false,
+      path,
+      onClick,
+      type = 'button',
+      dataTestId,
+      Icon,
+      children,
+      showTextOnMobile = false,
+      ...rest
     },
-    outlined: {
-      backgroundColor: bgColor || 'bg-white',
-      textColor: color || 'text-black',
-      border: 'border b-secondary-neutral-light-100',
-    },
-    text: {
-      backgroundColor: 'bg-transparent',
-      textColor: color || 'text-secondary-neutral-light-600',
-      border: '',
-    },
-    disabled: {
-      backgroundColor: 'bg-secondary-neutral-light-100',
-      textColor: 'text-secondary-neutral-light-600',
-      border: '',
-    },
-    primaryText: {
-      backgroundColor: 'bg-transparent',
-      textColor: color || 'text-blue-600',
-      border: '',
-    },
-  };
+    ref,
+  ) => {
+    // Base styles
+    const base =
+      'flex items-center justify-center rounded-xl transition transform active:scale-95';
+    const variantMap = {
+      filled: clsx('bg-primary', 'text-white'),
+      outlined: clsx(
+        'bg-transparent',
+        'border border-gray-300',
+        'text-current',
+      ),
+      text: clsx('bg-transparent', 'text-primary'),
+      disabled: clsx('bg-gray-300', 'text-gray-500'),
+    };
+    const activeVariant = disabled ? 'disabled' : variant;
+    const variantStyles = variantMap[activeVariant] || variantMap.filled;
+    const disabledStyles = disabled && 'cursor-not-allowed opacity-50';
 
-  const { backgroundColor, textColor, border } =
-    variantStyles[variant] || variantStyles.filled;
+    // Responsive detection
+    const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+    // Determine if text should be hidden
+    const hideText = isMobile && Icon && !showTextOnMobile;
+    // Only apply right margin on icon when there's visible text
+    const iconMargin = hideText ? '' : 'mr-2';
 
-  // Combine all styles into a button class
-  const buttonClass = `flex justify-center items-center cursor-pointer ${paddingStyles} rounded-xl sm:gap-1 ${className} ${textColor} ${backgroundColor} ${border} transition transform active:scale-95 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`;
-
-  // Render tag if `path` is provided
-  if (path) {
-    return (
-      <a href={path} className={buttonClass} data-testid={dataTestId} {...rest}>
-        {Icon && <Icon className="w-4 h-4 mr-2" />}
-        {children}
-      </a>
+    const btnClass = clsx(
+      base,
+      padding,
+      variantStyles,
+      disabledStyles,
+      className,
     );
-  }
 
-  // Render button element if `path` is not provided
-  return (
-    <button
-      onClick={onClick}
-      className={buttonClass}
-      data-testid={dataTestId}
-      type={type}
-      disabled={disabled}
-      {...rest}
-    >
-      {Icon && <Icon className="w-4 h-4 mr-2" />} {/* Icon before text */}
-      {children}
-    </button>
-  );
+    const Content = (
+      <>
+        {Icon && <Icon className={clsx('w-4 h-4', iconMargin)} />}
+        {!hideText && children}
+      </>
+    );
+
+    if (path) {
+      return (
+        <a
+          ref={ref}
+          href={path}
+          className={btnClass}
+          data-testid={dataTestId}
+          aria-disabled={disabled}
+          {...rest}
+        >
+          {Content}
+        </a>
+      );
+    }
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        onClick={onClick}
+        className={btnClass}
+        data-testid={dataTestId}
+        disabled={disabled}
+        {...rest}
+      >
+        {Content}
+      </button>
+    );
+  },
+);
+
+Button.displayName = 'Button';
+
+Button.propTypes = {
+  variant: PropTypes.oneOf(['filled', 'outlined', 'text', 'disabled']),
+  padding: PropTypes.string,
+  className: PropTypes.string,
+  disabled: PropTypes.bool,
+  path: PropTypes.string,
+  onClick: PropTypes.func,
+  type: PropTypes.oneOf(['button', 'submit', 'reset']),
+  dataTestId: PropTypes.string,
+  Icon: PropTypes.elementType,
+  children: PropTypes.node.isRequired,
+  showTextOnMobile: PropTypes.bool,
+};
+
+Button.defaultProps = {
+  variant: 'filled',
+  padding: 'py-2 px-4',
+  disabled: false,
+  type: 'button',
+  showTextOnMobile: false,
 };
 
 export default Button;

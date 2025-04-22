@@ -29,13 +29,12 @@ const InfoMessage = ({
   action,
   className = '',
 }) => {
-  // Define styles and default icons based on variant
   const variantConfig = {
     info: {
-      container: 'bg-blue-50 border-blue-200',
-      icon: 'text-blue-500',
-      title: 'text-blue-800',
-      description: 'text-blue-600',
+      container: 'bg-primary/10 border-primary/20',
+      icon: 'text-primary',
+      title: 'text-primary/80',
+      description: 'text-primary/60',
       defaultIcon: MdInfoOutline,
     },
     warning: {

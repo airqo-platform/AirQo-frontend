@@ -145,7 +145,7 @@ const AddLocations = ({ onClose }) => {
         render: (item) => (
           <div className="flex items-center">
             <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
-              <LocationIcon width={16} height={16} fill="#9EA3AA" />
+              <LocationIcon width={16} height={16} />
             </span>
             <span className="ml-2">
               {item.search_name ||
@@ -475,10 +475,6 @@ const AddLocations = ({ onClose }) => {
                 </div>
                 <div className="px-2">{renderSidebarContent()}</div>
               </motion.div>
-              <div
-                className="flex-1 h-full bg-black bg-opacity-50"
-                onClick={() => setMobileSidebarVisible(false)}
-              />
             </motion.div>
           )}
         </AnimatePresence>

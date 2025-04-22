@@ -159,19 +159,19 @@ const Calendar = ({
                     isSameDay(normalizedDay, selectedRange.start)) ||
                   (selectedRange.end &&
                     isSameDay(normalizedDay, selectedRange.end))
-                    ? 'bg-blue-600 dark:bg-blue-500 rounded-full text-white hover:text-white'
+                    ? 'bg-primary dark:bg-primary/50 rounded-full text-white hover:text-white'
                     : ''
                 }
                 ${
                   isToday
-                    ? 'text-blue-600 dark:text-blue-400'
+                    ? 'text-primary dark:text-primary/40'
                     : isCurrentMonth
                       ? 'text-gray-800 dark:text-gray-200'
                       : showTwoCalendars
                         ? 'text-gray-300 dark:text-gray-600'
                         : 'hidden'
                 }
-                hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 hover:rounded-full hover:border dark:hover:border-blue-500 
+                hover:border-primary hover:text-primary dark:hover:text-primary/40 hover:rounded-full hover:border dark:hover:border-primary/50 
                 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:pointer-events-none md:w-14 lg:w-16
               `}
               aria-pressed={

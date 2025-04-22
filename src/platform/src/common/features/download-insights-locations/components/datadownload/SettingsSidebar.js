@@ -61,7 +61,7 @@ const SettingsSidebar = ({
             </label>
             <input
               type="text"
-              className="w-full px-3 py-2 border dark:bg-transparent dark:border-gray-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-3 py-2 dark:bg-transparent dark:border-gray-700 rounded-xl focus:outline-none focus:ring-primary"
               value={formData.title.name}
               onChange={handleTitleChange}
               autoFocus
@@ -75,7 +75,7 @@ const SettingsSidebar = ({
             title="Organization"
             options={ORGANIZATION_OPTIONS}
             id="organization"
-            icon={<WorldIcon width={16} height={16} fill="#536A87" />}
+            icon={<WorldIcon width={16} height={16} />}
             defaultOption={formData.organization}
             handleOptionSelect={handleOptionSelect}
             textFormat="uppercase"
@@ -87,7 +87,7 @@ const SettingsSidebar = ({
             title="Data type"
             options={filteredDataTypeOptions}
             id="dataType"
-            icon={<CalibrateIcon fill="#536A87" />}
+            icon={<CalibrateIcon />}
             defaultOption={formData.dataType}
             handleOptionSelect={handleOptionSelect}
           />
@@ -98,7 +98,7 @@ const SettingsSidebar = ({
             title="Pollutant"
             options={POLLUTANT_OPTIONS}
             id="pollutant"
-            icon={<WindIcon fill="#536A87" />}
+            icon={<WindIcon />}
             defaultOption={formData.pollutant}
             handleOptionSelect={handleOptionSelect}
           />
@@ -127,7 +127,7 @@ const SettingsSidebar = ({
             title="Frequency"
             options={FREQUENCY_OPTIONS}
             id="frequency"
-            icon={<FrequencyIcon fill="#536A87" />}
+            icon={<FrequencyIcon />}
             defaultOption={formData.frequency}
             handleOptionSelect={handleOptionSelect}
           />
@@ -138,7 +138,7 @@ const SettingsSidebar = ({
             title="File type"
             options={FILE_TYPE_OPTIONS}
             id="fileType"
-            icon={<FileTypeIcon fill="#536A87" />}
+            icon={<FileTypeIcon />}
             defaultOption={formData.fileType}
             handleOptionSelect={handleOptionSelect}
           />
