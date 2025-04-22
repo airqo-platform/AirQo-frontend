@@ -118,14 +118,14 @@ const HomePage = () => {
           title="The CLEAN-Air Network"
           subtitle="Air Quality Network"
           description={
-            <p>
+            <div>
               <span className="text-blue-700 font-medium">
                 An African-led, multi-regional network
               </span>
               <br />
               bringing together a community of practice for air quality
               solutions and air quality management across Africa.
-            </p>
+            </div>
           }
           buttonText="Join the Network"
           buttonLink="/clean-air-network/about"
