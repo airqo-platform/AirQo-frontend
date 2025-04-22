@@ -36,7 +36,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Button from '@/components/Button';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import LineChartIcon from '@/icons/Charts/LineChartIcon';
-
+import DownloadIcon from '@/icons/Analytics/downloadIcon';
 import { useMediaQuery } from 'react-responsive';
 
 export const InSightsHeader = () => (
@@ -462,7 +462,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
             {/* Controls Bar */}
             <motion.div
               variants={variants.controls}
-              className="flex flex-col md:flex-row w-full justify-between gap-2"
+              className="flex flex-row flex-wrap w-full justify-between gap-2"
             >
               <div className="flex flex-wrap gap-2 items-center">
                 <CustomDropdown
@@ -530,6 +530,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                   <Button
                     onClick={handleDataDownload}
                     disabled={downloadLoading}
+                    Icon={DownloadIcon}
                   >
                     {downloadLoading
                       ? 'Downloading...'
