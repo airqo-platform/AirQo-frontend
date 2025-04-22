@@ -5,35 +5,53 @@ import { format } from 'date-fns';
 import { Tooltip } from 'flowbite-react';
 import { pollutantRanges, categoryDetails } from '../constants';
 
+/**
+ * Reduces decimal places to 4 places for display
+ * @param {number} num - The number to format
+ * @returns {number} - Formatted number with 4 decimal places
+ */
 export const reduceDecimalPlaces = (num) =>
   Math.round((num + Number.EPSILON) * 10000) / 10000;
 
+/**
+ * Truncates a string if it's longer than 20 characters
+ * @param {string} str - The string to truncate
+ * @returns {string} - Truncated string
+ */
 export const truncate = (str) =>
   str.length > 20 ? `${str.slice(0, 19)}…` : str;
 
 /**
  * Returns air quality details for a given pollutant value and type.
+ * @param {number} value - The pollutant value
+ * @param {string} pollutionType - The type of pollutant (e.g., 'pm2_5', 'pm10')
+ * @returns {Object} - Air quality category details including text, icon, and color
  */
 export const getAirQualityLevelText = (value, pollutionType) => {
+  // Return invalid category for invalid values
   if (typeof value !== 'number' || isNaN(value) || value < 0) {
     return categoryDetails['Invalid'];
   }
+
+  // Get ranges for the specified pollutant type
   const ranges = pollutantRanges[pollutionType];
   if (!ranges) {
     console.error(`Invalid pollution type: ${pollutionType}`);
     return categoryDetails['Invalid'];
   }
-  for (let i = ranges.length - 1; i >= 0; i--) {
-    const { limit, category } = ranges[i];
+
+  // Find the appropriate category based on the value
+  for (const { limit, category } of ranges) {
     if (value >= limit) {
       return categoryDetails[category];
     }
   }
+
   return categoryDetails['Invalid'];
 };
 
 /**
- * Custom tooltip for the chart.
+ * Custom tooltip component for the pollution charts
  */
 export const CustomGraphTooltip = ({
   active,
@@ -41,16 +59,22 @@ export const CustomGraphTooltip = ({
   activeIndex,
   pollutionType,
 }) => {
+  // If the tooltip is not active or there's no payload, don't render anything
   if (!active || !payload?.length) return null;
-  const hoveredPoint = payload[activeIndex] || payload[0];
+
+  // Get the currently hovered data point
+  const hoveredPointIndex =
+    activeIndex !== null && activeIndex < payload.length ? activeIndex : 0;
+  const hoveredPoint = payload[hoveredPointIndex];
+
+  // Extract data from the hovered point
   const { value, payload: pointPayload } = hoveredPoint;
   const time = pointPayload?.time;
   const formattedDate = time ? format(new Date(time), 'MMMM dd, yyyy') : '';
-  const {
-    text,
-    icon: AirQualityIcon,
-    color: airQualityColor,
-  } = getAirQualityLevelText(value, pollutionType);
+
+  // Get air quality information for the hovered value
+  const airQualityInfo = getAirQualityLevelText(value, pollutionType);
+  const { text, icon: AirQualityIcon, color: airQualityColor } = airQualityInfo;
 
   return (
     <div className="w-80 p-3 rounded-lg shadow-md border border-gray-200 dark:bg-gray-800 dark:border-gray-600 bg-white">
@@ -59,7 +83,7 @@ export const CustomGraphTooltip = ({
       </div>
       <div className="space-y-2">
         {payload.map((point, index) => {
-          const isHovered = index === activeIndex;
+          const isHovered = index === hoveredPointIndex;
           return (
             <div
               key={index}
@@ -96,10 +120,10 @@ export const CustomGraphTooltip = ({
           );
         })}
       </div>
-      {activeIndex !== null && payload[activeIndex] && (
+      {AirQualityIcon && (
         <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-300 dark:border-gray-600">
           <div className={`text-sm font-medium ${airQualityColor}`}>{text}</div>
-          {AirQualityIcon && <AirQualityIcon width={24} height={24} />}
+          <AirQualityIcon width={24} height={24} />
         </div>
       )}
     </div>
@@ -110,7 +134,7 @@ CustomGraphTooltip.propTypes = {
   active: PropTypes.bool,
   payload: PropTypes.array,
   activeIndex: PropTypes.number,
-  pollutionType: PropTypes.string,
+  pollutionType: PropTypes.string.isRequired,
 };
 
 /**
