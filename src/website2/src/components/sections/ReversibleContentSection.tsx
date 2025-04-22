@@ -1,12 +1,12 @@
 import Image from 'next/image';
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
 type ReversibleContentSectionProps = {
   title: string;
-  subtitle: string;
-  description: string;
+  subtitle?: string;
+  description: string | ReactNode;
   buttonText: string;
   buttonLink: string;
   imageUrl: string;
@@ -46,15 +46,17 @@ const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
         <div
           className={cn(leftWidth, 'w-full text-center lg:text-left space-y-8')}
         >
-          <span
-            className={cn(
-              'inline-block text-sm font-medium py-1 px-3 rounded-full',
-              subtitleColor,
-              subtitleBgColor,
-            )}
-          >
-            {subtitle}
-          </span>
+          {subtitle && (
+            <span
+              className={cn(
+                'inline-block text-sm font-medium py-1 px-3 rounded-full',
+                subtitleColor,
+                subtitleBgColor,
+              )}
+            >
+              {subtitle}
+            </span>
+          )}
           <h2 className="text-3xl lg:text-5xl font-medium text-gray-900">
             {title}
           </h2>
