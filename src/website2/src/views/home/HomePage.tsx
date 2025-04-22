@@ -103,7 +103,7 @@ const HomePage = () => {
           description="Connect with researchers, policymakers and innovators driving real‑world solutions to air pollution across Africa. Share data, discuss strategies and collaborate on initiatives that improve the air we breathe."
           buttonText="Explore the Forum"
           buttonLink="/clean-air-forum/about"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1745325839/website/cleanAirForum/images/clean_air_forum_mjs7pu.png"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1745330007/website/cleanAirForum/images/clean_air_forum2_isybcv.png"
           reverse={false}
           backgroundColor="bg-[#EDF3FF]"
           subtitleColor="text-black"
