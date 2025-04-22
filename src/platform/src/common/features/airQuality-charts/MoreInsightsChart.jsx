@@ -21,7 +21,9 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useSelector } from 'react-redux';
-import { MdInfoOutline, MdRefresh } from 'react-icons/md';
+import { MdRefresh } from 'react-icons/md';
+import { MdSearchOff } from 'react-icons/md';
+
 import useResizeObserver from '@/core/utils/useResizeObserver';
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { formatYAxisTick } from './utils';
@@ -292,9 +294,15 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
     }
     if (!seriesKeys.length) {
       return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500">
-          <MdInfoOutline className="text-4xl mb-2" />
-          <p>All Sites Hidden</p>
+        <div className="flex flex-col items-center justify-center h-full text-gray-500 px-6">
+          <MdSearchOff className="text-5xl mb-3" />
+          <h4 className="mb-2 text-lg font-semibold">No Data Available</h4>
+          <p className="text-center">
+            We couldn’t find any data matching your current selections.
+          </p>
+          <p className="text-center">
+            Try adjusting the filters or choosing a different time range.
+          </p>
         </div>
       );
     }
@@ -389,6 +397,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               textAnchor="end"
               height={60}
               className="chart-x-axis"
+              padding={{ left: 10, right: 10 }}
             />
             <YAxis
               domain={[0, 'auto']}
