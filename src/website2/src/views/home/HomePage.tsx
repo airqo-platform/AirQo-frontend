@@ -95,6 +95,47 @@ const HomePage = () => {
         />
       </MotionSection>
 
+      {/* The clean air Forum */}
+      <MotionSection>
+        <ReversibleContentSection
+          title="CLEAN‑Air Forum"
+          subtitle="Africa’s Premier Air Quality Community"
+          description="Connect with researchers, policymakers and innovators driving real‑world solutions to air pollution across Africa. Share data, discuss strategies and collaborate on initiatives that improve the air we breathe."
+          buttonText="Explore the Forum"
+          buttonLink="/clean-air-forum/about"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1745330007/website/cleanAirForum/images/clean_air_forum2_isybcv.png"
+          reverse={false}
+          backgroundColor="bg-[#EDF3FF]"
+          subtitleColor="text-black"
+          subtitleBgColor="bg-white"
+          imageClassName="object-cover object-center rounded-xl"
+        />
+      </MotionSection>
+
+      {/* The clean air network */}
+      <MotionSection>
+        <ReversibleContentSection
+          title="The CLEAN-Air Network"
+          subtitle="Air Quality Network"
+          description={
+            <div>
+              <span className="text-blue-700 font-medium">
+                An African-led, multi-regional network
+              </span>
+              <br />
+              bringing together a community of practice for air quality
+              solutions and air quality management across Africa.
+            </div>
+          }
+          buttonText="Join the Network"
+          buttonLink="/clean-air-network/about"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp"
+          backgroundColor="bg-transparent"
+          reverse={true}
+          imageClassName="object-cover rounded-xl"
+        />
+      </MotionSection>
+
       {/* Reversible Content Section 3 */}
       <MotionSection>
         <ReversibleContentSection

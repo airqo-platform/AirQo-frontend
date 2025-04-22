@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { ReactNode, Suspense } from 'react';
 
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
+import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
@@ -127,6 +128,7 @@ export default async function RootLayout({
         </Script>
       </head>
       <body>
+        <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>

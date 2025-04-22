@@ -9,26 +9,42 @@ import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
 
+interface Section {
+  id: string;
+  pages: string[];
+  content: string;
+  [key: string]: any; // For other properties of a section
+}
+
 const SpeakersPage = () => {
   // Now we use the selectedEvent from context
   const { selectedEvent } = useForumData();
   const membersPerPage = 6;
-  const [currentKeyNotePage, setCurrentKeyNotePage] = useState(1);
-  const [currentSpeakersPage, setCurrentSpeakersPage] = useState(1);
+  const [currentKeyNotePage, setCurrentKeyNotePage] = useState<number>(1);
+  const [currentSpeakersPage, setCurrentSpeakersPage] = useState<number>(1);
 
   if (!selectedEvent) {
-    return null;
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          Event Not Selected
+        </h2>
+        <p className="text-gray-500">
+          Please select an event to view speakers information.
+        </p>
+      </div>
+    );
   }
 
   // Filter keynote speakers and speakers from selectedEvent.persons.
   // (Adjust your filtering logic as needed.)
-  const keyNoteSpeakers =
+  const keyNoteSpeakers: any[] =
     selectedEvent.persons?.filter(
       (person: any) =>
         person.category === 'Key Note Speaker' ||
         person.category === 'Committee Member and Key Note Speaker',
     ) || [];
-  const speakers =
+  const speakers: any[] =
     selectedEvent.persons?.filter(
       (person: any) =>
         person.category === 'Speaker' ||
@@ -63,12 +79,32 @@ const SpeakersPage = () => {
 
   // Filter extra sections assigned to the "speakers" page.
   const speakersExtraSections = selectedEvent.sections?.filter(
-    (section: any) => {
+    (section: Section) => {
       if (!section.pages.includes('speakers')) return false;
       const sectionHTML = renderContent(section.content);
       return isValidHTMLContent(sectionHTML);
     },
   );
+
+  // Check if we have any content at all
+  const hasNoContent =
+    !showMainSpeakers &&
+    keyNoteSpeakers.length === 0 &&
+    speakers.length === 0 &&
+    (!speakersExtraSections || speakersExtraSections.length === 0);
+
+  if (hasNoContent) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          Speakers Coming Soon!
+        </h2>
+        <p className="text-gray-500">
+          We&apos;re finalizing our speakers lineup. Please check back later.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 prose max-w-none lg:px-0">
@@ -88,23 +124,34 @@ const SpeakersPage = () => {
       {/* Keynote Speakers Section */}
       <h1 className="text-2xl font-bold">Keynote Speakers</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
-        {displayedKeyNoteSpeakers.map((person: any) => (
-          <MemberCard
-            key={person.id}
-            member={person}
-            btnText="Read Bio"
-            cardClassName="bg-gray-100 p-2 rounded-md"
-          />
-        ))}
-      </div>
-      {totalKeyNotePages > 1 && (
-        <div className="py-6">
-          <Pagination
-            totalPages={totalKeyNotePages}
-            currentPage={currentKeyNotePage}
-            onPageChange={handleKeyNotePageChange}
-          />
+      {keyNoteSpeakers.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
+            {displayedKeyNoteSpeakers.map((person: any) => (
+              <MemberCard
+                key={person.id}
+                member={person}
+                btnText="Read Bio"
+                cardClassName="bg-gray-100 p-2 rounded-md"
+              />
+            ))}
+          </div>
+          {totalKeyNotePages > 1 && (
+            <div className="py-6">
+              <Pagination
+                totalPages={totalKeyNotePages}
+                currentPage={currentKeyNotePage}
+                onPageChange={handleKeyNotePageChange}
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg my-4">
+          <p className="text-lg text-gray-600">Keynote Speakers Coming Soon!</p>
+          <p className="text-sm text-gray-500 mt-2">
+            We&apos;re in the process of confirming our keynote lineup.
+          </p>
         </div>
       )}
 
@@ -112,23 +159,35 @@ const SpeakersPage = () => {
 
       {/* Speakers Section */}
       <h2 className="text-2xl font-bold">Speakers</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
-        {displayedSpeakers.map((person: any) => (
-          <MemberCard
-            key={person.id}
-            member={person}
-            btnText="Read Bio"
-            cardClassName="bg-gray-100 p-2 rounded-md"
-          />
-        ))}
-      </div>
-      {totalSpeakersPages > 1 && (
-        <div className="py-6">
-          <Pagination
-            totalPages={totalSpeakersPages}
-            currentPage={currentSpeakersPage}
-            onPageChange={handleSpeakersPageChange}
-          />
+
+      {speakers.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
+            {displayedSpeakers.map((person: any) => (
+              <MemberCard
+                key={person.id}
+                member={person}
+                btnText="Read Bio"
+                cardClassName="bg-gray-100 p-2 rounded-md"
+              />
+            ))}
+          </div>
+          {totalSpeakersPages > 1 && (
+            <div className="py-6">
+              <Pagination
+                totalPages={totalSpeakersPages}
+                currentPage={currentSpeakersPage}
+                onPageChange={handleSpeakersPageChange}
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg my-4">
+          <p className="text-lg text-gray-600">Speakers To Be Announced</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Our speaker lineup is being finalized. Check back soon for updates.
+          </p>
         </div>
       )}
 
