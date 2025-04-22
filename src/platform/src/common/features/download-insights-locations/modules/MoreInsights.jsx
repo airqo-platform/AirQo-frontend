@@ -368,7 +368,11 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
 
     if (allSiteData.length)
       return (
-        <motion.div initial="hidden" animate="visible">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          className="h-[400px] w-full"
+        >
           <MoreInsightsChart
             data={allSiteData}
             selectedSites={dataLoadingSites}
@@ -376,7 +380,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
             chartType={chartType}
             frequency={frequency}
             width="100%"
-            height={380}
+            height="100%"
             id="air-quality-chart"
             pollutantType={chartData.pollutionType}
             refreshChart={handleManualRefresh}
@@ -553,7 +557,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
             {/* Chart Container */}
             <motion.div
               variants={variants.item}
-              className="relative border dark:border-gray-700 rounded-xl p-2 h-full"
+              className="relative border dark:border-gray-700 rounded-xl p-2 h-auto"
             >
               <AnimatePresence>
                 {refreshSuccess && !isValidating && (
