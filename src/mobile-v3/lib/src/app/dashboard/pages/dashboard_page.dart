@@ -31,7 +31,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   void initState() {
     super.initState();
     loggy.info('Initializing DashboardPage');
-    
+
     // Load dashboard data which will also load preferences
     context.read<DashboardBloc>().add(LoadDashboard());
     context.read<UserBloc>().add(LoadUser());
@@ -53,56 +53,56 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: DashboardAppBar(),
-    body: Stack(
-      children: [
-        CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: DashboardHeader(),
-            ),
-            SliverToBoxAdapter(
-              child: ViewSelector(
-                currentView: currentView,
-                selectedCountry: selectedCountry,
-                onViewChanged: setView,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: DashboardAppBar(),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: DashboardHeader(),
+              ),
+              SliverToBoxAdapter(
+                child: ViewSelector(
+                  currentView: currentView,
+                  selectedCountry: selectedCountry,
+                  onViewChanged: setView,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: _buildContentForCurrentView(),
+              ),
+            ],
+          ),
+
+          // Only show FAB when in My Places view
+          if (currentView == DashboardView.myPlaces)
+            Positioned(
+              right: 20,
+              bottom: 20,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LocationSelectionScreen(),
+                    ),
+                  ).then((value) {
+                    if (value != null) {
+                      // Force reload dashboard data
+                      context.read<DashboardBloc>().add(LoadDashboard());
+                    }
+                  });
+                },
+                backgroundColor: AppColors.primaryColor,
+                child: const Icon(Icons.add, color: Colors.white),
               ),
             ),
-            SliverToBoxAdapter(
-              child: _buildContentForCurrentView(),
-            ),
-          ],
-        ),
-        
-        // Only show FAB when in My Places view
-        if (currentView == DashboardView.myPlaces)
-          Positioned(
-            right: 20,
-            bottom: 20,
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LocationSelectionScreen(),
-                  ),
-                ).then((value) {
-                  if (value != null) {
-                    // Force reload dashboard data
-                    context.read<DashboardBloc>().add(LoadDashboard());
-                  }
-                });
-              },
-              backgroundColor: AppColors.primaryColor,
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
-          ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildContentForCurrentView() {
     switch (currentView) {
@@ -110,11 +110,13 @@ Widget build(BuildContext context) {
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoaded) {
-              loggy.info('Dashboard loaded with preferences: ${state.userPreferences != null}');
+              loggy.info(
+                  'Dashboard loaded with preferences: ${state.userPreferences != null}');
               if (state.userPreferences != null) {
-                loggy.info('User has ${state.selectedLocationIds.length} selected locations');
+                loggy.info(
+                    'User has ${state.selectedLocationIds.length} selected locations');
               }
-              
+
               return MyPlacesView(
                 userPreferences: state.userPreferences,
               );
@@ -127,7 +129,18 @@ Widget build(BuildContext context) {
           },
         );
       case DashboardView.nearby:
-        return NearbyView();
+        return BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoaded) {
+              return NearbyView();
+            } else if (state is DashboardLoading) {
+              return DashboardLoadingPage();
+            } else if (state is DashboardLoadingError) {
+              return ErrorPage();
+            }
+            return Container();
+          },
+        );
       case DashboardView.country:
         return BlocBuilder<DashboardBloc, DashboardState>(
             builder: (context, state) {
