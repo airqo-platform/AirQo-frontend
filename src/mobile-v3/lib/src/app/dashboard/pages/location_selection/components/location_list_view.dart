@@ -326,8 +326,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 onChanged: (value) {
                   onToggleSelection(measurement.id, value!);
                 },
-                fillColor: MaterialStateProperty.resolveWith(
-                  (states) => states.contains(MaterialState.selected)
+                fillColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
                       ? AppColors.primaryColor
                       : Colors.transparent,
                 ),
