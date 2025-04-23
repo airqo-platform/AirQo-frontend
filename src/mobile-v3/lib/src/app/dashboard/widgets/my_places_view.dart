@@ -298,7 +298,48 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
+
   void _removeLocation(String id) {
+    // Check if this is the last location
+    if ((selectedMeasurements.length + unmatchedSites.length) <= 1) {
+      // Show warning dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            "Cannot Remove Default Location",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.headlineSmall?.color,
+            ),
+          ),
+          content: Text(
+            "You need to have at least one location in My Places. Add another location before removing this one.",
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "OK",
+                style: TextStyle(
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Theme.of(context).cardColor,
+        ),
+      );
+      return;
+    }
+
     // Find the name of the location being removed
     String locationName = "Location";
     for (var m in selectedMeasurements) {
@@ -347,6 +388,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         }
       });
     }
+
     NotificationManager().showNotification(
       context,
       message: '"$locationName" has been removed from your places',
