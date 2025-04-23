@@ -518,7 +518,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-          network: formData.organization.name,
+          // TODO: uncomment when API supports it FOR ALL
+          // network: formData.organization.name,
           datatype:
             formData.dataType.name.toLowerCase() === 'calibrated data'
               ? 'calibrated'
