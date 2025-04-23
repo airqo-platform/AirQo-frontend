@@ -298,7 +298,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
   }
 
-
   void _removeLocation(String id) {
     // Check if this is the last location
     if ((selectedMeasurements.length + unmatchedSites.length) <= 1) {
@@ -336,6 +335,13 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
           ),
           backgroundColor: Theme.of(context).cardColor,
         ),
+      );
+      // Show a notification explaining why the action was prevented
+      NotificationManager().showNotification(
+        context,
+        message:
+            'Cannot remove the last location. Please add another location first.',
+        isSuccess: false,
       );
       return;
     }
