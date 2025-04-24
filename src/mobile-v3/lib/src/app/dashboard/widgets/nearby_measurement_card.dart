@@ -205,7 +205,7 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              measurement.siteDetails?.name ??
+                              measurement.siteDetails?.searchName ??
                                   "Unknown Location",
                               style: TextStyle(
                                 fontSize: 22,
