@@ -126,8 +126,8 @@ const CohortDashboard: React.FC<CohortDashboardProps> = ({ loading, cohortId, co
         <AveragesChart
           isCohorts={false}
           isGrids={true}
-          analyticsDevices={[]}
-          analyticsSites={analyticsDevices}
+          analyticsDevices={analyticsDevices}
+          analyticsSites={[]}
         />
         <ExceedancesChart
           analyticsSites={[]}

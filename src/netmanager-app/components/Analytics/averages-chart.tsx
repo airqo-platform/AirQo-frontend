@@ -64,19 +64,13 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import createAxiosInstance from "@/core/apis/axiosConfig"
 import { DAILY_MEAN_AVERAGES_URI, DEVICE_MEAN_AVERAGES_URI } from "@/core/urls"
+import { Device } from "@/app/types/devices"
 
 interface AnalyticsSite {
   _id: string
   name?: string
   description?: string
   generated_name?: string
-}
-
-interface Device {
-  _id: string
-  name: string
-  long_name: string
-  [key: string]: string | number | boolean | undefined
 }
 
 interface ChartData {
