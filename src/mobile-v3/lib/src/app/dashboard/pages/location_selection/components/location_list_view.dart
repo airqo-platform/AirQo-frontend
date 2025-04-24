@@ -61,7 +61,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 const SizedBox(height: 16),
                 Text(
                   "Loading locations...",
-                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               ],
             ),
@@ -89,7 +90,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 const SizedBox(height: 16),
                 Text(
                   errorMsg,
-                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -133,7 +135,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
               return Center(
                 child: Text(
                   "No matching locations found",
-                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
               );
             }
@@ -144,60 +147,71 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    // child: Text(
-                    //   "Air Quality Monitoring Locations",
-                    //   style: TextStyle(
-                    //     fontWeight: FontWeight.bold,
-                    //     color: Theme.of(context).textTheme.headlineSmall?.color,
-                    //   ),
-                    // ),
                   ),
-                  ...localSearchResults
-                      .map((measurement) => Column(
-                            children: [
-                              ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: Theme.of(context).highlightColor,
-                                  child: SvgPicture.asset(
-                                    "assets/images/shared/location_pin.svg",
-                                  ),
-                                ),
-                                title: Text(
-                                  measurement.siteDetails?.city ??
-                                      measurement.siteDetails?.town ??
-                                      measurement.siteDetails?.locationName ??
-                                      "Unknown Location",
-                                  style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-                                ),
-                                subtitle: Text(
-                                  measurement.siteDetails?.name ??
-                                      measurement.siteDetails?.formattedName ??
-                                      "",
-                                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
-                                ),
-                                trailing: Checkbox(
-                                  value: selectedLocations
-                                      .contains(measurement.id),
-                                  onChanged: (value) {
-                                    onToggleSelection(measurement.id, value!);
-                                  },
-                                  fillColor: MaterialStateProperty.resolveWith(
-                                    (states) =>
-                                        states.contains(MaterialState.selected)
-                                            ? AppColors.primaryColor
-                                            : Colors.transparent,
-                                  ),
-                                  checkColor: Colors.white,
-                                  side: BorderSide(color: Theme.of(context).dividerColor),
-                                ),
-                                onTap: () =>
-                                    onViewDetails(measurement: measurement),
+                  ...localSearchResults.map((measurement) => Column(
+                        children: [
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(context).highlightColor,
+                              child: SvgPicture.asset(
+                                "assets/images/shared/location_pin.svg",
                               ),
-                              if (measurement != localSearchResults.last)
-                                Divider(indent: 50),
-                            ],
-                          ))
-                      .toList(),
+                            ),
+                            title: Text(
+                              measurement.siteDetails?.city ??
+                                  measurement.siteDetails?.town ??
+                                  measurement.siteDetails?.locationName ??
+                                  "Unknown Location",
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color),
+                            ),
+                            subtitle: Text(
+                              measurement.siteDetails?.name ??
+                                  measurement.siteDetails?.formattedName ??
+                                  "",
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
+                                      ?.withOpacity(0.7)),
+                            ),
+                            trailing: Checkbox(
+                              value:
+                                  selectedLocations.contains(measurement.id) ||
+                                      selectedLocations
+                                          .contains(measurement.siteId) ||
+                                      (measurement.siteDetails?.id != null &&
+                                          selectedLocations.contains(
+                                              measurement.siteDetails!.id)),
+                              onChanged: (value) {
+                                String? idToUse = measurement.id ??
+                                    measurement.siteId ??
+                                    measurement.siteDetails?.id;
+                                if (idToUse != null) {
+                                  onToggleSelection(idToUse, value!);
+                                }
+                              },
+                              fillColor: WidgetStateProperty.resolveWith(
+                                (states) =>
+                                    states.contains(WidgetState.selected)
+                                        ? AppColors.primaryColor
+                                        : Colors.transparent,
+                              ),
+                              checkColor: Colors.white,
+                              side: BorderSide(
+                                  color: Theme.of(context).dividerColor),
+                            ),
+                            onTap: () =>
+                                onViewDetails(measurement: measurement),
+                          ),
+                          if (measurement != localSearchResults.last)
+                            Divider(indent: 50),
+                        ],
+                      )),
                   if (hasGoogleResults) const Divider(thickness: 1, height: 32),
                 ],
 
@@ -246,14 +260,19 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   "assets/images/shared/empty_state.svg",
                   height: 100,
                   width: 100,
-                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.6),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   currentFilter == "All"
                       ? "No locations available"
                       : "No locations found in $currentFilter",
-                  style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
@@ -288,21 +307,27 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     measurement.siteDetails?.town ??
                     measurement.siteDetails?.locationName ??
                     "Unknown Location",
-                style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
               subtitle: Text(
                 measurement.siteDetails?.name ??
                     measurement.siteDetails?.formattedName ??
                     "",
-                style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+                style: TextStyle(
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color
+                        ?.withOpacity(0.7)),
               ),
               trailing: Checkbox(
                 value: isSelected,
                 onChanged: (value) {
                   onToggleSelection(measurement.id, value!);
                 },
-                fillColor: MaterialStateProperty.resolveWith(
-                  (states) => states.contains(MaterialState.selected)
+                fillColor: WidgetStateProperty.resolveWith(
+                  (states) => states.contains(WidgetState.selected)
                       ? AppColors.primaryColor
                       : Colors.transparent,
                 ),
