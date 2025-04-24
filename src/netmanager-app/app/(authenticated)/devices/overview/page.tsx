@@ -112,24 +112,20 @@ export default function DevicesPage() {
 
   const sortedDevices = sortDevices(filteredDevices);
 
-  // Pagination calculations
   const totalPages = Math.ceil(sortedDevices.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentDevices = sortedDevices.slice(startIndex, endIndex);
 
-  // Add this function for pagination numbers
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total pages is less than max visible
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Show pages with ellipsis
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) {
           pageNumbers.push(i);
@@ -306,7 +302,7 @@ export default function DevicesPage() {
                 <TableRow 
                   key={device._id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleDeviceClick(device._id)}
+                  onClick={() => handleDeviceClick(device._id ?? "unknown-id")}
                 >
                   <TableCell>
                     <div className="flex flex-col gap-1">
@@ -333,7 +329,7 @@ export default function DevicesPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <span className="uppercase font-mono">
-                        {truncateId(device._id)}
+                        {truncateId(device._id || "N/A")}
                       </span>
                       <Button
                         variant="ghost"
@@ -341,7 +337,11 @@ export default function DevicesPage() {
                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigator.clipboard.writeText(device._id);
+                          if (device._id) {
+                            navigator.clipboard.writeText(device._id);
+                          } else {
+                            toast("Device ID is undefined");
+                          }
                           toast("Device ID copied to clipboard");
                         }}
                       >

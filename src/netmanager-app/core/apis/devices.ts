@@ -1,35 +1,21 @@
 import createAxiosInstance from "./axiosConfig";
 import { DEVICES_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
-import type { DevicesSummaryResponse } from "@/app/types/devices";
+import type { Device, DevicesSummaryResponse } from "@/app/types/devices";
 
 const axiosInstance = createAxiosInstance();
 const axiosInstanceWithTokenAccess = createAxiosInstance(false);
 
 interface ErrorResponse {
   message: string;
-}
-
-export interface DeviceStatus {
-  _id: string;
-  name: string;
-  device_number: number;
-  latitude: number;
-  longitude: number;
-  isActive: boolean;
-  mobility: boolean;
-  status?: "online" | "offline";
-  maintenance_status: "good" | "due" | "overdue" | -1;
-  powerType: "solar" | "alternator" | "mains";
-  nextMaintenance?: { $date: string };
-  network: string;
-  site_id?: string;
-  elapsed_time: number;
+  errors?: {
+    message: string;
+  }
 }
 
 interface DeviceStatusSummary {
   _id: string;
-  created_at: { $date: string };
+  created_at: string;
   total_active_device_count: number;
   count_of_online_devices: number;
   count_of_offline_devices: number;
@@ -39,8 +25,8 @@ interface DeviceStatusSummary {
   count_due_maintenance: number;
   count_overdue_maintenance: number;
   count_unspecified_maintenance: number;
-  online_devices: DeviceStatus[];
-  offline_devices: DeviceStatus[];
+  online_devices: Device[];
+  offline_devices: Device[];
 }
 
 export interface DeviceStatusResponse {
@@ -235,7 +221,6 @@ export const devices = {
       );
     }
   },
-
   getDeviceDetails: async (deviceId: string): Promise<DeviceDetailsResponse> => {
     try {
       const response = await axiosInstance.get<DeviceDetailsResponse>(
@@ -249,6 +234,30 @@ export const devices = {
       );
     }
   },
+  updateDeviceDetails: async (id: string, updateData: Partial<DeviceDetailsResponse["data"]>) => {
+    try {
+      const response = await axiosInstance
+      .put(DEVICES_MGT_URL, updateData, { params: { id } });
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.errors?.message || axiosError.response?.data.message || "Failed to update device details"
+      );
+    }
+  },
+  softUpdateDeviceDetails: async (deviceId: string, updateData: Partial<DeviceDetailsResponse["data"]>) => {
+    try {
+      const response = await createAxiosInstance()
+        .put(`${DEVICES_MGT_URL}/soft`, updateData, { params: { id: deviceId } });
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.errors?.message || axiosError.response?.data.message || "Failed to update device details"
+      );
+    }
+  }
 };
 
 export type { DeviceDetailsResponse };

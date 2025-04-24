@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { DeviceStatus } from "@/core/apis/devices";
+import { Device } from "@/app/types/devices";
 
 interface DevicesState {
-  devices: DeviceStatus[];
+  devices: Device[];
   error: string | null;
   selectedDeviceId: string | null;
 }
@@ -17,7 +17,7 @@ export const devicesSlice = createSlice({
   name: "devices",
   initialState,
   reducers: {
-    setDevices: (state, action: PayloadAction<DeviceStatus[]>) => {
+    setDevices: (state, action: PayloadAction<Device[]>) => {
       state.devices = action.payload;
       state.error = null;
     },

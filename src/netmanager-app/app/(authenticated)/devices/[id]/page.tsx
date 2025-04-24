@@ -1,15 +1,15 @@
 "use client"
 
-import { ChevronLeft, Copy, Edit, Info } from "lucide-react"
+import { ChevronLeft, Edit, Info } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
-import { useDeviceDetails } from "@/core/hooks/useDevices"
+import { useDeviceDetails, useDeviceUpdate } from "@/core/hooks/useDevices"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -19,15 +19,75 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
+import { Device } from "@/app/types/devices"
+import { DeviceDetailsModal } from "@/components/devices/device-details-form"
+import { DeviceEditModal } from "@/components/devices/edit-device-details-form"
 
-const truncateId = (id: string) => {
-  if (id.length <= 6) return id
-  return `${id.slice(0, 6)}***${id.slice(-2)}`
+export type EditData = {
+  long_name: string
+  device_number: number | undefined
+  category: string
+  description?: string
+  phoneNumber?: string
+  latitude?: string | number
+  longitude?: string | number
+  visibility: boolean
+  isPrimaryInLocation: boolean
+  generation_version?: string
+  generation_count?: string | number
+  [key: string]: string | number | boolean | undefined
+}
+
+const DeviceKeyDetails = ({ device }: { device: Device }) => {
+  return (
+    <div className="space-y-3 mb-6">
+      <div className="flex items-center">
+        <h3 className="font-semibold w-48">Device Number (Channel ID):</h3>
+        <p>{device.device_number}</p>
+      </div>
+      <div className="flex items-center">
+        <h3 className="font-semibold w-48">Visibility Status:</h3>
+        <p>{device.visibility ? "Public" : "Private"}</p>
+      </div>
+      <div className="flex items-center">
+        <h3 className="font-semibold w-48">Deployment Status:</h3>
+        <p className="capitalize">{device.status}</p>
+      </div>
+    </div>
+  )
+}
+
+const SaveTypeModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  isSaving,
+}: {
+  isOpen: boolean
+  onClose: (open: boolean) => void
+  onSave: (isSoftUpdate: boolean) => void
+  isSaving: boolean
+}) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Choose Update Method</DialogTitle>
+          <DialogDescription>How would you like to save your changes?</DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex justify-between sm:justify-end gap-2 mt-4">
+          <Button onClick={() => onSave(true)} variant="outline" disabled={isSaving}>
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Local Sync
+          </Button>
+          <Button onClick={() => onSave(false)} variant="default" autoFocus disabled={isSaving}>
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Global Sync
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 export default function DeviceDetailsPage() {
@@ -35,8 +95,37 @@ export default function DeviceDetailsPage() {
   const deviceId = params.id as string
   const { data: response, isLoading, error } = useDeviceDetails(deviceId)
   const device = response?.data
+  const { updateDevice } = useDeviceUpdate()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [isSetSaveType, setSaveType] = useState(false)
+  const [editData, setEditData] = useState<EditData>({
+    long_name: "",
+    device_number: undefined,
+    category: "",
+    visibility: false,
+    isPrimaryInLocation: false,
+  })
+  const [submitEditFormData, setSubmiteEditFormData] = useState({});
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (device) {
+      setEditData({
+        long_name: device.long_name || "",
+        device_number: device.device_number || undefined,
+        category: device.category || "",
+        description: device.description || "",
+        phoneNumber: device.phoneNumber || "",
+        latitude: device.latitude || "",
+        longitude: device.longitude || "",
+        visibility: device.visibility || false,
+        isPrimaryInLocation: device.isPrimaryInLocation || false,
+        generation_version: device.generation_version || "",
+        generation_count: device.generation_count || "",
+      })
+    }
+  }, [device])
 
   if (isLoading) {
     return (
@@ -82,14 +171,62 @@ export default function DeviceDetailsPage() {
     setIsDetailsModalOpen(true)
   }
 
-  const closeDetailsModal = () => {
-    setIsDetailsModalOpen(false)
+  const handleInputChange = (field: string, value: string | number | boolean) => {
+    setEditData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
   }
 
+  const getChangedFields = (original: Device, edited: EditData): Partial<EditData> => {
+    const result: Partial<EditData> = {}
+  
+    for (const key in edited) {
+      const newValue = edited[key]
+      const originalValue = original[key as keyof Device]
+  
+      const isValueEmpty =
+        newValue === "" ||
+        newValue === undefined ||
+        (typeof newValue === "string" && newValue.trim() === "")
+  
+      if (!isValueEmpty && newValue !== originalValue) {
+        result[key] = newValue
+      }
+    }
+  
+    return result
+  }
+  
+
   const handleSaveChanges = () => {
-    // TODO: Implement save functionality
-    toast.success("Device details updated successfully")
-    closeEditModal()
+    if (!editData.long_name || !editData.device_number || !editData.category) {
+      toast.error("Please fill in all required fields")
+      return
+    }
+
+    const formattedData = getChangedFields(device, editData)
+
+    setSubmiteEditFormData(formattedData)
+    setSaveType(true)
+  }
+
+  const handleSave = async (isSoftUpdate: boolean) => {
+    setIsSaving(true)
+    try {
+      await updateDevice({deviceId, updateData: submitEditFormData, isSoftUpdate})
+      toast.success("Device details updated successfully")
+      closeEditModal()
+      setSaveType(false)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || "Failed to update device details")
+      } else {
+        toast.error("Failed to update device details")
+      }
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -102,7 +239,7 @@ export default function DeviceDetailsPage() {
           </Link>
         </Button>
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">Device Details &gt; {device.name}</h1>
+          <h1 className="text-2xl font-semibold">Device Details &gt; {device.long_name}</h1>
         </div>
       </div>
 
@@ -115,182 +252,7 @@ export default function DeviceDetailsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="border rounded-lg p-6 mt-6">
-            {/* Key details that are always visible with inline layout */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center">
-                <h3 className="font-semibold w-48">Device Number (Channel ID):</h3>
-                <p>{device.device_number}</p>
-              </div>
-              <div className="flex items-center">
-                <h3 className="font-semibold w-48">Visibility Status:</h3>
-                <p>{device.visibility ? "Public" : "Private"}</p>
-              </div>
-              <div className="flex items-center">
-                <h3 className="font-semibold w-48">Deployment Status:</h3>
-                <p className="capitalize">{device.status}</p>
-              </div>
-            </div>
-
-            {/* Additional details that are conditionally visible */}
-            <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Device Details</DialogTitle>
-                  <DialogDescription>Complete information about {device.long_name}</DialogDescription>
-                </DialogHeader>
-
-                <div className="py-4">
-                  <h3 className="text-lg font-semibold mb-2">Basic Information</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Name</h4>
-                      <p>{device.long_name}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Serial Number</h4>
-                      <p>{device.serial_number || "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Device Number (Channel ID)</h4>
-                      <p>{device.device_number}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Description</h4>
-                      <p>{device.description || "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Next Maintenance</h4>
-                      <p>{device.nextMaintenance ? new Date(device.nextMaintenance).toLocaleString("en-US", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Created At</h4>
-                        <p>{device.createdAt ? new Date(device.createdAt).toLocaleString("en-US", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : "—"}</p>
-                    </div>
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <h3 className="text-lg font-semibold mb-2">Access Keys</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Read Key</h4>
-                      <div className="flex items-center">
-                        <p>{truncateId(device.readKey)}</p>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigator.clipboard.writeText(device.readKey)
-                            toast("Read key copied to clipboard")
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Write Key</h4>
-                      <div className="flex items-center">
-                        <p>{truncateId(device.writeKey)}</p>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigator.clipboard.writeText(device.writeKey)
-                            toast("Write key copied to clipboard")
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <h3 className="text-lg font-semibold mb-2">Location & Contact</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Latitude</h4>
-                      <p>{device.latitude || "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Longitude</h4>
-                      <p>{device.longitude || "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Phone Number</h4>
-                      <p>{device.phoneNumber || "—"}</p>
-                    </div>
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <h3 className="text-lg font-semibold mb-2">Configuration</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Network</h4>
-                      <p>{device.network}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Category</h4>
-                      <p className="capitalize">{device.category}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Primary Device In Location</h4>
-                      <p>{device.isPrimaryInLocation ? "Yes" : "No"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Data Access</h4>
-                      <p className="capitalize">{device.visibility || "Private"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Generation Version</h4>
-                      <p>{device.generation_version || "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Generation Count</h4>
-                      <p>{device.generation_count || "—"}</p>
-                    </div>
-                  </div>
-
-                  <Separator className="my-4" />
-
-                  <h3 className="text-lg font-semibold mb-2">Status</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Online Status</h4>
-                      <p>{device.isOnline ? "Online" : "Offline"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Active Status</h4>
-                      <p>{device.isActive ? "Active" : "Inactive"}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Deployment Status</h4>
-                      <p className="capitalize">{device.status}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-muted-foreground">Height</h4>
-                      <p>{device.height ? `${device.height} m` : "—"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <Button variant="outline" onClick={closeDetailsModal}>
-                    Close
-                  </Button>
-                  <Button variant="outline" onClick={openEditModal}>
-                    Edit Details
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <DeviceKeyDetails device={device} />
 
             {/* Action buttons */}
             <div className="flex gap-3 mt-4">
@@ -317,143 +279,24 @@ export default function DeviceDetailsPage() {
         </Tabs>
       </div>
 
-      {/* Edit Device Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Device Details</DialogTitle>
-            <DialogDescription>Make changes to the device details here. Click save when you&apos;re done.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="long_name" className="text-right">
-                Name
-              </Label>
-              <Input id="long_name" defaultValue={device.long_name || ""} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="channel_id" className="text-right">
-                Channel ID
-              </Label>
-              <Input id="channel_id" defaultValue={device.device_number || ""} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Category *
-              </Label>
-              <Select defaultValue={device.category || ""} required>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lowcost">Lowcost</SelectItem>
-                  <SelectItem value="gas">GAS</SelectItem>
-                  <SelectItem value="bam">BAM</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea id="description" defaultValue={device.description || ""} className="col-span-3 min-h-[80px]" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phoneNumber" className="text-right">
-                Phone Number
-              </Label>
-              <Input id="phoneNumber" defaultValue={device.phoneNumber || ""} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="latitude" className="text-right">
-                Latitude
-              </Label>
-              <Input
-                id="latitude"
-                type="number"
-                step="0.000001"
-                defaultValue={device.latitude || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="longitude" className="text-right">
-                Longitude
-              </Label>
-              <Input
-                id="longitude"
-                type="number"
-                step="0.000001"
-                defaultValue={device.longitude || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="data_access" className="text-right">
-                Data Access
-              </Label>
-              <Select defaultValue={device.visibility ? "true" : "false"}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select data access" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="false">Private</SelectItem>
-                  <SelectItem value="true">Public</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="network" className="text-right">
-                Network
-              </Label>
-              <Input value={device.network} disabled type="text" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="primary_device" className="text-right">
-                Primary Device In Location
-              </Label>
-              <Select defaultValue={device.isPrimaryInLocation ? "yes" : "no"}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="generation_version" className="text-right">
-                Generation Version
-              </Label>
-              <Input
-                id="generation_version"
-                defaultValue={device.generation_version || ""}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="generation_count" className="text-right">
-                Generation Count
-              </Label>
-              <Input
-                id="generation_count"
-                type="number"
-                defaultValue={device.generation_count || ""}
-                className="col-span-3"
-                required
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeEditModal}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeviceDetailsModal
+        device={device}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        onEdit={openEditModal}
+      />
+
+      <DeviceEditModal
+        device={device}
+        editData={editData}
+        handleInputChange={handleInputChange}
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        onSave={handleSaveChanges}
+        isSaving={isSaving}
+      />
+
+      <SaveTypeModal isOpen={isSetSaveType} onClose={setSaveType} onSave={handleSave} isSaving={isSaving} />
     </div>
   )
 }

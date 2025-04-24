@@ -186,3 +186,38 @@ export const useDeviceDetails = (deviceId: string) => {
     enabled: !!deviceId,
   });
 };
+
+export const useDeviceUpdate = () => {
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      deviceId,
+      updateData,
+      isSoftUpdate,
+    }: {
+      deviceId: string;
+      updateData: object;
+      isSoftUpdate: boolean;
+    }) => {
+      const updateFunction = isSoftUpdate
+        ? devices.softUpdateDeviceDetails
+        : devices.updateDeviceDetails;
+      return await updateFunction(deviceId, updateData);
+    },
+    onSuccess: (_, { deviceId }) => {
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["device-details", deviceId] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      dispatch(setError(error.message));
+    },
+  });
+
+  return {
+    updateDevice: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    error: mutation.error,
+  }
+};
