@@ -37,8 +37,8 @@ export interface Device {
   _id?: string;
   id?: string;
   name: string;
-  alias: string;
-  mobility: boolean;
+  alias?: string;
+  mobility?: boolean;
   network: string;
   groups: string[];
   serial_number: string;
@@ -51,7 +51,7 @@ export interface Device {
   createdAt: string;
   visibility?: boolean | undefined;
   description?: string | undefined;
-  isPrimaryInLocation: boolean;
+  isPrimaryInLocation?: boolean;
   nextMaintenance?: string;
   deployment_date?: string;
   mountType?: string;
@@ -60,7 +60,7 @@ export interface Device {
   pictures?: unknown[];
   site_id?: string;
   host_id?: string | null;
-  height: number;
+  height?: number;
   device_codes: string[];
   category: string;
   cohorts: unknown[];
