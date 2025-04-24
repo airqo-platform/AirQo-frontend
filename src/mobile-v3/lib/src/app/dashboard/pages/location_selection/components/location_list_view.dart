@@ -169,7 +169,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                       ?.color),
                             ),
                             subtitle: Text(
-                              measurement.siteDetails?.name ??
+                              measurement.siteDetails?.searchName ??
                                   measurement.siteDetails?.formattedName ??
                                   "",
                               style: TextStyle(
@@ -311,7 +311,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                     color: Theme.of(context).textTheme.bodyLarge?.color),
               ),
               subtitle: Text(
-                measurement.siteDetails?.name ??
+                measurement.siteDetails?.searchName ??
                     measurement.siteDetails?.formattedName ??
                     "",
                 style: TextStyle(
