@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:airqo/core/utils/slack_loggy_printer.dart';
 import 'package:loggy/loggy.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:airqo/core/utils/slack_logger.dart';
@@ -11,11 +11,11 @@ class AppLoggySetup {
   static Future<void> init({bool isDevelopment = true}) async {
     if (_initialized) return;
 
+    final defaultPrinter = PrettyPrinter(showColors: true);
+
     // Set up Loggy
     Loggy.initLoggy(
-      logPrinter: const PrettyPrinter(
-        showColors: true,
-      ),
+      logPrinter: SlackLoggyPrinter(defaultPrinter),
       logOptions: LogOptions(
         LogLevel.all,
         stackTraceLevel: LogLevel.error,
@@ -54,23 +54,13 @@ class AppLoggySetup {
 extension LoggyExtension on Object {
   void logInfo(String message) {
     Loggy('Global').info(message);
-    // Only send important info logs to Slack
-    if (message.contains('CRITICAL') || message.contains('IMPORTANT')) {
-      SlackLogger().logInfo(message);
-    }
   }
 
   void logWarning(String message) {
     Loggy('Global').warning(message);
-    // Send all warnings to Slack in production
-    if (!kDebugMode) {
-      SlackLogger().logWarning(message);
-    }
   }
 
   void logError(String message, [dynamic error, StackTrace? stackTrace]) {
     Loggy('Global').error(message);
-    // Always send errors to Slack
-    SlackLogger().logError(message, error: error, stackTrace: stackTrace);
   }
 }
