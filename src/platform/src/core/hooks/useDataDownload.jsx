@@ -12,14 +12,13 @@ const useDataDownload = () => {
     }
 
     const token = localStorage.getItem('token');
-
     if (!token) {
       throw new Error('Authorization token missing');
     }
 
     try {
       if (isDev) {
-        // Use proxy endpoint in development
+        // Dev: Axios directly
         const response = await axios.post(apiUrl, data, {
           headers: {
             'Content-Type': 'application/json',
@@ -28,12 +27,19 @@ const useDataDownload = () => {
         });
         return response.data;
       } else {
-        // Use exportDataApi in production
+        // Prod: your API wrapper
         const response = await exportDataApi(data);
         return response;
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      // NEW: catch a 404 and throw our custom message
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        throw new Error(
+          'We couldn’t find any data for that time range. Please try different dates.',
+        );
+      }
+
+      // fall back to your existing behavior
       throw new Error(
         error.response?.data?.message || 'Error while fetching data',
       );
