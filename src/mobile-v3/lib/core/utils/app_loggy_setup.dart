@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppLoggySetup {
   static bool _initialized = false;
-  
+
   /// Initialize logging for the application
   static Future<void> init({bool isDevelopment = true}) async {
     if (_initialized) return;
@@ -21,25 +21,30 @@ class AppLoggySetup {
         stackTraceLevel: LogLevel.error,
       ),
     );
-    
+
     // Initialize Slack logger for production environment
     if (!isDevelopment) {
       try {
         final packageInfo = await PackageInfo.fromPlatform();
         final appVersion = '${packageInfo.version}(${packageInfo.buildNumber})';
-        
+
         // Initialize the Slack logger
-        SlackLogger().initialize(
-          webhookUrl: dotenv.env['SLACK_WEBHOOK_URL'] ?? '',
-          appVersion: appVersion,
-        );
-        
+        final webhook = dotenv.env['SLACK_WEBHOOK_URL'];
+        if (webhook == null || webhook.isEmpty) {
+          Loggy('Global')
+              .warning('SLACK_WEBHOOK_URL not set – Slack logging disabled');
+        } else {
+          SlackLogger().initialize(
+            webhookUrl: webhook,
+            appVersion: appVersion,
+          );
+        }
         logInfo('Slack logging initialized for version $appVersion');
       } catch (e) {
         logError('Failed to initialize Slack logging: $e');
       }
     }
-    
+
     _initialized = true;
     logInfo('Logging initialized. Development mode: $isDevelopment');
   }

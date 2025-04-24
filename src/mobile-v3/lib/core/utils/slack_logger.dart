@@ -7,7 +7,8 @@ class SlackLogger {
   factory SlackLogger() => _instance;
   SlackLogger._internal();
 
-  static const bool _enableSlackLogging = true; // Set to false to disable in development
+  static const bool _enableSlackLogging =
+      true; // Set to false to disable in development
   String? _webhookUrl;
   String? _channel;
   String? _username;
@@ -29,7 +30,8 @@ class SlackLogger {
   }
 
   /// Send an error log to Slack
-  Future<bool> logError(String message, {dynamic error, StackTrace? stackTrace}) async {
+  Future<bool> logError(String message,
+      {dynamic error, StackTrace? stackTrace}) async {
     return _sendToSlack(
       message: message,
       error: error,
@@ -58,14 +60,19 @@ class SlackLogger {
   }
 
   Future<bool> testConnection() async {
-      // Auto-initialize if needed
-  if (!_initialized) {
-    print("🔍 SlackLogger: Auto-initializing for test");
-    initialize(
-      webhookUrl: dotenv.env['SLACK_WEBHOOK_URL']?? '',
-      appVersion: dotenv.env['APP_VERSION'] ?? 'Unknown',
-    );
-  }
+    // Auto-initialize if needed
+    if (!_initialized) {
+      print("🔍 SlackLogger: Auto-initializing for test");
+      final webhookUrl = dotenv.env['SLACK_WEBHOOK_URL'];
+      if (webhookUrl == null || webhookUrl.isEmpty) {
+        print("❌ SlackLogger: Missing SLACK_WEBHOOK_URL in environment");
+        return false;
+      }
+      initialize(
+        webhookUrl: webhookUrl,
+        appVersion: dotenv.env['APP_VERSION'] ?? 'Unknown',
+      );
+    }
     return _sendToSlack(
       message: "Test message from AirQo Mobile App",
       logLevel: 'TEST',
@@ -106,10 +113,12 @@ class SlackLogger {
     StackTrace? stackTrace,
   }) async {
     print("🔍 SlackLogger: Attempting to send log to Slack");
-    print("🔍 SlackLogger: Initialized? $_initialized, Enabled? $_enableSlackLogging");
-    
+    print(
+        "🔍 SlackLogger: Initialized? $_initialized, Enabled? $_enableSlackLogging");
+
     if (!_initialized || !_enableSlackLogging) {
-      print("❌ SlackLogger: Not sending log - logger is not initialized or disabled");
+      print(
+          "❌ SlackLogger: Not sending log - logger is not initialized or disabled");
       return false;
     }
 
@@ -129,21 +138,22 @@ class SlackLogger {
 
       // Create the Slack payload
       final Map<String, dynamic> payload = {};
-      
+
       if (_channel != null) {
         payload['channel'] = _channel;
       }
-      
+
       if (_username != null) {
         payload['username'] = _username;
       }
-      
+
       payload['attachments'] = [
         {
           'color': color,
           'text': formattedMsg,
           'footer': 'AirQo Mobile v${_appVersion ?? 'Unknown'}',
-          'ts': (DateTime.now().millisecondsSinceEpoch / 1000).floor().toString(),
+          'ts':
+              (DateTime.now().millisecondsSinceEpoch / 1000).floor().toString(),
         }
       ];
 
@@ -156,12 +166,15 @@ class SlackLogger {
         headers: {'Content-Type': 'application/json'},
       ).timeout(const Duration(seconds: 5));
 
-      print("🔍 SlackLogger: Received response - Status: ${response.statusCode}");
+      print(
+          "🔍 SlackLogger: Received response - Status: ${response.statusCode}");
       print("🔍 SlackLogger: Response body: ${response.body}");
 
       final successful = response.statusCode == 200;
-      print(successful ? "✅ SlackLogger: Message sent successfully" : "❌ SlackLogger: Failed to send message");
-      
+      print(successful
+          ? "✅ SlackLogger: Message sent successfully"
+          : "❌ SlackLogger: Failed to send message");
+
       return successful;
     } catch (e) {
       print("❌ SlackLogger: Error sending to Slack: $e");

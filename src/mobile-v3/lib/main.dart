@@ -47,7 +47,7 @@ void main() async {
     Directory dir = await getApplicationDocumentsDirectory();
     Hive.init(dir.path);
 
-    logInfo('Application initialized successfully');
+    Object().logInfo('Application initialized successfully');
 
     runApp(AirqoMobile(
       authRepository: AuthImpl(),
