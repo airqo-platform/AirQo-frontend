@@ -207,7 +207,8 @@ const MoreInsights = () => {
         startDateTime: formattedStart,
         endDateTime: formattedEnd,
         sites: visibleSites,
-        network: chartData.organizationName,
+        // TODO: Add network name to API request WHEN READY
+        // network: chartData.organizationName,
         pollutants: [chartData.pollutionType],
         frequency,
         datatype: 'calibrated',
@@ -217,7 +218,7 @@ const MoreInsights = () => {
       };
 
       const timeout = setTimeout(() => {
-        controllersRef.current.download.abort();
+        controllersRef.current.download?.abort();
         setDownloadError(
           'Download is taking longer than expected. Please try again.',
         );
