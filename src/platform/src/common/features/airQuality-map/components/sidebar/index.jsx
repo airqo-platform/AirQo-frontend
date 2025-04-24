@@ -114,49 +114,58 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return null;
   }, [googleMapsLoaded]);
 
-  // Only call useRecentMeasurements if we have a valid selectedLocation with a valid _id
+  // Handle both cases - valid ObjectId and Google Places locations
   const { isLoading: measurementsLoading } = useRecentMeasurements(
-    selectedLocation && isValidObjectId(selectedLocation._id)
+    selectedLocation && selectedLocation._id
       ? { site_id: selectedLocation._id }
       : null,
     {
       onError: (err) => {
         console.error('Failed to fetch measurements:', err);
         setMeasurementsError('Failed to load recent measurements');
-        // Clear error after 5 seconds
         setTimeout(() => setMeasurementsError(null), 5000);
       },
+      // Only validate ObjectId if it's not from Google Places
+      skipIf:
+        selectedLocation &&
+        selectedLocation._id &&
+        !isValidObjectId(selectedLocation._id),
     },
   );
 
   const fetchWeeklyPredictions = useCallback(async () => {
-    if (!selectedLocation?._id || !isValidObjectId(selectedLocation._id)) {
+    // Skip API call if no location or if it's a Google Places result (which won't have _id)
+    if (!selectedLocation) {
       setWeeklyPredictions([]);
       return;
     }
 
-    setLoading(true);
-    try {
-      if (selectedLocation?.forecast?.length > 0) {
-        setWeeklyPredictions(selectedLocation.forecast);
-      } else {
+    // If the location already has forecast data, use it directly (common for Google Places results)
+    if (selectedLocation?.forecast?.length > 0) {
+      setWeeklyPredictions(selectedLocation.forecast);
+      return;
+    }
+
+    // Otherwise, try to fetch from API if we have a valid MongoDB ID
+    if (selectedLocation._id && isValidObjectId(selectedLocation._id)) {
+      setLoading(true);
+      try {
         const response = await dailyPredictionsApi(selectedLocation._id);
         setWeeklyPredictions(response?.forecasts || []);
+      } catch (err) {
+        console.error('Failed to fetch weekly predictions:', err);
+        setError({
+          isError: true,
+          message: 'Failed to fetch weekly predictions',
+          type: 'error',
+        });
+        setTimeout(
+          () => setError({ isError: false, message: '', type: '' }),
+          5000,
+        );
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to fetch weekly predictions:', err);
-      setError({
-        isError: true,
-        message: 'Failed to fetch weekly predictions',
-        type: 'error',
-      });
-      // Clear error after 5 seconds
-      setTimeout(
-        () => setError({ isError: false, message: '', type: '' }),
-        5000,
-      );
-    } finally {
-      setLoading(false);
     }
   }, [selectedLocation]);
 
@@ -186,8 +195,9 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return () => clearTimeout(timer);
   }, [dispatch, selectedLocation]);
 
+  // Fetch weekly predictions whenever the selected location changes
   useEffect(() => {
-    if (selectedLocation && isValidObjectId(selectedLocation._id)) {
+    if (selectedLocation) {
       fetchWeeklyPredictions();
     }
   }, [selectedLocation, fetchWeeklyPredictions]);
@@ -195,14 +205,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   // When a location is selected, update center/zoom without refetching data.
   const handleLocationSelect = useCallback(
     async (data, type = 'suggested') => {
-      try {
-        if (!data) {
-          throw new Error('No location data provided');
-        }
+      if (!data) return;
 
+      try {
         let updated = data;
         let latitude, longitude;
 
+        // Handle Google Places API results
         if (data?.place_id) {
           const details = await getPlaceDetails(data.place_id);
           if (!details?.latitude || !details?.longitude) {
@@ -210,22 +219,31 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           }
           updated = { ...data, ...details };
           ({ latitude, longitude } = details);
-        } else {
+        }
+        // Handle database location results
+        else {
           latitude =
-            data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
+            data?.latitude ||
+            data?.geometry?.coordinates?.[1] ||
+            data?.approximate_latitude;
           longitude =
-            data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
+            data?.longitude ||
+            data?.geometry?.coordinates?.[0] ||
+            data?.approximate_longitude;
         }
 
         if (!latitude || !longitude) {
           throw new Error('Location coordinates are missing');
         }
 
+        // Update map center and zoom for all cases
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
 
+        // Only set as selected location if not from suggested sites
         if (type !== 'suggested') {
           dispatch(setSelectedLocation(updated));
+          dispatch(setOpenLocationDetails(true));
         }
       } catch (err) {
         console.error('Location selection error:', err);
@@ -234,7 +252,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           message: 'Failed to select location',
           type: 'error',
         });
-        // Clear error after 5 seconds
         setTimeout(
           () => setError({ isError: false, message: '', type: '' }),
           5000,
@@ -307,7 +324,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 
     if (Array.isArray(siteDetails) && siteDetails.length > 0) {
       const sorted = [...siteDetails]
-        .filter((site) => site && site.name) // Ensure we have valid sites
+        .filter((site) => site && site.name)
         .sort((a, b) => a.name.localeCompare(b.name));
 
       dispatch(addSuggestedSites(sorted));
@@ -315,27 +332,19 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   }, [dispatch, siteDetails]);
 
   const renderMainContent = useCallback(() => {
-    // Show toast for any current errors
+    // Display any active errors
     if (error.isError || measurementsError) {
-      return (
-        <Toast
-          message={error.isError ? error.message : measurementsError}
-          clearData={() => {
-            if (error.isError) {
-              setError({ isError: false, message: '', type: '' });
-            }
-            if (measurementsError) {
-              setMeasurementsError(null);
-            }
-          }}
-          type={error.type || 'error'}
-          timeout={5000}
-          size="lg"
-          position="bottom"
-        />
-      );
+      setTimeout(() => {
+        if (error.isError) {
+          setError({ isError: false, message: '', type: '' });
+        }
+        if (measurementsError) {
+          setMeasurementsError(null);
+        }
+      }, 5000);
     }
 
+    // Display location details when a location is selected
     if (selectedLocation && !mapLoading) {
       const locationName = capitalizeAllText(
         selectedLocation?.description ||
@@ -383,6 +392,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       );
     }
 
+    // Display search interface
     if (isSearchFocused) {
       return (
         <div className="flex flex-col w-full">
@@ -500,6 +510,23 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           }}
         >
           {renderMainContent()}
+          {(error.isError || measurementsError) && (
+            <Toast
+              message={error.isError ? error.message : measurementsError}
+              clearData={() => {
+                if (error.isError) {
+                  setError({ isError: false, message: '', type: '' });
+                }
+                if (measurementsError) {
+                  setMeasurementsError(null);
+                }
+              }}
+              type={error.type || 'error'}
+              timeout={5000}
+              size="lg"
+              position="bottom"
+            />
+          )}
         </div>
       </div>
     </Card>
