@@ -111,7 +111,7 @@ interface DeviceDetailsResponse {
     authRequired: boolean;
     long_name: string;
     createdAt: string;
-    visibility: boolean;
+    visibility?: boolean;
     isPrimaryInLocation: boolean;
     nextMaintenance: string;
     device_number: number;
@@ -125,6 +125,12 @@ interface DeviceDetailsResponse {
     device_codes: string[];
     category: string;
     cohorts: unknown[];
+    description?: string;
+    phoneNumber?: string;
+    latitude?: string;
+    longitude?: string;
+    generation_version?: string;
+    generation_count?: string;
   };
 }
 
