@@ -41,6 +41,15 @@ import allCountries from '../../constants/countries.json';
 
 import { useWindowSize } from '@/lib/windowSize';
 
+/**
+ * Validates MongoDB ObjectId format
+ * @param {string} id - The id to validate
+ * @returns {boolean} - Whether the id is valid
+ */
+const isValidObjectId = (id) => {
+  return id && /^[0-9a-fA-F]{24}$/.test(id);
+};
+
 const SectionDivider = () => (
   <div className="border border-secondary-neutral-light-100 dark:border-gray-700 my-3" />
 );
@@ -78,6 +87,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [error, setError] = useState({ isError: false, message: '', type: '' });
+  const [measurementsError, setMeasurementsError] = useState(null);
 
   const { width } = useWindowSize();
 
@@ -104,17 +114,32 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return null;
   }, [googleMapsLoaded]);
 
+  // Only call useRecentMeasurements if we have a valid selectedLocation with a valid _id
   const { isLoading: measurementsLoading } = useRecentMeasurements(
-    selectedLocation ? { site_id: selectedLocation._id } : null,
+    selectedLocation && isValidObjectId(selectedLocation._id)
+      ? { site_id: selectedLocation._id }
+      : null,
+    {
+      onError: (err) => {
+        console.error('Failed to fetch measurements:', err);
+        setMeasurementsError('Failed to load recent measurements');
+        // Clear error after 5 seconds
+        setTimeout(() => setMeasurementsError(null), 5000);
+      },
+    },
   );
 
   const fetchWeeklyPredictions = useCallback(async () => {
-    if (!selectedLocation?._id) return setWeeklyPredictions([]);
+    if (!selectedLocation?._id || !isValidObjectId(selectedLocation._id)) {
+      setWeeklyPredictions([]);
+      return;
+    }
+
     setLoading(true);
     try {
-      if (selectedLocation?.forecast?.length > 0)
+      if (selectedLocation?.forecast?.length > 0) {
         setWeeklyPredictions(selectedLocation.forecast);
-      else {
+      } else {
         const response = await dailyPredictionsApi(selectedLocation._id);
         setWeeklyPredictions(response?.forecasts || []);
       }
@@ -125,6 +150,11 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         message: 'Failed to fetch weekly predictions',
         type: 'error',
       });
+      // Clear error after 5 seconds
+      setTimeout(
+        () => setError({ isError: false, message: '', type: '' }),
+        5000,
+      );
     } finally {
       setLoading(false);
     }
@@ -157,20 +187,27 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   }, [dispatch, selectedLocation]);
 
   useEffect(() => {
-    if (selectedLocation) fetchWeeklyPredictions();
+    if (selectedLocation && isValidObjectId(selectedLocation._id)) {
+      fetchWeeklyPredictions();
+    }
   }, [selectedLocation, fetchWeeklyPredictions]);
 
   // When a location is selected, update center/zoom without refetching data.
   const handleLocationSelect = useCallback(
     async (data, type = 'suggested') => {
       try {
-        let updated = data,
-          latitude,
-          longitude;
+        if (!data) {
+          throw new Error('No location data provided');
+        }
+
+        let updated = data;
+        let latitude, longitude;
+
         if (data?.place_id) {
           const details = await getPlaceDetails(data.place_id);
-          if (!details?.latitude || !details?.longitude)
+          if (!details?.latitude || !details?.longitude) {
             throw new Error('Geolocation details are missing');
+          }
           updated = { ...data, ...details };
           ({ latitude, longitude } = details);
         } else {
@@ -179,17 +216,29 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           longitude =
             data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
         }
-        if (!latitude || !longitude)
+
+        if (!latitude || !longitude) {
           throw new Error('Location coordinates are missing');
+        }
+
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
-        if (type !== 'suggested') dispatch(setSelectedLocation(updated));
-      } catch {
+
+        if (type !== 'suggested') {
+          dispatch(setSelectedLocation(updated));
+        }
+      } catch (err) {
+        console.error('Location selection error:', err);
         setError({
           isError: true,
           message: 'Failed to select location',
           type: 'error',
         });
+        // Clear error after 5 seconds
+        setTimeout(
+          () => setError({ isError: false, message: '', type: '' }),
+          5000,
+        );
       }
     },
     [dispatch],
@@ -200,17 +249,26 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       setSearchResults([]);
       return;
     }
+
     if (!googleMapsLoaded || !autoCompleteSessionToken) {
       console.error('Google Maps API is not loaded yet.');
+      setError({
+        isError: true,
+        message: 'Search service not available',
+        type: 'error',
+      });
       return;
     }
+
     setLoading(true);
     setIsFocused(true);
+
     try {
       const predictions = await getAutocompleteSuggestions(
         reduxSearchTerm,
         autoCompleteSessionToken,
       );
+
       setSearchResults(
         predictions?.length
           ? predictions.map(({ description, place_id }) => ({
@@ -222,6 +280,11 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     } catch (err) {
       console.error('Search failed:', err);
       setSearchResults([]);
+      setError({
+        isError: true,
+        message: 'Search failed. Please try again.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -241,14 +304,45 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const handleAllSelection = useCallback(() => {
     dispatch(reSetMap());
     setSelectedCountry(null);
-    const sorted = siteDetails
-      ?.slice()
-      .sort((a, b) => a.name.localeCompare(b.name));
-    dispatch(addSuggestedSites(sorted));
+
+    if (Array.isArray(siteDetails) && siteDetails.length > 0) {
+      const sorted = [...siteDetails]
+        .filter((site) => site && site.name) // Ensure we have valid sites
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      dispatch(addSuggestedSites(sorted));
+    }
   }, [dispatch, siteDetails]);
 
   const renderMainContent = useCallback(() => {
+    // Show toast for any current errors
+    if (error.isError || measurementsError) {
+      return (
+        <Toast
+          message={error.isError ? error.message : measurementsError}
+          clearData={() => {
+            if (error.isError) {
+              setError({ isError: false, message: '', type: '' });
+            }
+            if (measurementsError) {
+              setMeasurementsError(null);
+            }
+          }}
+          type={error.type || 'error'}
+          timeout={5000}
+          size="lg"
+          position="bottom"
+        />
+      );
+    }
+
     if (selectedLocation && !mapLoading) {
+      const locationName = capitalizeAllText(
+        selectedLocation?.description ||
+          selectedLocation?.search_name ||
+          selectedLocation?.location,
+      )?.split(',')[0];
+
       return (
         <div className="px-3">
           <div className="pt-3 pb-2 flex items-center gap-2 mb-3">
@@ -257,6 +351,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               onClick={handleExit}
               variant="text"
               type="button"
+              aria-label="Go back"
             >
               <GoArrowLeft
                 className="text-gray-400 dark:text-white"
@@ -264,13 +359,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               />
             </Button>
             <h3 className="text-lg text-black-800 dark:text-white font-medium leading-6 truncate">
-              {
-                capitalizeAllText(
-                  selectedLocation?.description ||
-                    selectedLocation?.search_name ||
-                    selectedLocation?.location,
-                )?.split(',')[0]
-              }
+              {locationName || 'Location Details'}
             </h3>
           </div>
           <WeekPrediction
@@ -293,6 +382,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         </div>
       );
     }
+
     if (isSearchFocused) {
       return (
         <div className="flex flex-col w-full">
@@ -317,17 +407,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <div className="px-3 pt-3">
               <NoResults hasSearched={false} />
             </div>
-          ) : error.isError ? (
-            <Toast
-              message={error.message}
-              clearData={() =>
-                setError({ isError: false, message: '', type: '' })
-              }
-              type={error.type}
-              timeout={3000}
-              size="lg"
-              position="bottom"
-            />
           ) : isLoading && searchResults.length === 0 && measurementsLoading ? (
             <div className="px-3 pt-3">
               <SearchResultsSkeleton />
@@ -346,18 +425,16 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         </div>
       );
     }
+
+    // Default view: show loading skeleton or suggested sites
     return mapLoading || !suggestedSites || suggestedSites.length === 0 ? (
       <LoadingSkeleton />
     ) : (
-      <>
-        <LocationCards
-          searchResults={suggestedSites}
-          isLoading={isLoading}
-          handleLocationSelect={(data) =>
-            handleLocationSelect(data, 'suggested')
-          }
-        />
-      </>
+      <LocationCards
+        searchResults={suggestedSites}
+        isLoading={isLoading}
+        handleLocationSelect={(data) => handleLocationSelect(data, 'suggested')}
+      />
     );
   }, [
     isSearchFocused,
@@ -368,6 +445,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     selectedWeeklyPrediction,
     reduxSearchTerm,
     error,
+    measurementsError,
     measurementsLoading,
     searchResults,
     suggestedSites,
@@ -384,7 +462,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       padding="p-0"
       overflow={true}
     >
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col" data-testid="map-sidebar">
         {!isSearchFocused && !openLocationDetails && (
           <div className="pt-3 flex flex-col gap-3 flex-shrink-0">
             <SidebarHeader isAdmin={isAdmin} />
@@ -399,6 +477,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                 onClick={handleAllSelection}
                 style={{ borderRadius: '9999px' }}
                 className="px-3 border-none text-md font-medium h-10 flex items-center"
+                aria-label="Show all locations"
               >
                 All
               </Button>
