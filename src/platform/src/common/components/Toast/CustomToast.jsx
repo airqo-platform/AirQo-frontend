@@ -47,7 +47,7 @@ const CustomToast = ({
 
   // Add the common classes to className
   className +=
-    ' p-4 rounded-xl w-auto border-none flex items-center justify-center space-x-2';
+    ' p-4 rounded-xl border-none flex items-center justify-center gap-2';
 
   // Default style with improved centering
   const defaultStyle = {

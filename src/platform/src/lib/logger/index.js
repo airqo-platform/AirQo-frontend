@@ -62,6 +62,34 @@ function shouldSendToSlack() {
   );
 }
 
+// Check if an error should be ignored for Slack notifications
+function shouldIgnoreError(error, context = {}) {
+  // Ignore 404 errors
+  if (error?.status === 404 || error?.statusCode === 404) {
+    return true;
+  }
+
+  // Check for 404 in Axios error response
+  if (error?.response?.status === 404) {
+    return true;
+  }
+
+  // Check context for 404 indicators
+  if (context.status === 404 || context.statusCode === 404) {
+    return true;
+  }
+
+  // Check for 404 in error message
+  if (
+    (typeof error?.message === 'string' && error.message.includes('404')) ||
+    (typeof context?.message === 'string' && context.message.includes('404'))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 // Track the last error time and URL to prevent similar errors
 let lastErrorTime = 0;
 let lastErrorUrl = '';
@@ -69,25 +97,35 @@ const ERROR_THRESHOLD_MS = 2000;
 
 const logger = {
   error(message, errorOrContext = {}, context = {}) {
+    // Log locally regardless of error type
     if (errorOrContext instanceof Error) {
       log.error(message, errorOrContext, context);
     } else {
       log.error(message, { ...errorOrContext, ...context });
     }
 
-    // Send to Slack only if we should (production/staging)
+    // Send to Slack only if we should (production/staging) and it's not a 404
     if (shouldSendToSlack()) {
       if (errorOrContext instanceof Error) {
-        sendToSlack('error', message, errorOrContext, context);
+        if (!shouldIgnoreError(errorOrContext, context)) {
+          sendToSlack('error', message, errorOrContext, context);
+        }
       } else {
-        sendToSlack('error', message, null, { ...errorOrContext, ...context });
+        if (!shouldIgnoreError(null, { ...errorOrContext, ...context })) {
+          sendToSlack('error', message, null, {
+            ...errorOrContext,
+            ...context,
+          });
+        }
       }
     }
   },
 
   warn(message, context = {}) {
     log.warn(message, context);
-    if (shouldSendToSlack()) sendToSlack('warn', message, null, context);
+    if (shouldSendToSlack() && !shouldIgnoreError(null, context)) {
+      sendToSlack('warn', message, null, context);
+    }
   },
 
   info(message, context = {}) {
@@ -213,12 +251,20 @@ function sendToSlack(level, message, error, context) {
 
     // Add error details
     if (error && errorName) {
+      const statusInfo =
+        error.status ||
+        error.statusCode ||
+        error.response?.status ||
+        context.status ||
+        '';
+      const statusText = statusInfo ? ` (Status: ${statusInfo})` : '';
+
       slackPayload.attachments[0].blocks.push({
         type: 'section',
         fields: [
           {
             type: 'mrkdwn',
-            text: '*Error:* ' + errorName,
+            text: '*Error:* ' + errorName + statusText,
           },
         ],
       });
