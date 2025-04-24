@@ -32,12 +32,12 @@ import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/utils/slack_logger.dart';  
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-  // Initialize Loggy before runApp
   const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
   AppLoggySetup.init(isDevelopment: !kReleaseMode);
 
@@ -46,6 +46,8 @@ void main() async {
   try {
     Directory dir = await getApplicationDocumentsDirectory();
     Hive.init(dir.path);
+
+    logInfo('Application initialized successfully');
 
     runApp(AirqoMobile(
       authRepository: AuthImpl(),
@@ -59,6 +61,12 @@ void main() async {
     ));
   } catch (e, stackTrace) {
     logError('Failed to initialize application', e, stackTrace);
+
+    await SlackLogger().logError(
+      'Fatal error during app initialization',
+      error: e,
+      stackTrace: stackTrace,
+    );
   }
 }
 
@@ -118,7 +126,8 @@ class AirqoMobile extends StatelessWidget {
           create: (context) => ConnectivityBloc(connectivity),
         ),
         BlocProvider(
-          create: (context) => PasswordResetBloc(authRepository: authRepository),
+          create: (context) =>
+              PasswordResetBloc(authRepository: authRepository),
         ),
         BlocProvider(
           create: (context) => LanguageBloc()..add(LoadLanguage()),
@@ -126,7 +135,7 @@ class AirqoMobile extends StatelessWidget {
       ],
       child: BlocBuilder<LanguageBloc, LanguageState>(
         builder: (context, languageState) {
-          Locale currentLocale = const Locale('en', ''); 
+          Locale currentLocale = const Locale('en', '');
           if (languageState is LanguageLoaded) {
             currentLocale = Locale(languageState.languageCode, '');
           }
@@ -136,7 +145,7 @@ class AirqoMobile extends StatelessWidget {
               bool isLightTheme = themeState is ThemeLight;
 
               return MaterialApp(
-                locale: currentLocale, 
+                locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
                   Locale('fr', ''),
@@ -157,7 +166,7 @@ class AirqoMobile extends StatelessWidget {
                       return supportedLocale;
                     }
                   }
-                  return supportedLocales.first; 
+                  return supportedLocales.first;
                 },
                 debugShowCheckedModeBanner: false,
                 theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,
