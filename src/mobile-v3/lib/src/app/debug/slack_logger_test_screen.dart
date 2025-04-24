@@ -50,29 +50,34 @@ class _SlackLoggerTestScreenState extends State<SlackLoggerTestScreen> {
     );
   }
   
-  Future<void> _testConnection() async {
-    setState(() {
-      _isLoading = true;
-      _lastResult = "Sending test message...";
-    });
+Future<void> _testConnection() async {
+  print("🔍 TestScreen: Testing Slack connection");
+  setState(() {
+    _isLoading = true;
+    _lastResult = "Sending test message...";
+  });
+  
+  try {
+    print("🔍 TestScreen: Calling SlackLogger.testConnection()");
+    final result = await SlackLogger().testConnection();
+    print("🔍 TestScreen: Result received: $result");
     
-    try {
-      final result = await SlackLogger().testConnection();
-      setState(() {
-        _lastResult = result 
-            ? "✅ Test message sent successfully!" 
-            : "❌ Failed to send test message";
-      });
-    } catch (e) {
-      setState(() {
-        _lastResult = "❌ Error: $e";
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    setState(() {
+      _lastResult = result 
+          ? "✅ Test message sent successfully!" 
+          : "❌ Failed to send test message";
+    });
+  } catch (e) {
+    print("❌ TestScreen: Error in test: $e");
+    setState(() {
+      _lastResult = "❌ Error: $e";
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
   
   Future<void> _testAllLogLevels() async {
     setState(() {
