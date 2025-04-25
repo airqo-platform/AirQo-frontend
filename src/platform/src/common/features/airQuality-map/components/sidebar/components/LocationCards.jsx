@@ -94,14 +94,12 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
               // borderColor now depends on active state
               borderColor={
                 isActive
-                  ? 'border-2 border-blue-500 dark:border-blue-300'
+                  ? 'border-2 border-primary/50 dark:border-primary/30'
                   : 'border-2 border-gray-200 dark:border-gray-700'
               }
               // background also toggles on active
               className={`cursor-pointer ${
-                isActive
-                  ? 'bg-blue-50 dark:bg-gray-700'
-                  : 'bg-white dark:bg-gray-800'
+                isActive ? ' dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
               }`}
               shadow="shadow"
               onClick={() => {
