@@ -41,15 +41,6 @@ import allCountries from '../../constants/countries.json';
 
 import { useWindowSize } from '@/lib/windowSize';
 
-/**
- * Validates MongoDB ObjectId format
- * @param {string} id - The id to validate
- * @returns {boolean} - Whether the id is valid
- */
-const isValidObjectId = (id) => {
-  return id && /^[0-9a-fA-F]{24}$/.test(id);
-};
-
 const SectionDivider = () => (
   <div className="border border-secondary-neutral-light-100 dark:border-gray-700 my-3" />
 );
@@ -87,7 +78,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const [isLoading, setLoading] = useState(false);
   const [weeklyPredictions, setWeeklyPredictions] = useState([]);
   const [error, setError] = useState({ isError: false, message: '', type: '' });
-  const [measurementsError, setMeasurementsError] = useState(null);
 
   const { width } = useWindowSize();
 
@@ -114,58 +104,47 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return null;
   }, [googleMapsLoaded]);
 
-  // Handle both cases - valid ObjectId and Google Places locations
-  const { isLoading: measurementsLoading } = useRecentMeasurements(
-    selectedLocation && selectedLocation._id
-      ? { site_id: selectedLocation._id }
-      : null,
-    {
-      onError: (err) => {
-        console.error('Failed to fetch measurements:', err);
-        setMeasurementsError('Failed to load recent measurements');
-        setTimeout(() => setMeasurementsError(null), 5000);
-      },
-      // Only validate ObjectId if it's not from Google Places
-      skipIf:
-        selectedLocation &&
-        selectedLocation._id &&
-        !isValidObjectId(selectedLocation._id),
-    },
-  );
+  // Fix for the site_id issue
+  const measurementsParams = useMemo(() => {
+    if (!selectedLocation || !selectedLocation._id) return null;
 
+    // Ensure site_id is a valid MongoDB ObjectId (usually 24 hex chars)
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(selectedLocation._id);
+
+    if (!isValidObjectId) {
+      console.warn(
+        `Invalid ObjectId format for site_id: ${selectedLocation._id}`,
+      );
+      return null;
+    }
+
+    return { site_id: selectedLocation._id };
+  }, [selectedLocation]);
+
+  const { isLoading: measurementsLoading } =
+    useRecentMeasurements(measurementsParams);
+
+  // Keeping the original forecast implementation
   const fetchWeeklyPredictions = useCallback(async () => {
-    // Skip API call if no location or if it's a Google Places result (which won't have _id)
-    if (!selectedLocation) {
-      setWeeklyPredictions([]);
-      return;
-    }
+    if (!selectedLocation?._id) return setWeeklyPredictions([]);
 
-    // If the location already has forecast data, use it directly (common for Google Places results)
-    if (selectedLocation?.forecast?.length > 0) {
-      setWeeklyPredictions(selectedLocation.forecast);
-      return;
-    }
-
-    // Otherwise, try to fetch from API if we have a valid MongoDB ID
-    if (selectedLocation._id && isValidObjectId(selectedLocation._id)) {
-      setLoading(true);
-      try {
+    setLoading(true);
+    try {
+      if (selectedLocation?.forecast?.length > 0) {
+        setWeeklyPredictions(selectedLocation.forecast);
+      } else {
         const response = await dailyPredictionsApi(selectedLocation._id);
         setWeeklyPredictions(response?.forecasts || []);
-      } catch (err) {
-        console.error('Failed to fetch weekly predictions:', err);
-        setError({
-          isError: true,
-          message: 'Failed to fetch weekly predictions',
-          type: 'error',
-        });
-        setTimeout(
-          () => setError({ isError: false, message: '', type: '' }),
-          5000,
-        );
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error('Failed to fetch weekly predictions:', err);
+      setError({
+        isError: true,
+        message: 'Failed to fetch weekly predictions',
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
     }
   }, [selectedLocation]);
 
@@ -195,56 +174,34 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     return () => clearTimeout(timer);
   }, [dispatch, selectedLocation]);
 
-  // Fetch weekly predictions whenever the selected location changes
   useEffect(() => {
-    if (selectedLocation) {
-      fetchWeeklyPredictions();
-    }
+    if (selectedLocation) fetchWeeklyPredictions();
   }, [selectedLocation, fetchWeeklyPredictions]);
 
   // When a location is selected, update center/zoom without refetching data.
   const handleLocationSelect = useCallback(
     async (data, type = 'suggested') => {
-      if (!data) return;
-
       try {
-        let updated = data;
-        let latitude, longitude;
-
-        // Handle Google Places API results
+        let updated = data,
+          latitude,
+          longitude;
         if (data?.place_id) {
           const details = await getPlaceDetails(data.place_id);
-          if (!details?.latitude || !details?.longitude) {
+          if (!details?.latitude || !details?.longitude)
             throw new Error('Geolocation details are missing');
-          }
           updated = { ...data, ...details };
           ({ latitude, longitude } = details);
-        }
-        // Handle database location results
-        else {
+        } else {
           latitude =
-            data?.latitude ||
-            data?.geometry?.coordinates?.[1] ||
-            data?.approximate_latitude;
+            data?.geometry?.coordinates?.[1] || data?.approximate_latitude;
           longitude =
-            data?.longitude ||
-            data?.geometry?.coordinates?.[0] ||
-            data?.approximate_longitude;
+            data?.geometry?.coordinates?.[0] || data?.approximate_longitude;
         }
-
-        if (!latitude || !longitude) {
+        if (!latitude || !longitude)
           throw new Error('Location coordinates are missing');
-        }
-
-        // Update map center and zoom for all cases
         dispatch(setCenter({ latitude, longitude }));
         dispatch(setZoom(11));
-
-        // Only set as selected location if not from suggested sites
-        if (type !== 'suggested') {
-          dispatch(setSelectedLocation(updated));
-          dispatch(setOpenLocationDetails(true));
-        }
+        if (type !== 'suggested') dispatch(setSelectedLocation(updated));
       } catch (err) {
         console.error('Location selection error:', err);
         setError({
@@ -252,10 +209,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           message: 'Failed to select location',
           type: 'error',
         });
-        setTimeout(
-          () => setError({ isError: false, message: '', type: '' }),
-          5000,
-        );
       }
     },
     [dispatch],
@@ -266,26 +219,17 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       setSearchResults([]);
       return;
     }
-
     if (!googleMapsLoaded || !autoCompleteSessionToken) {
       console.error('Google Maps API is not loaded yet.');
-      setError({
-        isError: true,
-        message: 'Search service not available',
-        type: 'error',
-      });
       return;
     }
-
     setLoading(true);
     setIsFocused(true);
-
     try {
       const predictions = await getAutocompleteSuggestions(
         reduxSearchTerm,
         autoCompleteSessionToken,
       );
-
       setSearchResults(
         predictions?.length
           ? predictions.map(({ description, place_id }) => ({
@@ -297,11 +241,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     } catch (err) {
       console.error('Search failed:', err);
       setSearchResults([]);
-      setError({
-        isError: true,
-        message: 'Search failed. Please try again.',
-        type: 'error',
-      });
     } finally {
       setLoading(false);
     }
@@ -321,37 +260,14 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
   const handleAllSelection = useCallback(() => {
     dispatch(reSetMap());
     setSelectedCountry(null);
-
-    if (Array.isArray(siteDetails) && siteDetails.length > 0) {
-      const sorted = [...siteDetails]
-        .filter((site) => site && site.name)
-        .sort((a, b) => a.name.localeCompare(b.name));
-
-      dispatch(addSuggestedSites(sorted));
-    }
+    const sorted = siteDetails
+      ?.slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
+    dispatch(addSuggestedSites(sorted));
   }, [dispatch, siteDetails]);
 
   const renderMainContent = useCallback(() => {
-    // Display any active errors
-    if (error.isError || measurementsError) {
-      setTimeout(() => {
-        if (error.isError) {
-          setError({ isError: false, message: '', type: '' });
-        }
-        if (measurementsError) {
-          setMeasurementsError(null);
-        }
-      }, 5000);
-    }
-
-    // Display location details when a location is selected
     if (selectedLocation && !mapLoading) {
-      const locationName = capitalizeAllText(
-        selectedLocation?.description ||
-          selectedLocation?.search_name ||
-          selectedLocation?.location,
-      )?.split(',')[0];
-
       return (
         <div className="px-3">
           <div className="pt-3 pb-2 flex items-center gap-2 mb-3">
@@ -360,7 +276,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               onClick={handleExit}
               variant="text"
               type="button"
-              aria-label="Go back"
             >
               <GoArrowLeft
                 className="text-gray-400 dark:text-white"
@@ -368,7 +283,13 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
               />
             </Button>
             <h3 className="text-lg text-black-800 dark:text-white font-medium leading-6 truncate">
-              {locationName || 'Location Details'}
+              {
+                capitalizeAllText(
+                  selectedLocation?.description ||
+                    selectedLocation?.search_name ||
+                    selectedLocation?.location,
+                )?.split(',')[0]
+              }
             </h3>
           </div>
           <WeekPrediction
@@ -391,8 +312,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         </div>
       );
     }
-
-    // Display search interface
     if (isSearchFocused) {
       return (
         <div className="flex flex-col w-full">
@@ -417,6 +336,17 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <div className="px-3 pt-3">
               <NoResults hasSearched={false} />
             </div>
+          ) : error.isError ? (
+            <Toast
+              message={error.message}
+              clearData={() =>
+                setError({ isError: false, message: '', type: '' })
+              }
+              type={error.type}
+              timeout={3000}
+              size="lg"
+              position="bottom"
+            />
           ) : isLoading && searchResults.length === 0 && measurementsLoading ? (
             <div className="px-3 pt-3">
               <SearchResultsSkeleton />
@@ -435,16 +365,18 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         </div>
       );
     }
-
-    // Default view: show loading skeleton or suggested sites
     return mapLoading || !suggestedSites || suggestedSites.length === 0 ? (
       <LoadingSkeleton />
     ) : (
-      <LocationCards
-        searchResults={suggestedSites}
-        isLoading={isLoading}
-        handleLocationSelect={(data) => handleLocationSelect(data, 'suggested')}
-      />
+      <>
+        <LocationCards
+          searchResults={suggestedSites}
+          isLoading={false}
+          handleLocationSelect={(data) =>
+            handleLocationSelect(data, 'suggested')
+          }
+        />
+      </>
     );
   }, [
     isSearchFocused,
@@ -455,7 +387,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
     selectedWeeklyPrediction,
     reduxSearchTerm,
     error,
-    measurementsError,
     measurementsLoading,
     searchResults,
     suggestedSites,
@@ -472,7 +403,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       padding="p-0"
       overflow={true}
     >
-      <div className="h-full flex flex-col" data-testid="map-sidebar">
+      <div className="h-full flex flex-col">
         {!isSearchFocused && !openLocationDetails && (
           <div className="pt-3 flex flex-col gap-3 flex-shrink-0">
             <SidebarHeader isAdmin={isAdmin} />
@@ -487,7 +418,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
                 onClick={handleAllSelection}
                 style={{ borderRadius: '9999px' }}
                 className="px-3 border-none text-md font-medium h-10 flex items-center"
-                aria-label="Show all locations"
               >
                 All
               </Button>
@@ -510,23 +440,6 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
           }}
         >
           {renderMainContent()}
-          {(error.isError || measurementsError) && (
-            <Toast
-              message={error.isError ? error.message : measurementsError}
-              clearData={() => {
-                if (error.isError) {
-                  setError({ isError: false, message: '', type: '' });
-                }
-                if (measurementsError) {
-                  setMeasurementsError(null);
-                }
-              }}
-              type={error.type || 'error'}
-              timeout={5000}
-              size="lg"
-              position="bottom"
-            />
-          )}
         </div>
       </div>
     </Card>
