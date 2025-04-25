@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
@@ -32,34 +34,49 @@ import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-  // Initialize Loggy before runApp
   const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
   AppLoggySetup.init(isDevelopment: !kReleaseMode);
 
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    Object()
+        .logError('Unhandled Flutter error', details.exception, details.stack);
+  };
+
   await dotenv.load(fileName: ".env.prod");
 
-  try {
-    Directory dir = await getApplicationDocumentsDirectory();
-    Hive.init(dir.path);
+  runZonedGuarded(
+    () async {
+      try {
+        Directory dir = await getApplicationDocumentsDirectory();
+        Hive.init(dir.path);
 
-    runApp(AirqoMobile(
-      authRepository: AuthImpl(),
-      userRepository: UserImpl(),
-      kyaRepository: KyaImpl(),
-      themeRepository: ThemeImpl(),
-      mapRepository: MapImpl(),
-      forecastRepository: ForecastImpl(),
-      googlePlacesRepository: GooglePlacesImpl(),
-      dashboardRepository: DashboardImpl(),
-    ));
-  } catch (e, stackTrace) {
-    logError('Failed to initialize application', e, stackTrace);
-  }
+        Object().logInfo('Application initialized successfully');
+
+        Bloc.observer = LoggingBlocObserver();
+
+        runApp(AirqoMobile(
+          authRepository: AuthImpl(),
+          userRepository: UserImpl(),
+          kyaRepository: KyaImpl(),
+          themeRepository: ThemeImpl(),
+          mapRepository: MapImpl(),
+          forecastRepository: ForecastImpl(),
+          googlePlacesRepository: GooglePlacesImpl(),
+          dashboardRepository: DashboardImpl(),
+        ));
+      } catch (e, stackTrace) {
+        Object().logError('Failed to initialize application', e, stackTrace);
+      }
+    },
+    (error, stackTrace) {
+      Object().logError('Unhandled error in async code', error, stackTrace);
+    },
+  );
 }
 
 class AirqoMobile extends StatelessWidget {
@@ -118,7 +135,8 @@ class AirqoMobile extends StatelessWidget {
           create: (context) => ConnectivityBloc(connectivity),
         ),
         BlocProvider(
-          create: (context) => PasswordResetBloc(authRepository: authRepository),
+          create: (context) =>
+              PasswordResetBloc(authRepository: authRepository),
         ),
         BlocProvider(
           create: (context) => LanguageBloc()..add(LoadLanguage()),
@@ -126,7 +144,7 @@ class AirqoMobile extends StatelessWidget {
       ],
       child: BlocBuilder<LanguageBloc, LanguageState>(
         builder: (context, languageState) {
-          Locale currentLocale = const Locale('en', ''); 
+          Locale currentLocale = const Locale('en', '');
           if (languageState is LanguageLoaded) {
             currentLocale = Locale(languageState.languageCode, '');
           }
@@ -136,7 +154,7 @@ class AirqoMobile extends StatelessWidget {
               bool isLightTheme = themeState is ThemeLight;
 
               return MaterialApp(
-                locale: currentLocale, 
+                locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
                   Locale('fr', ''),
@@ -157,7 +175,7 @@ class AirqoMobile extends StatelessWidget {
                       return supportedLocale;
                     }
                   }
-                  return supportedLocales.first; 
+                  return supportedLocales.first;
                 },
                 debugShowCheckedModeBanner: false,
                 theme: isLightTheme ? AppTheme.lightTheme : AppTheme.darkTheme,

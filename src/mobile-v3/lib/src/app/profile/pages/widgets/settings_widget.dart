@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/debug/slack_logger_test_screen.dart';
 import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter/foundation.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -181,6 +183,20 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               },
               description:
                   "Change the language of the app to your preferred language",
+            ),
+
+                     // Add the developer option here, before the logout button
+          if (kDebugMode)
+            SettingsTile(
+              iconPath: "assets/images/shared/feedback_icon.svg", // Use an appropriate icon
+              title: "Test Slack Logger",
+              description: "Developer option to test Slack integration",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SlackLoggerTestScreen()),
+                );
+              },
             ),
 
             Padding(

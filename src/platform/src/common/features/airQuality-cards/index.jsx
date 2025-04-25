@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, memo } from 'react';
+import React, { useMemo, useCallback, memo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
@@ -9,13 +9,24 @@ import { MAX_CARDS } from './constants';
 import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import Toast from '@/components/Toast';
 
 /**
- * AQNumberCard displays air quality information.
+ * Validates MongoDB ObjectId format
+ * @param {string} id - The id to validate
+ * @returns {boolean} - Whether the id is valid
+ */
+const isValidObjectId = (id) => {
+  return id && /^[0-9a-fA-F]{24}$/.test(id);
+};
+
+/**
+ * AQNumberCard displays air quality information for selected monitoring sites.
  */
 const AQNumberCard = () => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
+  const [error, setError] = useState(null);
 
   // Fetch group and pollutant data from Redux state
   const { loading: isFetchingActiveGroup } = useGetActiveGroup();
@@ -26,22 +37,48 @@ const AQNumberCard = () => {
     (state) => state.defaults.individual_preferences?.[0],
   );
 
-  // Get selected site IDs and limit displayed sites to MAX_CARDS
+  // Get selected site IDs and validate them before using
   const selectedSiteIds = useMemo(() => {
     if (!preferences?.selected_sites?.length) return [];
-    return preferences.selected_sites.map((site) => site._id);
+    // Filter out any invalid ObjectIds
+    return preferences.selected_sites
+      .map((site) => site._id)
+      .filter(isValidObjectId);
   }, [preferences]);
 
   const selectedSites = useMemo(() => {
     if (!preferences?.selected_sites?.length) return [];
-    return preferences.selected_sites.slice(0, MAX_CARDS);
+    // Only include sites with valid IDs
+    return preferences.selected_sites
+      .filter((site) => isValidObjectId(site._id))
+      .slice(0, MAX_CARDS);
   }, [preferences]);
 
-  // Fetch measurements for selected sites
-  const { data: measurements, isLoading } = useRecentMeasurements(
+  // Only fetch measurements if we have valid site IDs
+  const {
+    data: measurements,
+    isLoading,
+    error: measurementsError,
+  } = useRecentMeasurements(
     selectedSiteIds.length > 0 ? { site_id: selectedSiteIds.join(',') } : null,
-    { revalidateOnFocus: false, revalidateOnMount: true },
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+      // Don't retry on 400 errors
+      onError: (err) => {
+        console.error('Error fetching measurements:', err);
+        setError('Failed to fetch air quality data. Please try again later.');
+      },
+    },
   );
+
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error || measurementsError) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, measurementsError]);
 
   // Handler to open modals for card actions
   const handleOpenModal = useCallback(
@@ -56,7 +93,7 @@ const AQNumberCard = () => {
 
   const getMeasurementForSite = useCallback(
     (siteId) => {
-      if (!measurements) return null;
+      if (!measurements || !isValidObjectId(siteId)) return null;
       return measurements.find((m) => m.site_id === siteId);
     },
     [measurements],
@@ -64,39 +101,49 @@ const AQNumberCard = () => {
 
   // Responsive grid classes: adjust columns for different screen sizes.
   const gridClasses =
-    'w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 ';
-
-  if (isLoadingData) {
-    return (
-      <ErrorBoundary name="AQNumberCard" feature="Loading Skeleton">
-        <div
-          className={gridClasses}
-          aria-busy="true"
-          aria-label="Loading air quality data"
-        >
-          {Array.from({ length: MAX_CARDS }).map((_, index) => (
-            <SkeletonCard key={`skeleton-${index}`} />
-          ))}
-        </div>
-      </ErrorBoundary>
-    );
-  }
+    'w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
 
   return (
     <ErrorBoundary name="AQNumberCard" feature="Air Quality Card">
-      <div className={gridClasses} data-testid="aq-number-card-grid">
-        {selectedSites.map((site) => (
-          <SiteCard
-            key={site._id}
-            site={site}
-            measurement={getMeasurementForSite(site._id)}
-            onOpenModal={handleOpenModal}
-            windowWidth={windowWidth}
-            pollutantType={pollutantType}
-          />
-        ))}
-        {(selectedSites.length < MAX_CARDS || selectedSites.length === 0) && (
-          <AddLocationCard onOpenModal={handleOpenModal} />
+      {error && (
+        <Toast
+          message={error}
+          clearData={() => setError(null)}
+          type="error"
+          timeout={5000}
+          position="top"
+        />
+      )}
+
+      <div
+        className={gridClasses}
+        aria-busy={isLoadingData ? 'true' : 'false'}
+        aria-label="Air quality data grid"
+        data-testid="aq-number-card-grid"
+      >
+        {isLoadingData ? (
+          // Show skeleton cards while loading
+          Array.from({ length: MAX_CARDS }).map((_, index) => (
+            <SkeletonCard key={`skeleton-${index}`} />
+          ))
+        ) : (
+          // Show actual site cards once data is loaded
+          <>
+            {selectedSites.map((site) => (
+              <SiteCard
+                key={site._id}
+                site={site}
+                measurement={getMeasurementForSite(site._id)}
+                onOpenModal={handleOpenModal}
+                windowWidth={windowWidth}
+                pollutantType={pollutantType}
+              />
+            ))}
+            {(selectedSites.length < MAX_CARDS ||
+              selectedSites.length === 0) && (
+              <AddLocationCard onOpenModal={handleOpenModal} />
+            )}
+          </>
         )}
       </div>
     </ErrorBoundary>
