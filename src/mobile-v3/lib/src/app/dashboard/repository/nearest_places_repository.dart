@@ -47,13 +47,13 @@ class NearestPlacesRepository {
         'Finding nearest sites: lon=$longitude, lat=$latitude, radius=$radius');
 
     final uri = Uri.parse('$baseUrl/devices/sites/nearest?'
-        'longitude=$longitude&latitude=$latitude&radius=$radius');
+        'longitude=$longitude&latitude=$latitude&radius=$radius&online_status=online');
 
     try {
       final response = await _httpClient.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $authToken',
+          'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
         },
       );
@@ -117,7 +117,7 @@ class NearestPlacesRepository {
       final response = await _httpClient.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $authToken',
+          'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
         },
       );
