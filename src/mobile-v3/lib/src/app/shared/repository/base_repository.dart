@@ -30,7 +30,7 @@ class BaseRepository {
     Uri.parse(url),
     body: json.encode(data),
     headers: {
-      "Authorization": "Bearer ${token}",
+      "Authorization": "JWT ${token}",
       "Accept": "*/*",
       "Content-Type": "application/json"
     }
@@ -63,7 +63,7 @@ class BaseRepository {
     Response response = await http.post(Uri.parse(url),
         body: json.encode(data),
         headers: {
-          "Authorization": "Bearer ${token}",
+          "Authorization": "JWT ${token}",
           "Accept": "*/*",
           "contentType": "application/json"
         });
@@ -92,7 +92,7 @@ class BaseRepository {
     };
 
     if (token != null) {
-      headers["Authorization"] = "Bearer $token";
+      headers["Authorization"] = "JWT $token";
     }
 
     Response response = await http.get(

@@ -228,7 +228,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       var response = await http.put(
         uri,
         headers: {
-          'Authorization': 'Bearer $authToken',
+          'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
         },
         body: json.encode(body),

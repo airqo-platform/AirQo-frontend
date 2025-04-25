@@ -117,7 +117,7 @@ class NearestPlacesRepository {
       final response = await _httpClient.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $authToken',
+          'Authorization': 'JWT $authToken',
           'Content-Type': 'application/json',
         },
       );

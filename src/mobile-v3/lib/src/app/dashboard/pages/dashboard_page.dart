@@ -32,7 +32,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     super.initState();
     loggy.info('Initializing DashboardPage');
 
-    // Load dashboard data which will also load preferences
     context.read<DashboardBloc>().add(LoadDashboard());
     context.read<UserBloc>().add(LoadUser());
 
@@ -76,7 +75,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             ],
           ),
 
-          // Only show FAB when in My Places view
           if (currentView == DashboardView.myPlaces)
             Positioned(
               right: 20,
@@ -90,7 +88,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                     ),
                   ).then((value) {
                     if (value != null) {
-                      // Force reload dashboard data
                       context.read<DashboardBloc>().add(LoadDashboard());
                     }
                   });
