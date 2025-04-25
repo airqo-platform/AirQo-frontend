@@ -272,7 +272,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
         <div className="px-3">
           <div className="pt-3 pb-2 flex items-center gap-2 mb-3">
             <Button
-              paddingStyles="p-0"
+              padding="p-0"
               onClick={handleExit}
               variant="text"
               type="button"
@@ -371,7 +371,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
       <>
         <LocationCards
           searchResults={suggestedSites}
-          isLoading={false}
+          isLoading={isLoading}
           handleLocationSelect={(data) =>
             handleLocationSelect(data, 'suggested')
           }

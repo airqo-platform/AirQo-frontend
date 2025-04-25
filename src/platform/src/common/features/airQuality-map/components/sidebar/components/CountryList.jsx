@@ -87,7 +87,7 @@ const CountryList = ({
             padding="px-5"
             radius="rounded-full"
             contentClassName="flex items-center justify-center gap-2 h-full"
-            className={`cursor-pointer ${isSelected ? 'ring-2 ring-blue-400' : ''}`}
+            className={`cursor-pointer ${isSelected ? 'ring-2 ring-primary/40' : ''}`}
             background="bg-secondary-neutral-dark-50 dark:bg-transparent"
           >
             <Image
@@ -100,7 +100,7 @@ const CountryList = ({
                 e.target.src = '/path-to-default-flag-image.png';
               }}
             />
-            <span className="text-sm text-secondary-neutral-light-600 dark:text-white font-medium">
+            <span className="text-sm whitespace-nowrap text-secondary-neutral-light-600 dark:text-white font-medium">
               {country.country}
             </span>
           </Card>

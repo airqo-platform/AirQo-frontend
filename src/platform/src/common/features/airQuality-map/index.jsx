@@ -267,9 +267,9 @@ const AirQoMap = forwardRef(
       map.nodeType = nodeType;
 
       map.on('load', () => {
-        map.resize();
+        mapInitializedRef.current = true;
 
-        // Try to add controls immediately after map load
+        map.resize();
         addControls();
 
         // Also set up a check a bit later to ensure controls are added
@@ -292,9 +292,6 @@ const AirQoMap = forwardRef(
             handleMainLoading(false);
             dispatch(setMapLoading(false));
             isReloadingRef.current = false;
-            mapInitializedRef.current = true;
-
-            // One more check to ensure controls are added
             ensureControls();
           });
       });
@@ -449,7 +446,6 @@ const AirQoMap = forwardRef(
       if (
         mapRef.current?.loaded() &&
         mapInitializedRef.current &&
-        !isReloadingRef.current &&
         reduxCenter.latitude != null &&
         reduxCenter.longitude != null
       ) {
