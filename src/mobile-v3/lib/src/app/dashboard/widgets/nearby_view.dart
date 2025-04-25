@@ -73,7 +73,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         return;
       }
 
-      // Get user position
+    // Get user position
       try {
         final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
@@ -82,7 +82,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
         loggy.info(
             'Retrieved user position: ${position.latitude}, ${position.longitude}');
-
         setState(() {
           _userPosition = position;
         });
@@ -91,6 +90,25 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         context.read<DashboardBloc>().add(LoadDashboard());
       } catch (e) {
         loggy.error('Error getting user position: $e');
+
+        // Try to get last known position as fallback
+        try {
+          final lastKnownPosition = await Geolocator.getLastKnownPosition();
+          if (lastKnownPosition != null) {
+            loggy.info(
+                'Using last known position: ${lastKnownPosition.latitude}, ${lastKnownPosition.longitude}');
+            setState(() {
+              _userPosition = lastKnownPosition;
+            });
+
+            // Load dashboard data with last known position
+            context.read<DashboardBloc>().add(LoadDashboard());
+            return;
+          }
+        } catch (fallbackError) {
+          loggy.error('Error getting last known position: $fallbackError');
+        }
+
         setState(() {
           _isLoading = false;
           _errorMessage =
@@ -110,8 +128,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   // Calculate distance between two coordinates using Geolocator
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
-    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) /
-        1000;
+    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000;
   }
 
   // Find nearby measurements based on user location with distances
@@ -168,7 +185,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   void _retry() {
     _initializeLocationAndData();
   }
-
 
   void _openLocationSettings() async {
     bool didOpen = await Geolocator.openLocationSettings();
@@ -449,7 +465,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       final measurement = entry.key;
                       final distance = entry.value;
 
-                      return NearbyMeasurementCard(measurement: measurement, distance: distance);
+                      return NearbyMeasurementCard(
+                          measurement: measurement, distance: distance);
                     },
                   ),
                 ),
@@ -478,10 +495,4 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       },
     );
   }
-
-
-
-
-
-  
 }
