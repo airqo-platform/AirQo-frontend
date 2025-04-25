@@ -23,7 +23,7 @@ extension BaseRepositoryExtension on BaseRepository {
       Uri.parse(url),
       body: json.encode(data),
       headers: {
-        "Authorization": "Bearer ${token}",
+        "Authorization": "JWT $token",
         "Accept": "*/*",
         "Content-Type": "application/json"
       }
