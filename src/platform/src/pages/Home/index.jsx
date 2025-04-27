@@ -10,7 +10,10 @@ import VideoModal from '@/features/video-players/Intro-video-modal';
 import Card from '@/components/CardWrapper';
 import { Checklist } from '@/features/Checklist';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserChecklists } from '@/lib/store/services/checklists/CheckList';
+import {
+  fetchUserChecklists,
+  updateTaskProgress,
+} from '@/lib/store/services/checklists/CheckList';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
@@ -19,13 +22,17 @@ const Home = () => {
   const [open, setOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchInitiated, setIsFetchInitiated] = useState(false);
   const dispatch = useDispatch();
 
   // Get Redux state for checklist
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
+  const checklistData = useSelector((state) => state.cardChecklist.checklist);
 
   // Load user data and fetch checklist
   useEffect(() => {
+    let timer;
+
     const loadUserData = () => {
       try {
         const storedUser = localStorage.getItem('loggedUser');
@@ -33,23 +40,101 @@ const Home = () => {
           const parsedUser = JSON.parse(storedUser);
           setUserData(parsedUser);
 
-          // If we have a user ID, fetch their checklist data
-          if (parsedUser._id && checklistStatus === 'idle') {
+          // If we have a user ID and haven't started fetching yet, fetch their checklist data
+          if (parsedUser._id && !isFetchInitiated) {
             dispatch(fetchUserChecklists(parsedUser._id));
+            setIsFetchInitiated(true);
           }
         }
       } catch (error) {
         console.error('Error loading user data:', error);
-      } finally {
+      }
+
+      // Only set loading to false when we have data or after a timeout
+      if (checklistStatus !== 'loading' || checklistData?.length > 0) {
         setIsLoading(false);
+      } else {
+        // Set a timeout to prevent infinite loading states
+        timer = setTimeout(() => {
+          setIsLoading(false);
+        }, 5000);
       }
     };
 
     loadUserData();
-  }, [dispatch, checklistStatus]);
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [dispatch, checklistStatus, isFetchInitiated, checklistData]);
+
+  // Add data persistence check for MAC users specifically
+  useEffect(() => {
+    const checkPlatform = () => {
+      const platform = navigator.platform || '';
+      const isMacOS = /Mac|iPad|iPhone|iPod/.test(platform);
+
+      if (isMacOS) {
+        // Extra check for Mac users to ensure data persistence
+        const checklistComplete = localStorage.getItem(
+          'checklistPreviouslyCompleted',
+        );
+
+        // If previously completed checklist but now data is missing, attempt recovery
+        if (
+          checklistComplete === 'true' &&
+          (!checklistData || checklistData.length === 0) &&
+          userData?._id &&
+          checklistStatus !== 'loading'
+        ) {
+          console.warn(
+            'Detected potential data loss on MacOS, refreshing data',
+          );
+          dispatch(fetchUserChecklists(userData._id));
+        }
+      }
+    };
+
+    if (!isLoading) {
+      checkPlatform();
+    }
+  }, [isLoading, checklistData, userData, dispatch, checklistStatus]);
+
+  // Handle video modal close and update checklist item
+  const handleVideoModalClose = () => {
+    setOpen(false);
+
+    // Find and update the video step (ID=1) as completed when modal is closed
+    if (Array.isArray(checklistData) && userData?._id) {
+      const videoStep = checklistData.find(
+        (item) => item.id === 1 || item.title?.includes('video'),
+      );
+
+      if (videoStep && !videoStep.completed && videoStep._id) {
+        dispatch(
+          updateTaskProgress({
+            _id: videoStep._id,
+            status: 'completed',
+            completed: true,
+            completionDate: new Date().toISOString(),
+            videoProgress: 100, // Mark video as fully watched
+          }),
+        );
+      }
+    }
+  };
 
   // Toggle the video modal
-  const handleModal = () => setOpen((prev) => !prev);
+  const handleModal = () => {
+    if (open) {
+      handleVideoModalClose();
+    } else {
+      setOpen(true);
+    }
+  };
 
   // Function to open video modal (to pass to Checklist)
   const openVideoModal = () => setOpen(true);
@@ -136,7 +221,7 @@ const Home = () => {
       {/* Video Modal */}
       <VideoModal
         open={open}
-        setOpen={setOpen}
+        setOpen={handleVideoModalClose}
         videoUrl={ANALYTICS_VIDEO_URL}
       />
     </Layout>
