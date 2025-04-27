@@ -2,19 +2,13 @@ import log from 'loglevel';
 import axios from 'axios';
 
 // Configure log level based on environment
-// In production, set to 'silent' to suppress all console logs
-// In staging, use 'silent' or 'warn' depending on preference
-// In development, keep 'debug' for full logging
 function configureLogLevel() {
   const env = process.env.NODE_ENV || 'development';
   const allowDevTools = process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS;
 
-  if (env === 'production') {
-    return log.setLevel('silent');
-  } else if (allowDevTools === 'staging') {
+  if (env === 'production' || allowDevTools === 'staging') {
     return log.setLevel('silent');
   } else {
-    // Full logging in development
     return log.setLevel('debug');
   }
 }
@@ -37,7 +31,6 @@ const ENV_TYPE =
 
 // Determine environment details
 function getEnvironmentInfo() {
-  // Map the environment value to one of the specific environments
   let environment = 'development';
 
   if (ENV_TYPE === 'staging') {
@@ -55,7 +48,6 @@ function getEnvironmentInfo() {
 // Check if the current environment should send to Slack
 function shouldSendToSlack() {
   const { environment } = getEnvironmentInfo();
-  // Only send to Slack for production and staging environments
   return (
     (environment === 'production' || environment === 'staging') &&
     SLACK_WEBHOOK_URL
@@ -64,25 +56,32 @@ function shouldSendToSlack() {
 
 // Check if an error should be ignored for Slack notifications
 function shouldIgnoreError(error, context = {}) {
-  // Ignore 404 errors
-  if (error?.status === 404 || error?.statusCode === 404) {
-    return true;
-  }
+  // Ignore 404 and 400 errors
+  const ignoredStatusCodes = [400, 404];
 
-  // Check for 404 in Axios error response
-  if (error?.response?.status === 404) {
-    return true;
-  }
-
-  // Check context for 404 indicators
-  if (context.status === 404 || context.statusCode === 404) {
-    return true;
-  }
-
-  // Check for 404 in error message
+  // Check direct error status properties
   if (
-    (typeof error?.message === 'string' && error.message.includes('404')) ||
-    (typeof context?.message === 'string' && context.message.includes('404'))
+    ignoredStatusCodes.includes(error?.status) ||
+    ignoredStatusCodes.includes(error?.statusCode) ||
+    ignoredStatusCodes.includes(error?.response?.status)
+  ) {
+    return true;
+  }
+
+  // Check context for status indicators
+  if (
+    ignoredStatusCodes.includes(context.status) ||
+    ignoredStatusCodes.includes(context.statusCode)
+  ) {
+    return true;
+  }
+
+  // Check for status codes in error message
+  if (
+    (typeof error?.message === 'string' &&
+      (error.message.includes('400') || error.message.includes('404'))) ||
+    (typeof context?.message === 'string' &&
+      (context.message.includes('400') || context.message.includes('404')))
   ) {
     return true;
   }
@@ -104,7 +103,7 @@ const logger = {
       log.error(message, { ...errorOrContext, ...context });
     }
 
-    // Send to Slack only if we should (production/staging) and it's not a 404
+    // Send to Slack only if we should (production/staging) and it's not an ignored error
     if (shouldSendToSlack()) {
       if (errorOrContext instanceof Error) {
         if (!shouldIgnoreError(errorOrContext, context)) {
@@ -149,7 +148,7 @@ function sendToSlack(level, message, error, context) {
     // Get URL info
     const url = typeof window !== 'undefined' ? window.location.href : 'server';
 
-    // Include error type, URL, and relevant stack info
+    // Create fingerprint that's more sensitive to the actual error location
     const contextStr = JSON.stringify(context || {});
     let stackSignature = '';
     if (errorStack) {
@@ -158,27 +157,18 @@ function sendToSlack(level, message, error, context) {
       const fileMatch = stackLines.match(/([^/\s:]+)+/g);
       stackSignature = fileMatch ? fileMatch.join('') : '';
     }
-
-    // Create fingerprint that's more sensitive to the actual error location
     const fingerprint = `${errorName}:${url}:${stackSignature}:${contextStr.substring(0, 50)}`;
 
-    // Check current time against last error
+    // Deduplication checks
     const now = Date.now();
-
-    // Deduplication check: same URL and error within threshold
     if (lastErrorUrl === url && now - lastErrorTime < ERROR_THRESHOLD_MS) {
-      // Skip this error as it's likely a duplicate
-      return;
+      return; // Skip this error as it's likely a duplicate
     }
-
-    // Standard deduplication via cache
     if (errorCache.has(fingerprint)) return;
 
     // Update tracking variables
     lastErrorTime = now;
     lastErrorUrl = url;
-
-    // Add to cache
     errorCache.add(fingerprint);
     setTimeout(() => errorCache.delete(fingerprint), ERROR_CACHE_TTL);
 
@@ -197,7 +187,7 @@ function sendToSlack(level, message, error, context) {
     };
     const emoji = emojiMap[safeLevel.toLowerCase()] || 'ℹ️';
 
-    // Build a slack message similar to the format in the image
+    // Build a slack message
     const slackPayload = {
       blocks: [
         {
@@ -300,9 +290,7 @@ function sendToSlack(level, message, error, context) {
       });
 
       // Clean up the stack trace to remove webpack internal paths
-      const cleanStack = formattedStack
-        .map((line) => cleanStackLine(line))
-        .join('\n');
+      const cleanStack = formattedStack.map(cleanStackLine).join('\n');
 
       slackPayload.attachments[0].blocks.push({
         type: 'section',
@@ -328,7 +316,7 @@ function formatStackTrace(stack) {
   return stack
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .filter(Boolean)
     .slice(0, 5);
 }
 
