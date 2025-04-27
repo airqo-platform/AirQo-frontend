@@ -25,6 +25,16 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
     return null;
   }
 
+  // ----------------------------
+  // NEW: activeId to track selected card
+  // ----------------------------
+  const [activeId, setActiveId] = useState(null);
+
+  // reset active state whenever the set of results changes
+  useEffect(() => {
+    setActiveId(null);
+  }, [searchResults]);
+
   const [showAllResults, setShowAllResults] = useState(false);
 
   const visibleResults = useMemo(() => {
@@ -65,6 +75,8 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
     >
       <div className="flex flex-col gap-4">
         {visibleResults.map((grid) => {
+          const id = grid._id || grid.place_id;
+          const isActive = id === activeId;
           const description = grid?.description
             ? capitalizeAllText(formatDescription(grid.description))
             : capitalizeAllText(formatRegion(grid.region));
@@ -76,13 +88,24 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
 
           return (
             <Card
-              key={grid._id || grid.place_id}
+              key={id}
               padding="px-4 py-4"
               bordered
-              borderColor="border-2 border-gray-200 dark:border-blue-500"
-              className="cursor-pointer bg-white dark:bg-gray-800"
+              // borderColor now depends on active state
+              borderColor={
+                isActive
+                  ? 'border-2 border-primary/50 dark:border-primary/30'
+                  : 'border-2 border-gray-200 dark:border-gray-700'
+              }
+              // background also toggles on active
+              className={`cursor-pointer ${
+                isActive ? ' dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
+              }`}
               shadow="shadow"
-              onClick={() => handleLocationSelect(grid)}
+              onClick={() => {
+                setActiveId(id);
+                handleLocationSelect(grid);
+              }}
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex flex-col">
@@ -93,13 +116,20 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                     {description || 'No Description'}
                   </span>
                 </div>
-                <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                <div
+                  className={`p-2 rounded-full ${
+                    isActive
+                      ? 'bg-blue-200 dark:bg-blue-800'
+                      : 'bg-gray-100 dark:bg-gray-700'
+                  }`}
+                >
                   <LocationIcon />
                 </div>
               </div>
             </Card>
           );
         })}
+
         {searchResults.length > 6 && !showAllResults && (
           <div className="flex justify-center my-4">
             <Button

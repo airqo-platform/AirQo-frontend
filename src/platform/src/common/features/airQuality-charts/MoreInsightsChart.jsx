@@ -109,16 +109,15 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
   const chartRef = useRef(null);
-  const opacities = [0, 0.15, 0.3, 0.85]; // darkness steps
 
   const getColor = useCallback(
     (idx) => {
-      // SSR‐safe guard
+      // SSR-safe guard
       if (typeof window === 'undefined') {
         return 'rgba(20,95,255,1)';
       }
 
-      // Read the up‑to‑date CSS variable each time
+      // Read the base primary color RGB values
       const css = window.getComputedStyle(document.documentElement);
       const raw = css.getPropertyValue('--color-primary-rgb').trim();
       const [r, g, b] = raw
@@ -126,21 +125,32 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
         .map((v) => parseInt(v, 10))
         .filter((n) => !isNaN(n));
 
-      // Compute a darkness factor from opacities
-      const pct = opacities[idx % opacities.length];
-      const factor = 1 - pct;
+      const shadeFactors = {
+        950: 0.2, // Darkest shade
+        800: 0.4, // Dark shade
+        500: 0.7, // Medium shade
+        200: 0.9, // Light shade
+      };
 
-      const dr = Math.round(r * factor);
-      const dg = Math.round(g * factor);
-      const db = Math.round(b * factor);
-      const activeColor = `rgb(${dr}, ${dg}, ${db})`;
+      // Map index to shade variant
+      const shadeKeys = [950, 800, 500, 200];
+      const shade = shadeKeys[idx % shadeKeys.length];
+      const factor = shadeFactors[shade];
 
+      // Apply shade factor to create the specific shade
+      const sr = Math.round(r * factor);
+      const sg = Math.round(g * factor);
+      const sb = Math.round(b * factor);
+      const shadeColor = `rgb(${sr}, ${sg}, ${sb})`;
+
+      // Apply inactive state if needed
       return activeIndex === null || activeIndex === idx
-        ? activeColor
+        ? shadeColor
         : 'rgba(204, 204, 204, 0.5)';
     },
     [activeIndex, theme, systemTheme],
   );
+
   // Enhanced tick count calculation
   const tickCount = useMemo(() => {
     if (containerWidth < 480) return 4;

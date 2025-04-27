@@ -144,7 +144,7 @@ const AddLocations = ({ onClose }) => {
         label: 'Location',
         render: (item) => (
           <div className="flex items-center">
-            <span className="p-2 rounded-full bg-[#F6F6F7] mr-3">
+            <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
               <LocationIcon width={16} height={16} />
             </span>
             <span className="ml-2">
