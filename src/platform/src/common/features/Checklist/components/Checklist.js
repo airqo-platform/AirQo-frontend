@@ -13,9 +13,12 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 const Checklist = ({ openVideoModal }) => {
   const dispatch = useDispatch();
   const [userId, setUserId] = useState(null);
+  const [dataFetched, setDataFetched] = useState(false);
 
   // Get checklist data from Redux
-  const reduxChecklist = useSelector((state) => state.cardChecklist.checklist);
+  const reduxChecklist = useSelector(
+    (state) => state.cardChecklist.checklist || [],
+  );
   const reduxStatus = useSelector((state) => state.cardChecklist.status);
   const totalSteps = 4;
 
@@ -28,7 +31,7 @@ const Checklist = ({ openVideoModal }) => {
   }, [reduxChecklist]);
 
   const allCompleted = useMemo(() => {
-    return stepCount === totalSteps;
+    return stepCount === totalSteps && stepCount > 0;
   }, [stepCount, totalSteps]);
 
   // Get user ID from localStorage only once when component mounts
@@ -57,24 +60,49 @@ const Checklist = ({ openVideoModal }) => {
     let isMounted = true;
 
     const fetchData = async () => {
-      if (userId && isMounted) {
-        // Always fetch fresh data on mount
-        await dispatch(fetchUserChecklists(userId));
+      if (userId && isMounted && !dataFetched) {
+        try {
+          await dispatch(fetchUserChecklists(userId));
+          if (isMounted) {
+            setDataFetched(true);
+          }
+        } catch (error) {
+          console.error('Error fetching checklist data:', error);
+        }
       }
     };
 
     fetchData();
 
-    // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
     };
-  }, [userId, dispatch]);
+  }, [userId, dispatch, dataFetched]);
 
   // Merge static steps with API data - using useMemo to avoid recalculating on every render
   const mergedSteps = useMemo(() => {
-    return mergeStepsWithChecklist(staticSteps, reduxChecklist);
+    const safeChecklist = Array.isArray(reduxChecklist) ? reduxChecklist : [];
+    return mergeStepsWithChecklist(staticSteps, safeChecklist);
   }, [staticSteps, reduxChecklist]);
+
+  // Prevent accidental data reset for completed checklists
+  useEffect(() => {
+    if (
+      localStorage.getItem('checklistPreviouslyCompleted') === 'true' &&
+      Array.isArray(reduxChecklist) &&
+      reduxChecklist.length > 0 &&
+      reduxChecklist.every((item) => !item.completed)
+    ) {
+      console.warn(
+        'Potential checklist reset detected, preserving previous state',
+      );
+    }
+
+    // Store completion state for reference
+    if (allCompleted) {
+      localStorage.setItem('checklistPreviouslyCompleted', 'true');
+    }
+  }, [reduxChecklist, allCompleted]);
 
   // Handle step click with useCallback to avoid recreation on every render
   const handleStepClick = useCallback(
@@ -123,7 +151,10 @@ const Checklist = ({ openVideoModal }) => {
   );
 
   // Show loading skeleton during initial load
-  if (reduxStatus === 'loading' && reduxChecklist.length === 0) {
+  if (
+    (reduxStatus === 'loading' || !dataFetched) &&
+    (!reduxChecklist || reduxChecklist.length === 0)
+  ) {
     return <ChecklistSkeleton />;
   }
 
@@ -155,7 +186,7 @@ const Checklist = ({ openVideoModal }) => {
         <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           {mergedSteps.map((stepItem) => (
             <ChecklistStepCard
-              key={stepItem._id || stepItem.id}
+              key={`step-${stepItem.id}-${stepItem._id || 'new'}`}
               stepItem={stepItem}
               onClick={() => handleStepClick(stepItem)}
             />

@@ -154,8 +154,15 @@ const Profile = () => {
     }
     if (!loggedUser) return setIsLoading(false);
     const userID = loggedUser._id;
+
+    // Create a cleaned version of userData without empty profilePicture
+    const dataToUpdate = { ...userData };
+    if (!dataToUpdate.profilePicture) {
+      delete dataToUpdate.profilePicture;
+    }
+
     try {
-      await updateUserCreationDetails(userData, userID);
+      await updateUserCreationDetails(dataToUpdate, userID);
       const res = await getUserDetails(userID, userToken);
       const updatedUser = res?.users?.[0];
       if (!updatedUser) throw new Error('User details not updated');
@@ -274,35 +281,45 @@ const Profile = () => {
 
   const handleProfileImageUpdate = async () => {
     if (!updatedProfilePicture) return;
+
     const formData = new FormData();
     formData.append('file', updatedProfilePicture);
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
     formData.append('folder', 'profiles');
     setProfileUploading(true);
+
     try {
       const responseData = await cloudinaryImageUpload(formData);
-      setUserData((prev) => ({
-        ...prev,
-        profilePicture: responseData.secure_url,
-      }));
-      const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
-      if (!userID) throw new Error('No valid user ID found');
-      await updateUserCreationDetails(
-        { profilePicture: responseData.secure_url },
-        userID,
-      );
-      const updatedData = {
-        _id: userID,
-        ...userData,
-        profilePicture: responseData.secure_url,
-      };
-      localStorage.setItem('loggedUser', JSON.stringify(updatedData));
-      dispatch(setUserInfo(updatedData));
-      setErrorState({
-        isError: true,
-        message: 'Profile image successfully added',
-        type: 'success',
-      });
+      const secureUrl = responseData.secure_url;
+
+      // Only update if we have a valid URL
+      if (secureUrl) {
+        setUserData((prev) => ({
+          ...prev,
+          profilePicture: secureUrl,
+        }));
+
+        const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
+        if (!userID) throw new Error('No valid user ID found');
+
+        // Only send profile picture to API if it's not empty
+        await updateUserCreationDetails({ profilePicture: secureUrl }, userID);
+
+        const updatedData = {
+          _id: userID,
+          ...userData,
+          profilePicture: secureUrl,
+        };
+        localStorage.setItem('loggedUser', JSON.stringify(updatedData));
+        dispatch(setUserInfo(updatedData));
+
+        setErrorState({
+          isError: true,
+          message: 'Profile image successfully added',
+          type: 'success',
+        });
+      }
+
       setUpdatedProfilePicture('');
       setProfileUploading(false);
     } catch (err) {
@@ -313,9 +330,10 @@ const Profile = () => {
     }
   };
 
-  const deleteProfileImage = () => {
+  const deleteProfileImage = async () => {
     setUpdatedProfilePicture('');
     setUserData((prev) => ({ ...prev, profilePicture: '' }));
+
     const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
     if (!userID) {
       setErrorState({
@@ -325,21 +343,32 @@ const Profile = () => {
       });
       return;
     }
-    updateUserCreationDetails({ profilePicture: '' }, userID)
-      .then(() => {
-        const updatedData = { ...userData, profilePicture: '', _id: userID };
-        localStorage.setItem('loggedUser', JSON.stringify(updatedData));
-        dispatch(setUserInfo(updatedData));
-        setShowDeleteProfileModal(false);
-        setErrorState({
-          isError: true,
-          message: 'Profile image successfully deleted',
-          type: 'success',
-        });
-      })
-      .catch((error) => {
-        setErrorState({ isError: true, message: error.message, type: 'error' });
+
+    try {
+      await updateUserCreationDetails({ profilePicture: '' }, userID);
+
+      // Update local user data
+      const updatedUserData = { ...userData };
+      delete updatedUserData.profilePicture; // Remove profile picture before storing
+
+      const storedData = {
+        _id: userID,
+        ...updatedUserData,
+        profilePicture: '', // Explicitly set to empty in localStorage
+      };
+
+      localStorage.setItem('loggedUser', JSON.stringify(storedData));
+      dispatch(setUserInfo(storedData));
+
+      setShowDeleteProfileModal(false);
+      setErrorState({
+        isError: true,
+        message: 'Profile image successfully deleted',
+        type: 'success',
       });
+    } catch (error) {
+      setErrorState({ isError: true, message: error.message, type: 'error' });
+    }
   };
 
   return (
@@ -375,13 +404,16 @@ const Profile = () => {
                   />
                 ) : (
                   <h3 className="text-2xl font-medium text-blue-600">
-                    {userData.firstName[0] + userData.lastName[0]}
+                    {userData.firstName && userData.lastName
+                      ? userData.firstName[0] + userData.lastName[0]
+                      : ''}
                   </h3>
                 )}
               </div>
               <div className="flex items-center gap-4">
                 <Button
-                  onClick={deleteProfileImage}
+                  onClick={() => setShowDeleteProfileModal(true)}
+                  disabled={!userData.profilePicture}
                   className="text-sm font-medium text-gray-600"
                 >
                   Delete
