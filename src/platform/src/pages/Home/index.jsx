@@ -120,7 +120,7 @@ const Home = () => {
             status: 'completed',
             completed: true,
             completionDate: new Date().toISOString(),
-            videoProgress: 100, // Mark video as fully watched
+            videoProgress: 100,
           }),
         );
       }
