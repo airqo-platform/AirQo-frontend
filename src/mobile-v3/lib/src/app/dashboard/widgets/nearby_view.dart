@@ -383,95 +383,92 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
 
           // Display the list of nearby measurements with distance information
-          return SizedBox(
-            // Fixed height container to solve the layout issue
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with location count and refresh button
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Icon(Icons.location_on,
-                          color: AppColors.primaryColor, size: 18),
-                      SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          "Showing ${_nearbyMeasurementsWithDistance.length} locations near you",
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with location count and refresh button
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on,
+                        color: AppColors.primaryColor, size: 18),
+                    SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        "Showing ${_nearbyMeasurementsWithDistance.length} locations near you",
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              Theme.of(context).textTheme.bodyMedium?.color,
                         ),
-                      ),
-                      Spacer(),
-                      TextButton.icon(
-                        onPressed: _retry,
-                        icon: Icon(Icons.refresh, size: 18),
-                        label: Text("Refresh"),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primaryColor,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // User location indicator
-                if (_userPosition != null)
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.my_location, color: Colors.blue, size: 16),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue.shade700,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-                  ),
-
-                // List of measurements - fixed: use Flexible instead of Expanded
-                Flexible(
-                  child: ListView.builder(
-                    itemCount: _nearbyMeasurementsWithDistance.length,
-                    padding: EdgeInsets.only(bottom: 16),
-                    itemBuilder: (context, index) {
-                      final entry = _nearbyMeasurementsWithDistance[index];
-                      final measurement = entry.key;
-                      final distance = entry.value;
-
-                      return NearbyMeasurementCard(
-                          measurement: measurement, distance: distance);
-                    },
+                    Spacer(),
+                    TextButton.icon(
+                      onPressed: _retry,
+                      icon: Icon(Icons.refresh, size: 18),
+                      label: Text("Refresh"),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primaryColor,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // User location indicator
+              if (_userPosition != null)
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.my_location, color: Colors.blue, size: 16),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+
+              // List of measurements - using ListView.builder directly here
+              // instead of nesting it inside another container with fixed height
+              ListView.builder(
+                itemCount: _nearbyMeasurementsWithDistance.length,
+                padding: EdgeInsets.only(bottom: 16),
+                shrinkWrap: true, // Allow it to take only the space it needs
+                physics: NeverScrollableScrollPhysics(), // Disable scrolling on this list
+                itemBuilder: (context, index) {
+                  final entry = _nearbyMeasurementsWithDistance[index];
+                  final measurement = entry.key;
+                  final distance = entry.value;
+
+                  return NearbyMeasurementCard(
+                      measurement: measurement, distance: distance);
+                },
+              ),
+            ],
           );
         }
 
