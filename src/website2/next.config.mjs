@@ -37,6 +37,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/',
+        destination: '/home',
+        permanent: false,
+      },
+      {
         source: '/clean-air/forum',
         destination: '/clean-air-forum/about?slug=clean-air-forum-2024',
         permanent: true,
