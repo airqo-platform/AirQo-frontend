@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# Multi-stage build for smaller images and isolation :contentReference[oaicite:0]{index=0}
 
 # 1. Install dependencies only when package files change
 FROM node:18-alpine AS deps
@@ -11,7 +12,6 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# For TypeScript/Next.js projects ensure next.config.js has: output: 'standalone'
 RUN npm run build
 
 # 3. Prepare minimal production image
@@ -20,15 +20,17 @@ WORKDIR /app
 ENV NODE_ENV=production \
     PORT=8080
 
-# Create a non-root user
+# Create a non-root user for security
 RUN addgroup -S app && adduser -S -G app app
 
-# Copy only the standalone output and static assets
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy node_modules, package.json, built output, and public assets
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.next ./.next    # full build output :contentReference[oaicite:1]{index=1}
 COPY --from=builder /app/public ./public
 
 USER app
-
 EXPOSE 8080
-CMD ["node", "server.js"]
+
+# Start in production mode using Next.js's built-in server :contentReference[oaicite:2]{index=2}
+CMD ["npm", "run", "start"]
