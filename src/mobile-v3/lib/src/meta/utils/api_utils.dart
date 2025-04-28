@@ -6,7 +6,7 @@ class ApiUtils {
   static String baseUrl =
       dotenv.env['AIRQO_API_URL'] ?? "http://localhost:3001";
 
-  static String map = "/api/v2/devices/readings/map";
+  static String map = "/api/v2/devices/readings/recent";
 
   static String fetchLessons = "/api/v2/devices/kya/lessons";
 
