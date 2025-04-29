@@ -67,6 +67,7 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_localizations:
     sdk: flutter
+  synchronized: ^3.3.0+3
 
 
 dev_dependencies:

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:airqo/core/utils/hive_box_setup.dart';
 import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -26,17 +26,18 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
+  //await Hive.initFlutter();
+
+  await HiveBoxSetup.initializeBoxes();
 
   const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
   AppLoggySetup.init(isDevelopment: !kReleaseMode);
@@ -52,8 +53,6 @@ void main() async {
   runZonedGuarded(
     () async {
       try {
-        Directory dir = await getApplicationDocumentsDirectory();
-        Hive.init(dir.path);
 
         Object().logInfo('Application initialized successfully');
 
