@@ -26,7 +26,7 @@ class AuthHelper {
         return null;
       }
       
-      _logger.info('Token retrieved successfully: ${token.substring(0, Math.min(10, token.length))}...');
+      _logger.info('Token retrieved successfully: ${token.substring(0, Math.min<int>(10, token.length))}...');
       
       try {
         // Try to decode the token
@@ -101,7 +101,7 @@ class AuthHelper {
       }
       
       _logger.info('DEBUG: Token exists with length ${token.length}');
-      _logger.info('DEBUG: First few characters: ${token.substring(0, Math.min(20, token.length))}');
+      _logger.info('DEBUG: First few characters: ${token.substring(0, Math.min<int>(20, token.length))}');
       
       // Check if it's a valid JWT format (3 parts separated by dots)
       final parts = token.split('.');
