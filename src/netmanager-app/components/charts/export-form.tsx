@@ -14,70 +14,66 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { useExportData } from "@/core/hooks/useExportData"
+import { useDevice } from "@/core/hooks/useDevices"
+
+// Field mapping based on device category
+const fieldMappings = {
+  bam: [
+    { id: "pm2_5", name: "PM2.5 (μg/m³)" },
+    { id: "pm10", name: "PM10 (μg/m³)" },
+    { id: "ConcRt", name: "ConcRt (μg/m³)" },
+    { id: "ConcHr", name: "ConcHr (μg/m³)" },
+    { id: "Flow", name: "Flow (LPM)" },
+    { id: "DeviceStatus", name: "Device Status" },
+    { id: "battery", name: "Battery" },
+  ],
+  lowcost: [
+    { id: "pm2_5", name: "PM2.5 (μg/m³)" },
+    { id: "pm10", name: "PM10 (μg/m³)" },
+    { id: "s2_pm2_5", name: "Sensor 2 PM2.5 (μg/m³)" },
+    { id: "s2_pm10", name: "Sensor 2 PM10 (μg/m³)" },
+    { id: "latitude", name: "Latitude" },
+    { id: "longitude", name: "Longitude" },
+    { id: "battery", name: "Battery" },
+  ],
+  default: [
+    { id: "pm2_5", name: "PM2.5 (μg/m³)" },
+    { id: "pm10", name: "PM10 (μg/m³)" },
+    { id: "battery", name: "Battery" },
+  ],
+}
 
 interface ExportFormProps {
   deviceId: string
   deviceType?: string
 }
 
-// Field mapping based on device type
-const fieldMappings = {
-  "BAM Monitor": [
-    { id: 1, name: "Date and time" },
-    { id: 2, name: "ConcRt(ug/m3)" },
-    { id: 3, name: "ConcHR(ug/m3)" },
-    { id: 4, name: "ConcS(ug/m3)" },
-    { id: 5, name: "Flow(LPM)" },
-    { id: 6, name: "DeviceStatus" },
-    { id: 7, name: "Logger Battery" },
-    { id: 8, name: "Complete BAM dataset" },
-  ],
-  "Lowcost Monitor": [
-    { id: 1, name: "Sensor1 PM2.5_CF_1_ug/m3" },
-    { id: 2, name: "Sensor1 PM10_CF_1_ug/m3" },
-    { id: 3, name: "Sensor2 PM2.5_CF_1_ug/m3" },
-    { id: 4, name: "Sensor2 PM10_CF_1_ug/m3" },
-    { id: 5, name: "Latitude" },
-    { id: 6, name: "Longitude" },
-    { id: 7, name: "Battery Voltage" },
-    { id: 8, name: "ExtraData" },
-  ],
-  "Gas Monitor": [
-    { id: 1, name: "PM2.5" },
-    { id: 2, name: "TVOC" },
-    { id: 3, name: "HCHO" },
-    { id: 4, name: "CO2" },
-    { id: 5, name: "Intake Temperature" },
-    { id: 6, name: "Intake Humidity" },
-    { id: 7, name: "Battery Voltage" },
-    { id: 8, name: "ExtraData" },
-  ],
-  Default: [
-    { id: 1, name: "Field 1" },
-    { id: 2, name: "Field 2" },
-    { id: 3, name: "Field 3" },
-    { id: 4, name: "Field 4" },
-    { id: 5, name: "Field 5" },
-    { id: 6, name: "Field 6" },
-    { id: 7, name: "Field 7" },
-    { id: 8, name: "Field 8" },
-  ],
-}
-
-export function ExportForm({ deviceId, deviceType = "Default" }: ExportFormProps) {
+export function ExportForm({ deviceId, deviceType = "default" }: ExportFormProps) {
   const router = useRouter()
+  const { data: device, isLoading } = useDevice(deviceId)
   const [exportType, setExportType] = useState("device")
-  const [field, setField] = useState("1")
+  const [field, setField] = useState("pm2_5")
   const [timeRange, setTimeRange] = useState("24h")
-  const [timezone, setTimezone] = useState("UTC")
+  const [frequency, setFrequency] = useState("raw")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const exportData = useExportData()
 
-  const fields = fieldMappings[deviceType as keyof typeof fieldMappings] || fieldMappings.Default
+  const deviceCategory = deviceType.toLowerCase().includes("bam")
+    ? "bam"
+    : deviceType.toLowerCase().includes("lowcost")
+      ? "lowcost"
+      : "default"
+
+  const fields = fieldMappings[deviceCategory as keyof typeof fieldMappings] || fieldMappings.default
 
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!device) {
+      toast("Device information not available")
+      return
+    }
 
     try {
       toast("Preparing data export...")
@@ -87,19 +83,10 @@ export function ExportForm({ deviceId, deviceType = "Default" }: ExportFormProps
       if (timeRange === "7d") days = 7
       if (timeRange === "30d") days = 30
 
-      // For custom range, calculate days between dates
-      if (timeRange === "custom" && startDate && endDate) {
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-        const diffTime = Math.abs(end.getTime() - start.getTime())
-        days = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      }
-
       await exportData.mutateAsync({
         deviceId,
-        fieldId: exportType === "field" ? Number.parseInt(field) : undefined,
+        fieldId: exportType === "field" ? field : undefined,
         days,
-        timezone,
         format: "csv",
         startDate: timeRange === "custom" ? startDate : undefined,
         endDate: timeRange === "custom" ? endDate : undefined,
@@ -111,6 +98,21 @@ export function ExportForm({ deviceId, deviceType = "Default" }: ExportFormProps
         description: (error as Error).message,
       })
     }
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Export Sensor Data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -143,7 +145,7 @@ export function ExportForm({ deviceId, deviceType = "Default" }: ExportFormProps
                 </SelectTrigger>
                 <SelectContent>
                   {fields.map((field) => (
-                    <SelectItem key={field.id} value={field.id.toString()}>
+                    <SelectItem key={field.id} value={field.id}>
                       {field.name}
                     </SelectItem>
                   ))}
@@ -199,20 +201,16 @@ export function ExportForm({ deviceId, deviceType = "Default" }: ExportFormProps
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="timezone">Timezone</Label>
-            <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger id="timezone">
-                <SelectValue placeholder="Select timezone" />
+            <Label htmlFor="frequency">Data Frequency</Label>
+            <Select value={frequency} onValueChange={setFrequency}>
+              <SelectTrigger id="frequency">
+                <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="UTC">UTC</SelectItem>
-                <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
-                <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
-                <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
-                <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
-                <SelectItem value="Europe/London">London (GMT)</SelectItem>
-                <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
-                <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
+                <SelectItem value="raw">Raw Data</SelectItem>
+                <SelectItem value="hourly">Hourly Average</SelectItem>
+                <SelectItem value="daily">Daily Average</SelectItem>
+                <SelectItem value="weekly">Weekly Average</SelectItem>
               </SelectContent>
             </Select>
           </div>

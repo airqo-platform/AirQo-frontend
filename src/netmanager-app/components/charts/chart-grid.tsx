@@ -126,7 +126,7 @@ export function ChartGrid({ deviceId }: ChartGridProps) {
           </CardHeader>
           <CardContent className="pb-2">
             <div className="h-[200px] w-full">
-              <SensorChart config={config} />
+              <SensorChart config={config} deviceId={deviceId} />
             </div>
           </CardContent>
           <CardFooter className="flex justify-between pt-2">

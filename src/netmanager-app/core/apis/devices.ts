@@ -102,7 +102,7 @@ export interface ChartDataResponse {
   }
 }
 
-export const deviceApi = {
+export const devices = {
   // Existing API functions
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
@@ -154,7 +154,7 @@ export const deviceApi = {
   getDevices: async (): Promise<Device[]> => {
     try {
       // Use the existing getDevicesApi function with default network "airqo"
-      const response = await deviceApi.getDevicesApi("airqo")
+      const response = await devices.getDevicesApi("airqo")
       return response.devices || []
     } catch (error) {
       console.error("Error fetching devices:", error)

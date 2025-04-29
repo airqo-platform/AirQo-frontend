@@ -124,3 +124,35 @@ export const useMapReadings = () => {
     error: mapReadingsQuery.error,
   };
 };
+
+// New hook for fetching a single device by ID
+export function useDevice(deviceId: string) {
+  const allDevices = useAppSelector((state) => state.devices.devices)
+
+  // First check if the device is already in the Redux store
+  const deviceFromStore = useMemo(() => {
+    return allDevices.find((device) => device._id === deviceId)
+  }, [allDevices, deviceId])
+
+  // If not in store, fetch it directly
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["device", deviceId],
+    queryFn: async () => {
+      try {
+        return await devices.getDevice(deviceId)
+      } catch (error) {
+        console.error(`Error fetching device ${deviceId}:`, error)
+        throw error
+      }
+    },
+    enabled: !!deviceId && !deviceFromStore, // Only fetch if not already in store
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  // Return the device from store if available, otherwise from the API
+  return {
+    device: deviceFromStore || data,
+    isLoading: isLoading && !deviceFromStore,
+    error,
+  }
+}

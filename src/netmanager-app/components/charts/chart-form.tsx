@@ -16,47 +16,30 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { useCreateChartConfig, useUpdateChartConfig } from "@/core/hooks/useChartConfigs"
 
-// Field mapping based on device type
+// Field mapping based on device category
 const fieldMappings = {
-  "BAM Monitor": [
-    { id: 1, name: "Date and time" },
-    { id: 2, name: "ConcRt(ug/m3)" },
-    { id: 3, name: "ConcHR(ug/m3)" },
-    { id: 4, name: "ConcS(ug/m3)" },
-    { id: 5, name: "Flow(LPM)" },
-    { id: 6, name: "DeviceStatus" },
-    { id: 7, name: "Logger Battery" },
-    { id: 8, name: "Complete BAM dataset" },
+  bam: [
+    { id: "pm2_5", name: "PM2.5 (μg/m³)" },
+    { id: "pm10", name: "PM10 (μg/m³)" },
+    { id: "ConcRt", name: "ConcRt (μg/m³)" },
+    { id: "ConcHr", name: "ConcHr (μg/m³)" },
+    { id: "Flow", name: "Flow (LPM)" },
+    { id: "DeviceStatus", name: "Device Status" },
+    { id: "battery", name: "Battery" },
   ],
-  "Lowcost Monitor": [
-    { id: 1, name: "Sensor1 PM2.5_CF_1_ug/m3" },
-    { id: 2, name: "Sensor1 PM10_CF_1_ug/m3" },
-    { id: 3, name: "Sensor2 PM2.5_CF_1_ug/m3" },
-    { id: 4, name: "Sensor2 PM10_CF_1_ug/m3" },
-    { id: 5, name: "Latitude" },
-    { id: 6, name: "Longitude" },
-    { id: 7, name: "Battery Voltage" },
-    { id: 8, name: "ExtraData" },
+  lowcost: [
+    { id: "pm2_5", name: "PM2.5 (μg/m³)" },
+    { id: "pm10", name: "PM10 (μg/m³)" },
+    { id: "s2_pm2_5", name: "Sensor 2 PM2.5 (μg/m³)" },
+    { id: "s2_pm10", name: "Sensor 2 PM10 (μg/m³)" },
+    { id: "latitude", name: "Latitude" },
+    { id: "longitude", name: "Longitude" },
+    { id: "battery", name: "Battery" },
   ],
-  "Gas Monitor": [
-    { id: 1, name: "PM2.5" },
-    { id: 2, name: "TVOC" },
-    { id: 3, name: "HCHO" },
-    { id: 4, name: "CO2" },
-    { id: 5, name: "Intake Temperature" },
-    { id: 6, name: "Intake Humidity" },
-    { id: 7, name: "Battery Voltage" },
-    { id: 8, name: "ExtraData" },
-  ],
-  Default: [
-    { id: 1, name: "Field 1" },
-    { id: 2, name: "Field 2" },
-    { id: 3, name: "Field 3" },
-    { id: 4, name: "Field 4" },
-    { id: 5, name: "Field 5" },
-    { id: 6, name: "Field 6" },
-    { id: 7, name: "Field 7" },
-    { id: 8, name: "Field 8" },
+  default: [
+    { id: "pm2_5", name: "PM2.5 (μg/m³)" },
+    { id: "pm10", name: "PM10 (μg/m³)" },
+    { id: "battery", name: "Battery" },
   ],
 }
 
@@ -65,7 +48,7 @@ interface ChartFormProps {
   deviceType?: string
   chartConfig?: {
     _id?: string
-    fieldId: number
+    fieldId: string
     title: string
     xAxisLabel: string
     yAxisLabel: string
@@ -85,14 +68,14 @@ interface ChartFormProps {
   }
 }
 
-export function ChartForm({ deviceId, deviceType = "Default", chartConfig }: ChartFormProps) {
+export function ChartForm({ deviceId, deviceType = "default", chartConfig }: ChartFormProps) {
   const router = useRouter()
   const createChartConfig = useCreateChartConfig()
   const updateChartConfig = useUpdateChartConfig()
 
   const [config, setConfig] = useState(
     chartConfig || {
-      fieldId: 1,
+      fieldId: "pm2_5",
       title: "New Chart",
       xAxisLabel: "Time",
       yAxisLabel: "Value",
@@ -107,7 +90,13 @@ export function ChartForm({ deviceId, deviceType = "Default", chartConfig }: Cha
     },
   )
 
-  const fields = fieldMappings[deviceType as keyof typeof fieldMappings] || fieldMappings.Default
+  const deviceCategory = deviceType.toLowerCase().includes("bam")
+    ? "bam"
+    : deviceType.toLowerCase().includes("lowcost")
+      ? "lowcost"
+      : "default"
+
+  const fields = fieldMappings[deviceCategory as keyof typeof fieldMappings] || fieldMappings.default
 
   const handleChange = (field: string, value: any) => {
     setConfig({
@@ -187,16 +176,13 @@ export function ChartForm({ deviceId, deviceType = "Default", chartConfig }: Cha
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="fieldId">Field</Label>
-          <Select
-            value={config.fieldId.toString()}
-            onValueChange={(value) => handleChange("fieldId", Number.parseInt(value))}
-          >
+          <Select value={config.fieldId} onValueChange={(value) => handleChange("fieldId", value)}>
             <SelectTrigger id="fieldId">
               <SelectValue placeholder="Select field" />
             </SelectTrigger>
             <SelectContent>
               {fields.map((field) => (
-                <SelectItem key={field.id} value={field.id.toString()}>
+                <SelectItem key={field.id} value={field.id}>
                   {field.name}
                 </SelectItem>
               ))}

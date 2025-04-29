@@ -1,28 +1,27 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  BarElement,
-} from "chart.js"
-import { Line, Bar } from "react-chartjs-2"
-import { useSensorData } from "@/core/hooks/useSensorData"
+import { useMemo } from "react"
 import { Loader2 } from "lucide-react"
-
-// Register Chart.js components
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
+import { useSensorData } from "@/core/hooks/useSensorData"
+import { ChartContainer, ChartLegend } from "@/components/ui/chart"
+import {
+  Area,
+  Bar,
+  CartesianGrid,
+  Line,
+  LineChart,
+  AreaChart,
+  BarChart,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  ReferenceLine,
+  Tooltip,
+} from "recharts"
 
 interface ChartConfig {
   _id: string
-  fieldId: number
+  fieldId: string
   title: string
   xAxisLabel: string
   yAxisLabel: string
@@ -43,97 +42,34 @@ interface ChartConfig {
 
 interface SensorChartProps {
   config: ChartConfig
+  deviceId: string
 }
 
-export function SensorChart({ config }: SensorChartProps) {
-  const chartRef = useRef<Chart | null>(null)
-  const { data, isLoading, error } = useSensorData(config.fieldId, config.days, config.results)
+export function SensorChart({ config, deviceId }: SensorChartProps) {
+  const { data, isLoading, error } = useSensorData(deviceId, config.fieldId, config.days, config.results)
 
-  // Create chart data
-  const chartData = {
-    labels: data?.labels || [],
-    datasets: [
-      {
+  // Format data for Recharts
+  const chartData = useMemo(() => {
+    if (!data) return []
+
+    return data.labels.map((label, index) => ({
+      timestamp: label,
+      value: data.values[index],
+    }))
+  }, [data])
+
+  // Generate a unique ID for the chart
+  const chartId = useMemo(() => `chart-${config._id}`, [config._id])
+
+  // Create chart config for shadcn/ui chart
+  const chartConfig = useMemo(() => {
+    return {
+      [config.fieldId]: {
         label: config.title,
-        data: data?.values || [],
-        borderColor: config.color,
-        backgroundColor: `${config.color}20`,
-        fill: config.chartType === "Area",
-        tension: config.chartType === "Spline" ? 0.4 : 0,
-      },
-    ],
-  }
-
-  // Chart options
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: config.showLegend,
-      },
-      tooltip: {
-        enabled: true,
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: config.xAxisLabel,
-        },
-        grid: {
-          display: config.showGrid,
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: config.yAxisLabel,
-        },
-        grid: {
-          display: config.showGrid,
-        },
-      },
-    },
-  }
-
-  // Add reference lines if they exist
-  useEffect(() => {
-    if (!config.referenceLines || !chartRef.current) return
-
-    const chart = chartRef.current
-
-    // Remove existing plugins
-    chart.options.plugins = {
-      ...chart.options.plugins,
-      annotation: {
-        annotations: {},
+        color: config.color,
       },
     }
-
-    // Add reference lines
-    config.referenceLines.forEach((line, index) => {
-      if (chart.options.plugins?.annotation?.annotations) {
-        chart.options.plugins.annotation.annotations[`line${index}`] = {
-          type: "line",
-          yMin: line.value,
-          yMax: line.value,
-          borderColor: line.color,
-          borderWidth: 2,
-          borderDash: line.style === "dashed" ? [5, 5] : undefined,
-          label: {
-            content: line.label,
-            display: true,
-            position: "end",
-            backgroundColor: line.color,
-          },
-        }
-      }
-    })
-
-    chart.update()
-  }, [config.referenceLines])
+  }, [config.fieldId, config.title, config.color])
 
   if (isLoading) {
     return (
@@ -147,10 +83,125 @@ export function SensorChart({ config }: SensorChartProps) {
     return <div className="flex items-center justify-center h-full text-destructive text-sm">Error loading data</div>
   }
 
-  // Render the appropriate chart type
-  if (config.chartType === "Bar" || config.chartType === "Column") {
-    return <Bar data={chartData} options={chartOptions} />
+  if (!data || data.values.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No data available</div>
+    )
   }
 
-  return <Line data={chartData} options={chartOptions} ref={chartRef} />
+  // Calculate min and max values for Y axis with some padding
+  const minValue = Math.min(...data.values) * 0.9
+  const maxValue = Math.max(...data.values) * 1.1
+
+  // Render the appropriate chart type
+  const renderChart = () => {
+    const commonProps = {
+      data: chartData,
+      margin: { top: 5, right: 20, left: 20, bottom: 5 },
+    }
+
+    if (config.chartType === "Bar" || config.chartType === "Column") {
+      return (
+        <BarChart {...commonProps}>
+          {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+          <XAxis
+            dataKey="timestamp"
+            label={{ value: config.xAxisLabel, position: "insideBottom", offset: -5 }}
+            height={50}
+          />
+          <YAxis
+            label={{ value: config.yAxisLabel, angle: -90, position: "insideLeft" }}
+            domain={[minValue, maxValue]}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          {config.showLegend && <ChartLegend />}
+          <Bar dataKey="value" fill={config.color} radius={4} />
+          {config.referenceLines?.map((line, index) => (
+            <ReferenceLine
+              key={index}
+              y={line.value}
+              stroke={line.color}
+              strokeDasharray={line.style === "dashed" ? "5 5" : line.style === "dotted" ? "2 2" : undefined}
+              label={line.label}
+            />
+          ))}
+        </BarChart>
+      )
+    }
+
+    if (config.chartType === "Area") {
+      return (
+        <AreaChart {...commonProps}>
+          {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+          <XAxis
+            dataKey="timestamp"
+            label={{ value: config.xAxisLabel, position: "insideBottom", offset: -5 }}
+            height={50}
+          />
+          <YAxis
+            label={{ value: config.yAxisLabel, angle: -90, position: "insideLeft" }}
+            domain={[minValue, maxValue]}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          {config.showLegend && <ChartLegend />}
+          <Area type="monotone" dataKey="value" stroke={config.color} fill={`${config.color}20`} activeDot={{ r: 8 }} />
+          {config.referenceLines?.map((line, index) => (
+            <ReferenceLine
+              key={index}
+              y={line.value}
+              stroke={line.color}
+              strokeDasharray={line.style === "dashed" ? "5 5" : line.style === "dotted" ? "2 2" : undefined}
+              label={line.label}
+            />
+          ))}
+        </AreaChart>
+      )
+    }
+
+    // Default to Line chart
+    return (
+      <LineChart {...commonProps}>
+        {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+        <XAxis
+          dataKey="timestamp"
+          label={{ value: config.xAxisLabel, position: "insideBottom", offset: -5 }}
+          height={50}
+        />
+        <YAxis label={{ value: config.yAxisLabel, angle: -90, position: "insideLeft" }} domain={[minValue, maxValue]} />
+        <Tooltip content={<CustomTooltip />} />
+        {config.showLegend && <ChartLegend />}
+        <Line type="monotone" dataKey="value" stroke={config.color} activeDot={{ r: 8 }} strokeWidth={2} />
+        {config.referenceLines?.map((line, index) => (
+          <ReferenceLine
+            key={index}
+            y={line.value}
+            stroke={line.color}
+            strokeDasharray={line.style === "dashed" ? "5 5" : line.style === "dotted" ? "2 2" : undefined}
+            label={line.label}
+          />
+        ))}
+      </LineChart>
+    )
+  }
+
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border rounded-md p-2 shadow-md">
+          <p className="text-sm font-medium">{`Time: ${payload[0].payload.timestamp}`}</p>
+          <p className="text-sm text-muted-foreground">{`${config.title}: ${payload[0].value.toFixed(2)}`}</p>
+        </div>
+      )
+    }
+    return null
+  }
+
+  return (
+    <ChartContainer id={chartId} config={chartConfig} className="h-full w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        {renderChart()}
+      </ResponsiveContainer>
+    </ChartContainer>
+  )
 }

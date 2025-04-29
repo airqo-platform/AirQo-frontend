@@ -15,7 +15,7 @@ interface ChartDetailProps {
   deviceId: string
   chartConfig: {
     _id: string
-    fieldId: number
+    fieldId: string
     title: string
     xAxisLabel: string
     yAxisLabel: string
@@ -94,7 +94,7 @@ export function ChartDetail({ deviceId, chartConfig, deviceType = "Default" }: C
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4">{config.title}</h2>
             <div className="h-[500px] w-full">
-              <SensorChart config={config} />
+              <SensorChart config={config} deviceId={deviceId} />
             </div>
             <div className="mt-4 text-sm text-muted-foreground">
               <p>
