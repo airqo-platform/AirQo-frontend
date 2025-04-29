@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:loggy/loggy.dart';
+import 'package:synchronized/synchronized.dart';
 
 class HiveBoxNames {
   const HiveBoxNames._();
@@ -13,14 +14,20 @@ class HiveRepository {
 
   HiveRepository._();
 
-  static Future<Box> _openBox(String boxName) async {
+static final _boxLocks = <String, Lock>{};
+
+static Future<Box> _openBox(String boxName) async {
+  final lock = _boxLocks.putIfAbsent(boxName, () => Lock());
+  return lock.synchronized(() async {
     if (!_boxes.containsKey(boxName)) {
       _boxes[boxName] = await Hive.openBox(boxName);
     }
     return _boxes[boxName]!;
-  }
+  });
+}
 
-  static Future<dynamic> saveData(String boxName, String key, dynamic value) async {
+  static Future<dynamic> saveData(
+      String boxName, String key, dynamic value) async {
     try {
       var box = await _openBox(boxName);
       await box.put(key, value);
@@ -56,7 +63,8 @@ class HiveRepository {
   }
 
   // Cache operations
-  static Future<void> saveCache(String key, dynamic data, {Duration? expiry}) async {
+  static Future<void> saveCache(String key, dynamic data,
+      {Duration? expiry}) async {
     final cacheData = {
       'data': data,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -65,15 +73,16 @@ class HiveRepository {
 
     try {
       await saveData(HiveBoxNames.cacheBox, key, cacheData);
-      _logger.info('Saved cache with key: $key' +
-          (expiry != null ? ' (expires in ${expiry.inMinutes} minutes)' : ''));
+      _logger.info(
+          'Saved cache with key: $key${expiry != null ? ' (expires in ${expiry.inMinutes} minutes)' : ''}');
     } catch (e) {
       _logger.error('Failed to save cache: $e');
     }
   }
 
   static Future<dynamic> getCache(String key) async {
-    final cacheData = await getData<Map<String, dynamic>>(key, HiveBoxNames.cacheBox);
+    final cacheData =
+        await getData<Map<String, dynamic>>(key, HiveBoxNames.cacheBox);
     if (cacheData == null) {
       _logger.info('Cache miss for key: $key');
       return null;
@@ -95,7 +104,8 @@ class HiveRepository {
         }
       }
 
-      _logger.info('Cache hit for key: $key (age: ${now.difference(cachedTime).inMinutes} minutes)');
+      _logger.info(
+          'Cache hit for key: $key (age: ${now.difference(cachedTime).inMinutes} minutes)');
       return cacheData['data'];
     } catch (e) {
       _logger.warning('Error reading cache: $e');
@@ -109,6 +119,7 @@ class HiveRepository {
       _logger.info('Cleared cache for key: $key');
     } catch (e) {
       _logger.error('Error clearing cache for key $key: $e');
+      rethrow;
     }
   }
 

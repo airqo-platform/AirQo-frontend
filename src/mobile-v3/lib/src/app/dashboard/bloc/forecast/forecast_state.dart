@@ -24,7 +24,7 @@ class ForecastLoaded extends ForecastState {
         super(siteId: siteId);
         
   @override
-  List<Object?> get props => [response, siteId, loadTime];
+  List<Object?> get props => [response, siteId];
   
   // Check if data is stale (older than 2 hours)
   bool get isStale {
