@@ -9,6 +9,22 @@ sealed class ForecastEvent extends Equatable {
 
 class LoadForecast extends ForecastEvent {
   final String siteId;
+  final bool forceRefresh;
 
-  const LoadForecast(this.siteId);
+  const LoadForecast(this.siteId, {this.forceRefresh = false});
+  
+  @override
+  List<Object> get props => [siteId, forceRefresh];
 }
+
+class RefreshForecast extends ForecastEvent {
+  final String siteId;
+  final bool clearCache;
+
+  const RefreshForecast(this.siteId, {this.clearCache = true});
+  
+  @override
+  List<Object> get props => [siteId, clearCache];
+}
+
+

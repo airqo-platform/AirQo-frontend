@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:loggy/loggy.dart';
 
 class AnalyticsForecastWidget extends StatefulWidget {
   final String siteId;
@@ -15,14 +16,24 @@ class AnalyticsForecastWidget extends StatefulWidget {
   State<AnalyticsForecastWidget> createState() => _AnalyticsForecastWidgetState();
 }
 
-class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
+class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with UiLoggy {
   ForecastBloc? forecastBloc;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     forecastBloc = context.read<ForecastBloc>()
       ..add(LoadForecast(widget.siteId));
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(AnalyticsForecastWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If siteId changed, load new forecasts
+    if (oldWidget.siteId != widget.siteId) {
+      forecastBloc?.add(LoadForecast(widget.siteId));
+    }
   }
 
   double _getResponsiveHeight(BuildContext context) {
@@ -43,6 +54,29 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
     return (screenWidth * 0.01).clamp(2.0, 8.0); // Min 2, max 8
   }
 
+  // Method to refresh forecasts
+  Future<void> _refreshForecasts() async {
+    if (_isRefreshing) return;
+    
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    try {
+      // Dispatch a refresh event to the bloc
+      forecastBloc?.add(RefreshForecast(widget.siteId));
+      
+      // Reset refreshing state after a delay to show loading indicator briefly
+      await Future.delayed(const Duration(seconds: 1));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -53,26 +87,83 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
               final today = DateTime.now();
               final currentDateFormatted = DateFormat('yyyy-MM-dd').format(today);
               
-              return Row(
-                children: state.response.forecasts
-                    .map((e) {
-                      // Check if this forecast is for the current date
-                      final forecastDate = DateFormat('yyyy-MM-dd').format(e.time);
-                      final isCurrentDay = forecastDate == currentDateFormatted;
-                      
-                      return ForeCastChip(
-                        active: isCurrentDay, // Set active based on current date
-                        day: DateFormat.E().format(e.time)[0],
-                        imagePath: getForecastAirQualityIcon(
-                            e.pm25, state.response.aqiRanges),
-                        height: _getResponsiveHeight(context),
-                        iconSize: _getResponsiveIconSize(context),
-                        margin: _getResponsiveMargin(context),
-                      );
-                    })
-                    .toList(),
+              // Check if data is stale and show a subtle indicator
+              final isStale = state.isStale;
+              
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Optional header row with refresh button
+                  if (isStale)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 12,
+                            color: Colors.amber,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Forecast data may be outdated',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.amber.shade700,
+                            ),
+                          ),
+                          Spacer(),
+                          InkWell(
+                            onTap: _refreshForecasts,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.refresh,
+                                    size: 16,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Refresh',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                
+                  // Forecast chips row
+                  Row(
+                    children: state.response.forecasts
+                        .map((e) {
+                          // Check if this forecast is for the current date
+                          final forecastDate = DateFormat('yyyy-MM-dd').format(e.time);
+                          final isCurrentDay = forecastDate == currentDateFormatted;
+                          
+                          return ForeCastChip(
+                            active: isCurrentDay, // Set active based on current date
+                            day: DateFormat.E().format(e.time)[0],
+                            imagePath: getForecastAirQualityIcon(
+                                e.pm25, state.response.aqiRanges),
+                            height: _getResponsiveHeight(context),
+                            iconSize: _getResponsiveIconSize(context),
+                            margin: _getResponsiveMargin(context),
+                          );
+                        })
+                        .toList(),
+                  ),
+                ],
               );
-            } else if (state is ForecastLoading) {
+            } else if (state is ForecastLoading || _isRefreshing) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(7, (index) {
@@ -83,13 +174,19 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
                   );
                 }),
               );
+            } else if (state is ForecastNetworkError) {
+              // Specific error UI for network errors with retry button
+              return _buildNetworkErrorUI(context, state.message);
+            } else if (state is ForecastLoadingError) {
+              // General error UI
+              return _buildErrorUI(context, state.message);
             }
 
             return Container(
               height: _getResponsiveHeight(context),
               child: Center(
                 child: Text(
-                  state.toString(),
+                  "Weather forecast unavailable",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: MediaQuery.of(context).size.width * 0.03,
                   ),
@@ -99,6 +196,102 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> {
           },
         );
       },
+    );
+  }
+  
+  // UI for network errors
+  Widget _buildNetworkErrorUI(BuildContext context, String message) {
+    return Container(
+      height: _getResponsiveHeight(context),
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.withOpacity(0.1),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.wifi_off,
+            color: Colors.grey,
+            size: 24,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Network issue",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: _refreshForecasts,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size(60, 36),
+            ),
+            child: Text("Retry", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // UI for general errors
+  Widget _buildErrorUI(BuildContext context, String message) {
+    return Container(
+      height: _getResponsiveHeight(context),
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.withOpacity(0.1),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Colors.grey,
+            size: 24,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "Could not load forecast: $message",
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: 8),
+          TextButton(
+            onPressed: _refreshForecasts,
+            child: Text("Retry", style: TextStyle(color: AppColors.primaryColor)),
+          ),
+        ],
+      ),
     );
   }
 }
