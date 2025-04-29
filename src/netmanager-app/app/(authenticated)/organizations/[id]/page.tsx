@@ -67,7 +67,6 @@ export default function OrganizationDetailsPage() {
   return (
     <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
       <div className="container mx-auto">
-        {/* Back button */}
         <Button
           variant="ghost"
           className="flex items-center space-x-2 mb-6"
