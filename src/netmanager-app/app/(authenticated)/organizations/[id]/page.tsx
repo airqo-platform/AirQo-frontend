@@ -76,7 +76,6 @@ export default function OrganizationDetailsPage() {
           <span>Back to Organizations</span>
         </Button>
 
-        {/* Setup Status Card - uses our hook internally to determine setup status */}
         <OrganizationSetupCard organizationId={organizationId} organizationName={group.grp_title || "Organization"} />
 
         <Tabs defaultValue="profile">
