@@ -178,12 +178,18 @@ export function MultiSeriesChart({
   }
 
   // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: { payload: { timestamp: string }; name: string; value?: number; color: string }[];
+    label?: string;
+  }
+
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-background border border-border rounded-md p-2 shadow-md">
           <p className="text-sm font-medium">{`Time: ${payload[0].payload.timestamp}`}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry: { payload: { timestamp: string }; name: string; value?: number; color: string }, index: number) => (
             <p key={`item-${index}`} className="text-sm text-muted-foreground" style={{ color: entry.color }}>
               {`${entry.name}: ${entry.value?.toFixed(2) || "N/A"}`}
             </p>
