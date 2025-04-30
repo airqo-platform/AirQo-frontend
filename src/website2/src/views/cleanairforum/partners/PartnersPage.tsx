@@ -19,6 +19,7 @@ const PartnersPage = () => {
     .map((partner: any) => ({
       id: partner.id,
       logoUrl: partner.partner_logo_url,
+      link: partner.website_link,
     }));
 
   const hostPartners = selectedEvent.partners
@@ -26,6 +27,7 @@ const PartnersPage = () => {
     .map((partner: any) => ({
       id: partner.id,
       logoUrl: partner.partner_logo_url,
+      link: partner.website_link,
     }));
 
   const programPartners = selectedEvent.partners
@@ -33,6 +35,7 @@ const PartnersPage = () => {
     .map((partner: any) => ({
       id: partner.id,
       logoUrl: partner.partner_logo_url,
+      link: partner.website_link,
     }));
 
   const fundingPartners = selectedEvent.partners
@@ -40,6 +43,7 @@ const PartnersPage = () => {
     .map((partner: any) => ({
       id: partner.id,
       logoUrl: partner.partner_logo_url,
+      link: partner.website_link,
     }));
 
   const mainPartnersHTML = renderContent(selectedEvent.partners_text_section);

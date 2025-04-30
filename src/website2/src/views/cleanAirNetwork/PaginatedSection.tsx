@@ -9,10 +9,16 @@ import { Pagination } from '../../components/ui';
 
 const logosPerPage = 8;
 
+type Partner = {
+  id: number;
+  logoUrl: string;
+  link?: string | null;
+};
+
 type PaginatedSectionProps = {
   title?: ReactNode;
   description?: ReactNode;
-  logos: any[];
+  logos: Partner[];
   bgColor?: string;
   sectionClassName?: string;
   noClick?: boolean;
@@ -51,27 +57,49 @@ const PaginatedSection: React.FC<PaginatedSectionProps> = ({
                 sectionClassName,
               )}
             >
-              {paginatedLogos.map((partner, index) => (
-                <div
-                  key={index}
-                  onClick={() =>
-                    !noClick && router.push(`/partners/${partner.id}`)
-                  }
-                  className="flex justify-center items-center cursor-pointer overflow-hidden w-full h-[144px] border border-gray-300 px-2 py-4"
-                >
-                  <Image
-                    src={partner.logoUrl}
-                    alt={'logo'}
-                    width={271}
-                    height={144}
-                    className="object-contain w-full h-full max-h-[144px] min-w-[271px] p-3 max-w-[271px] mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110"
-                  />
-                </div>
-              ))}
+              {paginatedLogos.map((partner) => {
+                const hasLink = partner.link && partner.link.trim() !== '';
+                const content = (
+                  <div className="flex justify-center items-center overflow-hidden w-full h-[144px] border border-gray-300 px-2 py-4">
+                    <Image
+                      src={partner.logoUrl}
+                      alt={`Partner ${partner.id} logo`}
+                      width={271}
+                      height={144}
+                      className="object-contain w-full h-full max-h-[144px] min-w-[271px] p-3 max-w-[271px] mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110"
+                    />
+                  </div>
+                );
+
+                if (hasLink) {
+                  return (
+                    <a
+                      key={partner.id}
+                      href={partner.link!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-pointer"
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <div
+                    key={partner.id}
+                    onClick={() =>
+                      !noClick && router.push(`/partners/${partner.id}`)
+                    }
+                    className="cursor-pointer"
+                  >
+                    {content}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Conditional Pagination */}
           {logos.length > logosPerPage && (
             <div className="flex justify-center mt-8">
               <Pagination
