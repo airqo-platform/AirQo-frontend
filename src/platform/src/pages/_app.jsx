@@ -13,7 +13,6 @@ import logger from '@/lib/logger';
 import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
 import { ThemeCustomizer } from '@/features/theme-customizer/components/ThemeCustomizer';
 import { useRouter } from 'next/router';
-import Cookies from 'js-cookie';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 
 function App({ Component, ...rest }) {

@@ -18,7 +18,7 @@ export const handleGoogleLoginFromCookie = async (dispatch) => {
     const decoded = jwt_decode(token);
 
     // Fetch user
-    const userRes = await getUserDetails(decoded._id, token);
+    const userRes = await getUserDetails(decoded._id);
     const user = userRes.users[0];
     if (!user.groups?.length) {
       throw new Error(
