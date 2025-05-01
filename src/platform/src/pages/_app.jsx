@@ -8,13 +8,29 @@ import Loading from '@/components/Loader';
 import ErrorBoundary from '../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
-import logger from '../lib/logger';
+import logger from '@/lib/logger';
 
 import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
 import { ThemeCustomizer } from '@/features/theme-customizer/components/ThemeCustomizer';
+import { useRouter } from 'next/router';
+import Cookies from 'js-cookie';
+import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 
 function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
+  const router = useRouter();
+  const dispatch = store.dispatch;
+
+  useEffect(() => {
+    // 🚨 Track Google login redirect
+    const { success } = router.query;
+
+    if (success === 'google') {
+      handleGoogleLoginFromCookie(dispatch);
+      const cleanUrl = window.location.pathname;
+      router.replace(cleanUrl, undefined, { shallow: true });
+    }
+  }, [router.query, dispatch]);
 
   useEffect(() => {
     // Set up global error handlers

@@ -207,15 +207,14 @@ const UserLogin = () => {
             <div className="mt-10">
               <button
                 className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
-                type="button"
-                disabled={loading}
+                disabled={loading || isLoadingGoogle}
+                onClick={handleLogin}
               >
                 {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>
 
               <button
                 className="w-full btn border-blue-900 rounded-[12px] text-white text-sm outline-none border mt-2"
-                type="button"
                 disabled={loading || isLoadingGoogle}
                 onClick={handleGoogleLogin}
               >
