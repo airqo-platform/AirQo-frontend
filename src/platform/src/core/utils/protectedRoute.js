@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import LogoutUser from '@/core/utils/LogoutUser';
+import Cookies from 'js-cookie';
+import { logger } from '@/lib/logger';
 
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
@@ -12,6 +14,25 @@ export default function withAuth(Component) {
     useEffect(() => {
       if (typeof window !== 'undefined') {
         const storedUserGroup = localStorage.getItem('activeGroup');
+
+        // 🚨 Track Google login redirect
+        if (router.query.success === 'google') {
+          const tempToken = Cookies.get('access_token');
+          if (tempToken) {
+            logger.info('Google login detected. Temp access token:', tempToken);
+
+            // 👉 You can now dispatch an action to log in the user
+            // dispatch(authenticateWithGoogle(tempToken));
+
+            // Optionally clean up the URL
+            const cleanedUrl = window.location.pathname;
+            router.replace(cleanedUrl, undefined, { shallow: true });
+          } else {
+            logger.info(
+              'Google login detected but no temp_access_token found.',
+            );
+          }
+        }
 
         if (!userCredentials.success) {
           router.push('/account/login');
