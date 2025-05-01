@@ -1,4 +1,3 @@
-// lib/auth/googleLoginFromCookie.js
 import jwt_decode from 'jwt-decode';
 import Cookies from 'js-cookie';
 import {
@@ -43,13 +42,12 @@ export const handleGoogleLoginFromCookie = async (dispatch) => {
       );
     }
 
-    // Persist
     localStorage.setItem('loggedUser', JSON.stringify(user));
     localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
     dispatch(setUserInfo(user));
     dispatch(setSuccess(true));
-    Cookies.remove('access_token'); // optional cleanup
+    Cookies.remove('access_token');
     router.push('/Home');
   } catch (err) {
     dispatch(setSuccess(false));
