@@ -3,6 +3,14 @@ import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import LogoutUser from '@/core/utils/LogoutUser';
 
+/**
+ * Higher-order component that restricts access to authenticated users.
+ *
+ * Wraps a component and ensures the user is authenticated before rendering. If the user is not authenticated, redirects to the login page. If no active group is found in local storage, logs out the user.
+ *
+ * @param {React.ComponentType} Component - The component to wrap with authentication enforcement.
+ * @returns {React.ComponentType} A component that renders only for authenticated users.
+ */
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
     const dispatch = useDispatch();

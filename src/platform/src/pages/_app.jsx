@@ -16,6 +16,17 @@ import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 
+/**
+ * Root component for the Next.js application, providing global state, theming, error handling, analytics, and UI utilities.
+ *
+ * Wraps all pages with Redux state management (including persistence), a global error boundary, theme context, Google Analytics, toast notifications, and theme customization. Handles Google login redirects via URL query, sets up global error and promise rejection logging, and conditionally disables developer tools in production environments.
+ *
+ * @param {object} props - Contains the page component and additional Next.js props.
+ * @returns {JSX.Element} The fully wrapped application component.
+ *
+ * @remark
+ * If the URL contains `success=google` as a query parameter, the component processes a Google login from cookies and cleans the URL. In production, right-click and F12 (developer tools) are disabled.
+ */
 function App({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const router = useRouter();
