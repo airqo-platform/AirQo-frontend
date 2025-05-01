@@ -23,6 +23,8 @@ import {
   getUserDetails,
   recentUserPreferencesAPI,
 } from '@/core/apis/Account';
+import { GOOGLE_AUTH_URL } from '@/core/urls/authentication';
+import { logger } from '@/lib/logger';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -140,6 +142,15 @@ const UserLogin = () => {
     setShowPassword(!showPassword);
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      // Redirect to Google auth URL
+      window.location.href = GOOGLE_AUTH_URL;
+    } catch (error) {
+      logger.error('Google login error:', error);
+    }
+  };
+
   return (
     <ErrorBoundary name="UserLogin" feature="User Authentication">
       <AccountPageLayout
@@ -196,6 +207,19 @@ const UserLogin = () => {
                 disabled={loading}
               >
                 {loading ? <Spinner width={25} height={25} /> : 'Login'}
+              </button>
+
+              <button
+                data-testid="google-login-btn"
+                className="w-full btn border-blue-900 rounded-[12px] text-white text-sm outline-none border mt-2"
+                disabled={loading}
+                onClick={handleGoogleLogin}
+              >
+                {loading ? (
+                  <Spinner data-testid="spinner" width={25} height={25} />
+                ) : (
+                  'Login with Google'
+                )}
               </button>
             </div>
           </form>
