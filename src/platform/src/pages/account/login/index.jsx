@@ -39,6 +39,7 @@ const loginSchema = Yup.object().shape({
 const UserLogin = () => {
   const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
@@ -143,11 +144,14 @@ const UserLogin = () => {
   };
 
   const handleGoogleLogin = async () => {
+    setIsLoadingGoogle(true);
     try {
       // Redirect to Google auth URL
       window.location.href = GOOGLE_AUTH_URL;
     } catch (error) {
       logger.error('Google login error:', error);
+    } finally {
+      setIsLoadingGoogle(false);
     }
   };
 
@@ -203,20 +207,20 @@ const UserLogin = () => {
             <div className="mt-10">
               <button
                 className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
-                type="submit"
+                type="button"
                 disabled={loading}
               >
                 {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>
 
               <button
-                data-testid="google-login-btn"
                 className="w-full btn border-blue-900 rounded-[12px] text-white text-sm outline-none border mt-2"
-                disabled={loading}
+                type="button"
+                disabled={loading || isLoadingGoogle}
                 onClick={handleGoogleLogin}
               >
-                {loading ? (
-                  <Spinner data-testid="spinner" width={25} height={25} />
+                {isLoadingGoogle ? (
+                  <Spinner width={25} height={25} />
                 ) : (
                   'Login with Google'
                 )}
