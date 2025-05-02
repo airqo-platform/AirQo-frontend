@@ -175,6 +175,7 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
         imageQuality: 85,
       );
 
+      if (!mounted) return;
       if (pickedFile != null) {
         setState(() {
           _selectedProfileImage = File(pickedFile.path);
@@ -182,6 +183,7 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
         widget.onImageSelected(_selectedProfileImage);
       }
     } catch (e) {
+      if (!mounted) return;
       loggy.error('Error picking image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to pick image: $e')),
