@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SlackLogger {
   static final SlackLogger _instance = SlackLogger._internal();
@@ -104,6 +105,36 @@ class SlackLogger {
     return buffer.toString();
   }
 
+  /// Helper method to auto-initialize the logger
+Future<void> _tryAutoInitialize() async {
+  try {
+    final webhookUrl = dotenv.env['SLACK_WEBHOOK_URL'];
+    if (webhookUrl == null || webhookUrl.isEmpty) {
+      print("❌ SlackLogger: Missing SLACK_WEBHOOK_URL in environment");
+      return;
+    }
+    
+    // Get app version if available
+    String? appVersion;
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      appVersion = '${packageInfo.version}(${packageInfo.buildNumber})';
+    } catch (e) {
+      print("⚠️ SlackLogger: Couldn't get app version: $e");
+      appVersion = 'Unknown';
+    }
+    
+    initialize(
+      webhookUrl: webhookUrl,
+      appVersion: appVersion,
+    );
+    
+    print("✅ SlackLogger: Auto-initialized successfully");
+  } catch (e) {
+    print("❌ SlackLogger: Auto-initialization failed: $e");
+  }
+}
+
   /// Private method to send logs to Slack
   Future<bool> _sendToSlack({
     required String message,
@@ -113,6 +144,23 @@ class SlackLogger {
     StackTrace? stackTrace,
   }) async {
     print("🔍 SlackLogger: Attempting to send log to Slack");
+
+    // Try to auto-initialize if not already initialized
+    if (!_initialized) {
+      print(
+          "🔍 SlackLogger: Logger not initialized, attempting auto-initialization");
+      await _tryAutoInitialize();
+    }
+
+    print(
+        "🔍 SlackLogger: Initialized? $_initialized, Enabled? $_enableSlackLogging");
+
+    if (!_initialized || !_enableSlackLogging) {
+      print(
+          "❌ SlackLogger: Not sending log - logger is not initialized or disabled");
+      return false;
+    }
+
     print(
         "🔍 SlackLogger: Initialized? $_initialized, Enabled? $_enableSlackLogging");
 
@@ -164,7 +212,7 @@ class SlackLogger {
         url,
         body: jsonEncode(payload),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 10));
 
       print(
           "🔍 SlackLogger: Received response - Status: ${response.statusCode}");
