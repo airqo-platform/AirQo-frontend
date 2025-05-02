@@ -171,19 +171,19 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
             SizedBox(height: screenHeight * 0.02),
 
-            SettingsTile(
-              iconPath: "assets/images/shared/language_icon.svg",
-              title: "Languages",
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => SelectLanguagePage(),
-                  ),
-                );
-              },
-              description:
-                  "Change the language of the app to your preferred language",
-            ),
+            // SettingsTile(
+            //   iconPath: "assets/images/shared/language_icon.svg",
+            //   title: "Languages",
+            //   onTap: () {
+            //     Navigator.of(context).push(
+            //       MaterialPageRoute(
+            //         builder: (context) => SelectLanguagePage(),
+            //       ),
+            //     );
+            //   },
+            //   description:
+            //       "Change the language of the app to your preferred language",
+            // ),
 
                      // Add the developer option here, before the logout button
           if (kDebugMode)
