@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
+import 'package:airqo/src/app/profile/pages/widgets/profile_picture_selector.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:flutter/material.dart';
@@ -84,8 +85,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       );
     }
   }
-
-
 
   bool _validateEmail(String email) {
     final emailRegExp = RegExp(
@@ -224,7 +223,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         'profilePicture': imageUrl,
       };
 
-      loggy.info('Updating profile at $uri with limited details: firstName & lastName...');
+      loggy.info(
+          'Updating profile at $uri with limited details: firstName & lastName...');
       var response = await http.put(
         uri,
         headers: {
@@ -265,7 +265,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       }
     } catch (e) {
       loggy.warning('Error uploading/updating profile image: $e');
-      rethrow ;
+      rethrow;
     }
   }
 
@@ -384,15 +384,13 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     if (_currentProfilePicture.isNotEmpty) {
       if (_currentProfilePicture.startsWith('http')) {
         return CircleAvatar(
-          radius: MediaQuery.of(context).size.width * 0.15,
-          backgroundColor: Theme.of(context).highlightColor,
-          backgroundImage: NetworkImage(_currentProfilePicture),
-          onBackgroundImageError: (exception, stackTrace) {
-            loggy.warning('Error loading profile image: $exception');
-          }
-        );
+            radius: MediaQuery.of(context).size.width * 0.15,
+            backgroundColor: Theme.of(context).highlightColor,
+            backgroundImage: NetworkImage(_currentProfilePicture),
+            onBackgroundImageError: (exception, stackTrace) {
+              loggy.warning('Error loading profile image: $exception');
+            });
       } else if (_currentProfilePicture.endsWith('.svg')) {
-
         return CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
@@ -403,7 +401,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           ),
         );
       } else {
-
         return CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
@@ -478,7 +475,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           );
         }
       },
-
       builder: (context, state) {
         if (state is UserUpdating && !_isLoading) {
           _isLoading = true;
@@ -587,36 +583,21 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Stack(
-                        children: [
-                          _buildProfilePictureWidget(),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                padding: EdgeInsets.all(iconSize * 0.4),
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                  size: iconSize,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      ProfilePictureSelector(
+                        currentProfilePicture: _currentProfilePicture,
+                        onImageSelected: (file) {
+                          setState(() {
+                            _selectedProfileImage = file;
+                            _formChanged = true;
+                          });
+                        },
+                        onRemoveImage: () {
+                          setState(() {
+                            _selectedProfileImage = null;
+                            _currentProfilePicture = '';
+                            _formChanged = true;
+                          });
+                        },
                       ),
                       SizedBox(width: padding),
                       Expanded(
