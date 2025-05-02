@@ -145,18 +145,18 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
             ),
             
             // Option: Remove current picture (if there is one)
-            if (widget.currentProfilePicture != null && widget.currentProfilePicture!.isNotEmpty || _selectedProfileImage != null)
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
-                  child: Icon(Icons.delete, color: destructiveColor),
-                ),
-                title: Text('Remove current picture', style: TextStyle(color: destructiveColor)),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _removeProfilePicture();
-                },
-              ),
+            // if (widget.currentProfilePicture != null && widget.currentProfilePicture!.isNotEmpty || _selectedProfileImage != null)
+            //   ListTile(
+            //     leading: CircleAvatar(
+            //       backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+            //       child: Icon(Icons.delete, color: destructiveColor),
+            //     ),
+            //     title: Text('Remove current picture', style: TextStyle(color: destructiveColor)),
+            //     onTap: () {
+            //       Navigator.of(context).pop();
+            //       _removeProfilePicture();
+            //     },
+            //   ),
               
             SizedBox(height: 16),
           ],
