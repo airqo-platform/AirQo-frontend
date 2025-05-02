@@ -161,15 +161,6 @@ Future<void> _tryAutoInitialize() async {
       return false;
     }
 
-    print(
-        "🔍 SlackLogger: Initialized? $_initialized, Enabled? $_enableSlackLogging");
-
-    if (!_initialized || !_enableSlackLogging) {
-      print(
-          "❌ SlackLogger: Not sending log - logger is not initialized or disabled");
-      return false;
-    }
-
     try {
       final url = Uri.parse(_webhookUrl!);
       print("🔍 SlackLogger: Sending to webhook URL: $_webhookUrl");
