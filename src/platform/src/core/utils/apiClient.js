@@ -19,6 +19,7 @@ const createApiClient = (useJwt = true) => {
   // Create axios instance
   const instance = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true,
   });
 
   // Add request interceptor
@@ -26,7 +27,10 @@ const createApiClient = (useJwt = true) => {
     (config) => {
       if (useJwt) {
         // Set JWT authentication
-        config.headers['Authorization'] = getJwtToken();
+        const token = getJwtToken();
+        if (token) {
+          config.headers['Authorization'] = token;
+        }
       } else {
         // Use API token instead
         delete config.headers['Authorization'];
@@ -41,6 +45,7 @@ const createApiClient = (useJwt = true) => {
         logger.debug('API Request', {
           url: config.url,
           method: config.method,
+          headers: config.headers,
         });
       }
 
