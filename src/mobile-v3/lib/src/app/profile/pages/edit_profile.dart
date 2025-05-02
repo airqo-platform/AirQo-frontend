@@ -68,7 +68,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           _formChanged = true;
         });
 
-        // Show a message about the selected image
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Image selected. Save to upload.'),
@@ -166,7 +165,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         contentType: MediaType('image', mimeType),
       ));
 
-      ('Uploading image to Cloudinary...');
+      loggy.info('Uploading image to Cloudinary...');
       var streamedResponse = await request.send().timeout(
         const Duration(seconds: 60),
         onTimeout: () {
@@ -192,7 +191,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
 
   Future<String?> _uploadProfileImage(File imageFile) async {
     try {
-      // 1. Upload to Cloudinary
+      // Upload to Cloudinary
       final imageUrl = await _uploadImageToCloudinary(imageFile);
       if (imageUrl == null) {
         throw Exception("Failed to get image URL from Cloudinary");
@@ -208,7 +207,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         throw Exception("No valid user ID found in Hive");
       }
 
-      // 4. Update user details on the server
+      // Update user details on the server
       var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
       final authToken =
           await HiveRepository.getData("token", HiveBoxNames.authBox);
@@ -292,31 +291,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
 
     try {
       if (_selectedProfileImage != null) {
-        // Show upload progress
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text("Uploading profile picture..."),
-                ],
-              ),
-            );
-          },
-        );
-
         // Upload and update profile
-        String? uploadResult =
-            await _uploadProfileImage(_selectedProfileImage!);
-
-        if (Navigator.of(context, rootNavigator: true).canPop()) {
-          Navigator.of(context, rootNavigator: true).pop();
-        }
+        String? uploadResult = await _uploadProfileImage(_selectedProfileImage!);
 
         if (uploadResult != null) {
           _resetLoadingState();
@@ -329,6 +305,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             SnackBar(
               content: Text('Profile image successfully added'),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 4),
             ),
           );
 
@@ -345,10 +322,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             );
       }
     } catch (e) {
-      if (Navigator.of(context, rootNavigator: true).canPop()) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-
       _resetLoadingState();
       setState(() {
         _selectedProfileImage = null;
@@ -358,6 +331,12 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         SnackBar(
           content: Text('Error uploading/updating profile image: $e'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Retry',
+            textColor: Colors.white,
+            onPressed: () => _updateProfile(),
+          ),
         ),
       );
     }
@@ -372,26 +351,27 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
   }
 
   Widget _buildProfilePictureWidget() {
+    Widget profilePicture;
+
     // If user has selected a new image, show that
     if (_selectedProfileImage != null) {
-      return CircleAvatar(
+      profilePicture = CircleAvatar(
         radius: MediaQuery.of(context).size.width * 0.15,
         backgroundColor: Colors.transparent,
         backgroundImage: FileImage(_selectedProfileImage!),
       );
-    }
-
-    if (_currentProfilePicture.isNotEmpty) {
+    } else if (_currentProfilePicture.isNotEmpty) {
       if (_currentProfilePicture.startsWith('http')) {
-        return CircleAvatar(
-            radius: MediaQuery.of(context).size.width * 0.15,
-            backgroundColor: Theme.of(context).highlightColor,
-            backgroundImage: NetworkImage(_currentProfilePicture),
-            onBackgroundImageError: (exception, stackTrace) {
-              loggy.warning('Error loading profile image: $exception');
-            });
+        profilePicture = CircleAvatar(
+          radius: MediaQuery.of(context).size.width * 0.15,
+          backgroundColor: Theme.of(context).highlightColor,
+          backgroundImage: NetworkImage(_currentProfilePicture),
+          onBackgroundImageError: (exception, stackTrace) {
+            loggy.warning('Error loading profile image: $exception');
+          },
+        );
       } else if (_currentProfilePicture.endsWith('.svg')) {
-        return CircleAvatar(
+        profilePicture = CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
           child: SvgPicture.asset(
@@ -401,27 +381,53 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           ),
         );
       } else {
-        return CircleAvatar(
+        profilePicture = CircleAvatar(
           radius: MediaQuery.of(context).size.width * 0.15,
           backgroundColor: Theme.of(context).highlightColor,
           backgroundImage: AssetImage(_currentProfilePicture),
         );
       }
+    } else {
+      // Default user icon
+      profilePicture = CircleAvatar(
+        backgroundColor: Theme.of(context).highlightColor,
+        radius: MediaQuery.of(context).size.width * 0.15,
+        child: SvgPicture.asset(
+          'assets/icons/user_icon.svg',
+          width: MediaQuery.of(context).size.width * 0.15,
+          height: MediaQuery.of(context).size.width * 0.15,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? null
+              : AppColors.secondaryHeadlineColor,
+        ),
+      );
     }
 
-    // Default user icon
-    return CircleAvatar(
-      backgroundColor: Theme.of(context).highlightColor,
-      radius: MediaQuery.of(context).size.width * 0.15,
-      child: SvgPicture.asset(
-        'assets/icons/user_icon.svg',
-        width: MediaQuery.of(context).size.width * 0.15,
-        height: MediaQuery.of(context).size.width * 0.15,
-        color: Theme.of(context).brightness == Brightness.dark
-            ? null
-            : AppColors.secondaryHeadlineColor,
-      ),
-    );
+    // Add loading overlay if uploading
+    if (_isLoading && _selectedProfileImage != null) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          profilePicture,
+          Container(
+            width: MediaQuery.of(context).size.width * 0.3,
+            height: MediaQuery.of(context).size.width * 0.3,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black.withOpacity(0.5),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                strokeWidth: 3,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return profilePicture;
   }
 
   @override
@@ -430,7 +436,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    //final avatarRadius = screenWidth * 0.15;
     final padding = screenWidth * 0.05;
     final iconSize = screenWidth * 0.06;
 
@@ -460,6 +465,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             SnackBar(
               content: Text('Profile updated successfully'),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 4),
             ),
           );
 
@@ -471,6 +477,12 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             SnackBar(
               content: Text('Error updating profile: ${state.message}'),
               backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _updateProfile(),
+              ),
             ),
           );
         }
@@ -492,7 +504,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
               ),
               onPressed: () {
                 if (_formChanged) {
-                  // Show confirmation dialog if changes were made
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -551,120 +562,128 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             actions: [
               TextButton(
                 onPressed: _isLoading ? null : _updateProfile,
-                child: _isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.primaryColor,
+                child: Tooltip(
+                  message: _isLoading ? 'Uploading...' : 'Save changes',
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryColor,
+                          ),
+                        )
+                      : Text(
+                          'Done',
+                          style: TextStyle(
+                            color: _formChanged
+                                ? AppColors.primaryColor
+                                : subtitleColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16.0,
+                          ),
                         ),
-                      )
-                    : Text(
-                        'Done',
-                        style: TextStyle(
-                          color: _formChanged
-                              ? AppColors.primaryColor
-                              : subtitleColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16.0,
-                        ),
-                      ),
+                ),
               ),
-              SizedBox(width: 8),
+              SizedBox(
+                width: 8,
+              ),
             ],
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(padding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ProfilePictureSelector(
-                        currentProfilePicture: _currentProfilePicture,
-                        onImageSelected: (file) {
-                          setState(() {
-                            _selectedProfileImage = file;
-                            _formChanged = true;
-                          });
-                        },
-                        onRemoveImage: () {
-                          setState(() {
-                            _selectedProfileImage = null;
-                            _currentProfilePicture = '';
-                            _formChanged = true;
-                          });
-                        },
-                      ),
-                      SizedBox(width: padding),
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: screenHeight * 0.05,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Edit your profile details here',
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: screenWidth * 0.035,
+          body: AbsorbPointer(
+            absorbing: _isLoading,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(padding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProfilePictureSelector(
+                          currentProfilePicture: _currentProfilePicture,
+                          onImageSelected: (file) {
+                            setState(() {
+                              _selectedProfileImage = file;
+                              _formChanged = true;
+                            });
+                          },
+                          onRemoveImage: () {
+                            setState(() {
+                              _selectedProfileImage = null;
+                              _currentProfilePicture = '';
+                              _formChanged = true;
+                            });
+                          },
+                        ),
+                        SizedBox(width: padding),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: screenHeight * 0.05,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Edit your profile details here',
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: screenWidth * 0.035,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: screenHeight * 0.005),
-                              Text(
-                                'Update your information to keep your account current',
-                                style: TextStyle(
-                                  color: subtitleColor,
-                                  fontSize: screenWidth * 0.03,
+                                SizedBox(height: screenHeight * 0.005),
+                                Text(
+                                  'Update your information to keep your account current',
+                                  style: TextStyle(
+                                    color: subtitleColor,
+                                    fontSize: screenWidth * 0.03,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.05),
-                  _buildInputField(
-                    controller: _firstNameController,
-                    label: 'First Name',
-                    hint: 'Enter your first name',
-                    textColor: textColor,
-                    hintColor: subtitleColor,
-                    fillColor: cardColor,
-                    borderColor: borderColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                  SizedBox(height: screenHeight * 0.03),
-                  _buildInputField(
-                    controller: _lastNameController,
-                    label: 'Last Name',
-                    hint: 'Enter your last name',
-                    textColor: textColor,
-                    hintColor: subtitleColor,
-                    fillColor: cardColor,
-                    borderColor: borderColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                  SizedBox(height: screenHeight * 0.03),
-                  _buildInputField(
-                    controller: _emailController,
-                    label: 'Email',
-                    hint: 'Enter your email address',
-                    keyboardType: TextInputType.emailAddress,
-                    textColor: textColor,
-                    hintColor: subtitleColor,
-                    fillColor: cardColor,
-                    borderColor: borderColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                ],
+                      ],
+                    ),
+                    SizedBox(height: screenHeight * 0.05),
+                    _buildInputField(
+                      controller: _firstNameController,
+                      label: 'First Name',
+                      hint: 'Enter your first name',
+                      textColor: textColor,
+                      hintColor: subtitleColor,
+                      fillColor: cardColor,
+                      borderColor: borderColor,
+                      isDarkMode: isDarkMode,
+                    ),
+                    SizedBox(height: screenHeight * 0.03),
+                    _buildInputField(
+                      controller: _lastNameController,
+                      label: 'Last Name',
+                      hint: 'Enter your last name',
+                      textColor: textColor,
+                      hintColor: subtitleColor,
+                      fillColor: cardColor,
+                      borderColor: borderColor,
+                      isDarkMode: isDarkMode,
+                    ),
+                    SizedBox(height: screenHeight * 0.03),
+                    _buildInputField(
+                      controller: _emailController,
+                      label: 'Email',
+                      hint: 'Enter your email address',
+                      keyboardType: TextInputType.emailAddress,
+                      textColor: textColor,
+                      hintColor: subtitleColor,
+                      fillColor: cardColor,
+                      borderColor: borderColor,
+                      isDarkMode: isDarkMode,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
