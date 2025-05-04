@@ -7,6 +7,7 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'dart:async';
 
 class NearbyView extends StatefulWidget {
   const NearbyView({super.key});
@@ -73,32 +74,53 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         return;
       }
 
-    // Get user position
+      // Get user position with better timeout handling
       try {
+        // Use a more reliable way to handle timeouts
         final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 15),
+        ).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            // This will throw a TimeoutException that we'll catch below
+            throw TimeoutException('Location request timed out after 15 seconds');
+          },
         );
 
-        loggy.info(
-            'Retrieved user position: ${position.latitude}, ${position.longitude}');
+        if (!mounted) return;
+        
+        loggy.info('Retrieved user position: ${position.latitude}, ${position.longitude}');
+        
         setState(() {
           _userPosition = position;
+          _isLoading = false;
         });
 
         // Load dashboard data
         context.read<DashboardBloc>().add(LoadDashboard());
       } catch (e) {
+        // Make sure we're not setting state after dispose
+        if (!mounted) return;
+        
         loggy.error('Error getting user position: $e');
+        
+        // IMPORTANT: Explicitly handle timeout
+        if (e is TimeoutException) {
+          setState(() {
+            _isLoading = false; // Make sure to set loading to false!
+            _errorMessage = 'Location request timed out. Please check your location settings and try again.';
+          });
+          return;
+        }
 
         // Try to get last known position as fallback
         try {
           final lastKnownPosition = await Geolocator.getLastKnownPosition();
-          if (lastKnownPosition != null) {
-            loggy.info(
-                'Using last known position: ${lastKnownPosition.latitude}, ${lastKnownPosition.longitude}');
+          if (lastKnownPosition != null && mounted) {
+            loggy.info('Using last known position: ${lastKnownPosition.latitude}, ${lastKnownPosition.longitude}');
             setState(() {
               _userPosition = lastKnownPosition;
+              _isLoading = false;
             });
 
             // Load dashboard data with last known position
@@ -109,13 +131,16 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           loggy.error('Error getting last known position: $fallbackError');
         }
 
-        setState(() {
-          _isLoading = false;
-          _errorMessage =
-              'Could not determine your location. Please try again.';
-        });
+        // Final fallback if everything else fails
+        if (mounted) {
+          setState(() {
+            _isLoading = false; // CRITICAL: Make sure loading is false
+            _errorMessage = 'Could not determine your location. Please try again.';
+          });
+        }
       }
     } catch (e) {
+      if (!mounted) return;
       loggy.error('Error initializing location: $e');
       setState(() {
         _isLoading = false;
@@ -140,12 +165,17 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       return [];
     }
 
+    loggy.info('Finding nearby measurements from ${allMeasurements.length} total measurements');
     final measWithDistance = <MapEntry<Measurement, double>>[];
+    int skippedMeasurements = 0;
 
     // Calculate distances for all measurements with valid coordinates
     for (final measurement in allMeasurements) {
       final siteDetails = measurement.siteDetails;
-      if (siteDetails == null) continue;
+      if (siteDetails == null) {
+        skippedMeasurements++;
+        continue;
+      }
 
       double? latitude = siteDetails.approximateLatitude;
       double? longitude = siteDetails.approximateLongitude;
@@ -157,7 +187,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       }
 
       // Skip if no valid coordinates
-      if (latitude == null || longitude == null) continue;
+      if (latitude == null || longitude == null) {
+        skippedMeasurements++;
+        continue;
+      }
 
       // Calculate distance to user
       final distance = _calculateDistance(_userPosition!.latitude,
@@ -166,6 +199,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       // Only include if within search radius
       if (distance <= _defaultSearchRadius) {
         measWithDistance.add(MapEntry(measurement, distance));
+        loggy.info('Found nearby measurement at ${siteDetails.name ?? "Unknown"}: ${distance.toStringAsFixed(2)}km away');
       }
     }
 
@@ -178,7 +212,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         : measWithDistance;
 
     loggy.info(
-        'Found ${result.length} nearby measurements within ${_defaultSearchRadius}km');
+        'Found ${result.length} nearby measurements within ${_defaultSearchRadius}km (skipped $skippedMeasurements invalid measurements)');
     return result;
   }
 
@@ -201,9 +235,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   @override
   Widget build(BuildContext context) {
+    // Debug state variables
+    print('NearbyView build - isLoading: $_isLoading, hasError: ${_errorMessage != null}, hasPosition: ${_userPosition != null}');
+    
     return BlocConsumer<DashboardBloc, DashboardState>(
       listener: (context, state) {
         if (state is DashboardLoaded) {
+          if (!mounted) return;
           setState(() {
             _isLoading = false;
             if (state.response.measurements != null) {
@@ -213,6 +251,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             }
           });
         } else if (state is DashboardLoadingError) {
+          if (!mounted) return;
           setState(() {
             _isLoading = false;
             _errorMessage = state.message;
@@ -271,41 +310,19 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             ),
           );
         }
-
-        // Loading state (Either getting location or loading dashboard)
-        if (_isLoading || state is DashboardLoading) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(color: AppColors.primaryColor),
-                SizedBox(height: 16),
-                Text(
-                  state is DashboardLoading
-                      ? "Loading air quality data..."
-                      : "Getting your location...",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // If dashboard is loaded but we have an error
-        if (_errorMessage != null) {
+        
+        // If location timed out
+        if (_errorMessage != null && _errorMessage!.contains('timed out')) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  Icon(Icons.timer_off, color: Colors.orange, size: 48),
                   SizedBox(height: 16),
                   Text(
-                    "Error",
+                    "Location Request Timed Out",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -314,7 +331,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    _errorMessage!,
+                    "Your device took too long to provide location data. Please check your location settings and try again.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -337,8 +354,56 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           );
         }
 
-        // Dashboard is loaded but no measurements found
-        if (state is DashboardLoaded) {
+        // Loading state - only show when truly loading
+        if (_isLoading) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppColors.primaryColor),
+                SizedBox(height: 16),
+                Text(
+                  "Getting your location...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // If dashboard is loading after we got the location
+        if (state is DashboardLoading && _userPosition != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppColors.primaryColor),
+                SizedBox(height: 16),
+                Text(
+                  "Loading air quality data near you...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Location found: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // If dashboard is loaded but no nearby measurements found
+        if (state is DashboardLoaded && _userPosition != null) {
           if (_nearbyMeasurementsWithDistance.isEmpty) {
             return Center(
               child: Padding(
@@ -364,6 +429,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
                       ),
                     ),
                     SizedBox(height: 24),
@@ -453,34 +526,79 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                 ),
 
               // List of measurements - using ListView.builder directly here
-              // instead of nesting it inside another container with fixed height
-              ListView.builder(
-                itemCount: _nearbyMeasurementsWithDistance.length,
-                padding: EdgeInsets.only(bottom: 16),
-                shrinkWrap: true, // Allow it to take only the space it needs
-                physics: NeverScrollableScrollPhysics(), // Disable scrolling on this list
-                itemBuilder: (context, index) {
-                  final entry = _nearbyMeasurementsWithDistance[index];
-                  final measurement = entry.key;
-                  final distance = entry.value;
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _nearbyMeasurementsWithDistance.length,
+                  padding: EdgeInsets.only(bottom: 16),
+                  itemBuilder: (context, index) {
+                    final entry = _nearbyMeasurementsWithDistance[index];
+                    final measurement = entry.key;
+                    final distance = entry.value;
 
-                  return NearbyMeasurementCard(
-                      measurement: measurement, distance: distance);
-                },
+                    return NearbyMeasurementCard(
+                        measurement: measurement, distance: distance);
+                  },
+                ),
               ),
             ],
           );
         }
 
-        // Default fallback for unexpected states
+        // If there's another error
+        if (_errorMessage != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  SizedBox(height: 16),
+                  Text(
+                    "Error",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineMedium?.color,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _retry,
+                    icon: Icon(Icons.refresh),
+                    label: Text("Try Again"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Default fallback - show a different loading indicator to distinguish from the location loading
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppColors.primaryColor),
+              CircularProgressIndicator(
+                color: AppColors.primaryColor,
+                strokeWidth: 3,
+              ),
               SizedBox(height: 16),
               Text(
-                "Loading air quality data...",
+                "Preparing air quality data...",
                 style: TextStyle(
                   fontSize: 16,
                   color: Theme.of(context).textTheme.bodyMedium?.color,
