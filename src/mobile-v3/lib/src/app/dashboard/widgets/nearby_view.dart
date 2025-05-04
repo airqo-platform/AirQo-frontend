@@ -80,10 +80,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         ).timeout(
-          const Duration(seconds: 10),
+          const Duration(seconds: 15),
           onTimeout: () {
             // This will throw a TimeoutException that we'll catch below
-            throw TimeoutException('Location request timed out after 10 seconds');
+            throw TimeoutException('Location request timed out after 15 seconds');
           },
         );
 
@@ -108,7 +108,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         if (e is TimeoutException) {
           setState(() {
             _isLoading = false; // Make sure to set loading to false!
-            _errorMessage = 'Location request timed out. Please check your GPS settings and try again.';
+            _errorMessage = 'Location request timed out. Please check your location settings and try again.';
           });
           return;
         }
@@ -331,7 +331,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "Your device took too long to provide location data. Please check your GPS settings and try again.",
+                    "Your device took too long to provide location data. Please check your location settings and try again.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
