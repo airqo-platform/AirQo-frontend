@@ -63,7 +63,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         currentState.response.measurements != null) {
       loggy.info('Dashboard already loaded, populating measurements');
       _populateMeasurements(currentState.response.measurements!);
-      _syncSelectedLocations(currentState); 
+      _syncSelectedLocations(currentState);
     } else {
       dashboardBloc.add(LoadDashboard());
     }
@@ -379,6 +379,35 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     });
   }
 
+  // Add this method to sort measurements by selection status
+  List<Measurement> _getSortedMeasurements(List<Measurement> measurements) {
+    // Create a copy to avoid modifying the original list
+    final sortedList = List<Measurement>.from(measurements);
+
+    // Sort the list to prioritize selected locations
+    sortedList.sort((a, b) {
+      final aSelected = _isLocationSelected(a);
+      final bSelected = _isLocationSelected(b);
+
+      if (aSelected && !bSelected) return -1; // a comes first
+      if (!aSelected && bSelected) return 1; // b comes first
+      return 0; // keep original order
+    });
+
+    return sortedList;
+  }
+
+// Helper method to check if a location is selected
+  bool _isLocationSelected(Measurement measurement) {
+    final String? id = measurement.id;
+    final String? siteId = measurement.siteId;
+    final String? siteDetailsId = measurement.siteDetails?.id;
+
+    return selectedLocations.contains(id) ||
+        selectedLocations.contains(siteId) ||
+        (siteDetailsId != null && selectedLocations.contains(siteDetailsId));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<DashboardBloc, DashboardState>(
@@ -475,9 +504,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
               onRetry: _retryLoading,
               searchController: searchController,
               currentFilter: currentFilter,
-              allMeasurements: allMeasurements,
-              filteredMeasurements: filteredMeasurements,
-              localSearchResults: localSearchResults,
+              allMeasurements: _getSortedMeasurements(allMeasurements),
+              filteredMeasurements:
+                  _getSortedMeasurements(filteredMeasurements),
+              localSearchResults: _getSortedMeasurements(localSearchResults),
               selectedLocations: selectedLocations,
               onToggleSelection: _toggleLocationSelection,
               onViewDetails: _viewDetails,
@@ -495,6 +525,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                     : _saveSelectedLocations,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  disabledForegroundColor: Colors.white.withOpacity(0.7),
+                  disabledBackgroundColor:
+                      AppColors.primaryColor.withOpacity(0.5),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
