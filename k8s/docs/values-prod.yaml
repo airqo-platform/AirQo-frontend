@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-prod-docs
   pullPolicy: Always
-  tag: prod-0b6ab742-1730310592
+  tag: prod-c2e985e5-1746441127
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -28,7 +28,7 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 70
-nodeSelector: 
+nodeSelector:
   role: high-mem
 tolerations: []
 affinity:
@@ -36,10 +36,10 @@ affinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - preference:
           matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
+            - key: role
+              operator: In
+              values:
+                - control-plane
         weight: 1
   name: airqo-prod-docs
   label: airqo-prod-docs
