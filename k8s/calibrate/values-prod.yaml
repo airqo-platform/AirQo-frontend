@@ -29,7 +29,7 @@ autoscaling:
   maxReplicas: 3
   targetMemoryUtilizationPercentage: 70
 nodeSelector: 
-  role: control-plane
+  role: high-mem
 tolerations: []
 affinity:
   nodeAffinity:
