@@ -30,7 +30,7 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 priorityClassName: high-priority
 nodeSelector:
-  role: control-plane
+  role: high-mem
 tolerations: []
 affinity:
   nodeAffinity:
