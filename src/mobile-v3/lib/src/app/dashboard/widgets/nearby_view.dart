@@ -37,7 +37,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         _errorMessage = null;
       });
 
-      // First check if location services are enabled
+
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         setState(() {
@@ -48,7 +48,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         return;
       }
 
-      // Check permission status
       LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
@@ -74,15 +73,12 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         return;
       }
 
-      // Get user position with better timeout handling
       try {
-        // Use a more reliable way to handle timeouts
         final position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         ).timeout(
           const Duration(seconds: 15),
           onTimeout: () {
-            // This will throw a TimeoutException that we'll catch below
             throw TimeoutException('Location request timed out after 15 seconds');
           },
         );
@@ -96,24 +92,20 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           _isLoading = false;
         });
 
-        // Load dashboard data
         context.read<DashboardBloc>().add(LoadDashboard());
       } catch (e) {
-        // Make sure we're not setting state after dispose
         if (!mounted) return;
         
         loggy.error('Error getting user position: $e');
         
-        // IMPORTANT: Explicitly handle timeout
         if (e is TimeoutException) {
           setState(() {
-            _isLoading = false; // Make sure to set loading to false!
+            _isLoading = false;
             _errorMessage = 'Location request timed out. Please check your location settings and try again.';
           });
           return;
         }
 
-        // Try to get last known position as fallback
         try {
           final lastKnownPosition = await Geolocator.getLastKnownPosition();
           if (lastKnownPosition != null && mounted) {
@@ -123,7 +115,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               _isLoading = false;
             });
 
-            // Load dashboard data with last known position
             context.read<DashboardBloc>().add(LoadDashboard());
             return;
           }
@@ -131,10 +122,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           loggy.error('Error getting last known position: $fallbackError');
         }
 
-        // Final fallback if everything else fails
         if (mounted) {
           setState(() {
-            _isLoading = false; // CRITICAL: Make sure loading is false
+            _isLoading = false;
             _errorMessage = 'Could not determine your location. Please try again.';
           });
         }
@@ -150,7 +140,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     }
   }
 
-  // Calculate distance between two coordinates using Geolocator
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
     return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000;
@@ -169,7 +158,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     final measWithDistance = <MapEntry<Measurement, double>>[];
     int skippedMeasurements = 0;
 
-    // Calculate distances for all measurements with valid coordinates
     for (final measurement in allMeasurements) {
       final siteDetails = measurement.siteDetails;
       if (siteDetails == null) {
@@ -180,33 +168,27 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       double? latitude = siteDetails.approximateLatitude;
       double? longitude = siteDetails.approximateLongitude;
 
-      // If no coordinates in siteDetails, try getting from siteCategory
       if (latitude == null || longitude == null) {
         latitude = siteDetails.siteCategory?.latitude;
         longitude = siteDetails.siteCategory?.longitude;
       }
 
-      // Skip if no valid coordinates
       if (latitude == null || longitude == null) {
         skippedMeasurements++;
         continue;
       }
 
-      // Calculate distance to user
       final distance = _calculateDistance(_userPosition!.latitude,
           _userPosition!.longitude, latitude, longitude);
 
-      // Only include if within search radius
       if (distance <= _defaultSearchRadius) {
         measWithDistance.add(MapEntry(measurement, distance));
         loggy.info('Found nearby measurement at ${siteDetails.name ?? "Unknown"}: ${distance.toStringAsFixed(2)}km away');
       }
     }
 
-    // Sort by distance
     measWithDistance.sort((a, b) => a.value.compareTo(b.value));
 
-    // Take the nearest ones (up to max)
     final result = measWithDistance.length > _maxNearbyLocations
         ? measWithDistance.sublist(0, _maxNearbyLocations)
         : measWithDistance;
@@ -235,7 +217,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   @override
   Widget build(BuildContext context) {
-    // Debug state variables
     print('NearbyView build - isLoading: $_isLoading, hasError: ${_errorMessage != null}, hasPosition: ${_userPosition != null}');
     
     return BlocConsumer<DashboardBloc, DashboardState>(
@@ -259,7 +240,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         }
       },
       builder: (context, state) {
-        // If location permission hasn't been granted yet
         if (_errorMessage != null && _errorMessage!.contains('permission')) {
           return NearbyViewEmptyState(
             errorMessage: _errorMessage,
@@ -267,7 +247,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           );
         }
 
-        // If location services are disabled
         if (_errorMessage != null &&
             _errorMessage!.contains('services are disabled')) {
           return Center(
@@ -374,7 +353,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           );
         }
 
-        // If dashboard is loading after we got the location
         if (state is DashboardLoading && _userPosition != null) {
           return Center(
             child: Column(
@@ -402,7 +380,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           );
         }
 
-        // If dashboard is loaded but no nearby measurements found
         if (state is DashboardLoaded && _userPosition != null) {
           if (_nearbyMeasurementsWithDistance.isEmpty) {
             return Center(
@@ -455,11 +432,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             );
           }
 
-          // Display the list of nearby measurements with distance information
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with location count and refresh button
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -587,7 +562,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           );
         }
 
-        // Default fallback - show a different loading indicator to distinguish from the location loading
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
