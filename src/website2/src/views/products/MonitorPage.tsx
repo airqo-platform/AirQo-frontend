@@ -293,7 +293,7 @@ const MonitorPage = () => {
             <CustomButton
               onClick={() =>
                 window.open(
-                  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1744186764/website/docs/Device_installation_guide_AirQo_adaptations_2_z6kcv7.pdf',
+                  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1746448761/website/docs/Device_installation_guide_AirQo_adaptations__NEW_iljyus.pdf',
                 )
               }
               className="flex items-center justify-center text-gray-700 bg-transparent border mt-6 border-black px-4 py-3 bg-none w-full font-semibold"
