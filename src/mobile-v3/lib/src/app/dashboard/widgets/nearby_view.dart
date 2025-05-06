@@ -525,20 +525,20 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   ),
                 ),
 
-              // List of measurements - using ListView.builder directly here
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _nearbyMeasurementsWithDistance.length,
-                  padding: EdgeInsets.only(bottom: 16),
-                  itemBuilder: (context, index) {
-                    final entry = _nearbyMeasurementsWithDistance[index];
-                    final measurement = entry.key;
-                    final distance = entry.value;
 
-                    return NearbyMeasurementCard(
-                        measurement: measurement, distance: distance);
-                  },
-                ),
+              ListView.builder(
+                itemCount: _nearbyMeasurementsWithDistance.length,
+                padding: EdgeInsets.only(bottom: 16),
+                shrinkWrap: true, 
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final entry = _nearbyMeasurementsWithDistance[index];
+                  final measurement = entry.key;
+                  final distance = entry.value;
+
+                  return NearbyMeasurementCard(
+                      measurement: measurement, distance: distance);
+                },
               ),
             ],
           );
