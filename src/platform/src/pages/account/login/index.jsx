@@ -213,7 +213,7 @@ const UserLogin = () => {
                 {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>
 
-              <button
+              {/* <button
                 className="w-full btn border-blue-900 rounded-[12px] text-white text-sm outline-none border mt-2"
                 disabled={loading || isLoadingGoogle}
                 onClick={handleGoogleLogin}
@@ -223,7 +223,7 @@ const UserLogin = () => {
                 ) : (
                   'Login with Google'
                 )}
-              </button>
+              </button> */}
             </div>
           </form>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
