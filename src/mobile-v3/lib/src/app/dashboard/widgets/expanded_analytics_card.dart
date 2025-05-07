@@ -20,36 +20,27 @@ class ExpandedAnalyticsCard extends StatefulWidget with UiLoggy {
 }
 
 class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
-  bool _isLoadingHealthTip = false;
-
   @override
   void initState() {
     super.initState();
-    // Only fetch health tip if we don't already have one passed in
-    if (widget.healthTipModel == null && widget.measurement.pm25?.value != null) {
-      _loadHealthTip();
+    if (widget.healthTipModel == null &&
+        widget.measurement.pm25?.value != null) {
+      context
+          .read<HealthTipsBloc>()
+          .add(GetHealthTipForAqi(widget.measurement.pm25!.value!));
     }
-  }
-
-  void _loadHealthTip() {
-    setState(() {
-      _isLoadingHealthTip = true;
-    });
-    
-    context.read<HealthTipsBloc>().add(
-      GetHealthTipForAqi(widget.measurement.pm25!.value!)
-    );
   }
 
   void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
     showBottomSheet(
-        backgroundColor: Colors.transparent,
-        context: context,
-        builder: (context) {
-          return AnalyticsDetails(
-            measurement: measurement,
-          );
-        });
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (context) {
+        return AnalyticsDetails(
+          measurement: measurement,
+        );
+      },
+    );
   }
 
   Color _getAqiColor(Measurement measurement) {
@@ -85,17 +76,13 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
   Widget build(BuildContext context) {
     return BlocBuilder<HealthTipsBloc, HealthTipsState>(
       builder: (context, state) {
-        // Determine health tip from state or passed-in prop
         HealthTipModel? healthTip = widget.healthTipModel;
-        bool isLoading = _isLoadingHealthTip;
-        
-        // Update from state if available
+
         if (state is HealthTipForAqiLoaded) {
           healthTip = state.healthTip;
-          isLoading = false;
         } else if (state is HealthTipsLoaded && healthTip == null) {
-          // If we have loaded tips but no specific tip, try to find one
-          if (widget.measurement.pm25?.value != null && state.healthTips.isNotEmpty) {
+          if (widget.measurement.pm25?.value != null &&
+              state.healthTips.isNotEmpty) {
             for (final tip in state.healthTips) {
               if (tip.aqiCategory.isInRange(widget.measurement.pm25!.value!)) {
                 healthTip = tip;
@@ -103,10 +90,11 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
               }
             }
           }
-          isLoading = false;
         } else if (state is HealthTipsError) {
-          isLoading = false;
+          widget.loggy.error('Error loading health tips: ${state.message}');
         }
+
+        final isLoading = state is HealthTipsLoading;
 
         return Column(
           children: [
@@ -121,7 +109,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
                       blurRadius: 4,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -130,7 +118,11 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(
-                          left: 16, right: 16, bottom: 16, top: 4),
+                        left: 16,
+                        right: 16,
+                        bottom: 16,
+                        top: 4,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -143,11 +135,12 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                                 children: [
                                   Row(
                                     children: [
-                                      SvgPicture.asset(Theme.of(context)
-                                                  .brightness ==
-                                              Brightness.light
-                                          ? "assets/images/shared/pm_rating_white.svg"
-                                          : 'assets/images/shared/pm_rating.svg'),
+                                      SvgPicture.asset(
+                                        Theme.of(context).brightness ==
+                                                Brightness.light
+                                            ? "assets/images/shared/pm_rating_white.svg"
+                                            : 'assets/images/shared/pm_rating.svg',
+                                      ),
                                       const SizedBox(width: 2),
                                       Text(
                                         " PM2.5",
@@ -160,41 +153,49 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                                       ),
                                     ],
                                   ),
-                                  Row(children: [
-                                    Text(
-                                      widget.measurement.pm25?.value != null
-                                          ? widget.measurement.pm25!.value!
-                                              .toStringAsFixed(2)
-                                          : "-",
-                                      style: TextStyle(
+                                  Row(
+                                    children: [
+                                      Text(
+                                        widget.measurement.pm25?.value != null
+                                            ? widget.measurement.pm25!.value!
+                                                .toStringAsFixed(2)
+                                            : "-",
+                                        style: TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 36,
                                           color: Theme.of(context)
                                               .textTheme
                                               .headlineLarge
-                                              ?.color),
-                                    ),
-                                    Text(" μg/m³",
+                                              ?.color,
+                                        ),
+                                      ),
+                                      Text(
+                                        " μg/m³",
                                         style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 18,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .headlineLarge
-                                                ?.color))
-                                  ]),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headlineLarge
+                                              ?.color,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                               SizedBox(
                                 child: Center(
                                   child: widget.measurement.pm25?.value != null
                                       ? SvgPicture.asset(
-                                          getAirQualityIcon(widget.measurement,
-                                              widget.measurement.pm25!.value!),
+                                          getAirQualityIcon(
+                                            widget.measurement,
+                                            widget.measurement.pm25!.value!,
+                                          ),
                                           height: 86,
                                           width: 86,
                                         )
-                                      : Icon(
+                                      : const Icon(
                                           Icons.help_outline,
                                           size: 60,
                                           color: Colors.grey,
@@ -203,40 +204,48 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
-                          Wrap(children: [
-                            Container(
-                              margin: EdgeInsets.only(bottom: 12),
-                              padding:
-                                  EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _getAqiColor(widget.measurement).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                widget.measurement.aqiCategory ?? "Unknown",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getAqiColor(widget.measurement),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
                                 ),
-                                maxLines: 1,
+                                decoration: BoxDecoration(
+                                  color: _getAqiColor(widget.measurement)
+                                      .withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  widget.measurement.aqiCategory ?? "Unknown",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getAqiColor(widget.measurement),
+                                  ),
+                                  maxLines: 1,
+                                ),
                               ),
-                            ),
-                          ]),
+                            ],
+                          ),
                         ],
                       ),
                     ),
                     Divider(
-                        thickness: .5,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.black
-                            : Colors.white),
+                      thickness: 0.5,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black
+                          : Colors.white,
+                    ),
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: isLoading
-                          ? Center(
+                          ?  Center(
                               child: SizedBox(
                                 height: 24,
                                 width: 24,
@@ -246,23 +255,18 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                                 ),
                               ),
                             )
-                          : healthTip?.tagLine != null
-                              ? Text(
-                                  healthTip!.tagLine,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                                  ),
-                                )
-                              : Text(
+                          : Text(
+                              healthTip?.tagLine ??
                                   "Stay informed about air quality",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                                  ),
-                                ),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color,
+                              ),
+                            ),
                     ),
                   ],
                 ),
@@ -272,8 +276,8 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Color(0xFF2A3744)
-                    : Color(0xFFEAEFF5),
+                    ? const Color(0xFF2A3744)
+                    : const Color(0xFFEAEFF5),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
@@ -283,23 +287,24 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.medical_services_outlined,
                           color: Colors.red,
                           size: 24,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           "Today's health tip",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     isLoading
                         ? Center(
                             child: CircularProgressIndicator(
@@ -307,23 +312,16 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> {
                               color: AppColors.primaryColor,
                             ),
                           )
-                        : healthTip?.description != null
-                            ? Text(
-                                healthTip!.description,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                                ),
-                              )
-                            : Text(
+                        : Text(
+                            healthTip?.description ??
                                 "Health tip not available for this air quality level. Please check back later.",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                                ),
-                              ),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                          ),
                   ],
                 ),
               ),

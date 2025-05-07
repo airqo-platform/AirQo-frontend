@@ -23,16 +23,6 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
   @override
   void initState() {
     super.initState();
-    _loadHealthTip();
-  }
-
-  void _loadHealthTip() {
-    // Only fetch health tip if we have a PM2.5 value
-    if (widget.measurement.pm25?.value != null) {
-      context.read<HealthTipsBloc>().add(
-        GetHealthTipForAqi(widget.measurement.pm25!.value!)
-      );
-    }
   }
 
   void toggleContainer() {

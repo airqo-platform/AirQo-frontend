@@ -7,25 +7,28 @@ import 'package:loggy/loggy.dart';
 part 'health_tips_event.dart';
 part 'health_tips_state.dart';
 
-class HealthTipsBloc extends Bloc<HealthTipsEvent, HealthTipsState> with UiLoggy {
+class HealthTipsBloc extends Bloc<HealthTipsEvent, HealthTipsState>
+    with UiLoggy {
   final HealthTipsRepository repository;
-  
+
   HealthTipsBloc(this.repository) : super(HealthTipsInitial()) {
     on<LoadHealthTips>(_onLoadHealthTips);
     on<GetHealthTipForAqi>(_onGetHealthTipForAqi);
     on<RefreshHealthTips>(_onRefreshHealthTips);
   }
 
-  Future<void> _onLoadHealthTips(LoadHealthTips event, Emitter<HealthTipsState> emit) async {
+  Future<void> _onLoadHealthTips(
+      LoadHealthTips event, Emitter<HealthTipsState> emit) async {
     emit(HealthTipsLoading());
-    
+
     try {
       final response = await repository.fetchHealthTips();
-      
+
       if (response.success && response.data.healthTips.isNotEmpty) {
         emit(HealthTipsLoaded(response.data.healthTips));
       } else {
-        emit(HealthTipsError('Failed to load health tips: ${response.message}'));
+        emit(
+            HealthTipsError('Failed to load health tips: ${response.message}'));
       }
     } catch (e) {
       loggy.error('Error loading health tips: $e');
@@ -33,25 +36,27 @@ class HealthTipsBloc extends Bloc<HealthTipsEvent, HealthTipsState> with UiLoggy
     }
   }
 
-  Future<void> _onGetHealthTipForAqi(GetHealthTipForAqi event, Emitter<HealthTipsState> emit) async {
+  Future<void> _onGetHealthTipForAqi(
+      GetHealthTipForAqi event, Emitter<HealthTipsState> emit) async {
     final currentState = state;
     if (currentState is! HealthTipsLoaded) {
       emit(HealthTipsLoading());
     }
-    
+
     try {
       final tip = await repository.getHealthTipForAqi(event.aqiValue);
-      
+
       if (tip != null) {
         emit(HealthTipForAqiLoaded(tip));
       } else {
         // If we couldn't find a specific tip, just load all tips as fallback
         final response = await repository.fetchHealthTips();
-        
+
         if (response.success && response.data.healthTips.isNotEmpty) {
           emit(HealthTipsLoaded(response.data.healthTips));
         } else {
-          emit(HealthTipsError('No health tip found for AQI value: ${event.aqiValue}'));
+          emit(HealthTipsError(
+              'No health tip found for AQI value: ${event.aqiValue}'));
         }
       }
     } catch (e) {
@@ -60,17 +65,20 @@ class HealthTipsBloc extends Bloc<HealthTipsEvent, HealthTipsState> with UiLoggy
     }
   }
 
-  Future<void> _onRefreshHealthTips(RefreshHealthTips event, Emitter<HealthTipsState> emit) async {
+  Future<void> _onRefreshHealthTips(
+      RefreshHealthTips event, Emitter<HealthTipsState> emit) async {
     emit(HealthTipsLoading());
-    
+
     try {
-      
-      final response = await repository.fetchHealthTips();
-      
+      // Use the clearCache parameter from the event
+      final response =
+          await repository.fetchHealthTips(forceRefresh: event.clearCache);
+
       if (response.success && response.data.healthTips.isNotEmpty) {
         emit(HealthTipsLoaded(response.data.healthTips));
       } else {
-        emit(HealthTipsError('Failed to refresh health tips: ${response.message}'));
+        emit(HealthTipsError(
+            'Failed to refresh health tips: ${response.message}'));
       }
     } catch (e) {
       loggy.error('Error refreshing health tips: $e');

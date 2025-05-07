@@ -33,19 +33,17 @@ class HealthTipModel {
   });
 
   factory HealthTipModel.fromJson(Map<String, dynamic> json) {
-    // Handle missing tag_line by using title as a fallback
     if (!json.containsKey('tag_line') || json['tag_line'] == null) {
       json['tag_line'] = json['title'] ?? '';
     }
-    
-    // Ensure createdAt and updatedAt are available
-    if (!json.containsKey('createdAt') || json['createdAt'] == null) {
-      json['createdAt'] = DateTime.now().toIso8601String();
-    }
-    
-    if (!json.containsKey('updatedAt') || json['updatedAt'] == null) {
-      json['updatedAt'] = DateTime.now().toIso8601String();
-    }
+
+  if (!json.containsKey('createdAt') || json['createdAt'] == null) {
+    json['createdAt'] = '';
+  }
+  
+  if (!json.containsKey('updatedAt') || json['updatedAt'] == null) {
+    json['updatedAt'] = '';
+  }
     
     return _$HealthTipModelFromJson(json);
   }

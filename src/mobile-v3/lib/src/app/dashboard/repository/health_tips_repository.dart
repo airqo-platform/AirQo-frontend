@@ -7,14 +7,13 @@ import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 
 abstract class HealthTipsRepository extends BaseRepository {
-  Future<HealthTipsResponse> fetchHealthTips();
+  Future<HealthTipsResponse> fetchHealthTips({bool forceRefresh = false});
   Future<HealthTipModel?> getHealthTipForAqi(double aqiValue);
-  Future<void> clearCache();
 }
 
 class HealthTipsImpl extends HealthTipsRepository with UiLoggy {
   @override
-  Future<HealthTipsResponse> fetchHealthTips() async {
+  Future<HealthTipsResponse> fetchHealthTips({bool forceRefresh = false}) async {
     try {
       loggy.info('Fetching health tips from API: ${ApiUtils.fetchHealthTips}');
 
@@ -22,7 +21,6 @@ class HealthTipsImpl extends HealthTipsRepository with UiLoggy {
         ApiUtils.fetchHealthTips,
         {"token": dotenv.env['AIRQO_API_TOKEN']!},
       );
-      loggy.info('API Response - Status: ${response.statusCode}, Headers: ${response.headers}');
       loggy.info('API Response - Body: ${response.body}');
 
       if (response.statusCode != 200) {
@@ -34,17 +32,6 @@ class HealthTipsImpl extends HealthTipsRepository with UiLoggy {
       loggy.info('✅ Health tips API response received');
 
       Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-
-      if (jsonResponse.containsKey('tips') && jsonResponse['tips'] is List) {
-        List<dynamic> tips = jsonResponse['tips'];
-        for (int i = 0; i < tips.length; i++) {
-          Map<String, dynamic> tip = tips[i];
-          if (!tip.containsKey('tag_line') || tip['tag_line'] == null) {
-            tip['tag_line'] = tip['title'] ?? '';
-            loggy.info('Added missing tag_line for tip: ${tip['_id']}');
-          }
-        }
-      }
 
       HealthTipsResponse healthTipsResponse = HealthTipsResponse.fromJson(jsonResponse);
       return healthTipsResponse;
@@ -109,8 +96,4 @@ class HealthTipsImpl extends HealthTipsRepository with UiLoggy {
     }
   }
 
-  @override
-  Future<void> clearCache() async {
-    loggy.info('No cache to clear');
-  }
 }

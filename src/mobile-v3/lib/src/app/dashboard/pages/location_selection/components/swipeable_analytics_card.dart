@@ -250,21 +250,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                             ),
                           ],
                         ),
-                        // if (widget.measurement.healthTips != null &&
-                        //     widget.measurement.healthTips!.isNotEmpty) ...[
-                        //   SizedBox(height: 12),
-                        //   Text(
-                        //     widget.measurement.healthTips![0].description ??
-                        //         "No health tips available",
-                        //     style: TextStyle(
-                        //       fontSize: 14,
-                        //       color:
-                        //           Theme.of(context).textTheme.bodyMedium?.color,
-                        //     ),
-                        //     maxLines: 2,
-                        //     overflow: TextOverflow.ellipsis,
-                        //   ),
-                        // ],
                       ],
                     ),
                   ),
