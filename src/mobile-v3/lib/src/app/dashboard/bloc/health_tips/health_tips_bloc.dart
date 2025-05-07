@@ -64,9 +64,6 @@ class HealthTipsBloc extends Bloc<HealthTipsEvent, HealthTipsState> with UiLoggy
     emit(HealthTipsLoading());
     
     try {
-      if (event.clearCache) {
-        await repository.clearCache();
-      }
       
       final response = await repository.fetchHealthTips();
       

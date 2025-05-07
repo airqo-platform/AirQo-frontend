@@ -1,8 +1,11 @@
+import 'package:airqo/src/app/dashboard/bloc/health_tips/health_tips_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/models/health_tips_model.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
@@ -15,6 +18,22 @@ class AnalyticsSpecifics extends StatefulWidget {
 class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
   double containerHeight = 90;
   bool expanded = false;
+  HealthTipModel? healthTip;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHealthTip();
+  }
+
+  void _loadHealthTip() {
+    // Only fetch health tip if we have a PM2.5 value
+    if (widget.measurement.pm25?.value != null) {
+      context.read<HealthTipsBloc>().add(
+        GetHealthTipForAqi(widget.measurement.pm25!.value!)
+      );
+    }
+  }
 
   void toggleContainer() {
     setState(() {
@@ -59,105 +78,111 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
 
   @override
   Widget build(BuildContext context) {
-    final siteDetails = widget.measurement.siteDetails;
-    if (siteDetails == null) {
-      return const Center(
-        child: Text("No site details available"),
-      );
-    }
-
-    return SingleChildScrollView( 
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        siteDetails.searchName ?? "Unnamed Site",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
+    return BlocListener<HealthTipsBloc, HealthTipsState>(
+      listener: (context, state) {
+        if (state is HealthTipForAqiLoaded) {
+          setState(() {
+            healthTip = state.healthTip;
+          });
+        }
+      },
+      child: SingleChildScrollView( 
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.measurement.siteDetails?.searchName ?? "Unnamed Site",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            color: AppColors.boldHeadlineColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: Icon(
+                          Icons.close,
                           color: AppColors.boldHeadlineColor,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: AppColors.boldHeadlineColor,
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: AppColors.primaryColor,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        _getLocationDescription(widget.measurement),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.color
-                              ?.withOpacity(0.7),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Today",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: AppColors.boldHeadlineColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                siteDetails.id != null
-                    ? AnalyticsForecastWidget(
-                        siteId: siteDetails.id!,
                       )
-                    : const Center(
-                        child: Text("Forecast not available"),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: AppColors.primaryColor,
                       ),
-                const SizedBox(height: 16),
-              ],
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _getLocationDescription(widget.measurement),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.color
+                                ?.withOpacity(0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Today",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 20,
+                          color: AppColors.boldHeadlineColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (widget.measurement.siteDetails?.id != null)
+                    AnalyticsForecastWidget(
+                      siteId: widget.measurement.siteDetails!.id!,
+                    )
+                  else
+                    const Center(
+                      child: Text("Forecast not available"),
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-          ),
-          SafeArea(
-            child: ExpandedAnalyticsCard(widget.measurement),
-          ),
-        ],
+            SafeArea(
+              child: ExpandedAnalyticsCard(
+                widget.measurement,
+                healthTipModel: healthTip,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

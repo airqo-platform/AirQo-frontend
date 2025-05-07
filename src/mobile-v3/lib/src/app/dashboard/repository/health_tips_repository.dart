@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:airqo/src/app/dashboard/models/health_tips_model.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
-import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
@@ -14,46 +13,43 @@ abstract class HealthTipsRepository extends BaseRepository {
 }
 
 class HealthTipsImpl extends HealthTipsRepository with UiLoggy {
-  static const String _cacheKey = 'health_tips_cache';
-  static const Duration _cacheDuration = Duration(days: 7);
-
   @override
   Future<HealthTipsResponse> fetchHealthTips() async {
     try {
-      final cachedData = await _getCachedHealthTips();
-      if (cachedData != null) {
-        loggy.info('Using cached health tips data');
-        return cachedData;
-      }
+      loggy.info('Fetching health tips from API: ${ApiUtils.fetchHealthTips}');
 
-      loggy.info('Fetching health tips from API');
-      
       Response response = await createGetRequest(
         ApiUtils.fetchHealthTips,
-        {"token": dotenv.env['AIRQO_API_TOKEN']!}
+        {"token": dotenv.env['AIRQO_API_TOKEN']!},
       );
+      loggy.info('API Response - Status: ${response.statusCode}, Headers: ${response.headers}');
+      loggy.info('API Response - Body: ${response.body}');
 
       if (response.statusCode != 200) {
+        loggy.error('❌ Failed to load health tips: HTTP ${response.statusCode}');
+        loggy.error('❌ Response body: ${response.body}');
         throw Exception('Failed to load health tips: ${response.statusCode}');
       }
 
-      HealthTipsResponse healthTipsResponse = HealthTipsResponse.fromJson(jsonDecode(response.body));
-      
-      // Cache the result
-      _cacheHealthTips(jsonDecode(response.body));
-      
+      loggy.info('✅ Health tips API response received');
+
+      Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+
+      if (jsonResponse.containsKey('tips') && jsonResponse['tips'] is List) {
+        List<dynamic> tips = jsonResponse['tips'];
+        for (int i = 0; i < tips.length; i++) {
+          Map<String, dynamic> tip = tips[i];
+          if (!tip.containsKey('tag_line') || tip['tag_line'] == null) {
+            tip['tag_line'] = tip['title'] ?? '';
+            loggy.info('Added missing tag_line for tip: ${tip['_id']}');
+          }
+        }
+      }
+
+      HealthTipsResponse healthTipsResponse = HealthTipsResponse.fromJson(jsonResponse);
       return healthTipsResponse;
     } catch (e) {
-      loggy.error('Error fetching health tips: $e');
-      
-      // Try to return cached data even if it's expired
-      final cachedData = await _getCachedHealthTips(ignoreExpiry: true);
-      if (cachedData != null) {
-        loggy.info('Using expired cached health tips data due to fetch error');
-        return cachedData;
-      }
-      
-      // If all else fails, return an empty response
+      loggy.error('❌ Error fetching health tips: $e');
       throw Exception('Failed to fetch health tips: $e');
     }
   }
@@ -61,84 +57,60 @@ class HealthTipsImpl extends HealthTipsRepository with UiLoggy {
   @override
   Future<HealthTipModel?> getHealthTipForAqi(double aqiValue) async {
     try {
+      loggy.info('Finding health tip for AQI value: $aqiValue');
+
       final response = await fetchHealthTips();
-      
-      if (!response.success || response.data.healthTips.isEmpty) {
+
+      if (response.data.healthTips.isEmpty) {
+        loggy.warning('No health tips available to match with AQI: $aqiValue');
         return null;
       }
-      
-      // Find matching health tip based on AQI value
+
+      HealthTipModel? matchingTip;
+
       for (final tip in response.data.healthTips) {
-        if (tip.aqiCategory.isInRange(aqiValue)) {
-          return tip;
+        if (tip.aqiCategory.max >= 500 && aqiValue >= tip.aqiCategory.min) {
+          loggy.info('Found open-ended tip for AQI $aqiValue (>= ${tip.aqiCategory.min})');
+          matchingTip = tip;
+          break;
         }
       }
-      
-      // If no exact match, return the first one (or null if list is empty)
-      return response.data.healthTips.isNotEmpty ? response.data.healthTips.first : null;
+
+      if (matchingTip == null) {
+        for (final tip in response.data.healthTips) {
+          if (aqiValue >= tip.aqiCategory.min && aqiValue <= tip.aqiCategory.max) {
+            loggy.info('Found tip in range ${tip.aqiCategory.min}-${tip.aqiCategory.max}');
+            matchingTip = tip;
+            break;
+          }
+        }
+      }
+
+      if (matchingTip == null && response.data.healthTips.isNotEmpty) {
+        final sorted = List<HealthTipModel>.from(response.data.healthTips);
+        sorted.sort((a, b) {
+          return (a.aqiCategory.min - aqiValue).abs().compareTo((b.aqiCategory.min - aqiValue).abs());
+        });
+
+        matchingTip = sorted.first;
+        loggy.info('Using closest matching tip with min: ${matchingTip.aqiCategory.min}');
+      }
+
+      if (matchingTip != null) {
+        loggy.info('Selected tip: "${matchingTip.title}" with tag line: "${matchingTip.tagLine}"');
+      } else {
+        loggy.warning('No matching health tip found for AQI: $aqiValue');
+      }
+
+      return matchingTip;
     } catch (e) {
-      loggy.error('Error getting health tip for AQI $aqiValue: $e');
+      loggy.error('❌ Error getting health tip for AQI $aqiValue: $e');
       return null;
     }
   }
 
   @override
   Future<void> clearCache() async {
-    try {
-      await HiveRepository.deleteData(_cacheKey, HiveBoxNames.cacheBox);
-      loggy.info('Health tips cache cleared');
-    } catch (e) {
-      loggy.error('Error clearing health tips cache: $e');
-    }
-  }
-
-  // Private helper to cache health tips
-  Future<void> _cacheHealthTips(Map<String, dynamic> data) async {
-    try {
-      final cacheData = {
-        'data': data,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      };
-      
-      await HiveRepository.saveData(
-        HiveBoxNames.cacheBox,
-        _cacheKey,
-        json.encode(cacheData),
-      );
-      
-      loggy.info('Health tips data cached successfully');
-    } catch (e) {
-      loggy.warning('Failed to cache health tips data: $e');
-    }
-  }
-
-  // Private helper to get cached health tips
-  Future<HealthTipsResponse?> _getCachedHealthTips({bool ignoreExpiry = false}) async {
-    try {
-      final cachedJson = await HiveRepository.getData(
-        HiveBoxNames.cacheBox,
-        _cacheKey,
-      );
-
-      if (cachedJson == null) {
-        return null;
-      }
-
-      final cacheData = json.decode(cachedJson);
-      final timestamp = cacheData['timestamp'] as int;
-      final cachedTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-      final now = DateTime.now();
-
-      if (!ignoreExpiry && now.difference(cachedTime) > _cacheDuration) {
-        loggy.info('Cached health tips data has expired');
-        return null;
-      }
-
-      final healthTipsJson = cacheData['data'];
-      return HealthTipsResponse.fromJson(healthTipsJson);
-    } catch (e) {
-      loggy.warning('Error reading health tips cache: $e');
-      return null;
-    }
+    loggy.info('No cache to clear');
   }
 }

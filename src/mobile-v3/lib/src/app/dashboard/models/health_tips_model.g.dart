@@ -10,7 +10,7 @@ HealthTipModel _$HealthTipModelFromJson(Map<String, dynamic> json) =>
     HealthTipModel(
       id: json['_id'] as String,
       title: json['title'] as String,
-      tagLine: json['tag_line'] as String,
+      tagLine: json['tag_line'] as String? ?? '',
       description: json['description'] as String,
       image: json['image'] as String,
       aqiCategory:
@@ -34,7 +34,7 @@ Map<String, dynamic> _$HealthTipModelToJson(HealthTipModel instance) =>
 AqiCategoryRange _$AqiCategoryRangeFromJson(Map<String, dynamic> json) =>
     AqiCategoryRange(
       min: (json['min'] as num).toDouble(),
-      max: (json['max'] as num).toDouble(),
+      max: json['max'] != null ? (json['max'] as num).toDouble() : 500.0,
     );
 
 Map<String, dynamic> _$AqiCategoryRangeToJson(AqiCategoryRange instance) =>
@@ -47,7 +47,13 @@ HealthTipsResponse _$HealthTipsResponseFromJson(Map<String, dynamic> json) =>
     HealthTipsResponse(
       success: json['success'] as bool,
       message: json['message'] as String,
-      data: HealthTipsData.fromJson(json['data'] as Map<String, dynamic>),
+      data: json['data'] != null
+          ? HealthTipsData.fromJson(json['data'] as Map<String, dynamic>)
+          : HealthTipsData(
+              healthTips: (json['tips'] as List<dynamic>)
+                  .map((e) => HealthTipModel.fromJson(e as Map<String, dynamic>))
+                  .toList(),
+            ),
     );
 
 Map<String, dynamic> _$HealthTipsResponseToJson(HealthTipsResponse instance) =>

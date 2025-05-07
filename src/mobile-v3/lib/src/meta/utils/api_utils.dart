@@ -8,7 +8,7 @@ class ApiUtils {
 
   static String map = "/api/v2/devices/readings/recent";
 
-  static String fetchHealthTips = "/api/v2/devices/tips/health-tips";
+  static String fetchHealthTips = "/api/v2/devices/tips";
 
   static String fetchLessons = "/api/v2/devices/kya/lessons";
 

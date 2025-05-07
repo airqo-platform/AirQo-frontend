@@ -7,7 +7,7 @@ class HealthTipModel {
   @JsonKey(name: '_id')
   final String id;
   final String title;
-  @JsonKey(name: 'tag_line')
+  @JsonKey(name: 'tag_line', defaultValue: '')
   final String tagLine;
   final String description;
   final String image;
@@ -32,8 +32,23 @@ class HealthTipModel {
     required this.updatedAt,
   });
 
-  factory HealthTipModel.fromJson(Map<String, dynamic> json) => 
-      _$HealthTipModelFromJson(json);
+  factory HealthTipModel.fromJson(Map<String, dynamic> json) {
+    // Handle missing tag_line by using title as a fallback
+    if (!json.containsKey('tag_line') || json['tag_line'] == null) {
+      json['tag_line'] = json['title'] ?? '';
+    }
+    
+    // Ensure createdAt and updatedAt are available
+    if (!json.containsKey('createdAt') || json['createdAt'] == null) {
+      json['createdAt'] = DateTime.now().toIso8601String();
+    }
+    
+    if (!json.containsKey('updatedAt') || json['updatedAt'] == null) {
+      json['updatedAt'] = DateTime.now().toIso8601String();
+    }
+    
+    return _$HealthTipModelFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$HealthTipModelToJson(this);
 }
@@ -41,6 +56,7 @@ class HealthTipModel {
 @JsonSerializable()
 class AqiCategoryRange {
   final double min;
+  @JsonKey(defaultValue: 500.0)
   final double max;
 
   AqiCategoryRange({
@@ -48,8 +64,14 @@ class AqiCategoryRange {
     required this.max,
   });
 
-  factory AqiCategoryRange.fromJson(Map<String, dynamic> json) => 
-      _$AqiCategoryRangeFromJson(json);
+  factory AqiCategoryRange.fromJson(Map<String, dynamic> json) {
+    // Handle null max value
+    if (json['max'] == null) {
+      json['max'] = 500.0; // Use a high value for open-ended ranges
+    }
+    
+    return _$AqiCategoryRangeFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$AqiCategoryRangeToJson(this);
   
@@ -72,8 +94,16 @@ class HealthTipsResponse {
     required this.data,
   });
 
-  factory HealthTipsResponse.fromJson(Map<String, dynamic> json) => 
-      _$HealthTipsResponseFromJson(json);
+  factory HealthTipsResponse.fromJson(Map<String, dynamic> json) {
+    // Convert from the API's "tips" array to our expected structure
+    if (json.containsKey('tips') && !json.containsKey('data')) {
+      json['data'] = {
+        'health_tips': json['tips']
+      };
+    }
+    
+    return _$HealthTipsResponseFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$HealthTipsResponseToJson(this);
 }
