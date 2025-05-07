@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
-enum DashboardView { all, myPlaces, nearby, country }
+enum DashboardView { all, favorites, nearYou, country }
 
 class ViewSelector extends StatefulWidget {
   final DashboardView currentView;
@@ -40,14 +40,14 @@ class _ViewSelectorState extends State<ViewSelector> {
 
   void _triggerTooltipOnViewChange() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.currentView == DashboardView.myPlaces) {
+      if (widget.currentView == DashboardView.favorites) {
         final dynamic tooltipState = _myPlacesTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();
         
         Future.delayed(Duration(seconds: 2), () {
           tooltipState?.deactivate();
         });
-      } else if (widget.currentView == DashboardView.nearby) {
+      } else if (widget.currentView == DashboardView.nearYou) {
         final dynamic tooltipState = _nearbyTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();
         
@@ -84,8 +84,8 @@ class _ViewSelectorState extends State<ViewSelector> {
             child: _buildViewButton(
               context,
               label: "Favorites",
-              isSelected: widget.currentView == DashboardView.myPlaces,
-              onTap: () => widget.onViewChanged(DashboardView.myPlaces),
+              isSelected: widget.currentView == DashboardView.favorites,
+              onTap: () => widget.onViewChanged(DashboardView.favorites),
             ),
           ),
           SizedBox(width: 8),
@@ -107,8 +107,8 @@ class _ViewSelectorState extends State<ViewSelector> {
             child: _buildViewButton(
               context,
               label: "Near You",
-              isSelected: widget.currentView == DashboardView.nearby,
-              onTap: () => widget.onViewChanged(DashboardView.nearby),
+              isSelected: widget.currentView == DashboardView.nearYou,
+              onTap: () => widget.onViewChanged(DashboardView.nearYou),
             ),
           ),
           SizedBox(width: 8),
