@@ -6,10 +6,10 @@ import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 
-class AnalyticsCard extends StatelessWidget with UiLoggy {
+class ExpandedAnalyticsCard extends StatelessWidget with UiLoggy {
   final Measurement measurement;
 
-  const AnalyticsCard(this.measurement, {super.key});
+  const ExpandedAnalyticsCard(this.measurement, {super.key});
 
   void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
     showBottomSheet(
@@ -102,87 +102,6 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
           children: [
             Padding(
               padding: const EdgeInsets.only(
-                  left: 16, right: 16, bottom: 16, top: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              measurement.siteDetails?.searchName ??
-                                  "Unknown Location",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.color,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 14,
-                                  color: AppColors.primaryColor,
-                                ),
-                                SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    _getLocationDescription(measurement),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.color
-                                          ?.withOpacity(0.7),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  // if (widget.measurement.healthTips != null &&
-                  //     widget.measurement.healthTips!.isNotEmpty) ...[
-                  //   SizedBox(height: 12),
-                  //   Text(
-                  //     widget.measurement.healthTips![0].description ??
-                  //         "No health tips available",
-                  //     style: TextStyle(
-                  //       fontSize: 14,
-                  //       color:
-                  //           Theme.of(context).textTheme.bodyMedium?.color,
-                  //     ),
-                  //     maxLines: 2,
-                  //     overflow: TextOverflow.ellipsis,
-                  //   ),
-                  // ],
-                ],
-              ),
-            ),
-            Divider(
-                thickness: .5,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white),
-            Padding(
-              padding: const EdgeInsets.only(
                   left: 16, right: 16, bottom: 16, top: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,8 +134,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                           Row(children: [
                             Text(
                               measurement.pm25?.value != null
-                                  ? measurement.pm25!.value!
-                                      .toStringAsFixed(2)
+                                  ? measurement.pm25!.value!.toStringAsFixed(2)
                                   : "-",
                               style: TextStyle(
                                   fontWeight: FontWeight.w700,
@@ -241,8 +159,8 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                         child: Center(
                           child: measurement.pm25?.value != null
                               ? SvgPicture.asset(
-                                  getAirQualityIcon(measurement,
-                                      measurement.pm25!.value!),
+                                  getAirQualityIcon(
+                                      measurement, measurement.pm25!.value!),
                                   height: 86,
                                   width: 86,
                                 )
@@ -262,8 +180,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color:
-                            _getAqiColor(measurement).withOpacity(0.15),
+                        color: _getAqiColor(measurement).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -280,6 +197,25 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                 ],
               ),
             ),
+            Divider(
+                thickness: .5,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black
+                    : Colors.white),
+            if (measurement.healthTips != null &&
+                measurement.healthTips!.isNotEmpty) ...[
+              SizedBox(height: 12),
+              Text(
+                measurement.healthTips![0].description ??
+                    "No health tips available",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ],
         ),
       ),

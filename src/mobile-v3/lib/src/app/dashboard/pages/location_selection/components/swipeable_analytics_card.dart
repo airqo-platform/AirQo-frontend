@@ -20,7 +20,8 @@ class SwipeableAnalyticsCard extends StatefulWidget {
   State<SwipeableAnalyticsCard> createState() => _SwipeableAnalyticsCardState();
 }
 
-class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with UiLoggy {
+class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
+    with UiLoggy {
   double _dragOffset = 0;
   bool _isDeleteVisible = false;
   final double _deleteWidth = 80.0;
@@ -143,11 +144,9 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
               ),
             ),
           ),
-
         GestureDetector(
-          onTap: _showAnalyticsDetails, 
-          onHorizontalDragStart: (details) {
-          },
+          onTap: _showAnalyticsDetails,
+          onHorizontalDragStart: (details) {},
           onHorizontalDragUpdate: (details) {
             if (details.delta.dx < 0 || _dragOffset < 0) {
               setState(() {
@@ -193,87 +192,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(
-                        left: 16, right: 16, bottom: 4, top: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      SvgPicture.asset(Theme.of(context).brightness ==
-                                              Brightness.light
-                                          ? "assets/images/shared/pm_rating_white.svg"
-                                          : 'assets/images/shared/pm_rating.svg'),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        " PM2.5",
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .headlineSmall
-                                              ?.color,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(children: [
-                                    Text(
-                                      widget.measurement.pm25?.value != null
-                                          ? widget.measurement.pm25!.value!
-                                              .toStringAsFixed(1)
-                                          : "-",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 36,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .headlineLarge
-                                              ?.color),
-                                    ),
-                                    Text(" μg/m³",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 18,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .headlineLarge
-                                                ?.color))
-                                  ]),
-                                ]),
-                            SizedBox(
-                              child: Center(
-                                child: widget.measurement.pm25?.value != null
-                                    ? SvgPicture.asset(
-                                        getAirQualityIcon(
-                                            widget.measurement, widget.measurement.pm25!.value!),
-                                        height: 86,
-                                        width: 86,
-                                      )
-                                    : Icon(
-                                        Icons.help_outline,
-                                        size: 60,
-                                        color: Colors.grey,
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Divider(
-                      thickness: .5,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black
-                          : Colors.white),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16, right: 16, bottom: 16, top: 4),
+                        left: 16, right: 16, bottom: 16, top: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -285,7 +204,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.measurement.siteDetails?.searchName ??
+                                    widget.measurement.siteDetails
+                                            ?.searchName ??
                                         "Unknown Location",
                                     style: TextStyle(
                                       fontSize: 22,
@@ -309,7 +229,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          _getLocationDescription(widget.measurement),
+                                          _getLocationDescription(
+                                              widget.measurement),
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Theme.of(context)
@@ -327,40 +248,133 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 ],
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: _getAqiColor(widget.measurement).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                widget.measurement.aqiCategory ?? "Unknown",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getAqiColor(widget.measurement),                       
+                          ],
+                        ),
+                        // if (widget.measurement.healthTips != null &&
+                        //     widget.measurement.healthTips!.isNotEmpty) ...[
+                        //   SizedBox(height: 12),
+                        //   Text(
+                        //     widget.measurement.healthTips![0].description ??
+                        //         "No health tips available",
+                        //     style: TextStyle(
+                        //       fontSize: 14,
+                        //       color:
+                        //           Theme.of(context).textTheme.bodyMedium?.color,
+                        //     ),
+                        //     maxLines: 2,
+                        //     overflow: TextOverflow.ellipsis,
+                        //   ),
+                        // ],
+                      ],
+                    ),
+                  ),
+                  Divider(
+                      thickness: .5,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black
+                          : Colors.white),
+
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 16, right: 16, bottom: 16, top: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    SvgPicture.asset(Theme.of(context)
+                                                .brightness ==
+                                            Brightness.light
+                                        ? "assets/images/shared/pm_rating_white.svg"
+                                        : 'assets/images/shared/pm_rating.svg'),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      " PM2.5",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .headlineSmall
+                                            ?.color,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                                Row(children: [
+                                  Text(
+                                    widget.measurement.pm25?.value != null
+                                        ? widget.measurement.pm25!.value!
+                                            .toStringAsFixed(2)
+                                        : "-",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 36,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .headlineLarge
+                                            ?.color),
+                                  ),
+                                  Text(" μg/m³",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headlineLarge
+                                              ?.color))
+                                ]),
+                              ],
+                            ),
+                            SizedBox(
+                              child: Center(
+                                child: widget.measurement.pm25?.value != null
+                                    ? SvgPicture.asset(
+                                        getAirQualityIcon(widget.measurement,
+                                            widget.measurement.pm25!.value!),
+                                        height: 86,
+                                        width: 86,
+                                      )
+                                    : Icon(
+                                        Icons.help_outline,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
                               ),
                             ),
                           ],
                         ),
-                        if (widget.measurement.healthTips != null &&
-                            widget.measurement.healthTips!.isNotEmpty) ...[
-                          SizedBox(height: 12),
-                          Text(
-                            widget.measurement.healthTips![0].description ??
-                                "No health tips available",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+
+                        SizedBox(height: 16),
+                        Wrap(
+                          children: [
+                            Container(
+                            margin: EdgeInsets.only(
+                                bottom: 12),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _getAqiColor(widget.measurement)
+                                  .withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                            child: Text(
+                              widget.measurement.aqiCategory ?? "Unknown",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _getAqiColor(widget.measurement),
+                              ),
+                              maxLines: 1,
+                            ),
                           ),
-                        ],
+                          ]
+                        ),
                       ],
                     ),
                   ),
