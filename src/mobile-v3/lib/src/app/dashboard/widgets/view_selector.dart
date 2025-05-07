@@ -69,7 +69,7 @@ class _ViewSelectorState extends State<ViewSelector> {
         children: [
           Tooltip(
             key: _myPlacesTooltipKey,
-            message: "View air quality for your favourite locations",
+            message: "Save your most relevant locations in one place",
             preferBelow: true,
             verticalOffset: 20,
             showDuration: Duration(seconds: 2),
@@ -92,7 +92,7 @@ class _ViewSelectorState extends State<ViewSelector> {
 
           Tooltip(
             key: _nearbyTooltipKey,
-            message: "View air quality for locations close to you",
+            message: "View air quality in locations closest to you",
             preferBelow: true,
             verticalOffset: 20,
             showDuration: Duration(seconds: 2),
