@@ -21,15 +21,11 @@ class SwipeableAnalyticsCard extends StatefulWidget {
 }
 
 class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with UiLoggy {
-  // Offset to track the swipe position
   double _dragOffset = 0;
-  // Set to true when the delete option is showing
   bool _isDeleteVisible = false;
-  // Width of the delete button area
   final double _deleteWidth = 80.0;
 
   void _showAnalyticsDetails() {
-    // If we're in delete mode, don't show details
     if (_isDeleteVisible || _dragOffset < 0) return;
 
     showBottomSheet(
@@ -42,12 +38,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
         });
   }
 
-  // Helper method to get a description of the location
   String _getLocationDescription(Measurement measurement) {
     final siteDetails = measurement.siteDetails;
     if (siteDetails == null) return "Unknown location";
 
-    // Try to build a meaningful location string
     final List<String> locationParts = [];
 
     if (siteDetails.city != null && siteDetails.city!.isNotEmpty) {
@@ -73,10 +67,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             "Unknown location";
   }
 
-  // Helper method to get color based on AQI category
   Color _getAqiColor(Measurement measurement) {
     if (measurement.aqiColor != null) {
-      // Try to parse the color from the API response
       try {
         final colorStr = measurement.aqiColor!.replaceAll('#', '');
         return Color(int.parse('0xFF$colorStr'));
@@ -85,7 +77,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
       }
     }
 
-    // Fallback based on category
     switch (measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
         return Colors.green;
@@ -109,7 +100,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Delete option (shown when swiped)
         if (_isDeleteVisible || _dragOffset < 0)
           Positioned(
             top: 0,
@@ -117,7 +107,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             right: 0,
             child: GestureDetector(
               onTap: () {
-                // When delete button is clicked
                 widget.onRemove(widget.measurement.id ?? '');
                 setState(() {
                   _dragOffset = 0;
@@ -155,18 +144,14 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             ),
           ),
 
-        // The main card content
         GestureDetector(
-          onTap: _showAnalyticsDetails, // Show analytics details when tapped
+          onTap: _showAnalyticsDetails, 
           onHorizontalDragStart: (details) {
-            // Start tracking the drag
           },
           onHorizontalDragUpdate: (details) {
-            // Only allow swipe to left (negative offset)
             if (details.delta.dx < 0 || _dragOffset < 0) {
               setState(() {
                 _dragOffset += details.delta.dx;
-                // Limit the drag so it doesn't go beyond the delete button width
                 if (_dragOffset < -_deleteWidth) {
                   _dragOffset = -_deleteWidth;
                 } else if (_dragOffset > 0) {
@@ -176,15 +161,12 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             }
           },
           onHorizontalDragEnd: (details) {
-            // Determine whether to snap to delete button or snap back
             if (_dragOffset < -_deleteWidth / 2) {
-              // Snap to show delete button
               setState(() {
                 _dragOffset = -_deleteWidth;
                 _isDeleteVisible = true;
               });
             } else {
-              // Snap back
               setState(() {
                 _dragOffset = 0;
                 _isDeleteVisible = false;
@@ -303,7 +285,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.measurement.siteDetails?.name ??
+                                    widget.measurement.siteDetails?.searchName ??
                                         "Unknown Location",
                                     style: TextStyle(
                                       fontSize: 22,
@@ -357,8 +339,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: _getAqiColor(widget.measurement),
+                                  color: _getAqiColor(widget.measurement),                       
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -371,7 +355,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 "No health tips available",
                             style: TextStyle(
                               fontSize: 14,
-                              fontStyle: FontStyle.italic,
                               color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                             maxLines: 2,

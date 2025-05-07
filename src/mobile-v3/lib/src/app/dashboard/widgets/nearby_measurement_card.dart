@@ -27,12 +27,10 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
         });
   }
 
-  // Helper method to get a description of the location
   String _getLocationDescription(Measurement measurement) {
     final siteDetails = measurement.siteDetails;
     if (siteDetails == null) return "Unknown location";
 
-    // Try to build a meaningful location string
     final List<String> locationParts = [];
 
     if (siteDetails.city != null && siteDetails.city!.isNotEmpty) {
@@ -58,10 +56,8 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
             "Unknown location";
   }
 
-  // Helper method to get color based on AQI category
   Color _getAqiColor(Measurement measurement) {
     if (measurement.aqiColor != null) {
-      // Try to parse the color from the API response
       try {
         final colorStr = measurement.aqiColor!.replaceAll('#', '');
         return Color(int.parse('0xFF$colorStr'));
@@ -70,7 +66,6 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
       }
     }
 
-    // Fallback based on category
     switch (measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
         return Colors.green;
@@ -297,7 +292,6 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy{
                           "No health tips available",
                       style: TextStyle(
                         fontSize: 14,
-                        fontStyle: FontStyle.italic,
                         color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                       maxLines: 2,
