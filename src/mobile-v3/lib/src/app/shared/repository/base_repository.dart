@@ -8,9 +8,7 @@ class BaseRepository {
   String? _cachedToken;
 
   Future<String?> _getToken() async {
-    if (_cachedToken == null) {
-      _cachedToken = await HiveRepository.getData("token", HiveBoxNames.authBox);
-    }
+    _cachedToken ??= await HiveRepository.getData("token", HiveBoxNames.authBox);
     return _cachedToken;
   }
 

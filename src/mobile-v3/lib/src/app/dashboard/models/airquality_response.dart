@@ -192,11 +192,16 @@ class WeeklyAverages {
 @JsonSerializable()
 class HealthTip {
   final String? title;
+
+  @JsonKey(name: 'tag_line')
+  final String? tagLine;
+
   final String? description;
   final String? image;
 
   HealthTip({
     this.title,
+    this.tagLine,
     this.description,
     this.image,
   });
@@ -209,7 +214,6 @@ class HealthTip {
 
 @JsonSerializable()
 class No2 {
-  // Empty in the provided JSON, but included for flexibility
   No2();
 
   factory No2.fromJson(Map<String, dynamic> json) => 

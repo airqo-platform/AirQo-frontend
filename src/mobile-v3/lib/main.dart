@@ -35,7 +35,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Hive.initFlutter();
 
   await HiveBoxSetup.initializeBoxes();
 
