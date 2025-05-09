@@ -31,6 +31,8 @@ import { useAppSelector } from "@/core/redux/hooks";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
+import { useAssignSitesToGroup } from "@/core/hooks/useGroups";
+import { useToast } from "@/components/ui/use-toast";
 
 const MapPreview = dynamic(
   () => import("react-leaflet").then((mod) => {
@@ -173,6 +175,8 @@ export function CreateSiteForm() {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const { getApproximateCoordinates, isPending: isOptimizing } = useApproximateCoordinates();
   const { mutate: createSite, isPending: isCreating, error: createError } = useCreateSite();
+  const { mutate: assignSitesToGroup, isPending: isAssigning, error: assignError } = useAssignSitesToGroup();
+  const { toast } = useToast();
 
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -189,17 +193,63 @@ export function CreateSiteForm() {
       return;
     }
 
+    if (!activeGroup?.grp_title) {
+      toast({
+        title: "Error",
+        description: "No active group selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createSite(
       {
         ...values,
         network: activeNetwork?.net_name || "",
-        group: activeGroup?.grp_title || "",
       },
       {
-        onSuccess: () => {
-          setOpen(false);
-          form.reset();
-          setCurrentStep(0);
+        onSuccess: (response) => {
+          if (!response.success) {
+            toast({
+              title: "Error",
+              description: response.message || "Failed to create site",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          const newSiteId = response.site._id;
+          assignSitesToGroup(
+            {
+              siteIds: [newSiteId],
+              groups: [activeGroup.grp_title],
+            },
+            {
+              onSuccess: () => {
+                setOpen(false);
+                form.reset();
+                setCurrentStep(0);
+                toast({
+                  title: "Success",
+                  description: "Site created and assigned to group successfully",
+                });
+              },
+              onError: (error) => {
+                toast({
+                  title: "Warning",
+                  description: `Site "${response.site.name}" created but failed to assign to group: ${error.message}`,
+                  variant: "destructive",
+                });
+              },
+            }
+          );
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: "Failed to create site: " + error.message,
+            variant: "destructive",
+          });
         },
       }
     );
@@ -399,11 +449,15 @@ export function CreateSiteForm() {
               </div>
             )}
 
-            {createError && (
+            {(createError || assignError) && (
               <Alert variant="destructive">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>
-                  {createError instanceof Error ? createError.message : "An error occurred while creating the site."}
+                  {createError instanceof Error 
+                    ? createError.message 
+                    : assignError instanceof Error 
+                    ? assignError.message 
+                    : "An error occurred"}
                 </AlertDescription>
               </Alert>
             )}
@@ -414,11 +468,11 @@ export function CreateSiteForm() {
                   Back
                 </Button>
               )}
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? (
+              <Button type="submit" disabled={isCreating || isAssigning}>
+                {isCreating || isAssigning ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    {isCreating ? "Creating..." : "Assigning..."}
                   </>
                 ) : currentStep === 1 ? (
                   <>
