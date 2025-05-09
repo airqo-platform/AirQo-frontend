@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/models/input_model.dart';
+import 'package:airqo/src/app/auth/pages/email_verification_screen.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/shared/widgets/airqo_button.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
@@ -53,8 +54,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthLoaded) {
-          controller!.jumpToPage(2);
+        if (state is AuthLoaded && state.authPurpose == AuthPurpose.REGISTER) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => EmailVerificationScreen(
+                email: emailController.text.trim(),
+              ),
+            ),
+          );
         } else if (state is AuthLoadingError) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(state.message)));
@@ -90,237 +97,48 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 width: MediaQuery.of(context).size.width,
                 child: StepperWidget(currentIndex: currentIndex, count: 3)),
             Expanded(
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 32, right: 32, top: 20),
-                  child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    scrollDirection: Axis.horizontal,
-                    controller: controller,
-                    onPageChanged: changeIndex,
-                    children: [
-                      SizedBox(
-                        child: Form(
-                          key: dataKey,
-                          child: Column(
-                            children: [
-                              SizedBox(height: 32),
-                              FormFieldWidget(
-                                  validator: (value) {
-                                    if (value!.length == 0) {
-                                      return "First Name is required.";
-                                    }
-                                    return null;
-                                  },
-                                  hintText: "Enter your first name",
-                                  label: "First Name*",
-                                  controller: firstNameController),
-                              SizedBox(height: 16),
-                              FormFieldWidget(
-                                  validator: (value) {
-                                    if (value!.length == 0) {
-                                      return "Last name is required.";
-                                    }
-                                    return null;
-                                  },
-                                  hintText: "Enter your last name",
-                                  label: "Last Name*",
-                                  controller: lastNameController),
-                              SizedBox(height: 32),
-                              InkWell(
-                                onTap: () {
-                                  if (dataKey.currentState!.validate()) {
-                                    controller!.jumpToPage(currentIndex + 1);
-                                  }
-                                },
-                                child: Container(
-                                  height: 56,
-                                  decoration: BoxDecoration(
-                                      color: AppColors.primaryColor,
-                                      borderRadius: BorderRadius.circular(4)),
-                                  child: Center(
-                                    child: Text(
-                                      "Next",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        child: Form(
-                          key: accountKey,
-                          child: Column(
-                            children: [
-                              SizedBox(height: 32),
-                              FormFieldWidget(
-                                  prefixIcon: Container(
-                                    padding: const EdgeInsets.all(13.5),
-                                    child: SvgPicture.asset(
-                                      "assets/icons/email-icon.svg",
-                                      height: 10,
-                                    ),
-                                  ),
-                                  hintText: "Enter your email",
-                                  label: "Email*",
-                                  validator: (value) {
-                                    if (value!.length == 0) {
-                                      return "Email is required";
-                                    }
-                                    return null;
-                                  },
-                                  controller: emailController),
-                              SizedBox(height: 16),
-                              FormFieldWidget(
-                                prefixIcon: Container(
-                                  padding: const EdgeInsets.all(13.5),
-                                  child: SvgPicture.asset(
-                                    "assets/icons/password.svg",
-                                    height: 10,
-                                  ),
-                                ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, top: 20),
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  controller: controller,
+                  onPageChanged: changeIndex,
+                  children: [
+                    SizedBox(
+                      child: Form(
+                        key: dataKey,
+                        child: Column(
+                          children: [
+                            SizedBox(height: 32),
+                            FormFieldWidget(
                                 validator: (value) {
-                                  String val = value ?? "";
-                                  if (val.isEmpty) {
-                                    return 'Please enter a password';
-                                  }
-                                  if (!val.contains(RegExp(r'[a-zA-Z]'))) {
-                                    return 'Password must contain at least one letter';
-                                  }
-                                  if (!val.contains(RegExp(r'[0-9]'))) {
-                                    return 'Password must contain at least one number';
-                                  }
-                                  if (val.length < 6) {
-                                    return 'Password must be at least 6 characters long';
-                                  }
-                                  if (val.length > 30) {
-                                    return 'Password must be at most 30 characters long';
+                                  if (value!.isEmpty) {
+                                    return "First Name is required.";
                                   }
                                   return null;
                                 },
-                                hintText: "Create your password",
-                                label: "Password",
-                                isPassword: true,
-                                controller: passwordController,
-                              ),
-                              SizedBox(height: 32),
-                              BlocBuilder<AuthBloc, AuthState>(
-                                builder: (context, state) {
-                                  bool loading = state is AuthLoading;
-                                  return InkWell(
-                                    onTap: loading
-                                        ? null
-                                        : () {
-                                            if (accountKey.currentState!
-                                                .validate()) {
-                                              if (currentIndex == 1) {
-                                                RegisterInputModel model =
-                                                    new RegisterInputModel(
-                                                        category: "individual",
-                                                        email: emailController.text
-                                                            .trim(),
-                                                        password:
-                                                            passwordController
-                                                                .text
-                                                                .trim(),
-                                                        firstName:
-                                                            firstNameController
-                                                                .text
-                                                                .trim(),
-                                                        lastName:
-                                                            lastNameController
-                                                                .text
-                                                                .trim());
-                                                authBloc!
-                                                    .add(RegisterUser(model));
-                                              } else {
-                                                controller!.jumpToPage(
-                                                    currentIndex + 1);
-                                              }
-                                            }
-                                          },
-                                    child: Container(
-                                      height: 56,
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius:
-                                              BorderRadius.circular(4)),
-                                      child: Center(
-                                        child: loading
-                                            ? Spinner()
-                                            : Text(
-                                                "Create Account",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              SizedBox(height: 16),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text("Already have an account?",
-                                        style: TextStyle(
-                                            color: AppColors.boldHeadlineColor,
-                                            fontWeight: FontWeight.w500)),
-                                    InkWell(
-                                      onTap: () => Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  LoginPage())),
-                                      child: Text(
-                                        "Login",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.primaryColor),
-                                      ),
-                                    )
-                                  ]),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 8),
-                            Text("Please confirm your email address.",
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold)),
-                            SizedBox(height: 8),
-                            Text(
-                                "An email with confirmation instructions has been sent to:",
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w500)),
+                                hintText: "Enter your first name",
+                                label: "First Name*",
+                                controller: firstNameController),
+                            SizedBox(height: 16),
                             FormFieldWidget(
-                              prefixIcon: Container(
-                                padding: const EdgeInsets.all(13.5),
-                                child: SvgPicture.asset(
-                                  "assets/icons/email-icon.svg",
-                                  height: 10,
-                                ),
-                              ),
-                              hintText: emailController.text,
-                              enabled: false,
-                              controller: TextEditingController(),
-                            ),
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Last name is required.";
+                                  }
+                                  return null;
+                                },
+                                hintText: "Enter your last name",
+                                label: "Last Name*",
+                                controller: lastNameController),
                             SizedBox(height: 32),
                             InkWell(
-                              onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (context) => LoginPage())),
+                              onTap: () {
+                                if (dataKey.currentState!.validate()) {
+                                  controller!.jumpToPage(currentIndex + 1);
+                                }
+                              },
                               child: Container(
                                 height: 56,
                                 decoration: BoxDecoration(
@@ -328,7 +146,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                     borderRadius: BorderRadius.circular(4)),
                                 child: Center(
                                   child: Text(
-                                    "Proceed to Login",
+                                    "Next",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       color: Colors.white,
@@ -336,21 +154,139 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   ),
                                 ),
                               ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      child: Form(
+                        key: accountKey,
+                        child: Column(
+                          children: [
+                            SizedBox(height: 32),
+                            FormFieldWidget(
+                                prefixIcon: Container(
+                                  padding: const EdgeInsets.all(13.5),
+                                  child: SvgPicture.asset(
+                                    "assets/icons/email-icon.svg",
+                                    height: 10,
+                                  ),
+                                ),
+                                hintText: "Enter your email",
+                                label: "Email*",
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Email is required";
+                                  }
+                                  return null;
+                                },
+                                controller: emailController),
+                            SizedBox(height: 16),
+                            FormFieldWidget(
+                              prefixIcon: Container(
+                                padding: const EdgeInsets.all(13.5),
+                                child: SvgPicture.asset(
+                                  "assets/icons/password.svg",
+                                  height: 10,
+                                ),
+                              ),
+                              validator: (value) {
+                                String val = value ?? "";
+                                if (val.isEmpty) {
+                                  return 'Please enter a password';
+                                }
+                                if (!val.contains(RegExp(r'[a-zA-Z]'))) {
+                                  return 'Password must contain at least one letter';
+                                }
+                                if (!val.contains(RegExp(r'[0-9]'))) {
+                                  return 'Password must contain at least one number';
+                                }
+                                if (val.length < 6) {
+                                  return 'Password must be at least 6 characters long';
+                                }
+                                if (val.length > 30) {
+                                  return 'Password must be at most 30 characters long';
+                                }
+                                return null;
+                              },
+                              hintText: "Create your password",
+                              label: "Password",
+                              isPassword: true,
+                              controller: passwordController,
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 32),
+                            BlocBuilder<AuthBloc, AuthState>(
+                              builder: (context, state) {
+                                bool loading = state is AuthLoading;
+                                return InkWell(
+                                  onTap: loading
+                                      ? null
+                                      : () {
+                                          if (accountKey.currentState!
+                                              .validate()) {
+                                            if (currentIndex == 1) {
+                                              RegisterInputModel model =
+                                                   RegisterInputModel(
+                                                      category: "individual",
+                                                      email: emailController.text
+                                                          .trim(),
+                                                      password:
+                                                          passwordController
+                                                              .text
+                                                              .trim(),
+                                                      firstName:
+                                                          firstNameController
+                                                              .text
+                                                              .trim(),
+                                                      lastName:
+                                                          lastNameController
+                                                              .text
+                                                              .trim());
+                                              authBloc!
+                                                  .add(RegisterUser(model));
+                                            } else {
+                                              controller!.jumpToPage(
+                                                  currentIndex + 1);
+                                            }
+                                          }
+                                        },
+                                  child: Container(
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius:
+                                            BorderRadius.circular(4)),
+                                    child: Center(
+                                      child: loading
+                                          ? Spinner()
+                                          : Text(
+                                              "Create Account",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: 16),
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Can't see the email?",
+                                  Text("Already have an account?",
                                       style: TextStyle(
                                           color: AppColors.boldHeadlineColor,
                                           fontWeight: FontWeight.w500)),
                                   InkWell(
                                     onTap: () => Navigator.of(context).push(
                                         MaterialPageRoute(
-                                            builder: (context) => LoginPage())),
+                                            builder: (context) =>
+                                                LoginPage())),
                                     child: Text(
-                                      "Resend",
+                                      "Login",
                                       style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.primaryColor),
@@ -360,92 +296,155 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(
-                          child: Column(
+                    ),
+                    SizedBox(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(
-                            child: SvgPicture.asset(
-                                "assets/images/auth/location-permission.svg"),
+                          SizedBox(height: 8),
+                          Text("Please confirm your email address.",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8),
+                          Text(
+                              "An email with confirmation instructions has been sent to:",
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w500)),
+                          FormFieldWidget(
+                            prefixIcon: Container(
+                              padding: const EdgeInsets.all(13.5),
+                              child: SvgPicture.asset(
+                                "assets/icons/email-icon.svg",
+                                height: 10,
+                              ),
+                            ),
+                            hintText: emailController.text,
+                            enabled: false,
+                            controller: TextEditingController(),
                           ),
                           SizedBox(height: 32),
-                          Text(
-                            "Enable Locations",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
+                          InkWell(
+                            onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage())),
+                            child: Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                  color: AppColors.primaryColor,
+                                  borderRadius: BorderRadius.circular(4)),
+                              child: Center(
+                                child: Text(
+                                  "Proceed to Login",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                           SizedBox(height: 8),
-                          Text(
-                              "Allow AirQo to send you location air quality updates for the places you care about",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14)),
-                          SizedBox(height: 32),
-                          AirQoButton(
-                            label: "Yes, enable locations",
-                            textColor: Colors.white,
-                            color: AppColors.primaryColor,
-                            onPressed: () {},
-                          ),
-                          SizedBox(height: 16),
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.max,
                               children: [
-                                Text("No, Thanks",
-                                    style: TextStyle(fontSize: 12)),
-                                SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 12,
+                                Text("Can't see the email?",
+                                    style: TextStyle(
+                                        color: AppColors.boldHeadlineColor,
+                                        fontWeight: FontWeight.w500)),
+                                InkWell(
+                                  onTap: () => Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                          builder: (context) => LoginPage())),
                                 )
-                              ])
+                              ]),
                         ],
-                      )),
-                      SizedBox(
-                          child: Column(
-                        children: [
-                          Center(
-                            child: SvgPicture.asset(
-                                "assets/images/auth/notification.svg"),
+                      ),
+                    ),
+                    SizedBox(
+                        child: Column(
+                      children: [
+                        Center(
+                          child: SvgPicture.asset(
+                              "assets/images/auth/location-permission.svg"),
+                        ),
+                        SizedBox(height: 32),
+                        Text(
+                          "Enable Locations",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
                           ),
-                          SizedBox(height: 32),
-                          Text(
-                            "Know Your Air In Real Time",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                            "Allow AirQo to send you location air quality updates for the places you care about",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14)),
+                        SizedBox(height: 32),
+                        AirQoButton(
+                          label: "Yes, enable locations",
+                          textColor: Colors.white,
+                          color: AppColors.primaryColor,
+                          onPressed: () {},
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Text("No, Thanks",
+                                  style: TextStyle(fontSize: 12)),
+                              SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 12,
+                              )
+                            ])
+                      ],
+                    )),
+                    SizedBox(
+                        child: Column(
+                      children: [
+                        Center(
+                          child: SvgPicture.asset(
+                              "assets/images/auth/notification.svg"),
+                        ),
+                        SizedBox(height: 32),
+                        Text(
+                          "Know Your Air In Real Time",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                              "Get notified when air quality is \n getting better or worse",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14)),
-                          SizedBox(height: 32),
-                          AirQoButton(
-                            label: "Yes, keep me updated.",
-                            textColor: Colors.white,
-                            color: AppColors.primaryColor,
-                            onPressed: () {},
-                          ),
-                          SizedBox(height: 16),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Text("No, Thanks",
-                                    style: TextStyle(fontSize: 12)),
-                                SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 12,
-                                )
-                              ])
-                        ],
-                      )),
-                    ],
-                  ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                            "Get notified when air quality is \n getting better or worse",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14)),
+                        SizedBox(height: 32),
+                        AirQoButton(
+                          label: "Yes, keep me updated.",
+                          textColor: Colors.white,
+                          color: AppColors.primaryColor,
+                          onPressed: () {},
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Text("No, Thanks",
+                                  style: TextStyle(fontSize: 12)),
+                              SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 12,
+                              )
+                            ])
+                      ],
+                    )),
+                  ],
                 ),
               ),
             ),
