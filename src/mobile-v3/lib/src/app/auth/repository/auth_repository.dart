@@ -99,7 +99,8 @@ Future<void> verifyEmailCode(String token, String email) async {
       Uri.parse("https://api.airqo.net/api/v2/users/verify-email/$token"),
       headers: {
         "Authorization": apiToken!,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json"
       },
       body: json.encode({
         "email": email 
