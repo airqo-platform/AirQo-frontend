@@ -7,10 +7,8 @@ import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
-import 'package:airqo/src/app/dashboard/bloc/health_tips/health_tips_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
-import 'package:airqo/src/app/dashboard/repository/health_tips_repository.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -68,7 +66,6 @@ void main() async {
           forecastRepository: ForecastImpl(),
           googlePlacesRepository: GooglePlacesImpl(),
           dashboardRepository: DashboardImpl(),
-          healthTipsRepository: HealthTipsImpl(),
         ));
       } catch (e, stackTrace) {
         Object().logError('Failed to initialize application', e, stackTrace);
@@ -89,7 +86,6 @@ class AirqoMobile extends StatelessWidget {
   final KyaRepository kyaRepository;
   final GooglePlacesRepository googlePlacesRepository;
   final DashboardRepository dashboardRepository;
-  final HealthTipsRepository healthTipsRepository;
 
   const AirqoMobile({
     super.key,
@@ -101,7 +97,6 @@ class AirqoMobile extends StatelessWidget {
     required this.userRepository,
     required this.forecastRepository,
     required this.dashboardRepository,
-    required this.healthTipsRepository,
   });
 
   @override
@@ -143,9 +138,6 @@ class AirqoMobile extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => LanguageBloc()..add(LoadLanguage()),
-        ),
-        BlocProvider(
-          create: (context) => HealthTipsBloc(healthTipsRepository),
         ),
       ],
       child: BlocBuilder<LanguageBloc, LanguageState>(

@@ -1,4 +1,3 @@
-import 'package:airqo/src/app/dashboard/bloc/health_tips/health_tips_bloc.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +34,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
     context.read<DashboardBloc>().add(LoadDashboard());
     context.read<UserBloc>().add(LoadUser());
-
-    context.read<HealthTipsBloc>().add(LoadHealthTips());
 
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthInitial || authState is GuestUser) {
