@@ -24,7 +24,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> with UiLoggy {
-  DashboardView currentView = DashboardView.myPlaces;
+  DashboardView currentView = DashboardView.favorites;
   String? selectedCountry;
 
   @override
@@ -75,7 +75,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             ],
           ),
 
-          if (currentView == DashboardView.myPlaces)
+          if (currentView == DashboardView.favorites)
             Positioned(
               right: 20,
               bottom: 20,
@@ -103,7 +103,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
   Widget _buildContentForCurrentView() {
     switch (currentView) {
-      case DashboardView.myPlaces:
+      case DashboardView.favorites:
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoaded) {
@@ -125,7 +125,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             return Container();
           },
         );
-      case DashboardView.nearby:
+      case DashboardView.nearYou:
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoaded) {

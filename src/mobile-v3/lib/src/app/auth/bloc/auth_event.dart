@@ -27,6 +27,25 @@ class UseAsGuest extends AuthEvent {
   const UseAsGuest();
 }
 
+class VerifyEmailCode extends AuthEvent {
+  final String token;
+  final String email;
+
+  const VerifyEmailCode(this.token, this.email);
+  
+  @override
+  List<Object> get props => [token, email];
+}
+
+class ResendVerificationCode extends AuthEvent {
+  final String email;
+
+  const ResendVerificationCode(this.email);
+  
+  @override
+  List<Object> get props => [email];
+}
+
 class LogoutUser extends AuthEvent {
   const LogoutUser();
 }

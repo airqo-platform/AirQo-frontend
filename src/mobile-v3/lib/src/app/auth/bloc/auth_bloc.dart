@@ -22,18 +22,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutUser>(_onLogoutUser);
 
     on<UseAsGuest>((event, emit) => emit(GuestUser()));
+
+    on<VerifyEmailCode>(_onVerifyEmailCode);
   }
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      //await Future.delayed(const Duration(milliseconds: 500));
       final token = await HiveRepository.getData('token', HiveBoxNames.authBox);
 
       if (token != null && token.isNotEmpty) {
-        emit(AuthLoaded(AuthPurpose.LOGIN)); // User is logged in
+        emit(AuthLoaded(AuthPurpose.LOGIN));
       } else {
-        emit(GuestUser()); // No token found, proceed as guest
+        emit(GuestUser());
       }
     } catch (e) {
       debugPrint("Error checking auth state: $e");
@@ -42,22 +43,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginUser(LoginUser event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
-    try {
-      final token = await authRepository.loginWithEmailAndPassword(
-          event.username, event.password);
-      await HiveRepository.saveData(HiveBoxNames.authBox, 'token', token);
-      // Save token in Hive
-      final savedToken =
-          await HiveRepository.getData('token', HiveBoxNames.authBox);
-      //debugPrint("Saved token: $savedToken");
+  emit(AuthLoading());
+  try {
+    final token = await authRepository.loginWithEmailAndPassword(
+        event.username, event.password);
+    await HiveRepository.saveData(HiveBoxNames.authBox, 'token', token);
 
-      emit(AuthLoaded(AuthPurpose.LOGIN));
-    } catch (e) {
-      debugPrint("Login error: $e");
+    emit(AuthLoaded(AuthPurpose.LOGIN));
+  } catch (e) {
+    debugPrint("Login error: $e");
+    
+    final String errorMsg = e.toString().toLowerCase();
+    if (errorMsg.contains('not verified') || 
+        errorMsg.contains('unverified') || 
+        errorMsg.contains('verify your email') ||
+        errorMsg.contains('verification required')) {
+      emit(EmailUnverifiedError(_extractErrorMessage(e), event.username));
+    } else {
       emit(AuthLoadingError(_extractErrorMessage(e)));
     }
   }
+}
 
   Future<void> _onRegisterUser(
       RegisterUser event, Emitter<AuthState> emit) async {
@@ -71,13 +77,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onVerifyEmailCode(VerifyEmailCode event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await authRepository.verifyEmailCode(
+        event.token,
+        event.email,
+        );
+      emit(AuthVerified());
+    } catch (e) {
+      debugPrint("Email verification error: $e");
+      emit(AuthLoadingError(_extractErrorMessage(e)));
+    }
+  }
 
   Future<void> _onLogoutUser(LogoutUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
       await HiveRepository.deleteData(
-          'token', HiveBoxNames.authBox); // Remove token from Hive
-      emit(GuestUser()); // Emit guest state after logout
+          'token', HiveBoxNames.authBox);
+      emit(GuestUser()); 
     } catch (e) {
       debugPrint("Logout error: $e");
       emit(AuthLoadingError("Failed to log out. Please try again."));
