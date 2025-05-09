@@ -55,7 +55,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoaded && state.authPurpose == AuthPurpose.REGISTER) {
-          Navigator.of(context).push(
+          Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => EmailVerificationScreen(
                 email: emailController.text.trim(),

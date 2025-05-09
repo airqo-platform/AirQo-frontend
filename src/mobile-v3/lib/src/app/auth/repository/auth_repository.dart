@@ -92,12 +92,13 @@ class AuthImpl extends AuthRepository {
 Future<void> verifyEmailCode(String token, String email) async {
   
   try {
-    Response verifyResponse = await http.post(
+    final apiToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
+    assert(apiToken != null, 'AIRQO_MOBILE_TOKEN missing in .env');
+
+    final verifyResponse = await http.post(
       Uri.parse("https://api.airqo.net/api/v2/users/verify-email/$token"),
       headers: {
-        "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
-        "Accept": "*/*",
-        "Content-Type": "application/json"
+        "Authorization": apiToken!,
       },
       body: json.encode({
         "email": email 

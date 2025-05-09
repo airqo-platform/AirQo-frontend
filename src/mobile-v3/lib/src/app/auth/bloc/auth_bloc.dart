@@ -49,9 +49,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.username, event.password);
     await HiveRepository.saveData(HiveBoxNames.authBox, 'token', token);
 
-    final savedToken =
-        await HiveRepository.getData('token', HiveBoxNames.authBox);
-
     emit(AuthLoaded(AuthPurpose.LOGIN));
   } catch (e) {
     debugPrint("Login error: $e");

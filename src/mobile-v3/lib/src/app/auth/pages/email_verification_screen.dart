@@ -13,7 +13,8 @@ class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key, required this.email});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
@@ -21,16 +22,22 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   bool _isVerifying = false;
   String? _errorMessage;
 
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
   String _maskEmail(String email) {
     final parts = email.split('@');
     if (parts.length != 2) return email;
-    
+
     String username = parts[0];
     String domain = parts[1];
     String maskedUsername = username.length > 2
         ? "${username.substring(0, 2)}${'*' * (username.length - 2)}"
         : username;
-    
+
     return "$maskedUsername@$domain";
   }
 
@@ -42,8 +49,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       return;
     }
 
-    // Validate 5-digit numeric code
-    if (_codeController.text.length != 5 || !RegExp(r'^\d{5}$').hasMatch(_codeController.text)) {
+    if (_codeController.text.length != 5 ||
+        !RegExp(r'^\d{5}$').hasMatch(_codeController.text)) {
       setState(() {
         _errorMessage = "Please enter a valid 5-digit code";
       });
@@ -55,9 +62,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       _errorMessage = null;
     });
 
-    context.read<AuthBloc>().add(VerifyEmailCode(_codeController.text, widget.email));
+    context
+        .read<AuthBloc>()
+        .add(VerifyEmailCode(_codeController.text, widget.email));
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +75,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           setState(() {
             _isVerifying = false;
           });
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Email verified successfully!'),
@@ -75,7 +83,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               duration: Duration(seconds: 2),
             ),
           );
-          
+
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const LoginPage()),
             (route) => false,
@@ -116,7 +124,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                
                 Container(
                   width: 70,
                   height: 70,
@@ -133,9 +140,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 24),
-                
                 Text(
                   "Please verify your email address",
                   textAlign: TextAlign.center,
@@ -145,9 +150,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     color: Theme.of(context).textTheme.headlineLarge?.color,
                   ),
                 ),
-                
                 const SizedBox(height: 12),
-                
                 Text(
                   "Enter the 5-digit verification code sent to ${_maskEmail(widget.email)}",
                   textAlign: TextAlign.center,
@@ -156,9 +159,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
-                
                 const SizedBox(height: 40),
-                
                 PinCodeTextField(
                   appContext: context,
                   length: 5,
@@ -192,7 +193,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     }
                   },
                 ),
-                
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 8),
@@ -205,18 +205,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       ),
                     ),
                   ),
-                
                 const SizedBox(height: 32),
-                
-                _isVerifying 
-                ? Center(child: CircularProgressIndicator(color: AppColors.primaryColor))
-                : AirQoButton(
-                    label: "Verify Email",
-                    textColor: Colors.white,
-                    color: AppColors.primaryColor,
-                    onPressed: _verifyCode,
-                  ),
-                
+                _isVerifying
+                    ? Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.primaryColor))
+                    : AirQoButton(
+                        label: "Verify Email",
+                        textColor: Colors.white,
+                        color: AppColors.primaryColor,
+                        onPressed: _verifyCode,
+                      ),
                 const SizedBox(height: 24),
               ],
             ),

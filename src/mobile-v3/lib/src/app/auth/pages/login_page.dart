@@ -28,11 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    try {
-      authBloc = context.read<AuthBloc>();
-    } catch (e) {
-      print('Failed to initialize AuthBloc: $e');
-    }
+    authBloc = context.read<AuthBloc>();
   }
 
   @override

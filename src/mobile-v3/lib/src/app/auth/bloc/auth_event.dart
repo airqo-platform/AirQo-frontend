@@ -34,7 +34,7 @@ class VerifyEmailCode extends AuthEvent {
   const VerifyEmailCode(this.token, this.email);
   
   @override
-  List<Object> get props => [token];
+  List<Object> get props => [token, email];
 }
 
 class ResendVerificationCode extends AuthEvent {
