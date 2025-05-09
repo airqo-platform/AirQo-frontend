@@ -15,7 +15,8 @@ class ExpandedAnalyticsCard extends StatefulWidget {
   State<ExpandedAnalyticsCard> createState() => _ExpandedAnalyticsCardState();
 }
 
-class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> with UiLoggy {
+class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
+    with UiLoggy {
   void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
     showBottomSheet(
       backgroundColor: Colors.transparent,
@@ -59,12 +60,12 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> with UiLo
 
   String _getHealthTipTagline() {
     // Get health tip from measurement if available
-    if (widget.measurement.healthTips != null && 
-        widget.measurement.healthTips!.isNotEmpty && 
+    if (widget.measurement.healthTips != null &&
+        widget.measurement.healthTips!.isNotEmpty &&
         widget.measurement.healthTips![0].title != null) {
       return widget.measurement.healthTips![0].title!;
     }
-    
+
     // Default tagline based on AQI category
     switch (widget.measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
@@ -87,12 +88,12 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> with UiLo
 
   String? _getHealthTipDescription() {
     // Get health tip description from measurement if available
-    if (widget.measurement.healthTips != null && 
-        widget.measurement.healthTips!.isNotEmpty && 
+    if (widget.measurement.healthTips != null &&
+        widget.measurement.healthTips!.isNotEmpty &&
         widget.measurement.healthTips![0].description != null) {
       return widget.measurement.healthTips![0].description!;
     }
-    
+
     // No default fallbacks - return null if no health tip found
     return null;
   }
@@ -242,8 +243,8 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> with UiLo
                 Divider(
                   thickness: 0.5,
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black
-                      : Colors.white,
+                      ? Colors.white.withOpacity(0.2)
+                      : Colors.black.withOpacity(0.1),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -255,10 +256,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> with UiLo
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 ),
@@ -292,30 +290,33 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard> with UiLo
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color:
-                            Theme.of(context).textTheme.bodyMedium?.color,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                healthTipDescription != null 
-                ? Text(
-                    healthTipDescription,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  )
-                : Text(
-                    "Health tip not available for this air quality level.",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontStyle: FontStyle.italic,
-                      color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
-                    ),
-                  ),
+                healthTipDescription != null
+                    ? Text(
+                        healthTipDescription,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      )
+                    : Text(
+                        "Health tip not available for this air quality level.",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontStyle: FontStyle.italic,
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.color
+                              ?.withOpacity(0.7),
+                        ),
+                      ),
               ],
             ),
           ),
