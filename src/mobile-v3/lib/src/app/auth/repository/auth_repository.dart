@@ -5,9 +5,9 @@ import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:loggy/loggy.dart';
 
-abstract class AuthRepository {
-  //login function
+abstract class AuthRepository with UiLoggy {
   Future<String> loginWithEmailAndPassword(String username, String password);
   Future<void> registerWithEmailAndPassword(RegisterInputModel model);
   Future<String> requestPasswordReset(String email);
@@ -16,12 +16,13 @@ abstract class AuthRepository {
     required String password,
     required String confirmPassword,
   });
+  Future<void> verifyEmailCode(String token, String email);
 }
 
 class AuthImpl extends AuthRepository {
   @override
-  Future<String> loginWithEmailAndPassword(String username,
-      String password) async {
+  Future<String> loginWithEmailAndPassword(
+      String username, String password) async {
     Response loginResponse = await http.post(
         Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
         body: jsonEncode({"userName": username, "password": password}),
@@ -68,7 +69,7 @@ class AuthImpl extends AuthRepository {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'email': email, // User's email address
+        'email': email,
       }),
     );
 
@@ -77,13 +78,60 @@ class AuthImpl extends AuthRepository {
       if (data['success'] == true) {
         return data['message'] ?? 'Password reset link sent.';
       } else {
-        throw Exception(data['message'] ?? 'Failed to send password reset request.');
+        throw Exception(
+            data['message'] ?? 'Failed to send password reset request.');
       }
     } else {
-      final error = jsonDecode(response.body)['message'] ?? 'Something went wrong.';
+      final error =
+          jsonDecode(response.body)['message'] ?? 'Something went wrong.';
       throw Exception(error);
     }
   }
+
+@override
+Future<void> verifyEmailCode(String token, String email) async {
+  
+  try {
+    Response verifyResponse = await http.post(
+      Uri.parse("https://api.airqo.net/api/v2/users/verify-email/$token"),
+      headers: {
+        "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+        "Accept": "*/*",
+        "Content-Type": "application/json"
+      },
+      body: json.encode({
+        "email": email 
+      })
+    );
+    
+    
+    Map<String, dynamic> data;
+    try {
+      data = json.decode(verifyResponse.body);
+    } catch (e) {
+      throw Exception("Invalid response: ${verifyResponse.body}");
+    }
+    
+    if (verifyResponse.statusCode != 200) {
+      String errorMessage = "Email verification failed";
+      if (data.containsKey('errors')) {
+        var errors = data['errors'];
+        if (errors is Map) {
+          errorMessage = errors.values.join(', ');
+        } else if (errors is String) {
+          errorMessage = errors;
+        }
+      } else if (data.containsKey('message')) {
+        errorMessage = data['message'];
+      }
+      
+      throw Exception(errorMessage);
+    }
+  } catch (e) {
+loggy.error("Exception during email verification: $e");
+    throw Exception(e.toString());
+  }
+}
 
 
   @override
@@ -94,13 +142,12 @@ class AuthImpl extends AuthRepository {
   }) async {
     final response = await http.post(
       Uri.parse('https://api.airqo.net/api/v2/users/reset-password/$token'),
-
       headers: {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
         'password': password,
-        'confirmPassword': confirmPassword, // Include confirmPassword
+        'confirmPassword': confirmPassword,
       }),
     );
 
@@ -108,11 +155,9 @@ class AuthImpl extends AuthRepository {
       final data = jsonDecode(response.body);
       return data['message'] ?? 'Password reset successful.';
     } else {
-      final error = jsonDecode(response.body)['message'] ??
-          'Failed to reset password.';
+      final error =
+          jsonDecode(response.body)['message'] ?? 'Failed to reset password.';
       throw Exception(error);
     }
   }
 }
-
-

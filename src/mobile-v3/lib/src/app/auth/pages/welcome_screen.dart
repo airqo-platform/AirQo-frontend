@@ -1,5 +1,4 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
-import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/auth/widgets/breathe_clean.dart';
 import 'package:airqo/src/app/auth/widgets/know_your_air.dart';
@@ -7,7 +6,6 @@ import 'package:airqo/src/app/auth/widgets/welcome_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../shared/pages/nav_page.dart';
