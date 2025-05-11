@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
@@ -14,8 +15,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/services/token_debugger.dart';
-
-import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/shared/pages/error_page.dart';
 
 class LocationSelectionScreen extends StatefulWidget with UiLoggy {
   const LocationSelectionScreen({super.key});
@@ -45,6 +45,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   bool isSaving = false;
   String? currentUserId;
   UserPreferencesModel? userPreferences;
+  bool isHtmlError = false;
 
   @override
   void initState() {
@@ -63,7 +64,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         currentState.response.measurements != null) {
       loggy.info('Dashboard already loaded, populating measurements');
       _populateMeasurements(currentState.response.measurements!);
-      _syncSelectedLocations(currentState); 
+      _syncSelectedLocations(currentState);
     } else {
       dashboardBloc.add(LoadDashboard());
     }
@@ -92,7 +93,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     try {
       loggy.info('⭐ Starting to initialize user data');
 
-      // Debug token information
       await AuthHelper.debugToken();
 
       final authState = context.read<AuthBloc>().state;
@@ -102,13 +102,11 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       loggy.info('Is user logged in according to AuthBloc? $isLoggedIn');
 
       if (isLoggedIn) {
-        // Use the enhanced token checker
         final isExpired = await TokenDebugger.checkTokenExpiration();
 
         if (isExpired) {
           loggy.warning('Token is expired, user needs to login again');
 
-          // Show SnackBar with action button to navigate to login
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -118,7 +116,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                 action: SnackBarAction(
                   label: 'Log In',
                   onPressed: () {
-                    // Navigate directly to login screen
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (context) => const LoginPage(),
@@ -133,7 +130,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           return;
         }
 
-        // Token valid, proceed to get user ID
         final userId = await AuthHelper.getCurrentUserId();
         loggy.info('Retrieved user ID: ${userId ?? "NULL"}');
 
@@ -147,7 +143,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         } else {
           loggy.warning('❌ No user ID found in token - token may be invalid');
 
-          // Optionally, show a message to the user
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -158,7 +153,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         }
       } else {
         loggy.warning('❌ User is not logged in according to AuthBloc');
-        // You could show a login prompt here
       }
     } catch (e) {
       loggy.error('❌ Error initializing user data: $e');
@@ -170,10 +164,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     loggy.info(
         'Save button pressed with ${selectedLocations.length} selected locations');
 
-    // Debug token
     await AuthHelper.debugToken();
 
-    // Check auth state from the bloc
     final authState = context.read<AuthBloc>().state;
     final isLoggedIn = authState is AuthLoaded;
 
@@ -188,7 +180,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       return;
     }
 
-    // Use enhanced token checker
     final isExpired = await TokenDebugger.checkTokenExpiration();
 
     if (isExpired) {
@@ -220,28 +211,19 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     });
 
     try {
-      // IMPORTANT CHANGE: Instead of creating a new preference, we dispatch
-      // the UpdateSelectedLocations event to the DashboardBloc, which will
-      // merge these with existing locations
-
       final dashboardBloc = context.read<DashboardBloc>();
-
-      // Convert the Set to a List
       final locationIdsList = selectedLocations.toList();
 
       loggy.info(
           'Dispatching UpdateSelectedLocations with ${locationIdsList.length} locations');
 
-      // Dispatch the event
       dashboardBloc.add(UpdateSelectedLocations(locationIdsList));
 
-      // Show success message
       loggy.info('✅ Successfully dispatched update event');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Locations saved successfully')),
       );
 
-      // Return to previous screen with the selected locations
       Navigator.pop(context, locationIdsList);
     } catch (e) {
       loggy.error('❌ Error saving locations: $e');
@@ -270,7 +252,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         setState(() {
           userPreferences = prefsData;
 
-          // Pre-select any saved locations
           if (prefsData.selectedSites.isNotEmpty) {
             selectedLocations =
                 prefsData.selectedSites.map((site) => site.id).toSet();
@@ -353,10 +334,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     if (id != null) {
       setState(() {
         if (selected) {
-          // Check if we're already at max locations before adding
           if (selectedLocations.length >= maxLocations) {
             showLocationLimitError = true;
-            // Don't add the location
             return;
           }
 
@@ -376,7 +355,39 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     setState(() {
       isLoading = true;
       errorMessage = null;
+      isHtmlError = false;
     });
+  }
+
+  List<Measurement> _getSortedMeasurements(List<Measurement> measurements) {
+    final sortedList = List<Measurement>.from(measurements);
+
+    sortedList.sort((a, b) {
+      final aSelected = _isLocationSelected(a);
+      final bSelected = _isLocationSelected(b);
+
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+      return 0;
+    });
+
+    return sortedList;
+  }
+
+  bool _isLocationSelected(Measurement measurement) {
+    final String? id = measurement.id;
+    final String? siteId = measurement.siteId;
+    final String? siteDetailsId = measurement.siteDetails?.id;
+
+    return selectedLocations.contains(id) ||
+        selectedLocations.contains(siteId) ||
+        (siteDetailsId != null && selectedLocations.contains(siteDetailsId));
+  }
+
+  bool _checkForHtmlError(String message) {
+    return message.contains("<html>") ||
+        message.contains("<!DOCTYPE") ||
+        message.contains("Unexpected character");
   }
 
   @override
@@ -387,7 +398,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           loggy.info('BlocListener: DashboardLoaded received');
           if (state.response.measurements != null) {
             _populateMeasurements(state.response.measurements!);
-            _syncSelectedLocations(state); // Sync on every DashboardLoaded
+            _syncSelectedLocations(state);
           } else {
             setState(() {
               isLoading = false;
@@ -402,7 +413,14 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           setState(() {
             isLoading = false;
             errorMessage = state.message;
+            isHtmlError = _checkForHtmlError(state.message);
           });
+          loggy.error('Dashboard loading error: ${state.message}');
+
+          if (isHtmlError) {
+            loggy.error(
+                'HTML error detected, API returning HTML instead of JSON');
+          }
         }
       },
       child: Scaffold(
@@ -425,102 +443,123 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             ),
           ],
         ),
-        body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // Search Bar
-          LocationSearchBar(
-            controller: searchController,
-            onChanged: _handleSearch,
-          ),
+        body: _buildBody(context),
+      ),
+    );
+  }
 
-          const SizedBox(height: 16),
+  Widget _buildBody(BuildContext context) {
+    if (isHtmlError && !isLoading) {
+      return ErrorPage();
+    }
 
-          // Countries Filter
-          CountriesFilter(
-            currentFilter: currentFilter,
-            onFilterSelected: _filterByCountry,
-            onResetFilter: _resetFilter,
-          ),
-
-          // Error message for location limit
-          if (showLocationLimitError)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'You can select up to 4 locations only',
-                style: TextStyle(
-                  color: Colors.red[400],
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+    if (errorMessage != null &&
+        (errorMessage!.contains("Failed to") ||
+            errorMessage!.contains("Error") ||
+            errorMessage!.contains("Exception")) &&
+        !isLoading) {
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: Center(
+              child: ErrorPage(),
             ),
+          ),
+        ],
+      );
+    }
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LocationSearchBar(
+          controller: searchController,
+          onChanged: _handleSearch,
+        ),
+        const SizedBox(height: 16),
+        CountriesFilter(
+          currentFilter: currentFilter,
+          onFilterSelected: _filterByCountry,
+          onResetFilter: _resetFilter,
+        ),
+        if (showLocationLimitError)
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'All locations',
+              'You can select up to 4 locations only',
               style: TextStyle(
-                color: Theme.of(context).textTheme.headlineMedium?.color,
-                fontSize: 20,
+                color: Colors.red[400],
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-
-          // Locations List
-          Expanded(
-            child: LocationListView(
-              isLoading: isLoading,
-              errorMessage: errorMessage,
-              onRetry: _retryLoading,
-              searchController: searchController,
-              currentFilter: currentFilter,
-              allMeasurements: allMeasurements,
-              filteredMeasurements: filteredMeasurements,
-              localSearchResults: localSearchResults,
-              selectedLocations: selectedLocations,
-              onToggleSelection: _toggleLocationSelection,
-              onViewDetails: _viewDetails,
-              onResetFilter: _resetFilter,
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'All locations',
+            style: TextStyle(
+              color: Theme.of(context).textTheme.headlineMedium?.color,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: selectedLocations.isEmpty || isSaving
-                    ? null
-                    : _saveSelectedLocations,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+        ),
+        Expanded(
+          child: LocationListView(
+            isLoading: isLoading,
+            errorMessage: errorMessage,
+            onRetry: _retryLoading,
+            searchController: searchController,
+            currentFilter: currentFilter,
+            allMeasurements: _getSortedMeasurements(allMeasurements),
+            filteredMeasurements: _getSortedMeasurements(filteredMeasurements),
+            localSearchResults: _getSortedMeasurements(localSearchResults),
+            selectedLocations: selectedLocations,
+            onToggleSelection: _toggleLocationSelection,
+            onViewDetails: _viewDetails,
+            onResetFilter: _resetFilter,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: selectedLocations.isEmpty || isSaving
+                  ? null
+                  : _saveSelectedLocations,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                disabledForegroundColor: Colors.white.withOpacity(0.7),
+                disabledBackgroundColor:
+                    AppColors.primaryColor.withOpacity(0.5),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        'Save (${selectedLocations.length}) Locations',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
               ),
+              child: isSaving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      'Save (${selectedLocations.length}) Locations',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
             ),
           ),
-        ]),
-      ),
+        ),
+      ],
     );
   }
 }

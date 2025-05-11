@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: eu.gcr.io/airqo-250220/airqo-next-platform
   pullPolicy: Always
-  tag: prod-175ddd8c-1745783213
+  tag: prod-b5c8091e-1746523105
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -30,7 +30,7 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 priorityClassName: high-priority
 nodeSelector:
-  role: control-plane
+  role: high-mem
 tolerations: []
 affinity:
   nodeAffinity:

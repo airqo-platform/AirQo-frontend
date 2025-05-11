@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
-enum DashboardView { all, myPlaces, nearby, country }
+enum DashboardView { all, favorites, nearYou, country }
 
 class ViewSelector extends StatefulWidget {
   final DashboardView currentView;
@@ -21,7 +21,6 @@ class ViewSelector extends StatefulWidget {
 }
 
 class _ViewSelectorState extends State<ViewSelector> {
-  // Keys to control the tooltips
   final GlobalKey _myPlacesTooltipKey = GlobalKey<TooltipState>();
   final GlobalKey _nearbyTooltipKey = GlobalKey<TooltipState>();
   
@@ -40,21 +39,18 @@ class _ViewSelectorState extends State<ViewSelector> {
   }
 
   void _triggerTooltipOnViewChange() {
-    // Wait for the widget to be fully built before showing tooltip
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.currentView == DashboardView.myPlaces) {
+      if (widget.currentView == DashboardView.favorites) {
         final dynamic tooltipState = _myPlacesTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();
         
-        // Auto-hide after 2 seconds
         Future.delayed(Duration(seconds: 2), () {
           tooltipState?.deactivate();
         });
-      } else if (widget.currentView == DashboardView.nearby) {
+      } else if (widget.currentView == DashboardView.nearYou) {
         final dynamic tooltipState = _nearbyTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();
         
-        // Auto-hide after 2 seconds
         Future.delayed(Duration(seconds: 2), () {
           tooltipState?.deactivate();
         });
@@ -71,10 +67,9 @@ class _ViewSelectorState extends State<ViewSelector> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // My Places Button with Tooltip
           Tooltip(
             key: _myPlacesTooltipKey,
-            message: "View air quality data for locations you've saved",
+            message: "Save your most relevant locations in one place",
             preferBelow: true,
             verticalOffset: 20,
             showDuration: Duration(seconds: 2),
@@ -88,17 +83,16 @@ class _ViewSelectorState extends State<ViewSelector> {
             ),
             child: _buildViewButton(
               context,
-              label: "My Places",
-              isSelected: widget.currentView == DashboardView.myPlaces,
-              onTap: () => widget.onViewChanged(DashboardView.myPlaces),
+              label: "Favorites",
+              isSelected: widget.currentView == DashboardView.favorites,
+              onTap: () => widget.onViewChanged(DashboardView.favorites),
             ),
           ),
           SizedBox(width: 8),
 
-          // Nearby Button with Tooltip
           Tooltip(
             key: _nearbyTooltipKey,
-            message: "Show air quality data for locations close to you",
+            message: "View air quality in locations closest to you",
             preferBelow: true,
             verticalOffset: 20,
             showDuration: Duration(seconds: 2),
@@ -112,14 +106,13 @@ class _ViewSelectorState extends State<ViewSelector> {
             ),
             child: _buildViewButton(
               context,
-              label: "Nearby",
-              isSelected: widget.currentView == DashboardView.nearby,
-              onTap: () => widget.onViewChanged(DashboardView.nearby),
+              label: "Near You",
+              isSelected: widget.currentView == DashboardView.nearYou,
+              onTap: () => widget.onViewChanged(DashboardView.nearYou),
             ),
           ),
           SizedBox(width: 8),
 
-          // Country filters - only show when in All view
           ...CountryRepository.countries.map((country) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: _buildCountryButton(

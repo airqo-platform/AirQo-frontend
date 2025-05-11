@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import LogoutUser from '@/core/utils/LogoutUser';
+import logger from '../../lib/logger';
 
 export default function withAuth(Component) {
   return function WithAuthComponent(props) {
@@ -41,7 +42,7 @@ export const withPermission = (Component, requiredPermission) => {
           try {
             parsedUserGroup = JSON.parse(storedUserGroup);
           } catch (error) {
-            console.error(
+            logger.error(
               'Error parsing "activeGroup" from localStorage:',
               error,
             );
@@ -73,7 +74,7 @@ export const checkAccess = (requiredPermission) => {
         const parsedGroup = JSON.parse(storedGroupObj);
         currentRole = parsedGroup?.role || null;
       } catch (error) {
-        console.error('Error parsing "activeGroup" from localStorage:', error);
+        logger.error('Error parsing "activeGroup" from localStorage:', error);
       }
     }
 

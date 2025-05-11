@@ -20,16 +20,13 @@ class SwipeableAnalyticsCard extends StatefulWidget {
   State<SwipeableAnalyticsCard> createState() => _SwipeableAnalyticsCardState();
 }
 
-class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with UiLoggy {
-  // Offset to track the swipe position
+class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
+    with UiLoggy {
   double _dragOffset = 0;
-  // Set to true when the delete option is showing
   bool _isDeleteVisible = false;
-  // Width of the delete button area
   final double _deleteWidth = 80.0;
 
   void _showAnalyticsDetails() {
-    // If we're in delete mode, don't show details
     if (_isDeleteVisible || _dragOffset < 0) return;
 
     showBottomSheet(
@@ -42,12 +39,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
         });
   }
 
-  // Helper method to get a description of the location
   String _getLocationDescription(Measurement measurement) {
     final siteDetails = measurement.siteDetails;
     if (siteDetails == null) return "Unknown location";
 
-    // Try to build a meaningful location string
     final List<String> locationParts = [];
 
     if (siteDetails.city != null && siteDetails.city!.isNotEmpty) {
@@ -73,10 +68,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             "Unknown location";
   }
 
-  // Helper method to get color based on AQI category
   Color _getAqiColor(Measurement measurement) {
     if (measurement.aqiColor != null) {
-      // Try to parse the color from the API response
       try {
         final colorStr = measurement.aqiColor!.replaceAll('#', '');
         return Color(int.parse('0xFF$colorStr'));
@@ -85,7 +78,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
       }
     }
 
-    // Fallback based on category
     switch (measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
         return Colors.green;
@@ -109,7 +101,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Delete option (shown when swiped)
         if (_isDeleteVisible || _dragOffset < 0)
           Positioned(
             top: 0,
@@ -117,7 +108,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             right: 0,
             child: GestureDetector(
               onTap: () {
-                // When delete button is clicked
                 widget.onRemove(widget.measurement.id ?? '');
                 setState(() {
                   _dragOffset = 0;
@@ -154,19 +144,13 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
               ),
             ),
           ),
-
-        // The main card content
         GestureDetector(
-          onTap: _showAnalyticsDetails, // Show analytics details when tapped
-          onHorizontalDragStart: (details) {
-            // Start tracking the drag
-          },
+          onTap: _showAnalyticsDetails,
+          onHorizontalDragStart: (details) {},
           onHorizontalDragUpdate: (details) {
-            // Only allow swipe to left (negative offset)
             if (details.delta.dx < 0 || _dragOffset < 0) {
               setState(() {
                 _dragOffset += details.delta.dx;
-                // Limit the drag so it doesn't go beyond the delete button width
                 if (_dragOffset < -_deleteWidth) {
                   _dragOffset = -_deleteWidth;
                 } else if (_dragOffset > 0) {
@@ -176,15 +160,12 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
             }
           },
           onHorizontalDragEnd: (details) {
-            // Determine whether to snap to delete button or snap back
             if (_dragOffset < -_deleteWidth / 2) {
-              // Snap to show delete button
               setState(() {
                 _dragOffset = -_deleteWidth;
                 _isDeleteVisible = true;
               });
             } else {
-              // Snap back
               setState(() {
                 _dragOffset = 0;
                 _isDeleteVisible = false;
@@ -211,87 +192,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(
-                        left: 16, right: 16, bottom: 4, top: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      SvgPicture.asset(Theme.of(context).brightness ==
-                                              Brightness.light
-                                          ? "assets/images/shared/pm_rating_white.svg"
-                                          : 'assets/images/shared/pm_rating.svg'),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        " PM2.5",
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .headlineSmall
-                                              ?.color,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(children: [
-                                    Text(
-                                      widget.measurement.pm25?.value != null
-                                          ? widget.measurement.pm25!.value!
-                                              .toStringAsFixed(1)
-                                          : "-",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 36,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .headlineLarge
-                                              ?.color),
-                                    ),
-                                    Text(" μg/m³",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 18,
-                                            color: Theme.of(context)
-                                                .textTheme
-                                                .headlineLarge
-                                                ?.color))
-                                  ]),
-                                ]),
-                            SizedBox(
-                              child: Center(
-                                child: widget.measurement.pm25?.value != null
-                                    ? SvgPicture.asset(
-                                        getAirQualityIcon(
-                                            widget.measurement, widget.measurement.pm25!.value!),
-                                        height: 86,
-                                        width: 86,
-                                      )
-                                    : Icon(
-                                        Icons.help_outline,
-                                        size: 60,
-                                        color: Colors.grey,
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Divider(
-                      thickness: .5,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black
-                          : Colors.white),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16, right: 16, bottom: 16, top: 4),
+                        left: 16, right: 16, bottom: 16, top: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -303,7 +204,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.measurement.siteDetails?.name ??
+                                    widget.measurement.siteDetails
+                                            ?.searchName ??
                                         "Unknown Location",
                                     style: TextStyle(
                                       fontSize: 22,
@@ -327,7 +229,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          _getLocationDescription(widget.measurement),
+                                          _getLocationDescription(
+                                              widget.measurement),
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Theme.of(context)
@@ -345,39 +248,118 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard> with Ui
                                 ],
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: _getAqiColor(widget.measurement).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                widget.measurement.aqiCategory ?? "Unknown",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getAqiColor(widget.measurement),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                      thickness: .5,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black
+                          : Colors.white),
+
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 16, right: 16, bottom: 16, top: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    SvgPicture.asset(Theme.of(context)
+                                                .brightness ==
+                                            Brightness.light
+                                        ? "assets/images/shared/pm_rating_white.svg"
+                                        : 'assets/images/shared/pm_rating.svg'),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      " PM2.5",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .headlineSmall
+                                            ?.color,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                                Row(children: [
+                                  Text(
+                                    widget.measurement.pm25?.value != null
+                                        ? widget.measurement.pm25!.value!
+                                            .toStringAsFixed(2)
+                                        : "-",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 36,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .headlineLarge
+                                            ?.color),
+                                  ),
+                                  Text(" μg/m³",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .headlineLarge
+                                              ?.color))
+                                ]),
+                              ],
+                            ),
+                            SizedBox(
+                              child: Center(
+                                child: widget.measurement.pm25?.value != null
+                                    ? SvgPicture.asset(
+                                        getAirQualityIcon(widget.measurement,
+                                            widget.measurement.pm25!.value!),
+                                        height: 86,
+                                        width: 86,
+                                      )
+                                    : Icon(
+                                        Icons.help_outline,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
                               ),
                             ),
                           ],
                         ),
-                        if (widget.measurement.healthTips != null &&
-                            widget.measurement.healthTips!.isNotEmpty) ...[
-                          SizedBox(height: 12),
-                          Text(
-                            widget.measurement.healthTips![0].description ??
-                                "No health tips available",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontStyle: FontStyle.italic,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+
+                        SizedBox(height: 16),
+                        Wrap(
+                          children: [
+                            Container(
+                            margin: EdgeInsets.only(
+                                bottom: 12),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _getAqiColor(widget.measurement)
+                                  .withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                            child: Text(
+                              widget.measurement.aqiCategory ?? "Unknown",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _getAqiColor(widget.measurement),
+                              ),
+                              maxLines: 1,
+                            ),
                           ),
-                        ],
+                          ]
+                        ),
                       ],
                     ),
                   ),

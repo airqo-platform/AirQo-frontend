@@ -1,11 +1,9 @@
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_event.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_state.dart';
-import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/pages/password_reset/reset_link_sent.dart';
 
-import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
 import 'package:airqo/src/meta/utils/colors.dart';

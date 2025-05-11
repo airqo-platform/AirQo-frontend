@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-reports
-  tag: prod-0b6ab742-1730310592
+  tag: prod-f4d9259d-1746441337
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
@@ -25,17 +25,17 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetMemoryUtilizationPercentage: 80
-nodeSelector: 
-  role: control-plane
+nodeSelector:
+  role: high-mem
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - preference:
           matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
+            - key: role
+              operator: In
+              values:
+                - control-plane
         weight: 1
 app:
   name: airqo-reports

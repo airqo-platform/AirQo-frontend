@@ -25,7 +25,9 @@ export const resetPasswordApi = (data) =>
 // Authentication
 export const postUserCreationDetails = (data) =>
   api.post(AUTH_URL, data).then((response) => response.data);
+
 export const getGoogleAuthDetails = () => api.get(GOOGLE_AUTH_URL);
+
 export const postUserLoginDetails = (data) =>
   api.post(LOGIN_URL, data).then((response) => response.data);
 

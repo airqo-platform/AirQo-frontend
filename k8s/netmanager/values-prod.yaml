@@ -14,7 +14,7 @@ service:
 ingress:
   enabled: false
 nodeSelector:
-  role: control-plane
+  role: high-mem
 torelations: {}
 resources:
   requests:
