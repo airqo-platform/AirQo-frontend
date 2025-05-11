@@ -9,22 +9,31 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { ChartGrid } from "@/components/charts/chart-grid"
 import { useDeviceStatus } from "@/core/hooks/useDevices"
 import { DeviceHeader } from "@/components/charts/device-header"
+import { DeviceFeedDisplay } from "@/components/device-feed-display"
+import { devices } from "@/core/apis/devices"
 
 export default function DeviceDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const deviceId = params.deviceId as string
-  const { devices, isLoading, error } = useDeviceStatus()
+  const { devices: devicesList, isLoading, error } = useDeviceStatus()
   const [device, setDevice] = useState<any>(null)
+  const [deviceNumber, setDeviceNumber] = useState<string>("")
 
   useEffect(() => {
-    if (devices && deviceId) {
-      const foundDevice = devices.find((d) => d._id === deviceId)
+    if (devicesList && deviceId) {
+      const foundDevice = devicesList.find((d) => d._id === deviceId)
       if (foundDevice) {
         setDevice(foundDevice)
+
+        // Extract device number (channel ID) from the device
+        // The channel ID is specifically the device_number property
+        if (foundDevice.device_number) {
+          setDeviceNumber(String(foundDevice.device_number))
+        }
       }
     }
-  }, [devices, deviceId])
+  }, [devicesList, deviceId])
 
   if (isLoading) {
     return (
@@ -68,21 +77,31 @@ export default function DeviceDetailsPage() {
 
         <DeviceHeader device={device} />
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Sensor Data Visualizations</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => router.push(`/devices/${deviceId}/export`)}>
-              <Download className="mr-2 h-4 w-4" />
-              Export Data
-            </Button>
-            <Button onClick={() => router.push(`/devices/${deviceId}/charts/new`)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Chart
-            </Button>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 gap-4">
+          {/* ThingSpeak Device Feed Display */}
+          <DeviceFeedDisplay
+            deviceId={deviceId}
+            deviceNumber={deviceNumber}
+            fetchRawFeed={devices.getRawDeviceFeed}
+            fetchTransformedFeed={devices.getTransformedDeviceFeed}
+          />
 
-        <ChartGrid deviceId={deviceId} />
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Sensor Data Visualizations</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => router.push(`/devices/overview/${deviceId}/export`)}>
+                <Download className="mr-2 h-4 w-4" />
+                Export Data
+              </Button>
+              <Button onClick={() => router.push(`/devices/overview/${deviceId}/charts/new`)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Chart
+              </Button>
+            </div>
+          </div>
+
+          <ChartGrid deviceId={deviceId} />
+        </div>
       </div>
     </div>
   )
