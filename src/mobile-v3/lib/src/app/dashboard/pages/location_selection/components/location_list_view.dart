@@ -247,9 +247,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
         List<Measurement> measurements =
             currentFilter == "All" ? allMeasurements : filteredMeasurements;
 
-        loggy.info(
-            'Displaying ${measurements.length} measurements with filter: $currentFilter');
-
+        // If no measurements
         if (measurements.isEmpty) {
           loggy.info('No measurements to display');
           return Center(
@@ -287,58 +285,207 @@ class LocationListView extends StatelessWidget with UiLoggy {
           );
         }
 
-        loggy.debug('Building ListView with ${measurements.length} items');
-        return ListView.separated(
-          itemCount: measurements.length,
-          separatorBuilder: (context, index) => const Divider(indent: 50),
-          itemBuilder: (context, index) {
-            final measurement = measurements[index];
-            final isSelected = selectedLocations.contains(measurement.id);
+        // Split measurements into selected and unselected
+        final selectedMeasurements = <Measurement>[];
+        final unselectedMeasurements = <Measurement>[];
 
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).highlightColor,
-                child: SvgPicture.asset(
-                  "assets/images/shared/location_pin.svg",
+        for (var measurement in measurements) {
+          final isSelected = 
+              selectedLocations.contains(measurement.id) ||
+              selectedLocations.contains(measurement.siteId) ||
+              (measurement.siteDetails?.id != null && 
+               selectedLocations.contains(measurement.siteDetails!.id));
+          
+          if (isSelected) {
+            selectedMeasurements.add(measurement);
+          } else {
+            unselectedMeasurements.add(measurement);
+          }
+        }
+
+        loggy.debug('Split measurements: ${selectedMeasurements.length} selected, ${unselectedMeasurements.length} unselected');
+        
+        return ListView(
+          children: [
+            // Section: Favorite Locations
+            if (selectedMeasurements.isNotEmpty) ...[
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? AppColors.darkHighlight.withOpacity(0.5)
+                      : AppColors.lightHighlight.withOpacity(0.5),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.favorite,
+                      size: 18,
+                      color: AppColors.primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Favorite Locations",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.headlineSmall?.color,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      "${selectedMeasurements.length}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              title: Text(
-                measurement.siteDetails?.city ??
-                    measurement.siteDetails?.town ??
-                    measurement.siteDetails?.locationName ??
-                    "Unknown Location",
-                style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color),
+              ...selectedMeasurements.map((m) => _buildLocationTile(m, context: context)),
+              const Divider(thickness: 1, height: 16),
+            ],
+            
+            // Section: All Locations
+            Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.darkHighlight.withOpacity(0.5)
+                    : AppColors.lightHighlight.withOpacity(0.5),
               ),
-              subtitle: Text(
-                measurement.siteDetails?.searchName ??
-                    measurement.siteDetails?.formattedName ??
-                    "",
-                style: TextStyle(
-                    color: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.color
-                        ?.withOpacity(0.7)),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 18,
+                    color: Theme.of(context).textTheme.headlineSmall?.color,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    unselectedMeasurements.isEmpty && selectedMeasurements.isNotEmpty
+                        ? "Other Locations"
+                        : "All Locations",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineSmall?.color,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    "${unselectedMeasurements.length}",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                ],
               ),
-              trailing: Checkbox(
-                value: isSelected,
-                onChanged: (value) {
-                  onToggleSelection(measurement.id, value!);
-                },
-                fillColor: WidgetStateProperty.resolveWith(
-                  (states) => states.contains(WidgetState.selected)
-                      ? AppColors.primaryColor
-                      : Colors.transparent,
-                ),
-                checkColor: Colors.white,
-                side: BorderSide(color: Theme.of(context).dividerColor),
-              ),
-              onTap: () => onViewDetails(measurement: measurement),
-            );
-          },
+            ),
+            ...unselectedMeasurements.map((m) => _buildLocationTile(m, context: context)),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildLocationTile(Measurement measurement, {required BuildContext context}) {
+    // Check if this measurement is selected
+    final isSelected = selectedLocations.contains(measurement.id) ||
+        selectedLocations.contains(measurement.siteId) ||
+        (measurement.siteDetails?.id != null &&
+            selectedLocations.contains(measurement.siteDetails!.id));
+            
+    return Column(
+      children: [
+        Container(
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.primaryColor.withOpacity(0.15)
+                      : AppColors.primaryColor.withOpacity(0.05),
+                  border: Border(
+                    left: BorderSide(
+                      color: AppColors.primaryColor,
+                      width: 3,
+                    ),
+                  ),
+                )
+              : null,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: isSelected
+                  ? AppColors.primaryColor.withOpacity(0.2)
+                  : Theme.of(context).highlightColor,
+              child: SvgPicture.asset(
+                "assets/images/shared/location_pin.svg",
+                color: isSelected ? AppColors.primaryColor : null,
+              ),
+            ),
+            title: Text(
+              measurement.siteDetails?.city ??
+                  measurement.siteDetails?.town ??
+                  measurement.siteDetails?.locationName ??
+                  "Unknown Location",
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            subtitle: Text(
+              measurement.siteDetails?.searchName ??
+                  measurement.siteDetails?.formattedName ??
+                  "",
+              style: TextStyle(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withOpacity(0.7)),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelected)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.favorite,
+                      color: AppColors.primaryColor,
+                      size: 18,
+                    ),
+                  ),
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (value) {
+                    String? idToUse = measurement.id ??
+                        measurement.siteId ??
+                        measurement.siteDetails?.id;
+                    if (idToUse != null) {
+                      onToggleSelection(idToUse, value!);
+                    }
+                  },
+                  fillColor: WidgetStateProperty.resolveWith(
+                    (states) => states.contains(WidgetState.selected)
+                        ? AppColors.primaryColor
+                        : Colors.transparent,
+                  ),
+                  checkColor: Colors.white,
+                  side: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ],
+            ),
+            onTap: () => onViewDetails(measurement: measurement),
+          ),
+        ),
+        Divider(indent: 50),
+      ],
     );
   }
 }
