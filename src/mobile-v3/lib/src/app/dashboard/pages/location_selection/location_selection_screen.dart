@@ -192,7 +192,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           action: SnackBarAction(
             label: 'Log In',
             onPressed: () {
-              // Navigate directly to login screen
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (context) => const LoginPage(),
@@ -221,7 +220,15 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
       loggy.info('✅ Successfully dispatched update event');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Locations saved successfully')),
+        const SnackBar(
+          content: Text(
+            'Locations saved successfully',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
 
       Navigator.pop(context, locationIdsList);
@@ -336,14 +343,65 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         if (selected) {
           if (selectedLocations.length >= maxLocations) {
             showLocationLimitError = true;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.white),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Maximum of $maxLocations favorite locations reached',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+                action: SnackBarAction(
+                  label: 'Got it',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  },
+                ),
+              ),
+            );
             return;
           }
 
           selectedLocations.add(id);
           showLocationLimitError = false;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Location added to favorites',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         } else {
           selectedLocations.remove(id);
           showLocationLimitError = false;
+
+          // Show a message when a location is removed from favorites
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Location removed from favorites',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.blueGrey,
+              duration: Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         }
       });
     }
@@ -357,31 +415,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       errorMessage = null;
       isHtmlError = false;
     });
-  }
-
-  List<Measurement> _getSortedMeasurements(List<Measurement> measurements) {
-    final sortedList = List<Measurement>.from(measurements);
-
-    sortedList.sort((a, b) {
-      final aSelected = _isLocationSelected(a);
-      final bSelected = _isLocationSelected(b);
-
-      if (aSelected && !bSelected) return -1;
-      if (!aSelected && bSelected) return 1;
-      return 0;
-    });
-
-    return sortedList;
-  }
-
-  bool _isLocationSelected(Measurement measurement) {
-    final String? id = measurement.id;
-    final String? siteId = measurement.siteId;
-    final String? siteDetailsId = measurement.siteDetails?.id;
-
-    return selectedLocations.contains(id) ||
-        selectedLocations.contains(siteId) ||
-        (siteDetailsId != null && selectedLocations.contains(siteDetailsId));
   }
 
   bool _checkForHtmlError(String message) {
@@ -429,7 +462,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           backgroundColor: Colors.transparent,
           elevation: 0,
           title: Text(
-            'Add location',
+            'Select Locations',
             style: TextStyle(
                 color: Theme.of(context).textTheme.headlineLarge?.color,
                 fontSize: 24,
@@ -486,7 +519,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'You can select up to 4 locations only',
+              'You can select up to $maxLocations locations only',
               style: TextStyle(
                 color: Colors.red[400],
                 fontSize: 14,
@@ -495,14 +528,37 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             ),
           ),
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'All locations',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.headlineMedium?.color,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Text(
+                'Selected: ${selectedLocations.length}/$maxLocations',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.headlineSmall?.color,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              if (selectedLocations.isNotEmpty)
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      selectedLocations.clear();
+                    });
+                  },
+                  icon: Icon(Icons.clear_all, size: 18),
+                  label: Text(
+                    "Clear All",
+                    style: TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red[400],
+                  ),
+                ),
+            ],
           ),
         ),
         Expanded(
@@ -512,9 +568,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             onRetry: _retryLoading,
             searchController: searchController,
             currentFilter: currentFilter,
-            allMeasurements: _getSortedMeasurements(allMeasurements),
-            filteredMeasurements: _getSortedMeasurements(filteredMeasurements),
-            localSearchResults: _getSortedMeasurements(localSearchResults),
+            allMeasurements: allMeasurements,
+            filteredMeasurements: filteredMeasurements,
+            localSearchResults: localSearchResults,
             selectedLocations: selectedLocations,
             onToggleSelection: _toggleLocationSelection,
             onViewDetails: _viewDetails,
@@ -550,7 +606,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                       ),
                     )
                   : Text(
-                      'Save (${selectedLocations.length}) Locations',
+                      'Save ${selectedLocations.length} Location${selectedLocations.length != 1 ? 's' : ''}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
