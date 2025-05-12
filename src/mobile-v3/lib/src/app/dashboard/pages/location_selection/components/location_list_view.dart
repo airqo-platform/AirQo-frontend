@@ -376,15 +376,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       color: Theme.of(context).textTheme.headlineSmall?.color,
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    "${unselectedMeasurements.length}",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
+
                 ],
               ),
             ),
