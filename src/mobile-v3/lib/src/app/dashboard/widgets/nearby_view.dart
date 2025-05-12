@@ -47,6 +47,35 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   void initState() {
     super.initState();
     _checkLocationPermission();
+    
+    // Absolute failsafe - if after 6 seconds we are still in any loading state, force exit
+    Future.delayed(Duration(seconds: 6), () {
+      if (mounted && (_isRequestingLocation || _isFetchingData)) {
+        loggy.warning('Failsafe timeout triggered after 6 seconds');
+        setState(() {
+          _isRequestingLocation = false;
+          _isFetchingData = false;
+          _errorMessage = "Loading timed out. Please check your connection and try again.";
+          
+          if (_userPosition == null) {
+            // Use default position for Kampala as extreme fallback
+            _userPosition = Position(
+              latitude: 0.3136, 
+              longitude: 32.5811, 
+              timestamp: DateTime.now(),
+              accuracy: 0,
+              altitude: 0,
+              heading: 0,
+              speed: 0,
+              speedAccuracy: 0,
+              altitudeAccuracy: 0,
+              headingAccuracy: 0
+            );
+            _errorMessage = "We had trouble determining your exact location. Showing approximate data.";
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -54,6 +83,37 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     _locationTimer?.cancel();
     _dataFetchTimer?.cancel();
     super.dispose();
+  }
+
+  // Make sure error message is prominently displayed
+  Widget _buildErrorBanner() {
+    if (_errorMessage == null) return SizedBox.shrink();
+    
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.1),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.orange),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Colors.orange.shade800,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Step 1: Check location permission without requesting it yet
@@ -101,10 +161,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       _errorMessage = null;
     });
 
-    // Set a timeout for location request
+    // Hard timeout to ensure we never get stuck in location request
     _locationTimer = Timer(const Duration(seconds: 3), () {
       if (_isRequestingLocation && mounted) {
         loggy.warning('Location request timed out after 3 seconds');
+        setState(() {
+          _errorMessage = "Location request timed out. Please check your device settings.";
+        });
         _tryLastKnownPosition();
       }
     });
@@ -128,6 +191,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       setState(() {
         _userPosition = position;
         _isRequestingLocation = false;
+        _errorMessage = null; // Clear any previous error messages
       });
 
       // Once we have location, fetch data
@@ -138,6 +202,16 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       if (!mounted) return;
       
       loggy.error('Error getting user position: $e');
+      
+      setState(() {
+        // Set specific error message based on the error type
+        if (e is TimeoutException) {
+          _errorMessage = "Location request timed out. Please check your device settings.";
+        } else {
+          _errorMessage = "Error accessing location: ${e.toString()}";
+        }
+      });
+      
       _tryLastKnownPosition();
     }
   }
@@ -176,11 +250,20 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       _isFetchingData = true;
     });
 
-    // Start a timer for data fetching
+    // Hard timeout for data fetching - will force completion after 3 seconds
     _dataFetchTimer = Timer(const Duration(seconds: 3), () {
       if (_isFetchingData && mounted) {
-        // If taking too long, show partial data
+        loggy.warning('Data fetching timed out after 3 seconds');
+        
+        // Set an error message for timeout
+        setState(() {
+          _errorMessage = "Data loading timed out. Showing partial results.";
+        });
+        
+        // Show whatever measurements we have so far or empty state
         _processMeasurementsFromCurrentState();
+        
+        // Always ensure we exit the loading state
         setState(() {
           _isFetchingData = false;
         });
@@ -196,10 +279,28 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     final state = context.read<DashboardBloc>().state;
     
     if (state is DashboardLoaded && state.response.measurements != null) {
+      final nearbyMeasurements = _findNearbyMeasurementsWithDistance(
+          state.response.measurements!);
+          
       setState(() {
-        _nearbyMeasurementsWithDistance = _findNearbyMeasurementsWithDistance(
-            state.response.measurements!);
+        _nearbyMeasurementsWithDistance = nearbyMeasurements;
         _isFetchingData = false;
+        
+        // If no measurements found, set an error message
+        if (nearbyMeasurements.isEmpty && _errorMessage == null) {
+          _errorMessage = "No air quality stations found in your area.";
+        }
+      });
+    } else {
+      // Even if we don't have data, still exit loading state to prevent endless loading
+      setState(() {
+        _nearbyMeasurementsWithDistance = [];
+        _isFetchingData = false;
+        
+        // Set error message if none exists
+        if (_errorMessage == null) {
+          _errorMessage = "Unable to load air quality data. Please try again.";
+        }
       });
     }
   }
@@ -393,6 +494,11 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Show error banner if there's an error message
+          if (_errorMessage != null)
+            _buildErrorBanner(),
+
+          
           // Skeleton measurement cards
           ...List.generate(3, (index) => 
             Container(
@@ -499,6 +605,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Show error banner if there's an error message
+        if (_errorMessage != null)
+          _buildErrorBanner(),
+          
         // Subtle location indicator without drawing too much attention
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -650,6 +760,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Show error banner if there's an error message
+        if (_errorMessage != null)
+          _buildErrorBanner(),
+        
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
@@ -729,93 +843,125 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   }
 
   Widget _buildNoNearbyMeasurementsState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.location_off, color: Colors.amber, size: 48),
-            SizedBox(height: 16),
-            Text(
-              "No air quality stations found nearby",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.headlineMedium?.color,
-              ),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Show error banner first
+          if (_errorMessage != null)
+            _buildErrorBanner(),
+            
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.location_off, color: Colors.amber, size: 48),
+                SizedBox(height: 16),
+                Text(
+                  "No air quality stations found nearby",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.headlineMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "There are no air quality monitoring stations within ${_defaultSearchRadius.toInt()} km of your location.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _retry,
+                  icon: Icon(Icons.refresh),
+                  label: Text("Refresh"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
-            Text(
-              "There are no air quality monitoring stations within ${_defaultSearchRadius.toInt()} km of your location.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _retry,
-              icon: Icon(Icons.refresh),
-              label: Text("Refresh"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 48),
-            SizedBox(height: 16),
-            Text(
-              "Error",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.headlineMedium?.color,
-              ),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, color: Colors.red, size: 48),
+                SizedBox(height: 16),
+                Text(
+                  "Error",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.headlineMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 12),
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red.shade800,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24),
+                if (_userPosition != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24.0),
+                    child: Text(
+                      "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ElevatedButton.icon(
+                  onPressed: _retry,
+                  icon: Icon(Icons.refresh),
+                  label: Text("Try Again"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
-            Text(
-              _errorMessage!,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _retry,
-              icon: Icon(Icons.refresh),
-              label: Text("Try Again"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
