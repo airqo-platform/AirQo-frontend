@@ -220,7 +220,15 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
       loggy.info('✅ Successfully dispatched update event');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Locations saved successfully')),
+        const SnackBar(
+          content: Text(
+            'Locations saved successfully',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
 
       Navigator.pop(context, locationIdsList);
@@ -366,8 +374,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
           selectedLocations.add(id);
           showLocationLimitError = false;
-          
-          // Show a success message when a location is added to favorites
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -382,7 +389,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
         } else {
           selectedLocations.remove(id);
           showLocationLimitError = false;
-          
+
           // Show a message when a location is removed from favorites
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

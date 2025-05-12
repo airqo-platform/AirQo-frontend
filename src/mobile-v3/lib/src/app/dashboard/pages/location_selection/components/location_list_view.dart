@@ -243,11 +243,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
           }
         }
 
-        // Handle filtered or all locations
         List<Measurement> measurements =
             currentFilter == "All" ? allMeasurements : filteredMeasurements;
 
-        // If no measurements
         if (measurements.isEmpty) {
           loggy.info('No measurements to display');
           return Center(
@@ -285,7 +283,6 @@ class LocationListView extends StatelessWidget with UiLoggy {
           );
         }
 
-        // Split measurements into selected and unselected
         final selectedMeasurements = <Measurement>[];
         final unselectedMeasurements = <Measurement>[];
 
@@ -307,7 +304,6 @@ class LocationListView extends StatelessWidget with UiLoggy {
         
         return ListView(
           children: [
-            // Section: Favorite Locations
             if (selectedMeasurements.isNotEmpty) ...[
               Container(
                 margin: const EdgeInsets.only(top: 12, bottom: 4),
@@ -349,7 +345,6 @@ class LocationListView extends StatelessWidget with UiLoggy {
               const Divider(thickness: 1, height: 16),
             ],
             
-            // Section: All Locations
             Container(
               margin: const EdgeInsets.only(top: 8, bottom: 4),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -388,7 +383,6 @@ class LocationListView extends StatelessWidget with UiLoggy {
   }
 
   Widget _buildLocationTile(Measurement measurement, {required BuildContext context}) {
-    // Check if this measurement is selected
     final isSelected = selectedLocations.contains(measurement.id) ||
         selectedLocations.contains(measurement.siteId) ||
         (measurement.siteDetails?.id != null &&
