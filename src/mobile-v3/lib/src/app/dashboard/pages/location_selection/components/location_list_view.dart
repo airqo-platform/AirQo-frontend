@@ -273,10 +273,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
         final unselectedMeasurements = <Measurement>[];
 
         for (var measurement in measurements) {
-          final isSelected = selectedLocations.contains(measurement.id) ||
-              selectedLocations.contains(measurement.siteId) ||
-              (measurement.siteDetails?.id != null &&
-                  selectedLocations.contains(measurement.siteDetails!.id));
+          final isSelected = selectedLocations.contains(measurement.siteId);
 
           if (isSelected) {
             selectedMeasurements.add(measurement);
@@ -372,10 +369,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
 
   Widget _buildLocationTile(Measurement measurement,
       {required BuildContext context}) {
-    final isSelected = selectedLocations.contains(measurement.id) ||
-        selectedLocations.contains(measurement.siteId) ||
-        (measurement.siteDetails?.id != null &&
-            selectedLocations.contains(measurement.siteDetails!.id));
+    final isSelected = selectedLocations.contains(measurement.siteId);
 
     return Column(
       children: [
