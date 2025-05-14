@@ -30,7 +30,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
     try {
       emit(DashboardLoading());
 
-      // Load air quality data
       AirQualityResponse response = await repository.fetchAirQualityReadings();
 
       UserPreferencesModel? preferences;
@@ -43,19 +42,16 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           final prefsResponse =
               await preferencesRepo.getUserPreferences(userId);
 
-          // Debug log to see the structure of the response
           loggy.info(
               'Preference response structure: ${prefsResponse.keys.toList()}');
 
           if (prefsResponse['success'] == true) {
             try {
-              // New parsing strategy for the list-based preferences
               if (prefsResponse['preferences'] is List &&
                   prefsResponse['preferences'].isNotEmpty) {
-                // Take the first item in the preferences list
+
                 final preferenceData = prefsResponse['preferences'].first;
 
-                // Ensure it's a Map before parsing
                 if (preferenceData is Map<String, dynamic>) {
                   preferences = UserPreferencesModel.fromJson(preferenceData);
 
@@ -64,7 +60,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
                 }
               }
 
-              // Fallback parsing strategies
               if (preferences == null) {
                 if (prefsResponse['preference'] != null) {
                   preferences = UserPreferencesModel.fromJson(
@@ -95,10 +90,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         loggy.error('Error loading preferences during dashboard load: $e');
       }
 
-      // Emit loaded state with preferences (if loaded) or null
       emit(DashboardLoaded(response, userPreferences: preferences));
 
-      // If preferences failed to load initially, try again as a separate event
       if (preferences == null) {
         loggy.info(
             'Preferences not loaded initially, retrying as separate event');
@@ -111,7 +104,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   }
 
   Future<void> _handleUpdateSelectedLocations(
-      List<String> locationIds, Emitter<DashboardState> emit) async {
+      List<String> siteIds, Emitter<DashboardState> emit) async {
     if (state is! DashboardLoaded) return;
 
     try {
@@ -124,47 +117,45 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       }
 
       loggy.info(
-          'Updating selected locations for user $userId with ${locationIds.length} IDs');
-      for (final id in locationIds) {
+          'Updating selected locations for user $userId with ${siteIds.length} IDs');
+      for (final id in siteIds) {
         loggy.info('Selected location ID: $id');
       }
 
-      // Build selectedSites only from provided locationIds
-      List<Map<String, dynamic>> selectedSites = [];
-      for (final id in locationIds) {
-        // Try to find a matching measurement or leave as null
-        Measurement? matchingMeasurement;
-        if (currentState.response.measurements != null) {
-          for (var m in currentState.response.measurements!) {
-            if (m.id == id || m.siteId == id || m.siteDetails?.id == id) {
-              matchingMeasurement = m;
-              break;
-            }
+      final measurementsBySiteId = <String, Measurement>{};
+      if (currentState.response.measurements != null) {
+        for (var m in currentState.response.measurements!) {
+          if (m.siteId != null && m.siteId!.isNotEmpty) {
+            measurementsBySiteId[m.siteId!] = m;
           }
         }
+      }
 
-        if (matchingMeasurement != null) {
-          double? latitude =
-              matchingMeasurement.siteDetails?.approximateLatitude ??
-                  matchingMeasurement.siteDetails?.siteCategory?.latitude;
-          double? longitude =
-              matchingMeasurement.siteDetails?.approximateLongitude ??
-                  matchingMeasurement.siteDetails?.siteCategory?.longitude;
+      List<Map<String, dynamic>> selectedSites = [];
+      for (final siteId in siteIds) {
+      final measurement = measurementsBySiteId[siteId];
+      
+      if (measurement != null) {
+        double? latitude = measurement.siteDetails?.approximateLatitude ?? 
+                          measurement.siteDetails?.siteCategory?.latitude;
+        double? longitude = measurement.siteDetails?.approximateLongitude ?? 
+                           measurement.siteDetails?.siteCategory?.longitude;
+
 
           selectedSites.add({
-            "_id": id,
-            "name": matchingMeasurement.siteDetails?.name ?? 'Unknown Location',
-            "search_name": matchingMeasurement.siteDetails?.searchName ??
-                matchingMeasurement.siteDetails?.name ??
+            "_id": siteId,
+            "name": measurement.siteDetails?.name ?? 'Unknown Location',
+            "search_name": measurement.siteDetails?.searchName ??
+                measurement.siteDetails?.name ??
                 'Unknown Location',
             "latitude": latitude,
             "longitude": longitude,
             "createdAt": DateTime.now().toIso8601String(),
           });
           loggy.info(
-              'Added site: ${matchingMeasurement.siteDetails?.name} (ID: $id)');
+              'Added site: ${measurement.siteDetails?.name} (ID: $siteId)');
         } else {
-          loggy.warning('Could not find details for location ID: $id');
+          loggy.warning('Could not find details for location ID: $siteId');
         }
       }
 

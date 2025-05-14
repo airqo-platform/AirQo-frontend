@@ -19,7 +19,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
   final List<Measurement> filteredMeasurements;
   final List<Measurement> localSearchResults;
   final Set<String> selectedLocations;
-  final Function(String?, bool) onToggleSelection;
+  final Function(Measurement, bool) onToggleSelection;
   final Function({Measurement? measurement, String? placeName}) onViewDetails;
   final VoidCallback onResetFilter;
 
@@ -43,12 +43,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
   Widget build(BuildContext context) {
     return BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
       builder: (context, placesState) {
-        // Check dashboard state for loading/error conditions
         final dashboardState = context.watch<DashboardBloc>().state;
         loggy.debug(
             'Building with GooglePlacesState: ${placesState.runtimeType}, DashboardState: ${dashboardState.runtimeType}');
 
-        // Handle loading state
         if (isLoading || dashboardState is DashboardLoading) {
           loggy.info('Showing loading indicator');
           return Center(
@@ -69,7 +67,6 @@ class LocationListView extends StatelessWidget with UiLoggy {
           );
         }
 
-        // Handle error state
         if (errorMessage != null || dashboardState is DashboardLoadingError) {
           final errorMsg = errorMessage ??
               (dashboardState is DashboardLoadingError
@@ -109,7 +106,6 @@ class LocationListView extends StatelessWidget with UiLoggy {
           );
         }
 
-        // Handle search results
         if (searchController.text.isNotEmpty) {
           loggy.info('Handling search for "${searchController.text}"');
           if (placesState is SearchLoading) {
@@ -180,20 +176,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
                                       ?.withOpacity(0.7)),
                             ),
                             trailing: Checkbox(
-                              value:
-                                  selectedLocations.contains(measurement.id) ||
-                                      selectedLocations
-                                          .contains(measurement.siteId) ||
-                                      (measurement.siteDetails?.id != null &&
-                                          selectedLocations.contains(
-                                              measurement.siteDetails!.id)),
+                              value: selectedLocations
+                                  .contains(measurement.siteId),
                               onChanged: (value) {
-                                String? idToUse = measurement.id ??
-                                    measurement.siteId ??
-                                    measurement.siteDetails?.id;
-                                if (idToUse != null) {
-                                  onToggleSelection(idToUse, value!);
-                                }
+                                onToggleSelection(measurement, value!);
                               },
                               fillColor: WidgetStateProperty.resolveWith(
                                 (states) =>
@@ -287,12 +273,11 @@ class LocationListView extends StatelessWidget with UiLoggy {
         final unselectedMeasurements = <Measurement>[];
 
         for (var measurement in measurements) {
-          final isSelected = 
-              selectedLocations.contains(measurement.id) ||
+          final isSelected = selectedLocations.contains(measurement.id) ||
               selectedLocations.contains(measurement.siteId) ||
-              (measurement.siteDetails?.id != null && 
-               selectedLocations.contains(measurement.siteDetails!.id));
-          
+              (measurement.siteDetails?.id != null &&
+                  selectedLocations.contains(measurement.siteDetails!.id));
+
           if (isSelected) {
             selectedMeasurements.add(measurement);
           } else {
@@ -300,16 +285,18 @@ class LocationListView extends StatelessWidget with UiLoggy {
           }
         }
 
-        loggy.debug('Split measurements: ${selectedMeasurements.length} selected, ${unselectedMeasurements.length} unselected');
-        
+        loggy.debug(
+            'Split measurements: ${selectedMeasurements.length} selected, ${unselectedMeasurements.length} unselected');
+
         return ListView(
           children: [
             if (selectedMeasurements.isNotEmpty) ...[
               Container(
                 margin: const EdgeInsets.only(top: 12, bottom: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark 
+                  color: Theme.of(context).brightness == Brightness.dark
                       ? AppColors.darkHighlight.withOpacity(0.5)
                       : AppColors.lightHighlight.withOpacity(0.5),
                 ),
@@ -341,15 +328,15 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   ],
                 ),
               ),
-              ...selectedMeasurements.map((m) => _buildLocationTile(m, context: context)),
+              ...selectedMeasurements
+                  .map((m) => _buildLocationTile(m, context: context)),
               const Divider(thickness: 1, height: 16),
             ],
-            
             Container(
               margin: const EdgeInsets.only(top: 8, bottom: 4),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark 
+                color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkHighlight.withOpacity(0.5)
                     : AppColors.lightHighlight.withOpacity(0.5),
               ),
@@ -362,7 +349,8 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    unselectedMeasurements.isEmpty && selectedMeasurements.isNotEmpty
+                    unselectedMeasurements.isEmpty &&
+                            selectedMeasurements.isNotEmpty
                         ? "Other Locations"
                         : "All Locations",
                     style: TextStyle(
@@ -371,23 +359,24 @@ class LocationListView extends StatelessWidget with UiLoggy {
                       color: Theme.of(context).textTheme.headlineSmall?.color,
                     ),
                   ),
-
                 ],
               ),
             ),
-            ...unselectedMeasurements.map((m) => _buildLocationTile(m, context: context)),
+            ...unselectedMeasurements
+                .map((m) => _buildLocationTile(m, context: context)),
           ],
         );
       },
     );
   }
 
-  Widget _buildLocationTile(Measurement measurement, {required BuildContext context}) {
+  Widget _buildLocationTile(Measurement measurement,
+      {required BuildContext context}) {
     final isSelected = selectedLocations.contains(measurement.id) ||
         selectedLocations.contains(measurement.siteId) ||
         (measurement.siteDetails?.id != null &&
             selectedLocations.contains(measurement.siteDetails!.id));
-            
+
     return Column(
       children: [
         Container(
@@ -450,12 +439,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                 Checkbox(
                   value: isSelected,
                   onChanged: (value) {
-                    String? idToUse = measurement.id ??
-                        measurement.siteId ??
-                        measurement.siteDetails?.id;
-                    if (idToUse != null) {
-                      onToggleSelection(idToUse, value!);
-                    }
+                    onToggleSelection(measurement, value!);
                   },
                   fillColor: WidgetStateProperty.resolveWith(
                     (states) => states.contains(WidgetState.selected)
