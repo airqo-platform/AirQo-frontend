@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -51,8 +52,20 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   Future<void> _getUserCountry() async {
+    if (!mounted) return;
     try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
       final position = await Geolocator.getCurrentPosition();
+
       final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
 
@@ -110,6 +123,10 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
             },
             child: const Text('Login'),
           ),

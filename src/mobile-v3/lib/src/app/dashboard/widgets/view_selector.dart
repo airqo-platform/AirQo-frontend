@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:flutter/material.dart';
@@ -251,6 +252,32 @@ class _ViewSelectorState extends State<ViewSelector> {
               ),
             ),
           ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+            child: const Text(
+              'Login',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ],
         actionsAlignment: MainAxisAlignment.spaceBetween,
         actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -308,7 +335,7 @@ class _ViewSelectorState extends State<ViewSelector> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primaryColor
-              : isUserCountry && isSelected
+              : isUserCountry && !isSelected
                   ? Theme.of(context).brightness == Brightness.dark
                       ? AppColors.darkHighlight.withOpacity(0.8)
                       : AppColors.dividerColorlight.withOpacity(0.8)
@@ -335,9 +362,9 @@ class _ViewSelectorState extends State<ViewSelector> {
                     : Theme.of(context).brightness == Brightness.dark
                         ? Colors.white
                         : Colors.black87,
-                        fontWeight: isSelected || isUserCountry 
-                        ? FontWeight.bold
-                        : FontWeight.w500,
+                fontWeight: isSelected || isUserCountry
+                    ? FontWeight.bold
+                    : FontWeight.w500,
               ),
             ),
           ],
