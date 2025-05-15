@@ -1,5 +1,5 @@
-
 import 'package:airqo/src/app/auth/pages/register_page.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -11,6 +11,7 @@ class ViewSelector extends StatefulWidget {
   final String? selectedCountry;
   final Function(DashboardView view, {String? country}) onViewChanged;
   final bool isGuestUser;
+  final String? userCountry;
 
   const ViewSelector({
     super.key,
@@ -18,6 +19,7 @@ class ViewSelector extends StatefulWidget {
     this.selectedCountry,
     required this.onViewChanged,
     this.isGuestUser = false,
+    this.userCountry,
   });
 
   @override
@@ -27,18 +29,38 @@ class ViewSelector extends StatefulWidget {
 class _ViewSelectorState extends State<ViewSelector> {
   final GlobalKey _myPlacesTooltipKey = GlobalKey<TooltipState>();
   final GlobalKey _nearbyTooltipKey = GlobalKey<TooltipState>();
+  late List<CountryModel> sortedCountries;
 
   @override
   void initState() {
     super.initState();
+    _sortCountries();
     _triggerTooltipOnViewChange();
   }
 
   @override
   void didUpdateWidget(ViewSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.userCountry != widget.userCountry) {
+      _sortCountries();
+    }
     if (oldWidget.currentView != widget.currentView) {
       _triggerTooltipOnViewChange();
+    }
+  }
+
+  void _sortCountries() {
+    sortedCountries = List.from(CountryRepository.countries);
+
+    if (widget.userCountry != null && widget.userCountry!.isNotEmpty) {
+      int userCountryIndex = sortedCountries.indexWhere((country) =>
+          country.countryName.toLowerCase() ==
+          widget.userCountry!.toLowerCase());
+
+      if (userCountryIndex != -1) {
+        CountryModel userCountry = sortedCountries.removeAt(userCountryIndex);
+        sortedCountries.insert(0, userCountry);
+      }
     }
   }
 
@@ -71,7 +93,6 @@ class _ViewSelectorState extends State<ViewSelector> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // For authenticated users, show both Favorites and Near You
           if (!widget.isGuestUser) ...[
             Tooltip(
               key: _myPlacesTooltipKey,
@@ -118,7 +139,6 @@ class _ViewSelectorState extends State<ViewSelector> {
             ),
             SizedBox(width: 8),
           ],
-
           if (widget.isGuestUser)
             Tooltip(
               message: "Create an account to access all features",
@@ -140,10 +160,8 @@ class _ViewSelectorState extends State<ViewSelector> {
                 onTap: () => _showLoginPrompt(),
               ),
             ),
-
           SizedBox(width: 8),
-
-          ...CountryRepository.countries.map((country) => Padding(
+          ...sortedCountries.map((country) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: _buildCountryButton(
                   context,
@@ -153,6 +171,8 @@ class _ViewSelectorState extends State<ViewSelector> {
                       widget.selectedCountry == country.countryName,
                   onTap: () => widget.onViewChanged(DashboardView.country,
                       country: country.countryName),
+                  isUserCountry: widget.userCountry?.toLowerCase() ==
+                      country.countryName.toLowerCase(),
                 ),
               )),
         ],
@@ -279,6 +299,7 @@ class _ViewSelectorState extends State<ViewSelector> {
     required String name,
     required bool isSelected,
     required VoidCallback onTap,
+    bool isUserCountry = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -287,10 +308,20 @@ class _ViewSelectorState extends State<ViewSelector> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primaryColor
-              : Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight,
+              : isUserCountry && isSelected
+                  ? Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight.withOpacity(0.8)
+                      : AppColors.dividerColorlight.withOpacity(0.8)
+                  : Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight
+                      : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
+          border: isUserCountry && !isSelected
+              ? Border.all(
+                  color: AppColors.primaryColor.withOpacity(0.3),
+                  width: 1,
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -304,7 +335,9 @@ class _ViewSelectorState extends State<ViewSelector> {
                     : Theme.of(context).brightness == Brightness.dark
                         ? Colors.white
                         : Colors.black87,
-                fontWeight: FontWeight.w500,
+                        fontWeight: isSelected || isUserCountry 
+                        ? FontWeight.bold
+                        : FontWeight.w500,
               ),
             ),
           ],
