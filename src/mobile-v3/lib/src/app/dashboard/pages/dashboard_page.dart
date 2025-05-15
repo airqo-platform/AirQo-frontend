@@ -28,31 +28,64 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   String? selectedCountry;
 
   @override
-  void initState() {
-    super.initState();
-    loggy.info('Initializing DashboardPage');
+void initState() {
+  super.initState();
+  
+  context.read<DashboardBloc>().add(LoadDashboard());
+  context.read<UserBloc>().add(LoadUser());
 
-    context.read<DashboardBloc>().add(LoadDashboard());
-    context.read<UserBloc>().add(LoadUser());
-
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthInitial || authState is GuestUser) {
-      loggy.info('Using guest account');
-      context.read<AuthBloc>().add(UseAsGuest());
-    } else {
-      loggy.info('User is already authenticated');
-    }
-  }
-
-  void setView(DashboardView view, {String? country}) {
+  final authState = context.read<AuthBloc>().state;
+  final isGuest = authState is GuestUser;
+  
+  if (isGuest) {
     setState(() {
-      currentView = view;
-      selectedCountry = country;
+      currentView = DashboardView.all; 
     });
+  }
+}
+
+ void setView(DashboardView view, {String? country}) {
+  final authState = context.read<AuthBloc>().state;
+  final isGuest = authState is GuestUser;
+  
+  if (isGuest && (view == DashboardView.favorites || view == DashboardView.nearYou)) {
+    _showLoginPrompt();
+    return;
+  }
+  
+  setState(() {
+    currentView = view;
+    selectedCountry = country;
+  });
+}
+
+  void _showLoginPrompt() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Login Required'),
+        content: const Text('Please log in to access this feature.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Login'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final isGuest = authState is GuestUser;
+
     return Scaffold(
       appBar: DashboardAppBar(),
       body: Stack(
@@ -67,6 +100,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   currentView: currentView,
                   selectedCountry: selectedCountry,
                   onViewChanged: setView,
+                  isGuestUser: isGuest,
                 ),
               ),
               SliverToBoxAdapter(
@@ -74,8 +108,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               ),
             ],
           ),
-
-          if (currentView == DashboardView.favorites)
+          if (currentView == DashboardView.favorites && !isGuest)
             Positioned(
               right: 20,
               bottom: 20,
@@ -152,7 +185,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             return ErrorPage();
           }
         });
-      default: // DashboardView.all
+      default:
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoaded) {
