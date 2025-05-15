@@ -68,6 +68,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   synchronized: ^3.3.0+3
+  geocoding: ^3.0.0
 
 
 dev_dependencies:
