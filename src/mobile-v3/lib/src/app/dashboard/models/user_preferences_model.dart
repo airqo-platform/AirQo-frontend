@@ -20,7 +20,7 @@ class SelectedSite extends Equatable {
   List<Object?> get props => [id, name, searchName, latitude, longitude];
 
   factory SelectedSite.fromJson(Map<String, dynamic> json) {
-    final String id = json['_id'] ?? json['id'] ?? '';
+    final String id = json['_id'] ?? '';
     
     final String name = json['name'] ?? 'Unknown Location';
     final String searchName = json['search_name'] ?? json['searchName'] ?? name;
@@ -45,7 +45,6 @@ class SelectedSite extends Equatable {
     };
   }
 
-  // Helper method to safely parse doubles
   static double? _parseDouble(dynamic value) {
     if (value == null) return null;
     if (value is num) return value.toDouble();
@@ -64,8 +63,7 @@ class UserPreferencesModel extends Equatable with UiLoggy {
   final String id;
   final String userId;
   final List<SelectedSite> selectedSites;
-  
-  // Optional fields 
+
   final String? pollutant;
   final String? frequency;
   final DateTime? startDate;
@@ -130,13 +128,10 @@ class UserPreferencesModel extends Equatable with UiLoggy {
     logger.info('Parsing UserPreferencesModel from JSON');
     logger.info('JSON keys: ${json.keys.toList()}');
 
-    // Extract ID with multiple fallback strategies
-    final String id = json['_id'] ?? json['id'] ?? '';
+    final String id = json['_id'] ?? '';
 
-    // Extract user ID
-    final String userId = json['user_id'] ?? json['userId'] ?? '';
+    final String userId = json['user_id'] ?? '';
 
-    // Extract selected sites with comprehensive parsing
     List<SelectedSite> sites = [];
     try {
       final selectedSitesRaw =
@@ -160,7 +155,6 @@ class UserPreferencesModel extends Equatable with UiLoggy {
       logger.error('Error parsing selected sites: $e');
     }
 
-    // Parse dates safely
     DateTime? startDate;
     DateTime? endDate;
     try {
@@ -184,7 +178,6 @@ class UserPreferencesModel extends Equatable with UiLoggy {
       }
     }
 
-    // Parse string lists
     List<String>? siteIds;
     List<String>? deviceIds;
     
