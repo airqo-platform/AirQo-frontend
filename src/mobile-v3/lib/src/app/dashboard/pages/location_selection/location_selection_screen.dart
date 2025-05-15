@@ -337,8 +337,10 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     }
   }
 
-  void _toggleLocationSelection(String? id, bool selected) {
-    if (id != null) {
+  void _toggleLocationSelection(Measurement measurement, bool selected) {
+    final String? siteId = measurement.siteId;
+
+    if (siteId != null) {
       setState(() {
         if (selected) {
           if (selectedLocations.length >= maxLocations) {
@@ -372,7 +374,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             return;
           }
 
-          selectedLocations.add(id);
+          selectedLocations.add(siteId);
           showLocationLimitError = false;
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -387,7 +389,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
             ),
           );
         } else {
-          selectedLocations.remove(id);
+          selectedLocations.remove(siteId);
           showLocationLimitError = false;
 
           // Show a message when a location is removed from favorites
