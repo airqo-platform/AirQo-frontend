@@ -1,6 +1,6 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/debug/slack_logger_test_screen.dart';
-import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
@@ -91,28 +91,80 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     );
   }
 
-  void _showLogoutConfirmation() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Confirm Logout'),
-        content: Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            onPressed: () => _handleLogout(dialogContext),
-            child: Text('Log Out'),
-          ),
-        ],
+void _showLogoutConfirmation() {
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-    );
-  }
+      title: Text(
+        'Confirm Logout',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: isDarkMode 
+              ? AppColors.boldHeadlineColor2 
+              : AppColors.boldHeadlineColor5,
+        ),
+      ),
+      content: Text(
+        'Are you sure you want to log out?',
+        style: TextStyle(
+          fontSize: 16,
+          color: isDarkMode 
+              ? AppColors.secondaryHeadlineColor2 
+              : AppColors.secondaryHeadlineColor,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          style: TextButton.styleFrom(
+            foregroundColor: isDarkMode 
+                ? Colors.grey[400] 
+                : Colors.grey[700],
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red.shade600,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            elevation: 0,
+          ),
+          onPressed: () => _handleLogout(dialogContext),
+          child: Text(
+            'Log Out',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+      actionsAlignment: MainAxisAlignment.spaceBetween, 
+      actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      titlePadding: EdgeInsets.fromLTRB(24, 24, 24, 12),
+      contentPadding: EdgeInsets.fromLTRB(24, 0, 24, 24),
+    ),
+  );
+}
 
   Future<void> _handleLogout(BuildContext dialogContext) async {
     Navigator.pop(dialogContext);
@@ -188,7 +240,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                      // Add the developer option here, before the logout button
           if (kDebugMode)
             SettingsTile(
-              iconPath: "assets/images/shared/feedback_icon.svg", // Use an appropriate icon
+              iconPath: "assets/images/shared/feedback_icon.svg",
               title: "Test Slack Logger",
               description: "Developer option to test Slack integration",
               onTap: () {
