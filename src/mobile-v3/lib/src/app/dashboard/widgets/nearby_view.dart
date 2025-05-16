@@ -37,14 +37,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   Future<void> _handleRefresh() async {
     loggy.info('Manually refreshing nearby view data');
-
+    
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-
+    
     await _initializeLocationAndData();
-
+    
     return Future.delayed(const Duration(milliseconds: 500));
   }
 
@@ -97,30 +97,28 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         ).timeout(
           const Duration(seconds: 5),
           onTimeout: () {
-            throw TimeoutException(
-                'Location request timed out after 5 seconds');
+            throw TimeoutException('Location request timed out after 5 seconds');
           },
         );
 
         if (!mounted) return;
-
-        loggy.info(
-            'Retrieved user position: ${position.latitude}, ${position.longitude}');
-
+        
+        loggy.info('Retrieved user position: ${position.latitude}, ${position.longitude}');
+        
         setState(() {
           _userPosition = position;
           _isLoading = false;
         });
+
       } catch (e) {
         if (!mounted) return;
-
+        
         loggy.error('Error getting user position: $e');
-
+        
         if (e is TimeoutException) {
           setState(() {
             _isLoading = false;
-            _errorMessage =
-                'Location request timed out. Please check your location settings and try again.';
+            _errorMessage = 'Location request timed out. Please check your location settings and try again.';
           });
           return;
         }
@@ -128,8 +126,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         try {
           final lastKnownPosition = await Geolocator.getLastKnownPosition();
           if (lastKnownPosition != null && mounted) {
-            loggy.info(
-                'Using last known position: ${lastKnownPosition.latitude}, ${lastKnownPosition.longitude}');
+            loggy.info('Using last known position: ${lastKnownPosition.latitude}, ${lastKnownPosition.longitude}');
             setState(() {
               _userPosition = lastKnownPosition;
               _isLoading = false;
@@ -144,8 +141,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _errorMessage =
-                'Could not determine your location. Please try again.';
+            _errorMessage = 'Could not determine your location. Please try again.';
           });
         }
       }
@@ -173,8 +169,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       return [];
     }
 
-    loggy.info(
-        'Finding nearby measurements from ${allMeasurements.length} total measurements');
+    loggy.info('Finding nearby measurements from ${allMeasurements.length} total measurements');
     final measWithDistance = <MapEntry<Measurement, double>>[];
     int skippedMeasurements = 0;
 
@@ -203,8 +198,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
       if (distance <= _defaultSearchRadius) {
         measWithDistance.add(MapEntry(measurement, distance));
-        loggy.info(
-            'Found nearby measurement at ${siteDetails.name ?? "Unknown"}: ${distance.toStringAsFixed(2)}km away');
+        loggy.info('Found nearby measurement at ${siteDetails.name ?? "Unknown"}: ${distance.toStringAsFixed(2)}km away');
       }
     }
 
@@ -238,9 +232,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   @override
   Widget build(BuildContext context) {
-    loggy.info(
-        'NearbyView build - isLoading: $_isLoading, hasError: ${_errorMessage != null}, hasPosition: ${_userPosition != null}');
-
+    loggy.info('NearbyView build - isLoading: $_isLoading, hasError: ${_errorMessage != null}, hasPosition: ${_userPosition != null}');
+    
     return RefreshIndicator(
       onRefresh: widget.onRefresh ?? _handleRefresh,
       color: AppColors.primaryColor,
@@ -296,10 +289,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.color,
+                            color: Theme.of(context).textTheme.headlineMedium?.color,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -308,8 +298,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         SizedBox(height: 24),
@@ -329,7 +318,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               ],
             );
           }
-
+          
           // If location timed out
           if (_errorMessage != null && _errorMessage!.contains('timed out')) {
             return ListView(
@@ -348,10 +337,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.color,
+                            color: Theme.of(context).textTheme.headlineMedium?.color,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -360,8 +346,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         SizedBox(height: 24),
@@ -392,15 +377,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(
-                            color: AppColors.primaryColor),
+                        CircularProgressIndicator(color: AppColors.primaryColor),
                         SizedBox(height: 16),
                         Text(
                           "Getting your location...",
                           style: TextStyle(
                             fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ],
@@ -421,15 +404,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(
-                            color: AppColors.primaryColor),
+                        CircularProgressIndicator(color: AppColors.primaryColor),
                         SizedBox(height: 16),
                         Text(
                           "Loading air quality data near you...",
                           style: TextStyle(
                             fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -461,18 +442,15 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.location_off,
-                                color: Colors.amber, size: 48),
+                            Icon(Icons.location_off, color: Colors.amber, size: 48),
                             SizedBox(height: 16),
                             Text(
                               "No air quality stations found nearby",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.color,
+                                color:
+                                    Theme.of(context).textTheme.headlineMedium?.color,
                               ),
                             ),
                             SizedBox(height: 8),
@@ -481,10 +459,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
+                                color: Theme.of(context).textTheme.bodyMedium?.color,
                               ),
                             ),
                             SizedBox(height: 8),
@@ -550,7 +525,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     ],
                   ),
                 ),
-
+                
                 // User location indicator
                 if (_userPosition != null)
                   Padding(
@@ -590,12 +565,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   return NearbyMeasurementCard(
                       measurement: measurement, distance: distance);
                 }),
-
+                
                 SizedBox(height: 16),
               ],
             );
           }
 
+          // If there's another error
           if (_errorMessage != null) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -608,18 +584,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.error_outline,
-                              color: Colors.red, size: 48),
+                          Icon(Icons.error_outline, color: Colors.red, size: 48),
                           SizedBox(height: 16),
                           Text(
                             "Error",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
-                                  ?.color,
+                              color: Theme.of(context).textTheme.headlineMedium?.color,
                             ),
                           ),
                           SizedBox(height: 8),
@@ -628,8 +600,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                           SizedBox(height: 24),
