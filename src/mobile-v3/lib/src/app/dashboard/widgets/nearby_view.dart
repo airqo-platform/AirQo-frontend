@@ -10,7 +10,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:async/async.dart';
 import 'dart:async';
 
-// Singleton to persist state across rebuilds
+
 class NearbyViewStateManager {
   static Position? _userPosition;
   static bool _isLoading = true;
@@ -95,7 +95,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     try {
       NearbyViewStateManager.setState(isLoading: true, errorMessage: null);
 
-      // Fallback to ensure UI updates after 6 seconds
       Future.delayed(const Duration(seconds: 6), () {
         if (mounted && NearbyViewStateManager.isLoading) {
           loggy.warning('Forcing UI update after timeout');
@@ -565,9 +564,12 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       height: MediaQuery.of(context).size.height * 0.7,
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(24.0),
+                          padding: const EdgeInsets.symmetric(
+                             vertical: 90,
+                             horizontal: 16,
+                          ),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               const Icon(Icons.location_off,
                                   color: Colors.amber, size: 48),
@@ -648,7 +650,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                         const Spacer(),
                         TextButton.icon(
                           onPressed: _retry,
-                          icon: const Icon(Icons.refresh, size: 18),
+                          icon: const Icon(Icons.refresh, size: 18,),
                           label: const Text("Refresh"),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.primaryColor,
@@ -703,7 +705,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             }
 
             if (NearbyViewStateManager.errorMessage != null) {
-              loggy.info('Rendering general error UI');
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
@@ -760,7 +761,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               );
             }
 
-            loggy.info('Rendering default loading UI');
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
