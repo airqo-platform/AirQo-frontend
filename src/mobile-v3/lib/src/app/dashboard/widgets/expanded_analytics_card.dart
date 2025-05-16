@@ -59,14 +59,12 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
   }
 
   String _getHealthTipTagline() {
-    // Get health tip from measurement if available
     if (widget.measurement.healthTips != null &&
         widget.measurement.healthTips!.isNotEmpty &&
-        widget.measurement.healthTips![0].title != null) {
-      return widget.measurement.healthTips![0].title!;
+        widget.measurement.healthTips![0].tagLine != null) {
+      return widget.measurement.healthTips![0].tagLine!;
     }
 
-    // Default tagline based on AQI category
     switch (widget.measurement.aqiCategory?.toLowerCase() ?? '') {
       case 'good':
         return "Enjoy outdoor activities in good air quality";
@@ -87,14 +85,12 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
   }
 
   String? _getHealthTipDescription() {
-    // Get health tip description from measurement if available
     if (widget.measurement.healthTips != null &&
         widget.measurement.healthTips!.isNotEmpty &&
         widget.measurement.healthTips![0].description != null) {
       return widget.measurement.healthTips![0].description!;
     }
 
-    // No default fallbacks - return null if no health tip found
     return null;
   }
 
