@@ -1,6 +1,6 @@
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
@@ -342,6 +342,378 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     }
   }
 
+  // Extract UI builders for each state
+  Widget _buildPermissionError() {
+    loggy.info('Rendering permission error UI');
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        NearbyViewEmptyState(
+          errorMessage: NearbyViewStateManager.errorMessage,
+          onRetry: _retry,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationServicesDisabled() {
+    loggy.info('Rendering services disabled error UI');
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.location_off, color: Colors.amber, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  "Location Services Disabled",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.headlineMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Please enable location services in your device settings to see air quality data near you.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _openLocationSettings,
+                  icon: const Icon(Icons.settings),
+                  label: const Text("Open Location Settings"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimeoutError() {
+    loggy.info('Rendering timeout error UI');
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Timeout Error'),
+                const SizedBox(height: 16),
+                Text(
+                  NearbyViewStateManager.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _retry,
+                  child: const Text('Try Again'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingLocation() {
+    loggy.info('Rendering loading UI');
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppColors.primaryColor),
+                const SizedBox(height: 16),
+                Text(
+                  "Getting your location...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingDashboard() {
+    loggy.info('Rendering dashboard loading UI');
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppColors.primaryColor),
+                const SizedBox(height: 16),
+                Text(
+                  "Loading air quality data near you...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Location found: ${NearbyViewStateManager.userPosition!.latitude.toStringAsFixed(4)}, ${NearbyViewStateManager.userPosition!.longitude.toStringAsFixed(4)}",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNoNearbyStations() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 90,
+                horizontal: 16,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_off, color: Colors.amber, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No air quality stations found nearby",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "There are no air quality monitoring stations within ${_defaultSearchRadius.toInt()} km of your location.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Your location: ${NearbyViewStateManager.userPosition!.latitude.toStringAsFixed(4)}, ${NearbyViewStateManager.userPosition!.longitude.toStringAsFixed(4)}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _retry,
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    label: const Text("Refresh"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNearbyMeasurements() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Icon(Icons.location_on, color: AppColors.primaryColor, size: 18),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  "Showing ${_nearbyMeasurementsWithDistance.length} locations near you",
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: _retry,
+                icon: const Icon(Icons.refresh, size: 18, color: Colors.white),
+                label: const Text("Refresh"),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryColor,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (NearbyViewStateManager.userPosition != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.my_location, color: Colors.blue, size: 16),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      "Your location: ${NearbyViewStateManager.userPosition!.latitude.toStringAsFixed(4)}, ${NearbyViewStateManager.userPosition!.longitude.toStringAsFixed(4)}",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ..._nearbyMeasurementsWithDistance.map((entry) {
+          final measurement = entry.key;
+          final distance = entry.value;
+
+          return NearbyMeasurementCard(
+              measurement: measurement, distance: distance);
+        }),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildGenericError() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Error",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    NearbyViewStateManager.errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _retry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Try Again"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreparingData() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.primaryColor,
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Preparing air quality data...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     loggy.info(
@@ -383,412 +755,53 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             }
           },
           builder: (context, state) {
+            // Permission error
             if (NearbyViewStateManager.errorMessage != null &&
                 NearbyViewStateManager.errorMessage!.contains('permission')) {
-              loggy.info('Rendering permission error UI');
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  NearbyViewEmptyState(
-                    errorMessage: NearbyViewStateManager.errorMessage,
-                    onRetry: _retry,
-                  ),
-                ],
-              );
+              return _buildPermissionError();
             }
 
+            // Location services disabled
             if (NearbyViewStateManager.errorMessage != null &&
-                NearbyViewStateManager.errorMessage!
-                    .contains('services are disabled')) {
-              loggy.info('Rendering services disabled error UI');
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.location_off,
-                              color: Colors.amber, size: 48),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Location Services Disabled",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
-                                  ?.color,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Please enable location services in your device settings to see air quality data near you.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: _openLocationSettings,
-                            icon: const Icon(Icons.settings),
-                            label: const Text("Open Location Settings"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
+                NearbyViewStateManager.errorMessage!.contains('services are disabled')) {
+              return _buildLocationServicesDisabled();
             }
 
+            // Timeout error
             if (NearbyViewStateManager.errorMessage != null &&
                 NearbyViewStateManager.errorMessage!.contains('timed out')) {
-              loggy.info('Rendering timeout error UI');
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Timeout Error'),
-                          const SizedBox(height: 16),
-                          Text(
-                            NearbyViewStateManager.errorMessage!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: _retry,
-                            child: const Text('Try Again'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
+              return _buildTimeoutError();
             }
 
+            // Loading location
             if (NearbyViewStateManager.isLoading) {
-              loggy.info('Rendering loading UI');
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                              color: AppColors.primaryColor),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Getting your location...",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
+              return _buildLoadingLocation();
             }
 
+            // Loading dashboard with position available
             if (state is DashboardLoading &&
                 NearbyViewStateManager.userPosition != null) {
-              loggy.info('Rendering dashboard loading UI');
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                              color: AppColors.primaryColor),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Loading air quality data near you...",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Location found: ${NearbyViewStateManager.userPosition!.latitude.toStringAsFixed(4)}, ${NearbyViewStateManager.userPosition!.longitude.toStringAsFixed(4)}",
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
+              return _buildLoadingDashboard();
             }
 
+            // Dashboard loaded with position but no nearby stations
             if (state is DashboardLoaded &&
                 NearbyViewStateManager.userPosition != null) {
-              loggy.info('Rendering dashboard loaded UI');
               if (_nearbyMeasurementsWithDistance.isEmpty) {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.7,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                             vertical: 90,
-                             horizontal: 16,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.location_off,
-                                  color: Colors.amber, size: 48),
-                              const SizedBox(height: 16),
-                              Text(
-                                "No air quality stations found nearby",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium
-                                      ?.color,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "There are no air quality monitoring stations within ${_defaultSearchRadius.toInt()} km of your location.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Your location: ${NearbyViewStateManager.userPosition!.latitude.toStringAsFixed(4)}, ${NearbyViewStateManager.userPosition!.longitude.toStringAsFixed(4)}",
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              ElevatedButton.icon(
-                                onPressed: _retry,
-                                icon: const Icon(Icons.refresh, color: Colors.white,),
-                                label: const Text("Refresh"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryColor,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
+                return _buildNoNearbyStations();
               }
-
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on,
-                            color: AppColors.primaryColor, size: 18),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            "Showing ${_nearbyMeasurementsWithDistance.length} locations near you",
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  Theme.of(context).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        TextButton.icon(
-                          onPressed: _retry,
-                          icon: const Icon(Icons.refresh, size: 18, color: Colors.white,),
-                          label: const Text("Refresh"),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primaryColor,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (NearbyViewStateManager.userPosition != null)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 16, bottom: 12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border:
-                              Border.all(color: Colors.blue.withOpacity(0.3)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.my_location,
-                                color: Colors.blue, size: 16),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                "Your location: ${NearbyViewStateManager.userPosition!.latitude.toStringAsFixed(4)}, ${NearbyViewStateManager.userPosition!.longitude.toStringAsFixed(4)}",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.blue.shade700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ..._nearbyMeasurementsWithDistance.map((entry) {
-                    final measurement = entry.key;
-                    final distance = entry.value;
-
-                    return NearbyMeasurementCard(
-                        measurement: measurement, distance: distance);
-                  }),
-                  const SizedBox(height: 16),
-                ],
-              );
+              
+              // Dashboard loaded with position and nearby stations
+              return _buildNearbyMeasurements();
             }
 
+            // Generic error
             if (NearbyViewStateManager.errorMessage != null) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.error_outline,
-                                color: Colors.red, size: 48),
-                            const SizedBox(height: 16),
-                            Text(
-                              "Error",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.color,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              NearbyViewStateManager.errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.color,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: _retry,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text("Try Again"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryColor,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
+              return _buildGenericError();
             }
 
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          color: AppColors.primaryColor,
-                          strokeWidth: 3,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Preparing air quality data...",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
+            // Default fallback state - preparing data
+            return _buildPreparingData();
           },
         ),
       ),
