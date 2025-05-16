@@ -19,6 +19,7 @@ import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
+import 'dart:async';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -31,6 +32,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.favorites;
   String? selectedCountry;
   String? userCountry;
+  final _refreshCompleter = Completer<void>();
 
   @override
   void initState() {
@@ -147,8 +149,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
           RefreshIndicator(
             onRefresh: () async {
               context.read<DashboardBloc>().add(LoadDashboard());
-              return Future.delayed(Duration(
-                  seconds: 1)); // Give time for the refresh to be visible
+              return _refreshCompleter.future;
             },
             color: AppColors.primaryColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
