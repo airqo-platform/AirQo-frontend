@@ -32,6 +32,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.favorites;
   String? selectedCountry;
   String? userCountry;
+  final _refreshCompleter = Completer<void>();
 
   @override
   void initState() {
@@ -157,6 +158,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               context.read<DashboardBloc>().add(LoadDashboard());
               await completer.future;
               await sub.cancel();
+
             },
             color: AppColors.primaryColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
