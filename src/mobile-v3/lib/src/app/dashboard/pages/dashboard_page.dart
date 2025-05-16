@@ -32,7 +32,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.favorites;
   String? selectedCountry;
   String? userCountry;
-  final _refreshCompleter = Completer<void>();
 
   @override
   void initState() {
