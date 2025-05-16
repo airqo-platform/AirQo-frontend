@@ -19,6 +19,7 @@ import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
+import 'dart:async';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -31,6 +32,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.favorites;
   String? selectedCountry;
   String? userCountry;
+  final _refreshCompleter = Completer<void>();
 
   @override
   void initState() {
@@ -144,24 +146,32 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
       appBar: DashboardAppBar(),
       body: Stack(
         children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: DashboardHeader(),
-              ),
-              SliverToBoxAdapter(
-                child: ViewSelector(
-                  currentView: currentView,
-                  selectedCountry: selectedCountry,
-                  onViewChanged: setView,
-                  isGuestUser: isGuest,
-                  userCountry: userCountry,
+          RefreshIndicator(
+            onRefresh: () async {
+              context.read<DashboardBloc>().add(LoadDashboard());
+              return _refreshCompleter.future;
+            },
+            color: AppColors.primaryColor,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: DashboardHeader(),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: _buildContentForCurrentView(),
-              ),
-            ],
+                SliverToBoxAdapter(
+                  child: ViewSelector(
+                    currentView: currentView,
+                    selectedCountry: selectedCountry,
+                    onViewChanged: setView,
+                    isGuestUser: isGuest,
+                    userCountry: userCountry,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildContentForCurrentView(),
+                ),
+              ],
+            ),
           ),
           if (currentView == DashboardView.favorites && !isGuest)
             Positioned(
@@ -217,7 +227,12 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         return BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
             if (state is DashboardLoaded) {
-              return NearbyView();
+              return NearbyView(
+                onRefresh: () async {
+                  context.read<DashboardBloc>().add(LoadDashboard());
+                  return await Future.delayed(Duration(seconds: 1));
+                },
+              );
             } else if (state is DashboardLoading) {
               return DashboardLoadingPage();
             } else if (state is DashboardLoadingError) {
