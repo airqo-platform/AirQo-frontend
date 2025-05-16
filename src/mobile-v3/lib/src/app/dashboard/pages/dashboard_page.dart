@@ -19,6 +19,7 @@ import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
+import 'dart:async';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -146,9 +147,16 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         children: [
           RefreshIndicator(
             onRefresh: () async {
+              final completer = Completer<void>();
+              final sub = context.read<DashboardBloc>().stream.listen((state) {
+                if (state is DashboardLoaded ||
+                    state is DashboardLoadingError) {
+                  completer.complete();
+                }
+              });
               context.read<DashboardBloc>().add(LoadDashboard());
-              return Future.delayed(Duration(
-                  seconds: 1)); // Give time for the refresh to be visible
+              await completer.future;
+              await sub.cancel();
             },
             color: AppColors.primaryColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
