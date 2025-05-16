@@ -157,7 +157,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     }
   }
 
-  // Helper to get the min of two integers
   int min(int a, int b) => a < b ? a : b;
 
   void _removeLocation(String id) {
@@ -206,12 +205,15 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     }
 
     String locationName = "Location";
+
     for (var m in selectedMeasurements) {
       if (m.siteId == id) {
-        locationName = m.siteDetails?.name ?? "Location";
+        locationName =
+            m.siteDetails?.searchName ?? m.siteDetails?.name ?? "Location";
         break;
       }
     }
+
     for (var s in unmatchedSites) {
       if (s.id == id) {
         locationName = s.name;
@@ -225,20 +227,26 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     });
 
     if (widget.userPreferences == null) {
+      loggy.warning('Cannot update preferences: userPreferences is null');
       return;
     }
 
-    final remainingSiteIds = widget.userPreferences!.selectedSites
-        .where((site) => site.id != id)
-        .map((site) => site.id)
-        .toList();
+    final remainingSiteIds = <String>[];
+
+    for (var site in widget.userPreferences!.selectedSites) {
+      if (site.id != id) {
+        remainingSiteIds.add(site.id);
+      }
+    }
 
     loggy.info(
-        'Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
+        'Removing location with ID: $id. Remaining ${remainingSiteIds.length} locations: $remainingSiteIds');
 
-    if (remainingSiteIds.isNotEmpty || widget.userPreferences != null) {
+    if (widget.userPreferences != null) {
       final dashboardBloc = context.read<DashboardBloc>();
+
       dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
+
       Future.delayed(Duration(milliseconds: 300), () {
         if (mounted) {
           dashboardBloc.add(LoadUserPreferences());
@@ -267,7 +275,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         isLoading = true;
       });
       context.read<DashboardBloc>().add(LoadDashboard());
-      // Wait for state to update via BlocListener, not synchronously
     }
   }
 
@@ -298,7 +305,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                           onRemove: _removeLocation,
                         ),
                       )),
-
                   ...unmatchedSites.map((site) => Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: _buildUnmatchedSiteCard(site),
