@@ -49,11 +49,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   }
 
   Future<void> _initializeLocationAndData() async {
+
     try {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
+
+      context.read<DashboardBloc>().add(LoadDashboard());
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -91,11 +94,11 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
       try {
         final position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
+          desiredAccuracy: LocationAccuracy.medium,
         ).timeout(
-          const Duration(seconds: 15),
+          const Duration(seconds: 5),
           onTimeout: () {
-            throw TimeoutException('Location request timed out after 15 seconds');
+            throw TimeoutException('Location request timed out after 5 seconds');
           },
         );
 
@@ -108,7 +111,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           _isLoading = false;
         });
 
-        context.read<DashboardBloc>().add(LoadDashboard());
       } catch (e) {
         if (!mounted) return;
         
@@ -131,7 +133,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               _isLoading = false;
             });
 
-            context.read<DashboardBloc>().add(LoadDashboard());
             return;
           }
         } catch (fallbackError) {
@@ -571,7 +572,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             );
           }
 
-          // If there's another error
           if (_errorMessage != null) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
