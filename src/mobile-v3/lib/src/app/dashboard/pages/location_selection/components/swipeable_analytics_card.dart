@@ -97,6 +97,29 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
     }
   }
 
+  void _handleRemove() {
+    final String siteId = widget.measurement.siteId ?? '';
+
+    if (siteId.isEmpty) {
+      loggy.warning('Cannot remove location: siteId is empty');
+      final String measurementId = widget.measurement.id ?? '';
+      if (measurementId.isNotEmpty) {
+        loggy.info('Using measurement ID instead: $measurementId');
+        widget.onRemove(measurementId);
+      } else {
+        loggy.error('Both siteId and id are empty, cannot remove location');
+      }
+    } else {
+      loggy.info('Removing location with siteId: $siteId');
+      widget.onRemove(siteId);
+    }
+
+    setState(() {
+      _dragOffset = 0;
+      _isDeleteVisible = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -107,13 +130,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
             bottom: 0,
             right: 0,
             child: GestureDetector(
-              onTap: () {
-                widget.onRemove(widget.measurement.id ?? '');
-                setState(() {
-                  _dragOffset = 0;
-                  _isDeleteVisible = false;
-                });
-              },
+              onTap: _handleRemove,
               child: Container(
                 width: _deleteWidth,
                 decoration: BoxDecoration(
@@ -258,7 +275,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.black
                           : Colors.white),
-
                   Padding(
                     padding: const EdgeInsets.only(
                         left: 16, right: 16, bottom: 16, top: 4),
@@ -334,13 +350,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                             ),
                           ],
                         ),
-
                         SizedBox(height: 16),
-                        Wrap(
-                          children: [
-                            Container(
-                            margin: EdgeInsets.only(
-                                bottom: 12),
+                        Wrap(children: [
+                          Container(
+                            margin: EdgeInsets.only(bottom: 12),
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
@@ -358,8 +371,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                               maxLines: 1,
                             ),
                           ),
-                          ]
-                        ),
+                        ]),
                       ],
                     ),
                   ),

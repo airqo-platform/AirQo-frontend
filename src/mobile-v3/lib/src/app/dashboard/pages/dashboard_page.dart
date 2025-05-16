@@ -148,8 +148,17 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         children: [
           RefreshIndicator(
             onRefresh: () async {
+              final completer = Completer<void>();
+              final sub = context.read<DashboardBloc>().stream.listen((state) {
+                if (state is DashboardLoaded ||
+                    state is DashboardLoadingError) {
+                  completer.complete();
+                }
+              });
               context.read<DashboardBloc>().add(LoadDashboard());
-              return _refreshCompleter.future;
+              await completer.future;
+              await sub.cancel();
+
             },
             color: AppColors.primaryColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
