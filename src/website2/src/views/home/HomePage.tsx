@@ -98,12 +98,12 @@ const HomePage = () => {
       {/* The clean air Forum */}
       <MotionSection>
         <ReversibleContentSection
-          title="CLEAN‑Air Forum"
+          title="CLEAN-Air Forum 2025, Nairobi, Kenya"
           subtitle="Africa’s Premier Air Quality Community"
-          description="Connect with researchers, policymakers and innovators driving real‑world solutions to air pollution across Africa. Share data, discuss strategies and collaborate on initiatives that improve the air we breathe."
+          description="The CLEAN-Air Forum is an annual convening for the communities of practice in Africa, started in Kampala in 2023, as a platform for knowledge sharing and multi-regional partnerships for tackling air pollution in African cities."
           buttonText="Explore the Forum"
           buttonLink="/clean-air-forum/about"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1745330007/website/cleanAirForum/images/clean_air_forum2_isybcv.png"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg"
           reverse={false}
           backgroundColor="bg-[#EDF3FF]"
           subtitleColor="text-black"
