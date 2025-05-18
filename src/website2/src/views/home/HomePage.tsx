@@ -100,7 +100,23 @@ const HomePage = () => {
         <ReversibleContentSection
           title="CLEAN-Air Forum 2025, Nairobi, Kenya"
           subtitle="Africa’s Premier Air Quality Community"
-          description="The CLEAN-Air Forum is an annual convening for the communities of practice in Africa, started in Kampala in 2023, as a platform for knowledge sharing and multi-regional partnerships for tackling air pollution in African cities."
+          description={
+            <>
+              <div style={{ marginBottom: '1rem' }}>
+                The CLEAN-Air Forum is an annual convening for the communities
+                of practice in Africa, started in Kampala in 2023, as a platform
+                for knowledge sharing and multi-regional partnerships for
+                tackling air pollution in African cities.
+              </div>
+              <div>
+                CLEAN-Air Forum 2025, Nairobi, held under the theme
+                “Partnerships for Clean Air Solutions,” aims to strengthen
+                cross-border transdisciplinary partnerships, promote
+                evidence-based approaches, and build capacity to advance clean
+                air solutions in Africa.
+              </div>
+            </>
+          }
           buttonText="Explore the Forum"
           buttonLink="/clean-air-forum/about"
           imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg"
