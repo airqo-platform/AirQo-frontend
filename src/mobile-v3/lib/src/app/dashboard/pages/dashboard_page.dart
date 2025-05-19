@@ -233,23 +233,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         );
       case DashboardView.nearYou:
         return NearbyView();
-        // return BlocBuilder<DashboardBloc, DashboardState>(
-        //   builder: (context, state) {
-        //     if (state is DashboardLoaded) {
-        //       return NearbyView(
-        //         onRefresh: () async {
-        //           context.read<DashboardBloc>().add(LoadDashboard());
-        //           return await Future.delayed(Duration(seconds: 1));
-        //         },
-        //       );
-        //     } else if (state is DashboardLoading) {
-        //       return DashboardLoadingPage();
-        //     } else if (state is DashboardLoadingError) {
-        //       return ErrorPage();
-        //     }
-        //     return Container();
-        //   },
-        // );
       case DashboardView.country:
         return BlocBuilder<DashboardBloc, DashboardState>(
             builder: (context, state) {
