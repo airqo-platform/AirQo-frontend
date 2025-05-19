@@ -323,10 +323,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             ? _findNearbyMeasurementsWithDistance(measurements)
             : <MapEntry<Measurement, double>>[];
 
+
         if (nearbyMeasurements.isEmpty) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 85
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -353,7 +357,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: _retry,
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(Icons.refresh, color: Colors.white,),
                     label: const Text("Refresh"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
