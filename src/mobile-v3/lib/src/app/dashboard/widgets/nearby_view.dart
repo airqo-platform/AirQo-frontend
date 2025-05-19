@@ -219,7 +219,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         final isApiError = selectedState['isApiError'] as bool? ?? false;
 
         if (isApiError) {
-          return ErrorPage();
+          return Center(
+              child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  ),
+                  child: ErrorPage()));
         }
 
         if (error != null && error.contains('permission')) {
