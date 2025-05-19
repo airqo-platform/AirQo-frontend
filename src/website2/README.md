@@ -2,7 +2,7 @@
 
 Welcome to the Website repository, part of the AirQo Frontend project. This website is built with [Next.js](https://nextjs.org) and was bootstrapped using [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). The live website can be found at [airqo.net](https://airqo.net).
 
-> **Note:** This repository only contains the frontend portion of the project. The backend has been built with Django and is maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository. If you wish to use the database for the website, please contact the project admin to obtain the necessary database URL for the frontend configuration.
+> **Note:** This repository only contains the frontend portion of the project. The backend has been built with Django and is maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository. If you wish to use the database for the website, please contact the project admin to obtain the necessary database URL for the frontend configuration
 
 This guide provides clear, step-by-step instructions to help you set up your local development environment, run the website, and contribute effectively. Additionally, it explains how to handle environment variables and update CI/CD workflows.
 
