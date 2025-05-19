@@ -11,20 +11,20 @@ const ResourcePage: React.FC = () => {
   const router = useRouter();
   const { data: publications, isLoading, isError } = usePublications();
   const searchParams = useSearchParams();
-
+  console.log('data', publications);
   // Tabs mapped to categories from the Publication model
   const tabs = useMemo(
     () => [
+      { name: 'Policy Documents', value: 'policy' },
+      { name: 'Technical Reports', value: 'technical' },
       { name: 'Research Publications', value: 'research' },
-      { name: 'Technical Reports and Policy Documents', value: 'technical' },
       { name: 'Guides and Manuals', value: ['guide', 'manual'] }, // Guides and Manuals combined
     ],
     [],
   );
-
   // State management
   const [selectedTab, setSelectedTab] = useState<string | string[]>(
-    searchParams?.get('tab') || 'research',
+    searchParams?.get('tab') || 'policy',
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -109,8 +109,11 @@ const ResourcePage: React.FC = () => {
               >
                 <div className="h-6 bg-gray-300 rounded w-3/4 mb-4"></div>
                 <div className="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
-                <div className="h-4 bg-gray-300 rounded w-1/4 mb-4"></div>
-                <div className="h-10 bg-gray-300 rounded w-32"></div>
+                <div className="h-16 bg-gray-200 rounded w-full mb-6"></div>
+                <div className="flex flex-wrap gap-4">
+                  <div className="h-10 bg-gray-300 rounded w-32"></div>
+                  <div className="h-10 bg-gray-300 rounded w-32"></div>
+                </div>
               </div>
             ))}
           </div>
@@ -123,14 +126,23 @@ const ResourcePage: React.FC = () => {
             {displayedResources.map((resource: any, idx: any) => (
               <div
                 key={idx}
-                className="bg-card-custom-gradient p-6 lg:p-16 rounded-lg"
+                className="bg-card-custom-gradient p-6 lg:p-16 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
               >
-                <h2 className="text-xl font-semibold mb-2">{resource.title}</h2>
-                <p className="text-gray-600 mb-4">{resource.authors}</p>
-                <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold mb-2">
+                  {resource.title || resource.resource_title}
+                </h2>
+                <p className="text-gray-600 mb-4">
+                  {resource.authors || resource.resource_authors}
+                </p>
+                {resource.description && (
+                  <div className="text-gray-700 mb-6 leading-relaxed">
+                    <p>{resource.description}</p>
+                  </div>
+                )}
+                <div className="flex items-center flex-wrap gap-4">
                   {resource.link && (
                     <CustomButton
-                      className="flex items-center text-black border border-black bg-transparent px-4 py-2"
+                      className="flex items-center text-black border border-black bg-transparent px-4 py-2 hover:bg-black hover:text-white transition-colors"
                       onClick={() => window.open(resource.link, '_blank')}
                     >
                       {resource.link_title || 'Read More'} →
@@ -139,7 +151,7 @@ const ResourcePage: React.FC = () => {
 
                   {resource.resource_file_url && (
                     <CustomButton
-                      className="flex items-center text-black border border-black bg-transparent px-4 py-2"
+                      className="flex items-center text-black border border-black bg-transparent px-4 py-2 hover:bg-black hover:text-white transition-colors"
                       onClick={() =>
                         window.open(resource.resource_file_url, '_blank')
                       }
