@@ -225,6 +225,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   const SizedBox(height: 16),
                   Text(
                     "Location Services Disabled",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -333,6 +334,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   const SizedBox(height: 16),
                   Text(
                     "No air quality stations found nearby",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -386,6 +388,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       Expanded(
                         child: Text(
                           "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.blue.shade700,
