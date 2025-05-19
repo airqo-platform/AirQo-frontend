@@ -216,7 +216,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             selectedState['measurements'] as List<Measurement>?;
         final isLoading = selectedState['isLoading'] as bool;
         final error = selectedState['error'] as String? ?? _errorMessage;
-        final isApiError = selectedState['isApiError'] as bool;
+        final isApiError = selectedState['isApiError'] as bool? ?? false;
 
         if (isApiError) {
           return ErrorPage();
