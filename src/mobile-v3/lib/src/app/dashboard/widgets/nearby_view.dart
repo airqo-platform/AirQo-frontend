@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
+import 'package:airqo/src/app/shared/pages/error_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,9 +68,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
       Position? position = await Geolocator.getLastKnownPosition();
       position ??= await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 5),
-        );
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 5),
+      );
 
       if (kDebugMode) {
         loggy.info(
@@ -183,16 +184,25 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             'error': null,
           };
         } else if (state is DashboardLoadingError) {
+          final isApiError = state.message.contains('API') ||
+              state.message.contains('server') ||
+              state.message.contains('network') ||
+              state.message.contains('connection') ||
+              state.message.contains('timeout') ||
+              state.message.contains('404') ||
+              state.message.contains('500');
           return {
             'measurements': null,
             'isLoading': false,
             'error': state.message,
+            'isApiError': isApiError,
           };
         } else if (state is DashboardLoading) {
           return {
             'measurements': null,
             'isLoading': true,
             'error': null,
+            'isApiError': false,
           };
         }
         return {
@@ -206,6 +216,17 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             selectedState['measurements'] as List<Measurement>?;
         final isLoading = selectedState['isLoading'] as bool;
         final error = selectedState['error'] as String? ?? _errorMessage;
+        final isApiError = selectedState['isApiError'] as bool? ?? false;
+
+        if (isApiError) {
+          return Center(
+              child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  ),
+                  child: ErrorPage()));
+        }
 
         if (error != null && error.contains('permission')) {
           return NearbyViewEmptyState(
@@ -326,7 +347,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         if (nearbyMeasurements.isEmpty) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 85),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -353,7 +375,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: _retry,
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: Colors.white,
+                    ),
                     label: const Text("Refresh"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
