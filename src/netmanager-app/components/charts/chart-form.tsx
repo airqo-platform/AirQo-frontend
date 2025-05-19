@@ -163,7 +163,7 @@ export function ChartForm({ deviceId, deviceType = "default", chartConfig }: Cha
         })
         toast("Chart created successfully")
       }
-      router.push(`/devices/${deviceId}`)
+      router.push(`/devices/overview/${deviceId}`)
     } catch (error) {
       toast("Failed to save chart", {
         description: (error as Error).message,
