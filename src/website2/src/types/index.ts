@@ -17,7 +17,9 @@ export interface Resource {
   modified: string;
   is_deleted: boolean;
   resource_title: string;
+  title?: string; // Alternative title field
   resource_link: string | null;
+  link?: string | null; // Alternative link field
   resource_file: string;
   author_title: string;
   resource_category:
@@ -26,6 +28,8 @@ export interface Resource {
     | 'toolkit'
     | 'research_publication';
   resource_authors: string;
+  authors?: string; // Alternative authors field
+  description?: string; // Optional description field
   order: number;
 }
 
