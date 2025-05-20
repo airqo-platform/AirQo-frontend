@@ -5,6 +5,8 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:airqo/src/app/shared/pages/error_page.dart';
+import 'package:loggy/loggy.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,17 +15,72 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with UiLoggy {
+  bool isRetrying = false;
+
+  void _retryLoading() {
+    setState(() {
+      isRetrying = true;
+    });
+    context.read<UserBloc>().add(LoadUser());
+    setState(() {
+      isRetrying = false;
+    });
+  }
+
+  bool _isHtmlError(String message) {
+    return message.contains("<html>") ||
+        message.contains("<!DOCTYPE") ||
+        message.contains("Unexpected character");
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        if (state is UserLoading) {
-          return Center(
-            child: CircularProgressIndicator(),
+        loggy.info('Current UserBloc state: $state');
+
+        if (state is UserLoading || isRetrying) {
+          return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close)),
+                SizedBox(width: 16)
+              ],
+            ),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         } else if (state is UserLoadingError) {
-          return Scaffold(body: Center(child: Text(state.message)));
+          loggy.error('Profile error: ${state.message}');
+
+          final isHtmlError = _isHtmlError(state.message);
+          if (isHtmlError) {
+            loggy.warning('HTML error detected in profile response');
+          }
+
+          return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close)),
+                SizedBox(width: 16)
+              ],
+            ),
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: ErrorPage(),
+            ),
+          );
         } else if (state is UserLoaded) {
           String firstName = state.model.users[0].firstName;
           String lastName = state.model.users[0].lastName;
@@ -31,6 +88,7 @@ class _ProfilePageState extends State<ProfilePage> {
               state.model.users[0].profilePicture?.isNotEmpty == true
                   ? state.model.users[0].profilePicture!
                   : "";
+
           return DefaultTabController(
             length: 1,
             child: Scaffold(
@@ -151,13 +209,41 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         }
 
-        return Center(child: Text(state.toString()));
+        // Default/Initial state
+        return Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            actions: [
+              IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close)),
+              SizedBox(width: 16)
+            ],
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text(
+                  "Loading your profile...",
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white70
+                        : Colors.black54,
+                    fontSize: 16,
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
       },
     );
   }
 
   Widget _buildProfilePicture(String profilePicture) {
-    // Extract initials from user data if available
     final userState = context.read<UserBloc>().state;
     String initials = "?";
 
@@ -177,7 +263,6 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     }
 
-    // Create initials widget
     Widget initialsWidget = Center(
       child: Text(
         initials,
@@ -189,13 +274,11 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
 
-    // If no profile picture, show initials
     if (profilePicture.isEmpty) {
       return initialsWidget;
     }
 
     if (profilePicture.startsWith('http')) {
-      // Network image (URL)
       return ClipOval(
         child: Image.network(
           profilePicture,
@@ -203,13 +286,12 @@ class _ProfilePageState extends State<ProfilePage> {
           width: 100,
           height: 100,
           errorBuilder: (context, error, stackTrace) {
-            // Fallback to initials if network image fails
+            loggy.warning('Error loading profile image: $error');
             return initialsWidget;
           },
         ),
       );
     } else {
-      // Local asset (SVG or image)
       if (profilePicture.endsWith('.svg')) {
         return SvgPicture.asset(
           profilePicture,

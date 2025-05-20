@@ -3,7 +3,6 @@ import 'package:airqo/core/utils/hive_box_setup.dart';
 import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
@@ -35,7 +34,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await Hive.initFlutter();
 
   await HiveBoxSetup.initializeBoxes();
 
@@ -53,7 +51,6 @@ void main() async {
   runZonedGuarded(
     () async {
       try {
-
         Object().logInfo('Application initialized successfully');
 
         Bloc.observer = LoggingBlocObserver();
@@ -217,7 +214,7 @@ class _DeciderState extends State<Decider> {
 
                 // Handle guest user
                 if (authState is GuestUser) {
-                  return WelcomeScreen();
+                  return NavPage();
                 }
 
                 // Handle logged-in user

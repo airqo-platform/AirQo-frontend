@@ -27,3 +27,14 @@ enum AuthPurpose { LOGIN, REGISTER }
 
 final class GuestUser extends AuthState {}
 
+final class AuthVerified extends AuthState {}
+
+
+final class EmailUnverifiedError extends AuthLoadingError {
+  final String email;
+
+  const EmailUnverifiedError(super.message, this.email);
+  
+  @override
+  List<Object> get props => [message, email];
+}

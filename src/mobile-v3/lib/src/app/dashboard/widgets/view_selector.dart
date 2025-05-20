@@ -1,19 +1,26 @@
+import 'package:airqo/src/app/auth/pages/login_page.dart';
+import 'package:airqo/src/app/auth/pages/register_page.dart';
+import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
-enum DashboardView { all, myPlaces, nearby, country }
+enum DashboardView { all, favorites, nearYou, country }
 
 class ViewSelector extends StatefulWidget {
   final DashboardView currentView;
   final String? selectedCountry;
   final Function(DashboardView view, {String? country}) onViewChanged;
+  final bool isGuestUser;
+  final String? userCountry;
 
   const ViewSelector({
     super.key,
     required this.currentView,
     this.selectedCountry,
     required this.onViewChanged,
+    this.isGuestUser = false,
+    this.userCountry,
   });
 
   @override
@@ -21,40 +28,56 @@ class ViewSelector extends StatefulWidget {
 }
 
 class _ViewSelectorState extends State<ViewSelector> {
-  // Keys to control the tooltips
   final GlobalKey _myPlacesTooltipKey = GlobalKey<TooltipState>();
   final GlobalKey _nearbyTooltipKey = GlobalKey<TooltipState>();
-  
+  late List<CountryModel> sortedCountries;
+
   @override
   void initState() {
     super.initState();
+    _sortCountries();
     _triggerTooltipOnViewChange();
   }
 
   @override
   void didUpdateWidget(ViewSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.userCountry != widget.userCountry) {
+      _sortCountries();
+    }
     if (oldWidget.currentView != widget.currentView) {
       _triggerTooltipOnViewChange();
     }
   }
 
+  void _sortCountries() {
+    sortedCountries = List.from(CountryRepository.countries);
+
+    if (widget.userCountry != null && widget.userCountry!.isNotEmpty) {
+      int userCountryIndex = sortedCountries.indexWhere((country) =>
+          country.countryName.toLowerCase() ==
+          widget.userCountry!.toLowerCase());
+
+      if (userCountryIndex != -1) {
+        CountryModel userCountry = sortedCountries.removeAt(userCountryIndex);
+        sortedCountries.insert(0, userCountry);
+      }
+    }
+  }
+
   void _triggerTooltipOnViewChange() {
-    // Wait for the widget to be fully built before showing tooltip
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.currentView == DashboardView.myPlaces) {
+      if (widget.currentView == DashboardView.favorites) {
         final dynamic tooltipState = _myPlacesTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();
-        
-        // Auto-hide after 2 seconds
+
         Future.delayed(Duration(seconds: 2), () {
           tooltipState?.deactivate();
         });
-      } else if (widget.currentView == DashboardView.nearby) {
+      } else if (widget.currentView == DashboardView.nearYou) {
         final dynamic tooltipState = _nearbyTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();
-        
-        // Auto-hide after 2 seconds
+
         Future.delayed(Duration(seconds: 2), () {
           tooltipState?.deactivate();
         });
@@ -71,56 +94,75 @@ class _ViewSelectorState extends State<ViewSelector> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // My Places Button with Tooltip
-          Tooltip(
-            key: _myPlacesTooltipKey,
-            message: "View air quality data for locations you've saved",
-            preferBelow: true,
-            verticalOffset: 20,
-            showDuration: Duration(seconds: 2),
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(6),
+          if (!widget.isGuestUser) ...[
+            Tooltip(
+              key: _myPlacesTooltipKey,
+              message: "Save your most relevant locations in one place",
+              preferBelow: true,
+              verticalOffset: 20,
+              showDuration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+              child: _buildViewButton(
+                context,
+                label: "Favorites",
+                isSelected: widget.currentView == DashboardView.favorites,
+                onTap: () => widget.onViewChanged(DashboardView.favorites),
+              ),
             ),
-            textStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
+            SizedBox(width: 8),
+            Tooltip(
+              key: _nearbyTooltipKey,
+              message: "View air quality in locations closest to you",
+              preferBelow: true,
+              verticalOffset: 20,
+              showDuration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+              child: _buildViewButton(
+                context,
+                label: "Near You",
+                isSelected: widget.currentView == DashboardView.nearYou,
+                onTap: () => widget.onViewChanged(DashboardView.nearYou),
+              ),
             ),
-            child: _buildViewButton(
-              context,
-              label: "My Places",
-              isSelected: widget.currentView == DashboardView.myPlaces,
-              onTap: () => widget.onViewChanged(DashboardView.myPlaces),
+            SizedBox(width: 8),
+          ],
+          if (widget.isGuestUser)
+            Tooltip(
+              message: "Create an account to access all features",
+              preferBelow: true,
+              verticalOffset: 20,
+              showDuration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+              child: _buildViewButton(
+                context,
+                label: "Sign In for More",
+                isSelected: false,
+                onTap: () => _showLoginPrompt(),
+              ),
             ),
-          ),
           SizedBox(width: 8),
-
-          // Nearby Button with Tooltip
-          Tooltip(
-            key: _nearbyTooltipKey,
-            message: "Show air quality data for locations close to you",
-            preferBelow: true,
-            verticalOffset: 20,
-            showDuration: Duration(seconds: 2),
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            textStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
-            child: _buildViewButton(
-              context,
-              label: "Nearby",
-              isSelected: widget.currentView == DashboardView.nearby,
-              onTap: () => widget.onViewChanged(DashboardView.nearby),
-            ),
-          ),
-          SizedBox(width: 8),
-
-          // Country filters - only show when in All view
-          ...CountryRepository.countries.map((country) => Padding(
+          ...sortedCountries.map((country) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: _buildCountryButton(
                   context,
@@ -130,9 +172,117 @@ class _ViewSelectorState extends State<ViewSelector> {
                       widget.selectedCountry == country.countryName,
                   onTap: () => widget.onViewChanged(DashboardView.country,
                       country: country.countryName),
+                  isUserCountry: widget.userCountry?.toLowerCase() ==
+                      country.countryName.toLowerCase(),
                 ),
               )),
         ],
+      ),
+    );
+  }
+
+  void _showLoginPrompt() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor:
+            isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: Text(
+          'Feature Requires Account',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: isDarkMode
+                ? AppColors.boldHeadlineColor2
+                : AppColors.boldHeadlineColor5,
+          ),
+        ),
+        content: Text(
+          'Create an account or sign in to access all features including personalized views.',
+          style: TextStyle(
+            fontSize: 16,
+            color: isDarkMode
+                ? AppColors.secondaryHeadlineColor2
+                : AppColors.secondaryHeadlineColor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CreateAccountScreen()),
+              );
+            },
+            child: Text(
+              'Create Account',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+            child: const Text(
+              'Login',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        titlePadding: EdgeInsets.fromLTRB(24, 24, 24, 12),
+        contentPadding: EdgeInsets.fromLTRB(24, 0, 24, 24),
       ),
     );
   }
@@ -176,6 +326,7 @@ class _ViewSelectorState extends State<ViewSelector> {
     required String name,
     required bool isSelected,
     required VoidCallback onTap,
+    bool isUserCountry = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -184,10 +335,20 @@ class _ViewSelectorState extends State<ViewSelector> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primaryColor
-              : Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight,
+              : isUserCountry && !isSelected
+                  ? Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight.withOpacity(0.8)
+                      : AppColors.dividerColorlight.withOpacity(0.8)
+                  : Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight
+                      : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(30),
+          border: isUserCountry && !isSelected
+              ? Border.all(
+                  color: AppColors.primaryColor.withOpacity(0.3),
+                  width: 1,
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -201,7 +362,9 @@ class _ViewSelectorState extends State<ViewSelector> {
                     : Theme.of(context).brightness == Brightness.dark
                         ? Colors.white
                         : Colors.black87,
-                fontWeight: FontWeight.w500,
+                fontWeight: isSelected || isUserCountry
+                    ? FontWeight.bold
+                    : FontWeight.w500,
               ),
             ),
           ],
