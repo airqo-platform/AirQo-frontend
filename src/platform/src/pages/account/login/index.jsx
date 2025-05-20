@@ -5,6 +5,7 @@ import Link from 'next/link';
 import jwt_decode from 'jwt-decode';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import axios from 'axios';
 
 import AccountPageLayout from '@/components/Account/Layout';
 import Spinner from '@/components/Spinner';
@@ -26,6 +27,7 @@ import {
 import { GOOGLE_AUTH_URL } from '@/core/urls/authentication';
 import { logger } from '@/lib/logger';
 
+// Constants for retry logic
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
@@ -58,6 +60,14 @@ const UserLogin = () => {
     }
   };
 
+  const authenticateUser = async (userData) => {
+    if (process.env.NODE_ENV === 'development') {
+      const response = await axios.post('/api/proxy/auth', userData);
+      return response.data;
+    }
+    return postUserLoginDetails(userData);
+  };
+
   const handleLogin = useCallback(
     async (e) => {
       e.preventDefault();
@@ -77,9 +87,10 @@ const UserLogin = () => {
 
       try {
         // 2️⃣ Authenticate → get JWT
-        const { token } = await retryWithDelay(() =>
-          postUserLoginDetails(userData),
+        const loginResponse = await retryWithDelay(() =>
+          authenticateUser(userData),
         );
+        const { token } = loginResponse;
         localStorage.setItem('token', token);
         const decoded = jwt_decode(token);
 
