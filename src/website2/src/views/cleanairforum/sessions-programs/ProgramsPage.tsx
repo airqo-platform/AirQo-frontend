@@ -100,56 +100,68 @@ const ProgramsPage = () => {
   const handleToggle = (id: string) => {
     setOpenAccordion(openAccordion === id ? null : id);
   };
-
   return (
     <div className="px-4 prose max-w-none lg:px-0">
+      {' '}
+      {(showSchedule ||
+        (sessionSections && sessionSections.length > 0) ||
+        (selectedEvent.programs && selectedEvent.programs.length > 0)) && (
+        <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+      )}
       {showSchedule && (
-        <div className="py-4">
-          <h1 className="text-2xl font-bold">Schedule</h1>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(scheduleHTML),
-            }}
-          />
-        </div>
-      )}
-
-      {sessionSections && sessionSections.length > 0 && (
-        <>
-          {sessionSections.map((section: any) => (
-            <SectionDisplay key={section.id} section={section} />
-          ))}
-        </>
-      )}
-
-      <>
-        {selectedEvent.programs?.map((program: any) => (
-          <AccordionItem
-            key={program.id}
-            title={program.title}
-            subText={program.sub_text}
-            sessions={program.sessions}
-            isOpen={openAccordion === program.id}
-            onToggle={() => handleToggle(program.id)}
-          />
-        ))}
-      </>
-
-      {showRegistration && (
-        <div>
-          <Divider className="bg-black p-0 mb-4 h-[1px] w-full" />
-          <div className="flex flex-col md:flex-row md:space-x-8 py-6">
+        <section className="py-8">
+          <div className="flex flex-col md:flex-row md:space-x-8">
             <div className="md:w-1/3 mb-4 md:mb-0">
-              <h1 className="text-2xl mt-4 pt-0 font-bold">Registration</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
             </div>
             <div
-              className="md:w-2/3 space-y-4"
+              className="md:w-2/3 space-y-4 prose-headings:text-gray-900 prose-p:text-gray-700"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(scheduleHTML),
+              }}
+            />
+          </div>
+        </section>
+      )}{' '}
+      {sessionSections && sessionSections.length > 0 && (
+        <>
+          <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+          {sessionSections?.map((section: any) => (
+            <section key={section.id} className="py-8">
+              <SectionDisplay section={section} />
+            </section>
+          ))}
+        </>
+      )}{' '}
+      {selectedEvent.programs && selectedEvent.programs.length > 0 && (
+        <section className="py-8">
+          {selectedEvent.programs.map((program: any) => (
+            <AccordionItem
+              key={program.id}
+              title={program.title}
+              subText={program.sub_text}
+              sessions={program.sessions}
+              isOpen={openAccordion === program.id}
+              onToggle={() => handleToggle(program.id)}
+            />
+          ))}
+        </section>
+      )}{' '}
+      {showRegistration && (
+        <section>
+          <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+          <div className="flex flex-col md:flex-row md:space-x-8 py-8">
+            <div className="md:w-1/3 mb-4 md:mb-0">
+              <h1 className="text-2xl font-bold text-gray-900">Registration</h1>
+            </div>
+            <div
+              className="md:w-2/3 space-y-4 prose-headings:text-gray-900 prose-p:text-gray-700"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(registrationHTML),
               }}
             />
           </div>
-        </div>
+        </section>
       )}
     </div>
   );
