@@ -74,7 +74,7 @@ const UserLogin = () => {
       setLoading(true);
       setErrorState('');
 
-      // 1️⃣ Validate credentials
+      // Validate credentials
       try {
         await loginSchema.validate(userData, { abortEarly: false });
       } catch (validationError) {
@@ -86,7 +86,7 @@ const UserLogin = () => {
       }
 
       try {
-        // 2️⃣ Authenticate → get JWT
+        // Authenticate → get JWT
         const loginResponse = await retryWithDelay(() =>
           authenticateUser(userData),
         );
@@ -94,7 +94,7 @@ const UserLogin = () => {
         localStorage.setItem('token', token);
         const decoded = jwt_decode(token);
 
-        // 3️⃣ Fetch full user object
+        // Fetch full user object
         const userRes = await retryWithDelay(() =>
           getUserDetails(decoded._id, token),
         );
@@ -105,7 +105,7 @@ const UserLogin = () => {
           );
         }
 
-        // 4️⃣ Fetch the most recent preference
+        // Fetch the most recent preference
         let activeGroup = user.groups[0]; // default
         try {
           const prefRes = await retryWithDelay(() =>
@@ -120,7 +120,7 @@ const UserLogin = () => {
           // swallow and keep default
         }
 
-        // 5️⃣ Persist & dispatch
+        // Persist & dispatch
         localStorage.setItem('loggedUser', JSON.stringify(user));
         localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
 
