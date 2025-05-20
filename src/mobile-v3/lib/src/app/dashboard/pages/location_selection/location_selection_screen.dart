@@ -392,7 +392,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           selectedLocations.remove(siteId);
           showLocationLimitError = false;
 
-          // Show a message when a location is removed from favorites
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -485,7 +484,13 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
   Widget _buildBody(BuildContext context) {
     if (isHtmlError && !isLoading) {
-      return ErrorPage();
+      return Center(
+          child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              child: ErrorPage()));
     }
 
     if (errorMessage != null &&
