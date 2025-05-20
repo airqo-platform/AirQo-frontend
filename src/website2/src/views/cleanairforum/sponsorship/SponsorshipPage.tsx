@@ -38,7 +38,6 @@ const SponsorshipPage = () => {
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
           <div className="py-6">
             <h1 className="text-2xl font-bold">Sponsorship opportunities</h1>
-
             <div
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(mainSponsorshipHTML),
