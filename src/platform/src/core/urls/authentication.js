@@ -5,6 +5,8 @@ const BASE_AUTH_URL = stripTrailingSlash(NEXT_PUBLIC_API_BASE_URL);
 
 export const AUTH_URL = `${BASE_AUTH_URL}/users`;
 
+export const ORGANIZATIONS_URL = `${AUTH_URL}/organizations`;
+
 export const GOOGLE_AUTH_URL = `${BASE_AUTH_URL}/users/auth/google`;
 
 export const LOGIN_URL = `${BASE_AUTH_URL}/users/loginUser`;
