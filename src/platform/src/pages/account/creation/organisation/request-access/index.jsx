@@ -620,7 +620,7 @@ export default function OrgRequestAccessPage() {
                         type="text"
                         id="organizationSlug"
                         name="organizationSlug"
-                        placeholder={formData.organizationSlug ?? ''}
+                        placeholder={`e.g ${formData.organizationSlug}`}
                         value={formData.organizationSlug}
                         onChange={handleInputChange}
                         className={`flex-1 px-3 py-2 border rounded-r-md ${errors.organizationSlug ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
