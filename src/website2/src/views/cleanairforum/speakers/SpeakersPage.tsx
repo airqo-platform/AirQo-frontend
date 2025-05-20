@@ -100,11 +100,14 @@ const SpeakersPage = () => {
           Speakers Coming Soon!
         </h2>
         <p className="text-gray-500">
-          We&apos;re finalizing our speakers lineup. Please check back later.
+          We&apos;re currently finalizing our exciting lineup of speakers.
+          Please check back later for updates.
         </p>
       </div>
     );
   }
+
+  const hasAnySpeakers = keyNoteSpeakers.length > 0 || speakers.length > 0;
 
   return (
     <div className="px-4 prose max-w-none lg:px-0">
@@ -121,74 +124,75 @@ const SpeakersPage = () => {
         </div>
       )}
 
-      {/* Keynote Speakers Section */}
-      <h1 className="text-2xl font-bold">Keynote Speakers</h1>
-
-      {keyNoteSpeakers.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
-            {displayedKeyNoteSpeakers.map((person: any) => (
-              <MemberCard
-                key={person.id}
-                member={person}
-                btnText="Read Bio"
-                cardClassName="bg-gray-100 p-2 rounded-md"
-              />
-            ))}
-          </div>
-          {totalKeyNotePages > 1 && (
-            <div className="py-6">
-              <Pagination
-                totalPages={totalKeyNotePages}
-                currentPage={currentKeyNotePage}
-                onPageChange={handleKeyNotePageChange}
-              />
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg my-4">
-          <p className="text-lg text-gray-600">Keynote Speakers Coming Soon!</p>
-          <p className="text-sm text-gray-500 mt-2">
-            We&apos;re in the process of confirming our keynote lineup.
+      {!hasAnySpeakers ? (
+        <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg my-8">
+          <h2 className="text-2xl font-bold text-gray-700 mb-4">
+            Speaker Lineup Coming Soon!
+          </h2>
+          <p className="text-gray-600 text-center max-w-2xl">
+            We&apos;re in the process of confirming our distinguished speakers
+            for this event. Check back soon to discover the inspiring voices
+            that will be joining us.
           </p>
         </div>
-      )}
-
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-
-      {/* Speakers Section */}
-      <h2 className="text-2xl font-bold">Speakers</h2>
-
-      {speakers.length > 0 ? (
+      ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
-            {displayedSpeakers.map((person: any) => (
-              <MemberCard
-                key={person.id}
-                member={person}
-                btnText="Read Bio"
-                cardClassName="bg-gray-100 p-2 rounded-md"
-              />
-            ))}
-          </div>
-          {totalSpeakersPages > 1 && (
-            <div className="py-6">
-              <Pagination
-                totalPages={totalSpeakersPages}
-                currentPage={currentSpeakersPage}
-                onPageChange={handleSpeakersPageChange}
-              />
-            </div>
+          {/* Keynote Speakers Section */}
+          {keyNoteSpeakers.length > 0 && (
+            <section className="mb-12">
+              <h1 className="text-2xl font-bold mb-6">Keynote Speakers</h1>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {displayedKeyNoteSpeakers.map((person: any) => (
+                  <MemberCard
+                    key={person.id}
+                    member={person}
+                    btnText="Read Bio"
+                    cardClassName="bg-gray-100 p-2 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200"
+                  />
+                ))}
+              </div>
+              {totalKeyNotePages > 1 && (
+                <div className="py-6">
+                  <Pagination
+                    totalPages={totalKeyNotePages}
+                    currentPage={currentKeyNotePage}
+                    onPageChange={handleKeyNotePageChange}
+                  />
+                </div>
+              )}
+            </section>
+          )}
+
+          {keyNoteSpeakers.length > 0 && speakers.length > 0 && (
+            <Divider className="bg-black p-0 m-0 h-[1px] w-full mb-12" />
+          )}
+
+          {/* Speakers Section */}
+          {speakers.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-2xl font-bold mb-6">Speakers</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {displayedSpeakers.map((person: any) => (
+                  <MemberCard
+                    key={person.id}
+                    member={person}
+                    btnText="Read Bio"
+                    cardClassName="bg-gray-100 p-2 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200"
+                  />
+                ))}
+              </div>
+              {totalSpeakersPages > 1 && (
+                <div className="py-6">
+                  <Pagination
+                    totalPages={totalSpeakersPages}
+                    currentPage={currentSpeakersPage}
+                    onPageChange={handleSpeakersPageChange}
+                  />
+                </div>
+              )}
+            </section>
           )}
         </>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-lg my-4">
-          <p className="text-lg text-gray-600">Speakers To Be Announced</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Our speaker lineup is being finalized. Check back soon for updates.
-          </p>
-        </div>
       )}
 
       {/* Extra Speakers Sections */}

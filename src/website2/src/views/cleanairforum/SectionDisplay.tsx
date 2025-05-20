@@ -24,14 +24,16 @@ export interface SectionData {
  */
 const SectionDisplay: React.FC<{ section: SectionData }> = ({ section }) => {
   const contentHTML = DOMPurify.sanitize(renderContent(section.content));
-
   // If title is empty, just show the content in full width.
   if (!section.title.trim()) {
     return (
-      <div className="my-8 prose max-w-none">
-        {/* We apply prose + max-w-none here */}
-        <div dangerouslySetInnerHTML={{ __html: contentHTML }} />
-      </div>
+      <>
+        <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+        <div className="my-8 prose max-w-none">
+          {/* We apply prose + max-w-none here */}
+          <div dangerouslySetInnerHTML={{ __html: contentHTML }} />
+        </div>
+      </>
     );
   }
 
@@ -63,14 +65,19 @@ const SectionDisplay: React.FC<{ section: SectionData }> = ({ section }) => {
       </>
     );
   }
-
   // "column" type: title above content
   return (
-    <div className="my-8 prose max-w-none">
-      <h2 className="text-2xl font-bold">{section.title}</h2>
-      {/* .prose plus .max-w-none so it fills width */}
-      <div className="mt-2" dangerouslySetInnerHTML={{ __html: contentHTML }} />
-    </div>
+    <>
+      <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+      <div className="my-8 prose max-w-none">
+        <h2 className="text-2xl font-bold">{section.title}</h2>
+        {/* .prose plus .max-w-none so it fills width */}
+        <div
+          className="mt-2"
+          dangerouslySetInnerHTML={{ __html: contentHTML }}
+        />
+      </div>
+    </>
   );
 };
 
