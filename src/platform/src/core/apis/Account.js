@@ -22,6 +22,28 @@ export const forgotPasswordApi = (data) =>
 export const resetPasswordApi = (data) =>
   api.put(RESET_PWD_URL, data).then((response) => response.data);
 
+// Organization Management
+export const verifyOrganizationSlug = async (slug) => {
+  try {
+    const response = await api.get(`${AUTH_URL}/organizations/${slug}`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      return { success: false, message: 'Organization not found' };
+    }
+    throw error;
+  }
+};
+
+export const registerOrganizationUser = async (data) => {
+  try {
+    const response = await api.post(`${AUTH_URL}/organizations/register`, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Authentication
 export const postUserCreationDetails = (data) =>
   api.post(AUTH_URL, data).then((response) => response.data);
