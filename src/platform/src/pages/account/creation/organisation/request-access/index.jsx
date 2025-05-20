@@ -56,7 +56,6 @@ export default function OrgRequestAccessPage() {
     const { name, value } = e.target;
 
     if (name.includes('.')) {
-      // Handle nested properties (branding_settings)
       const [parent, child] = name.split('.');
       setFormData({
         ...formData,
@@ -77,7 +76,6 @@ export default function OrgRequestAccessPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
     const validTypes = [
       'image/jpeg',
       'image/png',
@@ -92,7 +90,6 @@ export default function OrgRequestAccessPage() {
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       setErrors({
         ...errors,
@@ -101,7 +98,6 @@ export default function OrgRequestAccessPage() {
       return;
     }
 
-    // Clear any previous errors
     if (errors.logoFile) {
       const newErrors = { ...errors };
       delete newErrors.logoFile;
@@ -110,14 +106,12 @@ export default function OrgRequestAccessPage() {
 
     setLogoFile(file);
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setLogoPreview(reader.result);
     };
     reader.readAsDataURL(file);
 
-    // Clear the URL input since we're using a file
     setFormData({
       ...formData,
       branding_settings: {
@@ -186,7 +180,6 @@ export default function OrgRequestAccessPage() {
         'URL can only contain lowercase letters, numbers, and hyphens';
     }
 
-    // Either a logo file or URL is optional, but if URL is provided, it should be valid
     if (
       !logoFile &&
       formData.branding_settings.logo_url &&
@@ -198,7 +191,6 @@ export default function OrgRequestAccessPage() {
         'Please enter a valid URL or upload an image file';
     }
 
-    // Validate color format
     const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
     if (!colorRegex.test(formData.branding_settings.primary_color)) {
       newErrors['branding_settings.primary_color'] =
@@ -226,7 +218,6 @@ export default function OrgRequestAccessPage() {
     window.scrollTo(0, 0);
   };
 
-  // Simulate uploading to Cloudinary
   const uploadToCloudinary = async (file) => {
     // In a real application, this would be an actual API call to Cloudinary
     // For this example, we'll simulate the upload process
