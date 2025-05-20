@@ -189,6 +189,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               state.message.contains('network') ||
               state.message.contains('connection') ||
               state.message.contains('timeout') ||
+              state.message.contains('401') ||
               state.message.contains('404') ||
               state.message.contains('500');
           return {
