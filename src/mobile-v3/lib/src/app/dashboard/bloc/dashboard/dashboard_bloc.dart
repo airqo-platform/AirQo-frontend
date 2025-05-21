@@ -28,19 +28,18 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   DashboardBloc(this.repository) : super(DashboardInitial()) {
     on<LoadDashboard>(_onLoadDashboard);
     on<RefreshDashboard>(_onRefreshDashboard);
-    //on<SilentRefreshDashboard>(_onSilentRefreshDashboard);
+    on<SilentRefreshDashboard>(_onSilentRefreshDashboard);
     on<LoadUserPreferences>(_onLoadUserPreferences);
     on<UpdateSelectedLocations>(_onUpdateSelectedLocations);
+    on<DataUpdatedEvent>(_onDataUpdated);
     on<ConnectionStatusChanged>(_onConnectionStatusChanged);
     
-    // Subscribe to repository air quality stream for background updates
     _airQualitySubscription = (repository as DashboardImpl).airQualityStream.listen((response) {
       if (state is DashboardLoaded) {
         add(DataUpdatedEvent(response));
       }
     });
     
-    // Subscribe to connection status changes
     _connectionSubscription = _cacheManager.connectionChange.listen((connectionType) {
       add(ConnectionStatusChanged(
         isConnected: connectionType != ConnectionType.none,
@@ -155,12 +154,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   Future<void> _onRefreshDashboard(RefreshDashboard event, Emitter<DashboardState> emit) async {
     try {
       if (state is! DashboardLoaded) {
-        // If not in loaded state, handle like normal load but force refresh
         add(LoadDashboard(forceRefresh: true));
         return;
       }
       
-      // Start refresh - mark current state as refreshing
       final currentState = state as DashboardLoaded;
       emit(DashboardRefreshing(
         currentState.response,
@@ -169,10 +166,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         lastUpdated: currentState.lastUpdated,
       ));
       
-      // Force refresh from network
       final response = await repository.fetchAirQualityReadings(forceRefresh: true);
       
-      // Emit new loaded state with refreshed data
       emit(DashboardLoaded(
         response,
         userPreferences: currentState.userPreferences,
@@ -180,12 +175,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         lastUpdated: DateTime.now(),
       ));
       
-      // Also refresh user preferences if applicable
       add(LoadUserPreferences());
     } catch (e) {
       loggy.error('Error refreshing dashboard: $e');
       
-      // If we were in a loaded state before, keep that state but mark as error
       if (state is DashboardRefreshing) {
         final refreshingState = state as DashboardRefreshing;
         emit(DashboardLoadedWithError(
@@ -260,7 +253,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       }
     } catch (e) {
       loggy.error('Error loading user preferences: $e');
-      // Don't change state for preferences errors
     }
   }
 
@@ -344,13 +336,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   
   void _onConnectionStatusChanged(ConnectionStatusChanged event, Emitter<DashboardState> emit) {
     loggy.info('Connection status changed: ${event.isConnected ? "Online" : "Offline"}');
-    
-    // Update the connection status in the current state
+
     if (state is DashboardLoaded) {
       final currentState = state as DashboardLoaded;
       emit(currentState.copyWith(isOffline: !event.isConnected));
       
-      // If we're back online and haven't refreshed in a while, refresh data
       if (event.isConnected && 
           currentState.lastUpdated != null &&
           DateTime.now().difference(currentState.lastUpdated!).inMinutes > 30) {
@@ -362,36 +352,31 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   Future<void> _onSilentRefreshDashboard(
     SilentRefreshDashboard event, Emitter<DashboardState> emit) async {
   try {
-    // Only proceed if we're in a loaded state
+
     if (state is! DashboardLoaded) {
       return;
     }
 
     final currentState = state as DashboardLoaded;
-    
-    // Silently fetch new data without changing the UI state
+
     final response = await repository.fetchAirQualityReadings(forceRefresh: true);
     
-    // Update the state with new data but don't show loading indicators
     emit(DashboardLoaded(
       response,
       userPreferences: currentState.userPreferences,
       isOffline: currentState.isOffline,
       lastUpdated: DateTime.now(),
     ));
-    
-    // Also refresh user preferences if applicable
+
     add(LoadUserPreferences());
   } catch (e) {
     loggy.error('Error in silent refresh: $e');
-    // Do not emit error states for silent refreshes
-    // We want them to fail silently without user awareness
   }
 }
 
   
   void _onDataUpdated(DataUpdatedEvent event, Emitter<DashboardState> emit) {
-    // Handle updates that come from the repository's background refresh
+
     if (state is DashboardLoaded) {
       final currentState = state as DashboardLoaded;
       emit(DashboardLoaded(

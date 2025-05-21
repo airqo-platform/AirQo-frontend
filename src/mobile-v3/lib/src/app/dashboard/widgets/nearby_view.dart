@@ -225,7 +225,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       if (distance <= _defaultSearchRadius) {
         measWithDistance.add(MapEntry(measurement, distance));
         
-        // Also cache this measurement by site ID
         await _cacheManager.put<Measurement>(
           boxName: CacheBoxName.location,
           key: 'site_measurement_${measurement.siteId}',
@@ -233,7 +232,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           toJson: (data) => data.toJson(),
         );
         
-        // Add to nearby info list for caching
         nearbyInfo.add({
           'siteId': measurement.siteId!,
           'distance': distance,
@@ -246,7 +244,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         ? measWithDistance.sublist(0, _maxNearbyLocations)
         : measWithDistance;
     
-    // Cache the nearby locations info
     await _cacheManager.put<Map<String, dynamic>>(
       boxName: CacheBoxName.location,
       key: _cachedNearbyLocationsKey,
@@ -266,7 +263,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     }
   }
   
-  // Look for additional nearby locations from cache if current list is small
   Future<void> _expandFromCache() async {
     if (_nearbyMeasurementsWithDistance.length >= _maxNearbyLocations || 
         _userPosition == null) {
@@ -274,12 +270,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     }
     
     try {
-      // Get all site measurements from cache
       final box = await Hive.openBox(CacheBoxName.location.toString());
       final keys = box.keys.where((k) => k.toString().startsWith('site_measurement_')).toList();
       
       for (final key in keys) {
-        // Skip sites we already have
         final siteId = key.toString().replaceFirst('site_measurement_', '');
         if (_nearbyMeasurementsWithDistance.any((e) => e.key.siteId == siteId)) {
           continue;
@@ -319,8 +313,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
         }
       }
-      
-      // Re-sort by distance
+
       if (_nearbyMeasurementsWithDistance.isNotEmpty) {
         setState(() {
           _nearbyMeasurementsWithDistance.sort((a, b) => a.value.compareTo(b.value));
@@ -355,7 +348,6 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         if (state is DashboardLoaded) {
           _updateNearbyLocations();
           
-          // If we have few or no locations, try to expand from cache
           if (_nearbyMeasurementsWithDistance.length < 2) {
             _expandFromCache();
           }
@@ -375,7 +367,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             };
           } else if (state is DashboardLoading) {
             return {
-              'isLoading': _nearbyMeasurementsWithDistance.isEmpty, // Only show loading if we have no data
+              'isLoading': _nearbyMeasurementsWithDistance.isEmpty,
               'error': null,
             };
           }
@@ -459,10 +451,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
 
           if (_nearbyMeasurementsWithDistance.isEmpty) {
-            // Before showing empty state, check if we need to expand from cache
             _expandFromCache();
             
-            // If still empty, show the empty state
             if (_nearbyMeasurementsWithDistance.isEmpty) {
               return Center(
                 child: Padding(

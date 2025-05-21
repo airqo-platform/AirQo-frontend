@@ -52,22 +52,19 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         currentView = DashboardView.all;
       });
     }
-    
-    // Setup background refresh timer - every 30 minutes silently refresh data
+
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
     });
   }
-  
+
   @override
   void dispose() {
     _backgroundRefreshTimer?.cancel();
     super.dispose();
   }
-  
-  // Silently refresh in background without showing loading indicators
+
   void _silentBackgroundRefresh() {
-    // Only refresh if we have connectivity
     if (context.read<DashboardBloc>().state is DashboardLoaded &&
         !(context.read<DashboardBloc>().state as DashboardLoaded).isOffline) {
       context.read<DashboardBloc>().add(SilentRefreshDashboard());
@@ -91,6 +88,12 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
       final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isEmpty) {
+        loggy.warning(
+            'No placemarks found for coordinates: ${position.latitude}, ${position.longitude}');
+        return;
+      }
 
       if (placemarks.isNotEmpty) {
         final country = placemarks.first.country;
@@ -158,23 +161,19 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     );
   }
 
-  // Refresh triggered by user pulling to refresh
   Future<void> _refreshDashboard() async {
     final completer = Completer<void>();
-    
-    // Listen for state changes to detect when refresh is complete
+
     final subscription = context.read<DashboardBloc>().stream.listen((state) {
-      if (state is DashboardLoaded && !(state is DashboardRefreshing)) {
+      if (state is DashboardLoaded && state is! DashboardRefreshing) {
         completer.complete();
       } else if (state is DashboardLoadingError) {
         completer.completeError(state.message);
       }
     });
-    
-    // Trigger refresh
+
     context.read<DashboardBloc>().add(RefreshDashboard());
-    
-    // Wait for completion
+
     try {
       await completer.future;
     } finally {
@@ -244,12 +243,10 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   Widget _buildContentForCurrentView() {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
-        // Only show loading initially when we have no data at all
         if (state is DashboardLoading && state.previousState == null) {
           return DashboardLoadingPage();
         }
-        
-        // Handle total failure case - no data and offline
+
         if (state is DashboardLoadingError && !state.hasCache) {
           return Center(
             child: Column(
@@ -280,7 +277,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: () {
-                    context.read<DashboardBloc>().add(LoadDashboard(forceRefresh: true));
+                    context
+                        .read<DashboardBloc>()
+                        .add(LoadDashboard(forceRefresh: true));
                   },
                   icon: Icon(Icons.refresh),
                   label: Text('Try Again'),
@@ -293,10 +292,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             ),
           );
         }
-        
-        // For all states with data (DashboardLoaded, DashboardRefreshing, DashboardLoadedWithError)
+
         if (state is DashboardLoaded) {
-          // Show content based on current view selection
           switch (currentView) {
             case DashboardView.favorites:
               loggy.info(
@@ -309,25 +306,24 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               return MyPlacesView(
                 userPreferences: state.userPreferences,
               );
-              
+
             case DashboardView.nearYou:
               return NearbyView();
-              
+
             case DashboardView.country:
               final countryMeasurements = state.response.measurements!
                   .where((m) => m.siteDetails?.country == selectedCountry)
                   .toList();
-                  
+
               return MeasurementsList(measurements: countryMeasurements);
-              
+
             default:
               return MeasurementsList(
                 measurements: state.response.measurements!.take(5).toList(),
               );
           }
         }
-        
-        // Fallback for other states
+
         return DashboardLoadingPage();
       },
     );

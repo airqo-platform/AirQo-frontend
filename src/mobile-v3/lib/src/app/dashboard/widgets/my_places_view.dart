@@ -74,7 +74,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     if (state is DashboardLoaded) {
       if (state.response.measurements == null ||
           state.response.measurements!.isEmpty) {
-        // If no current measurements, try to load all from cache
         await _loadAllFromCache();
         return;
       }
@@ -84,7 +83,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         if (measurement.siteId != null && measurement.siteId!.isNotEmpty) {
           measurementsBySiteId[measurement.siteId!] = measurement;
           
-          // Also cache this measurement for future reference
           await _cacheMeasurement(measurement.siteId!, measurement);
         }
       }
@@ -92,20 +90,16 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       final matched = <Measurement>[];
       final unmatched = <SelectedSite>[];
 
-      // Process each selected site
       for (final site in widget.userPreferences!.selectedSites) {
         if (measurementsBySiteId.containsKey(site.id)) {
-          // Found in current measurements
           loggy.info('Found match for site: ${site.name} (ID: ${site.id})');
           matched.add(measurementsBySiteId[site.id]!);
         } else {
-          // Try to get from cache
           final cachedMeasurement = await _getCachedMeasurement(site.id);
           if (cachedMeasurement != null) {
             loggy.info('Found cached measurement for site: ${site.name} (ID: ${site.id})');
             matched.add(cachedMeasurement);
           } else {
-            // No current or cached measurement
             loggy.warning('No matching measurement found for site ID: ${site.id}');
             unmatched.add(site);
           }
@@ -118,12 +112,11 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         isLoading = false;
       });
     } else {
-      // Try loading from cache if no current state
       await _loadAllFromCache();
     }
   }
   
-  // Cache a measurement for a specific site ID
+
   Future<void> _cacheMeasurement(String siteId, Measurement measurement) async {
     try {
       await _cacheManager.put<Measurement>(
@@ -137,7 +130,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     }
   }
   
-  // Get a cached measurement for a specific site ID
   Future<Measurement?> _getCachedMeasurement(String siteId) async {
     try {
       final cachedData = await _cacheManager.get<Measurement>(
@@ -155,7 +147,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     return null;
   }
   
-  // Load all selected sites from cache when no current measurements
   Future<void> _loadAllFromCache() async {
     if (widget.userPreferences == null || 
         widget.userPreferences!.selectedSites.isEmpty) {
@@ -432,7 +423,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   }
 
   Widget _buildLoadingState() {
-    // Use a less obtrusive loading indicator
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),

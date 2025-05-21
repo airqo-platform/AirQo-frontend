@@ -124,10 +124,8 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
         final ForecastResponse response =
             ForecastResponse.fromJson(json.decode(responseBody));
 
-        // Get the ETag if available for future conditional requests
         String? etag = forecastResponse.headers['etag'];
 
-        // Cache the response
         await _cacheManager.put<ForecastResponse>(
           boxName: CacheBoxName.forecast,
           key: cacheKey,
@@ -136,7 +134,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
           etag: etag,
         );
 
-        // Notify any listeners about the new data
         _notifyListeners(siteId, response);
 
         loggy.info(
@@ -145,19 +142,16 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       } catch (e) {
         loggy.error('Error fetching forecast data: $e');
 
-        // Determine if it's a network error
         bool isNetworkError = e.toString().toLowerCase().contains('socket') ||
             e.toString().toLowerCase().contains('network') ||
             e.toString().toLowerCase().contains('connection') ||
             (e is ForecastException && e.isNetworkError);
 
-        // If we have cached data, use it even if it's stale
         if (cachedData != null) {
           loggy.info('Using stale cached data due to error');
           return cachedData.data;
         }
 
-        // No cached data available, rethrow the error
         if (e is ForecastException) {
           rethrow;
         }
@@ -165,42 +159,35 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
             isNetworkError: isNetworkError);
       }
     } else {
-      // Offline mode - use cached data if available
       if (cachedData != null) {
         loggy.info('Using cached forecast data in offline mode');
         return cachedData.data;
       }
 
-      // No cached data and offline
       throw ForecastException(
           'No internet connection and no cached forecast data available',
           isNetworkError: true);
     }
   }
 
-  /// Refresh the forecast data in the background without blocking the UI
   Future<void> _refreshInBackground(String siteId) async {
     try {
       loggy.info(
           'Starting background refresh of forecast data for site $siteId');
 
-      // Get the data from the API
       Response forecastResponse = await createGetRequest(
           ApiUtils.fetchForecasts,
           {"token": dotenv.env['AIRQO_API_TOKEN']!, "site_id": siteId});
 
-      // Check if the request was successful
       if (forecastResponse.statusCode == 200) {
         final responseBody = forecastResponse.body;
         final ForecastResponse response =
             ForecastResponse.fromJson(json.decode(responseBody));
 
-        // Get the ETag if available for future conditional requests
         String? etag = forecastResponse.headers['etag'];
 
         final cacheKey = _getForecastCacheKey(siteId);
 
-        // Cache the response
         await _cacheManager.put<ForecastResponse>(
           boxName: CacheBoxName.forecast,
           key: cacheKey,
@@ -209,7 +196,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
           etag: etag,
         );
 
-        // Notify any listeners about the new data
         _notifyListeners(siteId, response);
 
         loggy
@@ -220,11 +206,9 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       }
     } catch (e) {
       loggy.error('Error in background refresh: $e');
-      // Don't rethrow - background refreshes should fail silently
     }
   }
 
-  /// Notify listeners about forecast updates for a site
   void _notifyListeners(String siteId, ForecastResponse forecast) {
     final controller = _forecastControllers[siteId];
     if (controller != null && !controller.isClosed) {

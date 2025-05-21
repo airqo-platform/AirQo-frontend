@@ -73,9 +73,7 @@ class CachedData<T> {
   }
 }
 
-/// Refresh policy for different data types and network conditions
 class RefreshPolicy {
-  // Time-based refresh intervals
   final Duration wifiInterval;
   final Duration mobileInterval;
   final Duration? lowBatteryMultiplier;
@@ -97,11 +95,9 @@ class RefreshPolicy {
         baseInterval = mobileInterval;
         break;
       case ConnectionType.none:
-        // If offline, use a very long interval to avoid refresh attempts
         return const Duration(days: 1);
     }
     
-    // Apply low battery multiplier if needed
     if (isLowBattery && lowBatteryMultiplier != null) {
       return baseInterval * (lowBatteryMultiplier!.inMinutes / 60);
     }
