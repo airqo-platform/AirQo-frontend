@@ -319,8 +319,8 @@ export default function OrgRequestAccessPage() {
               Request Organization Access
             </h2>
             <p className="text-xl text-black-700 font-normal mt-3">
-              Fill out the form below to request access to AirQo for your
-              organization.
+              Join the AirQo platform for air quality monitoring and data
+              access.
             </p>
           </div>
         ) : (
@@ -345,12 +345,10 @@ export default function OrgRequestAccessPage() {
                     type="text"
                     id="organizationName"
                     name="organizationName"
-                    placeholder="Nairobi Air Lab"
                     value={formData.organizationName}
                     onChange={handleInputChange}
                     required
                     error={errors.organizationName}
-                    description="The official name of your organization"
                   />
                 </div>
 
@@ -366,7 +364,6 @@ export default function OrgRequestAccessPage() {
                       onChange={handleInputChange}
                       required
                       error={errors.contactName}
-                      description="The primary contact person for this request"
                     />
                   </div>
 
@@ -381,7 +378,6 @@ export default function OrgRequestAccessPage() {
                       onChange={handleInputChange}
                       required
                       error={errors.contactEmail}
-                      description="We'll send approval notifications to this email"
                     />
                   </div>
                 </div>
@@ -398,7 +394,6 @@ export default function OrgRequestAccessPage() {
                       onChange={handleInputChange}
                       required
                       error={errors.contactPhone}
-                      description="A phone number where we can reach you"
                     />
                   </div>
 
@@ -412,7 +407,6 @@ export default function OrgRequestAccessPage() {
                       onChange={handleInputChange}
                       required
                       error={errors.country}
-                      description="The country where your organization is based"
                     />
                   </div>
                 </div>
@@ -443,13 +437,9 @@ export default function OrgRequestAccessPage() {
                     <option value="private">Private Sector</option>
                     <option value="other">Other</option>
                   </select>
-                  {errors.organizationType ? (
+                  {errors.organizationType && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.organizationType}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Select the type that best describes your organization
                     </p>
                   )}
                 </div>
@@ -459,7 +449,7 @@ export default function OrgRequestAccessPage() {
                     htmlFor="useCase"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Use Case
+                    Describe how your organization plans to use AirQo platform
                     <span className="text-blue-600 dark:text-blue-400 ml-1">
                       *
                     </span>
@@ -467,19 +457,15 @@ export default function OrgRequestAccessPage() {
                   <textarea
                     id="useCase"
                     name="useCase"
-                    placeholder="We plan to deploy air quality monitors across Nairobi to monitor pollution levels..."
+                    placeholder="We plan to ..."
                     value={formData.useCase}
                     onChange={handleInputChange}
                     rows="4"
                     className={`w-full px-3 py-2 border rounded-md text-sm ${errors.useCase ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   ></textarea>
-                  {errors.useCase ? (
+                  {errors.useCase && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.useCase}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Describe how your organization plans to use AirQo platform
                     </p>
                   )}
                 </div>
@@ -501,25 +487,8 @@ export default function OrgRequestAccessPage() {
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Organization URL
-                    <span className="text-red-500 ml-1">*</span>
-                    <span
-                      className="inline-block ml-1 cursor-help"
-                      title="This will be used in your organization's unique URL"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 inline text-gray-400"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                      </svg>
+                    <span className="text-blue-600 dark:text-blue-400 ml-1">
+                      *
                     </span>
                   </label>
                   <div className="flex items-center">
