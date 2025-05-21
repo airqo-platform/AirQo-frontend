@@ -94,7 +94,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       await mapController.animateCamera(cameraUpdate);
     } catch (e) {
       loggy.error('Error fitting markers to bounds: $e');
-      // Fallback to default position
+
       mapController.animateCamera(CameraUpdate.newLatLngZoom(_center, 6));
     }
   }
@@ -115,7 +115,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     mapController.animateCamera(CameraUpdate.zoomTo(currentZoomLevel));
   }
 
-  // Location details handling
   void viewDetails({Measurement? measurement, String? placeName}) {
     if (measurement != null) {
       setState(() {
@@ -204,7 +203,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     });
   }
 
-  // Data handling
+
   GooglePlacesBloc? googlePlacesBloc;
 
   Future<void> addMarkers(AirQualityResponse response) async {
@@ -305,14 +304,12 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
   void initState() {
     googlePlacesBloc = context.read<GooglePlacesBloc>()..add(ResetGooglePlaces());
     
-    // Load map data - check all possible data sources
     _loadDataFromAvailableSources();
     
     super.initState();
   }
   
   void _loadDataFromAvailableSources() {
-    // First check if dashboard has data
     final dashboardState = context.read<DashboardBloc>().state;
     if (dashboardState is DashboardLoaded && 
         dashboardState.response.measurements != null &&
@@ -320,7 +317,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       _initializeWithData(dashboardState.response);
     }
     
-    // Always try to load from map bloc too
     context.read<MapBloc>().add(LoadMap());
   }
 
@@ -364,7 +360,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       },
     ];
     
-    // Listen to all blocs to make sure we always have data
     return MultiBlocListener(
       listeners: [
         BlocListener<DashboardBloc, DashboardState>(
@@ -422,8 +417,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
               width: double.infinity,
               color: Colors.grey[200],
             ),
-            
-            // Check if we have any data to show
+
             if (isInitializing && markers.isEmpty && allMeasurements.isEmpty) 
               _buildLoadingView()
             else if (!isInitializing && markers.isEmpty && allMeasurements.isEmpty && !isRetrying)
@@ -1030,7 +1024,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                           Divider(),
                         ],
 
-                        // Then show Google Places results
+
                         Text("Other Locations",
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         ListView.separated(
@@ -1129,7 +1123,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                                   ? allMeasurements
                                   : filteredMeasurements;
 
-                              // If the list is empty, show a message instead of throwing an error
                               if (measurements.isEmpty) {
                                 return Center(
                                   child: Text("No measurements available"),
