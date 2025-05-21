@@ -283,7 +283,7 @@ export default function OrgRequestAccessPage() {
         }
       }
 
-      await createOrganisationRequestApi(JSON.stringify(finalFormData));
+      await createOrganisationRequestApi(finalFormData);
 
       router.replace(
         '/account/creation/organisation/request-access/confirmation',
