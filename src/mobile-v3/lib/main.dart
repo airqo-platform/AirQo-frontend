@@ -205,32 +205,28 @@ class _DeciderState extends State<Decider> {
               builder: (context, authState) {
                 debugPrint("Current AuthState: $authState");
 
-                // Handle loading state
                 if (authState is AuthLoading) {
                   return Scaffold(
                     body: const Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                // Handle guest user
                 if (authState is GuestUser) {
                   return NavPage();
                 }
 
-                // Handle logged-in user
                 if (authState is AuthLoaded) {
                   context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
 
-                // Handle error state
+
                 if (authState is AuthLoadingError) {
                   return Scaffold(
                     body: Center(child: Text('Error: ${authState.message}')),
                   );
                 }
 
-                // Default fallback (e.g., AuthInitial)
                 return Scaffold(
                   body: const Center(child: CircularProgressIndicator()),
                 );

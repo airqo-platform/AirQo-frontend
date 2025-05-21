@@ -63,7 +63,6 @@ class DashboardLoaded extends DashboardState {
   }
 }
 
-/// State when dashboard is loaded but currently refreshing
 class DashboardRefreshing extends DashboardLoaded {
   const DashboardRefreshing(
     super.response, {
@@ -73,7 +72,6 @@ class DashboardRefreshing extends DashboardLoaded {
   });
 }
 
-/// State for when dashboard is loaded but with an error
 class DashboardLoadedWithError extends DashboardLoaded {
   final String errorMessage;
 

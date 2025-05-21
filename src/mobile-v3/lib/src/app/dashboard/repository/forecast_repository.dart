@@ -24,26 +24,19 @@ abstract class ForecastRepository extends BaseRepository {
   Future<ForecastResponse> loadForecasts(String siteId,
       {bool forceRefresh = false});
 
-  /// Clears the forecast cache for a specific site
   Future<void> clearCache(String siteId);
 
-  /// Clears all forecast caches
   Future<void> clearAllCaches();
 
-  /// Gets a stream of forecast updates for a site
   Stream<ForecastResponse> getForecastStream(String siteId);
 }
 
-/// Implementation of the forecast repository with caching
 class ForecastImpl extends ForecastRepository with UiLoggy {
-  // Cache manager instance
   final CacheManager _cacheManager = CacheManager();
 
-  // Stream controllers for forecast updates, keyed by site ID
   final Map<String, StreamController<ForecastResponse>> _forecastControllers =
       {};
 
-  // Get the cache key for a site's forecast
   String _getForecastCacheKey(String siteId) => 'forecast_$siteId';
 
   @override
@@ -54,14 +47,12 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
     final cacheKey = _getForecastCacheKey(siteId);
 
-    // First, try to get data from cache
     final cachedData = await _cacheManager.get<ForecastResponse>(
       boxName: CacheBoxName.forecast,
       key: cacheKey,
       fromJson: (json) => ForecastResponse.fromJson(json),
     );
 
-    // Check if we should use the cached data or refresh from network
     final shouldRefresh = _cacheManager.shouldRefresh(
       boxName: CacheBoxName.forecast,
       key: cacheKey,
@@ -70,12 +61,10 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       forceRefresh: forceRefresh,
     );
 
-    // If we have cached data and don't need to refresh, use the cache
     if (cachedData != null && !shouldRefresh) {
       loggy.info(
           'Using cached forecast data for site $siteId (${cachedData.timestamp})');
 
-      // Start a background refresh if we're connected but using cached data
       if (_cacheManager.isConnected) {
         _refreshInBackground(siteId);
       }
@@ -83,13 +72,11 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       return cachedData.data;
     }
 
-    // If we need fresh data and we're online, fetch from network
     if (_cacheManager.isConnected) {
       try {
         loggy
             .info('Fetching fresh forecast data for site $siteId from network');
 
-        // Get the data from the API
         Response forecastResponse = await createGetRequest(
                 ApiUtils.fetchForecasts,
                 {"token": dotenv.env['AIRQO_API_TOKEN']!, "site_id": siteId})
@@ -99,7 +86,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
               isNetworkError: true);
         });
 
-        // Handle HTTP error responses
         if (forecastResponse.statusCode != 200) {
           if (cachedData != null && forecastResponse.statusCode >= 500) {
             loggy.warning(
@@ -218,7 +204,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
   @override
   Stream<ForecastResponse> getForecastStream(String siteId) {
-    // Create a controller if it doesn't exist for this site
     if (!_forecastControllers.containsKey(siteId) ||
         _forecastControllers[siteId]!.isClosed) {
       _forecastControllers[siteId] =

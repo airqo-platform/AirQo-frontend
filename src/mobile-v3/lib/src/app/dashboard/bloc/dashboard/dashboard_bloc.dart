@@ -7,8 +7,6 @@ import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
-
-// Import the cache manager
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 
 part 'dashboard_event.dart';
@@ -18,11 +16,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   final DashboardRepository repository;
   final UserPreferencesRepository preferencesRepo = UserPreferencesImpl();
   final CacheManager _cacheManager = CacheManager();
-  
-  // Subscription to air quality updates from repository
+
   StreamSubscription? _airQualitySubscription;
   
-  // Connection status subscription
   StreamSubscription? _connectionSubscription;
   
   DashboardBloc(this.repository) : super(DashboardInitial()) {
