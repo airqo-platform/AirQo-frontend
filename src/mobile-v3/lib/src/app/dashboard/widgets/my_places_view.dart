@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
@@ -6,9 +7,9 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
-import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
+import 'package:airqo/src/app/shared/services/cache_manager.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
@@ -26,13 +27,13 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   List<Measurement> selectedMeasurements = [];
   List<SelectedSite> unmatchedSites = [];
   bool isLoading = false;
+  late CacheManager _cacheManager;
 
   @override
   void initState() {
     super.initState();
     loggy.info('Initializing MyPlacesView');
-    _debugUserPreferences();
-    _debugDashboardState();
+    _cacheManager = CacheManager();
     _loadSelectedMeasurements();
   }
 
@@ -46,7 +47,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     }
   }
 
-  void _loadSelectedMeasurements() {
+  Future<void> _loadSelectedMeasurements() async {
     final state = context.read<DashboardBloc>().state;
 
     loggy.info('Processing ${state.runtimeType} state');
@@ -73,10 +74,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     if (state is DashboardLoaded) {
       if (state.response.measurements == null ||
           state.response.measurements!.isEmpty) {
-        setState(() {
-          unmatchedSites = List.from(widget.userPreferences!.selectedSites);
-          isLoading = false;
-        });
+        // If no current measurements, try to load all from cache
+        await _loadAllFromCache();
         return;
       }
 
@@ -84,20 +83,32 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       for (final measurement in state.response.measurements!) {
         if (measurement.siteId != null && measurement.siteId!.isNotEmpty) {
           measurementsBySiteId[measurement.siteId!] = measurement;
+          
+          // Also cache this measurement for future reference
+          await _cacheMeasurement(measurement.siteId!, measurement);
         }
       }
 
       final matched = <Measurement>[];
       final unmatched = <SelectedSite>[];
 
+      // Process each selected site
       for (final site in widget.userPreferences!.selectedSites) {
         if (measurementsBySiteId.containsKey(site.id)) {
+          // Found in current measurements
           loggy.info('Found match for site: ${site.name} (ID: ${site.id})');
           matched.add(measurementsBySiteId[site.id]!);
         } else {
-          loggy
-              .warning('No matching measurement found for site ID: ${site.id}');
-          unmatched.add(site);
+          // Try to get from cache
+          final cachedMeasurement = await _getCachedMeasurement(site.id);
+          if (cachedMeasurement != null) {
+            loggy.info('Found cached measurement for site: ${site.name} (ID: ${site.id})');
+            matched.add(cachedMeasurement);
+          } else {
+            // No current or cached measurement
+            loggy.warning('No matching measurement found for site ID: ${site.id}');
+            unmatched.add(site);
+          }
         }
       }
 
@@ -106,58 +117,74 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         unmatchedSites = unmatched;
         isLoading = false;
       });
+    } else {
+      // Try loading from cache if no current state
+      await _loadAllFromCache();
     }
   }
-
-  void _debugUserPreferences() {
-    if (widget.userPreferences == null) {
-      loggy.warning('🔴 User preferences are NULL');
+  
+  // Cache a measurement for a specific site ID
+  Future<void> _cacheMeasurement(String siteId, Measurement measurement) async {
+    try {
+      await _cacheManager.put<Measurement>(
+        boxName: CacheBoxName.location,
+        key: 'site_measurement_$siteId',
+        data: measurement,
+        toJson: (data) => data.toJson(),
+      );
+    } catch (e) {
+      loggy.error('Error caching measurement: $e');
+    }
+  }
+  
+  // Get a cached measurement for a specific site ID
+  Future<Measurement?> _getCachedMeasurement(String siteId) async {
+    try {
+      final cachedData = await _cacheManager.get<Measurement>(
+        boxName: CacheBoxName.location,
+        key: 'site_measurement_$siteId',
+        fromJson: (json) => Measurement.fromJson(json),
+      );
+      
+      if (cachedData != null) {
+        return cachedData.data;
+      }
+    } catch (e) {
+      loggy.error('Error getting cached measurement: $e');
+    }
+    return null;
+  }
+  
+  // Load all selected sites from cache when no current measurements
+  Future<void> _loadAllFromCache() async {
+    if (widget.userPreferences == null || 
+        widget.userPreferences!.selectedSites.isEmpty) {
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
-
-    loggy.info('🔍 User Preferences Debug Info:');
-    loggy.info('ID: ${widget.userPreferences!.id}');
-    loggy.info('User ID: ${widget.userPreferences!.userId}');
-    loggy.info(
-        'Selected Sites Count: ${widget.userPreferences!.selectedSites.length}');
-
-    for (int i = 0; i < widget.userPreferences!.selectedSites.length; i++) {
-      final site = widget.userPreferences!.selectedSites[i];
-      loggy.info('Site $i:');
-      loggy.info('  - ID: ${site.id}');
-      loggy.info('  - Name: ${site.name}');
-      loggy.info('  - Search Name: ${site.searchName}');
-      loggy.info('  - Coordinates: ${site.latitude}, ${site.longitude}');
-    }
-  }
-
-  void _debugDashboardState() {
-    final state = context.read<DashboardBloc>().state;
-
-    loggy.info('🔍 Dashboard State Debug Info:');
-    loggy.info('State Type: ${state.runtimeType}');
-
-    if (state is DashboardLoaded) {
-      final response = state.response;
-      final userPrefs = state.userPreferences;
-
-      loggy.info('Response Success: ${response.success}');
-      loggy.info('Response Message: ${response.message}');
-      loggy.info('Measurements Count: ${response.measurements?.length ?? 0}');
-      loggy.info('Has User Preferences: ${userPrefs != null}');
-
-      if (userPrefs != null) {
-        loggy.info('User Preferences ID: ${userPrefs.id}');
-        loggy.info(
-            'Selected Sites in Preferences: ${userPrefs.selectedSites.length}');
-
-        final selectedIds = state.selectedLocationIds;
-        loggy.info('Selected Location IDs: ${selectedIds.join(', ')}');
+    
+    final matched = <Measurement>[];
+    final unmatched = <SelectedSite>[];
+    
+    for (final site in widget.userPreferences!.selectedSites) {
+      final cachedMeasurement = await _getCachedMeasurement(site.id);
+      if (cachedMeasurement != null) {
+        loggy.info('Loaded from cache: ${site.name} (ID: ${site.id})');
+        matched.add(cachedMeasurement);
+      } else {
+        loggy.warning('No cached measurement for site ID: ${site.id}');
+        unmatched.add(site);
       }
     }
+    
+    setState(() {
+      selectedMeasurements = matched;
+      unmatchedSites = unmatched;
+      isLoading = false;
+    });
   }
-
-  int min(int a, int b) => a < b ? a : b;
 
   void _removeLocation(String id) {
     if ((selectedMeasurements.length + unmatchedSites.length) <= 1) {
@@ -246,12 +273,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       final dashboardBloc = context.read<DashboardBloc>();
 
       dashboardBloc.add(UpdateSelectedLocations(remainingSiteIds));
-
-      Future.delayed(Duration(milliseconds: 300), () {
-        if (mounted) {
-          dashboardBloc.add(LoadUserPreferences());
-        }
-      });
     }
 
     NotificationManager().showNotification(
@@ -411,28 +432,23 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   }
 
   Widget _buildLoadingState() {
+    // Use a less obtrusive loading indicator
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade800),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(
-            'Loading your locations...',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.headlineMedium?.color,
+      child: Center(
+        child: Column(
+          children: [
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
