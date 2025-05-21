@@ -765,8 +765,25 @@ export default function OrgRequestAccessPage() {
 
         <div className="mt-6">
           <p className="text-xs text-gray-500">
-            By submitting this form, you agree to our Terms of Service and
-            Privacy Policy.
+            By submitting this form, you agree to our{' '}
+            <a
+              href="https://airqo.net/legal?tab=terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+              href="https://airqo.net/legal?tab=privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Privacy Policy
+            </a>
+            .
           </p>
         </div>
       </div>
