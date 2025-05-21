@@ -423,7 +423,9 @@ export default function OrgRequestAccessPage() {
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Organization Type
-                    <span className="text-blue-600 dark:text-blue-400 ml-1">*</span>
+                    <span className="text-blue-600 dark:text-blue-400 ml-1">
+                      *
+                    </span>
                   </label>
                   <select
                     id="organizationType"
@@ -458,7 +460,9 @@ export default function OrgRequestAccessPage() {
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Use Case
-                    <span className="text-blue-600 dark:text-blue-400 ml-1">*</span>
+                    <span className="text-blue-600 dark:text-blue-400 ml-1">
+                      *
+                    </span>
                   </label>
                   <textarea
                     id="useCase"
