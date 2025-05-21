@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AccountPageLayout from '@/components/Account/Layout';
-import Spinner from '@/components/Spinner';
 import CustomToast from '@/components/Toast/CustomToast';
+import InputField from '@/components/InputField';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import { createOrganisationRequestApi } from '@/core/apis/Account';
 
@@ -336,164 +336,84 @@ export default function OrgRequestAccessPage() {
         )}
 
         <div className="mt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit}>
             {currentStep === 1 ? (
               <>
                 <div>
-                  <label
-                    htmlFor="organizationName"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Organization Name
-                    <span className="text-red-500 ml-1">*</span>
-                    <span
-                      className="inline-block ml-1 cursor-help"
-                      title="The official name of your organization"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 inline text-gray-400"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                      </svg>
-                    </span>
-                  </label>
-                  <input
+                  <InputField
+                    label="Organization Name"
                     type="text"
                     id="organizationName"
                     name="organizationName"
                     placeholder="Nairobi Air Lab"
                     value={formData.organizationName}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md ${errors.organizationName ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    required
+                    error={errors.organizationName}
+                    description="The official name of your organization"
                   />
-                  {errors.organizationName && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.organizationName}
-                    </p>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label
-                      htmlFor="contactName"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Contact Name
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
+                    <InputField
+                      label="Contact Name"
                       type="text"
                       id="contactName"
                       name="contactName"
                       placeholder="John Doe"
                       value={formData.contactName}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${errors.contactName ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      required
+                      error={errors.contactName}
+                      description="The primary contact person for this request"
                     />
-                    {errors.contactName ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.contactName}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        The primary contact person for this request
-                      </p>
-                    )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="contactEmail"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Contact Email
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
+                    <InputField
+                      label="Contact Email"
                       type="email"
                       id="contactEmail"
                       name="contactEmail"
                       placeholder="johndoe@example.com"
                       value={formData.contactEmail}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${errors.contactEmail ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      required
+                      error={errors.contactEmail}
+                      description="We'll send approval notifications to this email"
                     />
-                    {errors.contactEmail ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.contactEmail}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        We&apos;ll send approval notifications to this email
-                      </p>
-                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label
-                      htmlFor="contactPhone"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Contact Phone
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
+                    <InputField
+                      label="Contact Phone"
                       type="tel"
                       id="contactPhone"
                       name="contactPhone"
-                      placeholder="+254 123 456 789"
+                      placeholder="+256123456789"
                       value={formData.contactPhone}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${errors.contactPhone ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      required
+                      error={errors.contactPhone}
+                      description="A phone number where we can reach you"
                     />
-                    {errors.contactPhone ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.contactPhone}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        A phone number where we can reach you
-                      </p>
-                    )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="country"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Country
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
+                    <InputField
+                      label="Country"
                       type="text"
                       id="country"
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${errors.country ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      required
+                      error={errors.country}
+                      description="The country where your organization is based"
                     />
-                    {errors.country ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.country}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        The country where your organization is based
-                      </p>
-                    )}
                   </div>
                 </div>
 
@@ -503,14 +423,14 @@ export default function OrgRequestAccessPage() {
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Organization Type
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-blue-600 dark:text-blue-400 ml-1">*</span>
                   </label>
                   <select
                     id="organizationType"
                     name="organizationType"
                     value={formData.organizationType}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md ${errors.organizationType ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
+                    className={`w-full px-3 py-2 border text-sm rounded-md ${errors.organizationType ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
                   >
                     <option value="" disabled>
                       Select organization type
@@ -532,13 +452,13 @@ export default function OrgRequestAccessPage() {
                   )}
                 </div>
 
-                <div>
+                <div className="my-4">
                   <label
                     htmlFor="useCase"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     Use Case
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-blue-600 dark:text-blue-400 ml-1">*</span>
                   </label>
                   <textarea
                     id="useCase"
@@ -547,7 +467,7 @@ export default function OrgRequestAccessPage() {
                     value={formData.useCase}
                     onChange={handleInputChange}
                     rows="4"
-                    className={`w-full px-3 py-2 border rounded-md ${errors.useCase ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`w-full px-3 py-2 border rounded-md text-sm ${errors.useCase ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   ></textarea>
                   {errors.useCase ? (
                     <p className="mt-1 text-sm text-red-600">
@@ -566,16 +486,12 @@ export default function OrgRequestAccessPage() {
                   disabled={isSubmitting}
                   className={`w-full btn text-sm outline-none border-none rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors ${isSubmitting ? 'btn-disabled bg-white' : ''}`}
                 >
-                  {isSubmitting ? (
-                    <Spinner width={25} height={25} />
-                  ) : (
-                    'Continue'
-                  )}
+                  Continue
                 </button>
               </>
             ) : (
               <>
-                <div>
+                <div className="mb-4">
                   <label
                     htmlFor="organizationSlug"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -603,7 +519,7 @@ export default function OrgRequestAccessPage() {
                     </span>
                   </label>
                   <div className="flex items-center">
-                    <span className="bg-gray-100 px-3 py-2 text-gray-500 border border-r-0 border-gray-300 rounded-l-md">
+                    <span className="bg-gray-100 px-3 py-2 text-gray-500 border border-r-0 border-gray-300 rounded-l-md text-sm">
                       analytics.airqo.net/
                     </span>
                     <input
@@ -613,7 +529,7 @@ export default function OrgRequestAccessPage() {
                       placeholder={`e.g ${formData.organizationSlug}`}
                       value={formData.organizationSlug}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-r-md ${errors.organizationSlug ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`w-full px-3 py-2 border rounded-r-md text-sm ${errors.organizationSlug ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                   </div>
                   {errors.organizationSlug ? (
@@ -716,7 +632,7 @@ export default function OrgRequestAccessPage() {
                     <p className="text-sm text-gray-600 mb-2">
                       Or provide a direct URL to your logo:
                     </p>
-                    <input
+                    <InputField
                       type="url"
                       id="logo_url"
                       name="branding_settings.logo_url"
@@ -724,24 +640,9 @@ export default function OrgRequestAccessPage() {
                       value={formData.branding_settings.logo_url}
                       onChange={handleInputChange}
                       disabled={!!logoFile}
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        errors['branding_settings.logo_url']
-                          ? 'border-red-500'
-                          : 'border-gray-300'
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        logoFile ? 'bg-gray-100 text-gray-500' : ''
-                      }`}
+                      error={errors['branding_settings.logo_url']}
+                      description="Enter a direct URL to your organization's logo (PNG, JPG, or SVG format recommended)"
                     />
-                    {errors['branding_settings.logo_url'] ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors['branding_settings.logo_url']}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Enter a direct URL to your organization&apos;s logo
-                        (PNG, JPG, or SVG format recommended)
-                      </p>
-                    )}
                   </div>
 
                   {/* Logo preview */}
@@ -762,14 +663,13 @@ export default function OrgRequestAccessPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label
                       htmlFor="primary_color"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
                       Primary Brand Color
-                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <div className="flex">
                       <input
@@ -780,24 +680,16 @@ export default function OrgRequestAccessPage() {
                         onChange={handleInputChange}
                         className="h-10 w-10 border-0 p-0 rounded-md cursor-pointer"
                       />
-                      <input
+                      <InputField
                         type="text"
                         aria-label="Primary color hex code"
                         name="branding_settings.primary_color"
                         value={formData.branding_settings.primary_color}
                         onChange={handleInputChange}
-                        className={`ml-2 flex-1 px-3 py-2 border rounded-md ${errors['branding_settings.primary_color'] ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        error={errors['branding_settings.primary_color']}
+                        description="Your main brand color (e.g., #004080 for dark blue)"
                       />
                     </div>
-                    {errors['branding_settings.primary_color'] ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors['branding_settings.primary_color']}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Your main brand color (e.g., #004080 for dark blue)
-                      </p>
-                    )}
                   </div>
 
                   <div>
@@ -806,7 +698,6 @@ export default function OrgRequestAccessPage() {
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
                       Secondary Brand Color
-                      <span className="text-red-500 ml-1">*</span>
                     </label>
                     <div className="flex">
                       <input
@@ -817,29 +708,21 @@ export default function OrgRequestAccessPage() {
                         onChange={handleInputChange}
                         className="h-10 w-10 border-0 p-0 rounded-md cursor-pointer"
                       />
-                      <input
+                      <InputField
                         type="text"
                         aria-label="Secondary color hex code"
                         name="branding_settings.secondary_color"
                         value={formData.branding_settings.secondary_color}
                         onChange={handleInputChange}
-                        className={`ml-2 flex-1 px-3 py-2 border rounded-md ${errors['branding_settings.secondary_color'] ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        error={errors['branding_settings.secondary_color']}
+                        description="Your accent color (e.g., #FFFFFF for white)"
                       />
                     </div>
-                    {errors['branding_settings.secondary_color'] ? (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors['branding_settings.secondary_color']}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Your accent color (e.g., #FFFFFF for white)
-                      </p>
-                    )}
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-md mt-4">
-                  <h3 className="font-medium text-gray-700 mb-2">
+                  <h3 className="font-medium text-sm text-gray-700 mb-2">
                     Brand Preview
                   </h3>
                   <div
@@ -867,7 +750,7 @@ export default function OrgRequestAccessPage() {
                       </div>
                     )}
                     <span
-                      className="font-medium"
+                      className="font-medium text-sm"
                       style={{
                         color: formData.branding_settings.secondary_color,
                       }}
@@ -897,13 +780,9 @@ export default function OrgRequestAccessPage() {
                     type="submit"
                     style={{ textTransform: 'none' }}
                     disabled={isSubmitting || uploadingLogo}
-                    className={`w-[50%] btn text-sm outline-none border-none rounded-[12px] bg-blue-600 text-white hover:bg-blue-700 transition-colors ${isSubmitting ? 'btn-disabled bg-white' : ''}`}
+                    className="w-[50%] btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
                   >
-                    {isSubmitting ? (
-                      <Spinner width={25} height={25} />
-                    ) : (
-                      'Submit Request'
-                    )}
+                    {isSubmitting ? 'Saving...' : 'Submit Request'}
                   </button>
                 </div>
               </>
