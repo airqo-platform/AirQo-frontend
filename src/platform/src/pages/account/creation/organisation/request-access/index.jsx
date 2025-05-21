@@ -767,7 +767,7 @@ export default function OrgRequestAccessPage() {
           <p className="text-xs text-gray-500">
             By submitting this form, you agree to our{' '}
             <a
-              href="https://airqo.net/legal?tab=terms"
+              href="https://airqo.net/legal/terms-of-service"
               target="_blank"
               rel="noopener noreferrer"
               className="underline"
@@ -776,7 +776,7 @@ export default function OrgRequestAccessPage() {
             </a>{' '}
             and{' '}
             <a
-              href="https://airqo.net/legal?tab=privacy"
+              href="https://airqo.net/legal/privacy-policy"
               target="_blank"
               rel="noopener noreferrer"
               className="underline"
