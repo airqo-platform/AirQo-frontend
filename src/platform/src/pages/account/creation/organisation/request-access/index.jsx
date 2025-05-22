@@ -35,8 +35,8 @@ export default function OrgRequestAccessPage() {
     organizationSlug: '',
     branding_settings: {
       logo_url: '',
-      primary_color: '#004080',
-      secondary_color: '#FFFFFF',
+      primary_color: '',
+      secondary_color: '',
     },
   });
   const [errors, setErrors] = useState({});
@@ -795,7 +795,7 @@ export default function OrgRequestAccessPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label
                       htmlFor="primary_color"
