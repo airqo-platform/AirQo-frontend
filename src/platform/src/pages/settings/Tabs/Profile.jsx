@@ -34,11 +34,11 @@ const validationSchema = Yup.object().shape({
   email: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
-  phone: Yup.string().required('Phone number is required'),
-  jobTitle: Yup.string().required('Job title is required'),
-  country: Yup.string().required('Country is required'),
-  timezone: Yup.string().required('Timezone is required'),
-  description: Yup.string().required('Bio is required'),
+  phone: Yup.string().optional(),
+  jobTitle: Yup.string().optional(),
+  country: Yup.string().optional(),
+  timezone: Yup.string().optional(),
+  description: Yup.string().optional(),
 });
 
 const Profile = () => {
@@ -168,14 +168,8 @@ const Profile = () => {
       if (!updatedUser) throw new Error('User details not updated');
       const updatedData = { _id: userID, ...updatedUser };
       localStorage.setItem('loggedUser', JSON.stringify(updatedData));
-      dispatch(setUserInfo(updatedData));
-      if (
-        userData.firstName &&
-        userData.lastName &&
-        userData.email &&
-        userData.country &&
-        userData.timezone
-      ) {
+      dispatch(setUserInfo(updatedData)); // Only check required fields for completing the step
+      if (userData.firstName && userData.lastName && userData.email) {
         completeStep(2);
       }
       setErrorState({
@@ -528,7 +522,6 @@ const Profile = () => {
                   label="Bio"
                   placeholder="Enter your bio"
                   error={validationErrors.description}
-                  required
                 />
               </div>
             </form>
