@@ -1,183 +1,384 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dio/dio.dart';
-import 'package:mobile_v3/app/core/api_client.dart';
-import 'package:mobile_v3/app/core/exceptions.dart';
-import 'package:mobile_v3/app/map/model/map_data.dart';
-import 'package:mobile_v3/app/map/repository/map_repository.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
+import 'package:http/http.dart' as http;
+import 'package:airqo/src/app/map/repository/map_repository.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'dart:convert';
 
-class FakeApiClient implements ApiClient {
-  final Future<Response> Function(String path) getHandler;
-  final Future<Response> Function(String path, {dynamic data}) postHandler;
-  final Future<Response> Function(String path, {dynamic data}) putHandler;
-  final Future<Response> Function(String path) deleteHandler;
-
-  FakeApiClient({
-    required this.getHandler,
-    required this.postHandler,
-    required this.putHandler,
-    required this.deleteHandler,
-  });
-
-  @override
-  Future<Response> get(String path) => getHandler(path);
-
-  @override
-  Future<Response> post(String path, {dynamic data}) => postHandler(path, data: data);
-
-  @override
-  Future<Response> put(String path, {dynamic data}) => putHandler(path, data: data);
-
-  @override
-  Future<Response> delete(String path) => deleteHandler(path);
-}
-
-Response makeResponse(int statusCode, dynamic data) {
-  return Response(
-    requestOptions: RequestOptions(path: ''),
-    statusCode: statusCode,
-    data: data,
-  );
-}
+// Generate mocks
+@GenerateMocks([http.Client])
+import 'map_repository_test.mocks.dart';
 
 void main() {
-  group('MapRepository.fetchMaps', () {
-    test('returns a list of MapData on HTTP 200', () async {
-      final fakeJson = [
-        {'id': '1', 'name': 'One'},
-        {'id': '2', 'name': 'Two'},
-      ];
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => makeResponse(200, fakeJson),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      final result = await repository.fetchMaps();
-      expect(result, hasLength(2));
-      expect(result[0].id, '1');
-      expect(result[0].name, 'One');
+  group('MapRepository', () {
+    late MockClient mockHttpClient;
+    late MapImpl mapRepository;
+
+    setUp(() {
+      mockHttpClient = MockClient();
+      mapRepository = MapImpl();
     });
 
-    test('returns an empty list on HTTP 200 with empty payload', () async {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => makeResponse(200, []),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      final result = await repository.fetchMaps();
-      expect(result, isEmpty);
-    });
+    group('fetchAirQualityReadings', () {
+      test('returns AirQualityResponse on successful HTTP 200 response', () async {
+        // Arrange
+        final mockResponseData = {
+          'success': true,
+          'message': 'Data retrieved successfully',
+          'measurements': [
+            {
+              '_id': 'measurement-1',
+              'site_id': 'site-1',
+              'pm2_5': {'value': 25.5},
+              'aqi_category': 'Moderate',
+              'aqi_color': '#ffff00',
+              'siteDetails': {
+                '_id': 'site-1',
+                'search_name': 'Kampala Central',
+                'city': 'Kampala',
+                'country': 'Uganda',
+                'approximate_latitude': 0.3476,
+                'approximate_longitude': 32.5825,
+              }
+            },
+            {
+              '_id': 'measurement-2',
+              'site_id': 'site-2',
+              'pm2_5': {'value': 15.2},
+              'aqi_category': 'Good',
+              'aqi_color': '#00e400',
+              'siteDetails': {
+                '_id': 'site-2',
+                'search_name': 'Makerere University',
+                'city': 'Kampala',
+                'country': 'Uganda',
+                'approximate_latitude': 0.3354,
+                'approximate_longitude': 32.5617,
+              }
+            }
+          ]
+        };
 
-    test('throws ApiException on non-200 status', () {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => makeResponse(500, {}),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      expect(repository.fetchMaps(), throwsA(isA<ApiException>()));
-    });
-  });
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+          headers: {'content-type': 'application/json'},
+        ));
 
-  group('MapRepository.fetchMapById', () {
-    test('returns MapData on HTTP 200', () async {
-      final fakeJson = {'id': '42', 'name': 'The Answer'};
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => makeResponse(200, fakeJson),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      final result = await repository.fetchMapById('42');
-      expect(result.id, '42');
-      expect(result.name, 'The Answer');
-    });
+        // Act
+        final result = await mapRepository.fetchAirQualityReadings();
 
-    test('throws NotFoundException on HTTP 404', () {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => makeResponse(404, {}),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      expect(repository.fetchMapById('unknown'), throwsA(isA<NotFoundException>()));
-    });
+        // Assert
+        expect(result, isA<AirQualityResponse>());
+        expect(result.success, isTrue);
+        expect(result.message, equals('Data retrieved successfully'));
+        expect(result.measurements, hasLength(2));
+        expect(result.measurements![0].pm25!.value, equals(25.5));
+        expect(result.measurements![0].aqiCategory, equals('Moderate'));
+        expect(result.measurements![0].siteDetails!.city, equals('Kampala'));
+      });
 
-    test('throws ApiException on other non-200/404 status', () {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => makeResponse(500, {}),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      expect(repository.fetchMapById('error'), throwsA(isA<ApiException>()));
-    });
-  });
+      test('returns AirQualityResponse with empty measurements on HTTP 200 with empty data', () async {
+        // Arrange
+        final mockResponseData = {
+          'success': true,
+          'message': 'No measurements available',
+          'measurements': []
+        };
 
-  group('MapRepository.createMap', () {
-    test('completes without error on HTTP 201', () async {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => throw UnimplementedError(),
-        postHandler: (_, {data}) async => makeResponse(201, {}),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      await repository.createMap(MapData(id: '1', name: 'New'));
-    });
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+          headers: {'content-type': 'application/json'},
+        ));
 
-    test('throws ApiException on non-201 status', () {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => throw UnimplementedError(),
-        postHandler: (_, {data}) async => makeResponse(400, {}),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      expect(repository.createMap(MapData(id: '1', name: 'New')), throwsA(isA<ApiException>()));
-    });
-  });
+        // Act
+        final result = await mapRepository.fetchAirQualityReadings();
 
-  group('MapRepository.updateMap', () {
-    test('completes without error on HTTP 200', () async {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => throw UnimplementedError(),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (path, {data}) async => makeResponse(200, {}),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      await repository.updateMap('1', MapData(id: '1', name: 'Updated'));
-    });
+        // Assert
+        expect(result, isA<AirQualityResponse>());
+        expect(result.success, isTrue);
+        expect(result.measurements, isEmpty);
+      });
 
-    test('throws ApiException on non-200 status', () {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => throw UnimplementedError(),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (path, {data}) async => makeResponse(404, {}),
-        deleteHandler: (_) async => throw UnimplementedError(),
-      ));
-      expect(repository.updateMap('1', MapData(id: '1', name: 'Updated')), throwsA(isA<ApiException>()));
-    });
-  });
+      test('throws exception on HTTP 500 server error', () async {
+        // Arrange
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          'Internal Server Error',
+          500,
+        ));
 
-  group('MapRepository.deleteMap', () {
-    test('completes without error on HTTP 204', () async {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => throw UnimplementedError(),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => makeResponse(204, {}),
-      ));
-      await repository.deleteMap('1');
-    });
+        // Act & Assert
+        expect(
+          () => mapRepository.fetchAirQualityReadings(),
+          throwsA(isA<Exception>()),
+        );
+      });
 
-    test('throws ApiException on non-204 status', () {
-      final repository = MapRepository(FakeApiClient(
-        getHandler: (_) async => throw UnimplementedError(),
-        postHandler: (_, {data}) async => throw UnimplementedError(),
-        putHandler: (_, {data}) async => throw UnimplementedError(),
-        deleteHandler: (_) async => makeResponse(500, {}),
-      ));
-      expect(repository.deleteMap('1'), throwsA(isA<ApiException>()));
+      test('throws exception on HTTP 401 unauthorized', () async {
+        // Arrange
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          'Unauthorized',
+          401,
+        ));
+
+        // Act & Assert
+        expect(
+          () => mapRepository.fetchAirQualityReadings(),
+          throwsA(isA<Exception>()),
+        );
+      });
+
+      test('throws exception on HTTP 404 not found', () async {
+        // Arrange
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          'Not Found',
+          404,
+        ));
+
+        // Act & Assert
+        expect(
+          () => mapRepository.fetchAirQualityReadings(),
+          throwsA(isA<Exception>()),
+        );
+      });
+
+      test('handles malformed JSON response gracefully', () async {
+        // Arrange
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          'Invalid JSON{',
+          200,
+        ));
+
+        // Act & Assert
+        expect(
+          () => mapRepository.fetchAirQualityReadings(),
+          throwsA(isA<FormatException>()),
+        );
+      });
+
+      test('handles network timeout', () async {
+        // Arrange
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenThrow(Exception('Connection timeout'));
+
+        // Act & Assert
+        expect(
+          () => mapRepository.fetchAirQualityReadings(),
+          throwsA(isA<Exception>()),
+        );
+      });
+
+      test('includes correct headers in request', () async {
+        // Arrange
+        final mockResponseData = {
+          'success': true,
+          'measurements': []
+        };
+
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+        ));
+
+        // Act
+        await mapRepository.fetchAirQualityReadings();
+
+        // Assert
+        verify(mockHttpClient.get(
+          any,
+          headers: argThat(
+            containsPair('token', anything),
+            named: 'headers',
+          ),
+        )).called(1);
+      });
+
+      test('handles response with missing required fields', () async {
+        // Arrange - Response missing some required fields
+        final mockResponseData = {
+          'success': true,
+          'measurements': [
+            {
+              '_id': 'incomplete-measurement',
+              // Missing site_id, pm2_5, etc.
+            }
+          ]
+        };
+
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+        ));
+
+        // Act
+        final result = await mapRepository.fetchAirQualityReadings();
+
+        // Assert - Should handle gracefully
+        expect(result, isA<AirQualityResponse>());
+        expect(result.measurements, hasLength(1));
+        expect(result.measurements![0].id, equals('incomplete-measurement'));
+      });
+
+      test('handles measurements with various AQI categories', () async {
+        // Arrange
+        final mockResponseData = {
+          'success': true,
+          'measurements': [
+            {
+              '_id': 'good-air',
+              'pm2_5': {'value': 8.0},
+              'aqi_category': 'Good',
+              'aqi_color': '#00e400',
+            },
+            {
+              '_id': 'moderate-air',
+              'pm2_5': {'value': 25.0},
+              'aqi_category': 'Moderate',
+              'aqi_color': '#ffff00',
+            },
+            {
+              '_id': 'unhealthy-air',
+              'pm2_5': {'value': 65.0},
+              'aqi_category': 'Unhealthy',
+              'aqi_color': '#ff0000',
+            },
+            {
+              '_id': 'hazardous-air',
+              'pm2_5': {'value': 300.0},
+              'aqi_category': 'Hazardous',
+              'aqi_color': '#7e0023',
+            }
+          ]
+        };
+
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+        ));
+
+        // Act
+        final result = await mapRepository.fetchAirQualityReadings();
+
+        // Assert
+        expect(result.measurements, hasLength(4));
+        expect(result.measurements![0].aqiCategory, equals('Good'));
+        expect(result.measurements![1].aqiCategory, equals('Moderate'));
+        expect(result.measurements![2].aqiCategory, equals('Unhealthy'));
+        expect(result.measurements![3].aqiCategory, equals('Hazardous'));
+        
+        // Check PM2.5 values
+        expect(result.measurements![0].pm25!.value, equals(8.0));
+        expect(result.measurements![3].pm25!.value, equals(300.0));
+      });
+
+      test('handles measurements from different countries', () async {
+        // Arrange
+        final mockResponseData = {
+          'success': true,
+          'measurements': [
+            {
+              '_id': 'uganda-measurement',
+              'siteDetails': {
+                'city': 'Kampala',
+                'country': 'Uganda',
+              }
+            },
+            {
+              '_id': 'kenya-measurement',
+              'siteDetails': {
+                'city': 'Nairobi',
+                'country': 'Kenya',
+              }
+            },
+            {
+              '_id': 'ghana-measurement',
+              'siteDetails': {
+                'city': 'Accra',
+                'country': 'Ghana',
+              }
+            }
+          ]
+        };
+
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+        ));
+
+        // Act
+        final result = await mapRepository.fetchAirQualityReadings();
+
+        // Assert
+        expect(result.measurements, hasLength(3));
+        
+        final countries = result.measurements!
+            .map((m) => m.siteDetails?.country)
+            .where((country) => country != null)
+            .toList();
+        
+        expect(countries, containsAll(['Uganda', 'Kenya', 'Ghana']));
+      });
+
+      test('verifies API endpoint URL construction', () async {
+        // Arrange
+        final mockResponseData = {'success': true, 'measurements': []};
+
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response(
+          json.encode(mockResponseData),
+          200,
+        ));
+
+        // Act
+        await mapRepository.fetchAirQualityReadings();
+
+        // Assert - Verify the correct API endpoint was called
+        final captured = verify(mockHttpClient.get(
+          captureAny,
+          headers: anyNamed('headers'),
+        )).captured;
+        
+        expect(captured.length, equals(1));
+        final uri = captured[0] as Uri;
+        expect(uri.toString(), contains('api.airqo.net'));
+        expect(uri.toString(), contains('/api/v2/devices/measurements'));
+      });
     });
   });
 }
