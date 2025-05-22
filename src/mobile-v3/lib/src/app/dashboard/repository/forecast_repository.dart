@@ -32,7 +32,7 @@ abstract class ForecastRepository extends BaseRepository {
 
 class ForecastImpl extends ForecastRepository with UiLoggy {
   static ForecastImpl? _instance;
-  
+
   final CacheManager _cacheManager;
   final http.Client _httpClient;
 
@@ -40,8 +40,10 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
   ForecastImpl._internal({
     CacheManager? cacheManager,
     http.Client? httpClient,
-  }) : _cacheManager = cacheManager ?? CacheManager(),
-       _httpClient = httpClient ?? http.Client();
+  })  : _cacheManager = cacheManager ?? CacheManager(),
+        _httpClient = httpClient ?? http.Client() {
+    loggy.debug('Initialized ForecastImpl with httpClient: $_httpClient');
+  }
 
   // Factory constructor that maintains singleton behavior for production use
   factory ForecastImpl({
@@ -55,7 +57,7 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
         httpClient: httpClient,
       );
     }
-    
+
     // Otherwise, use singleton pattern for production
     return _instance ??= ForecastImpl._internal();
   }
@@ -109,12 +111,10 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
             .info('Fetching fresh forecast data for site $siteId from network');
 
         Response forecastResponse = await _httpClient.get(
-          Uri.parse(ApiUtils.fetchForecasts).replace(
-            queryParameters: {
-              "token": dotenv.env['AIRQO_API_TOKEN']!,
-              "site_id": siteId
-            }
-          ),
+          Uri.parse(ApiUtils.fetchForecasts).replace(queryParameters: {
+            "token": dotenv.env['AIRQO_API_TOKEN']!,
+            "site_id": siteId
+          }),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -200,12 +200,10 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
           'Starting background refresh of forecast data for site $siteId');
 
       Response forecastResponse = await _httpClient.get(
-        Uri.parse(ApiUtils.fetchForecasts).replace(
-          queryParameters: {
-            "token": dotenv.env['AIRQO_API_TOKEN']!,
-            "site_id": siteId
-          }
-        ),
+        Uri.parse(ApiUtils.fetchForecasts).replace(queryParameters: {
+          "token": dotenv.env['AIRQO_API_TOKEN']!,
+          "site_id": siteId
+        }),
         headers: {
           'Content-Type': 'application/json',
         },

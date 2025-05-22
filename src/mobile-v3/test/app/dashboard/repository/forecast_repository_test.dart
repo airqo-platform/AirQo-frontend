@@ -28,7 +28,7 @@ AIRQO_API_TOKEN=test-forecast-token-123
     setUp(() {
       mockHttpClient = MockClient();
       mockCacheManager = MockCacheManager();
-      
+
       // Create repository with mocked dependencies
       repository = ForecastImpl(
         httpClient: mockHttpClient,
@@ -72,7 +72,8 @@ AIRQO_API_TOKEN=test-forecast-token-123
         ],
       );
 
-      test('should return cached forecast when available and not stale', () async {
+      test('should return cached forecast when available and not stale',
+          () async {
         // Arrange
         final cachedData = CachedData<ForecastResponse>(
           data: tForecastResponse,
@@ -149,10 +150,10 @@ AIRQO_API_TOKEN=test-forecast-token-123
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          json.encode(mockApiResponse),
-          200,
-          headers: {'content-type': 'application/json'},
-        ));
+              json.encode(mockApiResponse),
+              200,
+              headers: {'content-type': 'application/json'},
+            ));
 
         when(mockCacheManager.put<ForecastResponse>(
           boxName: anyNamed('boxName'),
@@ -163,7 +164,8 @@ AIRQO_API_TOKEN=test-forecast-token-123
         )).thenAnswer((_) async {});
 
         // Act
-        final result = await repository.loadForecasts(tSiteId, forceRefresh: true);
+        final result =
+            await repository.loadForecasts(tSiteId, forceRefresh: true);
 
         // Assert
         expect(result.forecasts, hasLength(1));
@@ -171,7 +173,9 @@ AIRQO_API_TOKEN=test-forecast-token-123
         expect(result.forecasts[0].aqiCategory, equals('Good'));
       });
 
-      test('should throw ForecastException when network fails and no cache available', () async {
+      test(
+          'should throw ForecastException when network fails and no cache available',
+          () async {
         // Arrange
         when(mockCacheManager.get<ForecastResponse>(
           boxName: anyNamed('boxName'),
@@ -230,12 +234,13 @@ AIRQO_API_TOKEN=test-forecast-token-123
 
         // Assert
         expect(result, equals(tForecastResponse));
-        
+
         // Verify no network call was made
         verifyNever(mockHttpClient.get(any, headers: anyNamed('headers')));
       });
 
-      test('should throw ForecastException when offline and no cache available', () async {
+      test('should throw ForecastException when offline and no cache available',
+          () async {
         // Arrange
         when(mockCacheManager.get<ForecastResponse>(
           boxName: anyNamed('boxName'),
@@ -258,10 +263,10 @@ AIRQO_API_TOKEN=test-forecast-token-123
         expect(
           () => repository.loadForecasts(tSiteId),
           throwsA(
-            predicate((e) => 
-              e is ForecastException && 
-              e.toString().contains('No internet connection and no cached forecast data available')
-            ),
+            predicate((e) =>
+                e is ForecastException &&
+                e.toString().contains(
+                    'No internet connection and no cached forecast data available')),
           ),
         );
       });
@@ -288,18 +293,19 @@ AIRQO_API_TOKEN=test-forecast-token-123
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          'Not found',
-          404,
-        ));
+              'Not found',
+              404,
+            ));
 
         // Act & Assert
         expect(
           () => repository.loadForecasts(tSiteId),
           throwsA(
-            predicate((e) => 
-              e is ForecastException && 
-              e.toString().contains('Forecast data not found for this location')
-            ),
+            predicate((e) =>
+                e is ForecastException &&
+                e
+                    .toString()
+                    .contains('Forecast data not found for this location')),
           ),
         );
       });
@@ -331,9 +337,9 @@ AIRQO_API_TOKEN=test-forecast-token-123
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          'Internal Server Error',
-          500,
-        ));
+              'Internal Server Error',
+              500,
+            ));
 
         // Act
         final result = await repository.loadForecasts(tSiteId);
@@ -346,7 +352,8 @@ AIRQO_API_TOKEN=test-forecast-token-123
     group('clearCache', () {
       const tSiteId = 'test-site-456';
 
-      test('should call cache manager delete with correct parameters', () async {
+      test('should call cache manager delete with correct parameters',
+          () async {
         // Arrange
         when(mockCacheManager.delete(
           boxName: CacheBoxName.forecast,
