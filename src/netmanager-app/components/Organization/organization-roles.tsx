@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useMemo, useEffect, useRef } from "react"
+import { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -73,7 +73,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
   const network = useAppSelector((state) => state.user.activeNetwork)
 
-  const loadPermissions = async () => {
+  const loadPermissions = useCallback(async () => {
     try {
       permissionsFetched.current = true
       await fetchNetworkPermissions()
@@ -84,13 +84,13 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
         variant: "destructive",
       })
     }
-  }
+  }, [fetchNetworkPermissions])
 
   useEffect(() => {
     if (!permissionsFetched.current) {
       loadPermissions()
     }
-  }, [fetchNetworkPermissions])
+  }, [fetchNetworkPermissions, loadPermissions])
 
   const handleCreateRole = async (e: React.FormEvent) => {
     e.preventDefault()
