@@ -18,11 +18,6 @@ void main() {
     late MockConnectivity mockConnectivity;
     late MockBattery mockBattery;
 
-    setUpAll(() async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      await Hive.initFlutter();
-    });
-
     setUp(() {
       mockBox = MockBox();
       mockConnectivity = MockConnectivity();
@@ -30,59 +25,73 @@ void main() {
       cacheManager = CacheManager();
     });
 
-    tearDown(() async {
-      // Clean up any open boxes
-      await Hive.deleteFromDisk();
-    });
-
-    group('Initialization', () {
-      test('initialize opens all required Hive boxes', () async {
-        // Since CacheManager.initialize() is static and complex,
-        // we'll test the behavior indirectly through other methods
-        expect(cacheManager, isA<CacheManager>());
-      });
-    });
-
-    group('Data Storage and Retrieval', () {
-      test('put and get store and retrieve complex objects', () async {
+    group('CachedData Model', () {
+      test('creates CachedData with all properties', () {
         // Arrange
-        final testData = {
-          'id': 'test-id',
-          'name': 'Test Object',
-          'value': 42.5,
-          'timestamp': DateTime.now().toIso8601String(),
-        };
+        final testData = {'key': 'value', 'number': 42};
+        final timestamp = DateTime.now();
+        const etag = 'test-etag-123';
 
-        // Mock Hive box behavior
-        when(mockBox.put(any, any)).thenAnswer((_) async {});
-        when(mockBox.get(any)).thenReturn(json.encode({
-          'data': testData,
-          'timestamp': DateTime.now().toIso8601String(),
-          'isValid': true,
-        }));
-
-        // Since we can't easily mock the internal Hive usage,
-        // we'll test the data transformation logic
+        // Act
         final cachedData = CachedData<Map<String, dynamic>>(
           data: testData,
-          timestamp: DateTime.now(),
+          timestamp: timestamp,
+          etag: etag,
+          isValid: true,
         );
 
-        expect(cachedData.data['id'], equals('test-id'));
-        expect(cachedData.data['name'], equals('Test Object'));
-        expect(cachedData.data['value'], equals(42.5));
+        // Assert
+        expect(cachedData.data, equals(testData));
+        expect(cachedData.timestamp, equals(timestamp));
+        expect(cachedData.etag, equals(etag));
+        expect(cachedData.isValid, isTrue);
       });
 
-      test('get returns null when key does not exist', () async {
-        // Arrange
-        when(mockBox.get(any)).thenReturn(null);
+      test('isStale correctly identifies stale data', () {
+        // Fresh data
+        final freshData = CachedData<String>(
+          data: 'fresh',
+          timestamp: DateTime.now().subtract(Duration(minutes: 30)),
+        );
+        expect(freshData.isStale(Duration(hours: 1)), isFalse);
 
-        // This would require mocking the internal Hive box access
-        // For now, we test the CachedData behavior
-        expect(null, isNull);
+        // Stale data
+        final staleData = CachedData<String>(
+          data: 'stale',
+          timestamp: DateTime.now().subtract(Duration(hours: 2)),
+        );
+        expect(staleData.isStale(Duration(hours: 1)), isTrue);
       });
 
-      test('handles JSON serialization and deserialization correctly', () {
+      test('isStale returns true for invalid data', () {
+        final invalidData = CachedData<String>(
+          data: 'invalid',
+          timestamp: DateTime.now(),
+          isValid: false,
+        );
+        expect(invalidData.isStale(Duration(hours: 1)), isTrue);
+      });
+
+      test('copyWith creates correct copy', () {
+        final original = CachedData<String>(
+          data: 'original',
+          timestamp: DateTime.now(),
+          etag: 'etag1',
+          isValid: true,
+        );
+
+        final copy = original.copyWith(
+          data: 'updated',
+          etag: 'etag2',
+        );
+
+        expect(copy.data, equals('updated'));
+        expect(copy.etag, equals('etag2'));
+        expect(copy.timestamp, equals(original.timestamp)); // Unchanged
+        expect(copy.isValid, equals(original.isValid)); // Unchanged
+      });
+
+      test('toJson and fromJson work correctly', () {
         // Arrange
         final originalData = {
           'measurements': [
@@ -95,25 +104,72 @@ void main() {
         final cachedData = CachedData<Map<String, dynamic>>(
           data: originalData,
           timestamp: DateTime.now(),
+          etag: 'test-etag',
         );
 
-        // Test JSON serialization
+        // Act - Test JSON serialization
         final jsonData = cachedData.toJson((data) => data);
+        
+        // Assert serialization
         expect(jsonData['data'], equals(originalData));
         expect(jsonData['timestamp'], isA<String>());
+        expect(jsonData['etag'], equals('test-etag'));
 
-        // Test deserialization
+        // Act - Test deserialization
         final restored = CachedData<Map<String, dynamic>>.fromJson(
           jsonData,
           (json) => json as Map<String, dynamic>,
         );
 
+        // Assert deserialization
         expect(restored.data, equals(originalData));
         expect(restored.timestamp, isA<DateTime>());
+        expect(restored.etag, equals('test-etag'));
       });
     });
 
-    group('Cache Expiration and Refresh Policies', () {
+    group('Connection Type Handling', () {
+      test('connection type affects refresh intervals', () {
+        // Test WiFi connection
+        final wifiInterval = RefreshPolicy.airQuality.getInterval(
+          ConnectionType.wifi,
+          false, // not low battery
+        );
+        expect(wifiInterval, equals(Duration(hours: 1)));
+
+        // Test mobile connection
+        final mobileInterval = RefreshPolicy.airQuality.getInterval(
+          ConnectionType.mobile,
+          false,
+        );
+        expect(mobileInterval, equals(Duration(hours: 2)));
+
+        // Test no connection
+        final offlineInterval = RefreshPolicy.airQuality.getInterval(
+          ConnectionType.none,
+          false,
+        );
+        expect(offlineInterval, equals(Duration(days: 1)));
+      });
+
+      test('low battery affects refresh intervals', () {
+        // Test normal battery
+        final normalInterval = RefreshPolicy.airQuality.getInterval(
+          ConnectionType.wifi,
+          false, // not low battery
+        );
+
+        // Test low battery
+        final lowBatteryInterval = RefreshPolicy.airQuality.getInterval(
+          ConnectionType.wifi,
+          true, // low battery
+        );
+
+        expect(lowBatteryInterval.inHours, greaterThan(normalInterval.inHours));
+      });
+    });
+
+    group('Cache Refresh Logic', () {
       test('shouldRefresh returns true when cache is stale', () {
         // Arrange
         final staleData = CachedData<String>(
@@ -189,47 +245,6 @@ void main() {
       });
     });
 
-    group('Connection Type Handling', () {
-      test('connection type affects refresh intervals', () {
-        // Test WiFi connection
-        final wifiInterval = RefreshPolicy.airQuality.getInterval(
-          ConnectionType.wifi,
-          false, // not low battery
-        );
-        expect(wifiInterval, equals(Duration(hours: 1)));
-
-        // Test mobile connection
-        final mobileInterval = RefreshPolicy.airQuality.getInterval(
-          ConnectionType.mobile,
-          false,
-        );
-        expect(mobileInterval, equals(Duration(hours: 2)));
-
-        // Test no connection
-        final offlineInterval = RefreshPolicy.airQuality.getInterval(
-          ConnectionType.none,
-          false,
-        );
-        expect(offlineInterval, equals(Duration(days: 1)));
-      });
-
-      test('low battery affects refresh intervals', () {
-        // Test normal battery
-        final normalInterval = RefreshPolicy.airQuality.getInterval(
-          ConnectionType.wifi,
-          false, // not low battery
-        );
-
-        // Test low battery
-        final lowBatteryInterval = RefreshPolicy.airQuality.getInterval(
-          ConnectionType.wifi,
-          true, // low battery
-        );
-
-        expect(lowBatteryInterval.inHours, greaterThan(normalInterval.inHours));
-      });
-    });
-
     group('Cache Box Management', () {
       test('different cache box names are handled correctly', () {
         // Test all cache box types
@@ -266,55 +281,51 @@ void main() {
       });
     });
 
-    group('CachedData Model', () {
-      test('isStale correctly identifies stale data', () {
-        // Fresh data
-        final freshData = CachedData<String>(
-          data: 'fresh',
-          timestamp: DateTime.now().subtract(Duration(minutes: 30)),
-        );
-        expect(freshData.isStale(Duration(hours: 1)), isFalse);
+    group('Connection Type Logic', () {
+      test('getInterval returns correct durations for different connection types', () {
+        const policy = RefreshPolicy.airQuality;
 
-        // Stale data
-        final staleData = CachedData<String>(
-          data: 'stale',
-          timestamp: DateTime.now().subtract(Duration(hours: 2)),
+        // WiFi
+        expect(
+          policy.getInterval(ConnectionType.wifi, false),
+          equals(Duration(hours: 1))
         );
-        expect(staleData.isStale(Duration(hours: 1)), isTrue);
+
+        // Mobile
+        expect(
+          policy.getInterval(ConnectionType.mobile, false),
+          equals(Duration(hours: 2))
+        );
+
+        // None
+        expect(
+          policy.getInterval(ConnectionType.none, false),
+          equals(Duration(days: 1))
+        );
       });
 
-      test('isStale returns true for invalid data', () {
-        final invalidData = CachedData<String>(
-          data: 'invalid',
-          timestamp: DateTime.now(),
-          isValid: false,
-        );
-        expect(invalidData.isStale(Duration(hours: 1)), isTrue);
+      test('low battery factor is applied correctly', () {
+        const policy = RefreshPolicy.airQuality;
+
+        final normalInterval = policy.getInterval(ConnectionType.wifi, false);
+        final lowBatteryInterval = policy.getInterval(ConnectionType.wifi, true);
+
+        expect(lowBatteryInterval, equals(normalInterval * 2.0));
       });
 
-      test('copyWith creates correct copy', () {
-        final original = CachedData<String>(
-          data: 'original',
-          timestamp: DateTime.now(),
-          etag: 'etag1',
-          isValid: true,
-        );
+      test('policy without low battery factor ignores battery state', () {
+        const policy = RefreshPolicy.userPreferences; // No lowBatteryFactor
 
-        final copy = original.copyWith(
-          data: 'updated',
-          etag: 'etag2',
-        );
+        final normalInterval = policy.getInterval(ConnectionType.wifi, false);
+        final lowBatteryInterval = policy.getInterval(ConnectionType.wifi, true);
 
-        expect(copy.data, equals('updated'));
-        expect(copy.etag, equals('etag2'));
-        expect(copy.timestamp, equals(original.timestamp)); // Unchanged
-        expect(copy.isValid, equals(original.isValid)); // Unchanged
+        expect(lowBatteryInterval, equals(normalInterval));
       });
     });
 
     group('Error Handling', () {
       test('handles JSON parsing errors gracefully', () {
-        // This would test error handling in the actual implementation
+        // Test error handling in JSON parsing
         expect(() {
           // Simulate malformed JSON
           final malformedJson = '{"incomplete": json';
@@ -323,9 +334,11 @@ void main() {
       });
 
       test('handles missing cache box gracefully', () {
-        // This would test what happens when a cache box is not available
-        // In practice, this would be handled by the implementation
+        // Verify all cache box types exist
         expect(CacheBoxName.values, contains(CacheBoxName.airQuality));
+        expect(CacheBoxName.values, contains(CacheBoxName.forecast));
+        expect(CacheBoxName.values, contains(CacheBoxName.location));
+        expect(CacheBoxName.values, contains(CacheBoxName.userPreferences));
       });
     });
 
@@ -378,6 +391,173 @@ void main() {
 
         expect(cachedData.data['forecasts'], hasLength(2));
         expect(cachedData.data['forecasts'][0]['aqi_category'], equals('Good'));
+      });
+
+      test('cache expiration scenarios', () {
+        // Test various cache expiration scenarios
+        final now = DateTime.now();
+
+        // Fresh cache
+        final freshCache = CachedData<String>(
+          data: 'fresh',
+          timestamp: now.subtract(Duration(minutes: 30)),
+        );
+        expect(freshCache.isStale(Duration(hours: 1)), isFalse);
+
+        // Borderline cache
+        final borderlineCache = CachedData<String>(
+          data: 'borderline',
+          timestamp: now.subtract(Duration(minutes: 59)),
+        );
+        expect(borderlineCache.isStale(Duration(hours: 1)), isFalse);
+
+        // Just expired cache
+        final justExpiredCache = CachedData<String>(
+          data: 'just expired',
+          timestamp: now.subtract(Duration(hours: 1, minutes: 1)),
+        );
+        expect(justExpiredCache.isStale(Duration(hours: 1)), isTrue);
+
+        // Very old cache
+        final veryOldCache = CachedData<String>(
+          data: 'very old',
+          timestamp: now.subtract(Duration(days: 1)),
+        );
+        expect(veryOldCache.isStale(Duration(hours: 1)), isTrue);
+      });
+    });
+
+    group('Data Type Handling', () {
+      test('handles complex nested data structures', () {
+        final complexData = {
+          'metadata': {
+            'version': '1.0',
+            'generated_at': DateTime.now().toIso8601String(),
+          },
+          'data': {
+            'measurements': [
+              {
+                'site_id': 'site_1',
+                'readings': {
+                  'pm25': 25.5,
+                  'pm10': 45.2,
+                  'temperature': 23.1,
+                },
+                'location': {
+                  'lat': 0.3476,
+                  'lng': 32.5825,
+                  'address': 'Kampala, Uganda',
+                }
+              }
+            ]
+          }
+        };
+
+        final cachedData = CachedData<Map<String, dynamic>>(
+          data: complexData,
+          timestamp: DateTime.now(),
+        );
+
+        expect(cachedData.data['metadata']['version'], equals('1.0'));
+        expect(cachedData.data['data']['measurements'], hasLength(1));
+        expect(cachedData.data['data']['measurements'][0]['readings']['pm25'], equals(25.5));
+      });
+
+      test('handles string data', () {
+        final stringData = 'Simple string data';
+        final cachedData = CachedData<String>(
+          data: stringData,
+          timestamp: DateTime.now(),
+        );
+
+        expect(cachedData.data, equals(stringData));
+        expect(cachedData.data, isA<String>());
+      });
+
+      test('handles list data', () {
+        final listData = ['item1', 'item2', 'item3'];
+        final cachedData = CachedData<List<String>>(
+          data: listData,
+          timestamp: DateTime.now(),
+        );
+
+        expect(cachedData.data, equals(listData));
+        expect(cachedData.data, hasLength(3));
+        expect(cachedData.data[1], equals('item2'));
+      });
+    });
+
+    group('Singleton Pattern', () {
+      test('CacheManager maintains singleton behavior', () {
+        final instance1 = CacheManager();
+        final instance2 = CacheManager();
+        
+        expect(identical(instance1, instance2), isTrue);
+      });
+
+      test('multiple calls return same instance', () {
+        final instances = List.generate(5, (_) => CacheManager());
+        
+        for (int i = 1; i < instances.length; i++) {
+          expect(identical(instances[0], instances[i]), isTrue);
+        }
+      });
+    });
+
+    group('Getters and Properties', () {
+      test('connection type defaults are correct', () {
+        expect(cacheManager.connectionType, isA<ConnectionType>());
+        expect(cacheManager.isLowBattery, isA<bool>());
+        expect(cacheManager.isConnected, isA<bool>());
+      });
+
+      test('connection status streams exist', () {
+        expect(cacheManager.connectionChange, isA<Stream<ConnectionType>>());
+        expect(cacheManager.batteryChange, isA<Stream<bool>>());
+      });
+    });
+
+    group('Edge Cases', () {
+      test('handles empty data', () {
+        final emptyData = <String, dynamic>{};
+        final cachedData = CachedData<Map<String, dynamic>>(
+          data: emptyData,
+          timestamp: DateTime.now(),
+        );
+
+        expect(cachedData.data, isEmpty);
+        expect(cachedData.data, isA<Map<String, dynamic>>());
+      });
+
+      test('handles null etag', () {
+        final cachedData = CachedData<String>(
+          data: 'test',
+          timestamp: DateTime.now(),
+          etag: null,
+        );
+
+        expect(cachedData.etag, isNull);
+        expect(cachedData.data, equals('test'));
+      });
+
+      test('handles default validity', () {
+        final cachedData = CachedData<String>(
+          data: 'test',
+          timestamp: DateTime.now(),
+        );
+
+        expect(cachedData.isValid, isTrue); // Default should be true
+      });
+
+      test('handles explicit invalid data', () {
+        final cachedData = CachedData<String>(
+          data: 'test',
+          timestamp: DateTime.now(),
+          isValid: false,
+        );
+
+        expect(cachedData.isValid, isFalse);
+        expect(cachedData.isStale(Duration(hours: 1)), isTrue); // Invalid data is always stale
       });
     });
   });
