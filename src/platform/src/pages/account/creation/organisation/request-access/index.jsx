@@ -6,12 +6,19 @@ import AccountPageLayout from '@/components/Account/Layout';
 import CustomToast from '@/components/Toast/CustomToast';
 import InputField from '@/components/InputField';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
-import { createOrganisationRequestApi } from '@/core/apis/Account';
+import {
+  createOrganisationRequestApi,
+  getOrganisationSlugAvailabilityApi,
+} from '@/core/apis/Account';
 
 export default function OrgRequestAccessPage() {
   const router = useRouter();
   const fileInputRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [slugAvailability, setSlugAvailability] = useState(null);
+  const [slugSuggestions, setSlugSuggestions] = useState([]);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(false);
+  const slugCheckTimeoutRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [logoPreview, setLogoPreview] = useState('');
   const [logoFile, setLogoFile] = useState(null);
@@ -51,6 +58,66 @@ export default function OrgRequestAccessPage() {
       }));
     }
   }, [formData.organizationName, currentStep]);
+
+  useEffect(() => {
+    if (
+      formData.organizationSlug &&
+      formData.organizationSlug.trim() !== '' &&
+      formData.organizationSlug.length >= 3
+    ) {
+      if (slugCheckTimeoutRef.current) {
+        clearTimeout(slugCheckTimeoutRef.current);
+      }
+
+      // Set a timeout to avoid checking on every keystroke
+      setIsCheckingSlug(true);
+      slugCheckTimeoutRef.current = setTimeout(() => {
+        checkSlugAvailability(formData.organizationSlug);
+      }, 500);
+    } else {
+      setSlugAvailability(null);
+      setSlugSuggestions([]);
+      setIsCheckingSlug(false);
+    }
+
+    return () => {
+      if (slugCheckTimeoutRef.current) {
+        clearTimeout(slugCheckTimeoutRef.current);
+      }
+    };
+  }, [formData.organizationSlug]);
+
+  const checkSlugAvailability = async (slug) => {
+    if (!slug) return;
+
+    try {
+      setIsCheckingSlug(true);
+      const response = await getOrganisationSlugAvailabilityApi(slug ?? '');
+      setSlugAvailability(response.available);
+      setSlugSuggestions(response.alternativeSuggestions);
+      return response.available;
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Error checking slug availability';
+      CustomToast({
+        message: errorMessage,
+        type: 'error',
+      });
+      setSlugAvailability(null);
+      setSlugSuggestions([]);
+    } finally {
+      setIsCheckingSlug(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setFormData({
+      ...formData,
+      organizationSlug: suggestion,
+    });
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -166,20 +233,22 @@ export default function OrgRequestAccessPage() {
       newErrors.useCase = 'Use case must be at least 10 characters';
     }
 
+    if (!formData.organizationSlug.trim()) {
+      newErrors.organizationSlug = 'Organization URL is required';
+    } else if (!/^[a-z0-9-]+$/.test(formData.organizationSlug)) {
+      newErrors.organizationSlug =
+        'URL can only contain lowercase letters, numbers, and hyphens';
+    } else if (slugAvailability === false) {
+      newErrors.organizationSlug =
+        'This URL is already taken. Please choose another.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateStep2 = () => {
     const newErrors = {};
-
-    if (!formData.organizationSlug.trim()) {
-      newErrors.organizationSlug = 'Organization URL is required';
-    } else if (!/^[a-z0-9-]+$/.test(formData.organizationSlug)) {
-      newErrors.organizationSlug =
-        'URL can only contain lowercase letters, numbers, and hyphens';
-    }
-
     if (
       !logoFile &&
       formData.branding_settings.logo_url &&
@@ -352,6 +421,154 @@ export default function OrgRequestAccessPage() {
                   />
                 </div>
 
+                <div className="relative mb-4">
+                  <label
+                    htmlFor="organizationSlug"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Organization URL
+                    <span className="ml-1 text-blue-600 dark:text-blue-400">
+                      *
+                    </span>
+                  </label>
+                  <div className="flex items-center">
+                    <span className="bg-gray-100 px-4 py-2.5 rounded-l-xl text-gray-500 border border-r-0 border-gray-400 text-sm">
+                      analytics.airqo.net/
+                    </span>
+                    <input
+                      type="text"
+                      id="organizationSlug"
+                      name="organizationSlug"
+                      placeholder="nairobi-air-lab"
+                      value={formData.organizationSlug}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2.5 rounded-r-xl border-gray-400 bg-transparent outline-none text-sm
+            text-gray-700 dark:text-gray-200
+            placeholder-gray-400 dark:placeholder-gray-500
+            disabled:text-gray-500 disabled:dark:text-gray-400
+            disabled:cursor-not-allowed ${
+              errors.organizationSlug
+                ? 'border-red-500'
+                : slugAvailability === true
+                  ? 'border-green-500'
+                  : 'border-gray-300'
+            } focus-within:ring-2 focus-within:ring-offset-0 ${
+              slugAvailability === true
+                ? 'focus-within:ring-green-500'
+                : 'focus-within:ring-blue-500'
+            }`}
+                    />
+                    {isCheckingSlug && (
+                      <div className="absolute right-3 top-9">
+                        <svg
+                          className="animate-spin h-5 w-5 text-gray-400"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {formData.organizationSlug && !isCheckingSlug && (
+                    <div
+                      className={`mt-1 text-sm ${
+                        slugAvailability === true
+                          ? 'text-green-600'
+                          : slugAvailability === false
+                            ? 'text-red-600'
+                            : 'text-gray-500'
+                      }`}
+                    >
+                      {slugAvailability === true && (
+                        <div className="flex items-center">
+                          <span className="inline-block w-4 h-4 mr-1 rounded-full bg-green-100 border border-green-500">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3 text-green-500 mx-auto"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </span>
+                          <span>{formData.organizationSlug} is available.</span>
+                        </div>
+                      )}
+                      {slugAvailability === false && (
+                        <div className="flex items-center">
+                          <span className="inline-block w-4 h-4 mr-1 rounded-full bg-red-100 border border-red-500">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3 text-red-500 mx-auto"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </span>
+                          <span>
+                            {formData.organizationSlug} is already taken.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {slugSuggestions.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm font-medium text-gray-700">
+                        Try one of these instead:
+                      </p>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {slugSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full hover:bg-blue-100 transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {errors.organizationSlug ? (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.organizationSlug}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-gray-500">
+                      This will be your unique URL in the AirQo platform. Use
+                      only lowercase letters, numbers, and hyphens.
+                    </p>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <InputField
@@ -426,7 +643,7 @@ export default function OrgRequestAccessPage() {
                     name="organizationType"
                     value={formData.organizationType}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border text-sm rounded-md ${errors.organizationType ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
+                    className={`w-full px-4 py-2.5 rounded-xl border-gray-400 border text-sm ${errors.organizationType ? 'border-red-500' : 'border-gray-400'} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
                   >
                     <option value="" disabled>
                       Select organization type
@@ -461,7 +678,7 @@ export default function OrgRequestAccessPage() {
                     value={formData.useCase}
                     onChange={handleInputChange}
                     rows="4"
-                    className={`w-full px-3 py-2 border rounded-md text-sm ${errors.useCase ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm ${errors.useCase ? 'border-red-500' : 'border-gray-400'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   ></textarea>
                   {errors.useCase && (
                     <p className="mt-1 text-sm text-red-600">
@@ -481,64 +698,9 @@ export default function OrgRequestAccessPage() {
               </>
             ) : (
               <>
-                <div className="mb-4">
-                  <label
-                    htmlFor="organizationSlug"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Organization URL
-                    <span className="text-blue-600 dark:text-blue-400 ml-1">
-                      *
-                    </span>
-                  </label>
-                  <div className="flex items-center">
-                    <span className="bg-gray-100 px-3 py-2 text-gray-500 border border-r-0 border-gray-300 rounded-l-md text-sm">
-                      analytics.airqo.net/
-                    </span>
-                    <input
-                      type="text"
-                      id="organizationSlug"
-                      name="organizationSlug"
-                      placeholder={`e.g ${formData.organizationSlug}`}
-                      value={formData.organizationSlug}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-r-md text-sm ${errors.organizationSlug ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    />
-                  </div>
-                  {errors.organizationSlug ? (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.organizationSlug}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-gray-500">
-                      This will be your unique URL in the AirQo platform. Use
-                      only lowercase letters, numbers, and hyphens.
-                    </p>
-                  )}
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Organization Logo
-                    <span
-                      className="inline-block ml-1 cursor-help"
-                      title="Upload your organization's logo or provide a URL"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 inline text-gray-400"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                      </svg>
-                    </span>
                   </label>
 
                   {/* File Upload Option */}
@@ -755,7 +917,7 @@ export default function OrgRequestAccessPage() {
                     disabled={isSubmitting || uploadingLogo}
                     className="w-[50%] btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
                   >
-                    {isSubmitting ? 'Saving...' : 'Submit Request'}
+                    {isSubmitting ? 'Submitting...' : 'Submit Request'}
                   </button>
                 </div>
               </>
