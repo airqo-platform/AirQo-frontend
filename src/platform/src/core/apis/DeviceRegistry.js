@@ -1,4 +1,4 @@
-import { api, publicApi } from '../utils/apiClient';
+import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import {
   SITES_URL,
   READINGS_URL,
@@ -10,34 +10,67 @@ import {
 
 // Grid locations endpoints
 export const getAllGridLocationsApi = () =>
-  api.get(GRID_LOCATIONS_URL).then((response) => response.data);
+  secureApiProxy
+    .get(GRID_LOCATIONS_URL, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
 
 export const getGridLocationDetails = (gridID) =>
-  api.get(`${GRID_LOCATIONS_URL}/${gridID}`).then((response) => response.data);
+  secureApiProxy
+    .get(`${GRID_LOCATIONS_URL}/${gridID}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
 
 // Sites endpoints
 export const getSiteSummaryDetails = () =>
-  api.get(`${SITES_URL}/summary`).then((response) => response.data);
+  secureApiProxy
+    .get(`${SITES_URL}/summary`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
 
 export const getGirdsSummaryDetails = () =>
-  api.get(GRIDS_SUMMARY_URL).then((response) => response.data);
+  secureApiProxy
+    .get(GRIDS_SUMMARY_URL, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
 
 // Devices endpoints
 export const verifyCohortID = (cohortID) =>
-  publicApi
-    .get(`${DEVICES}/cohorts/verify/${cohortID}`)
+  secureApiProxy
+    .get(`${DEVICES}/cohorts/verify/${cohortID}`, {
+      authType: AUTH_TYPES.NONE,
+    })
     .then((response) => response.data);
 
 export const updateCohortDetails = (body, cohortID) =>
-  api
-    .put(`${DEVICES}/cohorts/${cohortID}`, body)
+  secureApiProxy
+    .put(`${DEVICES}/cohorts/${cohortID}`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
     .then((response) => response.data);
 
 export const getMapReadings = () =>
-  publicApi.get(READINGS_URL).then((response) => response.data);
+  secureApiProxy
+    .get(READINGS_URL, {
+      authType: AUTH_TYPES.NONE,
+    })
+    .then((response) => response.data);
 
 export const getNearestSite = (params) =>
-  publicApi.get(NEAREST_SITE_URL, { params }).then((response) => response.data);
+  secureApiProxy
+    .get(NEAREST_SITE_URL, {
+      params,
+      authType: AUTH_TYPES.NONE,
+    })
+    .then((response) => response.data);
 
 export const getGridsSummaryApi = () =>
-  api.get(`${DEVICES}/grids/summary`).then((response) => response.data);
+  secureApiProxy
+    .get(`${DEVICES}/grids/summary`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
