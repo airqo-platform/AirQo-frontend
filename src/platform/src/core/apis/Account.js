@@ -64,6 +64,12 @@ export const getGroupDetailsApi = (groupID) =>
   api.get(`${GROUPS_URL}/${groupID}`).then((response) => response.data);
 export const updateGroupDetailsApi = (groupID, data) =>
   api.put(`${GROUPS_URL}/${groupID}`, data).then((response) => response.data);
+export const createOrganisationRequestApi = (data) =>
+  api.post(`${USERS_URL}/org-requests`, data).then((response) => response.data);
+export const getOrganisationSlugAvailabilityApi = (slug) =>
+  api
+    .get(`${USERS_URL}/org-requests/slug-availability/${slug}`)
+    .then((response) => response.data);
 
 // User Defaults
 export const postUserDefaultsApi = (data) =>

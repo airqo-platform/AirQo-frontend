@@ -210,7 +210,7 @@ const IndividualAccountRegistration = () => {
                 <p className="text-xs text-gray-600 dark:text-gray-300">
                   I agree to the{' '}
                   <a
-                    href="https://airqo.net/legal?tab=terms"
+                    href="https://airqo.net/legal/terms-of-service"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
@@ -219,7 +219,7 @@ const IndividualAccountRegistration = () => {
                   </a>{' '}
                   and{' '}
                   <a
-                    href="https://airqo.net/legal?tab=privacy"
+                    href="https://airqo.net/legal/privacy-policy"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"

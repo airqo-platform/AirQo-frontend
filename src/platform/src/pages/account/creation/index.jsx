@@ -4,8 +4,6 @@ import GoogleLogo from '@/icons/Common/google_logo.svg';
 import { getGoogleAuthDetails } from '@/core/apis/Account';
 import CheckComponent from '@/components/Account/CheckComponent';
 
-const FORM_URL = 'https://forms.gle/VX5p2s65n8U51iBc8';
-
 const userRoles = [
   {
     title: 'Individual',
@@ -20,10 +18,8 @@ const userRoles = [
     subText:
       'Beyond data, gain access to network management tools. Drive meaningful change, one location at a time. Shape a cleaner future for all.',
     disabled: false,
-    // External route for organisations.
-    route: () => {
-      window.location.href = FORM_URL;
-    },
+    route: (router) =>
+      router.push(`/account/creation/organisation/request-access`),
   },
 ];
 

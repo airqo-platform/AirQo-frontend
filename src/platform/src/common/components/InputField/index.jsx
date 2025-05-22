@@ -22,6 +22,7 @@ const InputField = ({
   className = '',
   required = false,
   disabled = false,
+  description,
   ...inputProps
 }) => {
   return (
@@ -77,6 +78,10 @@ const InputField = ({
           </svg>
           {error}
         </div>
+      )}
+
+      {!error && description && (
+        <div className="mt-1.5 text-xs text-gray-500">{description}</div>
       )}
     </div>
   );
