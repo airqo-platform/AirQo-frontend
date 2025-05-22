@@ -63,7 +63,7 @@ class KyaImpl extends KyaRepository with UiLoggy {
           loggy.error('AIRQO_API_TOKEN is not configured');
           throw StateError('Missing API token');
         }
-        
+
         Response response =
             await createGetRequest(ApiUtils.fetchLessons, {"token": token})
                 .timeout(
@@ -155,10 +155,15 @@ class KyaImpl extends KyaRepository with UiLoggy {
   Future<void> _refreshInBackground() async {
     try {
       loggy.info('Starting background refresh of lessons data');
+      final token = dotenv.env['AIRQO_API_TOKEN'];
+      if (token == null) {
+        loggy.error('AIRQO_API_TOKEN is not configured for background refresh');
+        return;
+      }
 
-      Response response = await createGetRequest(
-              ApiUtils.fetchLessons, {"token": dotenv.env['AIRQO_API_TOKEN']!})
-          .timeout(const Duration(seconds: 30));
+      Response response =
+          await createGetRequest(ApiUtils.fetchLessons, {"token": token})
+              .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final lessonResponseModel = lessonResponseModelFromJson(response.body);
