@@ -10,6 +10,7 @@ import {
   createOrganisationRequestApi,
   getOrganisationSlugAvailabilityApi,
 } from '@/core/apis/Account';
+import { logger } from '@/lib/logger';
 
 export default function OrgRequestAccessPage() {
   const router = useRouter();
@@ -294,6 +295,17 @@ export default function OrgRequestAccessPage() {
     try {
       const responseData = await cloudinaryImageUpload(formData);
       return { secure_url: responseData.secure_url };
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Unable to upload image to Cloudinary';
+      CustomToast({
+        message: errorMessage,
+        type: 'error',
+      });
+      logger.error('Uploading organization logo to cloudinary failed:', error);
+      return { secure_url: '' };
     } finally {
       setUploadingLogo(false);
     }
