@@ -44,7 +44,7 @@ export default function OrgRequestAccessPage() {
   useEffect(() => {
     if (
       formData.organizationName &&
-      currentStep === 2 &&
+      currentStep === 1 &&
       !formData.organizationSlug
     ) {
       const generatedSlug = formData.organizationName
