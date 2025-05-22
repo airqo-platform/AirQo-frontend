@@ -155,12 +155,14 @@ Map<String, dynamic> _$WeeklyAveragesToJson(WeeklyAverages instance) =>
 
 HealthTip _$HealthTipFromJson(Map<String, dynamic> json) => HealthTip(
       title: json['title'] as String?,
+      tagLine: json['tag_line'] as String?,
       description: json['description'] as String?,
       image: json['image'] as String?,
     );
 
 Map<String, dynamic> _$HealthTipToJson(HealthTip instance) => <String, dynamic>{
       'title': instance.title,
+      'tag_line': instance.tagLine,
       'description': instance.description,
       'image': instance.image,
     };

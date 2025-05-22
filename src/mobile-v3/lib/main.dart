@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:airqo/core/utils/hive_box_setup.dart';
 import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -20,6 +19,7 @@ import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
+import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await HiveBoxSetup.initializeBoxes();
+  await CacheManager().initialize();
 
   const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
   AppLoggySetup.init(isDevelopment: !kReleaseMode);
@@ -205,32 +205,28 @@ class _DeciderState extends State<Decider> {
               builder: (context, authState) {
                 debugPrint("Current AuthState: $authState");
 
-                // Handle loading state
                 if (authState is AuthLoading) {
                   return Scaffold(
                     body: const Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                // Handle guest user
                 if (authState is GuestUser) {
                   return NavPage();
                 }
 
-                // Handle logged-in user
                 if (authState is AuthLoaded) {
                   context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
 
-                // Handle error state
+
                 if (authState is AuthLoadingError) {
                   return Scaffold(
                     body: Center(child: Text('Error: ${authState.message}')),
                   );
                 }
 
-                // Default fallback (e.g., AuthInitial)
                 return Scaffold(
                   body: const Center(child: CircularProgressIndicator()),
                 );

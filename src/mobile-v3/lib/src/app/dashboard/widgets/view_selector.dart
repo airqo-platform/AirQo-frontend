@@ -50,20 +50,20 @@ class _ViewSelectorState extends State<ViewSelector> {
     }
   }
 
-  void _sortCountries() {
-    sortedCountries = List.from(CountryRepository.countries);
+void _sortCountries() {
+  sortedCountries = List.from(CountryRepository.countries);
 
-    if (widget.userCountry != null && widget.userCountry!.isNotEmpty) {
-      int userCountryIndex = sortedCountries.indexWhere((country) =>
-          country.countryName.toLowerCase() ==
-          widget.userCountry!.toLowerCase());
+  final userCountry = widget.userCountry;
+  if (userCountry != null && userCountry.isNotEmpty) {
+    int userCountryIndex = sortedCountries.indexWhere((country) =>
+        country.countryName.toLowerCase() == userCountry.toLowerCase());
 
-      if (userCountryIndex != -1) {
-        CountryModel userCountry = sortedCountries.removeAt(userCountryIndex);
-        sortedCountries.insert(0, userCountry);
-      }
+    if (userCountryIndex != -1) {
+      CountryModel userCountryModel = sortedCountries.removeAt(userCountryIndex);
+      sortedCountries.insert(0, userCountryModel);
     }
   }
+}
 
   void _triggerTooltipOnViewChange() {
     WidgetsBinding.instance.addPostFrameCallback((_) {

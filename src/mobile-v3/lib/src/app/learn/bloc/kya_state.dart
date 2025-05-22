@@ -1,24 +1,44 @@
 part of 'kya_bloc.dart';
 
-sealed class KyaState extends Equatable {
+abstract class KyaState extends Equatable {
   const KyaState();
-
+  
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-final class KyaInitial extends KyaState {}
+class KyaInitial extends KyaState {}
 
-final class LessonsLoading extends KyaState {}
+class LessonsLoading extends KyaState {}
 
-final class LessonsLoaded extends KyaState {
+class LessonsRefreshing extends KyaState {
+  final LessonResponseModel? currentModel;
+  
+  const LessonsRefreshing({this.currentModel});
+  
+  @override
+  List<Object?> get props => [currentModel];
+}
+
+class LessonsLoaded extends KyaState {
   final LessonResponseModel model;
-
-  const LessonsLoaded(this.model);
+  final bool fromCache;
+  
+  const LessonsLoaded(this.model, {this.fromCache = false});
+  
+  @override
+  List<Object> get props => [model, fromCache];
 }
 
-final class LessonsLoadingError extends KyaState {
+class LessonsLoadingError extends KyaState {
   final String message;
-
-  const LessonsLoadingError(this.message);
+  final LessonResponseModel? cachedModel;
+  
+  const LessonsLoadingError({
+    required this.message,
+    this.cachedModel,
+  });
+  
+  @override
+  List<Object?> get props => [message, cachedModel];
 }
