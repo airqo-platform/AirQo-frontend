@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -18,13 +19,27 @@ void main() {
     late MockCacheManager mockCacheManager;
     late DashboardImpl repository;
 
+    setUpAll(() async {
+      // Initialize dotenv for tests
+      dotenv.testLoad(fileInput: '''
+AIRQO_API_TOKEN=test-token-123
+''');
+    });
+
     setUp(() {
       mockHttpClient = MockClient();
       mockCacheManager = MockCacheManager();
       
-      // Create repository instance - note: you may need to modify DashboardImpl 
-      // to accept dependencies for testing
-      repository = DashboardImpl();
+      // Create repository with mocked dependencies
+      repository = DashboardImpl(
+        httpClient: mockHttpClient,
+        cacheManager: mockCacheManager,
+      );
+    });
+
+    tearDown(() {
+      // Reset singleton for next test
+      DashboardImpl.resetInstance();
     });
 
     group('fetchAirQualityReadings', () {
@@ -51,7 +66,7 @@ void main() {
         when(mockCacheManager.get<AirQualityResponse>(
           boxName: CacheBoxName.airQuality,
           key: 'air_quality_readings',
-          fromJson: any(named: 'fromJson'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => cachedData);
 
         when(mockCacheManager.shouldRefresh<AirQualityResponse>(
@@ -72,6 +87,13 @@ void main() {
         expect(result.success, isTrue);
         expect(result.measurements, hasLength(1));
         expect(result.measurements!.first.pm25!.value, equals(25.5));
+        
+        // Verify cache was checked
+        verify(mockCacheManager.get<AirQualityResponse>(
+          boxName: CacheBoxName.airQuality,
+          key: 'air_quality_readings',
+          fromJson: anyNamed('fromJson'),
+        )).called(1);
       });
 
       test('fetches fresh data when cache is stale', () async {
@@ -95,20 +117,18 @@ void main() {
           ]
         };
 
-        final expectedResponse = AirQualityResponse.fromJson(mockApiResponse);
-
         when(mockCacheManager.get<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
 
         when(mockCacheManager.shouldRefresh<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          policy: any(named: 'policy'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
           cachedData: null,
-          forceRefresh: false,
+          forceRefresh: true,
         )).thenReturn(true);
 
         when(mockCacheManager.isConnected).thenReturn(true);
@@ -123,11 +143,11 @@ void main() {
         ));
 
         when(mockCacheManager.put<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          data: any(named: 'data'),
-          toJson: any(named: 'toJson'),
-          etag: any(named: 'etag'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          data: anyNamed('data'),
+          toJson: anyNamed('toJson'),
+          etag: anyNamed('etag'),
         )).thenAnswer((_) async {});
 
         // Act
@@ -138,20 +158,35 @@ void main() {
         expect(result.measurements, hasLength(1));
         expect(result.measurements!.first.id, equals('fresh-id'));
         expect(result.measurements!.first.pm25!.value, equals(15.2));
+        
+        // Verify HTTP call was made
+        verify(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).called(1);
+        
+        // Verify data was cached
+        verify(mockCacheManager.put<AirQualityResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          data: anyNamed('data'),
+          toJson: anyNamed('toJson'),
+          etag: anyNamed('etag'),
+        )).called(1);
       });
 
       test('throws exception when network fails and no cache available', () async {
         // Arrange
         when(mockCacheManager.get<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
 
         when(mockCacheManager.shouldRefresh<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          policy: any(named: 'policy'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
           cachedData: null,
           forceRefresh: false,
         )).thenReturn(true);
@@ -191,10 +226,19 @@ void main() {
         );
 
         when(mockCacheManager.get<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => cachedData);
+
+        // Add the missing shouldRefresh stub
+        when(mockCacheManager.shouldRefresh<AirQualityResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
+          cachedData: cachedData,
+          forceRefresh: false,
+        )).thenReturn(false);
 
         when(mockCacheManager.isConnected).thenReturn(false);
 
@@ -212,10 +256,19 @@ void main() {
       test('throws exception when offline and no cache available', () async {
         // Arrange
         when(mockCacheManager.get<AirQualityResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
+
+        // Add the missing shouldRefresh stub
+        when(mockCacheManager.shouldRefresh<AirQualityResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
+          cachedData: null,
+          forceRefresh: false,
+        )).thenReturn(true);
 
         when(mockCacheManager.isConnected).thenReturn(false);
 
@@ -229,6 +282,50 @@ void main() {
             ),
           ),
         );
+      });
+
+      test('handles HTTP error with cached fallback', () async {
+        // Arrange
+        final cachedResponse = AirQualityResponse(
+          success: true,
+          message: 'Cached data',
+          measurements: [
+            Measurement(id: 'cached-id', pm25: Pm25(value: 20.0))
+          ],
+        );
+        
+        final cachedData = CachedData<AirQualityResponse>(
+          data: cachedResponse,
+          timestamp: DateTime.now().subtract(Duration(hours: 1)),
+        );
+
+        when(mockCacheManager.get<AirQualityResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
+        )).thenAnswer((_) async => cachedData);
+
+        when(mockCacheManager.shouldRefresh<AirQualityResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
+          cachedData: cachedData,
+          forceRefresh: false,
+        )).thenReturn(true);
+
+        when(mockCacheManager.isConnected).thenReturn(true);
+
+        when(mockHttpClient.get(
+          any,
+          headers: anyNamed('headers'),
+        )).thenAnswer((_) async => http.Response('Server Error', 500));
+
+        // Act
+        final result = await repository.fetchAirQualityReadings();
+
+        // Assert - Should return cached data despite HTTP error
+        expect(result, equals(cachedResponse));
+        expect(result.measurements!.first.pm25!.value, equals(20.0));
       });
     });
 
@@ -253,8 +350,8 @@ void main() {
       test('propagates exception from cache manager', () async {
         // Arrange
         when(mockCacheManager.delete(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
         )).thenThrow(Exception('Cache delete failed'));
 
         // Act & Assert
@@ -266,10 +363,32 @@ void main() {
     });
 
     group('airQualityStream', () {
-      test('provides stream of air quality responses', () async {
-        // This tests the stream functionality if needed
+      test('provides stream of air quality responses', () {
+        // Act & Assert
         expect(repository.airQualityStream, isA<Stream<AirQualityResponse>>());
       });
+    });
+  });
+
+  group('DashboardImpl Production Usage', () {
+    test('maintains singleton behavior when no dependencies provided', () {
+      // Reset any existing instance
+      DashboardImpl.resetInstance();
+      
+      final instance1 = DashboardImpl();
+      final instance2 = DashboardImpl();
+      
+      expect(identical(instance1, instance2), isTrue);
+    });
+
+    test('creates new instances when dependencies are provided', () {
+      final mockClient1 = MockClient();
+      final mockClient2 = MockClient();
+      
+      final instance1 = DashboardImpl(httpClient: mockClient1);
+      final instance2 = DashboardImpl(httpClient: mockClient2);
+      
+      expect(identical(instance1, instance2), isFalse);
     });
   });
 }

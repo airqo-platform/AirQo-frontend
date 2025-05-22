@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
 // Generate mocks
@@ -17,10 +18,27 @@ void main() {
     late MockCacheManager mockCacheManager;
     late ForecastImpl repository;
 
+    setUpAll(() async {
+      // Initialize dotenv for tests
+      dotenv.testLoad(fileInput: '''
+AIRQO_API_TOKEN=test-forecast-token-123
+''');
+    });
+
     setUp(() {
       mockHttpClient = MockClient();
       mockCacheManager = MockCacheManager();
-      repository = ForecastImpl();
+      
+      // Create repository with mocked dependencies
+      repository = ForecastImpl(
+        httpClient: mockHttpClient,
+        cacheManager: mockCacheManager,
+      );
+    });
+
+    tearDown(() {
+      // Reset singleton for next test
+      ForecastImpl.resetInstance();
     });
 
     group('loadForecasts', () {
@@ -64,7 +82,7 @@ void main() {
         when(mockCacheManager.get<ForecastResponse>(
           boxName: CacheBoxName.forecast,
           key: 'forecast_$tSiteId',
-          fromJson: any(named: 'fromJson'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => cachedData);
 
         when(mockCacheManager.shouldRefresh<ForecastResponse>(
@@ -112,17 +130,17 @@ void main() {
         };
 
         when(mockCacheManager.get<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
 
         when(mockCacheManager.shouldRefresh<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          policy: any(named: 'policy'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
           cachedData: null,
-          forceRefresh: false,
+          forceRefresh: true,
         )).thenReturn(true);
 
         when(mockCacheManager.isConnected).thenReturn(true);
@@ -137,11 +155,11 @@ void main() {
         ));
 
         when(mockCacheManager.put<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          data: any(named: 'data'),
-          toJson: any(named: 'toJson'),
-          etag: any(named: 'etag'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          data: anyNamed('data'),
+          toJson: anyNamed('toJson'),
+          etag: anyNamed('etag'),
         )).thenAnswer((_) async {});
 
         // Act
@@ -156,15 +174,15 @@ void main() {
       test('should throw ForecastException when network fails and no cache available', () async {
         // Arrange
         when(mockCacheManager.get<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
 
         when(mockCacheManager.shouldRefresh<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          policy: any(named: 'policy'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
           cachedData: null,
           forceRefresh: false,
         )).thenReturn(true);
@@ -191,10 +209,19 @@ void main() {
         );
 
         when(mockCacheManager.get<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => cachedData);
+
+        // Add missing shouldRefresh stub for offline scenario
+        when(mockCacheManager.shouldRefresh<ForecastResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
+          cachedData: cachedData,
+          forceRefresh: false,
+        )).thenReturn(false);
 
         when(mockCacheManager.isConnected).thenReturn(false);
 
@@ -211,10 +238,19 @@ void main() {
       test('should throw ForecastException when offline and no cache available', () async {
         // Arrange
         when(mockCacheManager.get<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
+
+        // Add missing shouldRefresh stub
+        when(mockCacheManager.shouldRefresh<ForecastResponse>(
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
+          cachedData: null,
+          forceRefresh: false,
+        )).thenReturn(true);
 
         when(mockCacheManager.isConnected).thenReturn(false);
 
@@ -233,15 +269,15 @@ void main() {
       test('should handle HTTP 404 error with specific message', () async {
         // Arrange
         when(mockCacheManager.get<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => null);
 
         when(mockCacheManager.shouldRefresh<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          policy: any(named: 'policy'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
           cachedData: null,
           forceRefresh: false,
         )).thenReturn(true);
@@ -276,15 +312,15 @@ void main() {
         );
 
         when(mockCacheManager.get<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          fromJson: any(named: 'fromJson'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          fromJson: anyNamed('fromJson'),
         )).thenAnswer((_) async => cachedData);
 
         when(mockCacheManager.shouldRefresh<ForecastResponse>(
-          boxName: any(named: 'boxName'),
-          key: any(named: 'key'),
-          policy: any(named: 'policy'),
+          boxName: anyNamed('boxName'),
+          key: anyNamed('key'),
+          policy: anyNamed('policy'),
           cachedData: cachedData,
           forceRefresh: false,
         )).thenReturn(true);

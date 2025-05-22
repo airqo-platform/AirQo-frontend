@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
-
+import 'package:http/http.dart' as http;
 
 class ForecastException implements Exception {
   final String message;
@@ -20,7 +20,6 @@ class ForecastException implements Exception {
 }
 
 abstract class ForecastRepository extends BaseRepository {
-
   Future<ForecastResponse> loadForecasts(String siteId,
       {bool forceRefresh = false});
 
@@ -32,7 +31,39 @@ abstract class ForecastRepository extends BaseRepository {
 }
 
 class ForecastImpl extends ForecastRepository with UiLoggy {
-  final CacheManager _cacheManager = CacheManager();
+  static ForecastImpl? _instance;
+  
+  final CacheManager _cacheManager;
+  final http.Client _httpClient;
+
+  // Private constructor that accepts dependencies
+  ForecastImpl._internal({
+    CacheManager? cacheManager,
+    http.Client? httpClient,
+  }) : _cacheManager = cacheManager ?? CacheManager(),
+       _httpClient = httpClient ?? http.Client();
+
+  // Factory constructor that maintains singleton behavior for production use
+  factory ForecastImpl({
+    CacheManager? cacheManager,
+    http.Client? httpClient,
+  }) {
+    // If dependencies are provided (testing scenario), create new instance
+    if (cacheManager != null || httpClient != null) {
+      return ForecastImpl._internal(
+        cacheManager: cacheManager,
+        httpClient: httpClient,
+      );
+    }
+    
+    // Otherwise, use singleton pattern for production
+    return _instance ??= ForecastImpl._internal();
+  }
+
+  // Static method to reset singleton (useful for testing)
+  static void resetInstance() {
+    _instance = null;
+  }
 
   final Map<String, StreamController<ForecastResponse>> _forecastControllers =
       {};
@@ -77,10 +108,17 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
         loggy
             .info('Fetching fresh forecast data for site $siteId from network');
 
-        Response forecastResponse = await createGetRequest(
-                ApiUtils.fetchForecasts,
-                {"token": dotenv.env['AIRQO_API_TOKEN']!, "site_id": siteId})
-            .timeout(const Duration(seconds: 15), onTimeout: () {
+        Response forecastResponse = await _httpClient.get(
+          Uri.parse(ApiUtils.fetchForecasts).replace(
+            queryParameters: {
+              "token": dotenv.env['AIRQO_API_TOKEN']!,
+              "site_id": siteId
+            }
+          ),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ).timeout(const Duration(seconds: 15), onTimeout: () {
           throw ForecastException(
               'Request timed out. Server might be slow or unreachable.',
               isNetworkError: true);
@@ -161,9 +199,17 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       loggy.info(
           'Starting background refresh of forecast data for site $siteId');
 
-      Response forecastResponse = await createGetRequest(
-          ApiUtils.fetchForecasts,
-          {"token": dotenv.env['AIRQO_API_TOKEN']!, "site_id": siteId});
+      Response forecastResponse = await _httpClient.get(
+        Uri.parse(ApiUtils.fetchForecasts).replace(
+          queryParameters: {
+            "token": dotenv.env['AIRQO_API_TOKEN']!,
+            "site_id": siteId
+          }
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
 
       if (forecastResponse.statusCode == 200) {
         final responseBody = forecastResponse.body;
@@ -243,5 +289,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       }
     }
     _forecastControllers.clear();
+    _httpClient.close();
   }
 }

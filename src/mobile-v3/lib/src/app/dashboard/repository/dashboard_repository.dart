@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
-
+import 'package:http/http.dart' as http;
 
 abstract class DashboardRepository extends BaseRepository {
   Future<AirQualityResponse> fetchAirQualityReadings({bool forceRefresh = false});
@@ -18,11 +18,35 @@ abstract class DashboardRepository extends BaseRepository {
 }
 
 class DashboardImpl extends DashboardRepository with UiLoggy {
-  static final DashboardImpl _instance = DashboardImpl._internal();
-  factory DashboardImpl() => _instance;
-  DashboardImpl._internal();
+  static DashboardImpl? _instance;
+  
+  final CacheManager _cacheManager;
+  final http.Client _httpClient;
 
-  final CacheManager _cacheManager = CacheManager();
+  DashboardImpl._internal({
+    CacheManager? cacheManager,
+    http.Client? httpClient,
+  }) : _cacheManager = cacheManager ?? CacheManager(),
+       _httpClient = httpClient ?? http.Client();
+
+  factory DashboardImpl({
+    CacheManager? cacheManager,
+    http.Client? httpClient,
+  }) {
+
+    if (cacheManager != null || httpClient != null) {
+      return DashboardImpl._internal(
+        cacheManager: cacheManager,
+        httpClient: httpClient,
+      );
+    }
+    
+    return _instance ??= DashboardImpl._internal();
+  }
+
+  static void resetInstance() {
+    _instance = null;
+  }
 
   final _airQualityController = StreamController<AirQualityResponse>.broadcast();
   
@@ -63,9 +87,13 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
       try {
         loggy.info('Fetching fresh air quality data from network');
         
-        Response response = await createGetRequest(
-          ApiUtils.map, 
-          {"token": dotenv.env['AIRQO_API_TOKEN']!}
+        Response response = await _httpClient.get(
+          Uri.parse(ApiUtils.map).replace(
+            queryParameters: {"token": dotenv.env['AIRQO_API_TOKEN']!}
+          ),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         );
         
         if (response.statusCode == 200) {
@@ -121,9 +149,13 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
     try {
       loggy.info('Starting background refresh of air quality data');
       
-      Response response = await createGetRequest(
-        ApiUtils.map, 
-        {"token": dotenv.env['AIRQO_API_TOKEN']!}
+      Response response = await _httpClient.get(
+        Uri.parse(ApiUtils.map).replace(
+          queryParameters: {"token": dotenv.env['AIRQO_API_TOKEN']!}
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       );
       
       if (response.statusCode == 200) {
@@ -168,5 +200,6 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
   
   void dispose() {
     _airQualityController.close();
+    _httpClient.close();
   }
 }
