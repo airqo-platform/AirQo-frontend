@@ -59,20 +59,17 @@ export default function OrgRequestAccessPage() {
     }
   }, [formData.organizationName, currentStep]);
 
+  const orgSlug = formData.organizationSlug;
+
   useEffect(() => {
-    if (
-      formData.organizationSlug &&
-      formData.organizationSlug.trim() !== '' &&
-      formData.organizationSlug.length >= 3
-    ) {
+    if (orgSlug && orgSlug.trim() !== '' && orgSlug.length >= 3) {
       if (slugCheckTimeoutRef.current) {
         clearTimeout(slugCheckTimeoutRef.current);
       }
 
-      // Set a timeout to avoid checking on every keystroke
       setIsCheckingSlug(true);
       slugCheckTimeoutRef.current = setTimeout(() => {
-        checkSlugAvailability(formData.organizationSlug);
+        checkSlugAvailability(orgSlug);
       }, 500);
     } else {
       setSlugAvailability(null);
@@ -85,7 +82,7 @@ export default function OrgRequestAccessPage() {
         clearTimeout(slugCheckTimeoutRef.current);
       }
     };
-  }, [formData.organizationSlug]);
+  }, [orgSlug]);
 
   const checkSlugAvailability = async (slug) => {
     if (!slug) return;
@@ -706,7 +703,7 @@ export default function OrgRequestAccessPage() {
                   {/* File Upload Option */}
                   <div className="mb-4">
                     <div
-                      className={`border-2 border-dashed rounded-md p-4 text-center ${
+                      className={`border-2 border-dashed rounded-xl p-4 text-center ${
                         errors.logoFile
                           ? 'border-red-300 bg-red-50'
                           : 'border-gray-300 bg-gray-50'
