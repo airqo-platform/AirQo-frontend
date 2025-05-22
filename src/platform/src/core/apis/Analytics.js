@@ -84,7 +84,7 @@ export const getRecentMeasurements = async (params) => {
   return secureApiProxy
     .get(DEVICE_READINGS_RECENT_URL, {
       params,
-      authType: AUTH_TYPES.NONE,
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data)
     .catch(() => ({}));
@@ -98,7 +98,7 @@ export const generateSiteAndDeviceIds = async (grid_id) => {
 
   return secureApiProxy
     .get(`${GENERATE_SITE_AND_DEVICE_IDS}/${grid_id}/generate`, {
-      authType: AUTH_TYPES.NONE,
+      authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
     .catch(() => ({}));

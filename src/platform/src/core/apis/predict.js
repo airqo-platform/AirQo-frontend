@@ -6,6 +6,6 @@ export const dailyPredictionsApi = (siteID) =>
   secureApiProxy
     .get(DAILY_PREDICTIONS_URL, {
       params: { site_id: siteID },
-      authType: AUTH_TYPES.NONE,
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);

@@ -56,7 +56,7 @@ export const updateCohortDetails = (body, cohortID) =>
 export const getMapReadings = () =>
   secureApiProxy
     .get(READINGS_URL, {
-      authType: AUTH_TYPES.NONE,
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);
 
