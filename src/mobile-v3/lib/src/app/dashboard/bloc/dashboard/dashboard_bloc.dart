@@ -30,7 +30,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
     on<DataUpdatedEvent>(_onDataUpdated);
     on<ConnectionStatusChanged>(_onConnectionStatusChanged);
     
-    _airQualitySubscription = (repository as DashboardImpl).airQualityStream.listen((response) {
+    _airQualitySubscription = repository.airQualityStream.listen((response) {
       if (state is DashboardLoaded) {
         add(DataUpdatedEvent(response));
       }

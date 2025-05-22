@@ -5,20 +5,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:loggy/loggy.dart';
 import 'package:battery_plus/battery_plus.dart';
 
+enum CacheBoxName { airQuality, forecast, location, userPreferences }
 
-enum CacheBoxName {
-  airQuality,
-  forecast,
-  location,
-  userPreferences
-}
-
-enum ConnectionType {
-  wifi,
-  mobile,
-  none
-}
-
+enum ConnectionType { wifi, mobile, none }
 
 class CachedData<T> {
   final T data;
@@ -33,7 +22,8 @@ class CachedData<T> {
     this.isValid = true,
   });
 
-  factory CachedData.fromJson(Map<String, dynamic> json, T Function(Map<String, dynamic>) fromJson) {
+  factory CachedData.fromJson(
+      Map<String, dynamic> json, T Function(Map<String, dynamic>) fromJson) {
     return CachedData<T>(
       data: fromJson(json['data']),
       timestamp: DateTime.parse(json['timestamp']),
@@ -65,7 +55,6 @@ class CachedData<T> {
     );
   }
 
-
   bool isStale(Duration refreshInterval) {
     if (!isValid) return true;
     final now = DateTime.now();
@@ -76,17 +65,17 @@ class CachedData<T> {
 class RefreshPolicy {
   final Duration wifiInterval;
   final Duration mobileInterval;
-  final Duration? lowBatteryMultiplier;
-  
+  final double? lowBatteryFactor;
+
   const RefreshPolicy({
     required this.wifiInterval,
     Duration? mobileInterval,
-    this.lowBatteryMultiplier,
+    this.lowBatteryFactor,
   }) : mobileInterval = mobileInterval ?? wifiInterval * 2;
-  
+
   Duration getInterval(ConnectionType connectionType, bool isLowBattery) {
     Duration baseInterval;
-    
+
     switch (connectionType) {
       case ConnectionType.wifi:
         baseInterval = wifiInterval;
@@ -97,30 +86,30 @@ class RefreshPolicy {
       case ConnectionType.none:
         return const Duration(days: 1);
     }
-    
-    if (isLowBattery && lowBatteryMultiplier != null) {
-      return baseInterval * (lowBatteryMultiplier!.inMinutes / 60);
+
+    if (isLowBattery && lowBatteryFactor != null) {
+      return baseInterval * lowBatteryFactor!;
     }
-    
+
     return baseInterval;
   }
-  
+
   static const RefreshPolicy airQuality = RefreshPolicy(
     wifiInterval: Duration(hours: 1),
     mobileInterval: Duration(hours: 2),
-    lowBatteryMultiplier: Duration(hours: 2),
+    lowBatteryFactor: 2.0,
   );
-  
+
   static const RefreshPolicy forecast = RefreshPolicy(
     wifiInterval: Duration(hours: 3),
     mobileInterval: Duration(hours: 6),
-    lowBatteryMultiplier: Duration(hours: 2),
+    lowBatteryFactor: 2.0
   );
-  
+
   static const RefreshPolicy location = RefreshPolicy(
     wifiInterval: Duration(hours: 24),
     mobileInterval: Duration(hours: 48),
-    lowBatteryMultiplier: Duration(hours: 2),
+    lowBatteryFactor: 2.0,
   );
 
   static const RefreshPolicy userPreferences = RefreshPolicy(
@@ -129,7 +118,6 @@ class RefreshPolicy {
   );
 }
 
-
 class CacheManager with UiLoggy {
   static final CacheManager _instance = CacheManager._internal();
   factory CacheManager() => _instance;
@@ -137,37 +125,37 @@ class CacheManager with UiLoggy {
 
   final Connectivity _connectivity = Connectivity();
   final Battery _battery = Battery();
-  
+
   ConnectionType _connectionType = ConnectionType.none;
   bool _isLowBattery = false;
-  
-  final StreamController<ConnectionType> _connectionChangeController = 
+
+  final StreamController<ConnectionType> _connectionChangeController =
       StreamController<ConnectionType>.broadcast();
-  final StreamController<bool> _batteryChangeController = 
+  final StreamController<bool> _batteryChangeController =
       StreamController<bool>.broadcast();
 
-  Stream<ConnectionType> get connectionChange => _connectionChangeController.stream;
+  Stream<ConnectionType> get connectionChange =>
+      _connectionChangeController.stream;
   Stream<bool> get batteryChange => _batteryChangeController.stream;
-  
+
   Future<void> initialize() async {
     loggy.info('Initializing CacheManager');
-    
+
     await _initializeHiveBoxes();
-    
-    _connectivity.onConnectivityChanged.listen(_updateConnectionType);
-    _updateConnectionType(await _connectivity.checkConnectivity());
-    
+
+    _connectivity.onConnectivityChanged.listen(_updateConnectionType as void Function(List<ConnectivityResult> event)?);
+    _updateConnectionType((await _connectivity.checkConnectivity()) as ConnectivityResult);
+
     _battery.onBatteryStateChanged.listen(_updateBatteryState);
     _updateBatteryState(await _battery.batteryState);
-    
+
     loggy.info('CacheManager initialized successfully');
   }
 
   Future<void> _initializeHiveBoxes() async {
     try {
-
       await Hive.initFlutter();
-      
+
       // Open boxes if not already open
       if (!Hive.isBoxOpen(CacheBoxName.airQuality.toString())) {
         await Hive.openBox(CacheBoxName.airQuality.toString());
@@ -181,19 +169,17 @@ class CacheManager with UiLoggy {
       if (!Hive.isBoxOpen(CacheBoxName.userPreferences.toString())) {
         await Hive.openBox(CacheBoxName.userPreferences.toString());
       }
-      
+
       loggy.info('Hive boxes initialized');
     } catch (e) {
       loggy.error('Error initializing Hive boxes: $e');
       rethrow;
     }
   }
-  
-  void _updateConnectionType(List<ConnectivityResult> connectivityResults) {
+
+  void _updateConnectionType(ConnectivityResult connectivityResult) {
     ConnectionType prevConnectionType = _connectionType;
-    
-    final connectivityResult = connectivityResults.isNotEmpty ? connectivityResults.first : ConnectivityResult.none;
-    
+
     switch (connectivityResult) {
       case ConnectivityResult.wifi:
         _connectionType = ConnectionType.wifi;
@@ -204,13 +190,13 @@ class CacheManager with UiLoggy {
       default:
         _connectionType = ConnectionType.none;
     }
-    
+
     if (prevConnectionType != _connectionType) {
       loggy.info('Connection type changed: $_connectionType');
       _connectionChangeController.add(_connectionType);
     }
   }
-  
+
   void _updateBatteryState(BatteryState batteryState) async {
     if (batteryState == BatteryState.charging) {
       _isLowBattery = false;
@@ -220,19 +206,19 @@ class CacheManager with UiLoggy {
 
       if (_isLowBattery != newIsLowBattery) {
         _isLowBattery = newIsLowBattery;
-        loggy.info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
+        loggy
+            .info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
         _batteryChangeController.add(_isLowBattery);
       }
     }
   }
-  
 
   ConnectionType get connectionType => _connectionType;
-  
+
   bool get isLowBattery => _isLowBattery;
-  
+
   bool get isConnected => _connectionType != ConnectionType.none;
-  
+
   Future<void> put<T>({
     required CacheBoxName boxName,
     required String key,
@@ -242,22 +228,21 @@ class CacheManager with UiLoggy {
   }) async {
     try {
       final box = Hive.box(boxName.toString());
-      
+
       final cachedData = CachedData<T>(
         data: data,
         timestamp: DateTime.now(),
         etag: etag,
       );
-      
+
       final jsonData = cachedData.toJson(toJson);
       await box.put(key, json.encode(jsonData));
-      
+
       loggy.info('Data cached successfully: ${boxName.toString()}/$key');
     } catch (e) {
       loggy.error('Error caching data: $e');
     }
   }
-  
 
   Future<CachedData<T>?> get<T>({
     required CacheBoxName boxName,
@@ -267,23 +252,23 @@ class CacheManager with UiLoggy {
     try {
       final box = Hive.box(boxName.toString());
       final cachedJson = box.get(key);
-      
+
       if (cachedJson == null) {
         return null;
       }
-      
+
       final decoded = json.decode(cachedJson);
       final cachedData = CachedData<T>.fromJson(decoded, fromJson);
-      
-      loggy.info('Retrieved from cache: ${boxName.toString()}/$key (${DateTime.now().difference(cachedData.timestamp).inMinutes} minutes old)');
-      
+
+      loggy.info(
+          'Retrieved from cache: ${boxName.toString()}/$key (${DateTime.now().difference(cachedData.timestamp).inMinutes} minutes old)');
+
       return cachedData;
     } catch (e) {
       loggy.error('Error retrieving from cache: $e');
       return null;
     }
   }
-  
 
   bool shouldRefresh<T>({
     required CacheBoxName boxName,
@@ -295,15 +280,15 @@ class CacheManager with UiLoggy {
     if (forceRefresh) {
       return true;
     }
-    
+
     if (cachedData == null) {
       return true;
     }
-    
+
     final refreshInterval = policy.getInterval(_connectionType, _isLowBattery);
     return cachedData.isStale(refreshInterval);
   }
-  
+
   Future<void> delete({
     required CacheBoxName boxName,
     required String key,
@@ -317,7 +302,6 @@ class CacheManager with UiLoggy {
     }
   }
 
-
   Future<void> clearBox(CacheBoxName boxName) async {
     try {
       final box = Hive.box(boxName.toString());
@@ -327,7 +311,6 @@ class CacheManager with UiLoggy {
       loggy.error('Error clearing cache box: $e');
     }
   }
-  
 
   Future<void> clearAll() async {
     try {
@@ -340,7 +323,6 @@ class CacheManager with UiLoggy {
       loggy.error('Error clearing all cache boxes: $e');
     }
   }
-  
 
   void dispose() {
     _connectionChangeController.close();

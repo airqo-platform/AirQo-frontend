@@ -58,8 +58,15 @@ class KyaImpl extends KyaRepository with UiLoggy {
       try {
         loggy.info('Fetching fresh lessons data from API');
 
-        Response response = await createGetRequest(ApiUtils.fetchLessons,
-            {"token": dotenv.env['AIRQO_API_TOKEN']!}).timeout(
+        final token = dotenv.env['AIRQO_API_TOKEN'];
+        if (token == null) {
+          loggy.error('AIRQO_API_TOKEN is not configured');
+          throw StateError('Missing API token');
+        }
+        
+        Response response =
+            await createGetRequest(ApiUtils.fetchLessons, {"token": token})
+                .timeout(
           const Duration(seconds: 15),
           onTimeout: () {
             loggy.warning('API request timed out after 15 seconds');

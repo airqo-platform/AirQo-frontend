@@ -5,7 +5,7 @@ abstract class KyaEvent extends Equatable {
   const KyaEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class LoadLessons extends KyaEvent {
@@ -14,7 +14,7 @@ class LoadLessons extends KyaEvent {
   const LoadLessons({this.forceRefresh = false});
   
   @override
-  List<Object> get props => [forceRefresh];
+  List<Object?> get props => [forceRefresh];
 }
 
 class RefreshLessons extends KyaEvent {
@@ -23,5 +23,5 @@ class RefreshLessons extends KyaEvent {
   const RefreshLessons({this.currentModel});
   
   @override
-  List<Object> get props => [currentModel ?? Object()];
+  List<Object?> get props => [currentModel];
 }

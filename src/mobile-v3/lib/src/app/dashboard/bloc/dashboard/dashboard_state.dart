@@ -38,7 +38,6 @@ class DashboardLoaded extends DashboardState {
   @override
   List<Object?> get props => [response, userPreferences, isOffline, lastUpdated];
   
-  // Helper method to get selected location IDs
   List<String> get selectedLocationIds {
     if (userPreferences == null) return [];
     return userPreferences!.selectedSites
@@ -47,7 +46,7 @@ class DashboardLoaded extends DashboardState {
         .toList();
   }
   
-  // Create a copy with updated properties
+
   DashboardLoaded copyWith({
     AirQualityResponse? response,
     UserPreferencesModel? userPreferences,

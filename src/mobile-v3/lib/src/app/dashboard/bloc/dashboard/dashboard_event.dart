@@ -10,6 +10,9 @@ abstract class DashboardEvent extends Equatable {
 class LoadDashboard extends DashboardEvent {
   final bool forceRefresh;
   const LoadDashboard({this.forceRefresh = false});
+
+  @override
+  List<Object> get props => [forceRefresh];
 }
 
 class LoadUserPreferences extends DashboardEvent {}
