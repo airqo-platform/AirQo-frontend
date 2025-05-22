@@ -143,8 +143,8 @@ class CacheManager with UiLoggy {
 
     await _initializeHiveBoxes();
 
-    _connectivity.onConnectivityChanged.listen(_updateConnectionType as void Function(List<ConnectivityResult> event)?);
-    _updateConnectionType((await _connectivity.checkConnectivity()) as ConnectivityResult);
+    _connectivity.onConnectivityChanged.listen(_updateConnectionType);
+    _updateConnectionType(await _connectivity.checkConnectivity());
 
     _battery.onBatteryStateChanged.listen(_updateBatteryState);
     _updateBatteryState(await _battery.batteryState);
@@ -156,7 +156,6 @@ class CacheManager with UiLoggy {
     try {
       await Hive.initFlutter();
 
-      // Open boxes if not already open
       if (!Hive.isBoxOpen(CacheBoxName.airQuality.toString())) {
         await Hive.openBox(CacheBoxName.airQuality.toString());
       }
@@ -177,18 +176,15 @@ class CacheManager with UiLoggy {
     }
   }
 
-  void _updateConnectionType(ConnectivityResult connectivityResult) {
+  void _updateConnectionType(List<ConnectivityResult> connectivityResults) {
     ConnectionType prevConnectionType = _connectionType;
 
-    switch (connectivityResult) {
-      case ConnectivityResult.wifi:
-        _connectionType = ConnectionType.wifi;
-        break;
-      case ConnectivityResult.mobile:
-        _connectionType = ConnectionType.mobile;
-        break;
-      default:
-        _connectionType = ConnectionType.none;
+    if (connectivityResults.contains(ConnectivityResult.wifi)) {
+      _connectionType = ConnectionType.wifi;
+    } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
+      _connectionType = ConnectionType.mobile;
+    } else {
+      _connectionType = ConnectionType.none;
     }
 
     if (prevConnectionType != _connectionType) {
