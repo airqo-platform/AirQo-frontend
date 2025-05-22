@@ -61,7 +61,7 @@ const LogisticsPage = () => {
         <>
           {logisticsSections.map((section: any) => (
             <React.Fragment key={section.id}>
-              <section className="py-8">
+              <section className="py-2">
                 <SectionDisplay section={section} />
               </section>
             </React.Fragment>
