@@ -43,8 +43,6 @@ module.exports = withTM(
 
       return config;
     },
-
-    // Add this part 👇
     async redirects() {
       return [
         {
@@ -53,6 +51,22 @@ module.exports = withTM(
           permanent: false,
         },
       ];
+    },
+
+    async rewrites() {
+      return {
+        beforeFiles: [
+          // Use API routes for dynamic generation
+          {
+            source: '/robots.txt',
+            destination: '/api/robots',
+          },
+          {
+            source: '/sitemap.xml',
+            destination: '/api/sitemap',
+          },
+        ],
+      };
     },
   }),
 );

@@ -119,19 +119,10 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       })) || [],
     [groupList],
   );
-
-  // Filter data type options based on active filter
+  // All data type options are available for all filter types
   const filteredDataTypeOptions = useMemo(() => {
-    if (
-      activeFilterKey === FILTER_TYPES.COUNTRIES ||
-      activeFilterKey === FILTER_TYPES.CITIES
-    ) {
-      return DATA_TYPE_OPTIONS.filter(
-        (option) => option.name.toLowerCase() !== 'raw data',
-      );
-    }
     return DATA_TYPE_OPTIONS;
-  }, [activeFilterKey]);
+  }, []);
 
   // Active group info for organization selection
   const activeGroup = useMemo(
@@ -301,27 +292,13 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       setMessageType(MESSAGE_TYPES.WARNING);
     }
   }, [selectedGridId, isLoadingSiteIds, isSiteIdsError, siteAndDeviceIds]);
-
   useEffect(() => {
     if (
       refs.current.previousFilter &&
       refs.current.previousFilter !== activeFilterKey
     ) {
       clearSelections();
-
-      if (
-        (activeFilterKey === FILTER_TYPES.COUNTRIES ||
-          activeFilterKey === FILTER_TYPES.CITIES) &&
-        formData.dataType.name.toLowerCase() === 'raw data'
-      ) {
-        setFormData((prev) => ({
-          ...prev,
-          dataType:
-            DATA_TYPE_OPTIONS.find(
-              (opt) => opt.name.toLowerCase() === 'calibrated data',
-            ) || DATA_TYPE_OPTIONS[0],
-        }));
-      }
+      // Removed data type restriction for countries and cities
     }
     refs.current.previousFilter = activeFilterKey;
   }, [activeFilterKey]);

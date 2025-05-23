@@ -1,0 +1,38 @@
+User-agent: *
+Disallow: /api/
+
+# Allow all popular search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# Block other crawlers and bots
+User-agent: *
+Allow: /
+
+# Disallow api folder access
+Disallow: /pages/api/
+Disallow: /api/
+
+# Allow local development
+Host: localhost
+
+# Domain specific rules
+Host: analytics.airqo.net
+Host: staging-analytics.airqo.net
+
+Sitemap: https://analytics.airqo.net/sitemap.xml

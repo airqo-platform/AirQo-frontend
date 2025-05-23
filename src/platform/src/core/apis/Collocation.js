@@ -1,35 +1,56 @@
-import { api } from '../utils/apiClient';
+import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import { COLLOCATION } from '../urls/deviceMonitoring';
 
-// Collocation API endpoints
 export const resetCollocationBatch = (data, params) =>
-  api
-    .patch(`${COLLOCATION}/reset`, data, { params })
+  secureApiProxy
+    .patch(`${COLLOCATION}/reset`, data, { params, authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
 
 export const getCollocationBatchSummary = () =>
-  api.get(`${COLLOCATION}/summary`).then((response) => response.data);
+  secureApiProxy
+    .get(`${COLLOCATION}/summary`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
 
 export const collocateDevicesApi = (addMonitorInput) =>
-  api.post(COLLOCATION, addMonitorInput);
+  secureApiProxy.post(COLLOCATION, addMonitorInput, {
+    authType: AUTH_TYPES.JWT,
+  });
 
 export const getDeviceStatusSummaryApi = () =>
-  api.get(`${COLLOCATION}/summary`);
+  secureApiProxy.get(`${COLLOCATION}/summary`, { authType: AUTH_TYPES.JWT });
 
 export const getCollocationResultsApi = ({ devices = '', batchId }) =>
-  api.get(`${COLLOCATION}/data?devices=${devices}&batchId=${batchId}`);
+  secureApiProxy.get(`${COLLOCATION}/data`, {
+    params: { devices, batchId },
+    authType: AUTH_TYPES.JWT,
+  });
 
 export const getDataCompletenessResultsApi = ({ batchId }) =>
-  api.get(`${COLLOCATION}/data-completeness?batchId=${batchId}`);
+  secureApiProxy.get(`${COLLOCATION}/data-completeness`, {
+    params: { batchId },
+    authType: AUTH_TYPES.JWT,
+  });
 
 export const getIntraSensorCorrelationApi = ({ devices, batchId }) =>
-  api.get(`${COLLOCATION}/intra?devices=${devices}&batchId=${batchId}`);
+  secureApiProxy.get(`${COLLOCATION}/intra`, {
+    params: { devices, batchId },
+    authType: AUTH_TYPES.JWT,
+  });
 
 export const getInterSensorCorrelationApi = ({ devices, batchId }) =>
-  api.get(`${COLLOCATION}/inter?devices=${devices}&batchId=${batchId}`);
+  secureApiProxy.get(`${COLLOCATION}/inter`, {
+    params: { devices, batchId },
+    authType: AUTH_TYPES.JWT,
+  });
 
 export const getCollocationStatisticsApi = ({ devices = '', batchId }) =>
-  api.get(`${COLLOCATION}/statistics?devices=${devices}&batchId=${batchId}`);
+  secureApiProxy.get(`${COLLOCATION}/statistics`, {
+    params: { devices, batchId },
+    authType: AUTH_TYPES.JWT,
+  });
 
 export const getCollocationBatchResultsApi = (batchId) =>
-  api.get(`${COLLOCATION}/results?batchId=${batchId}`);
+  secureApiProxy.get(`${COLLOCATION}/results`, {
+    params: { batchId },
+    authType: AUTH_TYPES.JWT,
+  });

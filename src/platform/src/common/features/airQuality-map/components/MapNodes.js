@@ -329,7 +329,7 @@ export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
         class="text-gray-500 text-xs font-normal font-sans leading-none"
         style="color: ${popupTextColor};"
       >
-        ${formattedDate}
+        Last updated: ${formattedDate}
       </div>
 
       <div class="flex justify-between gap-2 w-full items-center">

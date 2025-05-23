@@ -1,6 +1,8 @@
-import { api } from '../utils/apiClient';
+import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import { INQUIRY_URL } from '../urls/inquiry';
 
 // Register new inquiry
 export const registerInquiry = (body) =>
-  api.post(`${INQUIRY_URL}/register`, body).then((response) => response.data);
+  secureApiProxy
+    .post(`${INQUIRY_URL}/register`, body, { authType: AUTH_TYPES.NONE })
+    .then((response) => response.data);
