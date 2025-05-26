@@ -1,6 +1,5 @@
 'use client';
 
-import DOMPurify from 'dompurify';
 import React from 'react';
 
 import Loading from '@/components/loading';
@@ -35,60 +34,43 @@ const LogisticsPage = () => {
       isValidHTMLContent(renderContent(section.content)),
   );
 
+  // Check if we have any content at all
+  const hasNoContent =
+    !showVaccination &&
+    !showVisa &&
+    (!logisticsSections || logisticsSections.length === 0);
+
+  if (hasNoContent) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          Logistics Information Coming Soon
+        </h2>
+        <p className="text-gray-500 text-center max-w-2xl">
+          We&apos;re currently finalizing the logistics details for this event.
+          Please check back later for updates.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 prose max-w-none lg:px-0">
-      {/* Render Vaccination Section if content exists */}
-      {showVaccination && (
-        <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-          <div className="py-6">
-            <div className="flex flex-col md:flex-row md:space-x-8">
-              <div className="md:w-1/3 mb-4 md:mb-0">
-                <h1 className="text-2xl mt-4 font-bold text-gray-900">
-                  Vaccination
-                </h1>
-              </div>
-              <div
-                className="md:w-2/3 space-y-4"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(vaccinationHTML),
-                }}
-              />
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Render Visa Invitation Letter Section if content exists */}
-      {showVisa && (
-        <>
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-          <div className="py-6">
-            <div className="flex flex-col md:flex-row md:space-x-8">
-              <div className="md:w-1/3 mb-4 md:mb-0">
-                <h1 className="text-2xl mt-4 font-bold text-gray-900">
-                  Visa invitation letter
-                </h1>
-              </div>
-              <div
-                className="md:w-2/3 space-y-4"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(visaHTML),
-                }}
-              />
-            </div>
-          </div>
-        </>
-      )}
-
       {/* Render additional Logistics Sections, if any */}
       {logisticsSections && logisticsSections.length > 0 && (
         <>
           {logisticsSections.map((section: any) => (
-            <SectionDisplay key={section.id} section={section} />
+            <React.Fragment key={section.id}>
+              <section className="py-2">
+                <SectionDisplay section={section} />
+              </section>
+            </React.Fragment>
           ))}
         </>
       )}
+
+      {/* Final divider */}
+      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
     </div>
   );
 };

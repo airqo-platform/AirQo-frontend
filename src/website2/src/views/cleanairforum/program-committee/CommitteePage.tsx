@@ -30,7 +30,8 @@ const CommitteePage = () => {
       (person: any) =>
         person.category === 'Committee Member' ||
         person.category === 'Committee Member and Key Note Speaker' ||
-        person.category === 'Speaker and Committee Member',
+        person.category === 'Speaker and Committee Member' ||
+        person.category === 'Plenary and Committee Member',
     );
   }, [persons]);
 
@@ -67,52 +68,63 @@ const CommitteePage = () => {
 
   return (
     <div className="px-4 prose max-w-none lg:px-0">
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-
       {/* Program Committee Text Section */}
-      <div>
-        {showCommitteeMain && (
-          <>
-            <h2 className="text-2xl font-bold">Program Committee</h2>
+      {showCommitteeMain && (
+        <>
+          <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+          <section className="py-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Program Committee
+            </h2>
             <div
+              className="prose-headings:text-gray-900 prose-p:text-gray-700"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(committeeHTML),
               }}
             />
-          </>
-        )}
-      </div>
+          </section>
+        </>
+      )}
 
       {/* Extra Committee Sections using SectionDisplay */}
       {committeeSections.length > 0 && (
         <>
+          <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
           {committeeSections.map((section: any) => (
-            <SectionDisplay key={section.id} section={section} />
+            <section key={section.id} className="py-10">
+              <SectionDisplay section={section} />
+            </section>
           ))}
         </>
       )}
 
       {/* Member Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-6">
-        {displayedMembers.map((person: any) => (
-          <MemberCard
-            key={person.id}
-            member={person}
-            btnText="Read Bio"
-            cardClassName="bg-gray-100 p-2 rounded-md"
-          />
-        ))}
-      </div>
-
-      {/* Pagination Component */}
-      {totalPages > 1 && (
-        <div className="py-6">
-          <Pagination
-            totalPages={totalPages}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-          />
-        </div>
+      {committeeMembers.length > 0 && (
+        <>
+          <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
+          <section className="py-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {displayedMembers.map((person: any) => (
+                <MemberCard
+                  key={person.id}
+                  member={person}
+                  btnText="Read Bio"
+                  cardClassName="bg-gray-100 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200"
+                />
+              ))}
+            </div>
+            {/* Pagination Component */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </section>
+        </>
       )}
     </div>
   );
