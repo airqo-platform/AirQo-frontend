@@ -69,6 +69,11 @@ dependencies:
     sdk: flutter
   synchronized: ^3.3.0+3
   geocoding: ^3.0.0
+  battery_plus: ^6.2.1
+  mockito: ^5.4.6
+  bloc_test: ^9.1.7
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
 
 
 dev_dependencies:

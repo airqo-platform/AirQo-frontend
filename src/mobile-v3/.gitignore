@@ -12,6 +12,13 @@
 .swiftpm/
 migrate_working_dir/
 
+**/*.g.dart
+
+# Generate test files
+test/**/*.mocks.dart
+**/*.mocks.dart
+
+
 
 # IntelliJ related
 *.iml

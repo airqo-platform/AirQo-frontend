@@ -4,12 +4,12 @@ import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
 import '../../auth/bloc/auth_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
-import '../../shared/pages/error_page.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
 import '../widgets/dashboard_app_bar.dart';
 import '../widgets/dashboard_header.dart';
@@ -19,7 +19,6 @@ import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
 import 'package:loggy/loggy.dart';
-import 'dart:async';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -32,11 +31,14 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   DashboardView currentView = DashboardView.favorites;
   String? selectedCountry;
   String? userCountry;
+  // Background refresher that triggers silently
+  Timer? _backgroundRefreshTimer;
 
   @override
   void initState() {
     super.initState();
 
+    // Immediate load data (will use cache if available)
     context.read<DashboardBloc>().add(LoadDashboard());
     context.read<UserBloc>().add(LoadUser());
 
@@ -49,6 +51,23 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
       setState(() {
         currentView = DashboardView.all;
       });
+    }
+
+    _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
+      _silentBackgroundRefresh();
+    });
+  }
+
+  @override
+  void dispose() {
+    _backgroundRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _silentBackgroundRefresh() {
+    if (context.read<DashboardBloc>().state is DashboardLoaded &&
+        !(context.read<DashboardBloc>().state as DashboardLoaded).isOffline) {
+      context.read<DashboardBloc>().add(SilentRefreshDashboard());
     }
   }
 
@@ -69,6 +88,12 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
       final placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isEmpty) {
+        loggy.warning(
+            'No placemarks found for coordinates: ${position.latitude}, ${position.longitude}');
+        return;
+      }
 
       if (placemarks.isNotEmpty) {
         final country = placemarks.first.country;
@@ -136,6 +161,26 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     );
   }
 
+  Future<void> _refreshDashboard() async {
+    final completer = Completer<void>();
+
+    final subscription = context.read<DashboardBloc>().stream.listen((state) {
+      if (state is DashboardLoaded && state is! DashboardRefreshing) {
+        completer.complete();
+      } else if (state is DashboardLoadingError) {
+        completer.completeError(state.message);
+      }
+    });
+
+    context.read<DashboardBloc>().add(RefreshDashboard());
+
+    try {
+      await completer.future;
+    } finally {
+      await subscription.cancel();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
@@ -146,19 +191,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
       body: Stack(
         children: [
           RefreshIndicator(
-            onRefresh: () async {
-              final completer = Completer<void>();
-              final sub = context.read<DashboardBloc>().stream.listen((state) {
-                if (state is DashboardLoaded ||
-                    state is DashboardLoadingError) {
-                  completer.complete();
-                }
-              });
-              context.read<DashboardBloc>().add(LoadDashboard());
-              await completer.future;
-              await sub.cancel();
-
-            },
+            onRefresh: _refreshDashboard,
             color: AppColors.primaryColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             child: CustomScrollView(
@@ -208,11 +241,61 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   Widget _buildContentForCurrentView() {
-    switch (currentView) {
-      case DashboardView.favorites:
-        return BlocBuilder<DashboardBloc, DashboardState>(
-          builder: (context, state) {
-            if (state is DashboardLoaded) {
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        if (state is DashboardLoading && state.previousState == null) {
+          return DashboardLoadingPage();
+        }
+
+        if (state is DashboardLoadingError && !state.hasCache) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.cloud_off,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  "Couldn't connect to the internet",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.headlineMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Please check your connection and try again",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context
+                        .read<DashboardBloc>()
+                        .add(LoadDashboard(forceRefresh: true));
+                  },
+                  icon: Icon(Icons.refresh),
+                  label: Text('Try Again'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (state is DashboardLoaded) {
+          switch (currentView) {
+            case DashboardView.favorites:
               loggy.info(
                   'Dashboard loaded with preferences: ${state.userPreferences != null}');
               if (state.userPreferences != null) {
@@ -223,45 +306,26 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               return MyPlacesView(
                 userPreferences: state.userPreferences,
               );
-            } else if (state is DashboardLoading) {
-              return DashboardLoadingPage();
-            } else if (state is DashboardLoadingError) {
-              return ErrorPage();
-            }
-            return Container();
-          },
-        );
-      case DashboardView.nearYou:
-        return NearbyView();
-      case DashboardView.country:
-        return BlocBuilder<DashboardBloc, DashboardState>(
-            builder: (context, state) {
-          if (state is DashboardLoaded) {
-            final countryMeasurements = state.response.measurements!
-                .where((m) => m.siteDetails?.country == selectedCountry)
-                .toList();
-            return MeasurementsList(measurements: countryMeasurements);
-          } else if (state is DashboardLoading) {
-            return DashboardLoadingPage();
-          } else {
-            return ErrorPage();
-          }
-        });
-      default:
-        return BlocBuilder<DashboardBloc, DashboardState>(
-          builder: (context, state) {
-            if (state is DashboardLoaded) {
+
+            case DashboardView.nearYou:
+              return NearbyView();
+
+            case DashboardView.country:
+              final countryMeasurements = state.response.measurements!
+                  .where((m) => m.siteDetails?.country == selectedCountry)
+                  .toList();
+
+              return MeasurementsList(measurements: countryMeasurements);
+
+            default:
               return MeasurementsList(
                 measurements: state.response.measurements!.take(5).toList(),
               );
-            } else if (state is DashboardLoading) {
-              return DashboardLoadingPage();
-            } else if (state is DashboardLoadingError) {
-              return ErrorPage();
-            }
-            return Container();
-          },
-        );
-    }
+          }
+        }
+
+        return DashboardLoadingPage();
+      },
+    );
   }
 }
