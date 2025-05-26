@@ -36,7 +36,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
   final CacheManager _cacheManager;
   final http.Client _httpClient;
 
-  // Private constructor that accepts dependencies
   ForecastImpl._internal({
     CacheManager? cacheManager,
     http.Client? httpClient,
@@ -45,12 +44,10 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
     loggy.debug('Initialized ForecastImpl with httpClient: $_httpClient');
   }
 
-  // Factory constructor that maintains singleton behavior for production use
   factory ForecastImpl({
     CacheManager? cacheManager,
     http.Client? httpClient,
   }) {
-    // If dependencies are provided (testing scenario), create new instance
     if (cacheManager != null || httpClient != null) {
       return ForecastImpl._internal(
         cacheManager: cacheManager,
@@ -58,11 +55,9 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       );
     }
 
-    // Otherwise, use singleton pattern for production
     return _instance ??= ForecastImpl._internal();
   }
 
-  // Static method to reset singleton (useful for testing)
   static void resetInstance() {
     _instance = null;
   }
@@ -111,10 +106,11 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
             .info('Fetching fresh forecast data for site $siteId from network');
 
         Response forecastResponse = await _httpClient.get(
-          Uri.parse(ApiUtils.fetchForecasts).replace(queryParameters: {
-            "token": dotenv.env['AIRQO_API_TOKEN']!,
-            "site_id": siteId
-          }),
+          Uri.parse('${ApiUtils.baseUrl}${ApiUtils.fetchForecasts}').replace(
+              queryParameters: {
+                "token": dotenv.env['AIRQO_API_TOKEN']!,
+                "site_id": siteId
+              }),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -200,10 +196,11 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
           'Starting background refresh of forecast data for site $siteId');
 
       Response forecastResponse = await _httpClient.get(
-        Uri.parse(ApiUtils.fetchForecasts).replace(queryParameters: {
-          "token": dotenv.env['AIRQO_API_TOKEN']!,
-          "site_id": siteId
-        }),
+        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.fetchForecasts}').replace(
+            queryParameters: {
+              "token": dotenv.env['AIRQO_API_TOKEN']!,
+              "site_id": siteId
+            }),
         headers: {
           'Content-Type': 'application/json',
         },

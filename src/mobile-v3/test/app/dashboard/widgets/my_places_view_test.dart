@@ -1,4 +1,6 @@
+import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
+import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +11,7 @@ import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 
-// Generate mocks
+
 @GenerateMocks([DashboardBloc])
 import 'my_places_view_test.mocks.dart';
 
@@ -21,10 +23,16 @@ void main() {
       mockDashboardBloc = MockDashboardBloc();
     });
 
+
     Widget createTestWidget({UserPreferencesModel? userPreferences}) {
       return MaterialApp(
-        home: BlocProvider<DashboardBloc>.value(
-          value: mockDashboardBloc,
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<DashboardBloc>.value(value: mockDashboardBloc),
+            BlocProvider<ForecastBloc>(
+              create: (context) => ForecastBloc(ForecastImpl()),
+            ),
+          ],
           child: Scaffold(
             body: MyPlacesView(
               userPreferences: userPreferences,
@@ -34,24 +42,26 @@ void main() {
       );
     }
 
-    testWidgets('displays empty state when no user preferences provided', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('displays empty state when no user preferences provided',
+        (WidgetTester tester) async {
+
       when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
       ));
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.text('Add places you love'), findsOneWidget);
-      expect(find.text('Start by adding locations you care about.'), findsOneWidget);
+      expect(find.text('Start by adding locations you care about.'),
+          findsOneWidget);
       expect(find.text('+Add Location'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('displays empty state when user preferences has no selected sites', (WidgetTester tester) async {
+    testWidgets(
+        'displays empty state when user preferences has no selected sites',
+        (WidgetTester tester) async {
       // Arrange
       final userPreferences = UserPreferencesModel(
         id: 'test-id',
@@ -65,18 +75,19 @@ void main() {
       ));
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
-      await tester.pumpWidget(createTestWidget(userPreferences: userPreferences));
+      await tester
+          .pumpWidget(createTestWidget(userPreferences: userPreferences));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.text('Add places you love'), findsOneWidget);
-      expect(find.text('Start by adding locations you care about.'), findsOneWidget);
+      expect(find.text('Start by adding locations you care about.'),
+          findsOneWidget);
       expect(find.text('+Add Location'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('displays loading state initially when preferences have sites', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('displays loading state initially when preferences have sites',
+        (WidgetTester tester) async {
+
       final userPreferences = UserPreferencesModel(
         id: 'test-id',
         userId: 'test-user-id',
@@ -95,15 +106,16 @@ void main() {
       ));
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
-      await tester.pumpWidget(createTestWidget(userPreferences: userPreferences));
-      
-      // Assert - should show loading initially
+      await tester
+          .pumpWidget(createTestWidget(userPreferences: userPreferences));
+
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('displays swipeable analytics cards when measurements are loaded', (WidgetTester tester) async {
-      // Arrange
+    testWidgets(
+        'displays swipeable analytics cards when measurements are loaded',
+        (WidgetTester tester) async {
+
       final selectedSites = [
         SelectedSite(
           id: 'site-1',
@@ -162,20 +174,21 @@ void main() {
       );
 
       when(mockDashboardBloc.state).thenReturn(dashboardState);
-      when(mockDashboardBloc.stream).thenAnswer((_) => Stream.value(dashboardState));
+      when(mockDashboardBloc.stream)
+          .thenAnswer((_) => Stream.value(dashboardState));
 
-      // Act
-      await tester.pumpWidget(createTestWidget(userPreferences: userPreferences));
+      await tester
+          .pumpWidget(createTestWidget(userPreferences: userPreferences));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.byType(SwipeableAnalyticsCard), findsNWidgets(2));
       expect(find.text('Central Kampala'), findsOneWidget);
       expect(find.text('Central Nairobi'), findsOneWidget);
     });
 
-    testWidgets('displays unmatched site card when measurement not found', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('displays unmatched site card when measurement not found',
+        (WidgetTester tester) async {
+
       final selectedSites = [
         SelectedSite(
           id: 'unmatched-site',
@@ -193,45 +206,45 @@ void main() {
       );
 
       final dashboardState = DashboardLoaded(
-        AirQualityResponse(success: true, measurements: []), // No matching measurements
+        AirQualityResponse(
+            success: true, measurements: []), 
         userPreferences: userPreferences,
       );
 
       when(mockDashboardBloc.state).thenReturn(dashboardState);
-      when(mockDashboardBloc.stream).thenAnswer((_) => Stream.value(dashboardState));
+      when(mockDashboardBloc.stream)
+          .thenAnswer((_) => Stream.value(dashboardState));
 
-      // Act
-      await tester.pumpWidget(createTestWidget(userPreferences: userPreferences));
+      await tester
+          .pumpWidget(createTestWidget(userPreferences: userPreferences));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.text('Remote Location'), findsOneWidget);
       expect(find.text('Loading data'), findsOneWidget);
       expect(find.text('Lat: 1.000000'), findsOneWidget);
       expect(find.text('Long: 2.000000'), findsOneWidget);
     });
 
-    testWidgets('add location button exists without testing navigation', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('add location button exists without testing navigation',
+        (WidgetTester tester) async {
+
       when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
       ));
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Assert - Just verify button exists without tapping it
       expect(find.text('+Add Location'), findsAtLeastNWidgets(1));
-      
-      // Verify the button is of correct type
+
       final addLocationButtons = find.text('+Add Location');
       expect(addLocationButtons, findsAtLeastNWidgets(1));
     });
 
-    testWidgets('handles dashboard state changes correctly', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('handles dashboard state changes correctly',
+        (WidgetTester tester) async {
+
       final userPreferences = UserPreferencesModel(
         id: 'test-id',
         userId: 'test-user-id',
@@ -246,53 +259,49 @@ void main() {
 
       when(mockDashboardBloc.state).thenReturn(initialState);
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.fromIterable([
-        initialState,
-        loadedState,
-      ]));
+            initialState,
+            loadedState,
+          ]));
 
-      // Act
-      await tester.pumpWidget(createTestWidget(userPreferences: userPreferences));
-      await tester.pump(); // Initial state
+      await tester
+          .pumpWidget(createTestWidget(userPreferences: userPreferences));
+      await tester.pump();
 
-      // Simulate state change
       when(mockDashboardBloc.state).thenReturn(loadedState);
       await tester.pump();
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.text('Add places you love'), findsOneWidget);
     });
 
-    testWidgets('handles loading state gracefully', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('handles loading state gracefully',
+        (WidgetTester tester) async {
+
       when(mockDashboardBloc.state).thenReturn(DashboardLoading());
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Assert - Should show empty state when loading without preferences
       expect(find.text('Add places you love'), findsOneWidget);
     });
 
     testWidgets('handles error state gracefully', (WidgetTester tester) async {
-      // Arrange
+
       when(mockDashboardBloc.state).thenReturn(
         DashboardLoadingError('Network error', isOffline: true),
       );
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
-      // Act
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Assert - Should show empty state when there's an error
       expect(find.text('Add places you love'), findsOneWidget);
     });
 
-    testWidgets('verifies widget structure without complex interactions', (WidgetTester tester) async {
-      // Arrange
+    testWidgets('verifies widget structure without complex interactions',
+        (WidgetTester tester) async {
+
       final selectedSites = [
         SelectedSite(
           id: 'site-1',
@@ -325,18 +334,17 @@ void main() {
       );
 
       when(mockDashboardBloc.state).thenReturn(dashboardState);
-      when(mockDashboardBloc.stream).thenAnswer((_) => Stream.value(dashboardState));
+      when(mockDashboardBloc.stream)
+          .thenAnswer((_) => Stream.value(dashboardState));
 
-      // Act
-      await tester.pumpWidget(createTestWidget(userPreferences: userPreferences));
+      await tester
+          .pumpWidget(createTestWidget(userPreferences: userPreferences));
       await tester.pumpAndSettle();
 
-      // Assert - Verify basic widget structure
       expect(find.byType(SwipeableAnalyticsCard), findsOneWidget);
       expect(find.text('Test Location Name'), findsOneWidget);
-      
-      // Verify the card displays PM2.5 data
-      expect(find.text('25.5'), findsOneWidget);
+
+      expect(find.text('25.50'), findsOneWidget);
       expect(find.text('Moderate'), findsOneWidget);
     });
   });

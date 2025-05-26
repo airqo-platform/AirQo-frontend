@@ -303,26 +303,28 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
-            child: Column(
-              children: [
-                if (isLoading)
-                  _buildLoadingState()
-                else if (selectedMeasurements.isEmpty && unmatchedSites.isEmpty)
-                  _buildEmptyState()
-                else ...[
-                  ...selectedMeasurements.map((measurement) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: SwipeableAnalyticsCard(
-                          measurement: measurement,
-                          onRemove: _removeLocation,
-                        ),
-                      )),
-                  ...unmatchedSites.map((site) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildUnmatchedSiteCard(site),
-                      )),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (isLoading)
+                    _buildLoadingState()
+                  else if (selectedMeasurements.isEmpty && unmatchedSites.isEmpty)
+                    _buildEmptyState()
+                  else ...[
+                    ...selectedMeasurements.map((measurement) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: SwipeableAnalyticsCard(
+                            measurement: measurement,
+                            onRemove: _removeLocation,
+                          ),
+                        )),
+                    ...unmatchedSites.map((site) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildUnmatchedSiteCard(site),
+                        )),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],
