@@ -546,7 +546,7 @@ export default function OrgRequestAccessPage() {
                     </div>
                   )}
 
-                  {slugSuggestions.length > 0 && (
+                  {slugSuggestions && slugSuggestions.length > 0 && (
                     <div className="mt-2">
                       <p className="text-sm font-medium text-gray-700">
                         Try one of these instead:
