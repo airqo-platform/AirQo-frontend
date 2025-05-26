@@ -1,4 +1,3 @@
-// useMapData.js
 import { useCallback, useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Supercluster from 'supercluster';
@@ -282,7 +281,7 @@ const useMapData = ({
       try {
         const promises = cities.map((city) =>
           axios
-            .get(`/api/proxy?city=${city}`, {
+            .get(`/api/waqi?city=${city}`, {
               signal: abortControllerRef.current.signal,
             })
             .then((response) => {

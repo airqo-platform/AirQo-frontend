@@ -302,7 +302,7 @@ function sendToSlack(level, message, error, context) {
     }
 
     // Send to API endpoint
-    axios.post('/api/proxy/log-to-slack', slackPayload).catch(() => {
+    axios.post('/api/log-to-slack', slackPayload).catch(() => {
       // Silent fail to prevent loops
     });
   } catch {
