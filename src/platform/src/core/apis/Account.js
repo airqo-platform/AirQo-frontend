@@ -102,6 +102,20 @@ export const updateGroupDetailsApi = (groupID, data) =>
     .put(`${GROUPS_URL}/${groupID}`, data, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
 
+export const createOrganisationRequestApi = (data) =>
+  secureApiProxy
+    .post(`${USERS_URL}/org-requests`, data, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const getOrganisationSlugAvailabilityApi = (slug) =>
+  secureApiProxy
+    .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
 // User Defaults
 export const postUserDefaultsApi = (data) =>
   secureApiProxy
