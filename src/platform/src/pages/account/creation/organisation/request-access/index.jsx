@@ -259,12 +259,19 @@ export default function OrgRequestAccessPage() {
     }
 
     const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    if (!colorRegex.test(formData.branding_settings.primary_color)) {
+
+    if (
+      formData.branding_settings.primary_color &&
+      !colorRegex.test(formData.branding_settings.primary_color)
+    ) {
       newErrors['branding_settings.primary_color'] =
         'Please enter a valid hex color code';
     }
 
-    if (!colorRegex.test(formData.branding_settings.secondary_color)) {
+    if (
+      formData.branding_settings.secondary_color &&
+      !colorRegex.test(formData.branding_settings.secondary_color)
+    ) {
       newErrors['branding_settings.secondary_color'] =
         'Please enter a valid hex color code';
     }
