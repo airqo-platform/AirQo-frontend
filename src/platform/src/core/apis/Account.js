@@ -110,9 +110,11 @@ export const createOrganisationRequestApi = (data) =>
     .then((response) => response.data);
 
 export const getOrganisationSlugAvailabilityApi = (slug) =>
-  secureApiProxy.get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
-    authType: AUTH_TYPES.JWT,
-  });
+  secureApiProxy
+    .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
 
 // User Defaults
 export const postUserDefaultsApi = (data) =>
