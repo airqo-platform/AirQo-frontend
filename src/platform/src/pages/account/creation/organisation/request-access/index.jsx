@@ -402,7 +402,7 @@ export default function OrgRequestAccessPage() {
           style={{ textTransform: 'none' }}
           type="button"
           className="btn text-sm outline-none border-gray-700 bg-white text-gray-700 hover:bg-gray-100 rounded-[12px] transition-colors mb-4"
-          onClick={() => router.back()}
+          onClick={() => (currentStep === 1 ? router.back() : handlePrevStep())}
         >
           Back
         </button>
