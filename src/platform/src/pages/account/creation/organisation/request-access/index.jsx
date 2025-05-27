@@ -398,6 +398,14 @@ export default function OrgRequestAccessPage() {
   return (
     <AccountPageLayout pageTitle={'Request Organization Access | AirQo'}>
       <div className="w-full">
+        <button
+          style={{ textTransform: 'none' }}
+          type="button"
+          className="btn text-sm outline-none border-gray-700 bg-white text-gray-700 hover:bg-gray-100 rounded-[12px] transition-colors mb-4"
+          onClick={() => (currentStep === 1 ? router.back() : handlePrevStep())}
+        >
+          Back
+        </button>
         {currentStep === 1 ? (
           <div>
             <h2 className="text-3xl text-black-700 font-medium">
