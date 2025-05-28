@@ -17,7 +17,7 @@ import {
 import LogoutUser from '@/core/utils/LogoutUser';
 import GroupLogo from '../GroupLogo';
 
-const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
+const PageTopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
@@ -222,10 +222,10 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   );
 };
 
-TopBar.propTypes = {
+PageTopBar.propTypes = {
   showSearch: PropTypes.bool,
   topbarTitle: PropTypes.string,
   noBorderBottom: PropTypes.bool,
 };
 
-export default React.memo(TopBar);
+export default React.memo(PageTopBar);

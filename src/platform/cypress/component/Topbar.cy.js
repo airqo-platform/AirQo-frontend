@@ -1,15 +1,15 @@
 import React from 'react';
 import { mount } from '@cypress/react';
 import { Provider } from 'react-redux';
-import TopBar from '@/components/TopBar';
+import PageTopBar from '@/components/PageTopBar';
 import createStore from '@/lib/store';
 
-describe('TopBar Component', () => {
-  it('should render the TopBar component', () => {
+describe('PageTopBar Component', () => {
+  it('should render the PageTopBar component', () => {
     const store = createStore();
     mount(
       <Provider store={store}>
-        <TopBar />
+        <PageTopBar />
       </Provider>,
     );
     cy.get('[data-cy=topbar]').should('be.visible');
@@ -19,7 +19,7 @@ describe('TopBar Component', () => {
     const store = createStore();
     mount(
       <Provider store={store}>
-        <TopBar />
+        <PageTopBar />
       </Provider>,
     );
     cy.get('[data-cy=profile-btn]').click();

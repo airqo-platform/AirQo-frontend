@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '../TopBar';
+import PageTopBar from '../PageTopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '../MaintenanceBanner';
 
@@ -70,9 +70,9 @@ const Layout = ({
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
-          {/* TopBar */}
+          {/* PageTopBar */}
           {noTopNav && (
-            <TopBar
+            <PageTopBar
               topbarTitle={topbarTitle}
               noBorderBottom={noBorderBottom}
               showSearch={showSearch}
