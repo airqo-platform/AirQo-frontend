@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { useWindowSize } from '@/lib/windowSize';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Button from '../Button';
@@ -11,6 +12,7 @@ import ChartIcon from '@/icons/Topbar/chartIcon';
 import CustomDropdown from '../Button/CustomDropdown';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import {
+  setTogglingGlobalDrawer,
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
@@ -21,8 +23,12 @@ import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
   const router = useRouter();
+  const { width } = useWindowSize();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
+  const togglingGlobalDrawer = useSelector(
+    (state) => state.sidebar.toggleGlobalDrawer,
+  );
   const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -68,10 +74,15 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
   const handleDrawer = useCallback(
     (e) => {
       e.preventDefault();
-      dispatch(setToggleDrawer(!togglingDrawer));
-      dispatch(setSidebar(false));
+      if (width < 1024) {
+        dispatch(setToggleDrawer(!togglingDrawer));
+        dispatch(setSidebar(false));
+      } else {
+        dispatch(setTogglingGlobalDrawer(!togglingGlobalDrawer));
+        dispatch(setSidebar(false));
+      }
     },
-    [dispatch, togglingDrawer],
+    [dispatch, togglingGlobalDrawer, togglingDrawer, width],
   );
 
   const renderUserInfo = () => (
@@ -172,9 +183,9 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
 
           <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
             <div className="flex items-center gap-[10px]">
-              <span className="p-2">
+              <button type="button" className="p-2 m-0" onClick={handleDrawer}>
                 <MenuIcon width={20} height={20} />
-              </span>
+              </button>
               <div className="flex justify-between items-center">
                 <Button
                   padding="p-0 m-0"

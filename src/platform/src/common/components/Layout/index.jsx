@@ -10,6 +10,8 @@ import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import PageTopBar from '../PageTopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '../MaintenanceBanner';
+import GlobalTopbar from '../GlobalTopbar';
+import GlobalSideBarDrawer from '../GlobalTopbar/sidebar';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -19,7 +21,6 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 // NEW: import theme hook and layout constants
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/features/theme-customizer/constants/themeConstants';
-import GlobalTopbar from '../GlobalTopbar';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -95,6 +96,8 @@ const Layout = ({
 
       {/* SideBar Drawer */}
       <SideBarDrawer />
+
+      <GlobalSideBarDrawer />
     </div>
   );
 };
