@@ -23,10 +23,8 @@ import {
 import { useOutsideClick } from '@/core/hooks';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Button from '../Button';
 import Card from '../CardWrapper';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
-import GroupLogo from '../GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -239,21 +237,6 @@ const AuthenticatedSideBar = () => {
             scrollbar-thin ${styles.scrollbar}
           `}
         >
-          {/* Logo Section */}
-          <div className="pb-4 flex justify-between items-center">
-            <Button
-              padding="p-0 m-0"
-              onClick={() => router.push('/Home')}
-              variant="text"
-            >
-              <div
-                className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
-              >
-                <GroupLogo />
-              </div>
-            </Button>
-          </div>
-
           {/* Organization Dropdown */}
           <div>
             <OrganizationDropdown />

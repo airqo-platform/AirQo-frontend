@@ -19,6 +19,7 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 // NEW: import theme hook and layout constants
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/features/theme-customizer/constants/themeConstants';
+import GlobalTopbar from '../GlobalTopbar';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -55,14 +56,20 @@ const Layout = ({
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
 
+      <GlobalTopbar
+        topbarTitle={topbarTitle}
+        noBorderBottom={noBorderBottom}
+        showSearch={showSearch}
+      />
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar />
       </aside>
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 
+        className={`flex-1 transition-all mt-20 lg:mt-12 duration-300 
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
