@@ -41,8 +41,6 @@ class User {
     bool verified;
     int analyticsVersion;
     String privilege;
-    String organization;
-    String longOrganization;
     DateTime updatedAt;
 
     User({
@@ -58,8 +56,6 @@ class User {
         required this.verified,
         required this.analyticsVersion,
         required this.privilege,
-        required this.organization,
-        required this.longOrganization,
         required this.updatedAt,
     });
 
@@ -76,8 +72,6 @@ class User {
         verified: json["verified"],
         analyticsVersion: json["analyticsVersion"],
         privilege: json["privilege"],
-        organization: json["organization"],
-        longOrganization: json["long_organization"],
         updatedAt: DateTime.parse(json["updatedAt"]),
     );
 
@@ -94,8 +88,6 @@ class User {
         "verified": verified,
         "analyticsVersion": analyticsVersion,
         "privilege": privilege,
-        "organization": organization,
-        "long_organization": longOrganization,
         "updatedAt": updatedAt.toIso8601String(),
     };
 }
