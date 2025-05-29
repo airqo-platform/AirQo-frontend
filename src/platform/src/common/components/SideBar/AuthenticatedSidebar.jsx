@@ -30,13 +30,17 @@ import GroupLogo from '../GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
-const AuthenticatedSideBar = () => {
+const AuthenticatedSideBar = ({ forceCollapse }) => {
   const dispatch = useDispatch();
   const size = useWindowSize();
-  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
+  const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
   const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
+
+  // Use forceCollapse prop if provided, otherwise use the store value
+  const isCollapsed =
+    forceCollapse !== undefined ? forceCollapse : storeCollapsed;
 
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -95,22 +99,16 @@ const AuthenticatedSideBar = () => {
     if (collocationOpenState) {
       try {
         setCollocationOpen(JSON.parse(collocationOpenState));
-      } catch (error) {
-        console.error(
-          'Error parsing "collocationOpen" from localStorage:',
-          error,
-        );
+      } catch {
+        // Silent error handling for localStorage parsing issues
       }
     }
 
     if (analyticsOpenState) {
       try {
         setAnalyticsOpen(JSON.parse(analyticsOpenState));
-      } catch (error) {
-        console.error(
-          'Error parsing "analyticsOpen" from localStorage:',
-          error,
-        );
+      } catch {
+        // Silent error handling for localStorage parsing issues
       }
     }
   }, []);
@@ -365,6 +363,12 @@ const AuthenticatedSideBar = () => {
       </div>
     </div>
   );
+};
+
+import PropTypes from 'prop-types';
+
+AuthenticatedSideBar.propTypes = {
+  forceCollapse: PropTypes.bool,
 };
 
 export default AuthenticatedSideBar;
