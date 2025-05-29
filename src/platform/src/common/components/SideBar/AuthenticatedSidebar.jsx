@@ -21,7 +21,7 @@ import {
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useOutsideClick } from '@/core/hooks';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../Button';
 import Card from '../CardWrapper';
@@ -35,6 +35,7 @@ const AuthenticatedSideBar = () => {
   const size = useWindowSize();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
 
   const [dropdown, setDropdown] = useState(false);
@@ -46,11 +47,10 @@ const AuthenticatedSideBar = () => {
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   }, [theme, systemTheme]);
-
   // Media query and route handling
   useEffect(() => {
     const handleRouteChange = () => {
-      if (router.pathname === '/map') {
+      if (pathname === '/map') {
         dispatch(setSidebar(true));
       }
     };
@@ -77,7 +77,7 @@ const AuthenticatedSideBar = () => {
         mediaQuery.removeListener(handleMediaQueryChange);
       }
     };
-  }, [dispatch, router.pathname]);
+  }, [dispatch, pathname]);
 
   // Handle window resizing for sidebar collapse in mobile view
   useEffect(() => {
@@ -309,10 +309,9 @@ const AuthenticatedSideBar = () => {
               {/* Placeholder for future components */}
             </div>
           </div>
-        </Card>
-
+        </Card>{' '}
         {/* Sidebar collapse button */}
-        {router.pathname !== '/map' && (
+        {pathname !== '/map' && (
           <div
             className={`
               absolute flex rounded-full top-10 -right-[3px] z-50 

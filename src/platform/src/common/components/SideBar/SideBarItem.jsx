@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const [isMediumDevice, setIsMediumDevice] = useState(false);
-  const currentRoute = router.pathname;
+  const currentRoute = pathname;
   const isCurrentRoute = currentRoute.includes(itemPath);
 
   // Determine dark mode
@@ -73,8 +74,9 @@ const SidebarItem = ({
   iconOnly = false,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
-  const currentRoute = router.pathname;
+  const currentRoute = pathname;
   const isCurrentRoute =
     currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
   const hasDropdown = !!children;
