@@ -1,6 +1,5 @@
 'use client';
 
-import Layout from '@/components/Layout';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import DataCompletenessTable from '@/components/Collocation/Report/MonitorReport/DataCompletenessTable';
@@ -190,52 +189,50 @@ const MonitorReport = () => {
   }, [activeSelectedDeviceCollocationReportData]);
 
   return (
-    <Layout>
-      <div className="px-3 py-3 w-full">
-        <NavigationBreadCrumb breadcrumbs={breadcrumbs} />
-        <div className="flex justify-between items-center mb-5">
-          <div>
-            <h1 className="text-3xl font-bold">Monitor Report</h1>
-            <p className="text-lg text-gray-600">Report for device: {device}</p>
-          </div>
-        </div>
-
-        {errorMessage && (
-          <Toast
-            type="error"
-            timeout={5000}
-            message={errorMessage}
-            dataTestId="error-toast"
-          />
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Data Completeness</h2>
-            <DataCompletenessTable
-              data={dataCompletenessRecords}
-              loading={isFetchDataCompletenessLoading}
-            />
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Inter-Correlation</h2>
-            <InterCorrelationChart
-              data={interSensorCorrelationResultsData}
-              loading={isFetchInterSensorCorrelationLoading}
-            />
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">Intra-Correlation</h2>
-            <IntraCorrelationChart
-              data={input}
-              loading={isFetchCollocationResultsLoading}
-            />
-          </div>
+    <div className="px-3 py-3 w-full">
+      <NavigationBreadCrumb breadcrumbs={breadcrumbs} />
+      <div className="flex justify-between items-center mb-5">
+        <div>
+          <h1 className="text-3xl font-bold">Monitor Report</h1>
+          <p className="text-lg text-gray-600">Report for device: {device}</p>
         </div>
       </div>
-    </Layout>
+
+      {errorMessage && (
+        <Toast
+          type="error"
+          timeout={5000}
+          message={errorMessage}
+          dataTestId="error-toast"
+        />
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Data Completeness</h2>
+          <DataCompletenessTable
+            data={dataCompletenessRecords}
+            loading={isFetchDataCompletenessLoading}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Inter-Correlation</h2>
+          <InterCorrelationChart
+            data={interSensorCorrelationResultsData}
+            loading={isFetchInterSensorCorrelationLoading}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+          <h2 className="text-xl font-semibold mb-4">Intra-Correlation</h2>
+          <IntraCorrelationChart
+            data={input}
+            loading={isFetchCollocationResultsLoading}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 

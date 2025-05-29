@@ -2,7 +2,6 @@
 
 import withAuth from '@/core/utils/protectedRoute';
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
@@ -143,15 +142,11 @@ const Home = () => {
 
   // Show skeleton loader during initial load
   if (isLoading) {
-    return (
-      <Layout noBorderBottom pageTitle="Home" topbarTitle="Home">
-        <HomeSkeleton />
-      </Layout>
-    );
+    return <HomeSkeleton />;
   }
 
   return (
-    <Layout noBorderBottom pageTitle="Home" topbarTitle="Home">
+    <>
       <div className="space-y-6 transition-all duration-300 ease-in-out">
         {/* Welcome Section */}
         <div className="w-full">
@@ -226,7 +221,7 @@ const Home = () => {
         setOpen={handleVideoModalClose}
         videoUrl={ANALYTICS_VIDEO_URL}
       />
-    </Layout>
+    </>
   );
 };
 

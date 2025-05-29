@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import withAuth, { withPermission } from '@/core/utils/protectedRoute';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 
-import Layout from '@/components/Layout';
 import HeaderNav from '@/components/Layout/header';
 import Card from '@/components/CardWrapper';
 import Button from '@/components/Button';
@@ -65,52 +64,50 @@ const Collocate = () => {
   const hasData = deviceStatusSummary && deviceStatusSummary.length > 0;
 
   return (
-    <Layout>
-      <div className="flex flex-col gap-6">
-        <HeaderNav
-          title="Collocation"
-          subTitle="Manage your device collocations"
-        />
+    <div className="flex flex-col gap-6">
+      <HeaderNav
+        title="Collocation"
+        subTitle="Manage your device collocations"
+      />
 
-        {hasData ? (
-          <Card>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Device Status Summary
-              </h2>
-              <div className="flex gap-3">
-                <Button
-                  variant="outlined"
-                  className="border-gray-300 text-gray-700"
-                  Icon={UploadIcon}
-                >
-                  Import
-                </Button>
-                <Button
-                  href="/collocation/add_monitor"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  Icon={BoxedAddIcon}
-                >
-                  Add Monitor
-                </Button>
-              </div>
+      {hasData ? (
+        <Card>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Device Status Summary
+            </h2>
+            <div className="flex gap-3">
+              <Button
+                variant="outlined"
+                className="border-gray-300 text-gray-700"
+                Icon={UploadIcon}
+              >
+                Import
+              </Button>
+              <Button
+                href="/collocation/add_monitor"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                Icon={BoxedAddIcon}
+              >
+                Add Monitor
+              </Button>
             </div>
+          </div>
 
-            <Tabs tabs={tabs} defaultActiveTab="active" />
-          </Card>
-        ) : (
-          <EmptyState />
-        )}
+          <Tabs tabs={tabs} defaultActiveTab="active" />
+        </Card>
+      ) : (
+        <EmptyState />
+      )}
 
-        {isError && (
-          <Toast
-            type="error"
-            timeout={5000}
-            message="Failed to fetch device status summary"
-          />
-        )}
-      </div>
-    </Layout>
+      {isError && (
+        <Toast
+          type="error"
+          timeout={5000}
+          message="Failed to fetch device status summary"
+        />
+      )}
+    </div>
   );
 };
 

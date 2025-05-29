@@ -9,8 +9,6 @@ import ErrorBoundary from '../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import logger from '@/lib/logger';
-import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
-import { ThemeCustomizer } from '@/features/theme-customizer/components/ThemeCustomizer';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
@@ -116,11 +114,8 @@ function ClientProvidersInner({ children }) {
 
   return (
     <ErrorBoundary name="AppRoot" feature="global">
-      <ThemeProvider>
-        <GoogleAnalytics />
-        {children}
-        <ThemeCustomizer />
-      </ThemeProvider>
+      {children}
+      <GoogleAnalytics />
       <Toaster expand={true} richColors />
     </ErrorBoundary>
   );

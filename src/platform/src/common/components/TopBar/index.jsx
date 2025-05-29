@@ -24,11 +24,12 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const [isLoading, setIsLoading] = useState(false);
 
-  const placeholderImage = useMemo(
-    () =>
-      `https://ui-avatars.com/api/?name=${userInfo.firstName[0]}+${userInfo.lastName[0]}&background=random`,
-    [userInfo.firstName, userInfo.lastName],
-  );
+  const placeholderImage = useMemo(() => {
+    // Add null checks to prevent TypeError
+    const firstInitial = userInfo?.firstName?.[0] || '';
+    const lastInitial = userInfo?.lastName?.[0] || '';
+    return `https://ui-avatars.com/api/?name=${firstInitial}+${lastInitial}&background=random`;
+  }, [userInfo?.firstName, userInfo?.lastName]);
 
   const handleLogout = useCallback(
     async (event) => {

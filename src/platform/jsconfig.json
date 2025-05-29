@@ -10,7 +10,8 @@
       "@/components/*": ["src/common/components/*"],
       "@/pages/*": ["src/pages/*"],
       "@/images/*": ["public/images/*"],
-      "@/features/*": ["src/common/features/*"]
+      "@/features/*": ["src/common/features/*"],
+      "@/layouts/*": ["src/common/layouts/*"]
     }
   },
   "exclude": ["node_modules", ".next"],

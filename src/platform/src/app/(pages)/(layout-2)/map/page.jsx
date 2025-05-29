@@ -10,7 +10,6 @@ import Loader from '@/components/Spinner';
 import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import withAuth from '@/core/utils/protectedRoute';
-import Layout from '@/components/Layout';
 import { useWindowSize } from '@/lib/windowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
 
@@ -159,7 +158,7 @@ const MapPage = () => {
   };
 
   return (
-    <Layout noTopNav={isMobile}>
+    <>
       <div className={containerClassName}>
         <div className={sidebarClassName}>
           <Sidebar siteDetails={siteDetails} isAdmin={true} />
@@ -278,7 +277,7 @@ const MapPage = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

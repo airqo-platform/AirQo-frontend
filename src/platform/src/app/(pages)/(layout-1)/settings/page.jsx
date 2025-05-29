@@ -1,6 +1,5 @@
 'use client';
 
-import Layout from '@/components/Layout';
 import Tabs from '@/components/Tabs';
 import Password from './Tabs/Password';
 import withAuth from '@/core/utils/protectedRoute';
@@ -74,38 +73,36 @@ const Settings = () => {
 
   return (
     <ErrorBoundary name="Settings" feature="User Account Settings">
-      <Layout topbarTitle={'Settings'} noBorderBottom pageTitle="Settings">
-        <Tabs>
-          <div label="My profile">
-            <Profile />
-          </div>
-          <div label="Password">
-            <Password />
-          </div>
-          <div label="API">
-            <API userPermissions={userPermissions} />
-          </div>
-          {userPermissions &&
-            checkAccess(
-              'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-              userPermissions,
-            ) && (
-              <div label="Organisation">
-                <OrganizationProfile />
-              </div>
-            )}
-          {userGroup &&
-            userPermissions &&
-            checkAccess(
-              'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-              userPermissions,
-            ) && (
-              <div label="Team">
-                <Team users={teamMembers} loading={loading} />
-              </div>
-            )}
-        </Tabs>
-      </Layout>
+      <Tabs>
+        <div label="My profile">
+          <Profile />
+        </div>
+        <div label="Password">
+          <Password />
+        </div>
+        <div label="API">
+          <API userPermissions={userPermissions} />
+        </div>
+        {userPermissions &&
+          checkAccess(
+            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+            userPermissions,
+          ) && (
+            <div label="Organisation">
+              <OrganizationProfile />
+            </div>
+          )}
+        {userGroup &&
+          userPermissions &&
+          checkAccess(
+            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+            userPermissions,
+          ) && (
+            <div label="Team">
+              <Team users={teamMembers} loading={loading} />
+            </div>
+          )}
+      </Tabs>
     </ErrorBoundary>
   );
 };

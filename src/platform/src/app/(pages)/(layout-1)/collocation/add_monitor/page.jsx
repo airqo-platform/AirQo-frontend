@@ -12,7 +12,6 @@ import {
   resetBatchData,
 } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 
-import Layout from '@/components/Layout';
 import NavigationBreadCrumb from '@/components/Navigation/breadcrumb';
 import Card from '@/components/CardWrapper';
 import Button from '@/components/Button';
@@ -99,58 +98,56 @@ const AddMonitor = () => {
   };
 
   return (
-    <Layout>
-      <div className="flex flex-col gap-6">
-        <NavigationBreadCrumb breadcrumbData={breadcrumbData} />
+    <div className="flex flex-col gap-6">
+      <NavigationBreadCrumb breadcrumbData={breadcrumbData} />
 
-        {registryStatus === 'loading' ? (
-          <SkeletonFrame />
-        ) : (
-          <>
-            <Card>
-              <Table devices={collocationDevices} />
-            </Card>
+      {registryStatus === 'loading' ? (
+        <SkeletonFrame />
+      ) : (
+        <>
+          <Card>
+            <Table devices={collocationDevices} />
+          </Card>
 
-            <Card>
-              <ScheduleCalendar />
-            </Card>
+          <Card>
+            <ScheduleCalendar />
+          </Card>
 
-            <div className="flex justify-between items-center">
-              <Button
-                variant="outlined"
-                className="border-gray-300 text-gray-700"
-                onClick={handleRemoveDevices}
-                disabled={selectedDevices.length === 0}
-              >
-                Remove selected devices
-              </Button>
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outlined"
+              className="border-gray-300 text-gray-700"
+              onClick={handleRemoveDevices}
+              disabled={selectedDevices.length === 0}
+            >
+              Remove selected devices
+            </Button>
 
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleCollocateDevices}
-                disabled={
-                  !base_device ||
-                  selectedDevices.length === 0 ||
-                  !batch_name ||
-                  !expected_end_time ||
-                  isCollocating
-                }
-              >
-                {isCollocating ? 'Processing...' : 'Collocate devices'}
-              </Button>
-            </div>
-          </>
-        )}
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleCollocateDevices}
+              disabled={
+                !base_device ||
+                selectedDevices.length === 0 ||
+                !batch_name ||
+                !expected_end_time ||
+                isCollocating
+              }
+            >
+              {isCollocating ? 'Processing...' : 'Collocate devices'}
+            </Button>
+          </div>
+        </>
+      )}
 
-        {registryError && (
-          <Toast type="error" timeout={5000} message={registryError} />
-        )}
+      {registryError && (
+        <Toast type="error" timeout={5000} message={registryError} />
+      )}
 
-        {collocationError && (
-          <Toast type="error" timeout={5000} message={collocationError} />
-        )}
-      </div>
-    </Layout>
+      {collocationError && (
+        <Toast type="error" timeout={5000} message={collocationError} />
+      )}
+    </div>
   );
 };
 
