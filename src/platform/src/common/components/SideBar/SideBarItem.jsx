@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';

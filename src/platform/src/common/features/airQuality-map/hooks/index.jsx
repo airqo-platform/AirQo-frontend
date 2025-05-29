@@ -8,6 +8,5 @@ export {
   IconButton,
   LoadingOverlay,
   GlobeControl,
-  ZoomOutControl,
 } from './useMapControls';
 export { default as useMapScreenshot } from './useMapScreenshot';

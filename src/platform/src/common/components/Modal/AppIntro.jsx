@@ -33,14 +33,13 @@ const Carousel = ({ IntroList }) => {
               className="w-full flex-none text-center"
               data-carousel-item
             >
-              <h2 className="text-lg font-bold">{item.name}</h2>
+              <h2 className="text-lg font-bold">{item.name}</h2>{' '}
               <Image
                 src={item.image}
                 alt={item.name}
                 width={800}
                 height={300}
-                layout="responsive"
-                objectFit="contain"
+                style={{ objectFit: 'contain' }}
                 loading="eager"
               />
               <p className="text-sm">{item.text}</p>

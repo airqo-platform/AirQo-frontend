@@ -14,7 +14,7 @@ import { checkAccess } from '@/core/utils/protectedRoute';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 // import Carousel_1 from '../carousels/Carousel_1';
 import LogoutUser from '@/core/utils/LogoutUser';
 import Card from '@/components/CardWrapper';

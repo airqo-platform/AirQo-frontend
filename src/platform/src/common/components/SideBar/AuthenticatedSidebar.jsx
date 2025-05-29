@@ -21,7 +21,7 @@ import {
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useOutsideClick } from '@/core/hooks';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../Button';
 import Card from '../CardWrapper';

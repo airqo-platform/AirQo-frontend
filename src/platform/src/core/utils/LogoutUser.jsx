@@ -11,13 +11,15 @@ const LogoutUser = async (dispatch, router) => {
     }
 
     // Purge the persisted Redux state to reset the application state
-    const store = router.store || window.__NEXT_REDUX_STORE__;
-    if (store?.__persistor) {
-      await store.__persistor.purge();
+    if (
+      typeof window !== 'undefined' &&
+      window.__NEXT_REDUX_STORE__?.__persistor
+    ) {
+      await window.__NEXT_REDUX_STORE__.__persistor.purge();
     }
 
-    // Redirect to the login page
-    await router.push('/account/login');
+    // Redirect to the login page using App Router navigation
+    router.push('/account/login');
   } catch (error) {
     console.error('Logout failed:', error);
     // Optional: Show a notification or feedback to the user

@@ -16,18 +16,17 @@ const Loading = () => {
 
         {/* Triangle Image with Overlay */}
         <div className="relative w-32 h-32 flex items-center justify-center">
-          {/* Triangle Image */}
+          {/* Triangle Image */}{' '}
           <Image
             src={TriangleImage}
             alt="AirQo Triangle"
-            layout="fill"
-            objectFit="contain"
+            fill
+            style={{ objectFit: 'contain' }}
             className="text-blue-600 mix-blend-multiply transition-opacity"
             priority
             loading="eager"
             aria-hidden="true"
           />
-
           {/* Text Overlay */}
           <div className="absolute inset-0 flex items-center justify-center top-6">
             <span className="text-white font-bold text-2xl">AirQo</span>

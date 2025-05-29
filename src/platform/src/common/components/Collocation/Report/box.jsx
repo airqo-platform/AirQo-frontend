@@ -3,7 +3,7 @@ import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
 import Button from '@/components/Button';
 import Link from 'next/link';
 import { isEmpty } from 'underscore';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const Box = ({
   title,
