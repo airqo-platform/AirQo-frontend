@@ -11,7 +11,10 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const [isMediumDevice, setIsMediumDevice] = useState(false);
   const currentRoute = pathname;
-  const isCurrentRoute = currentRoute.includes(itemPath);
+  const isCurrentRoute = useMemo(() => {
+    if (!itemPath) return false;
+    return currentRoute === itemPath || currentRoute.startsWith(itemPath + '/');
+  }, [currentRoute, itemPath]);
 
   // Determine dark mode
   const isDarkMode = useMemo(() => {
@@ -77,8 +80,25 @@ const SidebarItem = ({
   const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const currentRoute = pathname;
-  const isCurrentRoute =
-    currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
+  const isCurrentRoute = useMemo(() => {
+    if (!navPath) return false;
+
+    // Exact match for root/home routes
+    if (navPath === '/' && currentRoute === '/') return true;
+    if (
+      navPath === '/Home' &&
+      (currentRoute === '/' || currentRoute === '/Home')
+    )
+      return true;
+
+    // Exact match for other routes
+    if (currentRoute === navPath) return true;
+
+    // For dropdown items, check if current route starts with the navPath
+    if (children && currentRoute.startsWith(navPath)) return true;
+
+    return false;
+  }, [currentRoute, navPath, children]);
   const hasDropdown = !!children;
 
   // Determine dark mode
