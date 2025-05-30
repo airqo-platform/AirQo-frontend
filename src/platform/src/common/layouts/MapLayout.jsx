@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
+import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
 import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
@@ -22,6 +23,7 @@ import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
  * Map page has different layout requirements
  */
 export default function MapLayout({ children, forceMapView = false }) {
+  const dispatch = useDispatch();
   const pathname = usePathname();
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
@@ -37,6 +39,16 @@ export default function MapLayout({ children, forceMapView = false }) {
   // Initialize hooks
   useUserPreferences();
   useInactivityLogout(userID);
+
+  // When leaving map page, expand the sidebar for other pages
+  useEffect(() => {
+    return () => {
+      // This runs when component unmounts (user navigates away from map)
+      if (!isMobile) {
+        dispatch(setSidebar(false)); // Expand the sidebar (false = not collapsed)
+      }
+    };
+  }, [dispatch, isMobile]);
 
   return (
     <div className="flex overflow-hidden min-h-screen" data-testid="layout">
