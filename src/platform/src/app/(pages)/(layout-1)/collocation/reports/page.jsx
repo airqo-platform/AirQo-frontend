@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import HeaderNav from '@/features/Collocation/header';
-import Box from '@/components/Box/generic_box';
+import HeaderNav from '@/components/Layout/header';
+import Box from '@/components/Collocation/Report/box';
 import ContentBox from '@/components/Layout/content_box';
 import withAuth from '@/core/utils/protectedRoute';
 
