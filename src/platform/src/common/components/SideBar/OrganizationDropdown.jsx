@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { GoOrganization } from 'react-icons/go';
@@ -32,7 +26,6 @@ const OrganizationDropdown = ({ className = '' }) => {
   const isDarkMode = theme === 'dark' || theme === 'system';
   const buttonRef = useRef(null);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
-
   const {
     id: activeGroupId,
     title: activeGroupTitle,
@@ -40,13 +33,7 @@ const OrganizationDropdown = ({ className = '' }) => {
     userID,
     loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
-
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
-
-  const activeGroups = useMemo(
-    () => groupList.filter((group) => group && group.status === 'ACTIVE'),
-    [groupList],
-  );
 
   // Track button position for fixed position dropdown
   useEffect(() => {
@@ -70,38 +57,15 @@ const OrganizationDropdown = ({ className = '' }) => {
       window.removeEventListener('scroll', updateButtonPosition);
     };
   }, [isCollapsed, isOpen]);
+
   useEffect(() => {
     if (isFetchingActiveGroup) return;
 
-    // Get active group from session first, then fallback to localStorage
-    const sessionActiveGroup = session?.user?.activeGroup;
-    const storedGroup =
-      sessionActiveGroup || localStorage.getItem('activeGroup');
-
-    if (storedGroup) {
-      try {
-        const defaultGroup =
-          typeof storedGroup === 'string'
-            ? JSON.parse(storedGroup)
-            : storedGroup;
-
-        if (defaultGroup && defaultGroup.grp_title) {
-          dispatch(setOrganizationName(defaultGroup.grp_title));
-        } else {
-          localStorage.removeItem('activeGroup');
-        }
-      } catch {
-        localStorage.removeItem('activeGroup');
-        // Silent error handling - avoid console logs
-      }
-    } else if (!activeGroupId && activeGroups.length > 0) {
-      const defaultGroup = activeGroups[0];
-      localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
-      if (defaultGroup && defaultGroup.grp_title) {
-        dispatch(setOrganizationName(defaultGroup.grp_title));
-      }
+    // Set organization name in Redux when active group changes
+    if (activeGroupTitle) {
+      dispatch(setOrganizationName(activeGroupTitle));
     }
-  }, [isFetchingActiveGroup, activeGroupId, activeGroups, dispatch, session]);
+  }, [isFetchingActiveGroup, activeGroupTitle, dispatch]);
   const handleUpdatePreferences = useCallback(
     async (group) => {
       if (!group?._id) return;
@@ -137,11 +101,9 @@ const OrganizationDropdown = ({ className = '' }) => {
     },
     [dispatch, userID, updateSession, session],
   );
-
   const handleDropdownSelect = (group) => {
     if (group?._id !== activeGroupId) {
       dispatch(setOrganizationName(group.grp_title));
-      localStorage.setItem('activeGroup', JSON.stringify(group));
       handleUpdatePreferences(group);
     } else {
       setIsOpen(false);
