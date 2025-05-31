@@ -1,7 +1,6 @@
 'use client';
 
-// Remove unused import since middleware handles auth
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';

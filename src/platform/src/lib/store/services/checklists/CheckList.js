@@ -62,17 +62,16 @@ export const updateTaskProgress = createAsyncThunk(
       const state = getState();
       const existing = state.cardChecklist.checklist;
 
-      // Retrieve user ID
-      let userId;
-      try {
-        const stored = localStorage.getItem('loggedUser');
-        const parsed =
-          stored && stored !== 'undefined' ? JSON.parse(stored) : null;
-        userId = parsed?._id;
-      } catch (err) {
-        console.error('Error parsing user ID:', err);
+      if (!Array.isArray(existing) || existing.length === 0) {
+        return rejectWithValue(
+          'Checklist is empty or not properly initialized',
+        );
       }
+
+      // User ID should be passed in the updateData
+      const userId = updateData.userId;
       if (!userId) return rejectWithValue('User ID is required');
+      delete updateData.userId; // Remove userId from the update data before applying to items
 
       // Find and update item
       const index = existing.findIndex((item) => item._id === updateData._id);
@@ -95,7 +94,15 @@ export const updateTaskProgress = createAsyncThunk(
       }
 
       // Upsert full list
-      await upsertUserChecklists({ user_id: userId, items: updatedList });
+      const response = await upsertUserChecklists({
+        user_id: userId,
+        items: updatedList,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to update checklist');
+      }
+
       return updatedList;
     } catch (error) {
       console.error('Error in updateTaskProgress:', error);

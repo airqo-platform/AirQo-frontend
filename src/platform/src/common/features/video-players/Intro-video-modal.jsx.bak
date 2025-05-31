@@ -9,23 +9,6 @@ import Spinner from '@/components/Spinner';
 import Card from '@/components/CardWrapper';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Utility function to get userId from localStorage as fallback
-const getUserIdFromLocalStorage = () => {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const storedUser = localStorage.getItem('loggedUser');
-    if (storedUser && storedUser !== 'undefined') {
-      const parsedUser = JSON.parse(storedUser);
-      return parsedUser?._id;
-    }
-  } catch {
-    // Unable to retrieve user from localStorage
-  }
-
-  return null;
-};
-
 const VideoModal = ({ open, setOpen, videoUrl }) => {
   const dispatch = useDispatch();
   const modalRef = useRef(null);
@@ -34,26 +17,16 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   const [loading, setLoading] = useState(true);
 
   const reduxChecklist = useSelector((state) => state.cardChecklist.checklist);
-  const videoChecklistItem = reduxChecklist[0];
-
-  // Get user session
+  const videoChecklistItem = reduxChecklist[0];  // Get user session
   const { data: session } = useSession();
-
-  // Get userId with fallback to localStorage
-  const getUserId = useCallback(() => {
-    return session?.user?.id || getUserIdFromLocalStorage();
-  }, [session]);
-
+  
   // Calculate and update video progress - only called on pause, end, or close
   const updateVideoState = useCallback(() => {
     if (!videoRef.current || !videoChecklistItem?._id) return;
 
-    // Get user ID from NextAuth session or fallback
-    const userId = getUserId();
-    if (!userId) {
-      // No user ID available for updating video progress
-      return;
-    }
+    // Get user ID from NextAuth session or fallback to localStorage
+    const userId = session?.user?.id || getUserIdFromLocalStorage();
+    if (!userId) return;
 
     const currentTime = videoRef.current.currentTime;
     const duration = videoRef.current.duration || 1;
@@ -70,7 +43,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
             : videoChecklistItem.status,
       }),
     );
-  }, [dispatch, videoChecklistItem, getUserId]);
+  }, [dispatch, videoChecklistItem]);
 
   // Seek to last progress when video loads
   const handleLoadedMetadata = useCallback(() => {
@@ -115,16 +88,39 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   const handleVideoPause = useCallback(() => {
     updateVideoState();
   }, [updateVideoState]);
-
   // Handle video end event - mark as completed
   const handleVideoEnd = useCallback(() => {
     if (!videoChecklistItem?._id) return;
 
-    const userId = getUserId();
-    if (!userId) {
-      // No user ID available for completing video task
+    // Get user ID using the same logic as updateVideoState
+    let userId;
+    try {
+      if (typeof window !== 'undefined') {
+        // Try session storage first
+        try {
+          const session = JSON.parse(
+            sessionStorage.getItem('next-auth.session-data'),
+          );
+          userId = session?.user?.id;
+        } catch (e) {
+          // Ignore session storage errors
+        }
+
+        // Fallback to localStorage if needed
+        if (!userId) {
+          const storedUser = localStorage.getItem('loggedUser');
+          if (storedUser && storedUser !== 'undefined') {
+            const parsedUser = JSON.parse(storedUser);
+            userId = parsedUser?._id;
+          }
+        }
+      }
+    } catch (error) {
+      // Silent fail
       return;
     }
+
+    if (!userId) return;
 
     dispatch(
       updateTaskProgress({
@@ -136,7 +132,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
         userId: userId,
       }),
     );
-  }, [dispatch, videoChecklistItem, getUserId]);
+  }, [dispatch, videoChecklistItem]);
 
   // Handle video load events
   const handleVideoLoad = () => setLoading(false);
