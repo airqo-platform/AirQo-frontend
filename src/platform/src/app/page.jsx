@@ -1,4 +1,7 @@
-import Home from './(pages)/(layout-1)/Home/page';
+import { redirect } from 'next/navigation';
 
-const HomePage = () => <Home />;
+const HomePage = () => {
+  redirect('/Home');
+};
+
 export default HomePage;

@@ -1,4 +1,9 @@
 import axios from 'axios';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options.js';
+
+// For App Router compatibility
+/* global Response */
 
 /**
  * Creates a proxy request handler for Next.js API routes
@@ -78,7 +83,7 @@ export const createProxyHandler = (options = {}) => {
             if (body) {
               config.data = JSON.parse(body);
             }
-          } catch (e) {
+          } catch {
             // Handle case where body is not JSON or empty
             config.data = {};
           }
@@ -99,20 +104,39 @@ export const createProxyHandler = (options = {}) => {
           throw new Error('API_TOKEN environment variable not defined');
         } // Add the token to the request params
         config.params.token = API_TOKEN;
-      }
-
-      // Add JWT token if required
+      } // Add JWT token if required
       if (requiresAuth) {
         let authHeader;
 
         if (context && context.params) {
-          // App Router - get header from Request object
-          authHeader = req.headers.get('authorization');
+          // App Router - try to get token from NextAuth session first
+          try {
+            const session = await getServerSession(authOptions);
+            if (session?.user?.accessToken) {
+              // Ensure token starts with "JWT " as required by the API
+              const token = session.user.accessToken;
+              authHeader = token.startsWith('JWT ') ? token : `JWT ${token}`;
+            } else {
+              // Fallback to header from Request object
+              authHeader = req.headers.get('authorization');
+            }
+          } catch {
+            // Fallback to header if session retrieval fails
+            authHeader = req.headers.get('authorization');
+          }
         } else {
           // Pages Router - get from req.headers object
           authHeader = req.headers.authorization;
         }
+
         if (authHeader) {
+          // Ensure the token starts with "JWT " for API compatibility
+          if (
+            !authHeader.startsWith('JWT ') &&
+            !authHeader.startsWith('Bearer ')
+          ) {
+            authHeader = `JWT ${authHeader}`;
+          }
           config.headers.Authorization = authHeader;
         }
       }

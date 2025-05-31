@@ -11,7 +11,8 @@
       "@/pages/*": ["src/pages/*"],
       "@/images/*": ["public/images/*"],
       "@/features/*": ["src/common/features/*"],
-      "@/layouts/*": ["src/common/layouts/*"]
+      "@/layouts/*": ["src/common/layouts/*"],
+      "@/app/*": ["src/app/*"]
     }
   },
   "exclude": ["node_modules", ".next"],

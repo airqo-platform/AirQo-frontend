@@ -3,10 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import moment from 'moment';
-import { isEmpty } from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
 
-import withAuth, { withPermission } from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
 import { findAllMatchingDevices } from '@/core/utils/matchingDevices';
 import {
   addOverviewBatch,
@@ -233,8 +232,6 @@ const CollocationOverview = () => {
   );
 };
 
-export default withAuth(
-  withPermission(CollocationOverview, [
-    'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
-  ]),
-);
+export default withPermission(CollocationOverview, [
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+]);

@@ -41,6 +41,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.40",
     "next": "^14.2.0",
+    "next-auth": "^4.24.11",
     "next-redux-wrapper": "^8.1.0",
     "next-videos": "^1.4.1",
     "pako": "^2.1.0",

@@ -12,17 +12,25 @@ import logger from '@/lib/logger';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
+import NextAuthProvider from './providers/NextAuthProvider';
+import AuthSync from './providers/AuthSync';
+import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
 
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // Mark as client-side
+    setIsClient(true);
+
     // Create store only on client side
     const storeInstance = makeStore();
     setStore(storeInstance);
   }, []);
 
-  if (!store) {
+  // Don't render anything on server side to prevent hydration mismatch
+  if (!isClient || !store) {
     return <Loading />;
   }
 
@@ -122,7 +130,16 @@ function ClientProvidersInner({ children }) {
 }
 
 export default function ClientProviders({ children }) {
-  return <ReduxProviders>{children}</ReduxProviders>;
+  return (
+    <NextAuthProvider>
+      <ReduxProviders>
+        <ThemeProvider>
+          <AuthSync />
+          {children}
+        </ThemeProvider>
+      </ReduxProviders>
+    </NextAuthProvider>
+  );
 }
 
 ClientProviders.propTypes = {

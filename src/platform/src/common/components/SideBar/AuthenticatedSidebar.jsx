@@ -13,7 +13,7 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import { checkAccess } from '@/core/utils/protectedRoute';
+import { checkAccess } from '@/core/utils/nextAuthProtectedRoute';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,

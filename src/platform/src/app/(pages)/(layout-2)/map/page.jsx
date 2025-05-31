@@ -9,7 +9,7 @@ import Toast from '@/components/Toast';
 import Loader from '@/components/Spinner';
 import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
-import withAuth from '@/core/utils/protectedRoute';
+// Remove unused import since middleware handles auth
 import { useWindowSize } from '@/lib/windowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
 
@@ -281,4 +281,4 @@ const MapPage = () => {
   );
 };
 
-export default withAuth(MapPage);
+export default MapPage;

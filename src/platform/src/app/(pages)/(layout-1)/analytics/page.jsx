@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import withAuth from '@/core/utils/protectedRoute';
+// Remove unused import since middleware handles auth
 import { useDispatch, useSelector } from 'react-redux';
 import OverView from './view/OverView';
 import AlertBox from '@/components/AlertBox';
@@ -51,4 +51,4 @@ const AuthenticatedHomePage = () => {
   );
 };
 
-export default withAuth(AuthenticatedHomePage);
+export default AuthenticatedHomePage;

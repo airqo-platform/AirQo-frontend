@@ -10,7 +10,7 @@ import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import { checkAccess } from '@/core/utils/protectedRoute';
+import { checkAccess } from '@/core/utils/nextAuthProtectedRoute';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
@@ -33,11 +33,8 @@ const SideBarDrawer = () => {
         return false;
       }
       return JSON.parse(storedValue);
-    } catch (error) {
-      console.error(
-        'Error parsing "collocationOpen" from localStorage:',
-        error,
-      );
+    } catch {
+      // Silent error handling for localStorage parsing issues
       return false;
     }
   });
@@ -52,15 +49,21 @@ const SideBarDrawer = () => {
   const closeDrawer = useCallback(() => {
     dispatch(setToggleDrawer(false));
   }, [dispatch]);
-
   const handleLogout = useCallback(
     async (event) => {
       event.preventDefault();
+
+      // Prevent multiple logout attempts
+      if (isLoading) return;
+
       setIsLoading(true);
-      await LogoutUser(dispatch, router);
-      setIsLoading(false);
+      try {
+        await LogoutUser(dispatch, router);
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [dispatch, router],
+    [dispatch, router, isLoading],
   );
 
   const toggleCollocation = useCallback(() => {
@@ -168,16 +171,22 @@ const SideBarDrawer = () => {
               Network
             </div>
             {renderCollocationSection()}
-            <SideBarItem label="Map" Icon={WorldIcon} navPath="/map" />
+            <SideBarItem label="Map" Icon={WorldIcon} navPath="/map" />{' '}
             <SideBarItem
               label="Settings"
               Icon={SettingsIcon}
               navPath="/settings"
             />
-            <div onClick={handleLogout}>
+            <div
+              onClick={handleLogout}
+              className={
+                isLoading ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer'
+              }
+            >
               <SideBarItem
-                label={isLoading ? 'Logging out...' : 'Logout'}
+                label={isLoading ? 'Signing out...' : 'Logout'}
                 Icon={LogoutIcon}
+                disabled={isLoading}
               />
             </div>
           </div>

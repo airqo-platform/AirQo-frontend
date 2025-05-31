@@ -13,8 +13,7 @@ import {
   addActiveSelectedDeviceReport,
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import { isEmpty } from 'underscore';
-import withAuth from '@/core/utils/protectedRoute';
-import { withPermission } from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
 import {
   getCollocationResults,
   getDataCompletenessResults,
@@ -236,6 +235,6 @@ const MonitorReport = () => {
   );
 };
 
-export default withAuth(
+export default withNextAuth(
   withPermission(MonitorReport, 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'),
 );

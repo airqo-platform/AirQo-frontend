@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import withAuth, { withPermission } from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 
 import HeaderNav from '@/components/Layout/header';
@@ -111,6 +111,6 @@ const Collocate = () => {
   );
 };
 
-export default withAuth(
-  withPermission(Collocate, ['CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES']),
-);
+export default withPermission(Collocate, [
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+]);

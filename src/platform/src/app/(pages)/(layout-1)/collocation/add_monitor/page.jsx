@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 
-import withAuth, { withPermission } from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
 import { getCollocationDevices } from '@/lib/store/services/deviceRegistry';
 import { collocateDevices } from '@/lib/store/services/collocation';
 import {
@@ -151,6 +151,6 @@ const AddMonitor = () => {
   );
 };
 
-export default withAuth(
-  withPermission(AddMonitor, ['CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES']),
-);
+export default withPermission(AddMonitor, [
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+]);

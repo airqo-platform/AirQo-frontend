@@ -1,6 +1,6 @@
 'use client';
 
-import withAuth from '@/core/utils/protectedRoute';
+// Remove unused import since middleware handles auth
 import React, { useState, useEffect } from 'react';
 import Button from '@/components/Button';
 import Image from 'next/image';
@@ -225,4 +225,4 @@ const Home = () => {
   );
 };
 
-export default withAuth(Home);
+export default Home;

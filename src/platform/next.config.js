@@ -19,7 +19,7 @@ module.exports = withVideos({
       },
     ],
   },
-  reactStrictMode: true,
+  reactStrictMode: false, // Temporarily disabled to fix "Should have a queue" error
 
   eslint: {
     dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
@@ -41,15 +41,6 @@ module.exports = withVideos({
     };
 
     return config;
-  },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/Home',
-        permanent: false,
-      },
-    ];
   },
 
   async rewrites() {

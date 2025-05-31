@@ -1,3 +1,4 @@
+import { signOut } from 'next-auth/react';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 
 const LogoutUser = async (dispatch, router) => {
@@ -17,6 +18,12 @@ const LogoutUser = async (dispatch, router) => {
     ) {
       await window.__NEXT_REDUX_STORE__.__persistor.purge();
     }
+
+    // Use NextAuth signOut to clear session
+    await signOut({
+      redirect: false, // Don't auto-redirect, we'll handle it manually
+      callbackUrl: '/account/login',
+    });
 
     // Redirect to the login page using App Router navigation
     router.push('/account/login');

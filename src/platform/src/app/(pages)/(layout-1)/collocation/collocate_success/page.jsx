@@ -4,7 +4,7 @@ import React from 'react';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import ContentLessTopBar from '@/components/TopBar/content_less_header';
 import Button from '@/components/Button';
-import withAuth from '@/core/utils/protectedRoute';
+// Remove unused import since middleware handles auth
 
 const CollocationSuccess = () => {
   return (
@@ -19,7 +19,8 @@ const CollocationSuccess = () => {
             </h4>
             <div>
               <p className="text-grey-300 text-xl max-w-md mb-8">
-                You've successfully scheduled your first device for collocation
+                You&apos;ve successfully scheduled your first device for
+                collocation
               </p>
               <Button
                 path="/collocation/collocate"
@@ -36,4 +37,4 @@ const CollocationSuccess = () => {
   );
 };
 
-export default withAuth(CollocationSuccess);
+export default CollocationSuccess;

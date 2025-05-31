@@ -2,7 +2,7 @@
 
 import Tabs from '@/components/Tabs';
 import Password from './Tabs/Password';
-import withAuth from '@/core/utils/protectedRoute';
+// Remove unused import since middleware handles auth
 import Team from './Tabs/Team';
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
@@ -107,4 +107,4 @@ const Settings = () => {
   );
 };
 
-export default withAuth(Settings);
+export default Settings;

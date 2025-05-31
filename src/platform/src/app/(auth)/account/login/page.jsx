@@ -3,8 +3,8 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import { signIn as _signIn, getSession as _getSession } from 'next-auth/react';
 import Link from 'next/link';
-import jwt_decode from 'jwt-decode';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -15,21 +15,12 @@ import InputField from '@/components/InputField';
 
 import {
   setUserData,
-  setUserInfo,
+  setUserInfo as _setUserInfo,
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import {
-  postUserLoginDetails,
-  getUserDetails,
-  recentUserPreferencesAPI,
-} from '@/core/apis/Account';
-import { GOOGLE_AUTH_URL } from '@/core/urls/authentication';
 import logger from '@/lib/logger';
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -41,24 +32,11 @@ const loginSchema = Yup.object().shape({
 const UserLogin = () => {
   const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const router = useRouter();
   const { userData } = useSelector((state) => state.login);
-
-  const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
-    try {
-      return await fn();
-    } catch (err) {
-      if (retries > 0 && err.response?.status === 429) {
-        await new Promise((res) => setTimeout(res, RETRY_DELAY));
-        return retryWithDelay(fn, retries - 1);
-      }
-      throw err;
-    }
-  };
 
   const handleLogin = useCallback(
     async (e) => {
@@ -66,7 +44,7 @@ const UserLogin = () => {
       setLoading(true);
       setErrorState('');
 
-      // 1️⃣ Validate credentials
+      // Validate credentials
       try {
         await loginSchema.validate(userData, { abortEarly: false });
       } catch (validationError) {
@@ -78,55 +56,48 @@ const UserLogin = () => {
       }
 
       try {
-        // 2️⃣ Authenticate → get JWT
-        const { token } = await retryWithDelay(() =>
-          postUserLoginDetails(userData),
-        );
-        localStorage.setItem('token', token);
-        const decoded = jwt_decode(token);
+        // Use NextAuth signIn
+        const result = await _signIn('credentials', {
+          userName: userData.userName,
+          password: userData.password,
+          redirect: false,
+        });
 
-        // 3️⃣ Fetch full user object
-        const userRes = await retryWithDelay(() =>
-          getUserDetails(decoded._id, token),
-        );
-        const user = userRes.users[0];
-        if (!user.groups?.length) {
-          throw new Error(
-            'Server error. Contact support to add you to the AirQo Organisation',
-          );
+        if (result?.error) {
+          throw new Error(result.error);
         }
 
-        // 4️⃣ Fetch the most recent preference
-        let activeGroup = user.groups[0]; // default
-        try {
-          const prefRes = await retryWithDelay(() =>
-            recentUserPreferencesAPI(user._id),
-          );
-          if (prefRes.success && prefRes.preference) {
-            const { group_id } = prefRes.preference;
-            const matched = user.groups.find((g) => g._id === group_id);
-            if (matched) activeGroup = matched;
+        if (result?.ok) {
+          // Get the session after successful login
+          const session = await _getSession();
+
+          if (session?.user) {
+            // Update Redux store with session data
+            dispatch(_setUserInfo(session.user));
+            dispatch(setSuccess(true));
+
+            // Store session data in localStorage for compatibility
+            localStorage.setItem('loggedUser', JSON.stringify(session.user));
+
+            // Create activeGroup from session data
+            const activeGroup = {
+              _id: session.user.organization,
+              organization: session.user.organization,
+              long_organization: session.user.long_organization,
+            };
+            localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+
+            // Redirect to home page
+            router.push('/Home');
           }
-        } catch {
-          // swallow and keep default
         }
-
-        // 5️⃣ Persist & dispatch
-        localStorage.setItem('loggedUser', JSON.stringify(user));
-        localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
-
-        dispatch(setUserInfo(user));
-        dispatch(setSuccess(true));
-        router.push('/Home');
       } catch (err) {
         dispatch(setSuccess(false));
         const errorMessage =
-          err.response?.data?.message ||
-          (err.response?.status === 401
-            ? 'Invalid credentials. Please check your email and password.'
-            : err.message || 'Something went wrong, please try again');
+          err.message || 'Something went wrong, please try again';
         dispatch(setError(errorMessage));
         setErrorState(errorMessage);
+        logger.error('NextAuth login error:', err);
       } finally {
         setLoading(false);
       }
@@ -143,18 +114,6 @@ const UserLogin = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  const handleGoogleLogin = async () => {
-    setIsLoadingGoogle(true);
-    try {
-      // Redirect to Google auth URL
-      window.location.href = GOOGLE_AUTH_URL;
-    } catch (error) {
-      logger.error('Google login error:', error);
-    } finally {
-      setIsLoadingGoogle(false);
-    }
   };
 
   return (
@@ -209,23 +168,11 @@ const UserLogin = () => {
             <div className="mt-10">
               <button
                 className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
-                disabled={loading || isLoadingGoogle}
+                disabled={loading}
                 onClick={handleLogin}
               >
                 {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>
-
-              {/* <button
-                className="w-full btn border-blue-900 rounded-[12px] text-white text-sm outline-none border mt-2"
-                disabled={loading || isLoadingGoogle}
-                onClick={handleGoogleLogin}
-              >
-                {isLoadingGoogle ? (
-                  <Spinner width={25} height={25} />
-                ) : (
-                  'Login with Google'
-                )}
-              </button> */}
             </div>
           </form>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">

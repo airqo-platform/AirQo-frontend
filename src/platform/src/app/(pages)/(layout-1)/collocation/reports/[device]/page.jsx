@@ -12,13 +12,13 @@ import CustomTable from '@/components/Table';
 import { isEmpty } from 'underscore';
 import ContentBox from '@/components/Layout/content_box';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
-import withAuth from '@/core/utils/protectedRoute';
+// Remove unused import since middleware handles auth
 import { useDispatch, useSelector } from 'react-redux';
 import {
   getCollocationStatistics,
   getCollocationResults,
 } from '@/lib/store/services/collocation';
-import { withPermission } from '@/core/utils/protectedRoute';
+import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
 
 const Reports = () => {
   const dispatch = useDispatch();
@@ -178,6 +178,6 @@ const Reports = () => {
   );
 };
 
-export default withAuth(
-  withPermission(Reports, ['CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES']),
-);
+export default withPermission(Reports, [
+  'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+]);

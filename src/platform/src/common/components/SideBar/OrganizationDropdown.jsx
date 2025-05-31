@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import { GoOrganization } from 'react-icons/go';
 import CustomDropdown from '../Button/CustomDropdown';
 import Spinner from '@/components/Spinner';
@@ -23,6 +24,7 @@ const cleanGroupName = (name) => {
 
 const OrganizationDropdown = ({ className = '' }) => {
   const dispatch = useDispatch();
+  const { data: session, update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -68,22 +70,29 @@ const OrganizationDropdown = ({ className = '' }) => {
       window.removeEventListener('scroll', updateButtonPosition);
     };
   }, [isCollapsed, isOpen]);
-
   useEffect(() => {
     if (isFetchingActiveGroup) return;
 
-    const storedGroup = localStorage.getItem('activeGroup');
+    // Get active group from session first, then fallback to localStorage
+    const sessionActiveGroup = session?.user?.activeGroup;
+    const storedGroup =
+      sessionActiveGroup || localStorage.getItem('activeGroup');
+
     if (storedGroup) {
       try {
-        const defaultGroup = JSON.parse(storedGroup);
+        const defaultGroup =
+          typeof storedGroup === 'string'
+            ? JSON.parse(storedGroup)
+            : storedGroup;
+
         if (defaultGroup && defaultGroup.grp_title) {
           dispatch(setOrganizationName(defaultGroup.grp_title));
         } else {
           localStorage.removeItem('activeGroup');
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem('activeGroup');
-        console.error('Error parsing stored group:', error);
+        // Silent error handling - avoid console logs
       }
     } else if (!activeGroupId && activeGroups.length > 0) {
       const defaultGroup = activeGroups[0];
@@ -92,8 +101,7 @@ const OrganizationDropdown = ({ className = '' }) => {
         dispatch(setOrganizationName(defaultGroup.grp_title));
       }
     }
-  }, [isFetchingActiveGroup, activeGroupId, activeGroups, dispatch]);
-
+  }, [isFetchingActiveGroup, activeGroupId, activeGroups, dispatch, session]);
   const handleUpdatePreferences = useCallback(
     async (group) => {
       if (!group?._id) return;
@@ -108,15 +116,26 @@ const OrganizationDropdown = ({ className = '' }) => {
             group_id: group._id,
           }),
         );
-      } catch (error) {
-        console.error('Error updating user preferences:', error);
+
+        // Update session with new active group if possible
+        if (updateSession) {
+          await updateSession({
+            ...session,
+            user: {
+              ...session?.user,
+              activeGroup: group,
+            },
+          });
+        }
+      } catch {
+        // Silent error handling
       } finally {
         setLoading(false);
         setSelectedGroupId(null);
         setIsOpen(false);
       }
     },
-    [dispatch, userID],
+    [dispatch, userID, updateSession, session],
   );
 
   const handleDropdownSelect = (group) => {
