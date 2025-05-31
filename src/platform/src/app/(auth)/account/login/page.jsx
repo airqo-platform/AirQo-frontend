@@ -12,14 +12,11 @@ import AccountPageLayout from '@/components/Account/Layout';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/components/InputField';
+import LoginSetupLoader from '@/components/LoginSetupLoader';
 
-import {
-  setUserData,
-  setUserInfo as _setUserInfo,
-  setSuccess,
-  setError,
-} from '@/lib/store/services/account/LoginSlice';
+import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { setupUserAfterLogin } from '@/core/utils/setupUser';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -32,6 +29,7 @@ const loginSchema = Yup.object().shape({
 const UserLogin = () => {
   const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
@@ -68,36 +66,36 @@ const UserLogin = () => {
         }
 
         if (result?.ok) {
+          // Show setup screen while we fetch additional required data
+          setIsSettingUp(true);
+
           // Get the session after successful login
           const session = await _getSession();
 
-          if (session?.user) {
-            // Update Redux store with session data
-            dispatch(_setUserInfo(session.user));
-            dispatch(setSuccess(true));
+          if (session?.user && session?.accessToken) {
+            try {
+              // Setup user with the token from the session
+              await setupUserAfterLogin(session.accessToken, dispatch);
 
-            // Store session data in localStorage for compatibility
-            localStorage.setItem('loggedUser', JSON.stringify(session.user));
-
-            // Create activeGroup from session data
-            const activeGroup = {
-              _id: session.user.organization,
-              organization: session.user.organization,
-              long_organization: session.user.long_organization,
-            };
-            localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
-
-            // Redirect to home page
-            router.push('/Home');
+              // Navigate to home page after setup is complete
+              router.push('/Home');
+            } catch (setupError) {
+              setIsSettingUp(false);
+              throw setupError;
+            }
+          } else {
+            throw new Error('Session data is incomplete');
           }
         }
       } catch (err) {
-        dispatch(setSuccess(false));
+        setIsSettingUp(false);
         const errorMessage =
-          err.message || 'Something went wrong, please try again';
-        dispatch(setError(errorMessage));
+          err.response?.data?.message ||
+          (err.response?.status === 401
+            ? 'Invalid credentials. Please check your email and password.'
+            : err.message || 'Something went wrong, please try again');
         setErrorState(errorMessage);
-        logger.error('NextAuth login error:', err);
+        logger.error('Login error:', err);
       } finally {
         setLoading(false);
       }
@@ -115,6 +113,11 @@ const UserLogin = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Show setup screen when fetching additional user data
+  if (isSettingUp) {
+    return <LoginSetupLoader />;
+  }
 
   return (
     <ErrorBoundary name="UserLogin" feature="User Authentication">
@@ -169,7 +172,7 @@ const UserLogin = () => {
               <button
                 className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
                 disabled={loading}
-                onClick={handleLogin}
+                type="submit"
               >
                 {loading ? <Spinner width={25} height={25} /> : 'Login'}
               </button>

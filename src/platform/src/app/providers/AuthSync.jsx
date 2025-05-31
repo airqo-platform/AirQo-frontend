@@ -9,6 +9,8 @@ import {
   setSuccess,
   resetStore,
 } from '@/lib/store/services/account/LoginSlice';
+import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
+import logger from '@/lib/logger';
 
 /**
  * AuthSync component synchronizes authentication state between NextAuth and Redux
@@ -29,14 +31,68 @@ const AuthSync = () => {
 
     if (status === 'authenticated' && session?.user) {
       // User is authenticated via NextAuth
-      // Sync the session data to Redux
-      dispatch(setUserInfo(session.user));
-      dispatch(setSuccess(true));
 
-      // Also store in localStorage for persistence
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('userInfo', JSON.stringify(session.user));
-        localStorage.setItem('isAuthenticated', 'true');
+      // Check if we already have user data in localStorage
+      const storedUser = localStorage.getItem('loggedUser');
+      const activeGroup = localStorage.getItem('activeGroup');
+
+      if (!storedUser || !activeGroup) {
+        // Need to fetch additional user data and set active group
+        const fetchUserDetails = async () => {
+          try {
+            if (session?.user?.id) {
+              // Store token for API calls if available
+              if (session.accessToken) {
+                localStorage.setItem('token', session.accessToken);
+              }
+
+              // Fetch full user object with groups
+              const userRes = await getUserDetails(session.user.id);
+              const user = userRes.users[0];
+
+              if (!user.groups?.length) {
+                logger.warn('User has no groups assigned');
+                return;
+              }
+
+              // Fetch the most recent preference to get active group
+              let activeGroup = user.groups[0]; // default
+              try {
+                const prefRes = await recentUserPreferencesAPI(user._id);
+                if (prefRes.success && prefRes.preference) {
+                  const { group_id } = prefRes.preference;
+                  const matched = user.groups.find((g) => g._id === group_id);
+                  if (matched) activeGroup = matched;
+                }
+              } catch (error) {
+                logger.warn(
+                  `Failed to fetch user preferences: ${error.message}`,
+                );
+                // Continue with default group
+              }
+
+              // Store enhanced user data in localStorage and Redux
+              localStorage.setItem('loggedUser', JSON.stringify(user));
+              localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+
+              dispatch(setUserInfo(user));
+              dispatch(setSuccess(true));
+            }
+          } catch (error) {
+            logger.error('Error fetching user details:', error);
+          }
+        };
+
+        fetchUserDetails();
+      } else {
+        // We have the data, just sync Redux state
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          dispatch(setUserInfo(parsedUser));
+          dispatch(setSuccess(true));
+        } catch (error) {
+          logger.error('Error parsing stored user data:', error);
+        }
       }
     } else if (status === 'unauthenticated') {
       // User is not authenticated
@@ -45,9 +101,11 @@ const AuthSync = () => {
 
       // Clear localStorage
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('loggedUser');
+        localStorage.removeItem('activeGroup');
         localStorage.removeItem('userInfo');
         localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('activeGroup');
       }
 
       // Check if user is on a protected route
@@ -79,12 +137,9 @@ const AuthSync = () => {
         status === 'unauthenticated'
       ) {
         // This could indicate a session expiry or desync
-        // Use logger instead of console
-        import('@/lib/logger').then((logger) => {
-          logger.default.warn(
-            'Authentication state mismatch detected, clearing Redux state',
-          );
-        });
+        logger.warn(
+          'Authentication state mismatch detected, clearing Redux state',
+        );
         dispatch(resetStore());
       }
     }
