@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
@@ -25,6 +26,7 @@ import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
 import Card from '@/components/CardWrapper';
 
 const UserClientsTable = () => {
+  const { data: session } = useSession();
   const dispatch = useDispatch();
   const [isError, setIsError] = useState({
     isError: false,
@@ -50,6 +52,9 @@ const UserClientsTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 
+  // Get user ID from session with fallback to Redux state
+  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
+
   const onPageChange = (newPage) => {
     setCurrentPage(newPage);
   };
@@ -61,41 +66,67 @@ const UserClientsTable = () => {
       type,
     });
   };
-
   useEffect(() => {
     const fetchUserDetails = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const res = await getUserDetails(userInfo?._id);
+        const res = await getUserDetails(userId);
         if (res.success) {
           dispatch(addClients(res.users[0].clients));
           setCurrentPage(1);
         }
       } catch (error) {
-        console.error(error);
+        setErrorState(
+          error?.message || 'Failed to fetch user details',
+          'error',
+        );
       } finally {
         setIsLoading(false);
       }
     };
     fetchUserDetails();
-  }, [refresh]);
-
+  }, [refresh, userId, dispatch]);
   useEffect(() => {
     const fetchClientsDetails = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const response = await getClientsApi(userInfo?._id);
+        const response = await getClientsApi(userId);
         if (response.success) {
           dispatch(addClientsDetails(response.clients));
         }
       } catch (error) {
-        console.error(error);
+        // Check if this is a "no clients exist" response (404 with success=true)
+        if (
+          error?.response?.status === 404 &&
+          error?.response?.data?.success === true &&
+          error?.response?.data?.message === 'no clients exist'
+        ) {
+          // Handle "no clients exist" as a successful response with empty clients array
+          dispatch(addClientsDetails([]));
+        } else {
+          setErrorState(
+            error?.response?.data?.message ||
+              error?.message ||
+              'Failed to fetch clients details',
+            'error',
+          );
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchClientsDetails();
-  }, [refresh]);
+  }, [refresh, userId, dispatch]);
 
   const hasAccessToken = (clientId) => {
     const client =

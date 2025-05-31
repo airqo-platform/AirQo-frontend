@@ -1,8 +1,10 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import {
   updateTaskProgress,
   fetchUserChecklists,
 } from '@/lib/store/services/checklists/CheckList';
+import logger from '@/lib/logger';
 
 /**
  * Custom hook for managing checklist steps
@@ -10,8 +12,13 @@ import {
  */
 export const useChecklistSteps = () => {
   const dispatch = useDispatch();
+  const { data: session } = useSession();
   const checklist = useSelector((state) => state.cardChecklist.checklist || []);
   const status = useSelector((state) => state.cardChecklist.status);
+
+  // Get user ID from session first, fallback to Redux state
+  const reduxUserInfo = useSelector((state) => state.login?.userInfo || {});
+  const userId = session?.user?.id || reduxUserInfo?.id || reduxUserInfo?._id;
 
   /**
    * Completes a specific checklist step
@@ -39,18 +46,25 @@ export const useChecklistSteps = () => {
         return true;
       }
 
+      // Use the internally determined userId for the API update
+      if (!userId) {
+        logger.warn('No userId available for checklist step completion');
+        return false;
+      }
+
       dispatch(
         updateTaskProgress({
           _id: step._id,
           status: 'completed',
           completed: true,
           completionDate: new Date().toISOString(),
+          userId: userId,
         }),
       );
 
       return true;
     } catch (error) {
-      console.error('Error completing checklist step:', error);
+      logger.error('Error completing checklist step:', error);
       return false;
     }
   };
@@ -62,14 +76,12 @@ export const useChecklistSteps = () => {
    */
   const refreshChecklist = async (userId) => {
     if (!userId) {
-      console.warn('Cannot refresh checklist: No user ID provided');
       return false;
     }
 
     try {
       return await dispatch(fetchUserChecklists(userId));
-    } catch (error) {
-      console.error('Error refreshing checklist:', error);
+    } catch {
       return false;
     }
   };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import * as Yup from 'yup';
 import Modal from '@/components/Modal/Modal';
 import AlertBox from '@/components/AlertBox';
@@ -16,6 +17,7 @@ import timeZones from 'timezones.json';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
 
+// Country and timezone setup
 countries.registerLocale(enLocale);
 const countryObj = countries.getNames('en', { select: 'official' });
 const countryOptions = Object.entries(countryObj).map(([key, value]) => ({
@@ -36,19 +38,20 @@ const validationSchema = Yup.object().shape({
     .required('Email is required'),
   phone: Yup.string().optional(),
   jobTitle: Yup.string().optional(),
-  country: Yup.string().optional(),
+  country: Yup.string().required('Country is required'),
   timezone: Yup.string().optional(),
   description: Yup.string().optional(),
 });
 
 const Profile = () => {
+  const dispatch = useDispatch();
+  const { data: session, update: updateSession } = useSession();
   const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
     type: '',
   });
   const [validationErrors, setValidationErrors] = useState({});
-  const dispatch = useDispatch();
   const [userData, setUserData] = useState({
     firstName: '',
     lastName: '',
@@ -64,42 +67,78 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
-  const userInfo = useSelector((state) => state.login.userInfo);
-  const userToken =
-    typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const { completeStep } = useChecklistSteps();
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const storedUser = localStorage.getItem('loggedUser');
-    let parsedUser = null;
-    try {
-      parsedUser =
-        storedUser && storedUser !== 'undefined' && JSON.parse(storedUser);
-    } catch (err) {
-      console.error('Error parsing loggedUser:', err);
-    }
-    if (parsedUser) {
-      if (!userInfo) dispatch(setUserInfo(parsedUser));
-      setUserData({
-        firstName: parsedUser.firstName || '',
-        lastName: parsedUser.lastName || '',
-        email: parsedUser.email || '',
-        phone: parsedUser.phone || '',
-        jobTitle: parsedUser.jobTitle || '',
-        country: parsedUser.country || '',
-        timezone: parsedUser.timezone || '',
-        description: parsedUser.description || '',
-        profilePicture: parsedUser.profilePicture || '',
+  // Helper function to parse API error responses
+  const parseApiErrors = (error) => {
+    const parsedErrors = {};
+
+    // Handle the API error format you provided
+    if (
+      error.response?.data?.errors &&
+      Array.isArray(error.response.data.errors)
+    ) {
+      error.response.data.errors.forEach((err) => {
+        if (err.param && err.message) {
+          parsedErrors[err.param] = err.message;
+        }
       });
-    } else {
+    }
+
+    // Handle other error formats
+    if (error.response?.data?.message) {
+      return { general: error.response.data.message };
+    }
+
+    if (error.message) {
+      return { general: error.message };
+    }
+
+    return parsedErrors;
+  };
+  // Function to fetch user details from API
+  const fetchUserDetails = async () => {
+    if (!session?.user?.id) return;
+
+    setIsLoading(true);
+    try {
+      const res = await getUserDetails(session.user.id);
+      if (res.success && res.users && res.users.length > 0) {
+        const user = res.users[0];
+
+        // Map API response fields to form fields
+        setUserData({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          phone: user.phoneNumber || '', // API uses phoneNumber, form uses phone
+          jobTitle: user.jobTitle || '',
+          country: user.country || '',
+          timezone: user.timezone || '',
+          description: user.description || '',
+          profilePicture: user.profilePicture || '',
+        });
+      } else {
+        setErrorState({
+          isError: true,
+          message: 'Failed to fetch user details',
+          type: 'error',
+        });
+      }
+    } catch (error) {
       setErrorState({
         isError: true,
-        message: 'No user details found!',
+        message: error.message || 'Error fetching user details',
         type: 'error',
       });
+    } finally {
+      setIsLoading(false);
     }
-  }, [userInfo, dispatch]);
+  };
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, [session?.user?.id]);
 
   // Handler for input changes from InputField/TextField components.
   const handleChange = (e) => {
@@ -125,10 +164,10 @@ const Profile = () => {
       setValidationErrors({ ...validationErrors, timezone: '' });
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
     // Validate the userData using Yup schema
     try {
       await validationSchema.validate(userData, { abortEarly: false });
@@ -144,79 +183,86 @@ const Profile = () => {
       return;
     }
 
-    let loggedUser;
-    try {
-      loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
-    } catch (err) {
-      console.error('Error parsing loggedUser:', err);
+    if (!session?.user?.id) {
+      setErrorState({
+        isError: true,
+        message: 'No valid user session found',
+        type: 'error',
+      });
       setIsLoading(false);
       return;
     }
-    if (!loggedUser) return setIsLoading(false);
-    const userID = loggedUser._id;
+
+    const userID = session.user.id;
 
     // Create a cleaned version of userData without empty profilePicture
     const dataToUpdate = { ...userData };
     if (!dataToUpdate.profilePicture) {
       delete dataToUpdate.profilePicture;
     }
-
     try {
       await updateUserCreationDetails(dataToUpdate, userID);
-      const res = await getUserDetails(userID, userToken);
+      const res = await getUserDetails(userID);
       const updatedUser = res?.users?.[0];
       if (!updatedUser) throw new Error('User details not updated');
       const updatedData = { _id: userID, ...updatedUser };
-      localStorage.setItem('loggedUser', JSON.stringify(updatedData));
-      dispatch(setUserInfo(updatedData)); // Only check required fields for completing the step
-      if (userData.firstName && userData.lastName && userData.email) {
+
+      // Update the session with new user data
+      await updateSession({
+        user: {
+          ...session.user,
+          ...updatedData,
+        },
+      });
+
+      dispatch(setUserInfo(updatedData));
+      if (
+        userData.firstName &&
+        userData.lastName &&
+        userData.email &&
+        userData.country
+      ) {
         completeStep(2);
       }
+
       setErrorState({
         isError: true,
         message: 'User details successfully updated',
         type: 'success',
       });
     } catch (error) {
-      console.error('Error updating details:', error);
-      setErrorState({ isError: true, message: error.message, type: 'error' });
+      // Parse API errors to set field-specific errors
+      const apiErrors = parseApiErrors(error);
+
+      if (Object.keys(apiErrors).length > 0 && !apiErrors.general) {
+        // If we have field-specific errors, set them in validation errors
+        setValidationErrors((prevErrors) => ({
+          ...prevErrors,
+          ...apiErrors,
+        }));
+
+        setErrorState({
+          isError: true,
+          message: 'Please fix the errors below and try again',
+          type: 'error',
+        });
+      } else {
+        // If it's a general error, show it in the alert
+        setErrorState({
+          isError: true,
+          message:
+            apiErrors.general || error.message || 'Error updating user details',
+          type: 'error',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
+  const handleCancel = async () => {
+    // Reset form to original API data by refetching user details
+    await fetchUserDetails();
 
-  const handleCancel = () => {
-    let parsedUser;
-    try {
-      parsedUser = JSON.parse(localStorage.getItem('loggedUser'));
-    } catch (err) {
-      console.error('Error parsing loggedUser:', err);
-    }
-    if (!parsedUser) {
-      setUserData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        jobTitle: '',
-        country: '',
-        timezone: '',
-        description: '',
-        profilePicture: '',
-      });
-      return;
-    }
-    setUserData({
-      firstName: parsedUser.firstName || '',
-      lastName: parsedUser.lastName || '',
-      email: parsedUser.email || '',
-      phone: parsedUser.phone || '',
-      jobTitle: parsedUser.jobTitle || '',
-      country: parsedUser.country || '',
-      timezone: parsedUser.timezone || '',
-      description: parsedUser.description || '',
-      profilePicture: parsedUser.profilePicture || '',
-    });
     // Clear any validation errors
     setValidationErrors({});
   };
@@ -293,7 +339,7 @@ const Profile = () => {
           profilePicture: secureUrl,
         }));
 
-        const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
+        const userID = session?.user?.id;
         if (!userID) throw new Error('No valid user ID found');
 
         // Only send profile picture to API if it's not empty
@@ -304,7 +350,14 @@ const Profile = () => {
           ...userData,
           profilePicture: secureUrl,
         };
-        localStorage.setItem('loggedUser', JSON.stringify(updatedData));
+        // Update session with the new profile picture
+        await updateSession({
+          user: {
+            ...session.user,
+            profilePicture: secureUrl,
+          },
+        });
+
         dispatch(setUserInfo(updatedData));
 
         setErrorState({
@@ -317,7 +370,6 @@ const Profile = () => {
       setUpdatedProfilePicture('');
       setProfileUploading(false);
     } catch (err) {
-      console.error('Error uploading profile image:', err);
       setUpdatedProfilePicture('');
       setProfileUploading(false);
       setErrorState({ isError: true, message: err.message, type: 'error' });
@@ -328,7 +380,7 @@ const Profile = () => {
     setUpdatedProfilePicture('');
     setUserData((prev) => ({ ...prev, profilePicture: '' }));
 
-    const userID = JSON.parse(localStorage.getItem('loggedUser'))?._id;
+    const userID = session?.user?.id;
     if (!userID) {
       setErrorState({
         isError: true,
@@ -345,14 +397,19 @@ const Profile = () => {
       const updatedUserData = { ...userData };
       delete updatedUserData.profilePicture; // Remove profile picture before storing
 
-      const storedData = {
+      const updatedUser = {
         _id: userID,
         ...updatedUserData,
-        profilePicture: '', // Explicitly set to empty in localStorage
-      };
+        profilePicture: '', // Explicitly set to empty
+      }; // Update session with the profile picture removed
+      await updateSession({
+        user: {
+          ...session.user,
+          profilePicture: '',
+        },
+      });
 
-      localStorage.setItem('loggedUser', JSON.stringify(storedData));
-      dispatch(setUserInfo(storedData));
+      dispatch(setUserInfo(updatedUser));
 
       setShowDeleteProfileModal(false);
       setErrorState({
@@ -433,6 +490,7 @@ const Profile = () => {
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
               onSubmit={handleSubmit}
             >
+              {' '}
               {/* Row 1: First and Last Name */}
               <InputField
                 id="firstName"
@@ -441,6 +499,7 @@ const Profile = () => {
                 label="First name"
                 placeholder="Enter first name"
                 error={validationErrors.firstName}
+                required
               />
               <InputField
                 id="lastName"
@@ -449,8 +508,8 @@ const Profile = () => {
                 label="Last name"
                 placeholder="Enter last name"
                 error={validationErrors.lastName}
-              />
-
+                required
+              />{' '}
               {/* Row 2: Email and Phone */}
               <InputField
                 id="email"
@@ -459,6 +518,7 @@ const Profile = () => {
                 label="Email"
                 placeholder="Enter email address"
                 error={validationErrors.email}
+                required
               />
               <InputField
                 id="phone"
@@ -468,7 +528,6 @@ const Profile = () => {
                 placeholder="Enter phone number"
                 error={validationErrors.phone}
               />
-
               {/* Row 3: Job Title and Country */}
               <InputField
                 id="jobTitle"
@@ -477,10 +536,13 @@ const Profile = () => {
                 label="Job title"
                 placeholder="Enter job title"
                 error={validationErrors.jobTitle}
-              />
+              />{' '}
               <div className="flex flex-col">
-                <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
                   Country
+                  <span className="ml-1 text-blue-600 dark:text-blue-400">
+                    *
+                  </span>
                 </label>
                 <SelectDropdown
                   items={countryOptions}
@@ -492,9 +554,9 @@ const Profile = () => {
                   onChange={handleCountryChange}
                   placeholder="Select a country"
                   error={validationErrors.country}
+                  required
                 />
               </div>
-
               {/* Row 4: Timezone */}
               <div className="flex flex-col">
                 <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -512,7 +574,6 @@ const Profile = () => {
                   error={validationErrors.timezone}
                 />
               </div>
-
               {/* Row 5: Bio/Description (full width) using TextField */}
               <div className="md:col-span-2">
                 <TextField

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as Yup from 'yup';
 import { updateUserPasswordApi } from '@/core/apis/Settings';
-import { useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import AlertBox from '@/components/AlertBox';
 import Spinner from '@/components/Spinner';
 import Card from '@/components/CardWrapper';
@@ -30,7 +30,7 @@ const passwordSchema = Yup.object().shape({
 });
 
 const Password = () => {
-  const userInfo = useSelector((state) => state.login.userInfo);
+  const { data: session } = useSession();
   const [isDisabled, setIsDisabled] = useState(false);
   const [errorState, setErrorState] = useState({
     isError: false,
@@ -77,8 +77,8 @@ const Password = () => {
     try {
       setIsDisabled(true);
       const response = await updateUserPasswordApi(
-        userInfo._id,
-        userInfo.organization,
+        session.user.id,
+        session.user.organization,
         pwdData,
       );
       if (response.success) {

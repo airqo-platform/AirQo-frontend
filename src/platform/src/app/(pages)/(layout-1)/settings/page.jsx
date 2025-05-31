@@ -6,6 +6,7 @@ import Password from './Tabs/Password';
 import Team from './Tabs/Team';
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import Profile from './Tabs/Profile';
 import OrganizationProfile from './Tabs/OrganizationProfile';
@@ -29,34 +30,27 @@ const Settings = () => {
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences,
   );
-  const userInfo = useSelector((state) => state.login.userInfo);
+  const { data: session } = useSession();
 
   useEffect(() => {
     setLoading(true);
 
-    const storedActiveGroup = localStorage.getItem('activeGroup');
-    if (!storedActiveGroup) {
+    if (!session?.user?.activeGroup) {
       setLoading(false);
       return;
     }
 
-    let parsedActiveGroup = null;
-    try {
-      parsedActiveGroup = JSON.parse(storedActiveGroup);
-    } catch {
-      setLoading(false);
-      return;
-    }
+    // Get active group from the session
+    const activeGroup = session.user.activeGroup;
 
-    // Now we have a valid parsedActiveGroup object
-    setUserGroup(parsedActiveGroup);
+    // Set user group state
+    setUserGroup(activeGroup);
 
-    const activeGroupId = parsedActiveGroup?._id;
-    const storedUserPermissions =
-      parsedActiveGroup?.role?.role_permissions || [];
+    const activeGroupId = activeGroup?._id;
+    const activeGroupPermissions = activeGroup?.role?.role_permissions || [];
 
-    if (storedUserPermissions.length > 0) {
-      setUserPermissions(storedUserPermissions);
+    if (activeGroupPermissions.length > 0) {
+      setUserPermissions(activeGroupPermissions);
     } else {
       setUserPermissions([]);
       dispatch(setChartTab(0));
@@ -69,7 +63,7 @@ const Settings = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [userInfo, preferences, dispatch]);
+  }, [session, preferences, dispatch]);
 
   return (
     <ErrorBoundary name="Settings" feature="User Account Settings">

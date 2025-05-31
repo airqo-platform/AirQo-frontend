@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import * as Yup from 'yup';
 import Modal from '@/components/Modal/Modal';
 import AlertBox from '@/components/AlertBox';
@@ -79,24 +80,18 @@ const OrganizationProfile = () => {
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
   const orgInfo = useSelector((state) => state.groupInfo.groupInfo);
+  const { data: session } = useSession();
 
-  // Fetch group info on mount using active group ID from localStorage
+  // Fetch group info on mount using active group ID from session
   useEffect(() => {
     setIsLoading(true);
-    const storedGroup = localStorage.getItem('activeGroup');
-    let activeGroupId = null;
-    if (storedGroup) {
-      try {
-        activeGroupId = JSON.parse(storedGroup)?._id || null;
-      } catch (error) {
-        console.error('Error parsing "activeGroup":', error);
-      }
-    }
+    const activeGroupId = session?.user?.activeGroup?._id;
+
     if (activeGroupId) {
       dispatch(fetchGroupInfo(activeGroupId));
     }
     setIsLoading(false);
-  }, [dispatch]);
+  }, [dispatch, session]);
 
   // When orgInfo is updated, populate local state
   useEffect(() => {
@@ -161,20 +156,19 @@ const OrganizationProfile = () => {
       setIsLoading(false);
       return;
     }
-    const storedGroup = localStorage.getItem('activeGroup');
-    let activeGroupId = null;
-    if (storedGroup) {
-      try {
-        activeGroupId = JSON.parse(storedGroup)?._id || null;
-      } catch {
-        setIsLoading(false);
-        return;
-      }
-    }
+
+    const activeGroupId = session?.user?.activeGroup?._id;
+
     if (!activeGroupId) {
       setIsLoading(false);
+      setErrorState({
+        isError: true,
+        message: 'No active group found',
+        type: 'error',
+      });
       return;
     }
+
     try {
       await updateGroupDetailsApi(activeGroupId, orgData);
       dispatch(fetchGroupInfo(activeGroupId));
@@ -268,15 +262,7 @@ const OrganizationProfile = () => {
     try {
       const responseData = await cloudinaryImageUpload(formData);
       setOrgData((prev) => ({ ...prev, grp_image: responseData.secure_url }));
-      let activeGroupId = null;
-      const storedGroup = localStorage.getItem('activeGroup');
-      if (storedGroup) {
-        try {
-          activeGroupId = JSON.parse(storedGroup)?._id || null;
-        } catch (error) {
-          console.error('Error parsing "activeGroup":', error);
-        }
-      }
+      const activeGroupId = session?.user?.activeGroup?._id;
       if (!activeGroupId) {
         setProfileUploading(false);
         setErrorState({
@@ -304,19 +290,10 @@ const OrganizationProfile = () => {
       setProfileUploading(false);
     }
   };
-
   const deleteProfileImage = () => {
     setUpdatedProfilePicture('');
     setOrgData((prev) => ({ ...prev, grp_image: '' }));
-    let activeGroupId = null;
-    const storedGroup = localStorage.getItem('activeGroup');
-    if (storedGroup) {
-      try {
-        activeGroupId = JSON.parse(storedGroup)?._id || null;
-      } catch (error) {
-        console.error('Error parsing "activeGroup":', error);
-      }
-    }
+    const activeGroupId = session?.user?.activeGroup?._id;
     if (!activeGroupId) {
       setErrorState({
         isError: true,
