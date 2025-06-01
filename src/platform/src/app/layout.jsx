@@ -1,6 +1,6 @@
 import '../styles/globals.css';
 import PropTypes from 'prop-types';
-import ClientProviders from './ClientProviders';
+import ClientProviders from './providers/ClientProviders';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 

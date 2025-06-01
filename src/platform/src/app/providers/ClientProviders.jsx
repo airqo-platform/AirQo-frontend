@@ -5,15 +5,15 @@ import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import PropTypes from 'prop-types';
 import Loading from '@/components/Loader';
-import ErrorBoundary from '../common/components/ErrorBoundary';
+import ErrorBoundary from '../../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import logger from '@/lib/logger';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
-import NextAuthProvider from './providers/NextAuthProvider';
-import AuthSync from './providers/AuthSync';
+import NextAuthProvider from './NextAuthProvider';
+import AuthSync from './AuthSync';
 import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
 
 function ReduxProviders({ children }) {
