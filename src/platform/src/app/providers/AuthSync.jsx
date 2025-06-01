@@ -9,6 +9,10 @@ import {
   setSuccess,
   resetStore,
 } from '@/lib/store/services/account/LoginSlice';
+import {
+  setActiveGroup,
+  clearActiveGroup,
+} from '@/lib/store/services/activeGroup/ActiveGroupSlice';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import logger from '@/lib/logger';
 
@@ -22,7 +26,7 @@ const AuthSync = () => {
   const router = useRouter();
   const pathname = usePathname();
   const reduxLoginState = useSelector((state) => state.login);
-
+  const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
   useEffect(() => {
     if (status === 'loading') {
       // Still loading, don't do anything yet
@@ -32,11 +36,8 @@ const AuthSync = () => {
     if (status === 'authenticated' && session?.user) {
       // User is authenticated via NextAuth
 
-      // Check if we already have user data in localStorage
-      const storedUser = localStorage.getItem('loggedUser');
-      const activeGroup = localStorage.getItem('activeGroup');
-
-      if (!storedUser || !activeGroup) {
+      // Check if we already have user data in Redux
+      if (!reduxLoginState.userInfo?._id || !activeGroup) {
         // Need to fetch additional user data and set active group
         const fetchUserDetails = async () => {
           try {
@@ -45,6 +46,16 @@ const AuthSync = () => {
               if (session.accessToken) {
                 localStorage.setItem('token', session.accessToken);
               }
+
+              // Store user data in localStorage for backward compatibility
+              const basicUserData = {
+                _id: session.user.id,
+                firstName:
+                  session.user.name?.split(' ')[0] || session.user.name,
+                name: session.user.name,
+                email: session.user.email,
+              };
+              localStorage.setItem('loggedUser', JSON.stringify(basicUserData));
 
               // Fetch full user object with groups
               const userRes = await getUserDetails(session.user.id);
@@ -71,12 +82,13 @@ const AuthSync = () => {
                 // Continue with default group
               }
 
-              // Store enhanced user data in localStorage and Redux
-              localStorage.setItem('loggedUser', JSON.stringify(user));
-              localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
-
+              // Update Redux state
               dispatch(setUserInfo(user));
+              dispatch(setActiveGroup(activeGroup));
               dispatch(setSuccess(true));
+
+              // Update localStorage with complete user data
+              localStorage.setItem('loggedUser', JSON.stringify(user));
             }
           } catch (error) {
             logger.error('Error fetching user details:', error);
@@ -85,27 +97,24 @@ const AuthSync = () => {
 
         fetchUserDetails();
       } else {
-        // We have the data, just sync Redux state
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          dispatch(setUserInfo(parsedUser));
-          dispatch(setSuccess(true));
-        } catch (error) {
-          logger.error('Error parsing stored user data:', error);
+        // We have Redux data, ensure localStorage is in sync
+        if (reduxLoginState.userInfo && typeof window !== 'undefined') {
+          localStorage.setItem(
+            'loggedUser',
+            JSON.stringify(reduxLoginState.userInfo),
+          );
         }
       }
     } else if (status === 'unauthenticated') {
       // User is not authenticated
       // Clear Redux state
       dispatch(resetStore());
+      dispatch(clearActiveGroup());
 
-      // Clear localStorage
+      // Clear localStorage data
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('loggedUser');
-        localStorage.removeItem('activeGroup');
-        localStorage.removeItem('userInfo');
-        localStorage.removeItem('isAuthenticated');
       }
 
       // Check if user is on a protected route
@@ -125,7 +134,15 @@ const AuthSync = () => {
         router.push('/account/login');
       }
     }
-  }, [session, status, dispatch, router, pathname]);
+  }, [
+    session,
+    status,
+    dispatch,
+    router,
+    pathname,
+    reduxLoginState.userInfo,
+    activeGroup,
+  ]);
 
   // Also listen for Redux state changes to sync back to NextAuth if needed
   useEffect(() => {
@@ -141,6 +158,7 @@ const AuthSync = () => {
           'Authentication state mismatch detected, clearing Redux state',
         );
         dispatch(resetStore());
+        dispatch(clearActiveGroup());
       }
     }
   }, [reduxLoginState, status, dispatch]);

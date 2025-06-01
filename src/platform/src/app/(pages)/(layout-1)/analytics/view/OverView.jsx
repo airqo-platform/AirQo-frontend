@@ -6,6 +6,7 @@ import {
   setTimeFrame,
   setPollutant,
   setChartDataRange,
+  setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import ChartContainer from '@/features/airQuality-charts/ChartContainer';
@@ -23,13 +24,13 @@ import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import Button from '@/components/Button';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
-
 import { useMediaQuery } from 'react-responsive';
 
 const OverView = () => {
   const dispatch = useDispatch();
   const isModalOpen = useSelector((state) => state.modal.openModal);
   const chartData = useSelector((state) => state.chart);
+  const refreshChart = useSelector((state) => state.chart.refreshChart);
   const { title: groupTitle } = useGetActiveGroup();
 
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
@@ -110,6 +111,14 @@ const OverView = () => {
       );
     };
   }, [dispatch, defaultDateRange]);
+
+  // Handle chart refresh when AddLocations saves new locations
+  useEffect(() => {
+    if (refreshChart) {
+      refetch();
+      dispatch(setRefreshChart(false));
+    }
+  }, [refreshChart, refetch, dispatch]);
 
   const handleOpenModal = useCallback(
     (type, ids = []) => {

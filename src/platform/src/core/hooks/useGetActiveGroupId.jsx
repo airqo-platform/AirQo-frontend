@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { getUserDetails } from '@/core/apis/Account';
+import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
 
 const findGroupByOrgName = (groups, orgName) =>
   groups?.find(
@@ -9,14 +10,15 @@ const findGroupByOrgName = (groups, orgName) =>
   );
 
 export function useGetActiveGroup() {
-  const [activeGroup, setActiveGroup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userGroups, setUserGroups] = useState([]);
   const [error, setError] = useState(null);
 
+  const dispatch = useDispatch();
   const { data: session } = useSession();
   const userInfo = useSelector((state) => state?.login?.userInfo);
   const chartData = useSelector((state) => state.chart);
+  const activeGroup = useSelector((state) => state.activeGroup?.activeGroup);
 
   // Fetch user groups from API using session user ID
   const fetchUserGroups = useCallback(async () => {
@@ -60,12 +62,13 @@ export function useGetActiveGroup() {
   // Initial fetch of user groups
   useEffect(() => {
     fetchUserGroups();
-  }, [fetchUserGroups]);
-  // Determine active group based on chart organization name or fallback
+  }, [fetchUserGroups]); // Determine active group based on chart organization name or fallback
   useEffect(() => {
     if (loading || userGroups.length === 0) return;
 
-    let selectedGroup = null; // First, try to find group matching chart organization name
+    let selectedGroup = null;
+
+    // First, try to find group matching chart organization name
     if (chartData?.organizationName) {
       selectedGroup = findGroupByOrgName(
         userGroups,
@@ -85,18 +88,22 @@ export function useGetActiveGroup() {
       selectedGroup = userGroups[0];
     }
 
-    setActiveGroup(selectedGroup);
+    if (selectedGroup) {
+      dispatch(setActiveGroup(selectedGroup));
+    }
   }, [
     chartData?.organizationName,
     userGroups,
     session?.user?.activeGroup,
     loading,
+    dispatch,
   ]);
 
   // Determine which groups to use - session-fetched or Redux fallback
   const groupsToUse =
     userGroups.length > 0 ? userGroups : userInfo?.groups || [];
   const userIdToUse = session?.user?.id || userInfo?._id;
+
   // If no userInfo or groups, return stored or default values
   if (!groupsToUse.length) {
     return {
@@ -128,22 +135,7 @@ export function useGetActiveGroup() {
     }
   }
 
-  // Find group matching chart organization name
-  const matchingGroup = findGroupByOrgName(
-    groupsToUse,
-    chartData?.organizationName,
-  );
-  if (matchingGroup) {
-    return {
-      loading,
-      error,
-      id: matchingGroup._id,
-      title: matchingGroup.grp_title,
-      userID: userIdToUse,
-      groupList: groupsToUse,
-    };
-  }
-  // Use active group from state if available
+  // Use active group from Redux state if available
   if (activeGroup) {
     return {
       loading,
@@ -154,6 +146,7 @@ export function useGetActiveGroup() {
       groupList: groupsToUse,
     };
   }
+
   // Fallback to first group if available
   if (groupsToUse.length > 0) {
     const firstGroup = groupsToUse[0];
@@ -166,6 +159,7 @@ export function useGetActiveGroup() {
       groupList: groupsToUse,
     };
   }
+
   // Final fallback
   return {
     loading,

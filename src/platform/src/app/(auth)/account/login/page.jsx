@@ -74,8 +74,8 @@ const UserLogin = () => {
 
           if (session?.user && session?.accessToken) {
             try {
-              // Setup user with the token from the session
-              await setupUserAfterLogin(session.accessToken, dispatch);
+              // Setup user with the session data
+              await setupUserAfterLogin(session, dispatch);
 
               // Navigate to home page after setup is complete
               router.push('/Home');

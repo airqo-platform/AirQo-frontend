@@ -1,10 +1,10 @@
-import jwt_decode from 'jwt-decode';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import {
   setUserInfo,
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
+import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
 import logger from '@/lib/logger';
 
 const MAX_RETRIES = 3;
@@ -29,23 +29,39 @@ const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
 };
 
 /**
- * Setup user after successful authentication
+ * Setup user after successful authentication using NextAuth session
  * Fetches full user details, preferences and sets up the session
- * @param {string} accessToken - JWT access token
+ * @param {Object} session - NextAuth session object
  * @param {Function} dispatch - Redux dispatch function
  * @returns {Promise<{user: Object, activeGroup: Object}>} - User and active group
  */
-export const setupUserAfterLogin = async (accessToken, dispatch) => {
+export const setupUserAfterLogin = async (session, dispatch) => {
   try {
-    // Store token for API calls
-    localStorage.setItem('token', accessToken);
+    if (!session?.user?.id) {
+      throw new Error('Invalid session: missing user ID');
+    }
 
-    // Decode token to get user ID
-    const decoded = jwt_decode(accessToken);
+    // Store token for API calls if available
+    if (session.accessToken) {
+      localStorage.setItem('token', session.accessToken);
+    }
+
+    // Store basic user data immediately for faster UI updates
+    const basicUserData = {
+      _id: session.user.id,
+      firstName: session.user.name?.split(' ')[0] || session.user.name,
+      name: session.user.name,
+      email: session.user.email,
+    };
+    localStorage.setItem('loggedUser', JSON.stringify(basicUserData));
 
     // 1. Fetch full user object with groups
-    const userRes = await retryWithDelay(() => getUserDetails(decoded._id));
+    const userRes = await retryWithDelay(() => getUserDetails(session.user.id));
     const user = userRes.users[0];
+
+    if (!user) {
+      throw new Error('User not found');
+    }
 
     if (!user.groups?.length) {
       throw new Error(
@@ -71,20 +87,19 @@ export const setupUserAfterLogin = async (accessToken, dispatch) => {
       // Continue with default group
     }
 
-    // 3. Store enhanced user data in Redux and localStorage
-    localStorage.setItem('loggedUser', JSON.stringify(user));
-    localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
-
-    // 4. Update Redux store with complete user info
+    // 3. Update Redux store with complete user info and active group
     dispatch(setUserInfo(user));
+    dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));
+
+    // 4. Update localStorage with complete user data
+    localStorage.setItem('loggedUser', JSON.stringify(user));
 
     return { user, activeGroup };
   } catch (error) {
     // Clear any partial data if setup fails
     localStorage.removeItem('token');
     localStorage.removeItem('loggedUser');
-    localStorage.removeItem('activeGroup');
 
     dispatch(setSuccess(false));
     dispatch(setError(error.message || 'Error setting up user session'));

@@ -46,6 +46,7 @@ import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
+import activeGroupReducer from './services/activeGroup/ActiveGroupSlice';
 
 // Combine all the reducers
 const rootReducer = combineReducers({
@@ -69,6 +70,7 @@ const rootReducer = combineReducers({
   locationSearch: locationSearchSlice.reducer,
   apiClient: apiClientReducer,
   sites: sitesSummaryReducer,
+  activeGroup: activeGroupReducer,
 });
 
 // Root reducer wrapper to handle state reset on logout

@@ -9,23 +9,6 @@ import Spinner from '@/components/Spinner';
 import Card from '@/components/CardWrapper';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Utility function to get userId from localStorage as fallback
-const getUserIdFromLocalStorage = () => {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const storedUser = localStorage.getItem('loggedUser');
-    if (storedUser && storedUser !== 'undefined') {
-      const parsedUser = JSON.parse(storedUser);
-      return parsedUser?._id;
-    }
-  } catch {
-    // Unable to retrieve user from localStorage
-  }
-
-  return null;
-};
-
 const VideoModal = ({ open, setOpen, videoUrl }) => {
   const dispatch = useDispatch();
   const modalRef = useRef(null);
@@ -38,10 +21,9 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
 
   // Get user session
   const { data: session } = useSession();
-
-  // Get userId with fallback to localStorage
+  // Get userId from session only - no localStorage fallback needed
   const getUserId = useCallback(() => {
-    return session?.user?.id || getUserIdFromLocalStorage();
+    return session?.user?.id || null;
   }, [session]);
 
   // Calculate and update video progress - only called on pause, end, or close

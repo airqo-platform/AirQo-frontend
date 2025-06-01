@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
@@ -24,37 +25,74 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchInitiated, setIsFetchInitiated] = useState(false);
   const dispatch = useDispatch();
+  const { data: session, status } = useSession();
 
-  // Get Redux state for checklist
+  // Get Redux state for checklist and user info
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
+  const reduxUserInfo = useSelector((state) => state.login.userInfo);
 
-  // Load user data and fetch checklist
+  // Get user display name from multiple sources with priority
+  const getUserDisplayName = () => {
+    // Priority: Redux user info -> NextAuth session -> localStorage -> Guest
+    if (reduxUserInfo?.firstName) {
+      return reduxUserInfo.firstName;
+    }
+    if (reduxUserInfo?.name) {
+      return reduxUserInfo.name;
+    }
+    if (session?.user?.name) {
+      return session.user.name.split(' ')[0]; // Get first name from full name
+    }
+    if (userData?.firstName) {
+      return userData.firstName;
+    }
+    if (userData?.name) {
+      return userData.name;
+    }
+    return 'Guest';
+  }; // Load user data and fetch checklist - enhanced with session integration
   useEffect(() => {
     let timer;
 
     const loadUserData = () => {
       try {
-        const storedUser = localStorage.getItem('loggedUser');
-        if (storedUser && storedUser !== 'undefined') {
-          const parsedUser = JSON.parse(storedUser);
-          setUserData(parsedUser);
+        // If we have NextAuth session, prioritize that data
+        if (session?.user) {
+          const sessionUser = {
+            _id: session.user.id,
+            firstName: session.user.name?.split(' ')[0],
+            name: session.user.name,
+            email: session.user.email,
+          };
+          setUserData(sessionUser);
 
-          // If we have a user ID and haven't started fetching yet, fetch their checklist data
-          if (parsedUser._id && !isFetchInitiated) {
-            dispatch(fetchUserChecklists(parsedUser._id));
+          // Fetch checklist if we haven't started yet
+          if (session.user.id && !isFetchInitiated) {
+            dispatch(fetchUserChecklists(session.user.id));
             setIsFetchInitiated(true);
           }
+        } else {
+          // Fallback to localStorage for backward compatibility
+          const storedUser = localStorage.getItem('loggedUser');
+          if (storedUser && storedUser !== 'undefined') {
+            const parsedUser = JSON.parse(storedUser);
+            setUserData(parsedUser);
+
+            if (parsedUser._id && !isFetchInitiated) {
+              dispatch(fetchUserChecklists(parsedUser._id));
+              setIsFetchInitiated(true);
+            }
+          }
         }
-      } catch (error) {
-        console.error('Error loading user data:', error);
+      } catch {
+        // Handle error silently or with logger
       }
 
-      // Only set loading to false when we have data or after a timeout
+      // Set loading to false when we have data or after a timeout
       if (checklistStatus !== 'loading' || checklistData?.length > 0) {
         setIsLoading(false);
       } else {
-        // Set a timeout to prevent infinite loading states
         timer = setTimeout(() => {
           setIsLoading(false);
         }, 5000);
@@ -63,14 +101,19 @@ const Home = () => {
 
     loadUserData();
 
-    // Cleanup function to prevent state updates after unmount
     return () => {
       if (timer) {
         clearTimeout(timer);
       }
     };
-  }, [dispatch, checklistStatus, isFetchInitiated, checklistData]);
-
+  }, [
+    dispatch,
+    checklistStatus,
+    isFetchInitiated,
+    checklistData,
+    session,
+    status,
+  ]);
   // Add data persistence check for MAC users specifically
   useEffect(() => {
     const checkPlatform = () => {
@@ -87,13 +130,14 @@ const Home = () => {
         if (
           checklistComplete === 'true' &&
           (!checklistData || checklistData.length === 0) &&
-          userData?._id &&
+          (userData?._id || session?.user?.id) &&
           checklistStatus !== 'loading'
         ) {
-          console.warn(
-            'Detected potential data loss on MacOS, refreshing data',
-          );
-          dispatch(fetchUserChecklists(userData._id));
+          // Handle recovery silently
+          const userId = userData?._id || session?.user?.id;
+          if (userId) {
+            dispatch(fetchUserChecklists(userId));
+          }
         }
       }
     };
@@ -101,7 +145,7 @@ const Home = () => {
     if (!isLoading) {
       checkPlatform();
     }
-  }, [isLoading, checklistData, userData, dispatch, checklistStatus]);
+  }, [isLoading, checklistData, userData, dispatch, checklistStatus, session]);
 
   // Handle video modal close and update checklist item
   const handleVideoModalClose = () => {
@@ -143,17 +187,13 @@ const Home = () => {
   if (isLoading) {
     return <HomeSkeleton />;
   }
-
   return (
     <>
       <div className="space-y-6 transition-all duration-300 ease-in-out">
         {/* Welcome Section */}
         <div className="w-full">
           <h1 className="text-2xl md:text-4xl font-medium">
-            Welcome,{' '}
-            <span className="capitalize">
-              {userData?.firstName || userData?.name || 'Guest'}
-            </span>{' '}
+            Welcome, <span className="capitalize">{getUserDisplayName()}</span>{' '}
             👋
           </h1>
         </div>

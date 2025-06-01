@@ -20,12 +20,11 @@ module.exports = withVideos({
     ],
   },
   reactStrictMode: false, // Temporarily disabled to fix "Should have a queue" error
-
   eslint: {
     dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
   },
-
-  output: 'standalone',
+  // Only use standalone output in production builds
+  ...(process.env.NODE_ENV === 'production' ? { output: 'standalone' } : {}),
 
   webpack(config) {
     config.module.rules.push({
