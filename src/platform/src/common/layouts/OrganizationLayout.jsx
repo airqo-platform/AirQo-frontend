@@ -2,7 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useOrganization } from '@/common/components/Organization/OrganizationProvider';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 import OrganizationHeader from './OrganizationHeader';
 import OrganizationSidebar from './OrganizationSidebar';
 

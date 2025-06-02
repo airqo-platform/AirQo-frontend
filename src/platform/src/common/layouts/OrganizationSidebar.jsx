@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { useOrganization } from '@/common/components/Organization/OrganizationProvider';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { FaHome, FaLightbulb, FaUserCog } from 'react-icons/fa';
 
 export default function OrganizationSidebar({ organization }) {

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { useOrganization } from '@/common/components/Organization/OrganizationProvider';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { FaUser, FaSignOutAlt, FaBell } from 'react-icons/fa';
 
 export default function OrganizationHeader({ organization }) {

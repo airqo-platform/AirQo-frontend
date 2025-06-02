@@ -1,11 +1,11 @@
 'use client';
 
-import { useOrganization } from '@/common/components/Organization/OrganizationProvider';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Import existing analytics components
-import OverView from '@/app/(pages)/(layout-1)/analytics/view/OverView';
+import OverView from '@/app/(default)/(pages)/(layout-1)/analytics/view/OverView';
 
 export default function OrganizationInsightsPage({ params }) {
   const _router = useRouter();

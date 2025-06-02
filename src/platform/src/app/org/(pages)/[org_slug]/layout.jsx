@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { OrganizationProvider } from '@/common/components/Organization/OrganizationProvider';
+import { OrganizationProvider } from '@/app/providers/OrganizationProvider';
 import OrganizationLayout from '@/common/layouts/OrganizationLayout';
 
 export default function OrganizationPagesLayout({ children }) {
