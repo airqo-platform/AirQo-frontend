@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import PropTypes from 'prop-types';
-import Loading from '@/components/Loader';
+import Loading from '../loading';
 import ErrorBoundary from '../../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
@@ -33,7 +33,6 @@ function ReduxProviders({ children }) {
   if (!isClient || !store) {
     return <Loading />;
   }
-
   return (
     <Provider store={store}>
       <PersistGate loading={<Loading />} persistor={store.__persistor}>

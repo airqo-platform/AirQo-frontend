@@ -17,14 +17,20 @@ module.exports = withVideos({
         protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.vhv.rs',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.freepik.com',
+      },
     ],
   },
   reactStrictMode: false, // Temporarily disabled to fix "Should have a queue" error
   eslint: {
     dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
   },
-  // Only use standalone output in production builds
-  ...(process.env.NODE_ENV === 'production' ? { output: 'standalone' } : {}),
 
   webpack(config) {
     config.module.rules.push({

@@ -5,9 +5,10 @@ export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
 
-    // Log successful authentication for debugging
+    // Log access for debugging in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ Authenticated access to: ${pathname}`);
+      // eslint-disable-next-line no-console
+      console.log(`🔍 Middleware checking: ${pathname}`);
     }
 
     return NextResponse.next();
@@ -17,10 +18,14 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Allow access to auth pages and API routes
+        // Always allow access to auth pages (client-side redirects handle logged-in users)
+        if (pathname.includes('(auth)') || pathname.startsWith('/account/')) {
+          return true;
+        }
+
+        // Allow access to API routes and static files
         if (
-          pathname.startsWith('/account/') ||
-          pathname.startsWith('/api/auth/') ||
+          pathname.startsWith('/api/') ||
           pathname.startsWith('/_next') ||
           pathname.startsWith('/favicon') ||
           pathname.startsWith('/robots') ||
@@ -37,44 +42,37 @@ export default withAuth(
           '/settings',
           '/collocation',
         ];
-        const isProtectedRoute = protectedRoutes.some(
-          (route) => pathname.startsWith(route) || pathname === route,
-        );
 
+        // Check for organization-specific routes under /org/
+        const orgRoutePattern =
+          /^\/org\/([^/]+)(\/([^/]+))?\/(dashboard|insights|preferences|map)/;
+        const isOrgRoute = orgRoutePattern.test(pathname);
+
+        const isProtectedRoute =
+          protectedRoutes.some((route) => pathname.startsWith(route)) ||
+          isOrgRoute;
+
+        // Allow non-protected routes without authentication
         if (!isProtectedRoute) {
-          return true; // Allow non-protected routes
+          return true;
         }
 
-        // For protected routes, check authentication
+        // For protected routes, require valid authentication
         if (!token) {
           if (process.env.NODE_ENV === 'development') {
-            console.log(`❌ Unauthorized access attempt to: ${pathname}`);
+            // eslint-disable-next-line no-console
+            console.log(
+              `❌ Unauthorized access attempt to protected route: ${pathname}`,
+            );
           }
           return false;
         }
 
-        // Validate token structure
+        // Validate token structure for protected routes
         if (!token.email || !token.accessToken) {
           if (process.env.NODE_ENV === 'development') {
-            console.log(`❌ Invalid token for: ${pathname}`, {
-              hasEmail: !!token.email,
-              hasAccessToken: !!token.accessToken,
-            });
-          }
-          return false;
-        }
-
-        // Check token expiration (24 hours)
-        const now = Math.floor(Date.now() / 1000);
-        const tokenAge = now - (token.iat || 0);
-        const maxAge = 24 * 60 * 60; // 24 hours in seconds
-
-        if (tokenAge > maxAge) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`❌ Expired token for: ${pathname}`, {
-              tokenAge,
-              maxAge,
-            });
+            // eslint-disable-next-line no-console
+            console.log(`❌ Invalid token structure for: ${pathname}`);
           }
           return false;
         }

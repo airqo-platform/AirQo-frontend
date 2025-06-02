@@ -7,6 +7,7 @@
       "@/lib/*": ["src/lib/*"],
       "@/styles/*": ["src/common/styles/*"],
       "@/icons/*": ["public/icons/*"],
+      "@/common/*": ["src/common/*"],
       "@/components/*": ["src/common/components/*"],
       "@/pages/*": ["src/pages/*"],
       "@/images/*": ["public/images/*"],

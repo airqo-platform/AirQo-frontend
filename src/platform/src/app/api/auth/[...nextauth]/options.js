@@ -77,7 +77,7 @@ export const options = {
               lastName: decodedToken.lastName,
               organization: decodedToken.organization,
               long_organization: decodedToken.long_organization,
-              privilege: decodedToken.privilege,
+              privilege: decodedToken.privilege, // TODO:REMOVE
               country: decodedToken.country,
               profilePicture: decodedToken.profilePicture,
               phoneNumber: decodedToken.phoneNumber,
