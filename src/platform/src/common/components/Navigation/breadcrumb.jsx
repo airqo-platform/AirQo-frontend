@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 import ArrowLeft from '@/icons/Common/arrowLeft.svg';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const NavigationBreadCrumb = ({ navTitle, children }) => {
   const router = useRouter();

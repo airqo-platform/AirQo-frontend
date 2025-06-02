@@ -7,10 +7,13 @@
       "@/lib/*": ["src/lib/*"],
       "@/styles/*": ["src/common/styles/*"],
       "@/icons/*": ["public/icons/*"],
+      "@/common/*": ["src/common/*"],
       "@/components/*": ["src/common/components/*"],
       "@/pages/*": ["src/pages/*"],
       "@/images/*": ["public/images/*"],
-      "@/features/*": ["src/common/features/*"]
+      "@/features/*": ["src/common/features/*"],
+      "@/layouts/*": ["src/common/layouts/*"],
+      "@/app/*": ["src/app/*"]
     }
   },
   "exclude": ["node_modules", ".next"],

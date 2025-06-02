@@ -1,4 +1,9 @@
-export const stripTrailingSlash = (url) => url.trim().replace(/\/$/, '');
+export const stripTrailingSlash = (url) => {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  return url.trim().replace(/\/$/, '');
+};
 
 export const capitalizeAllText = (text) => {
   if (!text) {

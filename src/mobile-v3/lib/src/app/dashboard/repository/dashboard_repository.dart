@@ -88,8 +88,10 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
         loggy.info('Fetching fresh air quality data from network');
         
         Response response = await _httpClient.get(
-          Uri.parse(ApiUtils.map).replace(
-            queryParameters: {"token": dotenv.env['AIRQO_API_TOKEN']!}
+          Uri.parse('${ApiUtils.baseUrl}${ApiUtils.map}').replace(
+            queryParameters: {
+              "token": dotenv.env['AIRQO_API_TOKEN']!
+            }
           ),
           headers: {
             'Content-Type': 'application/json',
@@ -150,7 +152,7 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
       loggy.info('Starting background refresh of air quality data');
       
       Response response = await _httpClient.get(
-        Uri.parse(ApiUtils.map).replace(
+        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.map}').replace(
           queryParameters: {"token": dotenv.env['AIRQO_API_TOKEN']!}
         ),
         headers: {

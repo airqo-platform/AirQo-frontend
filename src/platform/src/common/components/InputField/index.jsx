@@ -11,20 +11,38 @@ import React from 'react';
  * - className: Additional classes for the input element
  * - required: Whether the field is required
  * - disabled: Whether the input is disabled
+ * - onChange: Change handler function (can accept value or event)
  * - ...inputProps: Additional props for the input element
  */
 const InputField = ({
   label,
   error,
-
   type = 'text',
   containerClassName = '',
   className = '',
   required = false,
   disabled = false,
   description,
+  onChange,
   ...inputProps
 }) => {
+  // Handle onChange to support both value-only and event-based patterns
+  const handleChange = (e) => {
+    if (onChange) {
+      // Safety check: ensure event and target exist
+      if (!e || !e.target) {
+        return;
+      }
+
+      // If onChange expects just the value (like in our login form)
+      if (onChange.length === 1) {
+        onChange(e.target.value);
+      } else {
+        // Standard event-based onChange
+        onChange(e);
+      }
+    }
+  };
   return (
     <div className={`flex flex-col mb-4 ${containerClassName}`}>
       {label && (
@@ -45,8 +63,7 @@ const InputField = ({
               ? 'bg-gray-100 dark:bg-gray-700'
               : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
           }
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-blue-500
-        `}
+          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-blue-500        `}
       >
         <input
           type={type}
@@ -59,6 +76,7 @@ const InputField = ({
           `}
           disabled={disabled}
           required={required}
+          onChange={handleChange}
           {...inputProps}
         />
       </div>

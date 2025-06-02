@@ -6,10 +6,9 @@ import {
   setError,
 } from '@/lib/store/services/account/LoginSlice';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
-import router from 'next/router';
 import logger from '../../lib/logger';
 
-export const handleGoogleLoginFromCookie = async (dispatch) => {
+export const handleGoogleLoginFromCookie = async (dispatch, router) => {
   try {
     const token = Cookies.get('access_token');
     if (!token) throw new Error('No access_token found');
@@ -44,11 +43,10 @@ export const handleGoogleLoginFromCookie = async (dispatch) => {
 
     localStorage.setItem('loggedUser', JSON.stringify(user));
     localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
-
     dispatch(setUserInfo(user));
     dispatch(setSuccess(true));
     Cookies.remove('access_token');
-    router.push('/Home');
+    router.push('/');
   } catch (err) {
     dispatch(setSuccess(false));
     const errorMessage =

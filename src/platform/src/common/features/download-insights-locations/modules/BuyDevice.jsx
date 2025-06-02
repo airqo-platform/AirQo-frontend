@@ -60,11 +60,12 @@ const BuyDevice = ({ onClose }) => {
     <>
       {/* Left side - Image */}
       <div className="w-full md:w-1/2 relative h-[658px]">
+        {' '}
         <Image
           src={BuyDeviceImg}
           alt=" Install a Device"
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           className="rounded-l-md"
           loading="eager"
         />

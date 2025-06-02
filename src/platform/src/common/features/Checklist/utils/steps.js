@@ -74,36 +74,15 @@ export const mergeStepsWithChecklist = (steps, checklistItems) => {
     }));
   }
 
-  // Preserve completed state from localStorage if checklist appears to be reset
-  const wasPreviouslyCompleted =
-    localStorage.getItem('checklistPreviouslyCompleted') === 'true';
-
-  // Check if we might have a data loss situation (previously completed but now empty)
-  const possibleDataLoss =
-    wasPreviouslyCompleted &&
-    checklistItems.every(
-      (item) => !item.completed || item.status === 'not started',
-    );
-
   return steps.map((step, index) => {
     // Find corresponding checklist item, or create an empty object
     const checklistItem = checklistItems[index] || {};
-
-    // For MAC users with potential data loss, preserve completed state if previously completed
-    const isCompleted = possibleDataLoss
-      ? localStorage.getItem(`step-${step.id}-completed`) === 'true'
-      : checklistItem.completed || false;
-
-    // If this step is completed, store that info for potential recovery
-    if (checklistItem.completed) {
-      localStorage.setItem(`step-${step.id}-completed`, 'true');
-    }
 
     return {
       ...step,
       _id: checklistItem._id,
       status: checklistItem.status || 'not started',
-      completed: isCompleted,
+      completed: checklistItem.completed || false,
       videoProgress: checklistItem.videoProgress || 0,
       completionDate: checklistItem.completionDate || null,
       title:
@@ -124,14 +103,7 @@ export const areAllStepsCompleted = (cards) => {
     return false;
   }
 
-  const allCompleted = cards.every((card) => card.completed);
-
-  // Store completion state in localStorage for recovery purposes
-  if (allCompleted) {
-    localStorage.setItem('checklistPreviouslyCompleted', 'true');
-  }
-
-  return allCompleted;
+  return cards.every((card) => card.completed);
 };
 
 /**
