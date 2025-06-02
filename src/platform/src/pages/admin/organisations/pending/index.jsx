@@ -8,8 +8,12 @@ import moment from 'moment';
 import Pagination from '@/components/Pagination';
 import SearchBar from '@/components/Admin/Organizations/Search';
 import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { fetchOrgRequests } from '@/lib/store/services/admin/OrgRequestsSlice';
+import logger from '@/lib/logger';
 
 export default function OrgRequestsPage() {
+  const dispatch = useDispatch();
   const orgRequests = useSelector(
     (state) => state.organisationRequests.organisationRequests,
   );
@@ -52,7 +56,6 @@ export default function OrgRequestsPage() {
     [isDarkMode],
   );
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [paginatedRequests, setPaginatedRequests] = useState([]);
@@ -61,6 +64,14 @@ export default function OrgRequestsPage() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+
+  useEffect(() => {
+    dispatch(fetchOrgRequests())
+      .unwrap()
+      .catch((error) => {
+        logger.error('Error fetching organization requests:', error);
+      });
+  }, [dispatch]);
 
   useEffect(() => {
     if (Array.isArray(orgRequests)) {
@@ -340,9 +351,10 @@ export default function OrgRequestsPage() {
               />
             </div>
             <div label="All Requests">
-              <SearchAndFilter />
               <RequestsTable
-                requests={paginatedRequests}
+                requests={
+                  Array.isArray(paginatedRequests) ? paginatedRequests : []
+                }
                 formatDate={formatDate}
                 onView={(request) => {
                   setSelectedRequest(request);
@@ -359,6 +371,8 @@ export default function OrgRequestsPage() {
                 handleSortChange={handleSortChange}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                handleSearchChange={handleSearchChange}
+                styles={styles}
                 searchTerm={searchQuery}
               />
 
@@ -585,14 +599,12 @@ function StatusBadge({ status }) {
 }
 
 const SearchAndFilter = ({ searchTerm, onSearchChange }) => (
-  <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-6 gap-3 px-6">
-    <div className="w-full sm:w-64">
-      <SearchBar
-        value={searchTerm}
-        onChange={onSearchChange}
-        placeholder="Search organizations..."
-      />
-    </div>
+  <div className="mb-2 px-6 w-full">
+    <SearchBar
+      value={searchTerm}
+      onChange={onSearchChange}
+      placeholder="Search organizations..."
+    />
   </div>
 );
 
@@ -620,10 +632,10 @@ function RequestsTable({
       <Card
         bordered={false}
         rounded={false}
-        padding="p-0"
+        padding="px-6"
         className="overflow-x-auto overflow-y-hidden"
       >
-        <table className="border-collapse text-xs text-left w-full h-full mb-6">
+        <table className="border-collapse border text-xs text-left w-full h-full mb-6">
           <thead>
             <tr className="text-black dark:text-white text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25 dark:bg-gray-800">
               <th
@@ -663,7 +675,7 @@ function RequestsTable({
               <tr>
                 <td
                   colSpan={7}
-                  className="text-center pt-6 text-grey-300 dark:text-gray-400"
+                  className="text-center py-6 text-grey-300 dark:text-gray-400"
                 >
                   No requests found.
                 </td>

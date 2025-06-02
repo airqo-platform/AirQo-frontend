@@ -49,8 +49,8 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
 
   const placeholderImage = useMemo(
     () =>
-      `https://ui-avatars.com/api/?name=${userInfo.firstName[0]}+${userInfo.lastName[0]}&background=random`,
-    [userInfo.firstName, userInfo.lastName],
+      `https://ui-avatars.com/api/?name=${userInfo?.firstName?.[0] || 'U'}+${userInfo?.lastName?.[0] || 'S'}&background=random`,
+    [userInfo?.firstName, userInfo?.lastName],
   );
 
   const handleLogout = useCallback(

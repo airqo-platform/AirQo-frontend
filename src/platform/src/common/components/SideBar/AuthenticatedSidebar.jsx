@@ -25,6 +25,8 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Card from '../CardWrapper';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { GoOrganization } from 'react-icons/go';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
@@ -34,11 +36,13 @@ const AuthenticatedSideBar = () => {
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
   const { theme, systemTheme } = useTheme();
+  const { title: groupTitle } = useGetActiveGroup();
 
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [displayAdminSidebarView, setDisplayAdminSidebarView] = useState(false);
 
   // Determine if dark mode should be applied
   const isDarkMode = useMemo(() => {
@@ -76,6 +80,14 @@ const AuthenticatedSideBar = () => {
       }
     };
   }, [dispatch, router.pathname]);
+
+  useEffect(() => {
+    if (router.pathname.startsWith('/admin')) {
+      setDisplayAdminSidebarView(true);
+    } else {
+      setDisplayAdminSidebarView(false);
+    }
+  }, [router.pathname]);
 
   // Handle window resizing for sidebar collapse in mobile view
   useEffect(() => {
@@ -219,6 +231,75 @@ const AuthenticatedSideBar = () => {
     );
   }, [isCollapsed, toggleDropdown, dropdown, collocationOpen, styles]);
 
+  const renderAdminOrganisationItem = useCallback(() => {
+    if (
+      !checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') &&
+      groupTitle === 'airqo'
+    ) {
+      return null;
+    }
+
+    return isCollapsed ? (
+      <div className="relative">
+        <SidebarItem
+          Icon={GoOrganization}
+          navPath="#"
+          iconOnly
+          onClick={toggleDropdown}
+          label="Organizations"
+        />
+        {dropdown && (
+          <div
+            ref={dropdownRef}
+            className={`
+              fixed left-[86px] top-[280px] w-48 z-50
+              ${styles.dropdownBackground} border ${styles.border}
+              shadow-lg rounded-xl p-2 space-y-1
+            `}
+          >
+            <Link href={'/admin/organisations/approved'}>
+              <div
+                className={`
+                  w-full p-3 rounded-lg cursor-pointer
+                  ${styles.dropdownText} ${styles.dropdownHover}
+                `}
+              >
+                Approved
+              </div>
+            </Link>
+            <Link href={'/admin/organisations/pending'}>
+              <div
+                className={`
+                  w-full p-3 rounded-lg cursor-pointer
+                  ${styles.dropdownText} ${styles.dropdownHover}
+                `}
+              >
+                New Requests
+              </div>
+            </Link>
+          </div>
+        )}
+      </div>
+    ) : (
+      <SidebarItem
+        label="Organizations"
+        Icon={GoOrganization}
+        dropdown
+        toggleMethod={() => setCollocationOpen(!collocationOpen)}
+        toggleState={collocationOpen}
+      >
+        <SideBarDropdownItem
+          itemLabel="Approved"
+          itemPath="/admin/organisations/approved"
+        />
+        <SideBarDropdownItem
+          itemLabel="New Requests"
+          itemPath="/admin/organisations/pending"
+        />
+      </SidebarItem>
+    );
+  }, [isCollapsed, toggleDropdown, dropdown, collocationOpen, styles]);
+
   return (
     <div>
       <div
@@ -238,54 +319,80 @@ const AuthenticatedSideBar = () => {
           `}
         >
           {/* Organization Dropdown */}
-          <div>
-            <OrganizationDropdown />
-          </div>
+          {!displayAdminSidebarView && (
+            <div>
+              <OrganizationDropdown />
+            </div>
+          )}
 
           {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
-            <div className="mt-8 space-y-1">
-              <SidebarItem
-                label="Home"
-                Icon={HomeIcon}
-                navPath="/Home"
-                iconOnly={isCollapsed}
-              />
-
-              <SidebarItem
-                label="Analytics"
-                Icon={BarChartIcon}
-                navPath="/analytics"
-                iconOnly={isCollapsed}
-              />
-
-              {/* Network Section */}
-              {isCollapsed ? (
-                <hr className={`my-3 border-t ${styles.divider}`} />
-              ) : (
+            {displayAdminSidebarView ? (
+              <div className="mt-8 space-y-1">
                 <div
-                  className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
+                  className={`px-3 pb-2 text-xs font-semibold ${styles.mutedText}`}
                 >
-                  Network
+                  Admin Panel
                 </div>
-              )}
+                {renderAdminOrganisationItem()}
+                {/* <SidebarItem
+                  label="Users"
+                  Icon={HomeIcon}
+                  navPath="/admin/users"
+                  iconOnly={isCollapsed}
+                />
 
-              {renderCollocationItem()}
+                <SidebarItem
+                  label="Preferances"
+                  Icon={HomeIcon}
+                  navPath="/admin/preferences"
+                  iconOnly={isCollapsed}
+                /> */}
+              </div>
+            ) : (
+              <div className="mt-8 space-y-1">
+                <SidebarItem
+                  label="Home"
+                  Icon={HomeIcon}
+                  navPath="/Home"
+                  iconOnly={isCollapsed}
+                />
 
-              <SidebarItem
-                label="Map"
-                Icon={WorldIcon}
-                navPath="/map"
-                iconOnly={isCollapsed}
-              />
+                <SidebarItem
+                  label="Analytics"
+                  Icon={BarChartIcon}
+                  navPath="/analytics"
+                  iconOnly={isCollapsed}
+                />
 
-              <SidebarItem
-                label="Settings"
-                Icon={SettingsIcon}
-                navPath="/settings"
-                iconOnly={isCollapsed}
-              />
-            </div>
+                {/* Network Section */}
+                {isCollapsed ? (
+                  <hr className={`my-3 border-t ${styles.divider}`} />
+                ) : (
+                  <div
+                    className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
+                  >
+                    Network
+                  </div>
+                )}
+
+                {renderCollocationItem()}
+
+                <SidebarItem
+                  label="Map"
+                  Icon={WorldIcon}
+                  navPath="/map"
+                  iconOnly={isCollapsed}
+                />
+
+                <SidebarItem
+                  label="Settings"
+                  Icon={SettingsIcon}
+                  navPath="/settings"
+                  iconOnly={isCollapsed}
+                />
+              </div>
+            )}
 
             {/* Bottom Section (for future carousel) */}
             <div className="mt-auto pb-4">
