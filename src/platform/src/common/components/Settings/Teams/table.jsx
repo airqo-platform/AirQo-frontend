@@ -56,12 +56,7 @@ const TeamsTable = ({ users, isLoading }) => {
                   <td className="w-[322px] px-4 py-3">
                     <div className="flex gap-3">
                       {user.profileImage ? (
-                        <Image
-                          src={user.profileImage}
-                          width="40"
-                          height="40"
-                          layout="responsive"
-                        />
+                        <Image src={user.profileImage} width="40" height="40" />
                       ) : (
                         <div className="flex justify-center items-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600">
                           {user.firstName.charAt(0).toUpperCase() +

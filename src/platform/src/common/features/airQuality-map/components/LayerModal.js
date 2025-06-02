@@ -40,11 +40,12 @@ const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
       type="button"
     >
       <div className={imageContainerClasses}>
+        {' '}
         <Image
           src={image}
           alt={`${children} option`}
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           className="rounded-lg"
           loading="eager"
           priority={isSelected}

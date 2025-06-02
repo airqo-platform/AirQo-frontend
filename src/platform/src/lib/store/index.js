@@ -1,8 +1,29 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { persistReducer, persistStore } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
 import thunk from 'redux-thunk';
+
+// Create noop storage for SSR
+const createNoopStorage = () => {
+  return {
+    getItem(_key) {
+      return Promise.resolve(null);
+    },
+    setItem(_key, value) {
+      return Promise.resolve(value);
+    },
+    removeItem(_key) {
+      return Promise.resolve();
+    },
+  };
+};
+
+// Use appropriate storage based on environment
+const storage =
+  typeof window !== 'undefined'
+    ? createWebStorage('local')
+    : createNoopStorage();
 
 // Import your reducers
 import deviceRegistryReducer from './services/deviceRegistry';
@@ -25,6 +46,7 @@ import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
+import activeGroupReducer from './services/activeGroup/ActiveGroupSlice';
 
 // Combine all the reducers
 const rootReducer = combineReducers({
@@ -48,6 +70,7 @@ const rootReducer = combineReducers({
   locationSearch: locationSearchSlice.reducer,
   apiClient: apiClientReducer,
   sites: sitesSummaryReducer,
+  activeGroup: activeGroupReducer,
 });
 
 // Root reducer wrapper to handle state reset on logout

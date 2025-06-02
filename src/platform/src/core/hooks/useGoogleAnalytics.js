@@ -14,4 +14,4 @@ export const event = ({ action, category, label, value }) => {
   } catch (error) {
     console.error('Google Analytics event error:', error);
   }
-}; 
+};
