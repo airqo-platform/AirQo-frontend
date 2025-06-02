@@ -3,7 +3,7 @@
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/Button';
+import Button from '@/components/Button';
 
 // Icons
 import {

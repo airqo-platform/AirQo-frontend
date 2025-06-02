@@ -1,9 +1,14 @@
+import { NextResponse } from 'next/server';
 import { stripTrailingSlash } from '../../../core/utils/strings';
 
 export function GET() {
+  // Get the base URL, with fallback
+  const baseUrl =
+    stripTrailingSlash(process.env.NEXT_PUBLIC_ORIGINAL_PLATFORM) ||
+    'https://analytics.airqo.net';
+
   // Generate the robots.txt content
-  const robotsTxt = `
-User-agent: *
+  const robotsTxt = `User-agent: *
 Disallow: /api/
 
 # Allow all popular search engines
@@ -40,10 +45,9 @@ Host: localhost
 Host: analytics.airqo.net
 Host: staging-analytics.airqo.net
 
-Sitemap: ${stripTrailingSlash(process.env.NEXT_PUBLIC_ORIGINAL_PLATFORM) || 'https://analytics.airqo.net'}/sitemap.xml
-  `;
+Sitemap: ${baseUrl}/sitemap.xml`.trim();
 
-  return new Response(robotsTxt, {
+  return new NextResponse(robotsTxt, {
     status: 200,
     headers: {
       'Content-Type': 'text/plain',
