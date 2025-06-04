@@ -6,7 +6,7 @@ import Link from 'next/link';
 import * as Yup from 'yup';
 import { FaCheckCircle } from 'react-icons/fa';
 
-import { useOrganization } from '../../../../../providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { forgotPasswordApi } from '@/core/apis/Account';
 import Spinner from '@/components/Spinner';

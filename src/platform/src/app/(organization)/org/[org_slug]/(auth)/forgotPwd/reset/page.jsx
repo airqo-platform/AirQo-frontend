@@ -5,7 +5,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import * as Yup from 'yup';
 import Link from 'next/link';
 
-import { useOrganization } from '../../../../../../providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { resetPasswordApi } from '@/core/apis/Account';
 import Spinner from '@/components/Spinner';
