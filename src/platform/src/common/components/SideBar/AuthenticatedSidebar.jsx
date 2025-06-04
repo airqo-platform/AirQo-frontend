@@ -21,7 +21,7 @@ import {
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useOutsideClick } from '@/core/hooks';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Card from '../CardWrapper';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
@@ -34,10 +34,10 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   const dispatch = useDispatch();
   const size = useWindowSize();
   const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
-  const router = useRouter();
   const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
   const { title: groupTitle } = useGetActiveGroup();
+  const userInfo = useSelector((state) => state.login.userInfo);
 
   // Use forceCollapse prop if provided, otherwise use the store value
   const isCollapsed =
@@ -47,12 +47,15 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   const dropdownRef = useRef(null);
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-  const [displayAdminSidebarView, setDisplayAdminSidebarView] = useState(false);
+  const [displayAdminSidebarView, setDisplayAdminSidebarView] = useState(
+    Boolean(pathname?.startsWith('/admin')),
+  );
 
   // Determine if dark mode should be applied
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   }, [theme, systemTheme]);
+
   // Media query and route handling
   useEffect(() => {
     const handleRouteChange = () => {
@@ -86,12 +89,8 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   }, [dispatch, pathname]);
 
   useEffect(() => {
-    if (router.pathname.startsWith('/admin')) {
-      setDisplayAdminSidebarView(true);
-    } else {
-      setDisplayAdminSidebarView(false);
-    }
-  }, [router.pathname]);
+    setDisplayAdminSidebarView(Boolean(pathname?.startsWith('/admin')));
+  }, [pathname]);
 
   // Handle window resizing for sidebar collapse in mobile view
   useEffect(() => {
@@ -230,10 +229,10 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   }, [isCollapsed, toggleDropdown, dropdown, collocationOpen, styles]);
 
   const renderAdminOrganisationItem = useCallback(() => {
-    if (
-      !checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES') &&
-      groupTitle === 'airqo'
-    ) {
+    const roleName = userInfo?.role?.name?.toLowerCase() || '';
+    const isSuperAdmin =
+      roleName.includes('super_admin') || roleName.includes('super admin');
+    if (!isSuperAdmin && groupTitle !== 'airqo') {
       return null;
     }
 

@@ -58,6 +58,15 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
 
   const togglingDrawer = useSelector((state) => {
     try {
+      return state?.sidebar?.togglingDrawer || false;
+    } catch {
+      // Silent fallback during logout when store is reset
+      return false;
+    }
+  });
+
+  const togglingGlobalDrawer = useSelector((state) => {
+    try {
       return state?.sidebar?.togglingGlobalDrawer || false;
     } catch {
       // Silent fallback during logout when store is reset
@@ -110,13 +119,13 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
     (e) => {
       e.preventDefault();
       try {
-      if (width < 1024) {
-        dispatch(setToggleDrawer(!togglingDrawer));
-        dispatch(setSidebar(false));
-      } else {
-        dispatch(setTogglingGlobalDrawer(!togglingGlobalDrawer));
-        dispatch(setSidebar(false));
-      }
+        if (width < 1024) {
+          dispatch(setToggleDrawer(!togglingDrawer));
+          dispatch(setSidebar(false));
+        } else {
+          dispatch(setTogglingGlobalDrawer(!togglingGlobalDrawer));
+          dispatch(setSidebar(false));
+        }
       } catch {
         // Silent fallback if dispatch fails during logout
       }

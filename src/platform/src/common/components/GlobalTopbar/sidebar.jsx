@@ -11,7 +11,7 @@ import {
   setTogglingGlobalDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Card from '@/components/CardWrapper';
 
 const GlobalSideBarDrawer = () => {

@@ -2,11 +2,12 @@
 
 import { usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '@/components/TopBar';
+import PageTopBar from '@/components/PageTopBar';
+import GlobalTopbar from '@/components/GlobalTopbar';
 import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
+import GlobalSideBarDrawer from '@/components/GlobalTopbar/sidebar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -23,15 +24,33 @@ import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
  */
 export default function PagesLayout({ children }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
-  const isMapPage = router.pathname === '/map';
+  const isMapPage = pathname === '/map';
 
   // Get route configuration based on current pathname
-  const routeConfig =
-    LAYOUT_CONFIGS.DASHBOARD[pathname] || DEFAULT_CONFIGS.DASHBOARD;
+  const getRouteConfig = () => {
+    // Check if it's an admin route
+    if (pathname.startsWith('/admin')) {
+      return LAYOUT_CONFIGS.ADMIN[pathname] || DEFAULT_CONFIGS.ADMIN;
+    }
+
+    // Check dashboard routes
+    if (LAYOUT_CONFIGS.DASHBOARD[pathname]) {
+      return LAYOUT_CONFIGS.DASHBOARD[pathname];
+    }
+
+    // Check map routes
+    if (LAYOUT_CONFIGS.MAP[pathname]) {
+      return LAYOUT_CONFIGS.MAP[pathname];
+    }
+
+    // Fallback to default dashboard config
+    return DEFAULT_CONFIGS.DASHBOARD;
+  };
+
+  const routeConfig = getRouteConfig();
 
   // Initialize hooks
   useUserPreferences();
@@ -54,14 +73,20 @@ export default function PagesLayout({ children }) {
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
       </Head>
 
+      <GlobalTopbar
+        topbarTitle={routeConfig.topbarTitle}
+        noBorderBottom={routeConfig.noBorderBottom}
+        showSearch={routeConfig.showSearch}
+      />
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar />
       </aside>
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 
+        className={`flex-1 transition-all duration-300 mt-20 lg:mt-12 
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
@@ -70,7 +95,7 @@ export default function PagesLayout({ children }) {
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
           {/* TopBar */}
-          <TopBar
+          <PageTopBar
             topbarTitle={routeConfig.topbarTitle}
             noBorderBottom={routeConfig.noBorderBottom}
             showSearch={routeConfig.showSearch}
@@ -85,6 +110,8 @@ export default function PagesLayout({ children }) {
 
       {/* SideBar Drawer */}
       <SideBarDrawer />
+
+      <GlobalSideBarDrawer />
     </div>
   );
 }

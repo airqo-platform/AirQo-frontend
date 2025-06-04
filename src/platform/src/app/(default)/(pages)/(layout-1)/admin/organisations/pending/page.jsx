@@ -1,7 +1,8 @@
+'use client';
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 import CustomToast from '@/components/Toast/CustomToast';
-import Layout from '@/components/Layout';
 import Tabs from '@/components/Tabs';
 import Card from '@/components/CardWrapper';
 import moment from 'moment';
@@ -194,392 +195,384 @@ export default function OrgRequestsPage() {
   };
 
   return (
-    <Layout
-      topbarTitle={'Organization Management'}
-      noBorderBottom
-      pageTitle="Organization Management"
+    <Card
+      rounded
+      padding="p-0"
+      className="m-0"
+      header={
+        <div className="px-3 pt-4 w-full">
+          <div>
+            <h3 className="text-gray-700 dark:text-white font-medium text-lg">
+              Manage Organization Requests
+            </h3>
+            <p
+              className={`text-sm md:max-w-[640px] w-full ${styles.mutedText}`}
+            >
+              Review and process access requests from partner organizations.
+            </p>
+          </div>
+        </div>
+      }
+      headerProps={{
+        className:
+          'px-3 py-2 flex flex-col md:flex-row justify-between items-center gap-2',
+      }}
     >
-      <Card
-        rounded
-        padding="p-0"
-        className="m-0"
-        header={
-          <div className="px-3 pt-4 w-full">
-            <div>
-              <h3 className="text-gray-700 dark:text-white font-medium text-lg">
-                Manage Organization Requests
-              </h3>
-              <p
-                className={`text-sm md:max-w-[640px] w-full ${styles.mutedText}`}
+      <div>
+        <Tabs customPadding="px-6">
+          <div label="Pending">
+            <RequestsTable
+              requests={
+                Array.isArray(paginatedRequests)
+                  ? paginatedRequests.filter(
+                      (req) => (req.status || '') === 'pending',
+                    )
+                  : []
+              }
+              formatDate={formatDate}
+              onView={(request) => {
+                setSelectedRequest(request);
+                setIsViewDialogOpen(true);
+              }}
+              onApprove={(request) => {
+                setSelectedRequest(request);
+                setIsApproveDialogOpen(true);
+              }}
+              onReject={(request) => {
+                setSelectedRequest(request);
+                setIsRejectDialogOpen(true);
+              }}
+              handleSortChange={handleSortChange}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              handleSearchChange={handleSearchChange}
+              styles={styles}
+              searchTerm={searchQuery}
+            />
+            <Pagination
+              currentPage={currentPage}
+              pageSize={itemsPerPage}
+              totalItems={filteredRequests.length}
+              onPrevClick={() =>
+                setCurrentPage((prev) => Math.max(prev - 1, 1))
+              }
+              onNextClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              onPageChange={handlePageChange}
+            />
+          </div>
+          <div label="Approved">
+            <RequestsTable
+              requests={
+                Array.isArray(paginatedRequests)
+                  ? paginatedRequests.filter(
+                      (req) => (req.status || '') === 'approved',
+                    )
+                  : []
+              }
+              formatDate={formatDate}
+              onView={(request) => {
+                setSelectedRequest(request);
+                setIsViewDialogOpen(true);
+              }}
+              onApprove={(request) => {
+                setSelectedRequest(request);
+                setIsApproveDialogOpen(true);
+              }}
+              onReject={(request) => {
+                setSelectedRequest(request);
+                setIsRejectDialogOpen(true);
+              }}
+              handleSortChange={handleSortChange}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              handleSearchChange={handleSearchChange}
+              styles={styles}
+              searchTerm={searchQuery}
+            />
+            <Pagination
+              currentPage={currentPage}
+              pageSize={itemsPerPage}
+              totalItems={filteredRequests.length}
+              onPrevClick={() =>
+                setCurrentPage((prev) => Math.max(prev - 1, 1))
+              }
+              onNextClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              onPageChange={handlePageChange}
+            />
+          </div>
+          <div label="Rejected">
+            <RequestsTable
+              requests={
+                Array.isArray(paginatedRequests)
+                  ? paginatedRequests.filter(
+                      (req) => (req.status || '') === 'rejected',
+                    )
+                  : []
+              }
+              formatDate={formatDate}
+              onView={(request) => {
+                setSelectedRequest(request);
+                setIsViewDialogOpen(true);
+              }}
+              onApprove={(request) => {
+                setSelectedRequest(request);
+                setIsApproveDialogOpen(true);
+              }}
+              onReject={(request) => {
+                setSelectedRequest(request);
+                setIsRejectDialogOpen(true);
+              }}
+              handleSortChange={handleSortChange}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              handleSearchChange={handleSearchChange}
+              styles={styles}
+              searchTerm={searchQuery}
+            />
+            <Pagination
+              currentPage={currentPage}
+              pageSize={itemsPerPage}
+              totalItems={filteredRequests.length}
+              onPrevClick={() =>
+                setCurrentPage((prev) => Math.max(prev - 1, 1))
+              }
+              onNextClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              onPageChange={handlePageChange}
+            />
+          </div>
+          <div label="All Requests">
+            <RequestsTable
+              requests={
+                Array.isArray(paginatedRequests) ? paginatedRequests : []
+              }
+              formatDate={formatDate}
+              onView={(request) => {
+                setSelectedRequest(request);
+                setIsViewDialogOpen(true);
+              }}
+              onApprove={(request) => {
+                setSelectedRequest(request);
+                setIsApproveDialogOpen(true);
+              }}
+              onReject={(request) => {
+                setSelectedRequest(request);
+                setIsRejectDialogOpen(true);
+              }}
+              handleSortChange={handleSortChange}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              handleSearchChange={handleSearchChange}
+              styles={styles}
+              searchTerm={searchQuery}
+            />
+
+            <Pagination
+              currentPage={currentPage}
+              pageSize={itemsPerPage}
+              totalItems={filteredRequests.length}
+              onPrevClick={() =>
+                setCurrentPage((prev) => Math.max(prev - 1, 1))
+              }
+              onNextClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              onPageChange={handlePageChange}
+            />
+          </div>
+        </Tabs>
+
+        {/* View Request Modal */}
+        <input
+          type="checkbox"
+          id="view-modal"
+          className="modal-toggle"
+          checked={isViewDialogOpen}
+          onChange={() => setIsViewDialogOpen(!isViewDialogOpen)}
+        />
+        <div className="modal">
+          <div className="modal-box max-w-md">
+            <h3 className="font-bold text-lg">Organization Request Details</h3>
+            <p className="text-sm text-gray-500">
+              Review the complete details of this organization request.
+            </p>
+            {selectedRequest && (
+              <div className="space-y-4 mt-4">
+                <div>
+                  <h4 className="font-medium text-sm">Organization Name</h4>
+                  <p>{selectedRequest.organization_name}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Contact Person</h4>
+                  <p>{selectedRequest.contact_name}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Contact Email</h4>
+                  <p>{selectedRequest.contact_email}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Country</h4>
+                  <p>{selectedRequest.country}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Organization Type</h4>
+                  <p>{selectedRequest.organization_type}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Submitted At</h4>
+                  <p>{formatDate(selectedRequest.createdAt)}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Status</h4>
+                  <StatusBadge status={selectedRequest.status} />
+                </div>
+              </div>
+            )}
+            <div className="modal-action">
+              <button
+                className="btn btn-outline"
+                onClick={() => setIsViewDialogOpen(false)}
               >
-                Review and process access requests from partner organizations.
-              </p>
-            </div>
-          </div>
-        }
-        headerProps={{
-          className:
-            'px-3 py-2 flex flex-col md:flex-row justify-between items-center gap-2',
-        }}
-      >
-        <div>
-          <Tabs customPadding="px-6">
-            <div label="Pending">
-              <RequestsTable
-                requests={
-                  Array.isArray(paginatedRequests)
-                    ? paginatedRequests.filter(
-                        (req) => (req.status || '') === 'pending',
-                      )
-                    : []
-                }
-                formatDate={formatDate}
-                onView={(request) => {
-                  setSelectedRequest(request);
-                  setIsViewDialogOpen(true);
-                }}
-                onApprove={(request) => {
-                  setSelectedRequest(request);
-                  setIsApproveDialogOpen(true);
-                }}
-                onReject={(request) => {
-                  setSelectedRequest(request);
-                  setIsRejectDialogOpen(true);
-                }}
-                handleSortChange={handleSortChange}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                handleSearchChange={handleSearchChange}
-                styles={styles}
-                searchTerm={searchQuery}
-              />
-              <Pagination
-                currentPage={currentPage}
-                pageSize={itemsPerPage}
-                totalItems={filteredRequests.length}
-                onPrevClick={() =>
-                  setCurrentPage((prev) => Math.max(prev - 1, 1))
-                }
-                onNextClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                onPageChange={handlePageChange}
-              />
-            </div>
-            <div label="Approved">
-              <RequestsTable
-                requests={
-                  Array.isArray(paginatedRequests)
-                    ? paginatedRequests.filter(
-                        (req) => (req.status || '') === 'approved',
-                      )
-                    : []
-                }
-                formatDate={formatDate}
-                onView={(request) => {
-                  setSelectedRequest(request);
-                  setIsViewDialogOpen(true);
-                }}
-                onApprove={(request) => {
-                  setSelectedRequest(request);
-                  setIsApproveDialogOpen(true);
-                }}
-                onReject={(request) => {
-                  setSelectedRequest(request);
-                  setIsRejectDialogOpen(true);
-                }}
-                handleSortChange={handleSortChange}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                handleSearchChange={handleSearchChange}
-                styles={styles}
-                searchTerm={searchQuery}
-              />
-              <Pagination
-                currentPage={currentPage}
-                pageSize={itemsPerPage}
-                totalItems={filteredRequests.length}
-                onPrevClick={() =>
-                  setCurrentPage((prev) => Math.max(prev - 1, 1))
-                }
-                onNextClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                onPageChange={handlePageChange}
-              />
-            </div>
-            <div label="Rejected">
-              <RequestsTable
-                requests={
-                  Array.isArray(paginatedRequests)
-                    ? paginatedRequests.filter(
-                        (req) => (req.status || '') === 'rejected',
-                      )
-                    : []
-                }
-                formatDate={formatDate}
-                onView={(request) => {
-                  setSelectedRequest(request);
-                  setIsViewDialogOpen(true);
-                }}
-                onApprove={(request) => {
-                  setSelectedRequest(request);
-                  setIsApproveDialogOpen(true);
-                }}
-                onReject={(request) => {
-                  setSelectedRequest(request);
-                  setIsRejectDialogOpen(true);
-                }}
-                handleSortChange={handleSortChange}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                handleSearchChange={handleSearchChange}
-                styles={styles}
-                searchTerm={searchQuery}
-              />
-              <Pagination
-                currentPage={currentPage}
-                pageSize={itemsPerPage}
-                totalItems={filteredRequests.length}
-                onPrevClick={() =>
-                  setCurrentPage((prev) => Math.max(prev - 1, 1))
-                }
-                onNextClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                onPageChange={handlePageChange}
-              />
-            </div>
-            <div label="All Requests">
-              <RequestsTable
-                requests={
-                  Array.isArray(paginatedRequests) ? paginatedRequests : []
-                }
-                formatDate={formatDate}
-                onView={(request) => {
-                  setSelectedRequest(request);
-                  setIsViewDialogOpen(true);
-                }}
-                onApprove={(request) => {
-                  setSelectedRequest(request);
-                  setIsApproveDialogOpen(true);
-                }}
-                onReject={(request) => {
-                  setSelectedRequest(request);
-                  setIsRejectDialogOpen(true);
-                }}
-                handleSortChange={handleSortChange}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                handleSearchChange={handleSearchChange}
-                styles={styles}
-                searchTerm={searchQuery}
-              />
-
-              <Pagination
-                currentPage={currentPage}
-                pageSize={itemsPerPage}
-                totalItems={filteredRequests.length}
-                onPrevClick={() =>
-                  setCurrentPage((prev) => Math.max(prev - 1, 1))
-                }
-                onNextClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                onPageChange={handlePageChange}
-              />
-            </div>
-          </Tabs>
-
-          {/* View Request Modal */}
-          <input
-            type="checkbox"
-            id="view-modal"
-            className="modal-toggle"
-            checked={isViewDialogOpen}
-            onChange={() => setIsViewDialogOpen(!isViewDialogOpen)}
-          />
-          <div className="modal">
-            <div className="modal-box max-w-md">
-              <h3 className="font-bold text-lg">
-                Organization Request Details
-              </h3>
-              <p className="text-sm text-gray-500">
-                Review the complete details of this organization request.
-              </p>
-              {selectedRequest && (
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <h4 className="font-medium text-sm">Organization Name</h4>
-                    <p>{selectedRequest.organization_name}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Contact Person</h4>
-                    <p>{selectedRequest.contact_name}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Contact Email</h4>
-                    <p>{selectedRequest.contact_email}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Country</h4>
-                    <p>{selectedRequest.country}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Organization Type</h4>
-                    <p>{selectedRequest.organization_type}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Submitted At</h4>
-                    <p>{formatDate(selectedRequest.createdAt)}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Status</h4>
-                    <StatusBadge status={selectedRequest.status} />
-                  </div>
-                </div>
+                Close
+              </button>
+              {selectedRequest && selectedRequest.status === 'pending' && (
+                <>
+                  <button
+                    className="btn btn-error"
+                    onClick={() => {
+                      setIsViewDialogOpen(false);
+                      setIsRejectDialogOpen(true);
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setIsViewDialogOpen(false);
+                      setIsApproveDialogOpen(true);
+                    }}
+                  >
+                    Approve
+                  </button>
+                </>
               )}
-              <div className="modal-action">
-                <button
-                  className="btn btn-outline"
-                  onClick={() => setIsViewDialogOpen(false)}
-                >
-                  Close
-                </button>
-                {selectedRequest && selectedRequest.status === 'pending' && (
-                  <>
-                    <button
-                      className="btn btn-error"
-                      onClick={() => {
-                        setIsViewDialogOpen(false);
-                        setIsRejectDialogOpen(true);
-                      }}
-                    >
-                      Reject
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
-                        setIsViewDialogOpen(false);
-                        setIsApproveDialogOpen(true);
-                      }}
-                    >
-                      Approve
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Approve Request Modal */}
-          <input
-            type="checkbox"
-            id="approve-modal"
-            className="modal-toggle"
-            checked={isApproveDialogOpen}
-            onChange={() => setIsApproveDialogOpen(!isApproveDialogOpen)}
-          />
-          <div className="modal">
-            <div className="modal-box max-w-md">
-              <h3 className="font-bold text-lg">Approve Organization</h3>
-              <p className="text-sm text-gray-500">
-                {selectedRequest?.organization_name} will be granted access to
-                NetManager.
-              </p>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <label
-                    htmlFor="approve-feedback"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Approval Message (Optional)
-                  </label>
-                  <textarea
-                    id="approve-feedback"
-                    placeholder="Enter any additional information or instructions..."
-                    className="textarea textarea-bordered w-full min-h-[100px]"
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This message will be included in the approval email.
-                  </p>
-                </div>
-              </div>
-              <div className="modal-action">
-                <button
-                  className="btn btn-outline"
-                  onClick={() => setIsApproveDialogOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleApproveRequest}
-                >
-                  Approve
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Reject Request Modal */}
-          <input
-            type="checkbox"
-            id="reject-modal"
-            className="modal-toggle"
-            checked={isRejectDialogOpen}
-            onChange={() => setIsRejectDialogOpen(!isRejectDialogOpen)}
-          />
-          <div className="modal">
-            <div className="modal-box max-w-md">
-              <h3 className="font-bold text-lg">Reject Organization</h3>
-              <p className="text-sm text-gray-500">
-                {selectedRequest?.organization_name} will be denied access to
-                NetManager.
-              </p>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <label
-                    htmlFor="reject-feedback"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Rejection Reason <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    id="reject-feedback"
-                    placeholder="Please provide a reason for rejection..."
-                    className="textarea textarea-bordered w-full min-h-[100px]"
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This reason will be included in the rejection email.
-                  </p>
-                </div>
-              </div>
-              <div className="modal-action">
-                <button
-                  className="btn btn-outline"
-                  onClick={() => setIsRejectDialogOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-error"
-                  onClick={handleRejectRequest}
-                  disabled={!feedbackText.trim()}
-                >
-                  Reject
-                </button>
-              </div>
             </div>
           </div>
         </div>
-      </Card>
-    </Layout>
+
+        {/* Approve Request Modal */}
+        <input
+          type="checkbox"
+          id="approve-modal"
+          className="modal-toggle"
+          checked={isApproveDialogOpen}
+          onChange={() => setIsApproveDialogOpen(!isApproveDialogOpen)}
+        />
+        <div className="modal">
+          <div className="modal-box max-w-md">
+            <h3 className="font-bold text-lg">Approve Organization</h3>
+            <p className="text-sm text-gray-500">
+              {selectedRequest?.organization_name} will be granted access to
+              NetManager.
+            </p>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label
+                  htmlFor="approve-feedback"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Approval Message (Optional)
+                </label>
+                <textarea
+                  id="approve-feedback"
+                  placeholder="Enter any additional information or instructions..."
+                  className="textarea textarea-bordered w-full min-h-[100px]"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This message will be included in the approval email.
+                </p>
+              </div>
+            </div>
+            <div className="modal-action">
+              <button
+                className="btn btn-outline"
+                onClick={() => setIsApproveDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleApproveRequest}
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Reject Request Modal */}
+        <input
+          type="checkbox"
+          id="reject-modal"
+          className="modal-toggle"
+          checked={isRejectDialogOpen}
+          onChange={() => setIsRejectDialogOpen(!isRejectDialogOpen)}
+        />
+        <div className="modal">
+          <div className="modal-box max-w-md">
+            <h3 className="font-bold text-lg">Reject Organization</h3>
+            <p className="text-sm text-gray-500">
+              {selectedRequest?.organization_name} will be denied access to
+              NetManager.
+            </p>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label
+                  htmlFor="reject-feedback"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Rejection Reason <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="reject-feedback"
+                  placeholder="Please provide a reason for rejection..."
+                  className="textarea textarea-bordered w-full min-h-[100px]"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This reason will be included in the rejection email.
+                </p>
+              </div>
+            </div>
+            <div className="modal-action">
+              <button
+                className="btn btn-outline"
+                onClick={() => setIsRejectDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-error"
+                onClick={handleRejectRequest}
+                disabled={!feedbackText.trim()}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 }
 

@@ -1,4 +1,8 @@
+'use client';
+
 import React, { useCallback } from 'react';
+import { useWindowSize } from '@/lib/windowSize';
+
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Button from '../Button';
@@ -10,16 +14,29 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 
 const PageTopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
+  const { width } = useWindowSize();
   const dispatch = useDispatch();
-  const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
+
+  const togglingDrawer = useSelector((state) => {
+    try {
+      return state?.sidebar?.toggleDrawer || false;
+    } catch {
+      // Silent fallback during logout when store is reset
+      return false;
+    }
+  });
 
   const handleDrawer = useCallback(
     (e) => {
       e.preventDefault();
-      dispatch(setToggleDrawer(!togglingDrawer));
-      dispatch(setSidebar(false));
+      try {
+        dispatch(setToggleDrawer(!togglingDrawer));
+        dispatch(setSidebar(false));
+      } catch {
+        // Silent fallback if dispatch fails during logout
+      }
     },
-    [dispatch, togglingDrawer],
+    [dispatch, togglingDrawer, width],
   );
 
   return (
