@@ -1,14 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import * as Yup from 'yup';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
+import AuthLayout from '@/common/components/Organization/AuthLayout';
+import InputField from '@/common/components/InputField';
+import Spinner from '@/components/Spinner';
+import Toast from '@/components/Toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+const loginSchema = Yup.object().shape({
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required'),
+  password: Yup.string().required('Password is required'),
+});
 
 export default function OrganizationLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
   const orgSlug = params.org_slug;
@@ -22,112 +39,142 @@ export default function OrganizationLogin() {
     });
   }, [router, orgSlug]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setIsLoading(true);
+      setError('');
 
-    try {
-      const result = await signIn('org-credentials', {
-        email,
-        password,
-        orgSlug,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Invalid credentials. Please try again.');
-      } else if (result?.ok) {
-        // Store user data in localStorage for compatibility
-        const session = await getSession();
-        if (session?.user) {
-          localStorage.setItem('loggedUser', JSON.stringify(session.user));
-          localStorage.setItem('activeGroup', orgSlug);
-        }
-
-        router.push(`/org/${orgSlug}/dashboard`);
+      // Validate form data
+      try {
+        await loginSchema.validate({ email, password }, { abortEarly: false });
+      } catch (validationError) {
+        const messages = validationError.inner
+          .map((err) => err.message)
+          .join(', ');
+        setIsLoading(false);
+        return setError(messages);
       }
-    } catch {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
+      try {
+        const result = await signIn('org-credentials', {
+          email,
+          password,
+          orgSlug,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError('Invalid credentials. Please try again.');
+        } else if (result?.ok) {
+          // Store user data in localStorage for compatibility
+          const session = await getSession();
+          if (session?.user) {
+            localStorage.setItem('loggedUser', JSON.stringify(session.user));
+            localStorage.setItem('activeGroup', orgSlug);
+          }
+
+          router.push(`/org/${orgSlug}/dashboard`);
+        }
+      } catch {
+        setError('An error occurred. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email, password, orgSlug, router],
+  );
+
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(!showPassword);
+  }, [showPassword]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to {orgSlug}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Organization Login
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
+    <ErrorBoundary
+      name="OrganizationLogin"
+      feature="Organization Authentication"
+    >
+      <AuthLayout
+        title={`Sign in to ${orgSlug}`}
+        subtitle="Access your organization's air quality analytics dashboard"
+      >
+        <div className="w-full">
+          {error && <Toast type="error" timeout={8000} message={error} />}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="mt-6">
+              <InputField
+                label="Email Address"
                 type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="e.g. user@organization.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
+                onChange={setEmail}
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
               />
             </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+            <div className="mt-6">
+              <div className="relative">
+                <InputField
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="******"
+                  value={password}
+                  onChange={setPassword}
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash size={20} />
+                  ) : (
+                    <FaEye size={20} />
+                  )}
+                </button>
+              </div>
+            </div>
 
-          <div className="text-center">
-            <a
-              href="/user/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+            <div className="mt-10">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: 'var(--org-primary, #2563eb)',
+                }}
+              >
+                {isLoading ? <Spinner width={25} height={25} /> : 'Sign In'}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
+            <span>
+              Don&apos;t have an account?
+              <Link
+                href={`/org/${orgSlug}/register`}
+                className="font-medium text-blue-600 ml-2 dark:text-blue-400"
+                style={{ color: 'var(--org-primary, #2563eb)' }}
+              >
+                Register
+              </Link>
+            </span>
+            <Link
+              href={`/org/${orgSlug}/forgotPwd`}
+              className="font-medium text-blue-600 dark:text-blue-400"
+              style={{ color: 'var(--org-primary, #2563eb)' }}
             >
-              Individual user login
-            </a>
+              Forgot Password
+            </Link>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </AuthLayout>
+    </ErrorBoundary>
   );
 }
