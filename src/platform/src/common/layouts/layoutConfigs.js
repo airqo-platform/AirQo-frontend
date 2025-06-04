@@ -109,14 +109,38 @@ export const LAYOUT_CONFIGS = {
         'Reset your password to regain access to your AirQo Analytics account.',
       sideBackgroundColor: 'bg-orange-50 dark:bg-[#252627]',
     },
-  },
-  // Map routes configuration
+  }, // Map routes configuration
   MAP: {
     '/user/map': {
       pageTitle: 'Air Quality Map - AirQo Analytics',
       topbarTitle: 'Air Quality Map',
       noBorderBottom: true,
       showSearch: true,
+      noTopNav: false,
+    },
+  },
+  // Organization routes configuration
+  ORGANIZATION: {
+    // Dashboard routes
+    '/org/[org_slug]/dashboard': {
+      pageTitle: 'Dashboard - Organization Analytics',
+      topbarTitle: 'Dashboard',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/insights': {
+      pageTitle: 'Insights - Organization Analytics',
+      topbarTitle: 'Insights',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/preferences': {
+      pageTitle: 'Preferences - Organization Settings',
+      topbarTitle: 'Preferences',
+      noBorderBottom: true,
+      showSearch: false,
       noTopNav: false,
     },
   },
@@ -142,6 +166,13 @@ export const DEFAULT_CONFIGS = {
     topbarTitle: 'Air Quality Map',
     noBorderBottom: true,
     showSearch: true,
+    noTopNav: false,
+  },
+  ORGANIZATION: {
+    pageTitle: 'Organization Analytics',
+    topbarTitle: 'Dashboard',
+    noBorderBottom: false,
+    showSearch: false,
     noTopNav: false,
   },
 };

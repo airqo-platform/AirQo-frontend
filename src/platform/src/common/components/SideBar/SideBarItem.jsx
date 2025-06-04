@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();

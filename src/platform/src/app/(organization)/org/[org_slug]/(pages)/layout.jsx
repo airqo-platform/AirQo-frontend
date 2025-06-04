@@ -2,15 +2,15 @@
 
 import { useParams } from 'next/navigation';
 import { OrganizationProvider } from '@/app/providers/OrganizationProvider';
-import OrganizationLayout from '@/common/layouts/OrganizationLayout';
+import OrganizationPagesLayout from '@/layouts/OrganizationPagesLayout';
 
-export default function OrganizationPagesLayout({ children }) {
+export default function OrganizationPagesLayoutWrapper({ children }) {
   const params = useParams();
   const orgSlug = params?.org_slug || params?.org_slug?.join('/') || '';
 
   return (
     <OrganizationProvider orgSlug={orgSlug}>
-      <OrganizationLayout>{children}</OrganizationLayout>
+      <OrganizationPagesLayout>{children}</OrganizationPagesLayout>
     </OrganizationProvider>
   );
 }

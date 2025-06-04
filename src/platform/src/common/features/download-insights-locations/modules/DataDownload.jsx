@@ -44,7 +44,7 @@ import DataContent, {
   FILTER_TYPES,
 } from '../components/datadownload/DataContent';
 import { getMimeType } from '../utils';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import InfoMessage from '@/components/Messages/InfoMessage';
 
 /**

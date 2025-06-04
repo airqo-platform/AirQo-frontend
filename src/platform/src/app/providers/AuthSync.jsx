@@ -27,15 +27,75 @@ const AuthSync = () => {
   const pathname = usePathname();
   const reduxLoginState = useSelector((state) => state.login);
   const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
-
   useEffect(() => {
     if (status === 'loading') {
       // Still loading, don't do anything yet
       return;
     }
-
     if (status === 'authenticated' && session?.user) {
-      // User is authenticated via NextAuth      // Optimize: Check if we already have complete user data in Redux to avoid unnecessary API calls
+      // User is authenticated via NextAuth
+      const isOrgRoute =
+        pathname.includes('/org/') || pathname.includes('/organization');
+
+      // Handle organization users differently based on route context
+      if (isOrgRoute && session?.user?.organization) {
+        // User is on org route and has org in session - this is valid
+        const needsUpdate =
+          !reduxLoginState.userInfo ||
+          reduxLoginState.userInfo._id !== session.user.id ||
+          reduxLoginState.userInfo.organization !== session.user.organization ||
+          !reduxLoginState.success;
+
+        if (needsUpdate) {
+          // Set minimal organization user data in Redux
+          dispatch(
+            setUserInfo({
+              _id: session.user.id,
+              email: session.user.email,
+              name: session.user.name,
+              picture: session.user.image,
+              organization: session.user.organization,
+            }),
+          );
+
+          if (!reduxLoginState.success) {
+            dispatch(setSuccess(true));
+          }
+        }
+
+        // Handle group state separately to avoid circular dependencies
+        if (!activeGroup || activeGroup._id !== session.user.organization) {
+          dispatch(
+            setActiveGroup({
+              _id: session.user.organization,
+              organization: session.user.organization,
+              long_organization:
+                session.user.long_organization || session.user.organization,
+            }),
+          );
+        }
+        // Exit early for org users to prevent individual user logic
+        return;
+      } // Handle case where user is on org route but doesn't have org in session
+      if (isOrgRoute && !session?.user?.organization) {
+        // User is trying to access org route without proper org session
+        // Extract org slug and redirect to org login
+        const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
+        if (orgSlugMatch) {
+          const orgSlug = orgSlugMatch[1];
+          if (
+            !pathname.includes('/login') &&
+            !pathname.includes('/register') &&
+            !pathname.includes('/forgotPwd')
+          ) {
+            router.push(`/org/${orgSlug}/login`);
+          }
+        }
+        return;
+      }
+
+      // For individual users, proceed with the existing logic
+      // Optimize: Check if we already have complete user data in Redux to avoid unnecessary API calls
       const hasCompleteUserData =
         reduxLoginState.userInfo?._id &&
         activeGroup &&
@@ -144,6 +204,14 @@ const AuthSync = () => {
         '/user/settings',
         '/user/collocation',
       ];
+
+      // Check if the path includes organization paths
+      const isOrgProtectedRoute =
+        pathname.includes('/org/') &&
+        !pathname.includes('/login') &&
+        !pathname.includes('/register') &&
+        !pathname.includes('/forgotPwd');
+
       const isProtectedRoute = protectedRoutes.some(
         (route) => pathname.startsWith(route) || pathname === route,
       );
@@ -151,38 +219,28 @@ const AuthSync = () => {
       if (isProtectedRoute) {
         // Redirect to login
         router.push('/user/login');
+      } else if (isOrgProtectedRoute) {
+        // Handle organization routes
+        // Extract org slug from the pathname
+        const orgSlug = pathname.split('/org/')[1]?.split('/')[0];
+        if (orgSlug) {
+          router.push(`/org/${orgSlug}/login`);
+        } else {
+          router.push('/');
+        }
       }
     }
   }, [
-    session,
     status,
+    session,
     dispatch,
     router,
     pathname,
-    reduxLoginState.userInfo,
+    reduxLoginState.userInfo?._id,
+    reduxLoginState.userInfo?.groups,
     activeGroup,
   ]);
 
-  // Also listen for Redux state changes to sync back to NextAuth if needed
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // If Redux has user info but NextAuth doesn't, there might be a sync issue
-      if (
-        reduxLoginState.success &&
-        reduxLoginState.userInfo &&
-        status === 'unauthenticated'
-      ) {
-        // This could indicate a session expiry or desync
-        logger.warn(
-          'Authentication state mismatch detected, clearing Redux state',
-        );
-        dispatch(resetStore());
-        dispatch(clearActiveGroup());
-      }
-    }
-  }, [reduxLoginState, status, dispatch]);
-
-  // This component doesn't render anything, it just handles state synchronization
   return null;
 };
 

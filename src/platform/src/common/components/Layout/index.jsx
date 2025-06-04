@@ -17,8 +17,8 @@ import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 // NEW: import theme hook and layout constants
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
-import { THEME_LAYOUT } from '@/features/theme-customizer/constants/themeConstants';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',

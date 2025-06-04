@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   MdRefresh,
@@ -9,7 +9,7 @@ import {
 } from 'react-icons/md';
 import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
 import Button from '@/components/Button';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 const REFRESH_INTERVALS = {
   MANUAL: 0,

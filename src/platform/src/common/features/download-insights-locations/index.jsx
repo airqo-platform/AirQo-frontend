@@ -11,7 +11,7 @@ import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },

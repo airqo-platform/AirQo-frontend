@@ -1,5 +1,5 @@
 'use client';
-import { ThemeCustomizer } from '@/features/theme-customizer/components/ThemeCustomizer';
+import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 
 export default function Layout({ children }) {
   return (

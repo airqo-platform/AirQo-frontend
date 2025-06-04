@@ -31,7 +31,7 @@ import {
   mapStyles,
   mapDetails,
 } from '@/features/airQuality-map/constants/constants';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AirQoMap = forwardRef(

@@ -35,7 +35,7 @@ import {
   CustomGraphTooltip,
   CustomReferenceLabel,
 } from './components';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Button from '@/components/Button';
 
 // Custom tick renderer with improved readability

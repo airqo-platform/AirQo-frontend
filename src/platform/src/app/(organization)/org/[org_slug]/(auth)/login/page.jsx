@@ -37,8 +37,11 @@ export default function OrganizationLogin() {
   useEffect(() => {
     // Check if user is already authenticated
     getSession().then((session) => {
-      if (session) {
-        router.push(`/org/${orgSlug}/dashboard`);
+      if (session && session.user) {
+        // Ensure user has organization data before redirecting
+        if (session.user.organization) {
+          router.replace(`/org/${orgSlug}/dashboard`);
+        }
       }
     });
   }, [router, orgSlug]);
@@ -74,24 +77,22 @@ export default function OrganizationLogin() {
           // Show setup screen while we prepare the organization dashboard
           setIsSettingUp(true);
 
-          // Store user data in localStorage for compatibility
+          // Verify session was created correctly
           const session = await getSession();
-          if (session?.user) {
-            localStorage.setItem('loggedUser', JSON.stringify(session.user));
-
-            // Store activeGroup as proper object structure
-            const activeGroup = {
-              _id: session.user.organization,
-              organization: session.user.organization,
-              long_organization: session.user.long_organization,
-            };
-            localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+          if (!session?.user) {
+            setError(
+              "Authentication succeeded but session wasn't created. Please try again.",
+            );
+            setIsLoading(false);
+            setIsSettingUp(false);
+            return;
           }
 
           // Brief delay to show the organization-specific loader before redirect
           setTimeout(() => {
-            router.push(`/org/${orgSlug}/dashboard`);
-          }, 500);
+            setIsSettingUp(false); // Reset loader state
+            router.replace(`/org/${orgSlug}/dashboard`); // Use replace instead of push to avoid redirect loops
+          }, 1000); // Increase timeout to ensure session is fully established
         }
       } catch (error) {
         setError(error.message || 'An error occurred. Please try again.');
@@ -101,6 +102,7 @@ export default function OrganizationLogin() {
     },
     [email, password, orgSlug, router],
   );
+
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(!showPassword);
   }, [showPassword]);

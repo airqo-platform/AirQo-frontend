@@ -7,7 +7,7 @@ import Spinner from '@/components/Spinner';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import clsx from 'clsx';
 import { Transition } from '@headlessui/react';
 

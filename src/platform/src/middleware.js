@@ -94,7 +94,6 @@ export async function middleware(request) {
 
     const isAuthenticated = !!token;
     const { requiresAuth, isAuthPage } = getCachedAuthOptions(pathname);
-
     // If user is authenticated and trying to access auth pages, redirect to appropriate dashboard
     if (isAuthenticated && isAuthPage) {
       // Determine redirect based on the type of auth page
@@ -104,7 +103,14 @@ export async function middleware(request) {
         // For organization pages, extract org slug and redirect to org dashboard
         const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
         const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
-        redirectUrl = `/org/${orgSlug}/dashboard`;
+
+        // Check if user has organization context in token
+        if (token?.organization || token?.user?.organization) {
+          redirectUrl = `/org/${orgSlug}/dashboard`;
+        } else {
+          // User doesn't have org context, allow them to login to get it
+          return NextResponse.next();
+        }
       } else {
         // For individual user pages, redirect to Home
         redirectUrl = '/user/Home';

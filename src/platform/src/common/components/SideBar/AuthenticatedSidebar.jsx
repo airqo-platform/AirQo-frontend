@@ -26,12 +26,23 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../Button';
 import Card from '../CardWrapper';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '../GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
-const AuthenticatedSideBar = ({ forceCollapse }) => {
+const AuthenticatedSideBar = ({
+  forceCollapse,
+  children,
+  logoComponent,
+  onLogoClick,
+  homeNavPath = '/user/Home',
+  showOrganizationDropdown = true,
+  headerContent,
+  footerContent,
+  showCollapseButton = true,
+  navigationItems,
+}) => {
   const dispatch = useDispatch();
   const size = useWindowSize();
   const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
@@ -238,75 +249,135 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
             scrollbar-thin ${styles.scrollbar}
           `}
         >
+          {' '}
           {/* Logo Section */}
           <div className="pb-4 flex justify-between items-center">
-            <Button
-              padding="p-0 m-0"
-              onClick={() => router.push('/user/Home')}
-              variant="text"
-            >
-              <div
-                className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
+            {headerContent || (
+              <Button
+                padding="p-0 m-0"
+                onClick={onLogoClick || (() => router.push(homeNavPath))}
+                variant="text"
               >
-                <GroupLogo />
-              </div>
-            </Button>
+                <div
+                  className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
+                >
+                  {logoComponent || <GroupLogo />}
+                </div>
+              </Button>
+            )}
           </div>
-
           {/* Organization Dropdown */}
-          <div>
-            <OrganizationDropdown />
-          </div>
-
+          {showOrganizationDropdown && (
+            <div>
+              <OrganizationDropdown />
+            </div>
+          )}
           {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
             <div className="mt-8 space-y-1">
-              <SidebarItem
-                label="Home"
-                Icon={HomeIcon}
-                navPath="/user/Home"
-                iconOnly={isCollapsed}
-              />
-              <SidebarItem
-                label="Analytics"
-                Icon={BarChartIcon}
-                navPath="/user/analytics"
-                iconOnly={isCollapsed}
-              />
-              {/* Network Section */}
-              {isCollapsed ? (
-                <hr className={`my-3 border-t ${styles.divider}`} />
+              {children || navigationItems ? (
+                children ||
+                navigationItems?.map((item, index) => {
+                  if (item.type === 'divider') {
+                    return isCollapsed ? (
+                      <hr
+                        key={index}
+                        className={`my-3 border-t ${styles.divider}`}
+                      />
+                    ) : (
+                      <div
+                        key={index}
+                        className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
+                      >
+                        {item.label}
+                      </div>
+                    );
+                  }
+
+                  if (item.dropdown) {
+                    return (
+                      <SidebarItem
+                        key={index}
+                        label={item.label}
+                        Icon={item.icon}
+                        dropdown
+                        toggleMethod={item.toggleMethod}
+                        toggleState={item.toggleState}
+                        iconOnly={isCollapsed}
+                      >
+                        {item.children?.map((child, childIndex) => (
+                          <SideBarDropdownItem
+                            key={childIndex}
+                            itemLabel={child.label}
+                            itemPath={child.path}
+                          />
+                        ))}
+                      </SidebarItem>
+                    );
+                  }
+
+                  return (
+                    <SidebarItem
+                      key={index}
+                      label={item.label}
+                      Icon={item.icon}
+                      navPath={item.path}
+                      iconOnly={isCollapsed}
+                    />
+                  );
+                })
               ) : (
-                <div
-                  className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
-                >
-                  Network
-                </div>
+                // Default navigation for backward compatibility
+                <>
+                  <SidebarItem
+                    label="Home"
+                    Icon={HomeIcon}
+                    navPath="/user/Home"
+                    iconOnly={isCollapsed}
+                  />
+                  <SidebarItem
+                    label="Analytics"
+                    Icon={BarChartIcon}
+                    navPath="/user/analytics"
+                    iconOnly={isCollapsed}
+                  />
+                  {/* Network Section */}
+                  {isCollapsed ? (
+                    <hr className={`my-3 border-t ${styles.divider}`} />
+                  ) : (
+                    <div
+                      className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
+                    >
+                      Network
+                    </div>
+                  )}
+                  {renderCollocationItem()}
+                  <SidebarItem
+                    label="Map"
+                    Icon={WorldIcon}
+                    navPath="/user/map"
+                    iconOnly={isCollapsed}
+                  />
+                  <SidebarItem
+                    label="Settings"
+                    Icon={SettingsIcon}
+                    navPath="/user/settings"
+                    iconOnly={isCollapsed}
+                  />
+                </>
               )}
-              {renderCollocationItem()}
-              <SidebarItem
-                label="Map"
-                Icon={WorldIcon}
-                navPath="/user/map"
-                iconOnly={isCollapsed}
-              />
-              <SidebarItem
-                label="Settings"
-                Icon={SettingsIcon}
-                navPath="/user/settings"
-                iconOnly={isCollapsed}
-              />
             </div>
 
-            {/* Bottom Section (for future carousel) */}
+            {/* Bottom Section */}
             <div className="mt-auto pb-4">
-              {/* Placeholder for future components */}
+              {footerContent || (
+                <div>{/* Placeholder for future components */}</div>
+              )}
             </div>
           </div>
-        </Card>
-
+        </Card>{' '}
         {/* Sidebar collapse button */}
-        {pathname !== '/user/map' && (
+        {showCollapseButton && pathname !== '/user/map' && (
           <div
             className={`
               absolute flex rounded-full top-10 -right-[3px] z-50 
@@ -364,6 +435,31 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
 
 AuthenticatedSideBar.propTypes = {
   forceCollapse: PropTypes.bool,
+  children: PropTypes.node,
+  logoComponent: PropTypes.node,
+  onLogoClick: PropTypes.func,
+  homeNavPath: PropTypes.string,
+  showOrganizationDropdown: PropTypes.bool,
+  headerContent: PropTypes.node,
+  footerContent: PropTypes.node,
+  showCollapseButton: PropTypes.bool,
+  navigationItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      type: PropTypes.oneOf(['item', 'divider', 'dropdown']),
+      label: PropTypes.string,
+      icon: PropTypes.elementType,
+      path: PropTypes.string,
+      dropdown: PropTypes.bool,
+      toggleMethod: PropTypes.func,
+      toggleState: PropTypes.bool,
+      children: PropTypes.arrayOf(
+        PropTypes.shape({
+          label: PropTypes.string.isRequired,
+          path: PropTypes.string.isRequired,
+        }),
+      ),
+    }),
+  ),
 };
 
 export default AuthenticatedSideBar;

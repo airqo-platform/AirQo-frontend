@@ -7,7 +7,7 @@ import {
   getOrganizationThemeApi,
 } from '@/core/apis/Organizations';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import OrganizationNotFound from '../../common/components/Organization/OrganizationNotFound';
+import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
 
 const OrganizationContext = createContext();
 
