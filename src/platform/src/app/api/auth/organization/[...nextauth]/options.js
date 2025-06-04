@@ -9,11 +9,15 @@ export const options = {
       credentials: {
         userName: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
-        orgSlug: { label: 'Organization', type: 'hidden' },
+        orgSlug: { label: 'Organization Slug', type: 'text' },
       },
       async authorize(credentials) {
-        if (!credentials?.userName || !credentials?.password) {
-          throw new Error('Email and password are required');
+        if (
+          !credentials?.userName ||
+          !credentials?.password ||
+          !credentials?.orgSlug
+        ) {
+          throw new Error('Email, password, and organization are required');
         }
         try {
           // Use server-side API_BASE_URL for NextAuth (server-side context)
@@ -28,6 +32,9 @@ export const options = {
           // Remove trailing slash and properly construct URL
           const baseUrl = API_BASE_URL.replace(/\/$/, '');
           const url = new URL(`${baseUrl}/users/loginUser`);
+
+          // Add tenant parameter for organization context (required by API)
+          url.searchParams.append('tenant', credentials.orgSlug);
 
           // Add API token if available (some endpoints might require it)
           const API_TOKEN = process.env.API_TOKEN;
@@ -44,7 +51,7 @@ export const options = {
             body: JSON.stringify({
               userName: credentials.userName,
               password: credentials.password,
-              organization: credentials.orgSlug, // Include organization context
+              // Don't include organization in body - it goes in query as tenant
             }),
           });
 

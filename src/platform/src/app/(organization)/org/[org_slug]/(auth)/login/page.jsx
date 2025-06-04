@@ -12,6 +12,8 @@ import InputField from '@/common/components/InputField';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import LoginSetupLoader from '@/common/components/LoginSetupLoader';
+import { useOrganization } from '@/app/providers/OrganizationProvider';
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -24,11 +26,13 @@ export default function OrganizationLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
   const orgSlug = params.org_slug;
+  const { getDisplayName, logo } = useOrganization();
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -58,7 +62,7 @@ export default function OrganizationLogin() {
 
       try {
         const result = await signIn('org-credentials', {
-          email,
+          userName: email, // NextAuth org provider expects userName
           password,
           orgSlug,
           redirect: false,
@@ -67,27 +71,50 @@ export default function OrganizationLogin() {
         if (result?.error) {
           setError('Invalid credentials. Please try again.');
         } else if (result?.ok) {
+          // Show setup screen while we prepare the organization dashboard
+          setIsSettingUp(true);
+
           // Store user data in localStorage for compatibility
           const session = await getSession();
           if (session?.user) {
             localStorage.setItem('loggedUser', JSON.stringify(session.user));
-            localStorage.setItem('activeGroup', orgSlug);
+
+            // Store activeGroup as proper object structure
+            const activeGroup = {
+              _id: session.user.organization,
+              organization: session.user.organization,
+              long_organization: session.user.long_organization,
+            };
+            localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
           }
 
-          router.push(`/org/${orgSlug}/dashboard`);
+          // Brief delay to show the organization-specific loader before redirect
+          setTimeout(() => {
+            router.push(`/org/${orgSlug}/dashboard`);
+          }, 500);
         }
-      } catch {
-        setError('An error occurred. Please try again.');
+      } catch (error) {
+        setError(error.message || 'An error occurred. Please try again.');
       } finally {
         setIsLoading(false);
       }
     },
     [email, password, orgSlug, router],
   );
-
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(!showPassword);
   }, [showPassword]);
+
+  // Show organization-specific setup screen when preparing dashboard
+  if (isSettingUp) {
+    return (
+      <LoginSetupLoader
+        organizationName={getDisplayName()}
+        organizationLogo={logo}
+        isOrganization={true}
+      />
+    );
+  }
 
   return (
     <ErrorBoundary

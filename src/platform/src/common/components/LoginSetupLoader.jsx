@@ -3,7 +3,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const LoginSetupLoader = () => {
+const LoginSetupLoader = ({
+  organizationName = null,
+  organizationLogo = null,
+  isOrganization = false,
+}) => {
   // Dot animation variants
   const dotVariants = {
     start: { opacity: 0.3, scale: 0.8 },
@@ -29,6 +33,18 @@ const LoginSetupLoader = () => {
       },
     },
   };
+
+  // Determine display content based on whether it's an organization or individual
+  const displayName = isOrganization
+    ? organizationName || 'Organization'
+    : 'AirQo';
+  const logoSrc = isOrganization
+    ? organizationLogo || '/icons/airqo_logo.svg'
+    : '/icons/airqo_logo.svg';
+  const welcomeMessage = isOrganization
+    ? `Welcome to ${displayName}`
+    : 'Welcome to AirQo';
+
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center bg-white dark:bg-gray-900">
       {/* Main content container */}
@@ -38,7 +54,6 @@ const LoginSetupLoader = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        {' '}
         {/* Logo */}
         <motion.div
           className="mb-6"
@@ -47,14 +62,15 @@ const LoginSetupLoader = () => {
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
           <img
-            src="/icons/airqo_logo.svg"
-            alt="AirQo Logo"
+            src={logoSrc}
+            alt={`${displayName} Logo`}
             className="h-20 w-auto"
             onError={(e) => {
-              e.target.src = '/icons/airqo.png';
+              e.target.src = '/icons/airqo_logo.svg';
             }}
           />
-        </motion.div>{' '}
+        </motion.div>
+
         {/* Welcome Message */}
         <motion.div
           className="text-center mb-8"
@@ -63,15 +79,13 @@ const LoginSetupLoader = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-            Welcome to AirQo
+            {welcomeMessage}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Setting up your workspace...
-          </p>
-        </motion.div>{' '}
+        </motion.div>
+
         {/* Three dots loading animation */}
         <motion.div
-          className="flex space-x-2 mb-6"
+          className="flex space-x-2"
           variants={containerVariants}
           initial="start"
           animate="animate"
@@ -86,17 +100,6 @@ const LoginSetupLoader = () => {
               }}
             />
           ))}
-        </motion.div>{' '}
-        {/* Status message */}
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            This will only take a moment...
-          </p>
         </motion.div>
       </motion.div>
     </div>

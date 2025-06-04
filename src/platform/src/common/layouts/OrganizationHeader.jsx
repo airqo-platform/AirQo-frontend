@@ -2,21 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { FaUser, FaSignOutAlt, FaBell } from 'react-icons/fa';
 
 export default function OrganizationHeader({ organization }) {
   const { data: session } = useSession();
-  const { getDisplayName, getFullPath, logo, primaryColor } = useOrganization();
+  const { getDisplayName, logo, primaryColor } = useOrganization();
   const params = useParams();
-  const router = useRouter();
 
-  const orgSlug = params?.org_slug?.join('/') || '';
+  const orgSlug = params?.org_slug || '';
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: `/${orgSlug}/login` });
+    await signOut({ callbackUrl: `/org/${orgSlug}/login` });
   };
 
   return (
