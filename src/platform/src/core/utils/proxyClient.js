@@ -5,6 +5,35 @@ import { options as authOptions } from '@/app/api/auth/user/[...nextauth]/option
 // For App Router compatibility
 /* global Response */
 
+// Simple cache for session data to avoid repeated NextAuth calls
+const sessionCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const getCachedSession = async () => {
+  const now = Date.now();
+  const cacheKey = 'nextauth_session';
+
+  // Check if we have valid cached session
+  if (sessionCache.has(cacheKey)) {
+    const { session, timestamp } = sessionCache.get(cacheKey);
+    if (now - timestamp < CACHE_TTL) {
+      return session;
+    }
+    // Cache expired, remove it
+    sessionCache.delete(cacheKey);
+  }
+
+  // Get fresh session
+  try {
+    const session = await getServerSession(authOptions);
+    sessionCache.set(cacheKey, { session, timestamp: now });
+    return session;
+  } catch {
+    // If session retrieval fails, return null
+    return null;
+  }
+};
+
 /**
  * Creates a proxy request handler for Next.js API routes
  * @param {Object} options - Configuration options
@@ -118,19 +147,14 @@ export const createProxyHandler = (options = {}) => {
         let authHeader;
 
         if (context && context.params) {
-          // App Router - try to get token from NextAuth session first
-          try {
-            const session = await getServerSession(authOptions);
-            if (session?.user?.accessToken) {
-              // Ensure token starts with "JWT " as required by the API
-              const token = session.user.accessToken;
-              authHeader = token.startsWith('JWT ') ? token : `JWT ${token}`;
-            } else {
-              // Fallback to header from Request object
-              authHeader = req.headers.get('authorization');
-            }
-          } catch {
-            // Fallback to header if session retrieval fails
+          // App Router - use cached session to avoid repeated NextAuth calls
+          const session = await getCachedSession();
+          if (session?.user?.accessToken) {
+            // Ensure token starts with "JWT " as required by the API
+            const token = session.user.accessToken;
+            authHeader = token.startsWith('JWT ') ? token : `JWT ${token}`;
+          } else {
+            // Fallback to header from Request object
             authHeader = req.headers.get('authorization');
           }
         } else {

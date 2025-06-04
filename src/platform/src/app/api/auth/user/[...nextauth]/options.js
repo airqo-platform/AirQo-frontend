@@ -161,6 +161,8 @@ export const options = {
         session.user.rateLimit = token.rateLimit;
         session.user.lastLogin = token.lastLogin;
         session.user.accessToken = token.accessToken;
+        // Add accessToken to root level for compatibility
+        session.accessToken = token.accessToken;
         session.iat = token.iat;
       }
       return session;

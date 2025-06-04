@@ -27,6 +27,7 @@ const AuthSync = () => {
   const pathname = usePathname();
   const reduxLoginState = useSelector((state) => state.login);
   const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
+
   useEffect(() => {
     if (status === 'loading') {
       // Still loading, don't do anything yet
@@ -34,30 +35,43 @@ const AuthSync = () => {
     }
 
     if (status === 'authenticated' && session?.user) {
-      // User is authenticated via NextAuth
+      // User is authenticated via NextAuth      // Optimize: Check if we already have complete user data in Redux to avoid unnecessary API calls
+      const hasCompleteUserData =
+        reduxLoginState.userInfo?._id &&
+        activeGroup &&
+        reduxLoginState.userInfo.groups?.length > 0;
 
-      // Check if we already have user data in Redux
-      if (!reduxLoginState.userInfo?._id || !activeGroup) {
-        // Need to fetch additional user data and set active group
+      if (!hasCompleteUserData) {
+        // Need to fetch additional user data and set active group (only once)
         const fetchUserDetails = async () => {
           try {
             if (session?.user?.id) {
               // Store token for API calls if available
-              if (session.accessToken) {
-                localStorage.setItem('token', session.accessToken);
+              if (session.accessToken || session.user.accessToken) {
+                const token = session.accessToken || session.user.accessToken;
+                localStorage.setItem('token', token);
               }
 
-              // Store user data in localStorage for backward compatibility
-              const basicUserData = {
-                _id: session.user.id,
-                firstName:
-                  session.user.name?.split(' ')[0] || session.user.name,
-                name: session.user.name,
-                email: session.user.email,
-              };
-              localStorage.setItem('loggedUser', JSON.stringify(basicUserData));
+              // Check if we have cached user data first
+              const cachedUser = localStorage.getItem('loggedUser');
+              const cachedActiveGroup = localStorage.getItem('activeGroup');
 
-              // Fetch full user object with groups
+              if (
+                cachedUser &&
+                cachedActiveGroup &&
+                reduxLoginState.userInfo?._id === session.user.id
+              ) {
+                // Use cached data to avoid API call
+                const user = JSON.parse(cachedUser);
+                const group = JSON.parse(cachedActiveGroup);
+
+                dispatch(setUserInfo(user));
+                dispatch(setActiveGroup(group));
+                dispatch(setSuccess(true));
+                return;
+              }
+
+              // Fetch full user object with groups (only if not cached)
               const userRes = await getUserDetails(session.user.id);
               const user = userRes.users[0];
 
@@ -66,7 +80,7 @@ const AuthSync = () => {
                 return;
               }
 
-              // Fetch the most recent preference to get active group
+              // Fetch the most recent preference to get active group (with caching)
               let activeGroup = user.groups[0]; // default
               try {
                 const prefRes = await recentUserPreferencesAPI(user._id);
@@ -89,6 +103,7 @@ const AuthSync = () => {
 
               // Update localStorage with complete user data
               localStorage.setItem('loggedUser', JSON.stringify(user));
+              localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
             }
           } catch (error) {
             logger.error('Error fetching user details:', error);
@@ -104,6 +119,9 @@ const AuthSync = () => {
             JSON.stringify(reduxLoginState.userInfo),
           );
         }
+        if (activeGroup && typeof window !== 'undefined') {
+          localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+        }
       }
     } else if (status === 'unauthenticated') {
       // User is not authenticated
@@ -115,7 +133,10 @@ const AuthSync = () => {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('loggedUser');
-      } // Check if user is on a protected route
+        localStorage.removeItem('activeGroup');
+      }
+
+      // Check if user is on a protected route
       const protectedRoutes = [
         '/user/Home',
         '/user/map',

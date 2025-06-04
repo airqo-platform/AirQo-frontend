@@ -3,23 +3,44 @@ import { getSession } from 'next-auth/react';
 import logger from '../../lib/logger';
 import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
 
-// Function to get JWT Token from NextAuth session
+// Token cache to avoid repeated session checks
+let tokenCache = null;
+let tokenCacheExpiry = 0;
+const TOKEN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Function to get JWT Token from NextAuth session with caching
 const getJwtToken = async () => {
   if (typeof window === 'undefined') return null;
+
+  // Check cache first
+  const now = Date.now();
+  if (tokenCache && now < tokenCacheExpiry) {
+    return tokenCache;
+  }
 
   try {
     // Get token from NextAuth session
     const session = await getSession();
+    let token = null;
+
     if (session?.accessToken) {
-      // The session may already contain the JWT token with "JWT " prefix
-      return session.accessToken;
+      token = session.accessToken;
+    } else if (session?.user?.accessToken) {
+      token = session.user.accessToken;
     }
-    // Also check user.accessToken location (NextAuth stores it here)
-    if (session?.user?.accessToken) {
-      return session.user.accessToken;
+
+    // Cache the token
+    if (token) {
+      tokenCache = token;
+      tokenCacheExpiry = now + TOKEN_CACHE_TTL;
     }
+
+    return token;
   } catch (error) {
-    logger.warn('Failed to get NextAuth session', error);
+    // Only log in development to reduce noise
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Failed to get NextAuth session', error);
+    }
   }
 
   return null;
@@ -126,13 +147,15 @@ const createSecureApiClient = () => {
         }
       }
 
-      // Log request in development
-      if (process.env.NODE_ENV !== 'production') {
-        logger.debug('Secure API Request', {
+      // Minimal logging in development only for auth issues
+      if (
+        process.env.NODE_ENV === 'development' &&
+        !config.headers['Authorization']
+      ) {
+        logger.debug('Secure API Request without auth', {
           url: config.url,
           method: config.method,
           authType: authType,
-          hasAuth: !!config.headers['Authorization'],
         });
       }
 
@@ -143,21 +166,20 @@ const createSecureApiClient = () => {
       return Promise.reject(error);
     },
   );
-
-  // Add response interceptor with error logging
+  // Add response interceptor with minimal error logging
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Log detailed error information
-      const errorInfo = {
-        url: error.config?.url,
-        method: error.config?.method,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-      };
-
-      logger.error('Secure API request failed', error, errorInfo);
+      // Only log errors for 5xx status codes or network errors to reduce noise
+      if (!error.response || error.response.status >= 500) {
+        const errorInfo = {
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+          message: error.message,
+        };
+        logger.error('Secure API request failed', errorInfo);
+      }
       return Promise.reject(error);
     },
   );

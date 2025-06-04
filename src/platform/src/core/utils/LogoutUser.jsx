@@ -2,60 +2,56 @@ import { signOut } from 'next-auth/react';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 
 const LogoutUser = async (dispatch, router) => {
+  // Determine the appropriate redirect URL based on current route
+  const currentPath =
+    typeof window !== 'undefined' ? window.location.pathname : '';
+  let redirectUrl = '/user/login'; // Default for individual users
+
+  // Check if user is on an organization route
+  if (currentPath.startsWith('/org/')) {
+    const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+    const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+    redirectUrl = `/org/${orgSlug}/login`;
+  }
+
   try {
-    // Start redirect immediately for better UX (optimistic redirect)
-    const redirectPromise = router.push('/user/login');
+    // Dispatch the RESET_APP action to clear the Redux store
+    dispatch(resetStore());
 
-    // Perform cleanup operations in parallel for better performance
-    const cleanupOperations = [
-      // Dispatch the RESET_APP action to clear the Redux store
-      dispatch(resetStore()),
+    // Clear local storage
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+    }
 
-      // Clear local storage
-      new Promise((resolve) => {
-        if (typeof window !== 'undefined') {
-          localStorage.clear();
-        }
-        resolve();
-      }),
+    // Purge the persisted Redux state
+    try {
+      if (
+        typeof window !== 'undefined' &&
+        window.__NEXT_REDUX_STORE__ &&
+        window.__NEXT_REDUX_STORE__.__persistor
+      ) {
+        await window.__NEXT_REDUX_STORE__.__persistor.purge();
+      }
+    } catch {
+      // Ignore purge errors to prevent blocking logout
+    }
 
-      // Purge the persisted Redux state
-      new Promise((resolve) => {
-        (async () => {
-          try {
-            if (
-              typeof window !== 'undefined' &&
-              window.__NEXT_REDUX_STORE__?.__persistor
-            ) {
-              await window.__NEXT_REDUX_STORE__.__persistor.purge();
-            }
-          } catch {
-            // Ignore purge errors to prevent blocking logout
-          }
-          resolve();
-        })();
-      }),
+    // Use NextAuth signOut with redirect disabled
+    await signOut({
+      redirect: false,
+      callbackUrl: redirectUrl,
+    });
 
-      // Use NextAuth signOut (non-blocking)
-      signOut({
-        redirect: false,
-        callbackUrl: '/user/login',
-      }),
-    ];
-
-    // Execute all cleanup operations in parallel
-    await Promise.allSettled(cleanupOperations);
-
-    // Ensure redirect completes
-    await redirectPromise;
+    // Navigate to the appropriate login page
+    router.push(redirectUrl);
   } catch {
     // If anything fails, still attempt to redirect
     try {
-      router.push('/user/login');
+      router.push(redirectUrl);
     } catch {
       // Fallback to window location if router fails
       if (typeof window !== 'undefined') {
-        window.location.href = '/user/login';
+        window.location.href = redirectUrl;
       }
     }
   }

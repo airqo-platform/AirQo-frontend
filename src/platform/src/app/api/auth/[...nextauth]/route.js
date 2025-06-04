@@ -1,11 +1,13 @@
 import NextAuth from 'next-auth';
-import { options } from './options.js';
+import { options as userOptions } from '../user/[...nextauth]/options.js';
 
-const handler = NextAuth(options);
+// Default NextAuth handler that uses user options
+// This handles session requests from new tabs and provides compatibility
+const handler = NextAuth(userOptions);
 
 // Export the handler for both GET and POST methods
 export const GET = handler;
 export const POST = handler;
 
 // Export authOptions for other parts of the app
-export { options as authOptions };
+export { userOptions as authOptions };
