@@ -1,4 +1,5 @@
 import { createProxyHandler } from '@/core/utils/proxyClient';
+import { NextResponse } from 'next/server';
 
 /**
  * Dynamic API proxy handler
@@ -24,6 +25,10 @@ const AUTH_TYPES = {
 const handler = (request, { params }) => {
   // Extract path segments
   const { path } = params;
+  // Skip NextAuth routes - they should be handled by NextAuth directly
+  if (path && path.length > 0 && path[0] === 'auth') {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
 
   // Check for explicit auth type header
   const authTypeHeader = request.headers.get('x-auth-type');

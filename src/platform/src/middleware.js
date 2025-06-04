@@ -19,7 +19,7 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // Always allow access to auth pages (client-side redirects handle logged-in users)
-        if (pathname.includes('(auth)') || pathname.startsWith('/account/')) {
+        if (pathname.includes('(auth)')) {
           return true;
         }
 
@@ -32,12 +32,14 @@ export default withAuth(
           pathname.startsWith('/sitemap')
         ) {
           return true;
-        }
-
-        // Protected routes that require authentication
+        } // Protected routes that require authentication
         const protectedRoutes = [
           '/Home',
-          '/map',
+          '/user/Home',
+          '/user/map',
+          '/user/analytics',
+          '/user/settings',
+          '/user/collocation',
           '/analytics',
           '/settings',
           '/collocation',
@@ -81,8 +83,8 @@ export default withAuth(
       },
     },
     pages: {
-      signIn: '/account/login',
-      error: '/account/login',
+      signIn: '/user/login',
+      error: '/user/login',
     },
   },
 );
@@ -96,7 +98,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, robots.txt, sitemap.xml (metadata files)
      * - images in public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$|.*\\.ico$).*)',
+     */ '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$|.*\\.ico$).*)',
   ],
 };

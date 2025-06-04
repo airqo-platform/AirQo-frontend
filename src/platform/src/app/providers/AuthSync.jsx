@@ -115,15 +115,13 @@ const AuthSync = () => {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('loggedUser');
-      }
-
-      // Check if user is on a protected route
+      } // Check if user is on a protected route
       const protectedRoutes = [
-        '/Home',
-        '/map',
-        '/analytics',
-        '/settings',
-        '/collocation',
+        '/user/Home',
+        '/user/map',
+        '/user/analytics',
+        '/user/settings',
+        '/user/collocation',
       ];
       const isProtectedRoute = protectedRoutes.some(
         (route) => pathname.startsWith(route) || pathname === route,
@@ -131,7 +129,7 @@ const AuthSync = () => {
 
       if (isProtectedRoute) {
         // Redirect to login
-        router.push('/account/login');
+        router.push('/user/login');
       }
     }
   }, [

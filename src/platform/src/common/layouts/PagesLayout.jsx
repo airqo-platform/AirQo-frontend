@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
@@ -23,11 +22,10 @@ import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
  */
 export default function PagesLayout({ children }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
-  const isMapPage = router.pathname === '/map';
+  const isMapPage = pathname === '/user/map';
 
   // Get route configuration based on current pathname
   const routeConfig =

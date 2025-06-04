@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import PropTypes from 'prop-types';
 import { useWindowSize } from '@/lib/windowSize';
 import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
 import WorldIcon from '@/icons/SideBar/world_Icon';
@@ -46,15 +47,15 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   const dropdownRef = useRef(null);
   const [collocationOpen, setCollocationOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-
   // Determine if dark mode should be applied
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   }, [theme, systemTheme]);
+
   // Media query and route handling
   useEffect(() => {
     const handleRouteChange = () => {
-      if (pathname === '/map') {
+      if (pathname === '/user/map') {
         dispatch(setSidebar(true));
       }
     };
@@ -176,7 +177,7 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
               shadow-lg rounded-xl p-2 space-y-1
             `}
           >
-            <Link href={'/collocation/overview'}>
+            <Link href={'/user/collocation/overview'}>
               <div
                 className={`
                   w-full p-3 rounded-lg cursor-pointer
@@ -186,7 +187,7 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
                 Overview
               </div>
             </Link>
-            <Link href={'/collocation/collocate'}>
+            <Link href={'/user/collocation/collocate'}>
               <div
                 className={`
                   w-full p-3 rounded-lg cursor-pointer
@@ -209,11 +210,11 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
       >
         <SideBarDropdownItem
           itemLabel="Overview"
-          itemPath="/collocation/overview"
+          itemPath="/user/collocation/overview"
         />
         <SideBarDropdownItem
           itemLabel="Collocate"
-          itemPath="/collocation/collocate"
+          itemPath="/user/collocation/collocate"
         />
       </SidebarItem>
     );
@@ -241,7 +242,7 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
           <div className="pb-4 flex justify-between items-center">
             <Button
               padding="p-0 m-0"
-              onClick={() => router.push('/Home')}
+              onClick={() => router.push('/user/Home')}
               variant="text"
             >
               <div
@@ -263,17 +264,15 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
               <SidebarItem
                 label="Home"
                 Icon={HomeIcon}
-                navPath="/Home"
+                navPath="/user/Home"
                 iconOnly={isCollapsed}
               />
-
               <SidebarItem
                 label="Analytics"
                 Icon={BarChartIcon}
-                navPath="/analytics"
+                navPath="/user/analytics"
                 iconOnly={isCollapsed}
               />
-
               {/* Network Section */}
               {isCollapsed ? (
                 <hr className={`my-3 border-t ${styles.divider}`} />
@@ -284,20 +283,17 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
                   Network
                 </div>
               )}
-
               {renderCollocationItem()}
-
               <SidebarItem
                 label="Map"
                 Icon={WorldIcon}
-                navPath="/map"
+                navPath="/user/map"
                 iconOnly={isCollapsed}
               />
-
               <SidebarItem
                 label="Settings"
                 Icon={SettingsIcon}
-                navPath="/settings"
+                navPath="/user/settings"
                 iconOnly={isCollapsed}
               />
             </div>
@@ -307,9 +303,10 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
               {/* Placeholder for future components */}
             </div>
           </div>
-        </Card>{' '}
+        </Card>
+
         {/* Sidebar collapse button */}
-        {pathname !== '/map' && (
+        {pathname !== '/user/map' && (
           <div
             className={`
               absolute flex rounded-full top-10 -right-[3px] z-50 
@@ -364,8 +361,6 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
     </div>
   );
 };
-
-import PropTypes from 'prop-types';
 
 AuthenticatedSideBar.propTypes = {
   forceCollapse: PropTypes.bool,

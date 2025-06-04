@@ -70,7 +70,7 @@ export default function OrganizationRegister() {
       <AuthLayout
         title={`Registration Disabled`}
         subtitle={`${getDisplayName()} has disabled public registration`}
-        backToAirqoPath="/account/login"
+        backToAirqoPath="/user/login"
       >
         <div className="text-center space-y-6">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
@@ -105,8 +105,9 @@ export default function OrganizationRegister() {
                 Go to Sign In
               </Link>
               <div>
+                {' '}
                 <Link
-                  href="/account/login"
+                  href="/user/login"
                   className="text-sm text-gray-500 hover:text-gray-700"
                 >
                   Use main AirQo login instead
@@ -168,7 +169,7 @@ export default function OrganizationRegister() {
       <AuthLayout
         title="Registration Successful!"
         subtitle={`Welcome to ${getDisplayName()}`}
-        backToAirqoPath="/account/login"
+        backToAirqoPath="/user/login"
       >
         <div className="text-center">
           <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
@@ -211,7 +212,7 @@ export default function OrganizationRegister() {
     <AuthLayout
       title={`Join ${getDisplayName()}`}
       subtitle="Create your account to access the organization's air quality dashboard"
-      backToAirqoPath="/account/login"
+      backToAirqoPath="/user/login"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

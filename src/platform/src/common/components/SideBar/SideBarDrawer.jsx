@@ -99,13 +99,14 @@ const SideBarDrawer = () => {
         toggleMethod={toggleCollocation}
         toggleState={collocationOpen}
       >
+        {' '}
         <SideBarDropdownItem
           itemLabel="Overview"
-          itemPath="/collocation/overview"
+          itemPath="/user/collocation/overview"
         />
         <SideBarDropdownItem
           itemLabel="Collocate"
-          itemPath="/collocation/collocate"
+          itemPath="/user/collocation/collocate"
         />
       </SideBarItem>
     );
@@ -138,10 +139,11 @@ const SideBarDrawer = () => {
         contentClassName="flex p-4 h-full flex-col overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
       >
         <div className="pb-4 flex justify-between items-center">
+          {' '}
           {width < 1024 ? (
             <div
               className="cursor-pointer"
-              onClick={() => router.push('/settings')}
+              onClick={() => router.push('/user/settings')}
             >
               {renderUserAvatar()}
             </div>
@@ -161,21 +163,21 @@ const SideBarDrawer = () => {
         </div>
         <div className="flex flex-col justify-between h-full">
           <div className="mt-11 space-y-3">
-            <SideBarItem label="Home" Icon={HomeIcon} navPath="/Home" />
+            <SideBarItem label="Home" Icon={HomeIcon} navPath="/user/Home" />{' '}
             <SideBarItem
               label="Analytics"
               Icon={BarChartIcon}
-              navPath="/analytics"
-            />
+              navPath="/user/analytics"
+            />{' '}
             <div className="text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out">
               Network
             </div>
-            {renderCollocationSection()}
-            <SideBarItem label="Map" Icon={WorldIcon} navPath="/map" />{' '}
+            {renderCollocationSection()}{' '}
+            <SideBarItem label="Map" Icon={WorldIcon} navPath="/user/map" />
             <SideBarItem
               label="Settings"
               Icon={SettingsIcon}
-              navPath="/settings"
+              navPath="/user/settings"
             />
             <div
               onClick={handleLogout}

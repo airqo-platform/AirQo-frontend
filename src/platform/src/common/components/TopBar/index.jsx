@@ -124,10 +124,10 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   const renderDropdownContent = () => (
     <>
       {renderUserInfo()}
-      <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+      <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />{' '}
       <ul className="dropdown-list p-2">
         <li
-          onClick={handleClick('/settings')}
+          onClick={handleClick('/user/settings')}
           className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           <span className="mr-3">
@@ -136,7 +136,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
           My profile
         </li>
         <li
-          onClick={handleClick('/settings')}
+          onClick={handleClick('/user/settings')}
           className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2"
         >
           <span className="mr-3">
@@ -220,18 +220,18 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
         className={`z-50 w-full py-2 px-2 md:px-0 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
       >
         <div id="topBar-nav" className="flex justify-between items-center">
+          {' '}
           <div className="block lg:hidden relative z-10 w-full">
             <Button
               paddingStyles="p-0 m-0"
               onClick={() => {
-                router.push('/Home');
+                router.push('/user/Home');
               }}
               variant="text"
             >
               <GroupLogo />
             </Button>
           </div>
-
           <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
             <div className="flex items-center gap-[10px]">
               <span className="p-2 rounded-full bg-[#E2E3E5]">
@@ -240,7 +240,6 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               <div>{topbarTitle}</div>
             </div>
           </div>
-
           <div className="hidden lg:flex gap-2 items-center">
             <CustomDropdown
               trigger={renderProfileTrigger()}
@@ -250,7 +249,6 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
               {renderDropdownContent()}
             </CustomDropdown>
           </div>
-
           <Button
             paddingStyles="p-0 m-0"
             className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none"

@@ -32,7 +32,7 @@ const Layout = ({
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
-  const isMapPage = router.pathname === '/map';
+  const isMapPage = router.pathname === '/user/map';
 
   // Initialize hooks
   useUserPreferences();

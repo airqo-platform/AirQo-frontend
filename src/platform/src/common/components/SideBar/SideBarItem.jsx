@@ -76,18 +76,15 @@ const SidebarItem = ({
   toggleState,
   iconOnly = false,
 }) => {
-  const router = useRouter();
   const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const currentRoute = pathname;
   const isCurrentRoute = useMemo(() => {
-    if (!navPath) return false;
-
-    // Exact match for root/home routes
+    if (!navPath) return false; // Exact match for root/home routes
     if (navPath === '/' && currentRoute === '/') return true;
     if (
-      navPath === '/Home' &&
-      (currentRoute === '/' || currentRoute === '/Home')
+      navPath === '/user/Home' &&
+      (currentRoute === '/' || currentRoute === '/user/Home')
     )
       return true;
 

@@ -14,12 +14,10 @@ export default function withAuth(Component) {
 
     useEffect(() => {
       if (typeof window !== 'undefined' && status !== 'loading') {
-        const storedUserGroup = localStorage.getItem('activeGroup');
-
-        // Primary check: NextAuth session (since middleware relies on this)
+        const storedUserGroup = localStorage.getItem('activeGroup'); // Primary check: NextAuth session (since middleware relies on this)
         if (status === 'unauthenticated' || !session) {
           logger.info('No NextAuth session, redirecting to login');
-          router.push('/account/login');
+          router.push('/user/login');
           return;
         }
 

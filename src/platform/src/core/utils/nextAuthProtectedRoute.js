@@ -10,13 +10,12 @@ export default function withNextAuth(Component) {
     const { data: session, status } = useSession();
     const router = useRouter();
     const dispatch = useDispatch();
-
     useEffect(() => {
       if (status === 'loading') return; // Still loading
 
       if (status === 'unauthenticated') {
         // User is not authenticated, redirect to login
-        router.push('/account/login');
+        router.push('/user/login');
         return;
       }
 

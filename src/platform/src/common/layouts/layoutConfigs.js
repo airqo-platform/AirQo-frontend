@@ -2,6 +2,7 @@
 export const LAYOUT_CONFIGS = {
   // Dashboard routes configuration
   DASHBOARD: {
+    // Legacy routes (for backward compatibility)
     '/Home': {
       pageTitle: 'Home - AirQo Analytics',
       topbarTitle: 'Home',
@@ -44,33 +45,74 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
+    // New user routes with /user/ prefix
+    '/user/Home': {
+      pageTitle: 'Home - AirQo Analytics',
+      topbarTitle: 'Home',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/analytics': {
+      pageTitle: 'Analytics - AirQo Analytics',
+      topbarTitle: 'Analytics',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/user/settings': {
+      pageTitle: 'Settings - AirQo Analytics',
+      topbarTitle: 'Settings',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/collocation': {
+      pageTitle: 'Collocation - AirQo Analytics',
+      topbarTitle: 'Collocation',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/collocation/overview': {
+      pageTitle: 'Collocation Overview - AirQo Analytics',
+      topbarTitle: 'Collocation Overview',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/collocation/collocate': {
+      pageTitle: 'Collocate Devices - AirQo Analytics',
+      topbarTitle: 'Collocate Devices',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
   },
-
   // Auth routes configuration
   AUTH: {
-    '/account/login': {
+    '/user/login': {
       pageTitle: 'Sign In - AirQo Analytics',
       rightText:
         'Welcome back! Sign in to access your AirQo Analytics dashboard and monitor air quality data.',
       sideBackgroundColor: 'bg-blue-50 dark:bg-[#252627]',
     },
-    '/account/creation': {
+    '/user/creation': {
       pageTitle: 'Create Account - AirQo Analytics',
       rightText:
         'Join AirQo Analytics to start monitoring and analyzing air quality data in your area.',
       sideBackgroundColor: 'bg-green-50 dark:bg-[#252627]',
     },
-    '/account/forgotPwd': {
+    '/user/forgotPwd': {
       pageTitle: 'Reset Password - AirQo Analytics',
       rightText:
         'Reset your password to regain access to your AirQo Analytics account.',
       sideBackgroundColor: 'bg-orange-50 dark:bg-[#252627]',
     },
   },
-
   // Map routes configuration
   MAP: {
-    '/map': {
+    '/user/map': {
       pageTitle: 'Air Quality Map - AirQo Analytics',
       topbarTitle: 'Air Quality Map',
       noBorderBottom: true,

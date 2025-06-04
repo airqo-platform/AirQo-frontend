@@ -11,8 +11,12 @@ const getJwtToken = async () => {
     // Get token from NextAuth session
     const session = await getSession();
     if (session?.accessToken) {
-      // The session already contains the JWT token with "JWT " prefix
+      // The session may already contain the JWT token with "JWT " prefix
       return session.accessToken;
+    }
+    // Also check user.accessToken location (NextAuth stores it here)
+    if (session?.user?.accessToken) {
+      return session.user.accessToken;
     }
   } catch (error) {
     logger.warn('Failed to get NextAuth session', error);

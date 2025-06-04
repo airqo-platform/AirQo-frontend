@@ -4,7 +4,7 @@ import { resetStore } from '@/lib/store/services/account/LoginSlice';
 const LogoutUser = async (dispatch, router) => {
   try {
     // Start redirect immediately for better UX (optimistic redirect)
-    const redirectPromise = router.push('/account/login');
+    const redirectPromise = router.push('/user/login');
 
     // Perform cleanup operations in parallel for better performance
     const cleanupOperations = [
@@ -39,7 +39,7 @@ const LogoutUser = async (dispatch, router) => {
       // Use NextAuth signOut (non-blocking)
       signOut({
         redirect: false,
-        callbackUrl: '/account/login',
+        callbackUrl: '/user/login',
       }),
     ];
 
@@ -51,11 +51,11 @@ const LogoutUser = async (dispatch, router) => {
   } catch {
     // If anything fails, still attempt to redirect
     try {
-      router.push('/account/login');
+      router.push('/user/login');
     } catch {
       // Fallback to window location if router fails
       if (typeof window !== 'undefined') {
-        window.location.href = '/account/login';
+        window.location.href = '/user/login';
       }
     }
   }

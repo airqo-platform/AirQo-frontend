@@ -65,7 +65,7 @@ export default function OrganizationForgotPassword() {
       <AuthLayout
         title="Check Your Email"
         subtitle="Password reset instructions sent"
-        backToAirqoPath="/account/login"
+        backToAirqoPath="/user/login"
       >
         <div className="text-center">
           <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
@@ -99,7 +99,7 @@ export default function OrganizationForgotPassword() {
     <AuthLayout
       title="Reset Your Password"
       subtitle={`Enter your email to reset your password for ${getDisplayName()}`}
-      backToAirqoPath="/account/login"
+      backToAirqoPath="/user/login"
     >
       {' '}
       <form className="space-y-6" onSubmit={handleSubmit}>

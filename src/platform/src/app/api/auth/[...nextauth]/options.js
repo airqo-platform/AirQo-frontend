@@ -1,5 +1,5 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import jwtDecode from 'jwt-decode';
+import jwt_decode from 'jwt-decode';
 
 export const options = {
   providers: [
@@ -30,6 +30,13 @@ export const options = {
 
           // Add API token if available (some endpoints might require it)
           const API_TOKEN = process.env.API_TOKEN;
+
+          // Prepare headers
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+
+          // API_TOKEN can be added as a query parameter if required by the endpoint
           if (API_TOKEN) {
             url.searchParams.append('token', API_TOKEN);
           }
@@ -37,9 +44,7 @@ export const options = {
           // Call your existing API endpoint
           const response = await fetch(url.toString(), {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               userName: credentials.userName,
               password: credentials.password,
@@ -65,7 +70,7 @@ export const options = {
 
           if (data && data.token) {
             // Decode the JWT to get user information
-            const decodedToken = jwtDecode(data.token);
+            const decodedToken = jwt_decode(data.token);
 
             return {
               id: data._id,
@@ -97,9 +102,9 @@ export const options = {
     }),
   ],
   pages: {
-    signIn: '/account/login',
-    signOut: '/account/login',
-    error: '/account/login',
+    signIn: '/user/login',
+    signOut: '/user/login',
+    error: '/user/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
