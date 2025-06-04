@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { OrganizationProvider } from '../../../providers/OrganizationProvider';
+import { OrganizationProvider } from '@/app/providers/OrganizationProvider';
 
 export default function OrganizationAuthLayout({ children }) {
   const params = useParams();
