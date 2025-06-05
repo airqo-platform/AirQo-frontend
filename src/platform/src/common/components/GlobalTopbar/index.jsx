@@ -211,7 +211,7 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
     [dispatch],
   );
   const renderProfileTrigger = () => (
-    <div className="cursor-pointer">
+    <div className="cursor-pointer lg:mr-3">
       <img
         className="w-8 h-8 rounded-full object-cover"
         src={userInfo?.profilePicture || placeholderImage}

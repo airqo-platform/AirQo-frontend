@@ -73,6 +73,16 @@ export default function OrgRequestsPage() {
     setCurrentPage(page);
   };
 
+  const handlePrevClick = useCallback(
+    () => setCurrentPage((prev) => Math.max(prev - 1, 1)),
+    [],
+  );
+
+  const handleNextClick = useCallback(
+    () => setCurrentPage((prev) => Math.min(prev + 1, totalPages)),
+    [totalPages],
+  );
+
   useEffect(() => {
     dispatch(fetchOrgRequests())
       .unwrap()
@@ -227,6 +237,17 @@ export default function OrgRequestsPage() {
     }
   };
 
+  // Calculate filtered requests for each tab
+  const pendingRequests = filteredRequests.filter(
+    (req) => (req.status || '') === 'pending',
+  );
+  const approvedRequests = filteredRequests.filter(
+    (req) => (req.status || '') === 'approved',
+  );
+  const rejectedRequests = filteredRequests.filter(
+    (req) => (req.status || '') === 'rejected',
+  );
+
   return (
     <div>
       <Tabs customPadding="px-6">
@@ -260,11 +281,9 @@ export default function OrgRequestsPage() {
             searchTerm={searchQuery}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredRequests.length}
-            onPrevClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            onNextClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            totalItems={pendingRequests.length}
+            onPrevClick={handlePrevClick}
+            onNextClick={handleNextClick}
             onPageChange={handlePageChange}
           />
         </div>
@@ -298,11 +317,9 @@ export default function OrgRequestsPage() {
             searchTerm={searchQuery}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredRequests.length}
-            onPrevClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            onNextClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            totalItems={approvedRequests.length}
+            onPrevClick={handlePrevClick}
+            onNextClick={handleNextClick}
             onPageChange={handlePageChange}
           />
         </div>
@@ -336,11 +353,9 @@ export default function OrgRequestsPage() {
             searchTerm={searchQuery}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredRequests.length}
-            onPrevClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            onNextClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            totalItems={rejectedRequests.length}
+            onPrevClick={handlePrevClick}
+            onNextClick={handleNextClick}
             onPageChange={handlePageChange}
           />
         </div>
@@ -369,10 +384,8 @@ export default function OrgRequestsPage() {
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
             totalItems={filteredRequests.length}
-            onPrevClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            onNextClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            onPrevClick={handlePrevClick}
+            onNextClick={handleNextClick}
             onPageChange={handlePageChange}
           />
         </div>
@@ -698,7 +711,7 @@ function RequestsTable({
                 {!Array.isArray(requests) || requests.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-6 text-grey-300 dark:text-gray-400"
                     >
                       No requests found.

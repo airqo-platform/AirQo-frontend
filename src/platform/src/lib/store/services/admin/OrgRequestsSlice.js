@@ -8,7 +8,7 @@ const initialState = {
 };
 
 const fetchOrgRequests = createAsyncThunk(
-  'groups/fetchOrganisationRequests',
+  'organisationRequests/fetchOrganisationRequests',
   async () => {
     const response = await getOrganisationRequestsApi();
     return response.requests;
