@@ -4,11 +4,13 @@ import SideBarItem from '@/components/SideBar/SideBarItem';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+import UsersIcon from '@/icons/SideBar/UsersIcon';
 import PropTypes from 'prop-types';
 
 const OrganizationSidebarContent = ({ isCollapsed }) => {
   const params = useParams();
   const orgSlug = params?.org_slug || '';
+
   return (
     <>
       <SideBarItem
@@ -21,6 +23,12 @@ const OrganizationSidebarContent = ({ isCollapsed }) => {
         label="Data Insights"
         Icon={BarChartIcon}
         navPath={`/org/${orgSlug}/insights`}
+        iconOnly={isCollapsed}
+      />
+      <SideBarItem
+        label="Members"
+        Icon={UsersIcon}
+        navPath={`/org/${orgSlug}/members`}
         iconOnly={isCollapsed}
       />
       <SideBarItem

@@ -3,19 +3,15 @@
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { OrganizationService } from '@/core/apis/Organizations';
 
 // Import icons from react-icons
 import {
-  FaChartBar as AnalyticsIcon,
   FaMapMarkerAlt as MapIcon,
-  FaCog as SettingsIcon,
   FaTachometerAlt as DashboardIcon,
+  FaChartBar as AnalyticsIcon,
 } from 'react-icons/fa';
 
-export default function OrganizationDashboardPage({ params }) {
-  const router = useRouter();
+export default function OrganizationDashboardPage() {
   const { organization, primaryColor, secondaryColor } = useOrganization();
   const [stats, setStats] = useState({
     totalSites: 0,
@@ -23,8 +19,6 @@ export default function OrganizationDashboardPage({ params }) {
     dataPoints: 0,
     lastUpdated: new Date(),
   });
-
-  const orgSlug = params?.org_slug || '';
 
   // Apply organization theme
   useEffect(() => {
@@ -48,29 +42,7 @@ export default function OrganizationDashboardPage({ params }) {
       setStats(mockStats);
     }
   }, [organization]);
-  const quickActions = [
-    {
-      title: 'Data Insights',
-      description: 'View air quality data and trends',
-      icon: <AnalyticsIcon className="w-8 h-8" />,
-      href: `/org/${orgSlug}/insights`,
-      color: primaryColor || 'bg-blue-500',
-    },
-    {
-      title: 'Air Quality Map',
-      description: 'Explore air quality monitoring locations',
-      icon: <MapIcon className="w-8 h-8" />,
-      href: `/org/${orgSlug}/map`,
-      color: secondaryColor || 'bg-green-500',
-    },
-    {
-      title: 'Organization Settings',
-      description: 'Manage your organization preferences',
-      icon: <SettingsIcon className="w-8 h-8" />,
-      href: `/org/${orgSlug}/preferences`,
-      color: primaryColor || 'bg-purple-500',
-    },
-  ];
+
   const StatCard = ({ title, value, subtitle, icon }) => (
     <div
       className="bg-white rounded-lg shadow-sm border-l-4 p-6 hover:shadow-md transition-shadow"
@@ -90,34 +62,7 @@ export default function OrganizationDashboardPage({ params }) {
             {icon}
           </div>
         )}
-      </div>
-    </div>
-  );
-  const QuickActionCard = ({ title, description, icon, href, color }) => (
-    <div
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 cursor-pointer transform hover:scale-105"
-      onClick={() => router.push(href)}
-    >
-      <div className="flex items-start space-x-4">
-        <div
-          className="rounded-lg p-3 text-white"
-          style={{
-            backgroundColor:
-              typeof color === 'string' && color.startsWith('#')
-                ? color
-                : undefined,
-          }}
-          {...(typeof color === 'string' && !color.startsWith('#')
-            ? { className: `${color} rounded-lg p-3 text-white` }
-            : {})}
-        >
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-          <p className="text-sm text-gray-600 mt-1">{description}</p>
-        </div>
-      </div>
+      </div>{' '}
     </div>
   );
 
@@ -133,7 +78,6 @@ export default function OrganizationDashboardPage({ params }) {
       </div>
     );
   }
-
   return (
     <div className="space-y-8">
       {/* Welcome Section with Organization Branding */}
@@ -214,94 +158,7 @@ export default function OrganizationDashboardPage({ params }) {
           value={stats.lastUpdated.toLocaleTimeString()}
           subtitle={stats.lastUpdated.toLocaleDateString()}
           icon={<DashboardIcon className="w-6 h-6" />}
-        />
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Quick Actions
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {quickActions.map((action, index) => (
-            <QuickActionCard key={index} {...action} />
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Recent Activity
-        </h2>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                New air quality data received
-              </p>
-              <p className="text-xs text-gray-500">2 minutes ago</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Daily report generated
-              </p>
-              <p className="text-xs text-gray-500">1 hour ago</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                System maintenance completed
-              </p>
-              <p className="text-xs text-gray-500">3 hours ago</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Organization Info */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Organization Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-              Organization Name
-            </h3>
-            <p className="mt-1 text-lg text-gray-900">{organization.name}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-              Organization Type
-            </h3>
-            <p className="mt-1 text-lg text-gray-900">
-              {OrganizationService.getDisplayName(organization)}
-            </p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-              Status
-            </h3>
-            <span className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              {organization.status}
-            </span>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-              Domain
-            </h3>
-            <p className="mt-1 text-lg text-gray-900">
-              {organization.domain || 'Not specified'}
-            </p>
-          </div>
-        </div>
+        />{' '}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import jwtDecode from 'jwt-decode';
+import jwt_decode from 'jwt-decode';
 
 export const options = {
   providers: [
@@ -20,38 +20,37 @@ export const options = {
           throw new Error('Email, password, and organization are required');
         }
         try {
-          // Use server-side API_BASE_URL for NextAuth (server-side context)
+          // Use real API call for all environments
           const API_BASE_URL =
             process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
           if (!API_BASE_URL) {
             throw new Error(
-              'Neither API_BASE_URL nor NEXT_PUBLIC_API_BASE_URL environment variable is defined',
+              'API configuration missing: Neither API_BASE_URL nor NEXT_PUBLIC_API_BASE_URL environment variable is defined',
             );
-          }
-
-          // Remove trailing slash and properly construct URL
+          } // Remove trailing slash and properly construct URL
           const baseUrl = API_BASE_URL.replace(/\/$/, '');
           const url = new URL(`${baseUrl}/users/loginUser`);
 
-          // Add tenant parameter for organization context (required by API)
-          url.searchParams.append('tenant', credentials.orgSlug);
-
           // Add API token if available (some endpoints might require it)
           const API_TOKEN = process.env.API_TOKEN;
+
+          // Prepare headers (exactly like user auth)
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+
+          // API_TOKEN can be added as a query parameter if required by the endpoint
           if (API_TOKEN) {
             url.searchParams.append('token', API_TOKEN);
           }
 
-          // Call your existing API endpoint for organization login
+          // Call your existing API endpoint (exactly like user auth - no tenant for now)
           const response = await fetch(url.toString(), {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               userName: credentials.userName,
               password: credentials.password,
-              // Don't include organization in body - it goes in query as tenant
             }),
           });
 
@@ -74,7 +73,7 @@ export const options = {
 
           if (data && data.token) {
             // Decode the JWT to get user information
-            const decodedToken = jwtDecode(data.token);
+            const decodedToken = jwt_decode(data.token);
 
             return {
               id: data._id,

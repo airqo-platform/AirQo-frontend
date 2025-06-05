@@ -8,14 +8,14 @@ const LoginSetupLoader = ({
   organizationLogo = null,
   isOrganization = false,
 }) => {
-  // Dot animation variants
+  // Dot animation variants with improved timing
   const dotVariants = {
     start: { opacity: 0.3, scale: 0.8 },
     animate: {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.8,
         ease: 'easeInOut',
         repeat: Infinity,
         repeatType: 'reverse',
@@ -28,8 +28,8 @@ const LoginSetupLoader = ({
     animate: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.1,
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
       },
     },
   };
@@ -76,11 +76,19 @@ const LoginSetupLoader = ({
           className="text-center mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
             {welcomeMessage}
           </h1>
+          <motion.p
+            className="text-sm text-gray-600 dark:text-gray-400"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            Setting up your dashboard...
+          </motion.p>
         </motion.div>
 
         {/* Three dots loading animation */}

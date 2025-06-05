@@ -75,25 +75,7 @@ export default function OrganizationInsightsPage({ params }) {
         <div className="bg-white rounded-md">
           {/* Render the existing analytics overview with organization context */}
           <OverView />
-        </div>
-      </div>
-
-      {/* Organization-specific insights footer */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Organization Insights
-          </h3>
-          <p className="text-gray-600">
-            Data shown above is filtered and customized for {organization.name}.
-            For platform-wide analytics, visit the main analytics dashboard.
-          </p>
-          {organization.domain && (
-            <p className="text-sm text-gray-500 mt-2">
-              Organization Domain: {organization.domain}
-            </p>
-          )}
-        </div>
+        </div>{' '}
       </div>
     </div>
   );

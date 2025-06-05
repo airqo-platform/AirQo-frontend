@@ -1,3 +1,4 @@
+// filepath: c:\projects\AirQo-frontend\src\platform\src\app\(organization)\org\[org_slug]\(auth)\login\page.jsx
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -14,6 +15,9 @@ import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoginSetupLoader from '@/common/components/LoginSetupLoader';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useDispatch } from 'react-redux';
+import { setupOrganizationAfterLogin } from '@/core/utils/setupOrganization';
+import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -31,19 +35,25 @@ export default function OrganizationLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
+  const dispatch = useDispatch();
   const orgSlug = params.org_slug;
   const { getDisplayName, logo } = useOrganization();
 
   useEffect(() => {
-    // Check if user is already authenticated
-    getSession().then((session) => {
-      if (session && session.user) {
-        // Ensure user has organization data before redirecting
-        if (session.user.organization) {
+    // Check if user is already authenticated and redirect immediately
+    const checkInitialAuth = async () => {
+      try {
+        const session = await getSession();
+        if (session?.user?.organization && session?.orgSlug === orgSlug) {
+          // User is already authenticated with correct organization context
           router.replace(`/org/${orgSlug}/dashboard`);
         }
+      } catch {
+        // Ignore errors during initial auth check silently
       }
-    });
+    };
+
+    checkInitialAuth();
   }, [router, orgSlug]);
 
   const handleSubmit = useCallback(
@@ -74,33 +84,40 @@ export default function OrganizationLogin() {
         if (result?.error) {
           setError('Invalid credentials. Please try again.');
         } else if (result?.ok) {
-          // Show setup screen while we prepare the organization dashboard
+          // Show setup screen while we fetch additional required data
           setIsSettingUp(true);
 
-          // Verify session was created correctly
+          // Get the session after successful login
           const session = await getSession();
-          if (!session?.user) {
-            setError(
-              "Authentication succeeded but session wasn't created. Please try again.",
-            );
-            setIsLoading(false);
-            setIsSettingUp(false);
-            return;
-          }
 
-          // Brief delay to show the organization-specific loader before redirect
-          setTimeout(() => {
-            setIsSettingUp(false); // Reset loader state
-            router.replace(`/org/${orgSlug}/dashboard`); // Use replace instead of push to avoid redirect loops
-          }, 1000); // Increase timeout to ensure session is fully established
+          if (session?.user && session?.orgSlug === orgSlug) {
+            try {
+              // Setup organization with the session data
+              await setupOrganizationAfterLogin(session, dispatch, orgSlug);
+
+              // Navigate to organization dashboard after setup is complete
+              router.replace(`/org/${orgSlug}/dashboard`);
+            } catch (setupError) {
+              setIsSettingUp(false);
+              throw setupError;
+            }
+          } else {
+            throw new Error(
+              'Session data is incomplete or organization mismatch',
+            );
+          }
         }
       } catch (error) {
-        setError(error.message || 'An error occurred. Please try again.');
+        setIsSettingUp(false);
+        const errorMessage =
+          error.message || 'An error occurred. Please try again.';
+        setError(errorMessage);
+        logger.error('Organization login error:', error);
       } finally {
         setIsLoading(false);
       }
     },
-    [email, password, orgSlug, router],
+    [email, password, orgSlug, router, dispatch],
   );
 
   const togglePasswordVisibility = useCallback(() => {
