@@ -213,7 +213,7 @@ const UserClientsTable = () => {
       {isError.isError && (
         <Toast type={isError.type} message={isError.message} />
       )}
-      
+      <div className="overflow-x-auto">
         <table
           className="w-full border-collapse rounded-lg text-xs text-left mb-6 dark:text-gray-100"
           data-testid="settings-clients-table"
