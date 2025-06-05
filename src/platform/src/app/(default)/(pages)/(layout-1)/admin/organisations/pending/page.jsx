@@ -12,7 +12,10 @@ import SearchBar from '@/components/Admin/Organizations/Search';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { fetchOrgRequests } from '@/lib/store/services/admin/OrgRequestsSlice';
-import { approveOrganisationRequestApi } from '@/core/apis/Account';
+import {
+  approveOrganisationRequestApi,
+  rejectOrganisationRequestApi,
+} from '@/core/apis/Account';
 import logger from '@/lib/logger';
 
 export default function OrgRequestsPage() {
@@ -30,6 +33,7 @@ export default function OrgRequestsPage() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
 
   const { theme, systemTheme } = useTheme();
@@ -193,19 +197,34 @@ export default function OrgRequestsPage() {
     }
   };
 
-  const handleRejectRequest = () => {
-    if (!selectedRequest) return;
-    const updatedRequests = requests.map((req) =>
-      req._id === selectedRequest._id ? { ...req, status: 'rejected' } : req,
-    );
-    setRequests(updatedRequests);
-    CustomToast({
-      message: `${selectedRequest.organization_name} has been rejected.`,
-      type: 'error',
-    });
-    setIsRejectDialogOpen(false);
-    setSelectedRequest(null);
-    setFeedbackText('');
+  const handleRejectRequest = async () => {
+    if (!selectedRequest || !feedbackText.trim()) return;
+    try {
+      setIsRejecting(true);
+      await rejectOrganisationRequestApi(
+        selectedRequest._id,
+        feedbackText.trim(),
+      );
+      const updatedRequests = requests.map((req) =>
+        req._id === selectedRequest._id ? { ...req, status: 'rejected' } : req,
+      );
+      setRequests(updatedRequests);
+      CustomToast({
+        message: `${selectedRequest.organization_name} has been rejected.`,
+        type: 'success',
+      });
+    } catch (error) {
+      logger.error('Error rejecting organization request:', error);
+      CustomToast({
+        message: 'Failed to reject organization request. Please try again.',
+        type: 'error',
+      });
+    } finally {
+      setIsRejecting(false);
+      setIsRejectDialogOpen(false);
+      setSelectedRequest(null);
+      setFeedbackText('');
+    }
   };
 
   return (
@@ -561,15 +580,23 @@ export default function OrgRequestsPage() {
               <button
                 className="btn btn-outline"
                 onClick={() => setIsRejectDialogOpen(false)}
+                disabled={isRejecting}
               >
                 Cancel
               </button>
               <button
                 className="btn btn-error"
                 onClick={handleRejectRequest}
-                disabled={!feedbackText.trim()}
+                disabled={!feedbackText.trim() || isRejecting}
               >
-                Reject
+                {isRejecting ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    Rejecting...
+                  </>
+                ) : (
+                  'Reject'
+                )}
               </button>
             </div>
           </div>

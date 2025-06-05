@@ -121,6 +121,14 @@ export const approveOrganisationRequestApi = (requestId) =>
     })
     .then((response) => response.data);
 
+export const rejectOrganisationRequestApi = (requestId, feedback) =>
+  secureApiProxy
+    .patch(`${USERS_URL}/org-requests/${requestId}/reject`, {
+      rejection_reason: feedback,
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
 export const getOrganisationSlugAvailabilityApi = (slug) =>
   secureApiProxy
     .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
