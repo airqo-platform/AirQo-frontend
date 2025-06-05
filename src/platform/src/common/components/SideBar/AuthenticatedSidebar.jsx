@@ -36,8 +36,7 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
-  const { title: groupTitle } = useGetActiveGroup();
-  const userInfo = useSelector((state) => state.login.userInfo);
+  const { activeGroup } = useGetActiveGroup();
 
   // Use forceCollapse prop if provided, otherwise use the store value
   const isCollapsed =
@@ -121,6 +120,10 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
       }
     }
   }, []);
+
+  const groupRole = activeGroup?.role?.role_name?.toLowerCase() || '';
+  const isSuperAdmin =
+    groupRole.includes('super_admin') || groupRole.includes('super admin');
 
   // Save dropdown states to localStorage
   useEffect(() => {
@@ -229,10 +232,7 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
   }, [isCollapsed, toggleDropdown, dropdown, collocationOpen, styles]);
 
   const renderAdminOrganisationItem = useCallback(() => {
-    const roleName = userInfo?.role?.name?.toLowerCase() || '';
-    const isSuperAdmin =
-      roleName.includes('super_admin') || roleName.includes('super admin');
-    if (!isSuperAdmin && groupTitle !== 'airqo') {
+    if (!isSuperAdmin && activeGroup?.grp_title?.toLowerCase() !== 'airqo') {
       return null;
     }
 
@@ -295,7 +295,15 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
         />
       </SidebarItem>
     );
-  }, [isCollapsed, toggleDropdown, dropdown, collocationOpen, styles]);
+  }, [
+    isCollapsed,
+    toggleDropdown,
+    dropdown,
+    collocationOpen,
+    styles,
+    isSuperAdmin,
+    activeGroup,
+  ]);
 
   return (
     <div>

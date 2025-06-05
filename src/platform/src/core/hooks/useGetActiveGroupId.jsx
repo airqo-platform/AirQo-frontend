@@ -113,6 +113,7 @@ export function useGetActiveGroup() {
       title: activeGroup?.grp_title || null,
       userID: userIdToUse || null,
       groupList: [],
+      activeGroup: activeGroup || null,
     };
   }
 
@@ -131,6 +132,7 @@ export function useGetActiveGroup() {
         title: storedGroupInUserGroups.grp_title,
         userID: userIdToUse,
         groupList: groupsToUse,
+        activeGroup: activeGroup || null,
       };
     }
   }
@@ -144,6 +146,7 @@ export function useGetActiveGroup() {
       title: activeGroup.grp_title,
       userID: userIdToUse,
       groupList: groupsToUse,
+      activeGroup: activeGroup || null,
     };
   }
 
@@ -157,6 +160,7 @@ export function useGetActiveGroup() {
       title: firstGroup.grp_title,
       userID: userIdToUse,
       groupList: groupsToUse,
+      activeGroup: activeGroup || null,
     };
   }
 
@@ -168,5 +172,6 @@ export function useGetActiveGroup() {
     title: null,
     userID: userIdToUse,
     groupList: [],
+    activeGroup: activeGroup || null,
   };
 }

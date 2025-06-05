@@ -579,7 +579,7 @@ function StatusBadge({ status }) {
 }
 
 const SearchAndFilter = ({ searchTerm, onSearchChange }) => (
-  <div className="mb-2 px-6 w-full">
+  <div className="mb-2 w-full">
     <SearchBar
       value={searchTerm}
       onChange={onSearchChange}
@@ -623,7 +623,7 @@ function RequestsTable({
       <Card
         padding="p-0"
         header={
-          <div className="px-3 py-4 md:flex w-full justify-between items-center gap-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full px-4 py-3">
             <div>
               <h3 className="text-gray-700 dark:text-white font-medium text-lg">
                 Manage Organization Requests
@@ -634,16 +634,15 @@ function RequestsTable({
                 Review and process access requests from partner organizations.
               </p>
             </div>
-            <SearchAndFilter
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-            />
+            <div className="w-full md:w-auto flex-shrink-0">
+              <SearchAndFilter
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+              />
+            </div>
           </div>
         }
-        headerProps={{
-          className:
-            'px-3 py-2 flex flex-col md:flex-row justify-between items-center gap-2',
-        }}
+        headerProps={{ className: 'py-2' }}
       >
         <style>{`
           .line-clamp-3 {
