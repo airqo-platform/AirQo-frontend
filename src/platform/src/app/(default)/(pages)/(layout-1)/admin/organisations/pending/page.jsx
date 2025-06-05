@@ -643,6 +643,15 @@ function RequestsTable({
   styles,
   searchTerm,
 }) {
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
   const getSortIcon = (field) =>
     sortField === field ? (sortDirection === 'asc' ? '↑' : '↓') : null;
 
@@ -658,6 +667,14 @@ function RequestsTable({
         padding="px-6"
         className="overflow-x-auto overflow-y-hidden"
       >
+        <style>{`
+          .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        `}</style>
         <table className="border-collapse border text-xs text-left w-full h-full mb-6">
           <thead>
             <tr className="text-black dark:text-white text-xs border-y border-y-secondary-neutral-light-100 bg-secondary-neutral-light-25 dark:bg-gray-800">
@@ -723,7 +740,22 @@ function RequestsTable({
                     </div>
                   </td>
                   <td className="w-[200px] px-4 py-3 font-normal text-sm leading-5 text-secondary-neutral-light-400 dark:text-gray-300 capitalize">
-                    {request.use_case}
+                    <div
+                      className={
+                        expandedRows[request._id] ? '' : 'line-clamp-3'
+                      }
+                    >
+                      {request.use_case}
+                    </div>
+                    {request.use_case && request.use_case.length > 120 && (
+                      <button
+                        className="text-blue-500 text-xs mt-1 focus:outline-none"
+                        onClick={() => toggleExpand(request._id)}
+                        type="button"
+                      >
+                        {expandedRows[request._id] ? 'Show less' : 'Show more'}
+                      </button>
+                    )}
                   </td>
                   <td className="px-4 py-3 font-normal text-sm leading-5 text-secondary-neutral-light-400 dark:text-gray-300 capitalize">
                     {request.country}
