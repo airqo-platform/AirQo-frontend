@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 import CustomToast from '@/components/Toast/CustomToast';
 import Tabs from '@/components/Tabs';
+import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
 import moment from 'moment';
 import Pagination from '@/components/Pagination';
@@ -11,6 +12,7 @@ import SearchBar from '@/components/Admin/Organizations/Search';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { fetchOrgRequests } from '@/lib/store/services/admin/OrgRequestsSlice';
+import { approveOrganisationRequestApi } from '@/core/apis/Account';
 import logger from '@/lib/logger';
 
 export default function OrgRequestsPage() {
@@ -27,6 +29,7 @@ export default function OrgRequestsPage() {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
 
   const { theme, systemTheme } = useTheme();
@@ -164,19 +167,30 @@ export default function OrgRequestsPage() {
     }).format(date);
   };
 
-  const handleApproveRequest = () => {
+  const handleApproveRequest = async () => {
     if (!selectedRequest) return;
-    const updatedRequests = requests.map((req) =>
-      req._id === selectedRequest._id ? { ...req, status: 'approved' } : req,
-    );
-    setRequests(updatedRequests);
-    CustomToast({
-      message: `${selectedRequest.organization_name} has been approved successfully.`,
-      type: 'success',
-    });
-    setIsApproveDialogOpen(false);
-    setSelectedRequest(null);
-    setFeedbackText('');
+    try {
+      setIsApproving(true);
+      await approveOrganisationRequestApi(selectedRequest._id);
+      const updatedRequests = requests.map((req) =>
+        req._id === selectedRequest._id ? { ...req, status: 'approved' } : req,
+      );
+      setRequests(updatedRequests);
+      CustomToast({
+        message: `${selectedRequest.organization_name} has been approved successfully.`,
+        type: 'success',
+      });
+    } catch (error) {
+      logger.error('Error approving organization request:', error);
+      CustomToast({
+        message: 'Failed to approve organization request. Please try again.',
+        type: 'error',
+      });
+    } finally {
+      setIsApproving(false);
+      setIsApproveDialogOpen(false);
+      setSelectedRequest(null);
+    }
   };
 
   const handleRejectRequest = () => {
@@ -442,24 +456,24 @@ export default function OrgRequestsPage() {
               </button>
               {selectedRequest && selectedRequest.status === 'pending' && (
                 <>
-                  <button
-                    className="btn btn-error"
+                  <Button
+                    variant="outlined"
+                    className="border-gray-300 text-gray-700"
                     onClick={() => {
                       setIsViewDialogOpen(false);
                       setIsRejectDialogOpen(true);
                     }}
                   >
                     Reject
-                  </button>
-                  <button
-                    className="btn btn-primary"
+                  </Button>
+                  <Button
                     onClick={() => {
                       setIsViewDialogOpen(false);
                       setIsApproveDialogOpen(true);
                     }}
                   >
                     Approve
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -481,38 +495,27 @@ export default function OrgRequestsPage() {
               {selectedRequest?.organization_name} will be granted access to
               NetManager.
             </p>
-            <div className="space-y-4 mt-4">
-              <div>
-                <label
-                  htmlFor="approve-feedback"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Approval Message (Optional)
-                </label>
-                <textarea
-                  id="approve-feedback"
-                  placeholder="Enter any additional information or instructions..."
-                  className="textarea textarea-bordered w-full min-h-[100px]"
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  This message will be included in the approval email.
-                </p>
-              </div>
-            </div>
             <div className="modal-action">
               <button
                 className="btn btn-outline"
                 onClick={() => setIsApproveDialogOpen(false)}
+                disabled={isApproving}
               >
                 Cancel
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleApproveRequest}
+                disabled={isApproving}
               >
-                Approve
+                {isApproving ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    Approving...
+                  </>
+                ) : (
+                  'Approve'
+                )}
               </button>
             </div>
           </div>
