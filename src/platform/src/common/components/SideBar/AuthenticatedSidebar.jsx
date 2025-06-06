@@ -1,29 +1,15 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import { checkAccess } from '@/core/utils/nextAuthProtectedRoute';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import { useOutsideClick } from '@/core/hooks';
 import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
 import Button from '../Button';
 import Card from '../CardWrapper';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -54,10 +40,6 @@ const AuthenticatedSideBar = ({
   const isCollapsed =
     forceCollapse !== undefined ? forceCollapse : storeCollapsed;
 
-  const [dropdown, setDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  const [collocationOpen, setCollocationOpen] = useState(false);
-  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   // Determine if dark mode should be applied
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
@@ -103,44 +85,6 @@ const AuthenticatedSideBar = ({
     }
   }, [size.width, dispatch]);
 
-  // Retrieve dropdown states from localStorage
-  useEffect(() => {
-    const collocationOpenState = localStorage.getItem('collocationOpen');
-    const analyticsOpenState = localStorage.getItem('analyticsOpen');
-
-    if (collocationOpenState) {
-      try {
-        setCollocationOpen(JSON.parse(collocationOpenState));
-      } catch {
-        // Silent error handling for localStorage parsing issues
-      }
-    }
-
-    if (analyticsOpenState) {
-      try {
-        setAnalyticsOpen(JSON.parse(analyticsOpenState));
-      } catch {
-        // Silent error handling for localStorage parsing issues
-      }
-    }
-  }, []);
-
-  // Save dropdown states to localStorage
-  useEffect(() => {
-    localStorage.setItem('collocationOpen', JSON.stringify(collocationOpen));
-    localStorage.setItem('analyticsOpen', JSON.stringify(analyticsOpen));
-  }, [collocationOpen, analyticsOpen]);
-
-  // Close dropdown when clicked outside
-  useOutsideClick(dropdownRef, () => {
-    setDropdown(false);
-  });
-
-  // Toggle dropdown visibility
-  const toggleDropdown = useCallback(() => {
-    setDropdown((prevState) => !prevState);
-  }, []);
-
   // Theme-based styling using memoized values
   const styles = useMemo(
     () => ({
@@ -155,81 +99,11 @@ const AuthenticatedSideBar = ({
       divider: isDarkMode ? 'border-gray-700' : 'border-gray-200',
       text: isDarkMode ? 'text-white' : 'text-gray-800',
       mutedText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
-      dropdownHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100',
-      dropdownText: isDarkMode ? 'text-white' : 'text-gray-800',
-      dropdownBackground: isDarkMode ? 'bg-[#1d1f20]' : 'bg-white',
       iconFill: isDarkMode ? 'ffffff' : undefined,
       stroke: isDarkMode ? 'white' : '#1f2937',
     }),
     [isDarkMode],
   );
-
-  // Function to render Collocation sidebar item based on permissions
-  const renderCollocationItem = useCallback(() => {
-    if (!checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
-      return null;
-    }
-
-    return isCollapsed ? (
-      <div className="relative">
-        <SidebarItem
-          Icon={CollocateIcon}
-          navPath="#"
-          iconOnly
-          onClick={toggleDropdown}
-          label="Collocation"
-        />
-        {dropdown && (
-          <div
-            ref={dropdownRef}
-            className={`
-              fixed left-[86px] top-[280px] w-48 z-50
-              ${styles.dropdownBackground} border ${styles.border}
-              shadow-lg rounded-xl p-2 space-y-1
-            `}
-          >
-            <Link href={'/user/collocation/overview'}>
-              <div
-                className={`
-                  w-full p-3 rounded-lg cursor-pointer
-                  ${styles.dropdownText} ${styles.dropdownHover}
-                `}
-              >
-                Overview
-              </div>
-            </Link>
-            <Link href={'/user/collocation/collocate'}>
-              <div
-                className={`
-                  w-full p-3 rounded-lg cursor-pointer
-                  ${styles.dropdownText} ${styles.dropdownHover}
-                `}
-              >
-                Collocate
-              </div>
-            </Link>
-          </div>
-        )}
-      </div>
-    ) : (
-      <SidebarItem
-        label="Collocation"
-        Icon={CollocateIcon}
-        dropdown
-        toggleMethod={() => setCollocationOpen(!collocationOpen)}
-        toggleState={collocationOpen}
-      >
-        <SideBarDropdownItem
-          itemLabel="Overview"
-          itemPath="/user/collocation/overview"
-        />
-        <SideBarDropdownItem
-          itemLabel="Collocate"
-          itemPath="/user/collocation/collocate"
-        />
-      </SidebarItem>
-    );
-  }, [isCollapsed, toggleDropdown, dropdown, collocationOpen, styles]);
 
   return (
     <div>
@@ -249,7 +123,6 @@ const AuthenticatedSideBar = ({
             scrollbar-thin ${styles.scrollbar}
           `}
         >
-          {' '}
           {/* Logo Section */}
           <div className="pb-4 flex justify-between items-center">
             {headerContent || (
@@ -266,17 +139,18 @@ const AuthenticatedSideBar = ({
               </Button>
             )}
           </div>
+
           {/* Organization Dropdown */}
           {showOrganizationDropdown && (
             <div>
               <OrganizationDropdown />
             </div>
           )}
+
           {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
-            <div className="mt-8 space-y-1">
-              {children || navigationItems ? (
-                children ||
+            <div className="mt-4 space-y-1">
+              {children ||
                 navigationItems?.map((item, index) => {
                   if (item.type === 'divider') {
                     return isCollapsed ? (
@@ -325,47 +199,7 @@ const AuthenticatedSideBar = ({
                       iconOnly={isCollapsed}
                     />
                   );
-                })
-              ) : (
-                // Default navigation for backward compatibility
-                <>
-                  <SidebarItem
-                    label="Home"
-                    Icon={HomeIcon}
-                    navPath="/user/Home"
-                    iconOnly={isCollapsed}
-                  />
-                  <SidebarItem
-                    label="Analytics"
-                    Icon={BarChartIcon}
-                    navPath="/user/analytics"
-                    iconOnly={isCollapsed}
-                  />
-                  {/* Network Section */}
-                  {isCollapsed ? (
-                    <hr className={`my-3 border-t ${styles.divider}`} />
-                  ) : (
-                    <div
-                      className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
-                    >
-                      Network
-                    </div>
-                  )}
-                  {renderCollocationItem()}
-                  <SidebarItem
-                    label="Map"
-                    Icon={WorldIcon}
-                    navPath="/user/map"
-                    iconOnly={isCollapsed}
-                  />
-                  <SidebarItem
-                    label="Settings"
-                    Icon={SettingsIcon}
-                    navPath="/user/settings"
-                    iconOnly={isCollapsed}
-                  />
-                </>
-              )}
+                })}
             </div>
 
             {/* Bottom Section */}
@@ -375,7 +209,8 @@ const AuthenticatedSideBar = ({
               )}
             </div>
           </div>
-        </Card>{' '}
+        </Card>
+
         {/* Sidebar collapse button */}
         {showCollapseButton && pathname !== '/user/map' && (
           <div
