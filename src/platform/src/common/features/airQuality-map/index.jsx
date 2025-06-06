@@ -10,7 +10,7 @@ import React, {
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
 import PropTypes from 'prop-types';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import {
   setMapLoading,
   setCenter,

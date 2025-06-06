@@ -3,10 +3,10 @@
 import { usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
-import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import TopBar from '@/components/TopBar';
 import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
+import IndividualUserSidebar from '@/layouts/IndividualUserSidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -44,7 +44,6 @@ export default function PagesLayout({ children }) {
       ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
       : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
     : '';
-
   return (
     <div className="flex overflow-hidden min-h-screen" data-testid="layout">
       <Head>
@@ -54,7 +53,7 @@ export default function PagesLayout({ children }) {
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar />
+        <IndividualUserSidebar />
       </aside>
 
       {/* Main Content */}

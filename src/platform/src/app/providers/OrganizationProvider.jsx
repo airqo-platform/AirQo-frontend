@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   getOrganizationBySlugApi,
@@ -111,12 +111,5 @@ OrganizationProvider.propTypes = {
   theme: PropTypes.object,
 };
 
-export function useOrganization() {
-  const context = useContext(OrganizationContext);
-  if (context === undefined) {
-    throw new Error(
-      'useOrganization must be used within an OrganizationProvider',
-    );
-  }
-  return context;
-}
+// Re-export the useOrganization hook from core hooks for convenience
+export { useOrganization } from '@/core/hooks/useOrganization';

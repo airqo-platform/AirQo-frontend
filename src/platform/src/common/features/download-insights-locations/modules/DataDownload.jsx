@@ -82,16 +82,11 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     previousFilter: null,
     errorTimeout: null,
   });
-
   // Mobile UI state
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
 
   // Get active group info
-  const {
-    id: activeGroupId,
-    title: groupTitle,
-    groupList,
-  } = useGetActiveGroup();
+  const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
   const fetchData = useDataDownload();
 
   // Core state
@@ -109,31 +104,19 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const darkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   }, [theme, systemTheme]);
-
-  // Organization options derived from group list
-  const ORGANIZATION_OPTIONS = useMemo(
-    () =>
-      groupList?.map((group) => ({
-        id: group._id,
-        name: group.grp_title,
-      })) || [],
-    [groupList],
-  );
   // All data type options are available for all filter types
   const filteredDataTypeOptions = useMemo(() => {
     return DATA_TYPE_OPTIONS;
   }, []);
 
-  // Active group info for organization selection
+  // Active group info - automatically used instead of manual selection
   const activeGroup = useMemo(
     () => ({ id: activeGroupId, name: groupTitle }),
     [activeGroupId, groupTitle],
   );
-
-  // Form state with defaults
+  // Form state with defaults - organization is automatically determined from active group
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
-    organization: null,
     dataType: DATA_TYPE_OPTIONS[0],
     pollutant: POLLUTANT_OPTIONS[0],
     duration: null,
@@ -155,16 +138,15 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isLoading: isLoadingSiteIds,
     isError: isSiteIdsError,
   } = useSiteAndDeviceIds(selectedGridId);
-
-  // Data fetching hooks with dependencies
+  // Data fetching hooks with dependencies - using active group instead of manual selection
   const {
     data: sitesData,
     isLoading: sitesLoading,
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(formData.organization?.name?.toLowerCase(), {
-    enabled: !!formData.organization?.name,
+  } = useSitesSummary(activeGroup?.name?.toLowerCase(), {
+    enabled: !!activeGroup?.name,
   });
 
   const {
@@ -173,8 +155,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: devicesError,
     error: devicesErrorMsg,
     refresh: refreshDevices,
-  } = useDeviceSummary(formData.organization?.name?.toLowerCase(), {
-    enabled: !!formData.organization?.name,
+  } = useDeviceSummary(activeGroup?.name?.toLowerCase(), {
+    enabled: !!activeGroup?.name,
   });
 
   const {
@@ -217,7 +199,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       }
     };
   }, []);
-
   // Close mobile sidebar when resizing to larger screen
   useEffect(() => {
     const handleResize = () => {
@@ -229,22 +210,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Set initial organization once data is loaded
-  useEffect(() => {
-    if (!formData.organization && ORGANIZATION_OPTIONS.length > 0) {
-      const airqoNetwork = ORGANIZATION_OPTIONS.find(
-        (group) => group.name?.toLowerCase() === 'airqo',
-      );
-
-      setFormData((prev) => ({
-        ...prev,
-        organization: activeGroup?.id
-          ? activeGroup
-          : airqoNetwork || ORGANIZATION_OPTIONS[0],
-      }));
-    }
-  }, [ORGANIZATION_OPTIONS, activeGroup, formData.organization]);
 
   // Update filter errors for UI feedback
   useEffect(() => {
@@ -312,42 +277,32 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     setClearSelected(true);
     setTimeout(() => setClearSelected(false), 50);
   }, []);
-
   // Reset everything including form data
   const handleClearSelection = useCallback(() => {
     clearSelections();
 
-    // Reset form data to defaults
-    const airqoNetwork = ORGANIZATION_OPTIONS.find(
-      (group) => group.name?.toLowerCase() === 'airqo',
-    );
-
+    // Reset form data to defaults - no organization field needed
     setFormData({
       title: { name: 'Untitled Report' },
-      organization: activeGroup?.id
-        ? activeGroup
-        : airqoNetwork || ORGANIZATION_OPTIONS[0],
       dataType: DATA_TYPE_OPTIONS[0],
       pollutant: POLLUTANT_OPTIONS[0],
       duration: null,
       frequency: FREQUENCY_OPTIONS[0],
       fileType: FILE_TYPE_OPTIONS[0],
     });
-  }, [ORGANIZATION_OPTIONS, activeGroup, clearSelections]);
+  }, [clearSelections]);
 
-  // Handle form field updates
+  // Handle form field updates - organization is automatically handled by active group
   const handleOptionSelect = useCallback(
     (id, option) => {
       setFormData((prev) => ({ ...prev, [id]: option }));
 
-      // Refresh data when organization changes
-      if (id === 'organization' && option?.name) {
-        refreshSites();
-        refreshDevices();
+      // Clear selections when data type changes to ensure consistency
+      if (id === 'dataType') {
         clearSelections();
       }
     },
-    [refreshSites, refreshDevices, clearSelections],
+    [clearSelections],
   );
 
   // Toggle item selection
@@ -931,10 +886,9 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       visible: { opacity: 1, y: 0 },
     },
   };
-
   // Render sidebar content based on loading state
   const renderSidebarContent = () => {
-    if (Object.values(ORGANIZATION_OPTIONS).length === 0) {
+    if (!activeGroup?.name) {
       return (
         <motion.div
           className="animate-pulse space-y-4 p-4"
@@ -958,7 +912,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         edit={edit}
         setEdit={setEdit}
         filteredDataTypeOptions={filteredDataTypeOptions}
-        ORGANIZATION_OPTIONS={ORGANIZATION_OPTIONS}
         durationGuidance={durationGuidance}
         handleSubmit={handleSubmit}
         sidebarBg={darkMode ? '' : sidebarBg}

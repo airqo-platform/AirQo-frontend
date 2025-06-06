@@ -10,7 +10,7 @@ import Loader from '@/components/Spinner';
 import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSlice';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 // Remove unused import since middleware handles auth
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
 
 // Icons

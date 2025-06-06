@@ -16,7 +16,7 @@ import LoginSetupLoader from '@/components/LoginSetupLoader';
 
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { setupUserAfterLogin } from '@/core/utils/setupUser';
+import { setupIndividualUserAfterLogin } from '@/core/utils/setupUserIndividual';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -73,8 +73,8 @@ const UserLogin = () => {
 
           if (session?.user && session?.accessToken) {
             try {
-              // Setup user with the session data
-              await setupUserAfterLogin(session, dispatch);
+              // Setup user with the session data using individual user setup
+              await setupIndividualUserAfterLogin(session, dispatch);
 
               // Navigate to home page after setup is complete
               router.push('/user/Home');

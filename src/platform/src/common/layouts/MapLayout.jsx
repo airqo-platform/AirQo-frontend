@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
+import IndividualUserSidebar from '@/layouts/IndividualUserSidebar';
 import TopBar from '@/components/TopBar';
 import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
@@ -14,13 +15,14 @@ import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
 
 /**
  * Map Layout Component
  * Provides a specialized layout for the map route
  * Map page has different layout requirements
+ * Supports both individual and organization user contexts
  */
 export default function MapLayout({ children, forceMapView = false }) {
   const dispatch = useDispatch();
@@ -32,6 +34,11 @@ export default function MapLayout({ children, forceMapView = false }) {
 
   // Force sidebar collapse on small screens and when map is the main focus
   const isMobile = width < 768;
+
+  // Determine user context based on pathname
+  const isIndividualUser = useMemo(() => {
+    return pathname.includes('/user/');
+  }, [pathname]);
 
   // Get route configuration based on current pathname
   const routeConfig = LAYOUT_CONFIGS.MAP[pathname] || DEFAULT_CONFIGS.MAP;
@@ -49,16 +56,19 @@ export default function MapLayout({ children, forceMapView = false }) {
       }
     };
   }, [dispatch, isMobile]);
-
+  // Determine which sidebar component to render
+  const SidebarComponent = isIndividualUser
+    ? IndividualUserSidebar
+    : AuthenticatedSideBar;
   return (
     <div className="flex overflow-hidden min-h-screen" data-testid="layout">
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
-      </Head>{' '}
+      </Head>
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar forceCollapse={isMobile || forceMapView} />
+        <SidebarComponent forceCollapse={isMobile || forceMapView} />
       </aside>
       {/* Main Content */}
       <main
@@ -85,7 +95,7 @@ export default function MapLayout({ children, forceMapView = false }) {
         </div>
       </main>
       {/* SideBar Drawer */}
-      <SideBarDrawer />{' '}
+      <SideBarDrawer />
     </div>
   );
 }
