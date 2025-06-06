@@ -1,11 +1,19 @@
 import axios from 'axios';
+import { getSession } from 'next-auth/react';
 import logger from '../../lib/logger';
 import { NEXT_PUBLIC_API_BASE_URL } from '../../lib/envConstants';
 
-// Function to get JWT Token
-const getJwtToken = () => {
+// Function to get JWT Token from NextAuth session
+const getJwtToken = async () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+
+  try {
+    const session = await getSession();
+    return session?.accessToken || null;
+  } catch (error) {
+    logger.warn('Failed to get session token:', error);
+    return null;
+  }
 };
 
 // API base URL and token from environment variables
@@ -21,13 +29,12 @@ const createApiClient = (useJwt = true) => {
     baseURL: API_BASE_URL,
     withCredentials: true,
   });
-
   // Add request interceptor
   instance.interceptors.request.use(
-    (config) => {
+    async (config) => {
       if (useJwt) {
-        // Set JWT authentication
-        const token = getJwtToken();
+        // Set JWT authentication from NextAuth session
+        const token = await getJwtToken();
         if (token) {
           config.headers['Authorization'] = token;
         }

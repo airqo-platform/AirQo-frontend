@@ -13,14 +13,30 @@ const LogoutUser = async (dispatch, router) => {
     const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
     redirectUrl = `/org/${orgSlug}/login`;
   }
-
   try {
     // Dispatch the RESET_APP action to clear the Redux store
     dispatch(resetStore());
 
-    // Clear local storage
+    // Clear only user-related data from localStorage, preserve theme and location
     if (typeof window !== 'undefined') {
+      // Preserve theme settings and user location
+      const theme = localStorage.getItem('theme');
+      const skin = localStorage.getItem('skin');
+      const primaryColor = localStorage.getItem('primaryColor');
+      const layout = localStorage.getItem('layout');
+      const semiDark = localStorage.getItem('semiDark');
+      const userLocation = localStorage.getItem('userLocation');
+
+      // Clear all localStorage
       localStorage.clear();
+
+      // Restore preserved settings
+      if (theme) localStorage.setItem('theme', theme);
+      if (skin) localStorage.setItem('skin', skin);
+      if (primaryColor) localStorage.setItem('primaryColor', primaryColor);
+      if (layout) localStorage.setItem('layout', layout);
+      if (semiDark) localStorage.setItem('semiDark', semiDark);
+      if (userLocation) localStorage.setItem('userLocation', userLocation);
     }
 
     // Purge the persisted Redux state

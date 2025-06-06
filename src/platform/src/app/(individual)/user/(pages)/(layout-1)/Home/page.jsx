@@ -31,10 +31,9 @@ const Home = () => {
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
   const reduxUserInfo = useSelector((state) => state.login.userInfo);
-
   // Get user display name from multiple sources with priority
   const getUserDisplayName = () => {
-    // Priority: Redux user info -> NextAuth session -> localStorage -> Guest
+    // Priority: Redux user info -> NextAuth session -> Guest
     if (reduxUserInfo?.firstName) {
       return reduxUserInfo.firstName;
     }
@@ -72,21 +71,18 @@ const Home = () => {
             dispatch(fetchUserChecklists(session.user.id));
             setIsFetchInitiated(true);
           }
-        } else {
-          // Fallback to localStorage for backward compatibility
-          const storedUser = localStorage.getItem('loggedUser');
-          if (storedUser && storedUser !== 'undefined') {
-            const parsedUser = JSON.parse(storedUser);
-            setUserData(parsedUser);
+        } else if (reduxUserInfo?._id) {
+          // Use Redux user info if available
+          setUserData(reduxUserInfo);
 
-            if (parsedUser._id && !isFetchInitiated) {
-              dispatch(fetchUserChecklists(parsedUser._id));
-              setIsFetchInitiated(true);
-            }
+          if (reduxUserInfo._id && !isFetchInitiated) {
+            dispatch(fetchUserChecklists(reduxUserInfo._id));
+            setIsFetchInitiated(true);
           }
         }
-      } catch {
+      } catch (error) {
         // Handle error silently or with logger
+        console.warn('Error loading user data:', error);
       }
 
       // Set loading to false when we have data or after a timeout
@@ -113,8 +109,8 @@ const Home = () => {
     checklistData,
     session,
     status,
-  ]);
-  // Add data persistence check for MAC users specifically
+    reduxUserInfo,
+  ]); // Enhanced data recovery check for Mac users - no localStorage dependency
   useEffect(() => {
     const checkPlatform = () => {
       const platform = navigator.platform || '';
@@ -122,18 +118,13 @@ const Home = () => {
 
       if (isMacOS) {
         // Extra check for Mac users to ensure data persistence
-        const checklistComplete = localStorage.getItem(
-          'checklistPreviouslyCompleted',
-        );
-
-        // If previously completed checklist but now data is missing, attempt recovery
+        // Check if checklist data is missing but we have user data
         if (
-          checklistComplete === 'true' &&
           (!checklistData || checklistData.length === 0) &&
           (userData?._id || session?.user?.id) &&
           checklistStatus !== 'loading'
         ) {
-          // Handle recovery silently
+          // Attempt recovery by refetching checklist data
           const userId = userData?._id || session?.user?.id;
           if (userId) {
             dispatch(fetchUserChecklists(userId));

@@ -28,23 +28,8 @@ export const setupOrganizationAfterLogin = async (
 
     if (!session?.orgSlug || session.orgSlug !== orgSlug) {
       throw new Error('Invalid organization context in session');
-    }
-
-    // Store token for API calls if available
-    if (session.accessToken) {
-      localStorage.setItem('token', session.accessToken);
-    }
-
-    // Store basic user data immediately for faster UI updates
-    const basicUserData = {
-      _id: session.user.id,
-      firstName: session.user.name?.split(' ')[0] || session.user.name,
-      name: session.user.name,
-      email: session.user.email,
-      organization: session.user.organization,
-      orgSlug: session.orgSlug,
-    };
-    localStorage.setItem('loggedUser', JSON.stringify(basicUserData));
+    } // Note: We no longer store token or user data in localStorage
+    // The session is managed by NextAuth and Redux stores user info
 
     // 1. Fetch organization details
     let organizationData;
@@ -97,21 +82,17 @@ export const setupOrganizationAfterLogin = async (
       grp_title: session.user.long_organization || session.user.organization,
       organization: session.user.organization,
       orgSlug: session.orgSlug,
-    };
-
-    // 4. Update Redux store with organization user info and active group
+    }; // 4. Update Redux store with organization user info and active group
     dispatch(setUserInfo(organizationUser));
     dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));
 
-    // 5. Update localStorage with complete organization user data
-    localStorage.setItem('loggedUser', JSON.stringify(organizationUser));
+    // Note: User data is now stored in Redux and session only
+    // No localStorage usage for user/organization data
 
     return { user: organizationUser, organization: organizationData };
   } catch (error) {
-    // Clear any partial data if setup fails
-    localStorage.removeItem('token');
-    localStorage.removeItem('loggedUser');
+    // Note: No localStorage cleanup needed as we don't store data there anymore
 
     dispatch(setSuccess(false));
     dispatch(

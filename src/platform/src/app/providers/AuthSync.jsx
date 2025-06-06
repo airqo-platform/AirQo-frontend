@@ -27,6 +27,7 @@ const AuthSync = () => {
   const pathname = usePathname();
   const reduxLoginState = useSelector((state) => state.login);
   const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
+
   useEffect(() => {
     if (status === 'loading') {
       // Still loading, don't do anything yet
@@ -76,7 +77,9 @@ const AuthSync = () => {
         }
         // Exit early for org users to prevent individual user logic
         return;
-      } // Handle case where user is on org route but doesn't have org in session
+      }
+
+      // Handle case where user is on org route but doesn't have org in session
       if (isOrgRoute && !session?.user?.organization) {
         // User is trying to access org route without proper org session
         // Extract org slug and redirect to org login
@@ -106,28 +109,11 @@ const AuthSync = () => {
         const fetchUserDetails = async () => {
           try {
             if (session?.user?.id) {
-              // Store token for API calls if available
-              if (session.accessToken || session.user.accessToken) {
-                const token = session.accessToken || session.user.accessToken;
-                localStorage.setItem('token', token);
-              }
+              // Note: Token is now managed by NextAuth session, no localStorage storage needed
 
-              // Check if we have cached user data first
-              const cachedUser = localStorage.getItem('loggedUser');
-              const cachedActiveGroup = localStorage.getItem('activeGroup');
-
-              if (
-                cachedUser &&
-                cachedActiveGroup &&
-                reduxLoginState.userInfo?._id === session.user.id
-              ) {
-                // Use cached data to avoid API call
-                const user = JSON.parse(cachedUser);
-                const group = JSON.parse(cachedActiveGroup);
-
-                dispatch(setUserInfo(user));
-                dispatch(setActiveGroup(group));
-                dispatch(setSuccess(true));
+              // Check if we already have user data in Redux to avoid unnecessary API calls
+              if (reduxLoginState.userInfo?._id === session.user.id) {
+                // Use Redux data, no need for API call
                 return;
               }
 
@@ -161,9 +147,8 @@ const AuthSync = () => {
               dispatch(setActiveGroup(activeGroup));
               dispatch(setSuccess(true));
 
-              // Update localStorage with complete user data
-              localStorage.setItem('loggedUser', JSON.stringify(user));
-              localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+              // Note: User data is now stored in Redux and session only
+              // No localStorage usage for user/active group data
             }
           } catch (error) {
             logger.error('Error fetching user details:', error);
@@ -172,16 +157,8 @@ const AuthSync = () => {
 
         fetchUserDetails();
       } else {
-        // We have Redux data, ensure localStorage is in sync
-        if (reduxLoginState.userInfo && typeof window !== 'undefined') {
-          localStorage.setItem(
-            'loggedUser',
-            JSON.stringify(reduxLoginState.userInfo),
-          );
-        }
-        if (activeGroup && typeof window !== 'undefined') {
-          localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
-        }
+        // We have Redux data, no localStorage sync needed
+        // Data is maintained in Redux and NextAuth session
       }
     } else if (status === 'unauthenticated') {
       // User is not authenticated
@@ -189,12 +166,7 @@ const AuthSync = () => {
       dispatch(resetStore());
       dispatch(clearActiveGroup());
 
-      // Clear localStorage data
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('loggedUser');
-        localStorage.removeItem('activeGroup');
-      }
+      // Note: No localStorage cleanup needed as we don't store user data there
 
       // Check if user is on a protected route
       const protectedRoutes = [
