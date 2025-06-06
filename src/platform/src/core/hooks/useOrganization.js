@@ -137,3 +137,16 @@ export function useOrganizationContext() {
     requiresApproval: () => organization?.settings?.requireApproval || false,
   };
 }
+
+/**
+ * Organization Provider component that provides organization context to children
+ */
+export function OrganizationProvider({ children }) {
+  const organizationData = useOrganizationContext();
+
+  return (
+    <OrganizationContext.Provider value={organizationData}>
+      {children}
+    </OrganizationContext.Provider>
+  );
+}
