@@ -436,7 +436,7 @@ export default function OrgRequestsPage() {
             Review the complete details of this organization request.
           </p>
           {selectedRequest && (
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-sm text-gray-500">

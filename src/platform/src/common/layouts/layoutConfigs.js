@@ -48,7 +48,7 @@ export const LAYOUT_CONFIGS = {
       pageTitle: 'Pending Organisation Requests - AirQo Analytics',
       topbarTitle: 'Pending Organisation Requests',
       noBorderBottom: false,
-      showSearch: true,
+      showSearch: false,
       noTopNav: false,
     },
     '/admin/organisations': {
