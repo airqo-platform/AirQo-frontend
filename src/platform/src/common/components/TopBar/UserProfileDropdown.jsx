@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import CustomDropdown from '../Button/CustomDropdown';
 import UserIcon from '@/icons/Topbar/userIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import LogoutUser from '@/core/utils/LogoutUser';
+import LogoutUser from '@/core/HOC/LogoutUser';
 import { useDispatch } from 'react-redux';
 
 /**

@@ -10,13 +10,13 @@ import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import { checkAccess } from '@/core/utils/nextAuthProtectedRoute';
+import { checkAccess } from '@/core/HOC/withNextAuth';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
 // import Carousel_1 from '../carousels/Carousel_1';
-import LogoutUser from '@/core/utils/LogoutUser';
+import LogoutUser from '@/core/HOC/LogoutUser';
 import Card from '@/components/CardWrapper';
 
 const SideBarDrawer = () => {

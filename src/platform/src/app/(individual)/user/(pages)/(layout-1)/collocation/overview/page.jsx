@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
+import { withPermission } from '@/core/HOC/withNextAuth';
 import { findAllMatchingDevices } from '@/core/utils/matchingDevices';
 import {
   addOverviewBatch,

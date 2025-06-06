@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
+import { withPermission } from '@/core/HOC/withNextAuth';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 
 import HeaderNav from '@/components/Layout/header';

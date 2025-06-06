@@ -18,7 +18,7 @@ import {
   getCollocationStatistics,
   getCollocationResults,
 } from '@/lib/store/services/collocation';
-import { withPermission } from '@/core/utils/nextAuthProtectedRoute';
+import { withPermission } from '@/core/HOC/withNextAuth';
 
 const Reports = () => {
   const dispatch = useDispatch();
