@@ -8,6 +8,7 @@ import React, {
 import { useWindowSize } from '@/lib/windowSize';
 import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
 import WorldIcon from '@/icons/SideBar/world_Icon';
+import TimeIcon from '@/icons/Common/time';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
@@ -236,74 +237,23 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
       return null;
     }
 
-    return isCollapsed ? (
+    return (
       <div className="relative">
         <SidebarItem
+          label="All Organisations"
           Icon={GoOrganization}
-          navPath="#"
-          iconOnly
-          onClick={toggleDropdown}
-          label="Organizations"
+          navPath="/admin/organisations"
+          iconOnly={isCollapsed}
         />
-        {dropdown && (
-          <div
-            ref={dropdownRef}
-            className={`
-              fixed left-[86px] top-[280px] w-48 z-50
-              ${styles.dropdownBackground} border ${styles.border}
-              shadow-lg rounded-xl p-2 space-y-1
-            `}
-          >
-            <Link href={'/admin/organisations/approved'}>
-              <div
-                className={`
-                  w-full p-3 rounded-lg cursor-pointer
-                  ${styles.dropdownText} ${styles.dropdownHover}
-                `}
-              >
-                Approved
-              </div>
-            </Link>
-            <Link href={'/admin/organisations/pending'}>
-              <div
-                className={`
-                  w-full p-3 rounded-lg cursor-pointer
-                  ${styles.dropdownText} ${styles.dropdownHover}
-                `}
-              >
-                New Requests
-              </div>
-            </Link>
-          </div>
-        )}
+        <SidebarItem
+          label="Pending Requests"
+          Icon={TimeIcon}
+          navPath="/admin/organisations/requests"
+          iconOnly={isCollapsed}
+        />
       </div>
-    ) : (
-      <SidebarItem
-        label="Organizations"
-        Icon={GoOrganization}
-        dropdown
-        toggleMethod={() => setCollocationOpen(!collocationOpen)}
-        toggleState={collocationOpen}
-      >
-        <SideBarDropdownItem
-          itemLabel="Approved"
-          itemPath="/admin/organisations/approved"
-        />
-        <SideBarDropdownItem
-          itemLabel="New Requests"
-          itemPath="/admin/organisations/pending"
-        />
-      </SidebarItem>
     );
-  }, [
-    isCollapsed,
-    toggleDropdown,
-    dropdown,
-    collocationOpen,
-    styles,
-    isSuperAdmin,
-    activeGroup,
-  ]);
+  }, [isCollapsed, isSuperAdmin, activeGroup]);
 
   return (
     <div>
@@ -334,25 +284,15 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
           <div className="flex flex-col justify-between h-full">
             {displayAdminSidebarView ? (
               <div className="mt-8 space-y-1">
-                <div
-                  className={`px-3 pb-2 text-xs font-semibold ${styles.mutedText}`}
-                >
-                  Admin Panel
-                </div>
-                {renderAdminOrganisationItem()}
-                {/* <SidebarItem
-                  label="Users"
-                  Icon={HomeIcon}
-                  navPath="/admin/users"
-                  iconOnly={isCollapsed}
-                />
+                {!isCollapsed && (
+                  <div
+                    className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
+                  >
+                    Organisations
+                  </div>
+                )}
 
-                <SidebarItem
-                  label="Preferances"
-                  Icon={HomeIcon}
-                  navPath="/admin/preferences"
-                  iconOnly={isCollapsed}
-                /> */}
+                {renderAdminOrganisationItem()}
               </div>
             ) : (
               <div className="mt-8 space-y-1">

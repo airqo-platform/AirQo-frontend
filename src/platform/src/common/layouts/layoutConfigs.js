@@ -44,6 +44,20 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
+    '/admin/organisations/requests': {
+      pageTitle: 'Pending Organisation Requests - AirQo Analytics',
+      topbarTitle: 'Pending Organisation Requests',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/organisations': {
+      pageTitle: 'All Organisations - AirQo Analytics',
+      topbarTitle: 'All Organisations',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
   },
 
   // Auth routes configuration
@@ -78,24 +92,6 @@ export const LAYOUT_CONFIGS = {
       noTopNav: false,
     },
   },
-
-  // Admin routes configuration
-  ADMIN: {
-    '/admin/organisations/pending': {
-      pageTitle: 'Pending Organisation Requests - AirQo Analytics',
-      topbarTitle: 'Pending Organisation Requests',
-      noBorderBottom: false,
-      showSearch: true,
-      noTopNav: false,
-    },
-    '/admin/organisations/approved': {
-      pageTitle: 'Approved Organisation Requests - AirQo Analytics',
-      topbarTitle: 'Approved Organisation Requests',
-      noBorderBottom: false,
-      showSearch: false,
-      noTopNav: false,
-    },
-  },
 };
 
 // Default configurations for fallback
@@ -118,13 +114,6 @@ export const DEFAULT_CONFIGS = {
     topbarTitle: 'Air Quality Map',
     noBorderBottom: true,
     showSearch: true,
-    noTopNav: false,
-  },
-  ADMIN: {
-    pageTitle: 'Admin - AirQo Analytics',
-    topbarTitle: 'Admin',
-    noBorderBottom: false,
-    showSearch: false,
     noTopNav: false,
   },
 };

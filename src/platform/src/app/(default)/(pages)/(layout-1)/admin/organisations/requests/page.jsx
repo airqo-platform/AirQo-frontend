@@ -17,6 +17,7 @@ import {
   rejectOrganisationRequestApi,
 } from '@/core/apis/Account';
 import logger from '@/lib/logger';
+import { DialogWrapper } from '@/common/components/Modal/DialogWrapper';
 
 export default function OrgRequestsPage() {
   const dispatch = useDispatch();
@@ -249,8 +250,8 @@ export default function OrgRequestsPage() {
   );
 
   return (
-    <div>
-      <Tabs customPadding="px-6">
+    <>
+      <Tabs>
         <div label="Pending">
           <RequestsTable
             requests={
@@ -392,58 +393,12 @@ export default function OrgRequestsPage() {
       </Tabs>
 
       {/* View Request Modal */}
-      <input
-        type="checkbox"
-        id="view-modal"
-        className="modal-toggle"
-        checked={isViewDialogOpen}
-        onChange={() => setIsViewDialogOpen(!isViewDialogOpen)}
-      />
-      <div className="modal">
-        <div className="modal-box max-w-md">
-          <h3 className="font-bold text-lg">Organization Request Details</h3>
-          <p className="text-sm text-gray-500">
-            Review the complete details of this organization request.
-          </p>
-          {selectedRequest && (
-            <div className="space-y-4 mt-4">
-              <div>
-                <h4 className="font-medium text-sm">Organization Name</h4>
-                <p>{selectedRequest.organization_name}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Contact Person</h4>
-                <p>{selectedRequest.contact_name}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Contact Email</h4>
-                <p>{selectedRequest.contact_email}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Country</h4>
-                <p>{selectedRequest.country}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Organization Type</h4>
-                <p>{selectedRequest.organization_type}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Submitted At</h4>
-                <p>{formatDate(selectedRequest.createdAt)}</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-sm">Status</h4>
-                <StatusBadge status={selectedRequest.status} />
-              </div>
-            </div>
-          )}
-          <div className="modal-action">
-            <button
-              className="btn btn-outline"
-              onClick={() => setIsViewDialogOpen(false)}
-            >
-              Close
-            </button>
+      <DialogWrapper
+        open={isViewDialogOpen}
+        onClose={() => setIsViewDialogOpen(false)}
+        width="w-full max-w-[700px]"
+        footer={
+          <div className="flex justify-end gap-2">
             {selectedRequest && selectedRequest.status === 'pending' && (
               <>
                 <Button
@@ -466,61 +421,105 @@ export default function OrgRequestsPage() {
                 </Button>
               </>
             )}
+            <Button
+              variant="outlined"
+              onClick={() => setIsViewDialogOpen(false)}
+            >
+              Close
+            </Button>
           </div>
+        }
+      >
+        <div className="space-y-4">
+          <h3 className="font-bold text-lg">Organization Request Details</h3>
+          <p className="text-sm text-gray-500">
+            Review the complete details of this organization request.
+          </p>
+          {selectedRequest && (
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">
+                    Organization Name
+                  </h4>
+                  <p className="text-sm mt-1">
+                    {selectedRequest.organization_name}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">
+                    Contact Person
+                  </h4>
+                  <p className="text-sm mt-1">{selectedRequest.contact_name}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">
+                    Contact Email
+                  </h4>
+                  <p className="text-sm mt-1">
+                    {selectedRequest.contact_email}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">Country</h4>
+                  <p className="text-sm mt-1">{selectedRequest.country}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">
+                    Organization Type
+                  </h4>
+                  <p className="text-sm mt-1">
+                    {selectedRequest.organization_type}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">
+                    Submitted At
+                  </h4>
+                  <p className="text-sm mt-1">
+                    {formatDate(selectedRequest.createdAt)}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">Status</h4>
+                  <div className="mt-1">
+                    <StatusBadge status={selectedRequest.status} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </DialogWrapper>
 
       {/* Approve Request Modal */}
-      <input
-        type="checkbox"
-        id="approve-modal"
-        className="modal-toggle"
-        checked={isApproveDialogOpen}
-        onChange={() => setIsApproveDialogOpen(!isApproveDialogOpen)}
-      />
-      <div className="modal">
-        <div className="modal-box max-w-md">
+      <DialogWrapper
+        open={isApproveDialogOpen}
+        onClose={() => setIsApproveDialogOpen(false)}
+        primaryButtonText={isApproving ? 'Approving...' : 'Approve'}
+        loading={isApproving}
+        handleClick={handleApproveRequest}
+      >
+        <div className="space-y-4">
           <h3 className="font-bold text-lg">Approve Organization</h3>
           <p className="text-sm text-gray-500">
             {selectedRequest?.organization_name} will be granted access to
             NetManager.
           </p>
-          <div className="modal-action">
-            <button
-              className="btn btn-outline"
-              onClick={() => setIsApproveDialogOpen(false)}
-              disabled={isApproving}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleApproveRequest}
-              disabled={isApproving}
-            >
-              {isApproving ? (
-                <>
-                  <span className="loading loading-spinner loading-sm"></span>
-                  Approving...
-                </>
-              ) : (
-                'Approve'
-              )}
-            </button>
-          </div>
         </div>
-      </div>
+      </DialogWrapper>
 
       {/* Reject Request Modal */}
-      <input
-        type="checkbox"
-        id="reject-modal"
-        className="modal-toggle"
-        checked={isRejectDialogOpen}
-        onChange={() => setIsRejectDialogOpen(!isRejectDialogOpen)}
-      />
-      <div className="modal">
-        <div className="modal-box max-w-md">
+      <DialogWrapper
+        open={isRejectDialogOpen}
+        onClose={() => setIsRejectDialogOpen(false)}
+        primaryButtonText={isRejecting ? 'Rejecting...' : 'Reject'}
+        loading={isRejecting}
+        handleClick={handleRejectRequest}
+      >
+        <div className="space-y-4">
           <h3 className="font-bold text-lg">Reject Organization</h3>
           <p className="text-sm text-gray-500">
             {selectedRequest?.organization_name} will be denied access to
@@ -547,32 +546,9 @@ export default function OrgRequestsPage() {
               </p>
             </div>
           </div>
-          <div className="modal-action">
-            <button
-              className="btn btn-outline"
-              onClick={() => setIsRejectDialogOpen(false)}
-              disabled={isRejecting}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-error"
-              onClick={handleRejectRequest}
-              disabled={!feedbackText.trim() || isRejecting}
-            >
-              {isRejecting ? (
-                <>
-                  <span className="loading loading-spinner loading-sm"></span>
-                  Rejecting...
-                </>
-              ) : (
-                'Reject'
-              )}
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+      </DialogWrapper>
+    </>
   );
 }
 
@@ -632,7 +608,7 @@ function RequestsTable({
     sortField === field ? (sortDirection === 'asc' ? '↑' : '↓') : null;
 
   return (
-    <>
+    <div className="w-full">
       <Card
         padding="p-0"
         header={
@@ -656,6 +632,7 @@ function RequestsTable({
           </div>
         }
         headerProps={{ className: 'py-2' }}
+        className="w-full"
       >
         <style>{`
           .line-clamp-3 {
@@ -669,7 +646,7 @@ function RequestsTable({
           bordered={false}
           rounded={false}
           padding="p-0"
-          className="overflow-x-auto lg:overflow-x-hidden overflow-y-hidden"
+          className="overflow-x-auto lg:overflow-x-hidden overflow-y-hidden w-full"
         >
           <div>
             <table className="w-full border-collapse rounded-lg text-xs text-left mb-6 dark:text-gray-100">
@@ -856,6 +833,6 @@ function RequestsTable({
           />
         </Card>
       </Card>
-    </>
+    </div>
   );
 }

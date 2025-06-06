@@ -107,7 +107,7 @@ const GlobalSideBarDrawer = () => {
             <SideBarItem
               label="Admin Panel"
               Icon={BarChartIcon}
-              navPath="/admin/organisations/pending"
+              navPath="/admin/organisations/requests"
             />
           </div>
         </div>

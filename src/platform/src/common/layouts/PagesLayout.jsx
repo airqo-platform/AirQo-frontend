@@ -31,11 +31,6 @@ export default function PagesLayout({ children }) {
 
   // Get route configuration based on current pathname
   const getRouteConfig = () => {
-    // Check if it's an admin route
-    if (pathname.startsWith('/admin')) {
-      return LAYOUT_CONFIGS.ADMIN[pathname] || DEFAULT_CONFIGS.ADMIN;
-    }
-
     // Check dashboard routes
     if (LAYOUT_CONFIGS.DASHBOARD[pathname]) {
       return LAYOUT_CONFIGS.DASHBOARD[pathname];
