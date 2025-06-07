@@ -68,7 +68,7 @@ const LoadingSkeleton = () => (
   </Card>
 );
 
-const MapSidebar = ({ siteDetails, isAdmin }) => {
+const MapSidebar = ({ siteDetails, isAdmin, children }) => {
   const dispatch = useDispatch();
   const contentRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -433,6 +433,8 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <SectionDivider />
           </div>
         )}
+        {/* Custom children content */}
+        {children && <div className="px-3 py-2">{children}</div>}
         <div
           ref={contentRef}
           style={{
@@ -449,6 +451,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 MapSidebar.propTypes = {
   siteDetails: PropTypes.arrayOf(PropTypes.object).isRequired,
   isAdmin: PropTypes.bool,
+  children: PropTypes.node,
 };
 
 MapSidebar.defaultProps = { isAdmin: false };

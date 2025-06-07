@@ -143,6 +143,13 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
+    '/org/[org_slug]/map': {
+      pageTitle: 'Map - Organization Analytics',
+      topbarTitle: 'Air Quality Map',
+      noBorderBottom: true,
+      showSearch: true,
+      noTopNav: false,
+    },
   },
 };
 
