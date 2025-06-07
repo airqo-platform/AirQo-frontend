@@ -11,7 +11,7 @@ const AuthLayout = ({
   title,
   subtitle,
   showBackToAirqo = true,
-  backToAirqoPath = '/account/login',
+  backToAirqoPath = '/user/login',
 }) => {
   const { organization, getDisplayName, primaryColor, secondaryColor, logo } =
     useOrganization();

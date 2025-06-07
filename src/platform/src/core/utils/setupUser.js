@@ -6,30 +6,11 @@ import {
 } from '@/lib/store/services/account/LoginSlice';
 import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
 import logger from '@/lib/logger';
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-
-/**
- * Retry a function with delay on specific error conditions
- * @param {Function} fn - Function to retry
- * @param {number} retries - Number of retries
- * @returns {Promise} - Result of the function
- */
-const retryWithDelay = async (fn, retries = MAX_RETRIES) => {
-  try {
-    return await fn();
-  } catch (err) {
-    if (retries > 0 && err.response?.status === 429) {
-      await new Promise((res) => setTimeout(res, RETRY_DELAY));
-      return retryWithDelay(fn, retries - 1);
-    }
-    throw err;
-  }
-};
+import { retryWithDelay } from './retryUtils';
 
 /**
  * Setup user after successful authentication using NextAuth session
+ * Uses session-based approach without localStorage dependency
  * Fetches full user details, preferences and sets up the session
  * @param {Object} session - NextAuth session object
  * @param {Function} dispatch - Redux dispatch function
@@ -41,19 +22,32 @@ export const setupUserAfterLogin = async (session, dispatch) => {
       throw new Error('Invalid session: missing user ID');
     }
 
-    // Store token for API calls if available
-    if (session.accessToken) {
-      localStorage.setItem('token', session.accessToken);
-    }
+    logger.info(`Setting up user session for ${session.user.id}`);
 
-    // Store basic user data immediately for faster UI updates
+    // Set basic user data immediately from session for faster UI updates
     const basicUserData = {
       _id: session.user.id,
-      firstName: session.user.name?.split(' ')[0] || session.user.name,
+      firstName:
+        session.user.firstName ||
+        session.user.name?.split(' ')[0] ||
+        session.user.name,
+      lastName:
+        session.user.lastName ||
+        session.user.name?.split(' ').slice(1).join(' '),
       name: session.user.name,
       email: session.user.email,
+      userName: session.user.userName || session.user.email,
+      organization: session.user.organization,
+      long_organization: session.user.long_organization,
+      profilePicture: session.user.profilePicture || session.user.image,
+      country: session.user.country,
+      phoneNumber: session.user.phoneNumber,
+      createdAt: session.user.createdAt,
+      updatedAt: session.user.updatedAt,
     };
-    localStorage.setItem('loggedUser', JSON.stringify(basicUserData));
+
+    // Immediately update Redux store with session data for faster UI response
+    dispatch(setUserInfo(basicUserData));
 
     // 1. Fetch full user object with groups
     const userRes = await retryWithDelay(() => getUserDetails(session.user.id));
@@ -92,18 +86,16 @@ export const setupUserAfterLogin = async (session, dispatch) => {
     dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));
 
-    // 4. Update localStorage with complete user data
-    localStorage.setItem('loggedUser', JSON.stringify(user));
+    logger.info(
+      `User setup completed for ${user.email} with active group: ${activeGroup.grp_title}`,
+    );
 
     return { user, activeGroup };
   } catch (error) {
-    // Clear any partial data if setup fails
-    localStorage.removeItem('token');
-    localStorage.removeItem('loggedUser');
-
+    // Clear Redux state if setup fails
     dispatch(setSuccess(false));
     dispatch(setError(error.message || 'Error setting up user session'));
-
+    logger.error('User setup failed:', error);
     throw error;
   }
 };

@@ -24,7 +24,7 @@ import { useSelector } from 'react-redux';
 import { MdRefresh } from 'react-icons/md';
 import { MdSearchOff } from 'react-icons/md';
 
-import useResizeObserver from '@/core/utils/useResizeObserver';
+import useResizeObserver from '@/core/hooks/useResizeObserver';
 import { parseAndValidateISODate } from '@/core/utils/dateUtils';
 import { formatYAxisTick } from './utils';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -35,7 +35,7 @@ import {
   CustomGraphTooltip,
   CustomReferenceLabel,
 } from './components';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Button from '@/components/Button';
 
 // Custom tick renderer with improved readability

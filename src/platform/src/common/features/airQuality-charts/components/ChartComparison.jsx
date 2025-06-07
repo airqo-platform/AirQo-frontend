@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { useSelector, useDispatch } from 'react-redux';
-import { subDays, subMonths, format } from 'date-fns';
+import { subDays, format } from 'date-fns';
 import {
   LineChart,
   Line,
@@ -13,7 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
@@ -40,7 +39,6 @@ const ChartComparison = ({
   pollutant,
   organizationName,
 }) => {
-  const dispatch = useDispatch();
   const { theme, systemTheme } = useTheme();
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');

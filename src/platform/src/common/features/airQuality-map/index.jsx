@@ -10,7 +10,7 @@ import React, {
 import { useSelector, useDispatch } from 'react-redux';
 import mapboxgl from 'mapbox-gl';
 import PropTypes from 'prop-types';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import {
   setMapLoading,
   setCenter,
@@ -31,7 +31,7 @@ import {
   mapStyles,
   mapDetails,
 } from '@/features/airQuality-map/constants/constants';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AirQoMap = forwardRef(

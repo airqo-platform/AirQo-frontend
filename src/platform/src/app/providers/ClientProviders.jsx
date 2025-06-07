@@ -14,7 +14,7 @@ import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie'
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
 import AuthSync from './AuthSync';
-import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
+import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);

@@ -18,7 +18,7 @@ import CustomToast from '@/components/Toast/CustomToast';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
 import StandardsMenu from './components/StandardsMenu';
 import Card from '@/components/CardWrapper';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Spinner from '@/components/Spinner';
 
 const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];

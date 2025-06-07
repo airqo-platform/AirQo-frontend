@@ -1,9 +1,5 @@
-export const stripTrailingSlash = (url) => {
-  if (!url || typeof url !== 'string') {
-    return '';
-  }
-  return url.trim().replace(/\/$/, '');
-};
+// Re-export URL utilities from urlHelpers for backwards compatibility
+export { normalizeUrl as stripTrailingSlash } from './urlHelpers';
 
 export const capitalizeAllText = (text) => {
   if (!text) {

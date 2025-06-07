@@ -1,12 +1,13 @@
-import {
-  ORGANIZATIONS_URL,
-  ORGANIZATION_BY_SLUG_URL,
-  ORGANIZATION_THEME_URL,
-  ORGANIZATION_REGISTER_URL,
-  ORGANIZATION_LOGIN_URL,
-  ORGANIZATION_ACCESS_URL,
-} from '../urls/organizations';
-import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
+// TODO: Uncomment these imports when real backend API is implemented
+// import {
+//   ORGANIZATIONS_URL,
+//   ORGANIZATION_BY_SLUG_URL,
+//   ORGANIZATION_THEME_URL,
+//   ORGANIZATION_REGISTER_URL,
+//   ORGANIZATION_LOGIN_URL,
+//   ORGANIZATION_ACCESS_URL,
+// } from '../urls/organizations';
+// import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 
 // Mock test users for development testing
 // Available test accounts:
@@ -170,252 +171,242 @@ const MOCK_ORGANIZATIONS = {
 
 // Organization API calls
 export const getOrganizationBySlugApi = async (slug) => {
-  // For development, return mock data
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const slugParts = slug.split('/').filter(Boolean);
-        const [parentSlug, childSlug] = slugParts;
+  // For now, always use mock data until real backend API is implemented
+  // This ensures the organization lookup works in both development and production
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const slugParts = slug.split('/').filter(Boolean);
+      const [parentSlug, childSlug] = slugParts;
 
-        const parentOrg = MOCK_ORGANIZATIONS[parentSlug];
-        if (!parentOrg) {
-          resolve({ data: null });
-          return;
-        }
-
-        if (!childSlug) {
-          resolve({ data: parentOrg });
-          return;
-        }
-
-        if (parentOrg.children && parentOrg.children[childSlug]) {
-          resolve({
-            data: {
-              ...parentOrg.children[childSlug],
-              parent: parentOrg,
-            },
-          });
-          return;
-        }
-
+      const parentOrg = MOCK_ORGANIZATIONS[parentSlug];
+      if (!parentOrg) {
         resolve({ data: null });
-      }, 100);
-    });
-  }
+        return;
+      }
 
-  // Production API call
-  return secureApiProxy({
-    method: 'GET',
-    url: ORGANIZATION_BY_SLUG_URL(slug),
-    auth: AUTH_TYPES.JWT,
+      if (!childSlug) {
+        resolve({ data: parentOrg });
+        return;
+      }
+
+      if (parentOrg.children && parentOrg.children[childSlug]) {
+        resolve({
+          data: {
+            ...parentOrg.children[childSlug],
+            parent: parentOrg,
+          },
+        });
+        return;
+      }
+
+      resolve({ data: null });
+    }, 100);
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'GET',
+  //   url: ORGANIZATION_BY_SLUG_URL(slug),
+  //   auth: AUTH_TYPES.JWT,
+  // });
 };
 
 export const getAllOrganizationsApi = () => {
-  // For development, return mock data
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: Object.values(MOCK_ORGANIZATIONS) });
-      }, 100);
-    });
-  }
-
-  return secureApiProxy({
-    method: 'GET',
-    url: ORGANIZATIONS_URL,
-    auth: AUTH_TYPES.JWT,
+  // For now, always use mock data until real backend API is implemented
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ data: Object.values(MOCK_ORGANIZATIONS) });
+    }, 100);
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'GET',
+  //   url: ORGANIZATIONS_URL,
+  //   auth: AUTH_TYPES.JWT,
+  // });
 };
 
-export const validateUserOrgAccessApi = (userId, orgId) => {
-  // For development, always return true
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { hasAccess: true } });
-      }, 50);
-    });
-  }
-
-  return secureApiProxy({
-    method: 'GET',
-    url: ORGANIZATION_ACCESS_URL(orgId, userId),
-    auth: AUTH_TYPES.JWT,
+export const validateUserOrgAccessApi = (_userId, _orgId) => {
+  // For now, always return true (allow access) until real backend API is implemented
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ data: { hasAccess: true } });
+    }, 50);
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'GET',
+  //   url: ORGANIZATION_ACCESS_URL(orgId, userId),
+  //   auth: AUTH_TYPES.JWT,
+  // });
 };
 
 export const registerUserToOrgApi = (orgSlug, userData) => {
-  // For development, simulate registration success
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const org = MOCK_ORGANIZATIONS[orgSlug];
-        if (org) {
-          // Check if registration is allowed
-          if (!org.settings.allowSelfRegistration) {
-            resolve({
-              success: false,
-              message: 'Registration is not allowed for this organization',
-            });
-            return;
-          }
-
-          // Simulate successful registration
-          resolve({
-            success: true,
-            user: {
-              _id: 'user-' + Date.now(),
-              email: userData.email,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              role: userData.role,
-              organizationId: org._id,
-              organizationSlug: orgSlug,
-              status: org.settings.requireApproval ? 'pending' : 'active',
-            },
-            message: org.settings.requireApproval
-              ? 'Registration submitted. Awaiting approval.'
-              : 'Registration successful',
-            requiresApproval: org.settings.requireApproval,
-          });
-        } else {
+  // For now, always use mock registration until real backend API is implemented
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const org = MOCK_ORGANIZATIONS[orgSlug];
+      if (org) {
+        // Check if registration is allowed
+        if (!org.settings.allowSelfRegistration) {
           resolve({
             success: false,
-            message: 'Organization not found',
+            message: 'Registration is not allowed for this organization',
           });
+          return;
         }
-      }, 1000); // Simulate network delay
-    });
-  }
 
-  // Production API call
-  return secureApiProxy({
-    method: 'POST',
-    url: ORGANIZATION_REGISTER_URL(orgSlug),
-    data: userData,
-    auth: AUTH_TYPES.NONE, // Registration doesn't require authentication
+        // Simulate successful registration
+        resolve({
+          success: true,
+          user: {
+            _id: 'user-' + Date.now(),
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            role: userData.role,
+            organizationId: org._id,
+            organizationSlug: orgSlug,
+            status: org.settings.requireApproval ? 'pending' : 'active',
+          },
+          message: org.settings.requireApproval
+            ? 'Registration submitted. Awaiting approval.'
+            : 'Registration successful',
+          requiresApproval: org.settings.requireApproval,
+        });
+      } else {
+        resolve({
+          success: false,
+          message: 'Organization not found',
+        });
+      }
+    }, 1000); // Simulate network delay
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'POST',
+  //   url: ORGANIZATION_REGISTER_URL(orgSlug),
+  //   data: userData,
+  //   auth: AUTH_TYPES.NONE, // Registration doesn't require authentication
+  // });
 };
 
 export const loginUserToOrgApi = async (loginData) => {
   const { organizationSlug, email, password } = loginData;
 
-  // For development, validate against test users
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const testUser = MOCK_TEST_USERS[email];
-        const org = MOCK_ORGANIZATIONS[organizationSlug];
+  // For now, always use mock login validation until real backend API is implemented
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const testUser = MOCK_TEST_USERS[email];
+      const org = MOCK_ORGANIZATIONS[organizationSlug];
 
-        if (!org) {
-          resolve({
-            success: false,
-            message: 'Organization not found',
-          });
-          return;
-        }
-
-        if (!testUser) {
-          resolve({
-            success: false,
-            message: 'Invalid email or password',
-          });
-          return;
-        }
-
-        if (
-          testUser.password !== password ||
-          testUser.orgSlug !== organizationSlug
-        ) {
-          resolve({
-            success: false,
-            message: 'Invalid email or password',
-          });
-          return;
-        }
-
-        // Successful login
+      if (!org) {
         resolve({
-          success: true,
-          token: 'mock-jwt-token-' + Date.now(),
-          user: {
-            ...testUser.user,
-            organizationId: org._id,
-            organizationSlug: organizationSlug,
-          },
-          message: 'Login successful',
+          success: false,
+          message: 'Organization not found',
         });
-      }, 500); // Simulate network delay
-    });
-  }
+        return;
+      }
 
-  // Production API call
-  return secureApiProxy({
-    method: 'POST',
-    url: ORGANIZATION_LOGIN_URL(organizationSlug),
-    data: { email, password },
-    auth: AUTH_TYPES.NONE, // Login doesn't require prior authentication
+      if (!testUser) {
+        resolve({
+          success: false,
+          message: 'Invalid email or password',
+        });
+        return;
+      }
+
+      if (
+        testUser.password !== password ||
+        testUser.orgSlug !== organizationSlug
+      ) {
+        resolve({
+          success: false,
+          message: 'Invalid email or password',
+        });
+        return;
+      }
+
+      // Successful login
+      resolve({
+        success: true,
+        token: 'mock-jwt-token-' + Date.now(),
+        user: {
+          ...testUser.user,
+          organizationId: org._id,
+          organizationSlug: organizationSlug,
+        },
+        message: 'Login successful',
+      });
+    }, 500); // Simulate network delay
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'POST',
+  //   url: ORGANIZATION_LOGIN_URL(organizationSlug),
+  //   data: { email, password },
+  //   auth: AUTH_TYPES.NONE, // Login doesn't require prior authentication
+  // });
 };
 
 export const getOrganizationThemeApi = (orgSlug) => {
-  // For development, return theme from mock data
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const org = MOCK_ORGANIZATIONS[orgSlug];
-        if (org) {
-          resolve({
-            data: {
-              primaryColor: org.primaryColor,
-              secondaryColor: org.secondaryColor,
-              logo: org.logo,
-              name: org.name,
-            },
-          });
-        } else {
-          resolve({ data: null });
-        }
-      }, 50);
-    });
-  }
-
-  return secureApiProxy({
-    method: 'GET',
-    url: ORGANIZATION_THEME_URL(orgSlug),
-    auth: AUTH_TYPES.NONE, // Theme is public data
+  // For now, always use mock theme data until real backend API is implemented
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const org = MOCK_ORGANIZATIONS[orgSlug];
+      if (org) {
+        resolve({
+          data: {
+            primaryColor: org.primaryColor,
+            secondaryColor: org.secondaryColor,
+            logo: org.logo,
+            name: org.name,
+          },
+        });
+      } else {
+        resolve({ data: null });
+      }
+    }, 50);
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'GET',
+  //   url: ORGANIZATION_THEME_URL(orgSlug),
+  //   auth: AUTH_TYPES.NONE, // Theme is public data
+  // });
 };
 
 export const forgotPasswordOrgApi = async (orgSlug, email) => {
-  // For development, simulate forgot password success
-  if (process.env.NODE_ENV === 'development') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const org = MOCK_ORGANIZATIONS[orgSlug];
-        if (org) {
-          resolve({
-            success: true,
-            message: `Password reset instructions have been sent to ${email} for ${org.name}.`,
-          });
-        } else {
-          resolve({
-            success: false,
-            message: 'Organization not found',
-          });
-        }
-      }, 1000); // Simulate network delay
-    });
-  }
-
-  // Production API call
-  return secureApiProxy({
-    method: 'POST',
-    url: `${ORGANIZATION_BY_SLUG_URL(orgSlug)}/forgot-password`,
-    data: { email },
-    auth: AUTH_TYPES.NONE, // Forgot password doesn't require authentication
+  // For now, always use mock forgot password until real backend API is implemented
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const org = MOCK_ORGANIZATIONS[orgSlug];
+      if (org) {
+        resolve({
+          success: true,
+          message: `Password reset instructions have been sent to ${email} for ${org.name}.`,
+        });
+      } else {
+        resolve({
+          success: false,
+          message: 'Organization not found',
+        });
+      }
+    }, 1000); // Simulate network delay
   });
+
+  // TODO: Uncomment when real backend API is available
+  // return secureApiProxy({
+  //   method: 'POST',
+  //   url: `${ORGANIZATION_BY_SLUG_URL(orgSlug)}/forgot-password`,
+  //   data: { email },
+  //   auth: AUTH_TYPES.NONE, // Forgot password doesn't require authentication
+  // });
 };
 
 // Helper functions for organization logic

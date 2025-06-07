@@ -6,9 +6,9 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 
-import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '../TopBar';
-import SideBarDrawer from '../SideBar/SideBarDrawer';
+import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
+import TopBar from '@/common/layouts/TopBar';
+import SideBarDrawer from '@/common/layouts/SideBar/SideBarDrawer';
 import MaintenanceBanner from '../MaintenanceBanner';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -17,8 +17,8 @@ import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 // NEW: import theme hook and layout constants
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
-import { THEME_LAYOUT } from '@/features/theme-customizer/constants/themeConstants';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 
 const Layout = ({
   pageTitle = 'AirQo Analytics',
@@ -32,7 +32,7 @@ const Layout = ({
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
-  const isMapPage = router.pathname === '/map';
+  const isMapPage = router.pathname === '/user/map';
 
   // Initialize hooks
   useUserPreferences();

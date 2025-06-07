@@ -7,7 +7,7 @@ import {
   getOrganizationThemeApi,
 } from '@/core/apis/Organizations';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import OrganizationNotFound from '../../common/components/Organization/OrganizationNotFound';
+import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
 
 const OrganizationContext = createContext();
 
@@ -104,13 +104,7 @@ export function OrganizationProvider({
   );
 }
 
-OrganizationProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-  orgSlug: PropTypes.string,
-  organization: PropTypes.object,
-  theme: PropTypes.object,
-};
-
+// Add the useOrganization hook
 export function useOrganization() {
   const context = useContext(OrganizationContext);
   if (context === undefined) {
@@ -120,3 +114,10 @@ export function useOrganization() {
   }
   return context;
 }
+
+OrganizationProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+  orgSlug: PropTypes.string,
+  organization: PropTypes.object,
+  theme: PropTypes.object,
+};

@@ -7,6 +7,7 @@ import { isEmpty } from 'underscore';
 import { inviteUserToGroupTeam } from '@/core/apis/Account';
 import AlertBox from '../../AlertBox';
 import DialogWrapper from '../../Modal/DialogWrapper';
+import { useSelector } from 'react-redux';
 
 const TeamInviteForm = ({ open, closeModal }) => {
   const [emails, setEmails] = useState(['']);
@@ -17,6 +18,8 @@ const TeamInviteForm = ({ open, closeModal }) => {
     message: '',
     type: '',
   });
+  // Get active group from Redux store instead of localStorage
+  const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
 
   const handleEmailChange = (index, value) => {
     const updatedEmails = [...emails];
@@ -68,34 +71,11 @@ const TeamInviteForm = ({ open, closeModal }) => {
     const allValid = emails.every((email) => isValidEmail(email));
 
     if (allValid) {
-      const storedActiveGroup = localStorage.getItem('activeGroup');
-      if (!storedActiveGroup) {
-        setIsError({
-          isError: true,
-          message: 'No active group found in localStorage',
-          type: 'error',
-        });
-        setLoading(false);
-        return;
-      }
-
-      let activeGroup;
-      try {
-        activeGroup = JSON.parse(storedActiveGroup);
-      } catch {
-        setIsError({
-          isError: true,
-          message: 'Invalid data in localStorage for "activeGroup"',
-          type: 'error',
-        });
-        setLoading(false);
-        return;
-      }
-
+      // Get active group from Redux store instead of localStorage
       if (!activeGroup || !activeGroup._id) {
         setIsError({
           isError: true,
-          message: 'No valid active group found',
+          message: 'No active group found. Please select a group first.',
           type: 'error',
         });
         setLoading(false);

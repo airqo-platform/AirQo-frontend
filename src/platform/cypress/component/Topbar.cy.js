@@ -1,7 +1,7 @@
 import React from 'react';
 import { mount } from '@cypress/react';
 import { Provider } from 'react-redux';
-import TopBar from '@/components/TopBar';
+import TopBar from '@/common/layouts/TopBar';
 import createStore from '@/lib/store';
 
 describe('TopBar Component', () => {
