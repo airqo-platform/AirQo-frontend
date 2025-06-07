@@ -4,6 +4,7 @@ import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
+import CardWrapper from '@/common/components/CardWrapper';
 
 // Icons
 import {
@@ -405,24 +406,20 @@ export default function OrganizationPreferencesPage({ params }) {
         return null;
     }
   };
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {organization.name} - Preferences
-        </h1>
-        <p className="text-gray-600 mt-1">
-          Manage your organization settings and preferences
-        </p>
-      </div>
+      <CardWrapper
+        title={`${organization.name} - Preferences`}
+        subtitle="Manage your organization settings and preferences"
+        padding="p-6"
+      />
 
       {/* Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <CardWrapper className="overflow-hidden" padding="p-0">
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-gray-50 border-r border-gray-200 p-6">
+          <div className="w-64 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-6">
             <nav className="space-y-2">
               {tabs.map((tab) => (
                 <TabButton
@@ -440,7 +437,7 @@ export default function OrganizationPreferencesPage({ params }) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+        <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-4">
           <div className="flex justify-end space-x-3">
             <Button
               variant="secondary"
@@ -453,7 +450,7 @@ export default function OrganizationPreferencesPage({ params }) {
             </Button>
           </div>
         </div>
-      </div>
+      </CardWrapper>
     </div>
   );
 }

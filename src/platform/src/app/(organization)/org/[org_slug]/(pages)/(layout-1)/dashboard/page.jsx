@@ -3,6 +3,7 @@
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import CardWrapper from '@/common/components/CardWrapper';
 
 // Import icons from react-icons
 import {
@@ -42,28 +43,30 @@ export default function OrganizationDashboardPage() {
       setStats(mockStats);
     }
   }, [organization]);
-
   const StatCard = ({ title, value, subtitle, icon }) => (
-    <div
-      className="bg-white rounded-lg shadow-sm border-l-4 p-6 hover:shadow-md transition-shadow"
-      style={{ borderLeftColor: primaryColor || '#3B82F6' }}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+    <CardWrapper
+      title={title}
+      icon={
+        <div
+          className="text-white p-3 rounded-lg"
+          style={{ backgroundColor: primaryColor || '#3B82F6' }}
+        >
+          {icon}
         </div>
-        {icon && (
-          <div
-            className="text-white p-3 rounded-lg"
-            style={{ backgroundColor: primaryColor || '#3B82F6' }}
-          >
-            {icon}
-          </div>
+      }
+      className="hover:shadow-md transition-shadow border-l-4"
+      style={{ borderLeftColor: primaryColor || '#3B82F6' }}
+      hoverable={true}
+    >
+      <div className="space-y-1">
+        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          {value}
+        </p>
+        {subtitle && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
         )}
-      </div>{' '}
-    </div>
+      </div>
+    </CardWrapper>
   );
 
   if (!organization) {
@@ -81,9 +84,10 @@ export default function OrganizationDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Section with Organization Branding */}
-      <div
-        className="bg-white rounded-lg shadow-sm border-t-4 p-8 relative overflow-hidden"
+      <CardWrapper
+        className="relative overflow-hidden border-t-4"
         style={{ borderTopColor: primaryColor || '#3B82F6' }}
+        padding="p-8"
       >
         {/* Background decoration */}
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 opacity-10">
@@ -110,10 +114,10 @@ export default function OrganizationDashboardPage() {
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Welcome to {organization.name}
             </h1>
-            <p className="text-lg text-gray-600 mt-2">
+            <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
               {organization.description || 'Air Quality Monitoring Dashboard'}
             </p>
             <div className="flex items-center mt-3 space-x-4">
@@ -122,16 +126,18 @@ export default function OrganizationDashboardPage() {
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: primaryColor || '#3B82F6' }}
                 />
-                <span className="text-sm text-gray-500">Live Dashboard</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Live Dashboard
+                </span>
               </div>
               <span className="text-sm text-gray-400">•</span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 Last updated: {new Date().toLocaleTimeString()}
               </span>
             </div>
           </div>
         </div>
-      </div>
+      </CardWrapper>
 
       {/* Statistics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

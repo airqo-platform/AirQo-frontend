@@ -3,6 +3,7 @@
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import CardWrapper from '@/common/components/CardWrapper';
 
 // Import existing analytics components
 import OverView from '@/app/(individual)/user/(pages)/(layout-1)/analytics/view/OverView';
@@ -43,40 +44,39 @@ export default function OrganizationInsightsPage({ params }) {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       {/* Organization-specific header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {organization.name} - Data Insights
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Air quality analytics and trends for {organization.name}
-            </p>
-          </div>
+      <CardWrapper
+        title={`${organization.name} - Data Insights`}
+        subtitle={`Air quality analytics and trends for ${organization.name}`}
+        rightContent={
           <div className="flex items-center space-x-3">
             <div
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: primaryColor }}
             />
-            <span className="text-sm text-gray-600">Organization Theme</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Organization Theme
+            </span>
           </div>
-        </div>
-      </div>
+        }
+        className="border-t-4"
+        style={{ borderTopColor: primaryColor || '#3B82F6' }}
+        padding="p-6"
+      />
 
       {/* Custom organization branding wrapper */}
-      <div
-        className="rounded-lg border-2 p-1"
-        style={{ borderColor: primaryColor + '20' }}
+      <CardWrapper
+        className="border-2"
+        style={{ borderColor: (primaryColor || '#3B82F6') + '20' }}
+        padding="p-1"
       >
-        <div className="bg-white rounded-md">
+        <div className="bg-white dark:bg-gray-900 rounded-md">
           {/* Render the existing analytics overview with organization context */}
           <OverView />
-        </div>{' '}
-      </div>
+        </div>
+      </CardWrapper>
     </div>
   );
 }
