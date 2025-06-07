@@ -20,10 +20,9 @@ export default function OrganizationSidebar({ organization }) {
       }}
     />
   ) : null;
-
   return (
     <AuthenticatedSideBar
-      showOrganizationDropdown={false}
+      showOrganizationDropdown={true}
       logoComponent={logoComponent}
       homeNavPath={`/org/${organization?.slug || ''}/dashboard`}
     >

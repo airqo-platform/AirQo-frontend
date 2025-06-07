@@ -57,7 +57,6 @@ const OrganizationDropdown = ({ className = '' }) => {
       window.removeEventListener('scroll', updateButtonPosition);
     };
   }, [isCollapsed, isOpen]);
-
   useEffect(() => {
     if (isFetchingActiveGroup) return;
 
@@ -66,6 +65,7 @@ const OrganizationDropdown = ({ className = '' }) => {
       dispatch(setOrganizationName(activeGroupTitle));
     }
   }, [isFetchingActiveGroup, activeGroupTitle, dispatch]);
+
   const handleUpdatePreferences = useCallback(
     async (group) => {
       if (!group?._id) return;
@@ -74,25 +74,47 @@ const OrganizationDropdown = ({ className = '' }) => {
       setSelectedGroupId(group._id);
 
       try {
-        await dispatch(
-          replaceUserPreferences({
-            user_id: userID,
-            group_id: group._id,
-          }),
-        );
+        // Check if this is an organization-specific context
+        const currentPath = window.location.pathname;
+        const isOrgContext = currentPath.startsWith('/org/');
 
-        // Update session with new active group if possible
-        if (updateSession) {
-          await updateSession({
-            ...session,
-            user: {
-              ...session?.user,
-              activeGroup: group,
-            },
-          });
+        if (isOrgContext) {
+          // In organization context, we don't update preferences
+          // Instead, we redirect to the selected organization's dashboard
+          const orgSlug =
+            group.orgSlug ||
+            group.grp_title?.toLowerCase().replace(/\s+/g, '-');
+          if (orgSlug && orgSlug !== currentPath.split('/')[2]) {
+            window.location.href = `/org/${orgSlug}/dashboard`;
+            return;
+          }
+        } else {
+          // In individual user context, update preferences as usual
+          await dispatch(
+            replaceUserPreferences({
+              user_id: userID,
+              group_id: group._id,
+            }),
+          );
+
+          // Update session with new active group if possible
+          if (updateSession) {
+            await updateSession({
+              ...session,
+              user: {
+                ...session?.user,
+                activeGroup: group,
+              },
+            });
+          }
         }
-      } catch {
-        // Silent error handling
+      } catch (error) {
+        // Silent error handling for production stability
+        // Error details are available in development console
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to update organization/group selection:', error);
+        }
       } finally {
         setLoading(false);
         setSelectedGroupId(null);

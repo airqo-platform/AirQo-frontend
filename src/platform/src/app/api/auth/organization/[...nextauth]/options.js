@@ -27,7 +27,9 @@ export const options = {
             throw new Error(
               'API configuration missing: Neither API_BASE_URL nor NEXT_PUBLIC_API_BASE_URL environment variable is defined',
             );
-          } // Remove trailing slash and properly construct URL
+          }
+
+          // Remove trailing slash and properly construct URL
           const baseUrl = API_BASE_URL.replace(/\/$/, '');
           const url = new URL(`${baseUrl}/users/loginUser`);
 
@@ -122,7 +124,7 @@ export const options = {
         token.id = user.id;
         token.userName = user.userName;
         token.email = user.email;
-        token.accessToken = `JWT ${user.token}`;
+        token.accessToken = user.token;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.organization = user.organization;
@@ -137,6 +139,12 @@ export const options = {
         token.lastLogin = user.lastLogin;
         token.iat = user.iat;
         token.orgSlug = user.orgSlug;
+      }
+
+      // Check if token is expired
+      if (token.iat && Date.now() / 1000 > token.iat + 24 * 60 * 60) {
+        // Token is expired, return null to force logout
+        return null;
       }
 
       return token;
@@ -159,6 +167,8 @@ export const options = {
         session.user.updatedAt = token.updatedAt;
         session.user.rateLimit = token.rateLimit;
         session.user.lastLogin = token.lastLogin;
+        session.user.accessToken = token.accessToken;
+        // Add accessToken to root level for compatibility
         session.accessToken = token.accessToken;
         session.iat = token.iat;
         session.orgSlug = token.orgSlug;

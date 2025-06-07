@@ -145,18 +145,10 @@ const createSecureApiClient = () => {
           // Use JWT token from session in Authorization header
           const jwtToken = await getJwtToken();
           if (jwtToken) {
-            // Clean up any double JWT prefixes that might cause 401 errors
-            let cleanToken = jwtToken;
-
-            // Handle double JWT prefix issue
-            if (jwtToken.startsWith('JWT JWT ')) {
-              cleanToken = jwtToken.replace('JWT JWT ', 'JWT ');
-            }
-            // Ensure token has JWT prefix if it doesn't already (no Bearer support)
-            else if (!jwtToken.startsWith('JWT ')) {
-              cleanToken = `JWT ${jwtToken}`;
-            }
-
+            // Clean up any double JWT prefixes
+            const cleanToken = jwtToken.startsWith('JWT JWT ')
+              ? jwtToken.replace('JWT JWT ', 'JWT ')
+              : jwtToken;
             config.headers['Authorization'] = cleanToken;
           }
           break;
@@ -189,17 +181,8 @@ const createSecureApiClient = () => {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Log 401 errors for debugging authentication issues
-      if (error.response?.status === 401) {
-        logger.warn('Authentication failed', {
-          url: error.config?.url,
-          method: error.config?.method,
-          status: error.response?.status,
-          message: error.response?.data?.message || error.message,
-        });
-      }
       // Only log errors for 5xx status codes or network errors to reduce noise
-      else if (!error.response || error.response.status >= 500) {
+      if (!error.response || error.response.status >= 500) {
         const errorInfo = {
           url: error.config?.url,
           method: error.config?.method,
