@@ -13,7 +13,7 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import { checkAccess } from '@/core/utils/protectedRoute';
+import { checkAccess } from '@/core/utils/nextAuthProtectedRoute';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,
@@ -21,7 +21,7 @@ import {
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useOutsideClick } from '@/core/hooks';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../Button';
 import Card from '../CardWrapper';
@@ -30,12 +30,17 @@ import GroupLogo from '../GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
-const AuthenticatedSideBar = () => {
+const AuthenticatedSideBar = ({ forceCollapse }) => {
   const dispatch = useDispatch();
   const size = useWindowSize();
-  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
+  const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
+
+  // Use forceCollapse prop if provided, otherwise use the store value
+  const isCollapsed =
+    forceCollapse !== undefined ? forceCollapse : storeCollapsed;
 
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -46,11 +51,10 @@ const AuthenticatedSideBar = () => {
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   }, [theme, systemTheme]);
-
   // Media query and route handling
   useEffect(() => {
     const handleRouteChange = () => {
-      if (router.pathname === '/map') {
+      if (pathname === '/map') {
         dispatch(setSidebar(true));
       }
     };
@@ -77,7 +81,7 @@ const AuthenticatedSideBar = () => {
         mediaQuery.removeListener(handleMediaQueryChange);
       }
     };
-  }, [dispatch, router.pathname]);
+  }, [dispatch, pathname]);
 
   // Handle window resizing for sidebar collapse in mobile view
   useEffect(() => {
@@ -95,22 +99,16 @@ const AuthenticatedSideBar = () => {
     if (collocationOpenState) {
       try {
         setCollocationOpen(JSON.parse(collocationOpenState));
-      } catch (error) {
-        console.error(
-          'Error parsing "collocationOpen" from localStorage:',
-          error,
-        );
+      } catch {
+        // Silent error handling for localStorage parsing issues
       }
     }
 
     if (analyticsOpenState) {
       try {
         setAnalyticsOpen(JSON.parse(analyticsOpenState));
-      } catch (error) {
-        console.error(
-          'Error parsing "analyticsOpen" from localStorage:',
-          error,
-        );
+      } catch {
+        // Silent error handling for localStorage parsing issues
       }
     }
   }, []);
@@ -309,10 +307,9 @@ const AuthenticatedSideBar = () => {
               {/* Placeholder for future components */}
             </div>
           </div>
-        </Card>
-
+        </Card>{' '}
         {/* Sidebar collapse button */}
-        {router.pathname !== '/map' && (
+        {pathname !== '/map' && (
           <div
             className={`
               absolute flex rounded-full top-10 -right-[3px] z-50 
@@ -366,6 +363,12 @@ const AuthenticatedSideBar = () => {
       </div>
     </div>
   );
+};
+
+import PropTypes from 'prop-types';
+
+AuthenticatedSideBar.propTypes = {
+  forceCollapse: PropTypes.bool,
 };
 
 export default AuthenticatedSideBar;

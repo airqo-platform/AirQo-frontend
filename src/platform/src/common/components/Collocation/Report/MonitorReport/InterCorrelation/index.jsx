@@ -5,7 +5,7 @@ import PollutantDropdown from '@/components/Collocation/Report/PollutantDropdown
 import CorrelationChart from '@/components/Collocation/Report/Charts/CorrelationLineChart';
 import { useGetDeviceStatusSummaryQuery } from '@/lib/store/services/collocation';
 import Spinner from '@/components/Spinner';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import {

@@ -1,16 +1,20 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
 export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const [isMediumDevice, setIsMediumDevice] = useState(false);
-  const currentRoute = router.pathname;
-  const isCurrentRoute = currentRoute.includes(itemPath);
+  const currentRoute = pathname;
+  const isCurrentRoute = useMemo(() => {
+    if (!itemPath) return false;
+    return currentRoute === itemPath || currentRoute.startsWith(itemPath + '/');
+  }, [currentRoute, itemPath]);
 
   // Determine dark mode
   const isDarkMode = useMemo(() => {
@@ -73,10 +77,28 @@ const SidebarItem = ({
   iconOnly = false,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
-  const currentRoute = router.pathname;
-  const isCurrentRoute =
-    currentRoute === navPath || (navPath === '/Home' && currentRoute === '/');
+  const currentRoute = pathname;
+  const isCurrentRoute = useMemo(() => {
+    if (!navPath) return false;
+
+    // Exact match for root/home routes
+    if (navPath === '/' && currentRoute === '/') return true;
+    if (
+      navPath === '/Home' &&
+      (currentRoute === '/' || currentRoute === '/Home')
+    )
+      return true;
+
+    // Exact match for other routes
+    if (currentRoute === navPath) return true;
+
+    // For dropdown items, check if current route starts with the navPath
+    if (children && currentRoute.startsWith(navPath)) return true;
+
+    return false;
+  }, [currentRoute, navPath, children]);
   const hasDropdown = !!children;
 
   // Determine dark mode

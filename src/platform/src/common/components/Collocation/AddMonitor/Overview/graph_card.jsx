@@ -12,7 +12,7 @@ import {
 import Button from '@/components/Button';
 import { useDispatch } from 'react-redux';
 import { addOverviewBatch } from '@/lib/store/services/collocation/collocationDataSlice';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const GraphCard = ({ data, secondGraph, batch, device, selectedBatch }) => {
   const dispatch = useDispatch();

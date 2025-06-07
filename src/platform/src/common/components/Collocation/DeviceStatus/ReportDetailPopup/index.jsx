@@ -1,6 +1,6 @@
 import { isEmpty } from 'underscore';
 import DetailCard from './detail_card';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import { useEffect, useState } from 'react';
 import { useGetCollocationBatchResultsQuery } from '@/lib/store/services/collocation';

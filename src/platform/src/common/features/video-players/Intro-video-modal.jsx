@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import { updateTaskProgress } from '@/lib/store/services/checklists/CheckList';
 import CloseIcon from '@/icons/close_icon';
 import Spinner from '@/components/Spinner';
@@ -18,9 +19,23 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   const reduxChecklist = useSelector((state) => state.cardChecklist.checklist);
   const videoChecklistItem = reduxChecklist[0];
 
+  // Get user session
+  const { data: session } = useSession();
+  // Get userId from session only - no localStorage fallback needed
+  const getUserId = useCallback(() => {
+    return session?.user?.id || null;
+  }, [session]);
+
   // Calculate and update video progress - only called on pause, end, or close
   const updateVideoState = useCallback(() => {
     if (!videoRef.current || !videoChecklistItem?._id) return;
+
+    // Get user ID from NextAuth session or fallback
+    const userId = getUserId();
+    if (!userId) {
+      // No user ID available for updating video progress
+      return;
+    }
 
     const currentTime = videoRef.current.currentTime;
     const duration = videoRef.current.duration || 1;
@@ -30,13 +45,14 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
       updateTaskProgress({
         _id: videoChecklistItem._id,
         videoProgress: progressPercent,
+        userId: userId,
         status:
           videoChecklistItem.status === 'not started'
             ? 'inProgress'
             : videoChecklistItem.status,
       }),
     );
-  }, [dispatch, videoChecklistItem]);
+  }, [dispatch, videoChecklistItem, getUserId]);
 
   // Seek to last progress when video loads
   const handleLoadedMetadata = useCallback(() => {
@@ -86,6 +102,12 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   const handleVideoEnd = useCallback(() => {
     if (!videoChecklistItem?._id) return;
 
+    const userId = getUserId();
+    if (!userId) {
+      // No user ID available for completing video task
+      return;
+    }
+
     dispatch(
       updateTaskProgress({
         _id: videoChecklistItem._id,
@@ -93,9 +115,10 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
         completed: true,
         videoProgress: 100,
         completionDate: new Date().toISOString(),
+        userId: userId,
       }),
     );
-  }, [dispatch, videoChecklistItem]);
+  }, [dispatch, videoChecklistItem, getUserId]);
 
   // Handle video load events
   const handleVideoLoad = () => setLoading(false);

@@ -82,11 +82,12 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
 
       {/* Right Content: Air Quality Icon */}
       <div className="relative w-20 h-20">
+        {' '}
         <Image
           src={imageSrc}
           alt="Air Quality Icon"
-          layout="fill"
-          objectFit="contain"
+          fill
+          style={{ objectFit: 'contain' }}
           priority
         />
       </div>

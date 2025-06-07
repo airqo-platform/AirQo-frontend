@@ -1,5 +1,6 @@
 import PersonIcon from '@/icons/Settings/person.svg';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useSelector, useDispatch } from 'react-redux';
 import DialogWrapper from '../../Modal/DialogWrapper';
 import Toast from '@/components/Toast';
@@ -10,6 +11,7 @@ import PlusIcon from '@/icons/Actions/PlusIcon';
 import DeleteIcon from '@/icons/Actions/DeleteIcon';
 
 const AddClientForm = ({ open, closeModal }) => {
+  const { data: session } = useSession();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [isError, setIsError] = useState({
@@ -20,6 +22,9 @@ const AddClientForm = ({ open, closeModal }) => {
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState(['']);
   const userInfo = useSelector((state) => state.login.userInfo);
+
+  // Get user ID from session with fallback to Redux state
+  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
 
   const handleInputValueChange = (type, value, index) => {
     if (type === 'clientName') {
@@ -61,10 +66,16 @@ const AddClientForm = ({ open, closeModal }) => {
       return;
     }
 
+    if (!userId) {
+      setErrorState('User ID is required');
+      setLoading(false);
+      return;
+    }
+
     try {
       const data = {
         name: clientName,
-        user_id: userInfo?._id,
+        user_id: userId,
       };
 
       const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
@@ -75,7 +86,7 @@ const AddClientForm = ({ open, closeModal }) => {
       const response = await createClientApi(data);
 
       if (response.success === true) {
-        const res = await getUserDetails(userInfo?._id);
+        const res = await getUserDetails(userId);
 
         if (res.success === true) {
           dispatch(addClients(res.users[0].clients));

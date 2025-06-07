@@ -60,11 +60,12 @@ const PlantTree = ({ onClose }) => {
     <>
       {/* Left side - Image */}
       <div className="w-full md:w-1/2 relative h-[658px]">
+        {' '}
         <Image
           src={PlantTreeImg}
           alt="Plant a Tree"
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: 'cover' }}
           loading="eager"
           className="rounded-l-md"
         />

@@ -1,11 +1,6 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import { GoOrganization } from 'react-icons/go';
 import CustomDropdown from '../Button/CustomDropdown';
 import Spinner from '@/components/Spinner';
@@ -23,6 +18,7 @@ const cleanGroupName = (name) => {
 
 const OrganizationDropdown = ({ className = '' }) => {
   const dispatch = useDispatch();
+  const { data: session, update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +26,6 @@ const OrganizationDropdown = ({ className = '' }) => {
   const isDarkMode = theme === 'dark' || theme === 'system';
   const buttonRef = useRef(null);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
-
   const {
     id: activeGroupId,
     title: activeGroupTitle,
@@ -38,13 +33,7 @@ const OrganizationDropdown = ({ className = '' }) => {
     userID,
     loading: isFetchingActiveGroup,
   } = useGetActiveGroup();
-
   const isCollapsed = useSelector((state) => state?.sidebar?.isCollapsed);
-
-  const activeGroups = useMemo(
-    () => groupList.filter((group) => group && group.status === 'ACTIVE'),
-    [groupList],
-  );
 
   // Track button position for fixed position dropdown
   useEffect(() => {
@@ -72,28 +61,11 @@ const OrganizationDropdown = ({ className = '' }) => {
   useEffect(() => {
     if (isFetchingActiveGroup) return;
 
-    const storedGroup = localStorage.getItem('activeGroup');
-    if (storedGroup) {
-      try {
-        const defaultGroup = JSON.parse(storedGroup);
-        if (defaultGroup && defaultGroup.grp_title) {
-          dispatch(setOrganizationName(defaultGroup.grp_title));
-        } else {
-          localStorage.removeItem('activeGroup');
-        }
-      } catch (error) {
-        localStorage.removeItem('activeGroup');
-        console.error('Error parsing stored group:', error);
-      }
-    } else if (!activeGroupId && activeGroups.length > 0) {
-      const defaultGroup = activeGroups[0];
-      localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
-      if (defaultGroup && defaultGroup.grp_title) {
-        dispatch(setOrganizationName(defaultGroup.grp_title));
-      }
+    // Set organization name in Redux when active group changes
+    if (activeGroupTitle) {
+      dispatch(setOrganizationName(activeGroupTitle));
     }
-  }, [isFetchingActiveGroup, activeGroupId, activeGroups, dispatch]);
-
+  }, [isFetchingActiveGroup, activeGroupTitle, dispatch]);
   const handleUpdatePreferences = useCallback(
     async (group) => {
       if (!group?._id) return;
@@ -108,21 +80,30 @@ const OrganizationDropdown = ({ className = '' }) => {
             group_id: group._id,
           }),
         );
-      } catch (error) {
-        console.error('Error updating user preferences:', error);
+
+        // Update session with new active group if possible
+        if (updateSession) {
+          await updateSession({
+            ...session,
+            user: {
+              ...session?.user,
+              activeGroup: group,
+            },
+          });
+        }
+      } catch {
+        // Silent error handling
       } finally {
         setLoading(false);
         setSelectedGroupId(null);
         setIsOpen(false);
       }
     },
-    [dispatch, userID],
+    [dispatch, userID, updateSession, session],
   );
-
   const handleDropdownSelect = (group) => {
     if (group?._id !== activeGroupId) {
       dispatch(setOrganizationName(group.grp_title));
-      localStorage.setItem('activeGroup', JSON.stringify(group));
       handleUpdatePreferences(group);
     } else {
       setIsOpen(false);

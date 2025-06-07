@@ -20,7 +20,7 @@
   /* Optionally override primary in dark mode: */
   --color-primary: #145fff;
 
-  --background: #1d1f20d1;
+  --background: #1d1f20f0;
   --text: #f9fafb;
   --border: #374151;
   --scrollbar-track: #1f2937;

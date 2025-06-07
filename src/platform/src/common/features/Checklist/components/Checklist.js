@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import StepProgress from './CircularStepper';
 import ChecklistStepCard from './ChecklistStepCard';
 import ChecklistSkeleton from './ChecklistSkeleton';
@@ -14,6 +15,7 @@ const Checklist = ({ openVideoModal }) => {
   const dispatch = useDispatch();
   const [userId, setUserId] = useState(null);
   const [dataFetched, setDataFetched] = useState(false);
+  const { data: session } = useSession();
 
   // Get checklist data from Redux
   const reduxChecklist = useSelector(
@@ -34,40 +36,36 @@ const Checklist = ({ openVideoModal }) => {
     return stepCount === totalSteps && stepCount > 0;
   }, [stepCount, totalSteps]);
 
-  // Get user ID from localStorage only once when component mounts
+  // Get user ID from NextAuth session when component mounts
   useEffect(() => {
-    const getUserFromStorage = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const storedUser = localStorage.getItem('loggedUser');
-          if (storedUser && storedUser !== 'undefined') {
-            const parsedUser = JSON.parse(storedUser);
-            if (parsedUser?._id) {
-              setUserId(parsedUser._id);
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing user from localStorage:', error);
-        }
-      }
-    };
-
-    getUserFromStorage();
-  }, []);
-
-  // Fetch checklist data when component mounts, userId changes, or when we need a refresh
+    if (session?.user?.id) {
+      setUserId(session.user.id);
+    }
+  }, [session]);
+  // Fetch checklist data when component mounts or userId changes
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
-      if (userId && isMounted && !dataFetched) {
+      if (userId && isMounted) {
         try {
+          // Log for debugging
+          if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.log('Fetching checklist data for user:', userId);
+          }
+
           await dispatch(fetchUserChecklists(userId));
+
           if (isMounted) {
             setDataFetched(true);
           }
         } catch (error) {
-          console.error('Error fetching checklist data:', error);
+          // Log error but don't expose in production
+          if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.error('Error fetching checklist data:', error);
+          }
         }
       }
     };
@@ -77,77 +75,73 @@ const Checklist = ({ openVideoModal }) => {
     return () => {
       isMounted = false;
     };
-  }, [userId, dispatch, dataFetched]);
+  }, [userId, dispatch]);
 
   // Merge static steps with API data - using useMemo to avoid recalculating on every render
   const mergedSteps = useMemo(() => {
     const safeChecklist = Array.isArray(reduxChecklist) ? reduxChecklist : [];
     return mergeStepsWithChecklist(staticSteps, safeChecklist);
-  }, [staticSteps, reduxChecklist]);
-
-  // Prevent accidental data reset for completed checklists
+  }, [staticSteps, reduxChecklist]); // Monitor checklist completion state
   useEffect(() => {
-    if (
-      localStorage.getItem('checklistPreviouslyCompleted') === 'true' &&
-      Array.isArray(reduxChecklist) &&
-      reduxChecklist.length > 0 &&
-      reduxChecklist.every((item) => !item.completed)
-    ) {
-      console.warn(
-        'Potential checklist reset detected, preserving previous state',
-      );
-    }
-
-    // Store completion state for reference
-    if (allCompleted) {
-      localStorage.setItem('checklistPreviouslyCompleted', 'true');
-    }
-  }, [reduxChecklist, allCompleted]);
-
-  // Handle step click with useCallback to avoid recreation on every render
+    // Note: We removed localStorage dependency as we're now using NextAuth and persistent server-side state
+    // No side effects needed as state is persisted in the database
+  }, [reduxChecklist, allCompleted]); // Handle step click with useCallback to avoid recreation on every render
   const handleStepClick = useCallback(
-    (stepItem) => {
+    async (stepItem) => {
       if (!stepItem._id || !userId) return;
 
-      // For step ID 4, directly mark as completed if not already completed
-      if (stepItem.id === 4 && !stepItem.completed) {
-        dispatch(
-          updateTaskProgress({
-            _id: stepItem._id,
-            status: 'completed',
-            completed: true,
-            completionDate: new Date().toISOString(),
-          }),
-        );
-        return;
-      }
-
-      // For step ID 1 (video step), open the video modal
-      if (stepItem.id === 1) {
-        if (openVideoModal) {
-          openVideoModal();
+      try {
+        // For step ID 4, directly mark as completed if not already completed
+        if (stepItem.id === 4 && !stepItem.completed) {
+          await dispatch(
+            updateTaskProgress({
+              _id: stepItem._id,
+              status: 'completed',
+              completed: true,
+              completionDate: new Date().toISOString(),
+              userId: userId, // Include userId in updates
+            }),
+          ).unwrap();
+          return;
         }
 
-        // If the step is "not started", update its status to "inProgress"
-        if (stepItem.status === 'not started') {
-          dispatch(
+        // For step ID 1 (video step), open the video modal
+        if (stepItem.id === 1) {
+          if (openVideoModal) {
+            openVideoModal();
+          }
+
+          // If the step is "not started", update its status to "inProgress"
+          if (stepItem.status === 'not started') {
+            await dispatch(
+              updateTaskProgress({
+                _id: stepItem._id,
+                status: 'inProgress',
+                userId: userId, // Include userId in updates
+              }),
+            ).unwrap();
+          }
+        } else if (stepItem.status === 'not started') {
+          // For other new steps, mark as in progress
+          await dispatch(
             updateTaskProgress({
               _id: stepItem._id,
               status: 'inProgress',
+              userId: userId, // Include userId in updates
             }),
-          );
+          ).unwrap();
         }
-      } else if (stepItem.status === 'not started') {
-        // For other new steps, mark as in progress
-        dispatch(
-          updateTaskProgress({
-            _id: stepItem._id,
-            status: 'inProgress',
-          }),
-        );
+      } catch (error) {
+        // If there's an error updating the task, refresh the checklist data
+        setDataFetched(false);
+        // Log the error for debugging
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.error('Error updating task:', error);
+        }
       }
     },
-    [userId, dispatch, openVideoModal],
+    [userId, dispatch, openVideoModal, setDataFetched],
   );
 
   // Show loading skeleton during initial load

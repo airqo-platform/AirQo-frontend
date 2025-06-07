@@ -56,18 +56,8 @@ const AddLocations = ({ onClose }) => {
     const firstPreference = preferencesData?.[0];
     return firstPreference?.selected_sites?.map((site) => site._id) || [];
   }, [preferencesData]);
-
-  // Get user ID
-  const userID = useMemo(() => {
-    try {
-      const storedUser = localStorage.getItem('loggedUser');
-      if (!storedUser) return null;
-      return JSON.parse(storedUser)?._id ?? null;
-    } catch (error) {
-      console.error('Error parsing loggedUser from localStorage:', error);
-      return null;
-    }
-  }, []);
+  // Get user ID from useGetActiveGroup hook
+  const { userID } = useGetActiveGroup();
 
   // Fetch sites data
   const {

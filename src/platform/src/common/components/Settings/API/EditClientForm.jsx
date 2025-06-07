@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { useSelector, useDispatch } from 'react-redux';
 import DialogWrapper from '../../Modal/DialogWrapper';
 import Toast from '@/components/Toast';
@@ -10,6 +11,7 @@ import DeleteIcon from '@/icons/Actions/DeleteIcon';
 import PersonIcon from '@/icons/Settings/person.svg';
 
 const EditClientForm = ({ open, closeModal, data }) => {
+  const { data: session } = useSession();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login.userInfo);
   const clientID = data?._id;
@@ -21,6 +23,9 @@ const EditClientForm = ({ open, closeModal, data }) => {
   });
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState(['']);
+
+  // Get user ID from session with fallback to Redux state
+  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
 
   useEffect(() => {
     handleInitialData();
@@ -75,10 +80,20 @@ const EditClientForm = ({ open, closeModal, data }) => {
       return;
     }
 
+    if (!userId) {
+      setIsError({
+        isError: true,
+        message: 'User ID is required',
+        type: 'error',
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const data = {
         name: clientName,
-        user_id: userInfo?._id,
+        user_id: userId,
       };
 
       const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
@@ -90,8 +105,8 @@ const EditClientForm = ({ open, closeModal, data }) => {
       if (response.success !== true) {
         throw new Error('Failed to update client');
       }
-      const res = await getUserDetails(userInfo?._id);
-      const resp = await getClientsApi(userInfo?._id);
+      const res = await getUserDetails(userId);
+      const resp = await getClientsApi(userId);
       dispatch(addClients(res.users[0].clients));
       dispatch(addClientsDetails(resp.clients));
       closeModal();

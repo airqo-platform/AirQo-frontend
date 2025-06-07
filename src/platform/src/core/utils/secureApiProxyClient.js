@@ -1,10 +1,29 @@
 import axios from 'axios';
+import { getSession } from 'next-auth/react';
 import logger from '../../lib/logger';
+import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
 
-// Function to get JWT Token
-const getJwtToken = () => {
+// Function to get JWT Token from NextAuth session
+const getJwtToken = async () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+
+  try {
+    // Get token from NextAuth session
+    const session = await getSession();
+    if (session?.accessToken) {
+      // The session already contains the JWT token with "JWT " prefix
+      return session.accessToken;
+    }
+  } catch (error) {
+    logger.warn('Failed to get NextAuth session', error);
+  }
+
+  return null;
+};
+
+// Function to get API Token from environment variables
+const getApiToken = () => {
+  return NEXT_PUBLIC_API_TOKEN || null;
 };
 
 /**
@@ -74,11 +93,33 @@ const createSecureApiClient = () => {
 
   // Add request interceptor for standard requests
   instance.interceptors.request.use(
-    (config) => {
-      // Add authorization header for JWT
-      const token = getJwtToken();
-      if (token) {
-        config.headers['Authorization'] = token;
+    async (config) => {
+      const authType = config.headers?.['X-Auth-Type'] || AUTH_TYPES.AUTO;
+
+      // Handle different authentication types
+      switch (authType) {
+        case AUTH_TYPES.NONE: {
+          // No authentication needed
+          break;
+        }
+        case AUTH_TYPES.API_TOKEN: {
+          // Use API token from environment variables
+          const apiToken = getApiToken();
+          if (apiToken) {
+            config.headers['Authorization'] = `Bearer ${apiToken}`;
+          }
+          break;
+        }
+        case AUTH_TYPES.JWT:
+        case AUTH_TYPES.AUTO:
+        default: {
+          // Use JWT token from session
+          const jwtToken = await getJwtToken();
+          if (jwtToken) {
+            config.headers['Authorization'] = jwtToken;
+          }
+          break;
+        }
       }
 
       // Log request in development
@@ -86,7 +127,8 @@ const createSecureApiClient = () => {
         logger.debug('Secure API Request', {
           url: config.url,
           method: config.method,
-          authType: config.headers?.['X-Auth-Type'] || 'default',
+          authType: authType,
+          hasAuth: !!config.headers['Authorization'],
         });
       }
 
@@ -119,7 +161,6 @@ const createSecureApiClient = () => {
   return instance;
 };
 
-// Create secure API client instance
 export const secureApiProxy = createSecureApiClient();
 
 export default createSecureApiClient;

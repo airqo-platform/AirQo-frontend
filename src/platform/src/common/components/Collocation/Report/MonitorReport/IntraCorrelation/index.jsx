@@ -10,7 +10,7 @@ import {
   addActiveSelectedDeviceCollocationReportData,
   addActiveSelectedDeviceReport,
 } from '@/lib/store/services/collocation/collocationDataSlice';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import CustomLegend from './custom_legend';
 import { isEmpty } from 'underscore';
 import { getCollocationResults } from '@/lib/store/services/collocation';

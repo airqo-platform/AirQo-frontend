@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { removeDevices } from '@/lib/store/services/collocation/selectedCollocateDevicesSlice';
 import Skeleton from './Skeleton';
 import moment from 'moment';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Toast from '@/components/Toast';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 import Dropdown from '@/components/Dropdowns/Dropdown';
