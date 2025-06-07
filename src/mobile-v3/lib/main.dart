@@ -19,6 +19,7 @@ import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
+import 'package:airqo/src/app/shared/services/auto_update_service.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -32,6 +33,8 @@ import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -150,6 +153,7 @@ class AirqoMobile extends StatelessWidget {
               bool isLightTheme = themeState is ThemeLight;
 
               return MaterialApp(
+                navigatorKey: navigatorKey,
                 locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
@@ -193,7 +197,33 @@ class Decider extends StatefulWidget {
   State<Decider> createState() => _DeciderState();
 }
 
-class _DeciderState extends State<Decider> {
+class _DeciderState extends State<Decider> with WidgetsBindingObserver {
+
+    @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AutoUpdateService().initialize(navigatorKey);
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    if (state == AppLifecycleState.resumed) {
+      AutoUpdateService().checkForUpdates(showDialog: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ConnectivityBloc, ConnectivityState>(
