@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter, usePathname } from 'next/navigation';
@@ -17,8 +17,8 @@ import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import logger from '@/lib/logger';
 
 /**
- * AuthSync component synchronizes authentication state between NextAuth and Redux
- * This prevents conflicts between different auth systems and ensures consistent state
+ * AuthSync component with strict session separation and redirect loop prevention
+ * Ensures organization and user sessions cannot cross-contaminate
  */
 const AuthSync = () => {
   const { data: session, status } = useSession();
@@ -28,191 +28,242 @@ const AuthSync = () => {
   const reduxLoginState = useSelector((state) => state.login);
   const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
 
+  // Prevent infinite loops and duplicate processing
+  const isProcessingRef = useRef(false);
+  const lastProcessedSessionRef = useRef(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
+    // Skip processing during loading
     if (status === 'loading') {
-      // Still loading, don't do anything yet
       return;
     }
-    if (status === 'authenticated' && session?.user) {
-      // User is authenticated via NextAuth
-      const isOrgRoute =
-        pathname.includes('/org/') || pathname.includes('/organization');
 
-      // Handle organization users differently based on route context
-      if (isOrgRoute && session?.user?.organization) {
-        // User is on org route and has org in session - this is valid
-        const needsUpdate =
-          !reduxLoginState.userInfo ||
-          reduxLoginState.userInfo._id !== session.user.id ||
-          reduxLoginState.userInfo.organization !== session.user.organization ||
-          !reduxLoginState.success;
+    // Prevent duplicate processing of the same session
+    const sessionKey = `${status}-${session?.user?.id}-${session?.sessionType}`;
+    if (
+      sessionKey === lastProcessedSessionRef.current ||
+      isProcessingRef.current
+    ) {
+      return;
+    }
+    lastProcessedSessionRef.current = sessionKey;
+    isProcessingRef.current = true;
 
-        if (needsUpdate) {
-          // Set minimal organization user data in Redux
+    const processAuthState = async () => {
+      try {
+        if (status === 'authenticated' && session?.user) {
+          // STRICT SESSION TYPE CHECKING - prevent cross-contamination
+          const sessionType = session.sessionType || session.user.sessionType;
+
+          // Route type detection
+          const isOrgRoute = pathname.includes('/org/');
+          const isUserRoute =
+            pathname.includes('/user/') || pathname.includes('(individual)');
+
+          // Debug logging
+          logger.info('AuthSync - Session validation:', {
+            sessionType,
+            isOrgRoute,
+            isUserRoute,
+            pathname,
+            userId: session.user.id,
+            orgSlug: session.orgSlug || session.user.orgSlug,
+          });
+
+          // STRICT ENFORCEMENT: Organization sessions cannot access user routes
+          if (sessionType === 'organization' && isUserRoute) {
+            logger.warn(
+              'Organization session attempting to access user route - redirecting',
+            );
+            const orgSlug = session.orgSlug || session.user.orgSlug || 'airqo';
+            router.replace(`/org/${orgSlug}/dashboard`);
+            return;
+          }
+
+          // STRICT ENFORCEMENT: User sessions cannot access org routes
+          if (sessionType === 'user' && isOrgRoute) {
+            logger.warn(
+              'User session attempting to access org route - redirecting',
+            );
+            router.replace('/user/Home');
+            return;
+          }
+
+          // Handle organization session
+          if (sessionType === 'organization') {
+            await handleOrganizationSession();
+          }
+          // Handle user session
+          else if (sessionType === 'user') {
+            await handleUserSession();
+          } // Invalid or missing session type
+          else {
+            logger.error('Invalid or missing session type:', {
+              sessionType,
+              sessionData: session,
+            });
+
+            // Redirect to appropriate login based on current route
+            if (isOrgRoute) {
+              const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
+              const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+              router.replace(`/org/${orgSlug}/login`);
+            } else {
+              router.replace('/user/login');
+            }
+          }
+        } else if (status === 'unauthenticated') {
+          handleUnauthenticatedState();
+        }
+      } catch (error) {
+        logger.error('AuthSync error:', error);
+      } finally {
+        isProcessingRef.current = false;
+        setHasInitialized(true);
+      }
+    };
+
+    const handleOrganizationSession = async () => {
+      // Only sync minimal data - don't redirect from AuthSync for org users
+      if (
+        !reduxLoginState.userInfo ||
+        reduxLoginState.userInfo._id !== session.user.id
+      ) {
+        dispatch(
+          setUserInfo({
+            _id: session.user.id,
+            email: session.user.email,
+            name: session.user.name || session.user.firstName,
+            firstName: session.user.firstName,
+            lastName: session.user.lastName,
+            organization: session.user.organization,
+            long_organization: session.user.long_organization,
+            picture: session.user.profilePicture || session.user.image,
+          }),
+        );
+      }
+
+      if (!activeGroup || activeGroup._id !== session.user.organization) {
+        dispatch(
+          setActiveGroup({
+            _id: session.user.organization,
+            organization: session.user.organization,
+            long_organization:
+              session.user.long_organization || session.user.organization,
+            grp_title:
+              session.user.long_organization || session.user.organization,
+            orgSlug: session.orgSlug || session.user.orgSlug,
+          }),
+        );
+      }
+
+      if (!reduxLoginState.success) {
+        dispatch(setSuccess(true));
+      }
+    };
+
+    const handleUserSession = async () => {
+      // Check if we need to fetch user data
+      const needsUserData =
+        !reduxLoginState.userInfo ||
+        reduxLoginState.userInfo._id !== session.user.id ||
+        !reduxLoginState.userInfo.groups?.length;
+
+      if (needsUserData && session?.user?.id) {
+        try {
+          // Set basic session data immediately
           dispatch(
             setUserInfo({
               _id: session.user.id,
               email: session.user.email,
-              name: session.user.name,
-              picture: session.user.image,
+              name: session.user.name || session.user.firstName,
+              firstName: session.user.firstName,
+              lastName: session.user.lastName,
               organization: session.user.organization,
+              long_organization: session.user.long_organization,
+              picture: session.user.profilePicture || session.user.image,
             }),
           );
 
-          if (!reduxLoginState.success) {
-            dispatch(setSuccess(true));
-          }
-        }
+          // Fetch complete user data in background
+          const userRes = await getUserDetails(session.user.id);
+          const user = userRes.users?.[0];
 
-        // Handle group state separately to avoid circular dependencies
-        if (!activeGroup || activeGroup._id !== session.user.organization) {
-          dispatch(
-            setActiveGroup({
-              _id: session.user.organization,
-              organization: session.user.organization,
-              long_organization:
-                session.user.long_organization || session.user.organization,
-            }),
-          );
-        }
-        // Exit early for org users to prevent individual user logic
-        return;
-      }
-
-      // Handle case where user is on org route but doesn't have org in session
-      if (isOrgRoute && !session?.user?.organization) {
-        // User is trying to access org route without proper org session
-        // Extract org slug and redirect to org login
-        const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
-        if (orgSlugMatch) {
-          const orgSlug = orgSlugMatch[1];
-          if (
-            !pathname.includes('/login') &&
-            !pathname.includes('/register') &&
-            !pathname.includes('/forgotPwd')
-          ) {
-            router.push(`/org/${orgSlug}/login`);
-          }
-        }
-        return;
-      }
-
-      // For individual users, proceed with the existing logic
-      // Optimize: Check if we already have complete user data in Redux to avoid unnecessary API calls
-      const hasCompleteUserData =
-        reduxLoginState.userInfo?._id &&
-        activeGroup &&
-        reduxLoginState.userInfo.groups?.length > 0;
-
-      if (!hasCompleteUserData) {
-        // Need to fetch additional user data and set active group (only once)
-        const fetchUserDetails = async () => {
-          try {
-            if (session?.user?.id) {
-              // Note: Token is now managed by NextAuth session, no localStorage storage needed
-
-              // Check if we already have user data in Redux to avoid unnecessary API calls
-              if (reduxLoginState.userInfo?._id === session.user.id) {
-                // Use Redux data, no need for API call
-                return;
-              }
-
-              // Fetch full user object with groups (only if not cached)
-              const userRes = await getUserDetails(session.user.id);
-              const user = userRes.users[0];
-
-              if (!user.groups?.length) {
-                logger.warn('User has no groups assigned');
-                return;
-              }
-
-              // Fetch the most recent preference to get active group (with caching)
-              let activeGroup = user.groups[0]; // default
-              try {
-                const prefRes = await recentUserPreferencesAPI(user._id);
-                if (prefRes.success && prefRes.preference) {
-                  const { group_id } = prefRes.preference;
-                  const matched = user.groups.find((g) => g._id === group_id);
-                  if (matched) activeGroup = matched;
-                }
-              } catch (error) {
-                logger.warn(
-                  `Failed to fetch user preferences: ${error.message}`,
+          if (user?.groups?.length) {
+            // Find active group from preferences
+            let activeGroupData = user.groups[0]; // default
+            try {
+              const prefRes = await recentUserPreferencesAPI(user._id);
+              if (prefRes.success && prefRes.preference?.group_id) {
+                const matched = user.groups.find(
+                  (g) => g._id === prefRes.preference.group_id,
                 );
-                // Continue with default group
+                if (matched) activeGroupData = matched;
               }
-
-              // Update Redux state
-              dispatch(setUserInfo(user));
-              dispatch(setActiveGroup(activeGroup));
-              dispatch(setSuccess(true));
-
-              // Note: User data is now stored in Redux and session only
-              // No localStorage usage for user/active group data
+            } catch (prefError) {
+              logger.warn('Failed to fetch preferences:', prefError.message);
             }
-          } catch (error) {
-            logger.error('Error fetching user details:', error);
-          }
-        };
 
-        fetchUserDetails();
-      } else {
-        // We have Redux data, no localStorage sync needed
-        // Data is maintained in Redux and NextAuth session
+            // Update Redux with complete data
+            dispatch(setUserInfo(user));
+            dispatch(setActiveGroup(activeGroupData));
+          }
+
+          dispatch(setSuccess(true));
+        } catch (error) {
+          logger.error('Failed to fetch user details:', error);
+          // Don't fail the session, just use basic data
+          dispatch(setSuccess(true));
+        }
+      } else if (!reduxLoginState.success) {
+        dispatch(setSuccess(true));
       }
-    } else if (status === 'unauthenticated') {
-      // User is not authenticated
+    };
+
+    const handleUnauthenticatedState = () => {
       // Clear Redux state
       dispatch(resetStore());
       dispatch(clearActiveGroup());
 
-      // Note: No localStorage cleanup needed as we don't store user data there
-
-      // Check if user is on a protected route
-      const protectedRoutes = [
+      // Only redirect if on protected routes
+      const protectedUserRoutes = [
         '/user/Home',
         '/user/map',
         '/user/analytics',
         '/user/settings',
         '/user/collocation',
       ];
-
-      // Check if the path includes organization paths
-      const isOrgProtectedRoute =
+      const isProtectedUserRoute = protectedUserRoutes.some((route) =>
+        pathname.startsWith(route),
+      );
+      const isProtectedOrgRoute =
         pathname.includes('/org/') &&
         !pathname.includes('/login') &&
         !pathname.includes('/register') &&
         !pathname.includes('/forgotPwd');
 
-      const isProtectedRoute = protectedRoutes.some(
-        (route) => pathname.startsWith(route) || pathname === route,
-      );
-
-      if (isProtectedRoute) {
-        // Redirect to login
-        router.push('/user/login');
-      } else if (isOrgProtectedRoute) {
-        // Handle organization routes
-        // Extract org slug from the pathname
-        const orgSlug = pathname.split('/org/')[1]?.split('/')[0];
-        if (orgSlug) {
-          router.push(`/org/${orgSlug}/login`);
-        } else {
-          router.push('/');
-        }
+      if (isProtectedUserRoute) {
+        router.replace('/user/login');
+      } else if (isProtectedOrgRoute) {
+        const orgSlug = pathname.split('/org/')[1]?.split('/')[0] || 'airqo';
+        router.replace(`/org/${orgSlug}/login`);
       }
-    }
+    };
+
+    processAuthState();
   }, [
     status,
-    session,
+    session?.user?.id,
+    session?.sessionType,
+    session?.user?.sessionType,
+    pathname,
     dispatch,
     router,
-    pathname,
-    reduxLoginState.userInfo?._id,
-    reduxLoginState.userInfo?.groups,
-    activeGroup,
+    reduxLoginState.success,
+    activeGroup?._id,
+    hasInitialized,
   ]);
-
   return null;
 };
 

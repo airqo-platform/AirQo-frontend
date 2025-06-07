@@ -12,6 +12,7 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
+import withOrgAuthRoute from '@/core/HOC/withAuthRoute';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -22,7 +23,7 @@ const ResetPasswordSchema = Yup.object().shape({
     .required('Confirm password is required'),
 });
 
-export default function OrganizationResetPassword() {
+const OrganizationResetPassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -195,4 +196,6 @@ export default function OrganizationResetPassword() {
       </div>
     </AuthLayout>
   );
-}
+};
+
+export default withOrgAuthRoute(OrganizationResetPassword);

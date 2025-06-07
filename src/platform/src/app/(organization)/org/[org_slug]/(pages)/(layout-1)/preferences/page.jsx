@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
+import withOrgAuth from '@/core/HOC/withOrgAuth';
 
 // Icons
 import {
@@ -16,7 +17,7 @@ import {
   FaSave,
 } from 'react-icons/fa';
 
-export default function OrganizationPreferencesPage({ params }) {
+const OrganizationPreferencesPage = ({ params }) => {
   const router = useRouter();
   const { organization, primaryColor } = useOrganization();
   const [isLoading, setIsLoading] = useState(true);
@@ -453,4 +454,6 @@ export default function OrganizationPreferencesPage({ params }) {
       </CardWrapper>
     </div>
   );
-}
+};
+
+export default withOrgAuth(OrganizationPreferencesPage);

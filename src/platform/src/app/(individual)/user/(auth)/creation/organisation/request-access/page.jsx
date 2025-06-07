@@ -11,8 +11,9 @@ import {
   getOrganisationSlugAvailabilityApi,
 } from '@/core/apis/Account';
 import logger from '@/lib/logger';
+import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
-export default function OrgRequestAccessPage() {
+const OrgRequestAccessPage = () => {
   const router = useRouter();
   const fileInputRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -973,4 +974,6 @@ export default function OrgRequestAccessPage() {
       </div>
     </AccountPageLayout>
   );
-}
+};
+
+export default withUserAuthRoute(OrgRequestAccessPage);

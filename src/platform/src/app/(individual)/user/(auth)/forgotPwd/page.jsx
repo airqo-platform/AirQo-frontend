@@ -9,6 +9,7 @@ import { forgotPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -125,4 +126,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword;
+export default withUserAuthRoute(ForgotPassword);

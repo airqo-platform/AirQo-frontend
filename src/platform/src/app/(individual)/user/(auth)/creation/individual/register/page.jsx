@@ -16,6 +16,7 @@ import Spinner from '@/components/Spinner';
 import InputField from '@/common/components/InputField';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
 const IndividualAccountRegistration = () => {
   const [firstName, setFirstName] = useState('');
@@ -275,4 +276,4 @@ const IndividualAccountRegistration = () => {
   );
 };
 
-export default IndividualAccountRegistration;
+export default withUserAuthRoute(IndividualAccountRegistration);

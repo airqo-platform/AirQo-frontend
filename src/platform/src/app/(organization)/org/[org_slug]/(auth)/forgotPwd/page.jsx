@@ -13,6 +13,7 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
+import withOrgAuthRoute from '@/core/HOC/withAuthRoute';
 
 const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -20,7 +21,7 @@ const forgotPasswordSchema = Yup.object().shape({
     .required('Email is required'),
 });
 
-export default function OrganizationForgotPassword() {
+const OrganizationForgotPassword = () => {
   const [error, setErrorState] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -161,4 +162,6 @@ export default function OrganizationForgotPassword() {
       </form>
     </AuthLayout>
   );
-}
+};
+
+export default withOrgAuthRoute(OrganizationForgotPassword);

@@ -12,6 +12,7 @@ import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 // Remove unused import since middleware handles auth
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
+import withUserAuth from '@/core/HOC/withUserAuth';
 
 // Icons
 import LayerIcon from '@/icons/map/layerIcon';
@@ -281,4 +282,4 @@ const MapPage = () => {
   );
 };
 
-export default MapPage;
+export default withUserAuth(MapPage);

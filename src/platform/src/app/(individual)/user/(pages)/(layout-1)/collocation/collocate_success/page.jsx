@@ -4,7 +4,7 @@ import React from 'react';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import ContentLessTopBar from '@/common/layouts/TopBar/content_less_header';
 import Button from '@/components/Button';
-// Remove unused import since middleware handles auth
+import withUserAuth from '@/core/HOC/withUserAuth';
 
 const CollocationSuccess = () => {
   return (
@@ -37,4 +37,4 @@ const CollocationSuccess = () => {
   );
 };
 
-export default CollocationSuccess;
+export default withUserAuth(CollocationSuccess);

@@ -13,6 +13,7 @@ import OrganizationProfile from './Tabs/OrganizationProfile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './Tabs/API';
+import withUserAuth from '@/core/HOC/withUserAuth';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions =
@@ -101,4 +102,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default withUserAuth(Settings);

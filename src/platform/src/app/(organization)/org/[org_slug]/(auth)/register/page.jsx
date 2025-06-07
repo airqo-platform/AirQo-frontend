@@ -12,6 +12,7 @@ import { registerUserToOrgApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
+import { withOrgAuthRoute } from '@/core/HOC/withAuthRoute';
 import logger from '@/lib/logger';
 
 const registrationSchema = Yup.object().shape({
@@ -42,7 +43,7 @@ const registrationSchema = Yup.object().shape({
   role: Yup.string().required('Please select your role'),
 });
 
-export default function OrganizationRegister() {
+const OrganizationRegister = () => {
   const [error, setErrorState] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -371,8 +372,10 @@ export default function OrganizationRegister() {
           >
             Sign in
           </Link>
-        </div>
+        </div>{' '}
       </form>
     </AuthLayout>
   );
-}
+};
+
+export default withOrgAuthRoute(OrganizationRegister);

@@ -7,7 +7,7 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import WorldIcon from '@/icons/SideBar/world_Icon';
-import { checkAccess } from '@/core/HOC/withNextAuth';
+import { checkAccess } from '@/core/HOC/authUtils';
 
 const UserSidebarContent = ({ isCollapsed, styles }) => {
   const [collocationOpen, setCollocationOpen] = useState(false);

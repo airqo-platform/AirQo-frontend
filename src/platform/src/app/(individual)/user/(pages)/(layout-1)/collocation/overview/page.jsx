@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { withPermission } from '@/core/HOC/withNextAuth';
+import { withUserPermission } from '@/core/HOC/withUserAuth';
 import { findAllMatchingDevices } from '@/core/utils/matchingDevices';
 import {
   addOverviewBatch,
@@ -232,6 +232,7 @@ const CollocationOverview = () => {
   );
 };
 
-export default withPermission(CollocationOverview, [
+export default withUserPermission(
+  CollocationOverview,
   'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
-]);
+);

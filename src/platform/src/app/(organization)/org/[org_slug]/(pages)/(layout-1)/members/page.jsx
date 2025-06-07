@@ -15,8 +15,9 @@ import {
   FaUserCheck as ActiveIcon,
   FaUserTimes as InactiveIcon,
 } from 'react-icons/fa';
+import withOrgAuth from '@/core/HOC/withOrgAuth';
 
-export default function OrganizationMembersPage({ params: _params }) {
+const OrganizationMembersPage = ({ params: _params }) => {
   const { organization, primaryColor } = useOrganization();
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
@@ -486,4 +487,6 @@ export default function OrganizationMembersPage({ params: _params }) {
       )}
     </div>
   );
-}
+};
+
+export default withOrgAuth(OrganizationMembersPage);

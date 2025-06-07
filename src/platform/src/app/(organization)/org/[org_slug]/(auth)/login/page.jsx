@@ -1,4 +1,3 @@
-// filepath: c:\projects\AirQo-frontend\src\platform\src\app\(organization)\org\[org_slug]\(auth)\login\page.jsx
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,10 +12,7 @@ import InputField from '@/common/components/InputField';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import LoginSetupLoader from '@/common/components/LoginSetupLoader';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
-import { useDispatch } from 'react-redux';
-import { setupOrganizationAfterLogin } from '@/core/utils/setupOrganization';
+import { withOrgAuthRoute } from '@/core/HOC/withAuthRoute';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -26,18 +22,15 @@ const loginSchema = Yup.object().shape({
   password: Yup.string().required('Password is required'),
 });
 
-export default function OrganizationLogin() {
+const OrganizationLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSettingUp, setIsSettingUp] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
-  const dispatch = useDispatch();
   const orgSlug = params.org_slug;
-  const { getDisplayName, logo } = useOrganization();
 
   useEffect(() => {
     // Check if user is already authenticated and redirect immediately
@@ -84,23 +77,12 @@ export default function OrganizationLogin() {
         if (result?.error) {
           setError('Invalid credentials. Please try again.');
         } else if (result?.ok) {
-          // Show setup screen while we fetch additional required data
-          setIsSettingUp(true);
-
           // Get the session after successful login
           const session = await getSession();
 
           if (session?.user && session?.orgSlug === orgSlug) {
-            try {
-              // Setup organization with the session data
-              await setupOrganizationAfterLogin(session, dispatch, orgSlug);
-
-              // Navigate to organization dashboard after setup is complete
-              router.replace(`/org/${orgSlug}/dashboard`);
-            } catch (setupError) {
-              setIsSettingUp(false);
-              throw setupError;
-            }
+            // Navigate directly to organization dashboard
+            router.replace(`/org/${orgSlug}/dashboard`);
           } else {
             throw new Error(
               'Session data is incomplete or organization mismatch',
@@ -108,7 +90,6 @@ export default function OrganizationLogin() {
           }
         }
       } catch (error) {
-        setIsSettingUp(false);
         const errorMessage =
           error.message || 'An error occurred. Please try again.';
         setError(errorMessage);
@@ -117,23 +98,12 @@ export default function OrganizationLogin() {
         setIsLoading(false);
       }
     },
-    [email, password, orgSlug, router, dispatch],
+    [email, password, orgSlug, router],
   );
 
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(!showPassword);
   }, [showPassword]);
-
-  // Show organization-specific setup screen when preparing dashboard
-  if (isSettingUp) {
-    return (
-      <LoginSetupLoader
-        organizationName={getDisplayName()}
-        organizationLogo={logo}
-        isOrganization={true}
-      />
-    );
-  }
 
   return (
     <ErrorBoundary
@@ -146,7 +116,6 @@ export default function OrganizationLogin() {
       >
         <div className="w-full">
           {error && <Toast type="error" timeout={8000} message={error} />}
-
           <form onSubmit={handleSubmit} noValidate>
             <div className="mt-6">
               <InputField
@@ -199,7 +168,6 @@ export default function OrganizationLogin() {
               </button>
             </div>
           </form>
-
           <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
             <span>
               Don&apos;t have an account?
@@ -223,4 +191,6 @@ export default function OrganizationLogin() {
       </AuthLayout>
     </ErrorBoundary>
   );
-}
+};
+
+export default withOrgAuthRoute(OrganizationLogin);

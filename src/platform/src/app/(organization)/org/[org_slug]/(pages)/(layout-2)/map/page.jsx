@@ -11,6 +11,7 @@ import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSl
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
+import withOrgAuth from '@/core/HOC/withOrgAuth';
 
 // Icons
 import LayerIcon from '@/icons/map/layerIcon';
@@ -229,4 +230,4 @@ const OrganizationMapPage = () => {
   );
 };
 
-export default OrganizationMapPage;
+export default withOrgAuth(OrganizationMapPage);

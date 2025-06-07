@@ -4,11 +4,12 @@ import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CardWrapper from '@/common/components/CardWrapper';
+import withOrgAuth from '@/core/HOC/withOrgAuth';
 
 // Import existing analytics components
 import OverView from '@/app/(individual)/user/(pages)/(layout-1)/analytics/view/OverView';
 
-export default function OrganizationInsightsPage({ params }) {
+const OrganizationInsightsPage = ({ params }) => {
   const _router = useRouter();
   const { organization, primaryColor } = useOrganization();
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +66,6 @@ export default function OrganizationInsightsPage({ params }) {
         style={{ borderTopColor: primaryColor || '#3B82F6' }}
         padding="p-6"
       />
-
       {/* Custom organization branding wrapper */}
       <CardWrapper
         className="border-2"
@@ -76,7 +76,9 @@ export default function OrganizationInsightsPage({ params }) {
           {/* Render the existing analytics overview with organization context */}
           <OverView />
         </div>
-      </CardWrapper>
+      </CardWrapper>{' '}
     </div>
   );
-}
+};
+
+export default withOrgAuth(OrganizationInsightsPage);

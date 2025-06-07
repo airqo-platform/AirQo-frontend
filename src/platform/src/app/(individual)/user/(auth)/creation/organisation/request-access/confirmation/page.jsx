@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import CongratsImage from '@/images/EventHandling/congratulations.svg';
+// import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
-export default function OrgRequestSubmissionConfirmationPage() {
+const OrgRequestSubmissionConfirmationPage = () => {
   return (
     <div className="relative w-screen h-screen bg-white overflow-x-hidden">
       <div className="">
@@ -31,4 +32,6 @@ export default function OrgRequestSubmissionConfirmationPage() {
       </div>
     </div>
   );
-}
+};
+
+export default OrgRequestSubmissionConfirmationPage;

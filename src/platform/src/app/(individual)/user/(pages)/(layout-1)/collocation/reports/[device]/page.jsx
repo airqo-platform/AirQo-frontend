@@ -18,7 +18,7 @@ import {
   getCollocationStatistics,
   getCollocationResults,
 } from '@/lib/store/services/collocation';
-import { withPermission } from '@/core/HOC/withNextAuth';
+import { withPermission } from '@/core/HOC/withUserAuth';
 
 const Reports = () => {
   const dispatch = useDispatch();

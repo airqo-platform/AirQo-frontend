@@ -3,7 +3,7 @@
 import HeaderNav from '@/components/Layout/header';
 import Box from '@/components/Collocation/Report/box';
 import ContentBox from '@/components/Layout/content_box';
-// Remove unused import since middleware handles auth
+import withUserAuth from '@/core/HOC/withUserAuth';
 
 const CollocationReports = () => {
   return (
@@ -55,4 +55,4 @@ const CollocationReports = () => {
   );
 };
 
-export default CollocationReports;
+export default withUserAuth(CollocationReports);

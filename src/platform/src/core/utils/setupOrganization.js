@@ -1,5 +1,9 @@
 import { getOrganizationBySlugApi } from '@/core/apis/Organizations';
-import { getUserDetails } from '@/core/apis/Account';
+import {
+  getUserDetails,
+  recentUserPreferencesAPI,
+  postUserPreferencesApi,
+} from '@/core/apis/Account';
 import {
   setUserInfo,
   setSuccess,
@@ -15,13 +19,16 @@ import { retryWithDelay } from './retryUtils';
  * @param {Object} session - NextAuth session object with organization context
  * @param {Function} dispatch - Redux dispatch function
  * @param {string} orgSlug - Organization slug for context
+ * @param {Object} options - Additional options including step tracking callback
  * @returns {Promise<{user: Object, organization: Object}>} - User and organization data
  */
 export const setupOrganizationAfterLogin = async (
   session,
   dispatch,
   orgSlug,
+  options = {},
 ) => {
+  const { onStepChange } = options;
   try {
     if (!session?.user?.id) {
       throw new Error('Invalid session: missing user ID');
@@ -30,12 +37,12 @@ export const setupOrganizationAfterLogin = async (
     if (!session?.orgSlug || session.orgSlug !== orgSlug) {
       throw new Error('Invalid organization context in session');
     }
-
     logger.info(
       `Setting up organization context for ${orgSlug} with user ${session.user.id}`,
     );
 
     // 1. Fetch organization details
+    onStepChange?.('fetching_organization');
     let organizationData;
     try {
       const orgRes = await retryWithDelay(() =>
@@ -58,9 +65,8 @@ export const setupOrganizationAfterLogin = async (
         name: session.user.long_organization || session.user.organization,
         slug: orgSlug,
       };
-    }
-
-    // 2. Fetch complete user details with groups using the getUserDetails API
+    } // 2. Fetch complete user details with groups using the getUserDetails API
+    onStepChange?.('fetching_user_details');
     let userWithGroups;
     try {
       const userRes = await retryWithDelay(() =>
@@ -139,9 +145,49 @@ export const setupOrganizationAfterLogin = async (
           status: 'ACTIVE',
         },
       ],
-    };
+    }; // 4. Setup organization preferences (optional, don't fail the login)
+    onStepChange?.('setting_up_preferences');
+    try {
+      // Check if user has recent preferences for this organization
+      const prefRes = await retryWithDelay(() =>
+        recentUserPreferencesAPI(organizationUser._id),
+      );
 
-    // 4. Find the active group that matches the current organization
+      if (!prefRes.success || !prefRes.preference) {
+        // Create initial preferences for organization user
+        const initialPreferences = {
+          user_id: organizationUser._id,
+          group_id: session.user.organization,
+          selected_sites: [], // Organization will set their preferred sites
+          chartType: 'line',
+          pollutant: 'pm2_5',
+          frequency: 'daily',
+          period: {
+            label: 'Last 7 days',
+          },
+          startDate: new Date(
+            Date.now() - 7 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          endDate: new Date().toISOString(),
+        };
+
+        await retryWithDelay(() => postUserPreferencesApi(initialPreferences));
+        logger.info(
+          `Initial preferences created for organization user ${organizationUser._id}`,
+        );
+      } else {
+        logger.info(
+          `Existing preferences found for organization user ${organizationUser._id}`,
+        );
+      }
+    } catch (prefError) {
+      logger.warn(
+        `Failed to setup organization preferences: ${prefError.message || 'Unknown error'}`,
+      );
+      // Don't fail the login process for preferences issues
+    }
+
+    // 5. Find the active group that matches the current organization
     let activeGroup = null;
 
     // First, try to find the group that matches the current organization
@@ -175,9 +221,8 @@ export const setupOrganizationAfterLogin = async (
         ...activeGroup,
         orgSlug: session.orgSlug,
       };
-    }
-
-    // 5. Update Redux store with organization user info and active group
+    } // 6. Update Redux store with organization user info and active group
+    onStepChange?.('updating_redux');
     dispatch(setUserInfo(organizationUser));
     dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));

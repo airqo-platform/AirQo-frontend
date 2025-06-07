@@ -1,99 +1,91 @@
+import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
-export async function middleware(request) {
-  const { pathname } = request.nextUrl;
+export default withAuth(
+  function middleware(request) {
+    const { pathname } = request.nextUrl;
+    const token = request.nextauth.token;
 
-  // Get the token from the request
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
-  // Public paths that don't require authentication
-  const publicPaths = [
-    '/api/',
-    '/_next/',
-    '/favicon.ico',
-    '/robots.txt',
-    '/sitemap.xml',
-    '/icons/',
-    '/images/',
-  ];
-
-  // Auth paths that should be accessible without token
-  const authPaths = ['/login', '/register', '/forgotPwd', '/creation'];
-
-  // Check if path is public or auth-related
-  if (
-    publicPaths.some((path) => pathname.startsWith(path)) ||
-    authPaths.some((path) => pathname.includes(path))
-  ) {
-    return NextResponse.next();
-  }
-
-  // Handle root path redirect
-  if (pathname === '/') {
-    return token
-      ? NextResponse.redirect(new URL('/user/Home', request.url))
-      : NextResponse.redirect(new URL('/user/login', request.url));
-  }
-
-  // Handle organization routes
-  if (pathname.startsWith('/org/')) {
-    const pathSegments = pathname.split('/').filter(Boolean);
-    const orgSlug = pathSegments[1];
-
-    if (!orgSlug) {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-
-    // If not authenticated, redirect to org login
+    // If no token, let NextAuth handle the redirect
     if (!token) {
-      return NextResponse.redirect(
-        new URL(`/org/${orgSlug}/login`, request.url),
-      );
+      return NextResponse.next();
     }
 
-    // Check if user has organization access
-    const userOrgSlug = token.organization?.slug || token.orgSlug;
-    if (!userOrgSlug || userOrgSlug !== orgSlug) {
-      return NextResponse.redirect(
-        new URL(`/org/${orgSlug}/login`, request.url),
-      );
-    }
+    const sessionType = token.sessionType;
+    const isOrgRoute = pathname.includes('/org/');
+    const isUserRoute =
+      pathname.includes('/user/') || pathname.includes('(individual)');
 
-    // If authenticated and accessing org root, redirect to dashboard
-    if (pathname === `/org/${orgSlug}` || pathname === `/org/${orgSlug}/`) {
+    // Strict session type enforcement
+    if (sessionType === 'organization' && isUserRoute) {
+      // Organization session trying to access user routes
+      const orgSlug = token.orgSlug || 'airqo';
       return NextResponse.redirect(
         new URL(`/org/${orgSlug}/dashboard`, request.url),
       );
     }
-  }
 
-  // Handle user routes
-  if (pathname.startsWith('/user/')) {
-    // Allow access to auth routes without token
-    if (authPaths.some((path) => pathname.includes(path))) {
-      return NextResponse.next();
+    if (sessionType === 'user' && isOrgRoute) {
+      // User session trying to access organization routes
+      return NextResponse.redirect(new URL('/user/Home', request.url));
     }
 
-    // If not authenticated, redirect to user login
-    if (!token) {
+    // Organization route but no valid organization session
+    if (isOrgRoute && sessionType !== 'organization') {
+      const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
+      const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+      return NextResponse.redirect(
+        new URL(`/org/${orgSlug}/login`, request.url),
+      );
+    }
+
+    // User route but no valid user session
+    if (isUserRoute && sessionType !== 'user') {
       return NextResponse.redirect(new URL('/user/login', request.url));
     }
 
-    // If authenticated and accessing user root, redirect to Home
-    if (pathname === '/user' || pathname === '/user/') {
-      return NextResponse.redirect(new URL('/user/Home', request.url));
-    }
-  }
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
 
-  return NextResponse.next();
-}
+        // Allow access to login pages without authentication
+        if (
+          pathname.includes('/login') ||
+          pathname.includes('/register') ||
+          pathname.includes('/forgotPwd')
+        ) {
+          return true;
+        }
+
+        // Allow access to public routes
+        if (pathname === '/' || pathname.startsWith('/public/')) {
+          return true;
+        }
+
+        // Require authentication for protected routes
+        if (pathname.includes('/org/') || pathname.includes('/user/')) {
+          return !!token;
+        }
+
+        return true;
+      },
+    },
+  },
+);
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|icons|images).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 };

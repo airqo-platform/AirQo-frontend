@@ -11,8 +11,9 @@ import {
   FaTachometerAlt as DashboardIcon,
   FaChartBar as AnalyticsIcon,
 } from 'react-icons/fa';
+import withOrgAuth from '@/core/HOC/withOrgAuth';
 
-export default function OrganizationDashboardPage() {
+const OrganizationDashboardPage = () => {
   const { organization, primaryColor, secondaryColor } = useOrganization();
   const [stats, setStats] = useState({
     totalSites: 0,
@@ -168,4 +169,6 @@ export default function OrganizationDashboardPage() {
       </div>
     </div>
   );
-}
+};
+
+export default withOrgAuth(OrganizationDashboardPage);

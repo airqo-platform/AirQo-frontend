@@ -1,12 +1,16 @@
 import React from 'react';
-import CongratsImage from '@/images/EventHandling/congratulations.svg';
+// import CongratsImage from '@/images/EventHandling/congratulations.svg';
 import Link from 'next/link';
+// import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
 const IndividualAccountCreationSuccess = () => {
   return (
     <div className="relative w-screen h-screen bg-white overflow-x-hidden">
       <div className="">
-        <CongratsImage className="absolute left-0 right-0 top-0 bottom-0 mb-0 mt-36 mx-auto w-auto h-auto" />
+        {/* <CongratsImage className="absolute left-0 right-0 top-0 bottom-0 mb-0 mt-36 mx-auto w-auto h-auto" /> */}
+        <div className="absolute left-0 right-0 top-0 bottom-0 mb-0 mt-36 mx-auto w-auto h-auto flex items-center justify-center">
+          <span className="text-6xl">🎉</span>
+        </div>
       </div>
       <div className="flex flex-col justify-center items-center mt-96 w-full md:px-48 px-6">
         <div className="mt-2 w-full flex items-center justify-center">
@@ -16,7 +20,7 @@ const IndividualAccountCreationSuccess = () => {
         </div>
         <div className="mt-4 flex items-center justify-center">
           <h6 className="text-xl font-normal lg:w-11/12 text-center">
-            You've successfully created your AirQo Analytics account
+            You&apos;ve successfully created your AirQo Analytics account
           </h6>
         </div>
         <div className="mt-12">

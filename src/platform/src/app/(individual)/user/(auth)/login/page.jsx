@@ -12,11 +12,11 @@ import AccountPageLayout from '@/components/Account/Layout';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
-import LoginSetupLoader from '@/components/LoginSetupLoader';
 
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { setupIndividualUserAfterLogin } from '@/core/utils/setupUserIndividual';
+import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -111,10 +111,18 @@ const UserLogin = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-  // Show setup screen when fetching additional user data
+  }; // Show simple loading screen when setting up user data
   if (isSettingUp) {
-    return <LoginSetupLoader />;
+    return (
+      <div className="w-full h-screen flex flex-grow justify-center items-center bg-white">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="SecondaryMainloader" aria-label="Loading"></div>
+          <p className="text-sm text-gray-600 animate-pulse">
+            Setting up your dashboard...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -198,4 +206,4 @@ const UserLogin = () => {
   );
 };
 
-export default UserLogin;
+export default withUserAuthRoute(UserLogin);

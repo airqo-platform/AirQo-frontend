@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getServerSession } from 'next-auth';
-import { options as authOptions } from '@/app/api/auth/user/[...nextauth]/options.js';
+import { options as authOptions } from '@/app/api/auth/[...nextauth]/options.js';
 
 // For App Router compatibility
 /* global Response */
