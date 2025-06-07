@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
-import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import OrganizationSidebarContent from '@/components/SideBar/OrganizationSidebarContent';
+import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
+import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import { useSelector } from 'react-redux';
 
 export default function OrganizationSidebar({ organization }) {

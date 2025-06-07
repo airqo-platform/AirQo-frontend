@@ -10,10 +10,10 @@ import {
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter, usePathname } from 'next/navigation';
-import Button from '../Button';
-import Card from '../CardWrapper';
+import Button from '@/common/components/Button';
+import Card from '@/common/components/CardWrapper';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
-import GroupLogo from '../GroupLogo';
+import GroupLogo from '@/common/components/GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 

@@ -3,10 +3,10 @@
 import { usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
-import TopBar from '@/components/TopBar';
-import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
+import TopBar from '@/common/layouts/TopBar';
+import SideBarDrawer from '@/common/layouts/SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
-import IndividualUserSidebar from '@/layouts/IndividualUserSidebar';
+import IndividualUserSidebar from '@/common/layouts/IndividualUserSidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';

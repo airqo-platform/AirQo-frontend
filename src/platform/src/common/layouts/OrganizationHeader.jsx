@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import TopBar from '@/components/TopBar';
+import TopBar from '@/common/layouts/TopBar';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 
 export default function OrganizationHeader({ organization }) {

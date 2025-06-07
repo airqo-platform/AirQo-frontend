@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
-import SideBarItem from '@/components/SideBar/SideBarItem';
+import SideBarItem from '@/common/layouts/SideBar/SideBarItem';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';

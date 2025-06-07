@@ -6,9 +6,9 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 
-import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '../TopBar';
-import SideBarDrawer from '../SideBar/SideBarDrawer';
+import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
+import TopBar from '@/common/layouts/TopBar';
+import SideBarDrawer from '@/common/layouts/SideBar/SideBarDrawer';
 import MaintenanceBanner from '../MaintenanceBanner';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';

@@ -2,8 +2,8 @@
 
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import AuthenticatedSideBar from '@/common/components/SideBar/AuthenticatedSidebar';
-import UserSidebarContent from '@/common/components/SideBar/UserSidebarContent';
+import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
+import UserSidebarContent from '@/common/layouts/SideBar/UserSidebarContent';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 /**

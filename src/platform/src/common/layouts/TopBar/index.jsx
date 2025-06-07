@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
-import Button from '../Button';
+import Button from '@/common/components/Button';
 import MenuBarIcon from '@/icons/menu_bar';
 import ChartIcon from '@/icons/Topbar/chartIcon';
 import UserProfileDropdown from './UserProfileDropdown';
@@ -14,7 +14,7 @@ import {
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import GroupLogo from '../GroupLogo';
+import GroupLogo from '@/common/components/GroupLogo';
 
 const TopBar = ({
   topbarTitle,

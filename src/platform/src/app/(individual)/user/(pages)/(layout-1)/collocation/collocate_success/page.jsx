@@ -2,7 +2,7 @@
 
 import React from 'react';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
-import ContentLessTopBar from '@/components/TopBar/content_less_header';
+import ContentLessTopBar from '@/common/layouts/TopBar/content_less_header';
 import Button from '@/components/Button';
 // Remove unused import since middleware handles auth
 

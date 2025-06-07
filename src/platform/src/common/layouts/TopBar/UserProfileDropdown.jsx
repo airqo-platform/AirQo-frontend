@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
-import CustomDropdown from '../Button/CustomDropdown';
+import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import UserIcon from '@/icons/Topbar/userIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import LogoutUser from '@/core/HOC/LogoutUser';

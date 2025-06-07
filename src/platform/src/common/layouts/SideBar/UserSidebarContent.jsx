@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SidebarItem, {
   SideBarDropdownItem,
-} from '@/common/components/SideBar/SideBarItem';
+} from '@/common/layouts/SideBar/SideBarItem';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
