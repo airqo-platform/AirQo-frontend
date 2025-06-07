@@ -44,6 +44,20 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
+    '/admin/organisations/requests': {
+      pageTitle: 'Pending Organisation Requests - AirQo Analytics',
+      topbarTitle: 'Pending Organisation Requests',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/organisations': {
+      pageTitle: 'All Organisations - AirQo Analytics',
+      topbarTitle: 'All Organisations',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
   },
 
   // Auth routes configuration

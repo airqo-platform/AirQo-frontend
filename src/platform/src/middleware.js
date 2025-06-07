@@ -41,6 +41,7 @@ export default withAuth(
           '/analytics',
           '/settings',
           '/collocation',
+          '/admin',
         ];
 
         // Check for organization-specific routes under /org/

@@ -46,6 +46,7 @@ import apiClientReducer from './services/apiClient/index';
 import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
+import { organisationRequestsSlice } from './services/admin/OrgRequestsSlice';
 import activeGroupReducer from './services/activeGroup/ActiveGroupSlice';
 
 // Combine all the reducers
@@ -70,6 +71,7 @@ const rootReducer = combineReducers({
   locationSearch: locationSearchSlice.reducer,
   apiClient: apiClientReducer,
   sites: sitesSummaryReducer,
+  organisationRequests: organisationRequestsSlice.reducer,
   activeGroup: activeGroupReducer,
 });
 

@@ -5,6 +5,7 @@ const sidebarSlice = createSlice({
   initialState: {
     isCollapsed: false,
     toggleDrawer: false,
+    toggleGlobalDrawer: false,
   },
   reducers: {
     toggleSidebar: (state) => {
@@ -19,10 +20,22 @@ const sidebarSlice = createSlice({
     toggleDrawer: (state) => {
       state.toggleDrawer = !state.toggleDrawer;
     },
+    setTogglingGlobalDrawer: (state, action) => {
+      state.toggleGlobalDrawer = action.payload;
+    },
+    toggleGlobalDrawer: (state) => {
+      state.toggleGlobalDrawer = !state.toggleGlobalDrawer;
+    },
   },
 });
 
-export const { toggleSidebar, setSidebar, setToggleDrawer, toggleDrawer } =
-  sidebarSlice.actions;
+export const {
+  toggleSidebar,
+  setSidebar,
+  setToggleDrawer,
+  toggleDrawer,
+  setTogglingGlobalDrawer,
+  toggleGlobalDrawer,
+} = sidebarSlice.actions;
 
 export default sidebarSlice.reducer;

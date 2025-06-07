@@ -30,7 +30,7 @@ TabItem.propTypes = {
 
 TabItem.displayName = 'TabItem';
 
-const Tabs = ({ children, childrenRight, positionFixed }) => {
+const Tabs = ({ children, childrenRight, positionFixed, customPadding }) => {
   const dispatch = useDispatch();
   const chartTab = useSelector((state) => state.chart.chartTab);
 
@@ -74,7 +74,7 @@ const Tabs = ({ children, childrenRight, positionFixed }) => {
       <div
         className={`${
           positionFixed ? 'fixed' : ''
-        } w-full h-14 border-b border-gray-200 dark:border-gray-700 flex items-end px-2 z-20 ${
+        } w-full h-14 border-b border-gray-200 dark:border-gray-700 flex items-end ${customPadding ? customPadding : 'px-2'} z-20 ${
           childrenRight ? 'justify-between' : ''
         } bg-white dark:bg-[#1d1f20]`}
       >
