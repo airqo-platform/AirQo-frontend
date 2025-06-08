@@ -14,11 +14,17 @@ import {
   clearActiveGroup,
 } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
+import {
+  validateClientSession,
+  logSessionValidation,
+  SESSION_TYPES,
+  ROUTE_TYPES,
+} from '@/core/utils/sessionUtils';
 import logger from '@/lib/logger';
 
 /**
- * AuthSync component with strict session separation and redirect loop prevention
- * Ensures organization and user sessions cannot cross-contaminate
+ * Enhanced AuthSync component using professional session management utilities
+ * Provides strict session separation with proper validation and redirect handling
  */
 const AuthSync = () => {
   const { data: session, status } = useSession();
@@ -47,67 +53,38 @@ const AuthSync = () => {
     ) {
       return;
     }
+
     lastProcessedSessionRef.current = sessionKey;
     isProcessingRef.current = true;
 
     const processAuthState = async () => {
       try {
         if (status === 'authenticated' && session?.user) {
-          // STRICT SESSION TYPE CHECKING - prevent cross-contamination
-          const sessionType = session.sessionType || session.user.sessionType;
+          // Use professional session validation
+          const validation = await validateClientSession(session, pathname);
 
-          // Route type detection
-          const isOrgRoute = pathname.includes('/org/');
-          const isUserRoute =
-            pathname.includes('/user/') || pathname.includes('(individual)');
+          // Log validation for debugging
+          logSessionValidation(validation, 'AuthSync Session Validation');
 
-          // Debug logging
-          logger.info('AuthSync - Session validation:', {
-            sessionType,
-            isOrgRoute,
-            isUserRoute,
-            pathname,
-            userId: session.user.id,
-            orgSlug: session.orgSlug || session.user.orgSlug,
-          });
-
-          // STRICT ENFORCEMENT: Organization sessions cannot access user routes
-          if (sessionType === 'organization' && isUserRoute) {
-            logger.warn(
-              'Organization session attempting to access user route - redirecting',
-            );
-            const orgSlug = session.orgSlug || session.user.orgSlug || 'airqo';
-            router.replace(`/org/${orgSlug}/dashboard`);
+          // Handle validation failures with appropriate redirects
+          if (!validation.isValid && validation.redirectPath) {
+            logger.warn(`AuthSync validation failed: ${validation.reason}`);
+            router.replace(validation.redirectPath);
             return;
           }
 
-          // STRICT ENFORCEMENT: User sessions cannot access org routes
-          if (sessionType === 'user' && isOrgRoute) {
-            logger.warn(
-              'User session attempting to access org route - redirecting',
-            );
-            router.replace('/user/Home');
-            return;
-          }
-
-          // Handle organization session
-          if (sessionType === 'organization') {
-            await handleOrganizationSession();
-          }
-          // Handle user session
-          else if (sessionType === 'user') {
-            await handleUserSession();
-          } // Invalid or missing session type
-          else {
+          // Process valid sessions based on type
+          if (validation.sessionType === SESSION_TYPES.ORGANIZATION) {
+            await handleOrganizationSession(validation);
+          } else if (validation.sessionType === SESSION_TYPES.USER) {
+            await handleUserSession(validation);
+          } else {
             logger.error('Invalid or missing session type:', {
-              sessionType,
+              sessionType: validation.sessionType,
               sessionData: session,
-            });
-
-            // Redirect to appropriate login based on current route
-            if (isOrgRoute) {
-              const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
-              const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+            }); // Redirect based on current route type
+            if (validation.routeType === ROUTE_TYPES.ORGANIZATION) {
+              const orgSlug = validation.orgSlug || 'airqo';
               router.replace(`/org/${orgSlug}/login`);
             } else {
               router.replace('/user/login');
@@ -124,8 +101,8 @@ const AuthSync = () => {
       }
     };
 
-    const handleOrganizationSession = async () => {
-      // Only sync minimal data - don't redirect from AuthSync for org users
+    const handleOrganizationSession = async (validation) => {
+      // Only sync minimal data using validated session information
       if (
         !reduxLoginState.userInfo ||
         reduxLoginState.userInfo._id !== session.user.id
@@ -153,7 +130,7 @@ const AuthSync = () => {
               session.user.long_organization || session.user.organization,
             grp_title:
               session.user.long_organization || session.user.organization,
-            orgSlug: session.orgSlug || session.user.orgSlug,
+            orgSlug: validation.orgSlug || session.user.orgSlug,
           }),
         );
       }
@@ -163,7 +140,7 @@ const AuthSync = () => {
       }
     };
 
-    const handleUserSession = async () => {
+    const handleUserSession = async (_validation) => {
       // Check if we need to fetch user data
       const needsUserData =
         !reduxLoginState.userInfo ||

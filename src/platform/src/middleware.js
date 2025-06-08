@@ -1,75 +1,76 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import {
+  validateServerSession,
+  logSessionValidation,
+} from './core/utils/sessionUtils';
+import logger from './lib/logger';
 
 export default withAuth(
-  function middleware(request) {
-    const { pathname } = request.nextUrl;
-    const token = request.nextauth.token;
+  async function middleware(request) {
+    try {
+      // Validate session using professional utilities
+      const validation = await validateServerSession(request);
 
-    // If no token, let NextAuth handle the redirect
-    if (!token) {
+      // Log validation for debugging in development
+      logSessionValidation(validation, 'Middleware validation');
+
+      // If validation fails, redirect to appropriate login
+      if (!validation.isValid && validation.redirectPath) {
+        return NextResponse.redirect(
+          new URL(validation.redirectPath, request.url),
+        );
+      }
+
       return NextResponse.next();
-    }
-
-    const sessionType = token.sessionType;
-    const isOrgRoute = pathname.includes('/org/');
-    const isUserRoute =
-      pathname.includes('/user/') || pathname.includes('(individual)');
-
-    // Strict session type enforcement
-    if (sessionType === 'organization' && isUserRoute) {
-      // Organization session trying to access user routes
-      const orgSlug = token.orgSlug || 'airqo';
-      return NextResponse.redirect(
-        new URL(`/org/${orgSlug}/dashboard`, request.url),
-      );
-    }
-
-    if (sessionType === 'user' && isOrgRoute) {
-      // User session trying to access organization routes
-      return NextResponse.redirect(new URL('/user/Home', request.url));
-    }
-
-    // Organization route but no valid organization session
-    if (isOrgRoute && sessionType !== 'organization') {
-      const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
-      const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
-      return NextResponse.redirect(
-        new URL(`/org/${orgSlug}/login`, request.url),
-      );
-    }
-
-    // User route but no valid user session
-    if (isUserRoute && sessionType !== 'user') {
+    } catch (error) {
+      // Log error and fallback to user login on error
+      logger.error('Middleware error:', error);
       return NextResponse.redirect(new URL('/user/login', request.url));
     }
-
-    return NextResponse.next();
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Allow access to login pages without authentication
+        // Always allow access to authentication pages
         if (
           pathname.includes('/login') ||
           pathname.includes('/register') ||
-          pathname.includes('/forgotPwd')
+          pathname.includes('/forgotPwd') ||
+          pathname.includes('/creation') ||
+          pathname.includes('/verify-email')
         ) {
           return true;
         }
 
         // Allow access to public routes
-        if (pathname === '/' || pathname.startsWith('/public/')) {
+        if (
+          pathname === '/' ||
+          pathname.startsWith('/public/') ||
+          pathname.startsWith('/_next/') ||
+          pathname.startsWith('/api/auth/') ||
+          pathname === '/favicon.ico'
+        ) {
           return true;
         }
 
         // Require authentication for protected routes
-        if (pathname.includes('/org/') || pathname.includes('/user/')) {
+        if (
+          pathname.includes('/org/') ||
+          pathname.includes('/user/') ||
+          pathname.includes('(individual)') ||
+          pathname.includes('(organization)') ||
+          pathname.startsWith('/Home') ||
+          pathname.startsWith('/analytics') ||
+          pathname.startsWith('/collocation') ||
+          pathname.startsWith('/settings')
+        ) {
           return !!token;
         }
 
+        // Default allow for unmatched routes
         return true;
       },
     },
@@ -79,13 +80,12 @@ export default withAuth(
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
+     * Match all routes except:
+     * - API routes (/api/*)
+     * - Static files (/_next/*)
+     * - Public files
+     * - Favicon
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

@@ -1,33 +1,46 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 const HomePage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') {
-      return;
-    }
+    const handleRootRedirect = async () => {
+      if (status === 'loading' || isRedirecting) {
+        return;
+      }
 
-    if (status === 'authenticated' && session) {
-      // Strict session type checking - organization sessions cannot access user routes
-      if (session.sessionType === 'organization' && session.orgSlug) {
-        router.replace(`/org/${session.orgSlug}/dashboard`);
-      } else if (session.sessionType === 'user') {
-        router.replace('/user/Home');
-      } else {
-        // Invalid or unknown session type - redirect to user login as fallback
+      try {
+        setIsRedirecting(true);
+
+        if (status === 'authenticated' && session?.user) {
+          // Check if user is organization user
+          if (session.user.organization) {
+            // Extract org slug from user data or default to 'airqo'
+            const orgSlug = session.user.organization_slug || 'airqo';
+            router.replace(`/org/${orgSlug}/dashboard`);
+          } else {
+            // Individual user
+            router.replace('/user/Home');
+          }
+        } else {
+          // Not authenticated - redirect to user login
+          router.replace('/user/login');
+        }
+      } catch {
         router.replace('/user/login');
       }
-    } else {
-      // Not authenticated - redirect to user login
-      router.replace('/user/login');
-    }
-  }, [session, status, router]);
+    };
+
+    // Add a small delay to avoid immediate redirect conflicts
+    const timeoutId = setTimeout(handleRootRedirect, 100);
+    return () => clearTimeout(timeoutId);
+  }, [session, status, router, isRedirecting]);
 
   return (
     <div className="w-full h-screen flex flex-grow justify-center items-center bg-white">
