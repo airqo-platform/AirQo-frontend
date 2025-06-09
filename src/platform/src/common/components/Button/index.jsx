@@ -23,16 +23,36 @@ const Button = React.forwardRef(
   ) => {
     // Base styles
     const base =
-      'flex items-center justify-center rounded-xl transition transform active:scale-95';
+      'flex items-center justify-center rounded-xl transition transform active:scale-95 duration-200';
     const variantMap = {
-      filled: clsx('bg-primary', 'text-white'),
+      filled: clsx(
+        'bg-[var(--org-primary,var(--color-primary,#145fff))]',
+        'hover:bg-[var(--org-primary-600,var(--color-primary,#145fff))]',
+        'text-white',
+        'border border-transparent',
+        'shadow-sm hover:shadow-md',
+        'hover:-translate-y-0.5',
+        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
+      ),
       outlined: clsx(
         'bg-transparent',
-        'border border-gray-300',
-        'text-current',
+        'border border-[var(--org-primary,var(--color-primary,#145fff))]',
+        'text-[var(--org-primary,var(--color-primary,#145fff))]',
+        'hover:bg-[var(--org-primary,var(--color-primary,#145fff))]',
+        'hover:text-white',
+        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
       ),
-      text: clsx('bg-transparent', 'text-primary'),
-      disabled: clsx('bg-gray-300', 'text-gray-500'),
+      text: clsx(
+        'bg-transparent',
+        'text-[var(--org-primary,var(--color-primary,#145fff))]',
+        'hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))]',
+        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
+      ),
+      disabled: clsx(
+        'bg-gray-300 dark:bg-gray-600',
+        'text-gray-500 dark:text-gray-400',
+        'border border-transparent',
+      ),
     };
     const activeVariant = disabled ? 'disabled' : variant;
     const variantStyles = variantMap[activeVariant] || variantMap.filled;

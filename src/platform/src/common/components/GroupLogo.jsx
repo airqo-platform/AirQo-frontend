@@ -7,6 +7,7 @@ import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 const STORAGE_KEY = 'groupLogoUrl';
+const LOGO_REFRESH_EVENT = 'logoRefresh';
 
 const GroupLogo = ({ className = '', style = {} }) => {
   const dispatch = useDispatch();
@@ -19,6 +20,27 @@ const GroupLogo = ({ className = '', style = {} }) => {
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [hasError, setHasError] = useState(false);
   const prevIdRef = useRef(null);
+  // Listen for logo refresh events from settings page
+  useEffect(() => {
+    const handleLogoRefresh = () => {
+      // Clear cache and force refresh
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // ignore
+      }
+      setDisplaySrc(null);
+      setHasError(false);
+
+      if (activeGroupId) {
+        dispatch(fetchGroupInfo(activeGroupId));
+      }
+    };
+
+    window.addEventListener(LOGO_REFRESH_EVENT, handleLogoRefresh);
+    return () =>
+      window.removeEventListener(LOGO_REFRESH_EVENT, handleLogoRefresh);
+  }, [activeGroupId, dispatch]);
 
   // Fetch only when groupId truly changes
   useEffect(() => {

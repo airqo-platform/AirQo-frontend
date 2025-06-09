@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Organization Theme */
+@import './organization-theme.css';
+
 /* Theme Variables */
 :root {
   /* Light mode defaults */

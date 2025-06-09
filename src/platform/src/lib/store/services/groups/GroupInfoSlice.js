@@ -18,7 +18,18 @@ const fetchGroupInfo = createAsyncThunk(
 export const groupInfoSlice = createSlice({
   name: 'groupInfo',
   initialState,
-  reducers: {},
+  reducers: {
+    updateGroupLogo: (state, action) => {
+      if (state.groupInfo) {
+        state.groupInfo.grp_image = action.payload;
+      }
+    },
+    updateGroupInfo: (state, action) => {
+      if (state.groupInfo) {
+        state.groupInfo = { ...state.groupInfo, ...action.payload };
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchGroupInfo.pending, (state) => {
@@ -36,5 +47,6 @@ export const groupInfoSlice = createSlice({
   },
 });
 
+export const { updateGroupLogo, updateGroupInfo } = groupInfoSlice.actions;
 export { fetchGroupInfo };
 export default groupInfoSlice.reducer;
