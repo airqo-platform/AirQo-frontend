@@ -7,6 +7,7 @@ import withOrgAuth from '@/core/HOC/withOrgAuth';
 import CardWrapper from '@/common/components/CardWrapper';
 import Button from '@/common/components/Button';
 import TextField from '@/components/TextInputField';
+import InputField from '@/common/components/InputField';
 import SelectDropdown from '@/common/components/SelectDropdown';
 import AlertBox from '@/common/components/AlertBox';
 import { FaSave, FaCamera } from 'react-icons/fa';
@@ -305,13 +306,12 @@ const UserProfilePage = ({ params }) => {
                     : 'Update'}
               </Button>
             </div>
-          </div>
-
+          </div>{' '}
           {/* Profile Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* First Name */}
-              <TextField
+              <InputField
                 id="firstName"
                 value={userData.firstName}
                 onChange={handleChange}
@@ -322,7 +322,7 @@ const UserProfilePage = ({ params }) => {
               />
 
               {/* Last Name */}
-              <TextField
+              <InputField
                 id="lastName"
                 value={userData.lastName}
                 onChange={handleChange}
@@ -333,7 +333,7 @@ const UserProfilePage = ({ params }) => {
               />
 
               {/* Email */}
-              <TextField
+              <InputField
                 id="email"
                 value={userData.email}
                 onChange={handleChange}
@@ -345,7 +345,7 @@ const UserProfilePage = ({ params }) => {
               />
 
               {/* Phone */}
-              <TextField
+              <InputField
                 id="phone"
                 value={userData.phone}
                 onChange={handleChange}
@@ -355,7 +355,7 @@ const UserProfilePage = ({ params }) => {
               />
 
               {/* Job Title */}
-              <TextField
+              <InputField
                 id="jobTitle"
                 value={userData.jobTitle}
                 onChange={handleChange}
@@ -457,7 +457,7 @@ const UserProfilePage = ({ params }) => {
               </Button>
               <Button onClick={deleteProfileImage} variant="danger">
                 Delete
-              </Button>
+              </Button>{' '}
             </div>
           </div>
         </div>
