@@ -70,7 +70,7 @@ export default function LoginPage() {
               height={50}
             />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back to Netmanager</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome back to Vertex</h1>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
         </div>
 
