@@ -12,7 +12,6 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import Button from '@/common/components/Button';
 import Card from '@/common/components/CardWrapper';
-import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '@/common/components/GroupLogo';
 
 const MAX_WIDTH = '(max-width: 1024px)';
@@ -34,16 +33,18 @@ const AuthenticatedSideBar = ({
   const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, systemTheme } = useTheme();
 
   // Use forceCollapse prop if provided, otherwise use the store value
   const isCollapsed =
     forceCollapse !== undefined ? forceCollapse : storeCollapsed;
 
+  // Static styling (removing theme customizer dependencies)
+  const isDarkMode = false; // Simplified for organization context
+
   // Determine if dark mode should be applied
-  const isDarkMode = useMemo(() => {
+  /*const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
-  }, [theme, systemTheme]);
+  }, [theme, systemTheme]);*/
 
   // Media query and route handling
   useEffect(() => {

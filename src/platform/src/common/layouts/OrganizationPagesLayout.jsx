@@ -10,8 +10,6 @@ import SideBarDrawer from '@/common/layouts/SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
-import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
 
 function OrganizationPagesLayout({ children }) {
@@ -25,12 +23,9 @@ function OrganizationPagesLayout({ children }) {
   const normalizedPath = pathname.replace(`/org/${orgSlug}`, '/org/[org_slug]');
   const routeConfig =
     LAYOUT_CONFIGS.ORGANIZATION[normalizedPath] || DEFAULT_CONFIGS.ORGANIZATION;
-  const { layout } = useTheme();
 
   const containerClasses =
-    layout === THEME_LAYOUT.COMPACT
-      ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
-      : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
+    'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
 
   return (
     <div
