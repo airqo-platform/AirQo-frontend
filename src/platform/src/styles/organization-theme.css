@@ -5,7 +5,7 @@
   /* Enhanced primary color variables for better organization theming */
   --org-primary: var(--color-primary, #145fff);
   --org-primary-rgb: var(--color-primary-rgb, 20, 95, 255);
-  
+
   /* Primary color variations for different use cases */
   --org-primary-50: color-mix(in srgb, var(--org-primary) 10%, white);
   --org-primary-100: color-mix(in srgb, var(--org-primary) 20%, white);
@@ -146,8 +146,8 @@
 }
 
 /* Ensure theme color changes apply immediately to common UI elements */
-button[style*="background-color"],
-a[style*="color"],
-div[style*="border-color"] {
+button[style*='background-color'],
+a[style*='color'],
+div[style*='border-color'] {
   transition: all 0.2s ease-in-out !important;
 }

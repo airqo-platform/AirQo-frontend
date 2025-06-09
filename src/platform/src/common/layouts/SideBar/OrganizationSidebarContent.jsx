@@ -8,11 +8,13 @@ import UsersIcon from '@/icons/SideBar/UsersIcon';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import PropTypes from 'prop-types';
 
-const OrganizationSidebarContent = ({ isCollapsed }) => {
+const OrganizationSidebarContent = ({ isCollapsed, styles }) => {
   const params = useParams();
   const orgSlug = params?.org_slug || '';
+
   return (
     <>
+      {/* Main Navigation */}
       <SideBarItem
         label="Dashboard"
         Icon={HomeIcon}
@@ -24,13 +26,37 @@ const OrganizationSidebarContent = ({ isCollapsed }) => {
         Icon={BarChartIcon}
         navPath={`/org/${orgSlug}/insights`}
         iconOnly={isCollapsed}
-      />
+      />{' '}
+      {/* Organization Management Section */}
+      {isCollapsed ? (
+        <hr
+          className={`my-3 border-t ${styles?.divider || 'border-gray-200'}`}
+        />
+      ) : (
+        <div
+          className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles?.mutedText || 'text-gray-500'}`}
+        >
+          Organization
+        </div>
+      )}
       <SideBarItem
         label="Members"
         Icon={UsersIcon}
         navPath={`/org/${orgSlug}/members`}
         iconOnly={isCollapsed}
-      />
+      />{' '}
+      {/* Account Section */}
+      {isCollapsed ? (
+        <hr
+          className={`my-3 border-t ${styles?.divider || 'border-gray-200'}`}
+        />
+      ) : (
+        <div
+          className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles?.mutedText || 'text-gray-500'}`}
+        >
+          Account
+        </div>
+      )}
       <SideBarItem
         label="My Profile"
         Icon={PersonIcon}
@@ -49,6 +75,7 @@ const OrganizationSidebarContent = ({ isCollapsed }) => {
 
 OrganizationSidebarContent.propTypes = {
   isCollapsed: PropTypes.bool,
+  styles: PropTypes.object,
 };
 
 OrganizationSidebarContent.defaultProps = {

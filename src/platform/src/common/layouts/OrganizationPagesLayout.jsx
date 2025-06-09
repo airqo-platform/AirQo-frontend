@@ -8,7 +8,7 @@ import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import TopBar from '@/common/layouts/TopBar';
 import UserProfileDropdown from '@/common/layouts/TopBar/UserProfileDropdown';
-import SideBarDrawer from '@/common/layouts/SideBar/SideBarDrawer';
+import OrganizationSideBarDrawer from '@/common/layouts/SideBar/OrganizationSideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -59,7 +59,6 @@ function OrganizationPagesLayout({ children }) {
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
       </Head>
-
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar
@@ -78,10 +77,15 @@ function OrganizationPagesLayout({ children }) {
           homeNavPath={`/org/${orgSlug}/dashboard`}
           showOrganizationDropdown={true}
         >
-          <OrganizationSidebarContent isCollapsed={isCollapsed} />
+          <OrganizationSidebarContent
+            isCollapsed={isCollapsed}
+            styles={{
+              '--org-primary': primaryColor,
+              '--org-secondary': secondaryColor,
+            }}
+          />
         </AuthenticatedSideBar>
       </aside>
-
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 overflow-y-auto ${
@@ -124,10 +128,9 @@ function OrganizationPagesLayout({ children }) {
             {children}
           </div>
         </div>
-      </main>
-
+      </main>{' '}
       {/* SideBar Drawer */}
-      <SideBarDrawer />
+      <OrganizationSideBarDrawer />
     </div>
   );
 }

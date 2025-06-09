@@ -156,8 +156,30 @@ export const options = {
             // Decode the JWT to get user information
             const decodedToken = jwt_decode(data.token);
 
-            // Verify the user belongs to the requested organization
-            if (decodedToken.organization !== credentials.orgSlug) {
+            // Improved organization validation logic
+            const tokenOrg = decodedToken.organization;
+            const requestedOrg = credentials.orgSlug;
+
+            // Check if user belongs to the requested organization
+            // Allow for different formats: direct match, case-insensitive match, or slug format
+            const isValidOrganization =
+              tokenOrg &&
+              requestedOrg &&
+              (tokenOrg === requestedOrg ||
+                tokenOrg.toLowerCase() === requestedOrg.toLowerCase() ||
+                tokenOrg.replace(/[\s-_]/g, '').toLowerCase() ===
+                  requestedOrg.replace(/[\s-_]/g, '').toLowerCase());
+
+            if (!isValidOrganization) {
+              // Log validation failure details for debugging
+              if (process.env.NODE_ENV === 'development') {
+                // eslint-disable-next-line no-console
+                console.log('Organization validation failed:', {
+                  tokenOrg,
+                  requestedOrg,
+                  decodedTokenFields: Object.keys(decodedToken),
+                });
+              }
               throw new Error(
                 'User does not belong to the requested organization',
               );

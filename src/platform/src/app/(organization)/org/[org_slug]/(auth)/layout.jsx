@@ -6,10 +6,7 @@ import { OrganizationProvider } from '@/app/providers/OrganizationProvider';
 export default function OrganizationAuthLayout({ children }) {
   const params = useParams();
   const orgSlug = params?.org_slug || '';
-
   return (
-    <OrganizationProvider orgSlug={orgSlug}>
-      <div className="min-h-screen bg-gray-50">{children}</div>
-    </OrganizationProvider>
+    <OrganizationProvider orgSlug={orgSlug}>{children}</OrganizationProvider>
   );
 }

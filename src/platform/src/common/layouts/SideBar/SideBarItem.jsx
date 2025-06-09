@@ -153,20 +153,20 @@ const SidebarItem = ({
           rounded-xl
         `}
       >
+        {' '}
         {isCurrentRoute && <div className={leftIndicatorClass} />}
-
         <div
-          className={`flex items-center justify-center ${iconOnly ? 'w-12 h-12' : 'w-8 h-8 mr-4'}`}
+          className={`flex items-center justify-center ${iconOnly ? 'w-12 h-12' : 'w-6 h-6 mr-4'}`}
         >
-          {Icon && <Icon className={`${iconColor}`} />}
+          {Icon && (
+            <Icon className={`${iconColor} w-5 h-5`} width="20" height="20" />
+          )}
         </div>
-
         {!iconOnly && (
           <div className="flex-grow">
             <h3 className={`font-medium ${textClass}`}>{label}</h3>
           </div>
         )}
-
         {hasDropdown && !iconOnly && (
           <ArrowDropDownIcon className={`${textClass}`} />
         )}

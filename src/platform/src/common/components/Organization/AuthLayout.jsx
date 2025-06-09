@@ -15,95 +15,103 @@ const AuthLayout = ({
 }) => {
   const { organization, getDisplayName, logo } = useOrganization();
 
-  // Note: Removed automatic theme application - using standard colors for auth pages
-
   const organizationName = getDisplayName() || 'AirQo';
   const logoSrc = logo || '/icons/airqo_logo.svg';
 
-  // Use standard gradient instead of organization colors
-  const gradientStyle = {
-    background: 'linear-gradient(135deg, #135DFF10 0%, #1B255915 100%)',
-  };
+  // Get organization primary color or fallback to default
+  const primaryColor = organization?.primaryColor || '#145fff';
 
-  // Use standard border color
-  const borderAccentStyle = {
-    borderTopColor: '#135DFF',
-    borderTopWidth: '4px',
-  };
+  // Apply organization theme colors to CSS custom properties
+  React.useEffect(() => {
+    if (primaryColor && typeof window !== 'undefined') {
+      const root = document.documentElement;
+      root.style.setProperty('--org-primary', primaryColor);
+      root.style.setProperty('--color-primary', primaryColor);
+      root.style.setProperty('--primary-color', primaryColor);
+
+      // Convert hex to RGB for alpha variants
+      const hexToRgb = (hex) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result
+          ? {
+              r: parseInt(result[1], 16),
+              g: parseInt(result[2], 16),
+              b: parseInt(result[3], 16),
+            }
+          : null;
+      };
+
+      const rgb = hexToRgb(primaryColor);
+
+      if (rgb) {
+        root.style.setProperty(
+          '--org-primary-rgb',
+          `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+        );
+        root.style.setProperty(
+          '--color-primary-rgb',
+          `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+        );
+      }
+    }
+  }, [primaryColor]);
 
   return (
     <ErrorBoundary>
-      <div
-        className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden"
-        style={gradientStyle}
-      >
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-20 blur-3xl"
-            style={{ backgroundColor: '#135DFF' }}
-          />
-          <div
-            className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full opacity-15 blur-3xl"
-            style={{ backgroundColor: '#1B2559' }}
-          />
-        </div>
-        <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          {/* Organization Logo and Header */}
-          <div className="text-center">
-            <div className="relative mb-6">
-              {logoSrc ? (
-                <div className="relative inline-block">
-                  {/* Logo glow effect */}
-                  <div
-                    className="absolute inset-0 rounded-full blur-md opacity-30"
-                    style={{ backgroundColor: '#135DFF' }}
-                  />
-                  <img
-                    className="relative mx-auto h-20 w-auto drop-shadow-lg"
-                    src={logoSrc}
-                    alt={`${organizationName} logo`}
-                    onError={(e) => {
-                      // Fallback to AirQo logo if organization logo fails to load
-                      e.target.src = '/icons/airqo_logo.svg';
-                    }}
-                  />
-                </div>
-              ) : (
-                // Loading state for logo
-                <div className="mx-auto h-20 w-20 bg-white bg-opacity-20 animate-pulse rounded-lg flex items-center justify-center backdrop-blur-sm">
-                  <LoadingSpinner size="sm" />
-                </div>
-              )}
-            </div>
-
-            <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-2">
-              {title || `Sign in to ${organizationName}`}
-            </h2>
-            {subtitle && (
-              <p className="text-center text-sm text-gray-600 max-w-sm mx-auto">
-                {subtitle}
-              </p>
+      <div className="min-h-screen bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 flex justify-center items-center">
+        <div className="w-full max-w-md">
+          {/* Organization Logo */}
+          <div className="mb-8">
+            {logoSrc ? (
+              <img
+                className="h-12 w-auto"
+                src={logoSrc}
+                alt={`${organizationName} logo`}
+                onError={(e) => {
+                  // Fallback to AirQo logo if organization logo fails to load
+                  e.target.src = '/icons/airqo_logo.svg';
+                }}
+              />
+            ) : (
+              // Loading state for logo
+              <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 animate-pulse rounded flex items-center justify-center">
+                <LoadingSpinner size="sm" />
+              </div>
             )}
           </div>
-        </div>
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          <div
-            className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 backdrop-blur-sm border border-white border-opacity-20"
-            style={borderAccentStyle}
-          >
+          {/* Title and Subtitle */}
+          {(title || subtitle) && (
+            <div className="mb-8">
+              {title && (
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {title}
+                </h1>
+              )}
+              {subtitle && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          )}
+          {/* Form Content */}{' '}
+          <div className="space-y-6">
             {children}
 
-            {/* Organization Info with enhanced styling */}
-            <div className="mt-6 border-t border-gray-200 pt-6">
+            {/* Organization Info */}
+            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
               <div className="text-center">
-                <p className="text-xs font-medium" style={{ color: '#135DFF' }}>
+                {' '}
+                <p
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--org-primary, #145fff)' }}
+                >
                   {organization
                     ? `${organizationName}'s Private Dashboard`
                     : 'AirQo Platform'}
                 </p>
                 {organization?.description && (
-                  <p className="text-xs text-gray-500 mt-1 italic">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {organization.description}
                   </p>
                 )}
@@ -114,7 +122,7 @@ const AuthLayout = ({
                 <div className="mt-4 text-center">
                   <a
                     href={backToAirqoPath}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors underline"
+                    className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors underline"
                   >
                     ← Back to AirQo Platform
                   </a>
@@ -122,13 +130,6 @@ const AuthLayout = ({
               )}
             </div>
           </div>
-        </div>{' '}
-        {/* Optional disclaimer/additional info */}
-        <div className="mt-8 text-center relative z-10">
-          <p className="text-xs text-gray-500">
-            Secure access to {organizationName}&apos;s air quality monitoring
-            dashboard
-          </p>
         </div>
       </div>
     </ErrorBoundary>
