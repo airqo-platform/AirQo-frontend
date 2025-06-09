@@ -21,7 +21,7 @@ const HomeSkeleton = () => {
         {[1, 2, 3, 4].map((index) => (
           <div
             key={index}
-            className="w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-blue-600 focus:ring-2 focus:shadow-lg focus:border-blue-600 animate-pulse"
+            className="w-full h-[250px] flex flex-col justify-between items-start border-[0.5px] rounded-xl border-grey-150 py-5 px-3 space-y-5 focus:outline-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-2 focus:shadow-lg focus:border-[var(--org-primary,var(--color-primary,#145fff))] animate-pulse"
             tabIndex={0}
           >
             <div className="w-full bg-gray-300 h-14 flex justify-center items-center rounded-full"></div>
@@ -29,7 +29,7 @@ const HomeSkeleton = () => {
             <div
               className={`w-full text-sm flex justify-between font-normal bg-gray-300 h-5`}
             >
-              <span className="text-blue-600 bg-gray-300 h-4 w-1/4"></span>
+              <span className="text-[var(--org-primary,var(--color-primary,#145fff))] bg-gray-300 h-4 w-1/4"></span>
               <span className="text-black-900 bg-gray-300 h-4 w-1/4"></span>
             </div>
           </div>
@@ -48,7 +48,7 @@ const HomeSkeleton = () => {
         <div
           className="rounded-md p-9 relative bg-gray-300"
           style={{
-            background: '#145DFF08',
+            background: 'rgba(var(--org-primary-rgb, 20, 95, 255), 0.03)',
           }}
         >
           <div className="absolute z-50 inset-0 flex items-center justify-center cursor-pointer">

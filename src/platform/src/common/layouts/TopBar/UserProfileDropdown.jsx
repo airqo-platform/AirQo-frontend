@@ -138,9 +138,9 @@ const UserProfileDropdown = ({
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
             {userInfo?.email || 'No email'}
-          </div>
+          </div>{' '}
           {isOrganizationContext && (
-            <div className="text-xs text-blue-600 dark:text-blue-400 truncate max-w-[21ch]">
+            <div className="text-xs text-[var(--org-primary,var(--color-primary,#145fff))] truncate max-w-[21ch]">
               {userInfo?.organization || 'Organization User'}
             </div>
           )}

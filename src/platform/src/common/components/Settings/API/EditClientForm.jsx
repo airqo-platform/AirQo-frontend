@@ -194,7 +194,7 @@ const EditClientForm = ({ open, closeModal, data }) => {
 
         <button
           onClick={handleAddIpAddress}
-          className="flex items-center justify-start text-sm text-blue-600 hover:text-blue-800"
+          className="flex items-center justify-start text-sm text-[var(--org-primary,var(--color-primary,#145fff))] hover:text-[var(--org-primary-800,var(--color-primary,#145fff))]"
         >
           <PlusIcon size={16} className="mr-1" fill="#6b7280" />
           Add another IP address

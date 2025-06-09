@@ -48,15 +48,13 @@ export class GlobeControl {
   }
 
   onAdd(map) {
-    this.map = map;
-
-    // Set initial appearance based on active state
+    this.map = map; // Set initial appearance based on active state
     if (this.active) {
       this.button.classList.add(
-        'bg-blue-100',
+        'bg-[var(--org-primary-100,rgba(20,95,255,0.2))]',
         'ring-2',
         'ring-offset-2',
-        'ring-blue-500',
+        'ring-[var(--org-primary,var(--color-primary,#145fff))]',
       );
       // Ensure map starts with globe projection if active is true
       if (map.getProjection().name !== 'globe') {
@@ -88,20 +86,19 @@ export class GlobeControl {
 
     // Update button appearance
     this.active = nowGlobe;
-
     if (this.active) {
       this.button.classList.add(
-        'bg-blue-100',
+        'bg-[var(--org-primary-100,rgba(20,95,255,0.2))]',
         'ring-2',
         'ring-offset-2',
-        'ring-blue-500',
+        'ring-[var(--org-primary,var(--color-primary,#145fff))]',
       );
     } else {
       this.button.classList.remove(
-        'bg-blue-100',
+        'bg-[var(--org-primary-100,rgba(20,95,255,0.2))]',
         'ring-2',
         'ring-offset-2',
-        'ring-blue-500',
+        'ring-[var(--org-primary,var(--color-primary,#145fff))]',
       );
     }
   }
@@ -231,7 +228,7 @@ export class CustomGeolocateControl {
   createButton(title, component, onClick) {
     const button = document.createElement('button');
     button.className =
-      'inline-flex items-center justify-center w-[50px] h-[50px] rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+      'inline-flex items-center justify-center w-[50px] h-[50px] rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))]';
     button.type = 'button';
     button.title = title;
 
@@ -283,7 +280,7 @@ export class CustomGeolocateControl {
     this.setToastMessage({
       message: 'Location tracked successfully.',
       type: 'success',
-      bgColor: 'bg-blue-600',
+      bgColor: 'bg-[var(--org-primary,var(--color-primary,#145fff))]',
     });
 
     try {
@@ -336,7 +333,7 @@ export class CustomGeolocateControl {
               20,
               400,
             ],
-            'circle-color': '#0000ff',
+            'circle-color': 'var(--org-primary, var(--color-primary, #145fff))',
             'circle-opacity': 0.2,
           },
         });
@@ -382,7 +379,7 @@ export const useRefreshMap = (
       setToastMessage({
         message: 'Map refreshed successfully',
         type: 'success',
-        bgColor: 'bg-blue-600',
+        bgColor: 'bg-[var(--org-primary,var(--color-primary,#145fff))]',
       });
 
       if (selectedNode) {
@@ -423,13 +420,12 @@ export const useShareLocation = (setToastMessage, mapRef) =>
       url.searchParams.set('lng', center.lng.toFixed(4));
       url.searchParams.set('zm', zoom.toFixed(2));
       const shareUrl = url.toString();
-
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareUrl);
         setToastMessage({
           message: 'Location URL copied to clipboard!',
           type: 'success',
-          bgColor: 'bg-blue-600',
+          bgColor: 'bg-[var(--org-primary,var(--color-primary,#145fff))]',
         });
       } else {
         const textArea = document.createElement('textarea');
@@ -445,7 +441,7 @@ export const useShareLocation = (setToastMessage, mapRef) =>
           setToastMessage({
             message: 'Location URL copied to clipboard!',
             type: 'success',
-            bgColor: 'bg-blue-600',
+            bgColor: 'bg-[var(--org-primary,var(--color-primary,#145fff))]',
           });
         } else {
           throw new Error('Copy command was unsuccessful');
@@ -469,7 +465,7 @@ export const IconButton = ({ onClick, title, icon }) => (
   <button
     onClick={onClick}
     title={title}
-    className="inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md"
+    className="inline-flex items-center justify-center p-2 md:p-3 mr-2 text-white rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] shadow-md"
   >
     {icon}
   </button>

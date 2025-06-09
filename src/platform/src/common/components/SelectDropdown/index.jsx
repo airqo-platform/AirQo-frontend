@@ -71,9 +71,11 @@ const SelectDropdown = ({
     >
       {label && (
         <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-          {label}
+          {label}{' '}
           {required && (
-            <span className="ml-1 text-blue-600 dark:text-blue-400">*</span>
+            <span className="ml-1 text-[var(--org-primary,var(--color-primary,#145fff))]">
+              *
+            </span>
           )}
         </label>
       )}
@@ -89,7 +91,7 @@ const SelectDropdown = ({
             ${
               error
                 ? 'border border-red-500'
-                : 'border border-gray-400 dark:border-gray-600 focus:border-blue-500'
+                : 'border border-gray-400 dark:border-gray-600 focus:border-[var(--org-primary,var(--color-primary,#145fff))]'
             }
             ${
               disabled
@@ -146,11 +148,11 @@ const SelectDropdown = ({
                     onClick={() => handleSelect(item)}
                     className={`
                       cursor-pointer px-4 py-2.5 text-sm
-                      hover:bg-blue-50 dark:hover:bg-blue-900 dark:hover:bg-opacity-20
+                      hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20
                       text-gray-700 dark:text-gray-200
                       ${
                         selected && selected.value === item.value
-                          ? 'bg-blue-100 dark:bg-blue-800 dark:bg-opacity-30 text-blue-700 dark:text-blue-200 font-medium'
+                          ? 'bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium'
                           : ''
                       }
                     `}

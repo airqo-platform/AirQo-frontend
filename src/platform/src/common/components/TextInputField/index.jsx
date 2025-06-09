@@ -36,9 +36,11 @@ const TextField = ({
           htmlFor={id}
           className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
         >
-          {label}
+          {label}{' '}
           {required && (
-            <span className="ml-1 text-blue-600 dark:text-blue-400">*</span>
+            <span className="ml-1 text-[var(--org-primary,var(--color-primary,#145fff))]">
+              *
+            </span>
           )}
         </label>
       )}
@@ -47,7 +49,7 @@ const TextField = ({
         className={`
           flex items-start rounded-xl transition-colors duration-150 ease-in-out
           ${disabled ? 'bg-gray-100 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-blue-500
+          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]
         `}
       >
         {Icon && (

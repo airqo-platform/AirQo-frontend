@@ -121,10 +121,9 @@ const AddMonitor = () => {
               disabled={selectedDevices.length === 0}
             >
               Remove selected devices
-            </Button>
-
+            </Button>{' '}
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[var(--org-primary,var(--color-primary,#145fff))] hover:bg-[var(--org-primary-700,var(--color-primary,#145fff))] text-white"
               onClick={handleCollocateDevices}
               disabled={
                 !base_device ||

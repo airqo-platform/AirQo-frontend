@@ -45,15 +45,17 @@ const InputField = ({
   };
   return (
     <div className={`flex flex-col mb-4 ${containerClassName}`}>
+      {' '}
       {label && (
         <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
           {label}
           {required && (
-            <span className="ml-1 text-blue-600 dark:text-blue-400">*</span>
+            <span className="ml-1 text-[var(--org-primary,var(--color-primary,#145fff))]">
+              *
+            </span>
           )}
         </label>
       )}
-
       <div
         className={`
           flex items-center rounded-xl
@@ -63,7 +65,7 @@ const InputField = ({
               ? 'bg-gray-100 dark:bg-gray-700'
               : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
           }
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-blue-500        `}
+          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]        `}
       >
         <input
           type={type}
@@ -80,7 +82,6 @@ const InputField = ({
           {...inputProps}
         />
       </div>
-
       {error && (
         <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
           <svg
@@ -97,7 +98,6 @@ const InputField = ({
           {error}
         </div>
       )}
-
       {!error && description && (
         <div className="mt-1.5 text-xs text-gray-500">{description}</div>
       )}

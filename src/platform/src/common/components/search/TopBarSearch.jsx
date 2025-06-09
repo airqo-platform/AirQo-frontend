@@ -78,7 +78,7 @@ const TopBarSearch = React.memo(
         <input
           ref={inputRef}
           placeholder={placeholder}
-          className="input pl-9 text-sm text-secondary-neutral-light-800 w-full h-9 ml-0 rounded-xl bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-light-blue-500"
+          className="input pl-9 text-sm text-secondary-neutral-light-800 w-full h-9 ml-0 rounded-xl bg-white border-input-light-outline focus:border-input-light-outline focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))]"
           value={searchTerm}
           onChange={handleSearch}
         />
