@@ -47,7 +47,7 @@ const withUserAuthRoute = (Component) => {
   };
 
   WithUserAuthRouteComponent.displayName = `withUserAuthRoute(${Component.displayName || Component.name || 'Component'})`;
-  
+
   return WithUserAuthRouteComponent;
 };
 
@@ -103,7 +103,7 @@ const withOrgAuthRoute = (Component) => {
   };
 
   WithOrgAuthRouteComponent.displayName = `withOrgAuthRoute(${Component.displayName || Component.name || 'Component'})`;
-  
+
   return WithOrgAuthRouteComponent;
 };
 

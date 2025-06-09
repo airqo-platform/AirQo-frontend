@@ -1,18 +1,27 @@
 import React from 'react';
 
-export default function PersonIcon({ width, height, fill }) {
+export default function PersonIcon({
+  width,
+  height,
+  fill,
+  strokeWidth = 1.5,
+  className = '',
+  ...props
+}) {
   return (
     <svg
-      width={width || 28}
-      height={height || 29}
-      viewBox="0 0 28 29"
+      width={22}
+      height={22}
+      viewBox="0 0 22 22"
       fill="none"
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
-        d="M3.5 23.833c2.725-2.89 6.425-4.666 10.5-4.666s7.775 1.776 10.5 4.666M19.25 9.25a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z"
-        stroke={fill || '#145FFF'}
-        strokeWidth={1.5}
+        d="M4.316 18.438A4.001 4.001 0 018 16h6a4.001 4.001 0 013.684 2.438M15 8.5a4 4 0 11-8 0 4 4 0 018 0zm6 2.5c0 5.523-4.477 10-10 10S1 16.523 1 11 5.477 1 11 1s10 4.477 10 10z"
+        stroke={fill || 'currentColor'}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

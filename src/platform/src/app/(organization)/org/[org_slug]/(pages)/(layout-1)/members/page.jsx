@@ -3,6 +3,7 @@
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
 import CardWrapper from '@/common/components/CardWrapper';
+import Button from '@/common/components/Button';
 import {
   FaUserPlus as InviteIcon,
   FaEnvelope as EmailIcon,
@@ -205,14 +206,15 @@ const OrganizationMembersPage = ({ params: _params }) => {
         title="Team Members"
         subtitle="Manage your organization's team members and their roles"
         rightContent={
-          <button
+          <Button
             onClick={() => setShowInviteModal(true)}
-            className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors duration-200 hover:opacity-90"
+            variant="filled"
+            className="inline-flex items-center text-white transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: primaryColor || '#3B82F6' }}
           >
             <InviteIcon className="w-4 h-4 mr-2" />
             Invite Member
-          </button>
+          </Button>
         }
         padding="p-6"
       />
@@ -339,11 +341,14 @@ const OrganizationMembersPage = ({ params: _params }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {member.lastActive}
-                  </td>
+                  </td>{' '}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <Button
+                      variant="text"
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
                       <MoreIcon className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -465,21 +470,22 @@ const OrganizationMembersPage = ({ params: _params }) => {
                 </div>
               </div>
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
+                {' '}
+                <Button
                   onClick={handleInviteMember}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm hover:opacity-90"
+                  variant="filled"
+                  className="w-full inline-flex justify-center shadow-sm text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm hover:opacity-90"
                   style={{ backgroundColor: primaryColor || '#3B82F6' }}
                 >
                   Send Invitation
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
                   onClick={() => setShowInviteModal(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  variant="outlined"
+                  className="mt-3 w-full inline-flex justify-center shadow-sm text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>

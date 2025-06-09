@@ -136,13 +136,6 @@ export const LAYOUT_CONFIGS = {
       showSearch: true,
       noTopNav: false,
     },
-    '/org/[org_slug]/preferences': {
-      pageTitle: 'Preferences - Organization Settings',
-      topbarTitle: 'Preferences',
-      noBorderBottom: true,
-      showSearch: false,
-      noTopNav: false,
-    },
   },
 };
 

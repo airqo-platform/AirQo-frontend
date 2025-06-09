@@ -13,35 +13,23 @@ const AuthLayout = ({
   showBackToAirqo = true,
   backToAirqoPath = '/user/login',
 }) => {
-  const { organization, getDisplayName, primaryColor, secondaryColor, logo } =
-    useOrganization();
+  const { organization, getDisplayName, logo } = useOrganization();
 
-  // Apply organization theme
-  React.useEffect(() => {
-    if (primaryColor && secondaryColor) {
-      const root = document.documentElement;
-      root.style.setProperty('--org-primary', primaryColor);
-      root.style.setProperty('--org-secondary', secondaryColor);
-    }
-  }, [primaryColor, secondaryColor]);
+  // Note: Removed automatic theme application - using standard colors for auth pages
 
   const organizationName = getDisplayName() || 'AirQo';
   const logoSrc = logo || '/icons/airqo_logo.svg';
 
-  // Create a gradient background based on organization colors
-  const gradientStyle =
-    primaryColor && secondaryColor
-      ? {
-          background: `linear-gradient(135deg, ${primaryColor}10 0%, ${secondaryColor}15 100%)`,
-        }
-      : {
-          background: 'linear-gradient(135deg, #135DFF10 0%, #1B255915 100%)',
-        };
+  // Use standard gradient instead of organization colors
+  const gradientStyle = {
+    background: 'linear-gradient(135deg, #135DFF10 0%, #1B255915 100%)',
+  };
 
-  // Create border accent color
-  const borderAccentStyle = primaryColor
-    ? { borderTopColor: primaryColor, borderTopWidth: '4px' }
-    : { borderTopColor: '#135DFF', borderTopWidth: '4px' };
+  // Use standard border color
+  const borderAccentStyle = {
+    borderTopColor: '#135DFF',
+    borderTopWidth: '4px',
+  };
 
   return (
     <ErrorBoundary>
@@ -53,14 +41,13 @@ const AuthLayout = ({
         <div className="absolute inset-0 overflow-hidden">
           <div
             className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-20 blur-3xl"
-            style={{ backgroundColor: primaryColor || '#135DFF' }}
+            style={{ backgroundColor: '#135DFF' }}
           />
           <div
             className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full opacity-15 blur-3xl"
-            style={{ backgroundColor: secondaryColor || '#1B2559' }}
+            style={{ backgroundColor: '#1B2559' }}
           />
         </div>
-
         <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
           {/* Organization Logo and Header */}
           <div className="text-center">
@@ -70,7 +57,7 @@ const AuthLayout = ({
                   {/* Logo glow effect */}
                   <div
                     className="absolute inset-0 rounded-full blur-md opacity-30"
-                    style={{ backgroundColor: primaryColor || '#135DFF' }}
+                    style={{ backgroundColor: '#135DFF' }}
                   />
                   <img
                     className="relative mx-auto h-20 w-auto drop-shadow-lg"
@@ -100,7 +87,6 @@ const AuthLayout = ({
             )}
           </div>
         </div>
-
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
           <div
             className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 backdrop-blur-sm border border-white border-opacity-20"
@@ -111,10 +97,7 @@ const AuthLayout = ({
             {/* Organization Info with enhanced styling */}
             <div className="mt-6 border-t border-gray-200 pt-6">
               <div className="text-center">
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: primaryColor || '#135DFF' }}
-                >
+                <p className="text-xs font-medium" style={{ color: '#135DFF' }}>
                   {organization
                     ? `${organizationName}'s Private Dashboard`
                     : 'AirQo Platform'}
@@ -125,31 +108,27 @@ const AuthLayout = ({
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* Fallback to main AirQo login with enhanced styling */}
-            {showBackToAirqo && organization && (
-              <div className="mt-4 text-center">
-                <a
-                  href={backToAirqoPath}
-                  className="inline-flex items-center text-xs text-gray-500 hover:text-gray-700 transition-colors duration-200 px-3 py-1 rounded-full hover:bg-gray-100"
-                >
-                  <svg
-                    className="w-3 h-3 mr-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
+              {/* Back to AirQo link */}
+              {showBackToAirqo && (
+                <div className="mt-4 text-center">
+                  <a
+                    href={backToAirqoPath}
+                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors underline"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Use main AirQo login
-                </a>
-              </div>
-            )}
+                    ← Back to AirQo Platform
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
+        </div>{' '}
+        {/* Optional disclaimer/additional info */}
+        <div className="mt-8 text-center relative z-10">
+          <p className="text-xs text-gray-500">
+            Secure access to {organizationName}&apos;s air quality monitoring
+            dashboard
+          </p>
         </div>
       </div>
     </ErrorBoundary>

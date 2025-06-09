@@ -5,6 +5,7 @@ import HomeIcon from '@/icons/SideBar/HomeIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UsersIcon from '@/icons/SideBar/UsersIcon';
+import PersonIcon from '@/icons/Settings/PersonIcon';
 import PropTypes from 'prop-types';
 
 const OrganizationSidebarContent = ({ isCollapsed }) => {
@@ -31,9 +32,15 @@ const OrganizationSidebarContent = ({ isCollapsed }) => {
         iconOnly={isCollapsed}
       />
       <SideBarItem
-        label="Preferences"
+        label="My Profile"
+        Icon={PersonIcon}
+        navPath={`/org/${orgSlug}/profile`}
+        iconOnly={isCollapsed}
+      />
+      <SideBarItem
+        label="Settings"
         Icon={SettingsIcon}
-        navPath={`/org/${orgSlug}/preferences`}
+        navPath={`/org/${orgSlug}/settings`}
         iconOnly={isCollapsed}
       />
     </>

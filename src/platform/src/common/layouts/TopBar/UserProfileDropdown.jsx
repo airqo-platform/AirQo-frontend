@@ -61,13 +61,12 @@ const UserProfileDropdown = ({
     }
     return null;
   }, [isOrganizationContext, pathname]);
-
   // Generate navigation paths based on context
   const navigationPaths = useMemo(() => {
     if (isOrganizationContext && orgSlug) {
       return {
-        profile: `/org/${orgSlug}/preferences`,
-        settings: `/org/${orgSlug}/preferences`,
+        profile: `/org/${orgSlug}/profile`,
+        settings: `/org/${orgSlug}/settings`, // Updated to use settings page instead
       };
     }
     return {
@@ -155,8 +154,7 @@ const UserProfileDropdown = ({
       {renderUserInfo()}
       {showUserInfo && (
         <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
-      )}
-
+      )}{' '}
       <ul className="dropdown-list p-2">
         <li
           onClick={handleNavigation(navigationPaths.profile)}
@@ -165,17 +163,22 @@ const UserProfileDropdown = ({
           <span className="mr-3">
             <UserIcon width={16} height={16} />
           </span>
-          {isOrganizationContext ? 'Organization Profile' : 'My Profile'}
+          My Profile
         </li>
-        <li
-          onClick={handleNavigation(navigationPaths.settings)}
-          className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-        >
-          <span className="mr-3">
-            <SettingsIcon width={17} height={17} />
-          </span>
-          {isOrganizationContext ? 'Organization Settings' : 'Settings'}
-        </li>
+
+        {/* Show Settings only for admin users in organization context or always in individual context */}
+        {(!isOrganizationContext ||
+          (isOrganizationContext && userInfo?.isAdmin)) && (
+          <li
+            onClick={handleNavigation(navigationPaths.settings)}
+            className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+          >
+            <span className="mr-3">
+              <SettingsIcon width={17} height={17} />
+            </span>
+            {isOrganizationContext ? 'Organization Settings' : 'Settings'}
+          </li>
+        )}
 
         {/* Custom menu items */}
         {customMenuItems.map((item, index) => (
@@ -189,7 +192,6 @@ const UserProfileDropdown = ({
           </li>
         ))}
       </ul>
-
       <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
       <ul className="dropdown-list p-2">
         <li
