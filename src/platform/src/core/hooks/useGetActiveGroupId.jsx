@@ -1,32 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import { getUserDetails } from '@/core/apis/Account';
 import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
 
-const findGroupByOrgSlug = (groups, orgSlug) => {
-  if (!orgSlug || !groups?.length) return null;
-
-  // Convert slug back to title format for matching
-  const slugToTitle = orgSlug.replace(/-/g, ' ').toLowerCase();
-
-  return groups.find((group) => {
-    const groupTitle = group.grp_title?.toLowerCase();
-    // Try exact match first
-    if (groupTitle === slugToTitle) return true;
-
-    // Try slug-ified version match
-    const groupSlug = groupTitle
-      ?.replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return groupSlug === orgSlug;
-  });
-};
-
 const findGroupByOrgName = (groups, orgName) =>
   groups?.find(
-    (group) => group.grp_title?.toLowerCase() === orgName?.toLowerCase(),
+    (group) => group.grp_title.toLowerCase() === orgName?.toLowerCase(),
   );
 
 export function useGetActiveGroup() {
@@ -35,29 +15,11 @@ export function useGetActiveGroup() {
   const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
-
-  // Safely get router with error handling
-  let router = null;
-  try {
-    router = useRouter();
-  } catch {
-    // Router not available in this context (e.g., SSR, non-page components)
-    // Silently handle the error
-    router = null;
-  }
-
   const { data: session } = useSession();
   const userInfo = useSelector((state) => state?.login?.userInfo);
   const chartData = useSelector((state) => state.chart);
   const activeGroup = useSelector((state) => state.activeGroup?.activeGroup);
 
-  // Extract organization slug from URL with fallback
-  const orgSlug =
-    router?.query?.org_slug ||
-    router?.asPath?.match(/\/org\/([^/]+)/)?.[1] ||
-    (typeof window !== 'undefined'
-      ? window.location.pathname.match(/\/org\/([^/]+)/)?.[1]
-      : null);
   // Fetch user groups from API using session user ID
   const fetchUserGroups = useCallback(async () => {
     if (!session?.user?.id) {
@@ -71,16 +33,14 @@ export function useGetActiveGroup() {
         return activeGroups;
       }
       setLoading(false);
-      return [];
+      return;
     }
 
     try {
       setLoading(true);
       setError(null);
 
-      const response = await getUserDetails(session.user.id);
-      // Handle the API response structure - users array with groups
-      const userDetails = response?.users?.[0] || response;
+      const userDetails = await getUserDetails(session.user.id);
       const groups = userDetails?.groups || [];
 
       // Filter only active groups
@@ -98,38 +58,32 @@ export function useGetActiveGroup() {
       setLoading(false);
     }
   }, [session?.user?.id, userInfo?.groups]);
+
   // Initial fetch of user groups
   useEffect(() => {
     fetchUserGroups();
-  }, [fetchUserGroups]);
-
-  // Determine active group based on URL slug, chart organization name, or fallback
+  }, [fetchUserGroups]); // Determine active group based on chart organization name or fallback
   useEffect(() => {
     if (loading || userGroups.length === 0) return;
 
     let selectedGroup = null;
 
-    // Priority 1: Try to find group matching URL organization slug
-    if (orgSlug) {
-      selectedGroup = findGroupByOrgSlug(userGroups, orgSlug);
-    }
-
-    // Priority 2: Try to find group matching chart organization name
-    if (!selectedGroup && chartData?.organizationName) {
+    // First, try to find group matching chart organization name
+    if (chartData?.organizationName) {
       selectedGroup = findGroupByOrgName(
         userGroups,
         chartData.organizationName,
       );
     }
 
-    // Priority 3: Try to get from session
+    // If no match found, try to get from session
     if (!selectedGroup && session?.user?.activeGroup) {
       selectedGroup = userGroups.find(
         (group) => group._id === session.user.activeGroup._id,
       );
     }
 
-    // Priority 4: Fallback to first available group
+    // Fallback to first available group
     if (!selectedGroup && userGroups.length > 0) {
       selectedGroup = userGroups[0];
     }
@@ -138,69 +92,53 @@ export function useGetActiveGroup() {
       dispatch(setActiveGroup(selectedGroup));
     }
   }, [
-    orgSlug,
     chartData?.organizationName,
     userGroups,
     session?.user?.activeGroup,
     loading,
     dispatch,
-  ]); // Determine which groups to use - prioritize fetched groups over Redux fallback
+  ]);
+
+  // Determine which groups to use - session-fetched or Redux fallback
   const groupsToUse =
-    userGroups.length > 0
-      ? userGroups
-      : userInfo?.groups?.filter((group) => group.status === 'ACTIVE') || [];
+    userGroups.length > 0 ? userGroups : userInfo?.groups || [];
   const userIdToUse = session?.user?.id || userInfo?._id;
 
-  // If no groups available, return empty state
+  // If no userInfo or groups, return stored or default values
   if (!groupsToUse.length) {
     return {
       loading,
       error,
-      id: null,
-      title: null,
+      id: activeGroup?._id || null,
+      title: activeGroup?.grp_title || null,
       userID: userIdToUse || null,
       groupList: [],
+      activeGroup: activeGroup || null,
     };
   }
 
-  // Priority 1: Use group matching URL slug if in organization context
-  if (orgSlug) {
-    const slugMatchedGroup = findGroupByOrgSlug(groupsToUse, orgSlug);
-    if (slugMatchedGroup) {
-      return {
-        loading,
-        error,
-        id: slugMatchedGroup._id,
-        title: slugMatchedGroup.grp_title,
-        userID: userIdToUse,
-        groupList: groupsToUse,
-      };
-    }
-  }
-
-  // Priority 2: Use group matching chart organization name
+  // Prioritize stored group if it exists in user's groups
   if (chartData?.organizationName) {
-    const chartMatchedGroup = findGroupByOrgName(
+    const storedGroupInUserGroups = findGroupByOrgName(
       groupsToUse,
-      chartData.organizationName,
+      chartData?.organizationName,
     );
-    if (chartMatchedGroup) {
+
+    if (storedGroupInUserGroups) {
       return {
         loading,
         error,
-        id: chartMatchedGroup._id,
-        title: chartMatchedGroup.grp_title,
+        id: storedGroupInUserGroups._id,
+        title: storedGroupInUserGroups.grp_title,
         userID: userIdToUse,
         groupList: groupsToUse,
+        activeGroup: activeGroup || null,
       };
     }
   }
 
-  // Priority 3: Use active group from Redux state if available and valid
-  if (
-    activeGroup &&
-    groupsToUse.some((group) => group._id === activeGroup._id)
-  ) {
+  // Use active group from Redux state if available
+  if (activeGroup) {
     return {
       loading,
       error,
@@ -208,17 +146,32 @@ export function useGetActiveGroup() {
       title: activeGroup.grp_title,
       userID: userIdToUse,
       groupList: groupsToUse,
+      activeGroup: activeGroup || null,
     };
   }
 
-  // Priority 4: Fallback to first available group
-  const firstGroup = groupsToUse[0];
+  // Fallback to first group if available
+  if (groupsToUse.length > 0) {
+    const firstGroup = groupsToUse[0];
+    return {
+      loading,
+      error,
+      id: firstGroup._id,
+      title: firstGroup.grp_title,
+      userID: userIdToUse,
+      groupList: groupsToUse,
+      activeGroup: activeGroup || null,
+    };
+  }
+
+  // Final fallback
   return {
     loading,
     error,
-    id: firstGroup._id,
-    title: firstGroup.grp_title,
+    id: null,
+    title: null,
     userID: userIdToUse,
-    groupList: groupsToUse,
+    groupList: [],
+    activeGroup: activeGroup || null,
   };
 }

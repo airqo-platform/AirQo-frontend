@@ -58,10 +58,10 @@ const API = ({ userPermissions }) => {
           <Card
             header={
               <div className="px-3 py-4">
-                <h3 className="text-grey-710 dark:text-white font-medium text-lg">
+                <h3 className="text-gray-710 dark:text-white font-medium text-lg">
                   Clients activation manager
                 </h3>
-                <p className="text-grey-500 text-sm md:max-w-[640px] w-full">
+                <p className="text-gray-500 text-sm md:max-w-[640px] w-full">
                   Activate or deactivate clients to enable or disable their
                   access to the API.
                 </p>
