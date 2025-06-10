@@ -25,7 +25,6 @@ export default function OrgRequestsPage() {
     (state) => state.organisationRequests.organisationRequests,
   );
   const [requests, setRequests] = useState([]);
-  const [filteredRequests, setFilteredRequests] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
@@ -36,6 +35,8 @@ export default function OrgRequestsPage() {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { theme, systemTheme } = useTheme();
 
@@ -65,10 +66,76 @@ export default function OrgRequestsPage() {
     [isDarkMode],
   );
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const [paginatedRequests, setPaginatedRequests] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
+  // Memoize filtered requests based on search query
+  const memoizedFilteredRequests = useMemo(() => {
+    if (!Array.isArray(requests) || requests.length === 0) {
+      return [];
+    }
+
+    if (!searchQuery) {
+      return requests;
+    }
+
+    return requests.filter(
+      (req) =>
+        (req.organization_name || '')
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (req.contact_name || '')
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (req.contact_email || '')
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()),
+    );
+  }, [requests, searchQuery]);
+
+  // Memoize sorted requests based on filtered requests and sort parameters
+  const memoizedSortedRequests = useMemo(() => {
+    if (!Array.isArray(memoizedFilteredRequests) || memoizedFilteredRequests.length === 0) {
+      return [];
+    }
+
+    return [...memoizedFilteredRequests].sort((a, b) => {
+      if (sortField === 'createdAt') {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        const aValue = (a[sortField] || '').toLowerCase();
+        const bValue = (b[sortField] || '').toLowerCase();
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+    });
+  }, [memoizedFilteredRequests, sortField, sortDirection]);
+
+  // Memoize paginated requests
+  const memoizedPaginatedRequests = useMemo(() => {
+    if (!Array.isArray(memoizedSortedRequests)) {
+      return [];
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return memoizedSortedRequests.slice(startIndex, endIndex);
+  }, [memoizedSortedRequests, currentPage, itemsPerPage]);
+
+  // Memoize total pages
+  const memoizedTotalPages = useMemo(() => {
+    if (!Array.isArray(memoizedSortedRequests)) {
+      return 1;
+    }
+    return Math.ceil(memoizedSortedRequests.length / itemsPerPage);
+  }, [memoizedSortedRequests, itemsPerPage]);
+
+  // Update current page if it exceeds total pages
+  useEffect(() => {
+    if (currentPage > memoizedTotalPages) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, memoizedTotalPages]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -80,8 +147,8 @@ export default function OrgRequestsPage() {
   );
 
   const handleNextClick = useCallback(
-    () => setCurrentPage((prev) => Math.min(prev + 1, totalPages)),
-    [totalPages],
+    () => setCurrentPage((prev) => Math.min(prev + 1, memoizedTotalPages)),
+    [memoizedTotalPages],
   );
 
   useEffect(() => {
@@ -99,64 +166,6 @@ export default function OrgRequestsPage() {
       setRequests([]);
     }
   }, [orgRequests]);
-
-  useEffect(() => {
-    if (!Array.isArray(requests) || requests.length === 0) {
-      setFilteredRequests([]);
-      setPaginatedRequests([]);
-      setTotalPages(1);
-      setCurrentPage(1);
-      return;
-    }
-
-    let filtered = [...requests];
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (req) =>
-          (req.organization_name || '')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          (req.contact_name || '')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          (req.contact_email || '')
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()),
-      );
-    }
-
-    filtered.sort((a, b) => {
-      if (sortField === 'createdAt') {
-        const dateA = new Date(a.createdAt || 0);
-        const dateB = new Date(b.createdAt || 0);
-        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-      } else {
-        const aValue = (a[sortField] || '').toLowerCase();
-        const bValue = (b[sortField] || '').toLowerCase();
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-    });
-
-    setFilteredRequests(filtered);
-    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-    if (currentPage > Math.ceil(filtered.length / itemsPerPage)) {
-      setCurrentPage(1);
-    }
-  }, [requests, searchQuery, sortField, sortDirection]);
-
-  useEffect(() => {
-    if (!Array.isArray(filteredRequests)) {
-      setPaginatedRequests([]);
-      return;
-    }
-
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    setPaginatedRequests(filteredRequests.slice(startIndex, endIndex));
-  }, [filteredRequests, currentPage]);
 
   const handleSearchChange = useCallback((value) => {
     setSearchQuery(value || '');
@@ -239,14 +248,17 @@ export default function OrgRequestsPage() {
   };
 
   // Calculate filtered requests for each tab
-  const pendingRequests = filteredRequests.filter(
-    (req) => (req.status || '') === 'pending',
+  const pendingRequests = useMemo(
+    () => memoizedFilteredRequests.filter((req) => (req.status || '') === 'pending'),
+    [memoizedFilteredRequests],
   );
-  const approvedRequests = filteredRequests.filter(
-    (req) => (req.status || '') === 'approved',
+  const approvedRequests = useMemo(
+    () => memoizedFilteredRequests.filter((req) => (req.status || '') === 'approved'),
+    [memoizedFilteredRequests],
   );
-  const rejectedRequests = filteredRequests.filter(
-    (req) => (req.status || '') === 'rejected',
+  const rejectedRequests = useMemo(
+    () => memoizedFilteredRequests.filter((req) => (req.status || '') === 'rejected'),
+    [memoizedFilteredRequests],
   );
 
   return (
@@ -255,8 +267,8 @@ export default function OrgRequestsPage() {
         <div label="Pending">
           <RequestsTable
             requests={
-              Array.isArray(paginatedRequests)
-                ? paginatedRequests.filter(
+              Array.isArray(memoizedPaginatedRequests)
+                ? memoizedPaginatedRequests.filter(
                     (req) => (req.status || '') === 'pending',
                   )
                 : []
@@ -291,8 +303,8 @@ export default function OrgRequestsPage() {
         <div label="Approved">
           <RequestsTable
             requests={
-              Array.isArray(paginatedRequests)
-                ? paginatedRequests.filter(
+              Array.isArray(memoizedPaginatedRequests)
+                ? memoizedPaginatedRequests.filter(
                     (req) => (req.status || '') === 'approved',
                   )
                 : []
@@ -327,8 +339,8 @@ export default function OrgRequestsPage() {
         <div label="Rejected">
           <RequestsTable
             requests={
-              Array.isArray(paginatedRequests)
-                ? paginatedRequests.filter(
+              Array.isArray(memoizedPaginatedRequests)
+                ? memoizedPaginatedRequests.filter(
                     (req) => (req.status || '') === 'rejected',
                   )
                 : []
@@ -362,7 +374,7 @@ export default function OrgRequestsPage() {
         </div>
         <div label="All Requests">
           <RequestsTable
-            requests={Array.isArray(paginatedRequests) ? paginatedRequests : []}
+            requests={Array.isArray(memoizedPaginatedRequests) ? memoizedPaginatedRequests : []}
             formatDate={formatDate}
             onView={(request) => {
               setSelectedRequest(request);
@@ -384,7 +396,7 @@ export default function OrgRequestsPage() {
             searchTerm={searchQuery}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredRequests.length}
+            totalItems={memoizedFilteredRequests.length}
             onPrevClick={handlePrevClick}
             onNextClick={handleNextClick}
             onPageChange={handlePageChange}
