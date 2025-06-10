@@ -17,7 +17,7 @@ import {
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import LogoutUser from '@/core/utils/LogoutUser';
+import LogoutUser from '@/core/HOC/LogoutUser';
 import GroupLogo from '../GroupLogo';
 import MenuIcon from '@/icons/Actions/menu';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';

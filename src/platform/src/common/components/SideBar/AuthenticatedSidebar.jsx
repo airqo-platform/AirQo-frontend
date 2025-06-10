@@ -6,14 +6,16 @@ import React, {
   useMemo,
 } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
-import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
+import SidebarItem, {
+  SideBarDropdownItem,
+} from '../../layouts/SideBar/SideBarItem';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import TimeIcon from '@/icons/Common/time';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import OrganizationDropdown from './OrganizationDropdown';
+import OrganizationDropdown from '../../layouts/SideBar/OrganizationDropdown';
 import { checkAccess } from '@/core/utils/nextAuthProtectedRoute';
 import { useSelector, useDispatch } from 'react-redux';
 import {

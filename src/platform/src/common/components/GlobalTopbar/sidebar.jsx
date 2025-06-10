@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
-import SideBarItem from '../SideBar/SideBarItem';
+import SideBarItem from '../../layouts/SideBar/SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';

@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import PageTopBar from '@/components/PageTopBar';
-import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
+import SideBarDrawer from './SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';

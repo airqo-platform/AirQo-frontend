@@ -6,7 +6,7 @@ import Head from 'next/head';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
 import PageTopBar from '@/components/PageTopBar';
 import GlobalTopbar from '@/components/GlobalTopbar';
-import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
+import SideBarDrawer from './SideBar/SideBarDrawer';
 import GlobalSideBarDrawer from '@/components/GlobalTopbar/sidebar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
