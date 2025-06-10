@@ -12,7 +12,6 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
 import ChartIcon from '@/icons/Topbar/chartIcon';
 import CustomDropdown from '../Button/CustomDropdown';
-import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import {
   setTogglingGlobalDrawer,
   setToggleDrawer,
@@ -23,7 +22,7 @@ import GroupLogo from '../GroupLogo';
 import MenuIcon from '@/icons/Actions/menu';
 import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
-const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
+const GlobalTopbar = ({ topbarTitle }) => {
   const router = useRouter();
   const { width } = useWindowSize();
   const dispatch = useDispatch();
@@ -199,17 +198,6 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
     </>
   );
 
-  const handleOpenModal = useCallback(
-    (type, ids = []) => {
-      try {
-        dispatch(setOpenModal(true));
-        dispatch(setModalType({ type, ids }));
-      } catch {
-        // Silent fallback if dispatch fails during logout
-      }
-    },
-    [dispatch],
-  );
   const renderProfileTrigger = () => (
     <div className="cursor-pointer lg:mr-3">
       <img
@@ -303,40 +291,17 @@ const GlobalTopbar = ({ topbarTitle, showSearch = false }) => {
             variant="text"
           >
             <span className="p-2">
-              <MenuBarIcon />
+              <MenuBarIcon fill={isDarkMode ? '#fff' : '#1C1D20'} />
             </span>
           </Button>
         </div>
       </nav>
-      {showSearch && (
-        <div className="lg:hidden flex flex-col md:flex-row justify-between py-2 gap-3 items-center w-full">
-          <div className="font-medium flex items-center justify-start w-full text-2xl text-neutral-light-800">
-            <div className="flex items-center gap-[10px]">
-              <span className="p-2 rounded-full bg-[#E2E3E5]">
-                <ChartIcon width={20} height={20} />
-              </span>
-              <div>{topbarTitle}</div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleOpenModal('search');
-            }}
-          >
-            {/* <TopBarSearch customWidth="md:max-w-[192px]" /> */}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
 
 GlobalTopbar.propTypes = {
-  showSearch: PropTypes.bool,
   topbarTitle: PropTypes.string,
-  noBorderBottom: PropTypes.bool,
 };
 
 export default React.memo(GlobalTopbar);

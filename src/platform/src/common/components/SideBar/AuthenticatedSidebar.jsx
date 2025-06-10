@@ -239,12 +239,12 @@ const AuthenticatedSideBar = ({ forceCollapse }) => {
 
     return (
       <div className="relative">
-        <SidebarItem
+        {/* <SidebarItem
           label="All Organisations"
           Icon={GoOrganization}
           navPath="/admin/organisations"
           iconOnly={isCollapsed}
-        />
+        /> */}
         <SidebarItem
           label="Pending Requests"
           Icon={TimeIcon}

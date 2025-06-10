@@ -1,12 +1,12 @@
 import React from 'react';
 
-const MenuIcon = (props) => (
+const MenuIcon = ({ fill, ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth={1.5}
-    stroke="currentColor"
+    stroke={fill || '#536A87'}
     className="size-6"
     {...props}
   >

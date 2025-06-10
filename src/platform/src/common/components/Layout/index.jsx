@@ -57,11 +57,7 @@ const Layout = ({
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
 
-      <GlobalTopbar
-        topbarTitle={topbarTitle}
-        noBorderBottom={noBorderBottom}
-        showSearch={showSearch}
-      />
+      <GlobalTopbar topbarTitle={topbarTitle} />
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
