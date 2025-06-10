@@ -69,32 +69,14 @@ export const extractOrgSlug = (pathname) => {
 };
 
 /**
- * Determines if a path is in organization context
- * @param {string} pathname - The current pathname
- * @returns {boolean} True if in organization context
- */
-export const isOrganizationContext = (pathname) => {
-  return getRouteType(pathname) === ROUTE_TYPES.ORGANIZATION;
-};
-
-/**
- * Determines if a path is in user context
- * @param {string} pathname - The current pathname
- * @returns {boolean} True if in user context
- */
-export const isUserContext = (pathname) => {
-  return getRouteType(pathname) === ROUTE_TYPES.USER;
-};
-
-/**
- * Validates session access based on route context
- * @param {Object} session - The session object
+ * Validates if a session type can access a specific route type
+ * @param {string} sessionType - The session type
  * @param {string} routeType - The route type
  * @param {Object} options - Additional validation options
  * @returns {Object} Validation result with isValid and redirectPath
  */
-export const validateSessionAccess = (session, routeType, options = {}) => {
-  const { pathname } = options;
+export const validateSessionAccess = (sessionType, routeType, options = {}) => {
+  const { pathname, orgSlug } = options;
 
   // Allow access to auth routes for any session state
   if (routeType === ROUTE_TYPES.AUTH) {
@@ -107,12 +89,12 @@ export const validateSessionAccess = (session, routeType, options = {}) => {
   }
 
   // No session - redirect to appropriate login
-  if (!session) {
+  if (!sessionType) {
     if (routeType === ROUTE_TYPES.ORGANIZATION) {
-      const orgSlug = extractOrgSlug(pathname) || 'airqo';
+      const slug = orgSlug || extractOrgSlug(pathname) || 'airqo';
       return {
         isValid: false,
-        redirectPath: `/org/${orgSlug}/login`,
+        redirectPath: `/org/${slug}/login`,
         reason: 'No session for organization route',
       };
     }
@@ -123,9 +105,41 @@ export const validateSessionAccess = (session, routeType, options = {}) => {
     };
   }
 
-  // If session exists, allow access to both contexts
-  // The unified layout will handle context detection automatically
-  return { isValid: true };
+  // Organization session validation
+  if (sessionType === SESSION_TYPES.ORGANIZATION) {
+    if (routeType === ROUTE_TYPES.USER) {
+      const slug = orgSlug || 'airqo';
+      return {
+        isValid: false,
+        redirectPath: `/org/${slug}/dashboard`,
+        reason: 'Organization session cannot access user routes',
+      };
+    }
+    if (routeType === ROUTE_TYPES.ORGANIZATION) {
+      return { isValid: true };
+    }
+  }
+
+  // User session validation
+  if (sessionType === SESSION_TYPES.USER) {
+    if (routeType === ROUTE_TYPES.ORGANIZATION) {
+      return {
+        isValid: false,
+        redirectPath: '/user/Home',
+        reason: 'User session cannot access organization routes',
+      };
+    }
+    if (routeType === ROUTE_TYPES.USER) {
+      return { isValid: true };
+    }
+  }
+
+  // Default deny
+  return {
+    isValid: false,
+    redirectPath: '/user/login',
+    reason: 'Invalid session or route combination',
+  };
 };
 
 /**
@@ -144,19 +158,20 @@ export const validateServerSession = async (request) => {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    const orgSlug = extractOrgSlug(pathname);
+    const sessionType = token?.sessionType;
+    const orgSlug = token?.orgSlug || extractOrgSlug(pathname);
 
-    const validation = validateSessionAccess(token, routeType, {
+    const validation = validateSessionAccess(sessionType, routeType, {
       pathname,
+      orgSlug,
     });
 
     return {
       ...validation,
+      sessionType,
       routeType,
       orgSlug,
       token,
-      isOrganizationContext: routeType === ROUTE_TYPES.ORGANIZATION,
-      isUserContext: routeType === ROUTE_TYPES.USER,
     };
   } catch (error) {
     logger.error('Server session validation error:', error);
@@ -177,19 +192,21 @@ export const validateServerSession = async (request) => {
 export const validateClientSession = (session, pathname) => {
   try {
     const routeType = getRouteType(pathname);
-    const orgSlug = extractOrgSlug(pathname);
+    const sessionType = session?.sessionType || session?.user?.sessionType;
+    const orgSlug =
+      session?.orgSlug || session?.user?.orgSlug || extractOrgSlug(pathname);
 
-    const validation = validateSessionAccess(session, routeType, {
+    const validation = validateSessionAccess(sessionType, routeType, {
       pathname,
+      orgSlug,
     });
 
     return {
       ...validation,
+      sessionType,
       routeType,
       orgSlug,
       session,
-      isOrganizationContext: routeType === ROUTE_TYPES.ORGANIZATION,
-      isUserContext: routeType === ROUTE_TYPES.USER,
     };
   } catch (error) {
     logger.error('Client session validation error:', error);
@@ -218,79 +235,18 @@ export const getLoginPath = (pathname) => {
 };
 
 /**
- * Get the appropriate dashboard path for a route context
- * @param {string} pathname - The current pathname
- * @param {string} orgSlug - The organization slug (for org routes)
+ * Get the appropriate dashboard path for a session type
+ * @param {string} sessionType - The session type
+ * @param {string} orgSlug - The organization slug (required for org sessions)
  * @returns {string} The dashboard path
  */
-export const getDashboardPath = (pathname, orgSlug = null) => {
-  const routeType = getRouteType(pathname);
-
-  if (routeType === ROUTE_TYPES.ORGANIZATION || orgSlug) {
-    const slug = orgSlug || extractOrgSlug(pathname) || 'airqo';
+export const getDashboardPath = (sessionType, orgSlug = null) => {
+  if (sessionType === SESSION_TYPES.ORGANIZATION) {
+    const slug = orgSlug || 'airqo';
     return `/org/${slug}/dashboard`;
   }
 
   return '/user/Home';
-};
-
-/**
- * Get navigation configuration based on context
- * @param {string} pathname - The current pathname
- * @returns {Object} Navigation configuration
- */
-export const getNavigationConfig = (pathname) => {
-  const routeType = getRouteType(pathname);
-  const orgSlug = extractOrgSlug(pathname);
-
-  if (routeType === ROUTE_TYPES.ORGANIZATION) {
-    return {
-      loginPath: `/org/${orgSlug || 'airqo'}/login`,
-      dashboardPath: `/org/${orgSlug || 'airqo'}/dashboard`,
-      homePath: `/org/${orgSlug || 'airqo'}/dashboard`,
-      isOrganization: true,
-      orgSlug: orgSlug || 'airqo',
-    };
-  }
-
-  return {
-    loginPath: '/user/login',
-    dashboardPath: '/user/Home',
-    homePath: '/user/Home',
-    isOrganization: false,
-    orgSlug: null,
-  };
-};
-
-/**
- * Check if current user has access to organization
- * @param {Object} session - The session object
- * @param {string} orgSlug - The organization slug
- * @returns {boolean} True if user has access
- */
-export const hasOrganizationAccess = (session, orgSlug) => {
-  if (!session || !orgSlug) return false;
-
-  // For now, allow access if user is logged in
-  // This can be enhanced later with proper organization membership validation
-  return !!session.user;
-};
-
-/**
- * Get user's organization context from session
- * @param {Object} session - The session object
- * @returns {Object|null} Organization context or null
- */
-export const getUserOrganizationContext = (session) => {
-  if (!session?.user) return null;
-
-  // Extract organization context from session if available
-  return {
-    orgSlug: session.user.organizationSlug || null,
-    organizationId: session.user.organizationId || null,
-    role: session.user.role || 'user',
-    permissions: session.user.permissions || [],
-  };
 };
 
 /**
@@ -305,25 +261,38 @@ export const requiresAuth = (pathname) => {
   );
 };
 
-// Utility function to create a session-aware redirect
-export const createSessionRedirect = (
-  pathname,
-  fallbackPath = '/user/login',
-) => {
-  const routeType = getRouteType(pathname);
+/**
+ * Check if session is properly initialized for a route
+ * @param {Object} session - NextAuth session object
+ * @param {string} pathname - Current pathname
+ * @returns {boolean} True if session is properly initialized
+ */
+export const isSessionInitialized = (session, pathname) => {
+  if (!session?.user) return false;
 
-  if (routeType === ROUTE_TYPES.ORGANIZATION) {
-    const orgSlug = extractOrgSlug(pathname) || 'airqo';
-    return `/org/${orgSlug}/login`;
+  const routeType = getRouteType(pathname);
+  const sessionType = session.sessionType || session.user.sessionType;
+
+  // For organization routes, ensure orgSlug is present
+  if (
+    routeType === ROUTE_TYPES.ORGANIZATION &&
+    sessionType === SESSION_TYPES.ORGANIZATION
+  ) {
+    return !!(session.orgSlug || session.user.orgSlug);
   }
 
-  return fallbackPath;
+  // For user routes, ensure basic user data is present
+  if (routeType === ROUTE_TYPES.USER && sessionType === SESSION_TYPES.USER) {
+    return !!(session.user.id && session.user.email);
+  }
+
+  return true;
 };
 
 /**
- * Debug logging for session validation (development only)
- * @param {Object} validation - The validation result object
- * @param {string} context - Context string for debugging
+ * Log session validation for debugging
+ * @param {Object} validation - Validation result
+ * @param {string} context - Context string for logging
  */
 export const logSessionValidation = (
   validation,
@@ -332,20 +301,13 @@ export const logSessionValidation = (
   if (process.env.NODE_ENV === 'development') {
     logger.debug(`${context}:`, {
       isValid: validation.isValid,
+      sessionType: validation.sessionType,
       routeType: validation.routeType,
       redirectPath: validation.redirectPath,
       reason: validation.reason,
       orgSlug: validation.orgSlug,
-      isOrganizationContext: validation.isOrganizationContext,
-      isUserContext: validation.isUserContext,
     });
   }
-};
-
-// Legacy compatibility - maintain existing API surface for backward compatibility
-export const SESSION_TYPES = {
-  USER: 'user',
-  ORGANIZATION: 'organization',
 };
 
 export default {
@@ -353,17 +315,12 @@ export default {
   ROUTE_TYPES,
   getRouteType,
   extractOrgSlug,
-  isOrganizationContext,
-  isUserContext,
   validateSessionAccess,
   validateServerSession,
   validateClientSession,
   getLoginPath,
   getDashboardPath,
-  getNavigationConfig,
-  hasOrganizationAccess,
-  getUserOrganizationContext,
   requiresAuth,
-  createSessionRedirect,
+  isSessionInitialized,
   logSessionValidation,
 };

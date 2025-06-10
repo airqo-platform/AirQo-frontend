@@ -25,27 +25,53 @@ import { useOrganization } from '@/app/providers/OrganizationProvider';
  * Automatically detects context (individual user vs organization) and renders appropriate layout
  * Provides a shared layout for all dashboard routes with dynamic configuration
  */
-export default function PagesLayout({ children }) {
+export default function UnifiedPagesLayout({ children }) {
   const pathname = usePathname();
+  const params = useParams();
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
-  const isMapPage = pathname === '/map';
+  const isMapPage = pathname === '/user/map' || pathname === '/map';
+
+  // Detect context (individual vs organization)
+  const isOrganizationContext = pathname.startsWith('/org/');
+  const orgSlug = params?.org_slug || '';
+
+  // Get organization data if in org context - only call hook conditionally
+  let organization = null;
+  let primaryColor = null;
+  let secondaryColor = null;
+
+  if (isOrganizationContext) {
+    const orgData = useOrganization();
+    organization = orgData.organization;
+    primaryColor = orgData.primaryColor;
+    secondaryColor = orgData.secondaryColor;
+  }
 
   // Get route configuration based on current pathname
   const getRouteConfig = () => {
-    // Check dashboard routes
-    if (LAYOUT_CONFIGS.DASHBOARD[pathname]) {
-      return LAYOUT_CONFIGS.DASHBOARD[pathname];
+    if (isOrganizationContext) {
+      const normalizedPath = pathname.replace(
+        `/org/${orgSlug}`,
+        '/org/[org_slug]',
+      );
+      return (
+        LAYOUT_CONFIGS.ORGANIZATION?.[normalizedPath] ||
+        DEFAULT_CONFIGS.ORGANIZATION
+      );
+    } else {
+      // Check dashboard routes
+      if (LAYOUT_CONFIGS.DASHBOARD?.[pathname]) {
+        return LAYOUT_CONFIGS.DASHBOARD[pathname];
+      }
+      // Check map routes
+      if (LAYOUT_CONFIGS.MAP?.[pathname]) {
+        return LAYOUT_CONFIGS.MAP[pathname];
+      }
+      // Fallback to default dashboard config
+      return DEFAULT_CONFIGS.DASHBOARD;
     }
-
-    // Check map routes
-    if (LAYOUT_CONFIGS.MAP[pathname]) {
-      return LAYOUT_CONFIGS.MAP[pathname];
-    }
-
-    // Fallback to default dashboard config
-    return DEFAULT_CONFIGS.DASHBOARD;
   };
 
   const routeConfig = getRouteConfig();
@@ -64,22 +90,75 @@ export default function PagesLayout({ children }) {
       : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
     : '';
 
+  // Determine logo and navigation paths
+  const logoComponent =
+    isOrganizationContext && organization?.logo ? (
+      <img
+        src={organization.logo}
+        alt={`${organization.name} Logo`}
+        className="w-[46.56px] h-8 object-contain"
+        onError={(e) => {
+          e.target.src = '/icons/airqo_logo.svg';
+        }}
+      />
+    ) : null;
+
+  const homeNavPath = isOrganizationContext
+    ? `/org/${orgSlug}/dashboard`
+    : '/user/Home';
+
+  const customActions = isOrganizationContext ? (
+    <div className="flex items-center gap-2">
+      <DarkModeToggle size="md" />
+    </div>
+  ) : null;
+
   return (
-    <div className="flex overflow-hidden min-h-screen" data-testid="layout">
+    <div
+      className="flex overflow-hidden min-h-screen"
+      data-testid={isOrganizationContext ? 'organization-layout' : 'layout'}
+      style={
+        isOrganizationContext
+          ? {
+              '--org-primary': primaryColor,
+              '--org-secondary': secondaryColor,
+            }
+          : {}
+      }
+    >
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
       </Head>
 
+      {/* Global Topbar */}
       <GlobalTopbar
         topbarTitle={routeConfig.topbarTitle}
-        noBorderBottom={routeConfig.noBorderBottom}
-        showSearch={routeConfig.showSearch}
+        logoComponent={logoComponent}
+        homeNavPath={homeNavPath}
+        customActions={customActions}
       />
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar />
+        {isOrganizationContext ? (
+          <AuthenticatedSideBar
+            logoComponent={logoComponent}
+            onLogoClick={() => (window.location.href = homeNavPath)}
+            homeNavPath={homeNavPath}
+            showOrganizationDropdown={true}
+          >
+            <OrganizationSidebarContent
+              isCollapsed={isCollapsed}
+              styles={{
+                '--org-primary': primaryColor,
+                '--org-secondary': secondaryColor,
+              }}
+            />
+          </AuthenticatedSideBar>
+        ) : (
+          <IndividualUserSidebar />
+        )}
       </aside>
 
       {/* Main Content */}
@@ -92,13 +171,6 @@ export default function PagesLayout({ children }) {
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
-          {/* TopBar */}
-          <PageTopBar
-            topbarTitle={routeConfig.topbarTitle}
-            noBorderBottom={routeConfig.noBorderBottom}
-            showSearch={routeConfig.showSearch}
-          />
-
           {/* Content */}
           <div className="text-text transition-all duration-300 overflow-hidden">
             {children}
@@ -107,9 +179,11 @@ export default function PagesLayout({ children }) {
       </main>
 
       {/* SideBar Drawer */}
-      <SideBarDrawer />
-
-      <GlobalSideBarDrawer />
+      {isOrganizationContext ? (
+        <OrganizationSideBarDrawer />
+      ) : (
+        <SideBarDrawer />
+      )}
     </div>
   );
 }

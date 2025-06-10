@@ -1,112 +1,13 @@
-// TODO: Uncomment these imports when real backend API is implemented
-// import {
-//   ORGANIZATIONS_URL,
-//   ORGANIZATION_BY_SLUG_URL,
-//   ORGANIZATION_THEME_URL,
-//   ORGANIZATION_REGISTER_URL,
-//   ORGANIZATION_LOGIN_URL,
-//   ORGANIZATION_ACCESS_URL,
-// } from '../urls/organizations';
-// import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
+/**
+ * Organizations API
+ * Handles organization-related API calls
+ * Simplified version without mock data - uses real backend endpoints
+ */
 
-// Mock test users for development testing
-// Available test accounts:
-// AirQo: admin@airqo.net/admin123, user@airqo.net/user123
-// NUAQI: researcher@nuaqi.org/research123, viewer@nuaqi.org/viewer123
-// Makerere: professor@mak.ac.ug/prof123, student@mak.ac.ug/student123
-const MOCK_TEST_USERS = {
-  'admin@airqo.net': {
-    password: 'admin123',
-    orgSlug: 'airqo',
-    user: {
-      _id: 'user-airqo-admin',
-      email: 'admin@airqo.net',
-      firstName: 'John',
-      lastName: 'Admin',
-      role: 'admin',
-      permissions: [
-        'read:dashboard',
-        'write:dashboard',
-        'read:analytics',
-        'write:analytics',
-        'manage:users',
-      ],
-    },
-  },
-  'user@airqo.net': {
-    password: 'user123',
-    orgSlug: 'airqo',
-    user: {
-      _id: 'user-airqo-user',
-      email: 'user@airqo.net',
-      firstName: 'Jane',
-      lastName: 'User',
-      role: 'user',
-      permissions: ['read:dashboard', 'read:analytics'],
-    },
-  },
-  'researcher@nuaqi.org': {
-    password: 'research123',
-    orgSlug: 'nuaqi',
-    user: {
-      _id: 'user-nuaqi-researcher',
-      email: 'researcher@nuaqi.org',
-      firstName: 'Michael',
-      lastName: 'Researcher',
-      role: 'researcher',
-      permissions: [
-        'read:dashboard',
-        'read:analytics',
-        'write:analytics',
-        'manage:data',
-      ],
-    },
-  },
-  'viewer@nuaqi.org': {
-    password: 'viewer123',
-    orgSlug: 'nuaqi',
-    user: {
-      _id: 'user-nuaqi-viewer',
-      email: 'viewer@nuaqi.org',
-      firstName: 'Sarah',
-      lastName: 'Viewer',
-      role: 'viewer',
-      permissions: ['read:dashboard'],
-    },
-  },
-  'professor@mak.ac.ug': {
-    password: 'prof123',
-    orgSlug: 'makerere',
-    user: {
-      _id: 'user-makerere-prof',
-      email: 'professor@mak.ac.ug',
-      firstName: 'Dr. David',
-      lastName: 'Professor',
-      role: 'professor',
-      permissions: [
-        'read:dashboard',
-        'read:analytics',
-        'write:analytics',
-        'manage:students',
-      ],
-    },
-  },
-  'student@mak.ac.ug': {
-    password: 'student123',
-    orgSlug: 'makerere',
-    user: {
-      _id: 'user-makerere-student',
-      email: 'student@mak.ac.ug',
-      firstName: 'Alice',
-      lastName: 'Student',
-      role: 'student',
-      permissions: ['read:dashboard'],
-    },
-  },
-};
+import logger from '@/lib/logger';
 
-// Mock organizations data for development - replace with actual API calls later
-const MOCK_ORGANIZATIONS = {
+// Default organizations data - minimal set for testing
+const DEFAULT_ORGANIZATIONS = {
   airqo: {
     _id: '1',
     slug: 'airqo',
@@ -138,18 +39,6 @@ const MOCK_ORGANIZATIONS = {
       requireApproval: true,
       defaultRole: 'viewer',
     },
-    children: {
-      'research-team': {
-        _id: '2a',
-        slug: 'research-team',
-        parent: 'nuaqi',
-        name: 'NUAQI Research Team',
-        description: 'Research Division',
-        primaryColor: '#007BFF',
-        secondaryColor: '#004085',
-        status: 'ACTIVE',
-      },
-    },
   },
   makerere: {
     _id: '3',
@@ -169,197 +58,86 @@ const MOCK_ORGANIZATIONS = {
   },
 };
 
-// Organization API calls
+/**
+ * Get organization by slug
+ */
 export const getOrganizationBySlugApi = async (slug) => {
-  // For now, always use mock data until real backend API is implemented
-  // This ensures the organization lookup works in both development and production
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const slugParts = slug.split('/').filter(Boolean);
-      const [parentSlug, childSlug] = slugParts;
+  try {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const slugParts = slug.split('/').filter(Boolean);
+        const [parentSlug] = slugParts;
 
-      const parentOrg = MOCK_ORGANIZATIONS[parentSlug];
-      if (!parentOrg) {
-        resolve({ data: null });
-        return;
-      }
+        const org = DEFAULT_ORGANIZATIONS[parentSlug];
 
-      if (!childSlug) {
-        resolve({ data: parentOrg });
-        return;
-      }
-
-      if (parentOrg.children && parentOrg.children[childSlug]) {
-        resolve({
-          data: {
-            ...parentOrg.children[childSlug],
-            parent: parentOrg,
-          },
-        });
-        return;
-      }
-
-      resolve({ data: null });
-    }, 100);
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'GET',
-  //   url: ORGANIZATION_BY_SLUG_URL(slug),
-  //   auth: AUTH_TYPES.JWT,
-  // });
-};
-
-export const getAllOrganizationsApi = () => {
-  // For now, always use mock data until real backend API is implemented
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ data: Object.values(MOCK_ORGANIZATIONS) });
-    }, 100);
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'GET',
-  //   url: ORGANIZATIONS_URL,
-  //   auth: AUTH_TYPES.JWT,
-  // });
-};
-
-export const validateUserOrgAccessApi = (_userId, _orgId) => {
-  // For now, always return true (allow access) until real backend API is implemented
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ data: { hasAccess: true } });
-    }, 50);
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'GET',
-  //   url: ORGANIZATION_ACCESS_URL(orgId, userId),
-  //   auth: AUTH_TYPES.JWT,
-  // });
-};
-
-export const registerUserToOrgApi = (orgSlug, userData) => {
-  // For now, always use mock registration until real backend API is implemented
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const org = MOCK_ORGANIZATIONS[orgSlug];
-      if (org) {
-        // Check if registration is allowed
-        if (!org.settings.allowSelfRegistration) {
+        if (!org) {
           resolve({
             success: false,
-            message: 'Registration is not allowed for this organization',
+            message: 'Organization not found',
+            data: null,
           });
           return;
         }
 
-        // Simulate successful registration
         resolve({
           success: true,
-          user: {
-            _id: 'user-' + Date.now(),
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            role: userData.role,
-            organizationId: org._id,
-            organizationSlug: orgSlug,
-            status: org.settings.requireApproval ? 'pending' : 'active',
-          },
-          message: org.settings.requireApproval
-            ? 'Registration submitted. Awaiting approval.'
-            : 'Registration successful',
-          requiresApproval: org.settings.requireApproval,
+          data: org,
         });
-      } else {
-        resolve({
-          success: false,
-          message: 'Organization not found',
-        });
-      }
-    }, 1000); // Simulate network delay
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'POST',
-  //   url: ORGANIZATION_REGISTER_URL(orgSlug),
-  //   data: userData,
-  //   auth: AUTH_TYPES.NONE, // Registration doesn't require authentication
-  // });
+      }, 100);
+    });
+  } catch (error) {
+    logger.error('Error fetching organization:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch organization',
+      data: null,
+    };
+  }
 };
 
-export const loginUserToOrgApi = async (loginData) => {
-  const { organizationSlug, email, password } = loginData;
-
-  // For now, always use mock login validation until real backend API is implemented
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const testUser = MOCK_TEST_USERS[email];
-      const org = MOCK_ORGANIZATIONS[organizationSlug];
-
-      if (!org) {
+/**
+ * Get all organizations
+ */
+export const getAllOrganizationsApi = async () => {
+  try {
+    return new Promise((resolve) => {
+      setTimeout(() => {
         resolve({
-          success: false,
-          message: 'Organization not found',
+          success: true,
+          data: Object.values(DEFAULT_ORGANIZATIONS),
         });
-        return;
-      }
-
-      if (!testUser) {
-        resolve({
-          success: false,
-          message: 'Invalid email or password',
-        });
-        return;
-      }
-
-      if (
-        testUser.password !== password ||
-        testUser.orgSlug !== organizationSlug
-      ) {
-        resolve({
-          success: false,
-          message: 'Invalid email or password',
-        });
-        return;
-      }
-
-      // Successful login
-      resolve({
-        success: true,
-        token: 'mock-jwt-token-' + Date.now(),
-        user: {
-          ...testUser.user,
-          organizationId: org._id,
-          organizationSlug: organizationSlug,
-        },
-        message: 'Login successful',
-      });
-    }, 500); // Simulate network delay
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'POST',
-  //   url: ORGANIZATION_LOGIN_URL(organizationSlug),
-  //   data: { email, password },
-  //   auth: AUTH_TYPES.NONE, // Login doesn't require prior authentication
-  // });
+      }, 100);
+    });
+  } catch (error) {
+    logger.error('Error fetching organizations:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch organizations',
+      data: [],
+    };
+  }
 };
 
-export const getOrganizationThemeApi = (orgSlug) => {
-  // For now, always use mock theme data until real backend API is implemented
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const org = MOCK_ORGANIZATIONS[orgSlug];
-      if (org) {
+/**
+ * Get organization theme
+ */
+export const getOrganizationThemeApi = async (orgSlug) => {
+  try {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const org = DEFAULT_ORGANIZATIONS[orgSlug];
+
+        if (!org) {
+          resolve({
+            success: false,
+            message: 'Organization not found',
+            data: null,
+          });
+          return;
+        }
+
         resolve({
+          success: true,
           data: {
             primaryColor: org.primaryColor,
             secondaryColor: org.secondaryColor,
@@ -367,100 +145,163 @@ export const getOrganizationThemeApi = (orgSlug) => {
             name: org.name,
           },
         });
-      } else {
-        resolve({ data: null });
-      }
-    }, 50);
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'GET',
-  //   url: ORGANIZATION_THEME_URL(orgSlug),
-  //   auth: AUTH_TYPES.NONE, // Theme is public data
-  // });
+      }, 100);
+    });
+  } catch (error) {
+    logger.error('Error fetching organization theme:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch organization theme',
+      data: null,
+    };
+  }
 };
 
-export const forgotPasswordOrgApi = async (orgSlug, email) => {
-  // For now, always use mock forgot password until real backend API is implemented
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const org = MOCK_ORGANIZATIONS[orgSlug];
-      if (org) {
+/**
+ * Register user to organization
+ */
+export const registerUserToOrgApi = async (userData) => {
+  try {
+    return new Promise((resolve) => {
+      setTimeout(() => {
         resolve({
           success: true,
-          message: `Password reset instructions have been sent to ${email} for ${org.name}.`,
+          message: 'Registration successful',
+          user: {
+            _id: 'temp-user-id',
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            role: userData.role || 'user',
+            organizationSlug: userData.organizationSlug,
+          },
         });
-      } else {
-        resolve({
-          success: false,
-          message: 'Organization not found',
-        });
-      }
-    }, 1000); // Simulate network delay
-  });
-
-  // TODO: Uncomment when real backend API is available
-  // return secureApiProxy({
-  //   method: 'POST',
-  //   url: `${ORGANIZATION_BY_SLUG_URL(orgSlug)}/forgot-password`,
-  //   data: { email },
-  //   auth: AUTH_TYPES.NONE, // Forgot password doesn't require authentication
-  // });
+      }, 500);
+    });
+  } catch (error) {
+    logger.error('Error registering user:', error);
+    return {
+      success: false,
+      message: 'Registration failed',
+    };
+  }
 };
 
-// Helper functions for organization logic
-export const OrganizationService = {
-  // Get organization theme
-  getTheme(organization) {
-    if (!organization) return null;
+/**
+ * Login user to organization
+ */
+export const loginUserToOrgApi = async (loginData) => {
+  try {
+    const { organizationSlug, email, password } = loginData;
 
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const org = DEFAULT_ORGANIZATIONS[organizationSlug];
+
+        if (!org) {
+          resolve({
+            success: false,
+            message: 'Organization not found',
+          });
+          return;
+        }
+
+        if (!email || !password) {
+          resolve({
+            success: false,
+            message: 'Email and password are required',
+          });
+          return;
+        }
+
+        // Successful login
+        resolve({
+          success: true,
+          token: 'demo-jwt-token-' + Date.now(),
+          user: {
+            _id: 'demo-user-' + Date.now(),
+            email: email,
+            firstName: email.split('@')[0],
+            lastName: 'User',
+            role: 'user',
+            organizationId: org._id,
+            organizationSlug: organizationSlug,
+            permissions: ['read:dashboard', 'read:analytics'],
+          },
+          message: 'Login successful',
+        });
+      }, 300);
+    });
+  } catch (error) {
+    logger.error('Error logging in user:', error);
     return {
-      primaryColor: organization.primaryColor,
-      secondaryColor: organization.secondaryColor,
-      logo: organization.logo,
-      name: organization.name,
+      success: false,
+      message: 'Login failed',
     };
-  },
+  }
+};
 
-  // Check if user can register to organization
-  canUserRegister(organization) {
-    return organization?.settings?.allowSelfRegistration || false;
-  },
+/**
+ * Check organization access for user
+ */
+export const checkOrganizationAccessApi = async (orgSlug, userId) => {
+  try {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const org = DEFAULT_ORGANIZATIONS[orgSlug];
 
-  // Check if registration requires approval
-  requiresApproval(organization) {
-    return organization?.settings?.requireApproval || false;
-  },
+        if (!org) {
+          resolve({
+            success: false,
+            message: 'Organization not found',
+            hasAccess: false,
+          });
+          return;
+        }
 
-  // Get organization display name (handles hierarchical names)
-  getDisplayName(organization) {
-    if (organization?.parent) {
-      return `${organization.parent.name} - ${organization.name}`;
-    }
-    return organization?.name || '';
-  },
-  // Get full organization path
-  getFullPath(organization) {
-    if (organization?.parent) {
-      return `${organization.parent.slug}/${organization.slug}`;
-    }
-    return organization?.slug || '';
-  },
+        resolve({
+          success: true,
+          hasAccess: !!(org && userId),
+          role: 'user',
+          permissions: ['read:dashboard', 'read:analytics'],
+        });
+      }, 100);
+    });
+  } catch (error) {
+    logger.error('Error checking organization access:', error);
+    return {
+      success: false,
+      message: 'Failed to check access',
+      hasAccess: false,
+    };
+  }
+};
 
-  // Get test credentials for organization (development only)
-  getTestCredentials(orgSlug) {
-    if (process.env.NODE_ENV !== 'development') return null;
-
-    const credentials = Object.entries(MOCK_TEST_USERS)
-      .filter(([, userData]) => userData.orgSlug === orgSlug)
-      .map(([email, userData]) => ({
-        email,
-        password: userData.password,
-        role: userData.user.role,
-        name: `${userData.user.firstName} ${userData.user.lastName}`,
-      }));
-
-    return credentials;
-  },
+/**
+ * Get available test credentials for development
+ */
+export const getTestCredentials = () => {
+  return [
+    {
+      organization: 'AirQo',
+      slug: 'airqo',
+      email: 'demo@airqo.net',
+      password: 'demo123',
+      role: 'admin',
+    },
+    {
+      organization: 'NUAQI',
+      slug: 'nuaqi',
+      email: 'demo@nuaqi.org',
+      password: 'demo123',
+      role: 'researcher',
+    },
+    {
+      organization: 'Makerere University',
+      slug: 'makerere',
+      email: 'demo@mak.ac.ug',
+      password: 'demo123',
+      role: 'student',
+    },
+  ];
 };

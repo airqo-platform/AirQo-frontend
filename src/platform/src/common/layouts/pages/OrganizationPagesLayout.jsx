@@ -17,7 +17,7 @@ import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
-import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
+import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import DarkModeToggle from '@/common/components/DarkModeToggle';
 
 function OrganizationPagesLayout({ children }) {

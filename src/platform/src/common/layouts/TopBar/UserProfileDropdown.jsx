@@ -21,6 +21,7 @@ const UserProfileDropdown = ({
   showUserInfo = true,
   customMenuItems = [],
   onLogout,
+  isOrganization = false,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,11 +48,10 @@ const UserProfileDropdown = ({
   useEffect(() => {
     setMounted(true);
   }, []);
-
   // Determine context (individual vs organization)
   const isOrganizationContext = useMemo(() => {
-    return pathname.includes('/org/');
-  }, [pathname]);
+    return isOrganization || pathname.includes('/org/');
+  }, [isOrganization, pathname]);
 
   // Extract organization slug if in org context
   const orgSlug = useMemo(() => {
@@ -260,6 +260,7 @@ UserProfileDropdown.propTypes = {
     }),
   ),
   onLogout: PropTypes.func,
+  isOrganization: PropTypes.bool,
 };
 
 export default React.memo(UserProfileDropdown);

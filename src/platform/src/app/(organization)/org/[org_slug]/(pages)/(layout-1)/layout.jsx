@@ -1,7 +1,7 @@
 'use client';
 
-import OrganizationPagesLayout from '@/layouts/OrganizationPagesLayout';
+import UnifiedPagesLayout from '@/common/layouts/pages/UnifiedPagesLayout';
 
 export default function OrganizationPagesLayoutWrapper({ children }) {
-  return <OrganizationPagesLayout>{children}</OrganizationPagesLayout>;
+  return <UnifiedPagesLayout>{children}</UnifiedPagesLayout>;
 }

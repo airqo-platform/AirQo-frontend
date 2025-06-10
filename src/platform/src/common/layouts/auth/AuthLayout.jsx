@@ -3,7 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Head from 'next/head';
-import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from './layoutConfigs';
+import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 
 /**
  * Auth Layout Component

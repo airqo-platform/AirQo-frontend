@@ -1,5 +1,5 @@
-import PagesLayout from '@/layouts/PagesLayout';
+import UnifiedPagesLayout from '@/common/layouts/pages/UnifiedPagesLayout';
 
 export default function PagesRouteGroupLayout({ children }) {
-  return <PagesLayout>{children}</PagesLayout>;
+  return <UnifiedPagesLayout>{children}</UnifiedPagesLayout>;
 }
