@@ -57,6 +57,7 @@ const OrganizationDropdown = ({ className = '' }) => {
       window.removeEventListener('scroll', updateButtonPosition);
     };
   }, [isCollapsed, isOpen]);
+
   useEffect(() => {
     if (isFetchingActiveGroup) return;
 
@@ -82,8 +83,10 @@ const OrganizationDropdown = ({ className = '' }) => {
           // In organization context, we don't update preferences
           // Instead, we redirect to the selected organization's dashboard
           const orgSlug =
-            group.orgSlug ||
-            group.grp_title?.toLowerCase().replace(/\s+/g, '-');
+            group.grp_title
+              ?.toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '') || group._id;
           if (orgSlug && orgSlug !== currentPath.split('/')[2]) {
             window.location.href = `/org/${orgSlug}/dashboard`;
             return;
@@ -123,6 +126,7 @@ const OrganizationDropdown = ({ className = '' }) => {
     },
     [dispatch, userID, updateSession, session],
   );
+
   const handleDropdownSelect = (group) => {
     if (group?._id !== activeGroupId) {
       dispatch(setOrganizationName(group.grp_title));
@@ -150,9 +154,23 @@ const OrganizationDropdown = ({ className = '' }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, isCollapsed]);
 
-  if (!activeGroupId || groupList.length === 0) {
-    return null;
+  // Show dropdown when there are groups available - improved for organization context
+  const showDropdown = groupList.length > 0;
+
+  if (!showDropdown) {
+    return null; // Only hide if there are genuinely no groups
   }
+
+  // Determine the display title - use active group or first available group
+  const displayTitle =
+    activeGroupTitle ||
+    (groupList.length > 0
+      ? cleanGroupName(groupList[0].grp_title)
+      : 'Select Organization');
+
+  // Determine the current group ID for highlighting
+  const currentGroupId =
+    activeGroupId || (groupList.length > 0 ? groupList[0]._id : null);
 
   // Generate the organization icon component
   const orgIcon = (
@@ -207,7 +225,7 @@ const OrganizationDropdown = ({ className = '' }) => {
                 key={group?._id}
                 className={clsx(
                   'p-1 rounded-lg mb-1',
-                  activeGroupId === group._id
+                  currentGroupId === group._id
                     ? isDarkMode
                       ? 'bg-primary/10'
                       : 'bg-primary/5'
@@ -219,7 +237,7 @@ const OrganizationDropdown = ({ className = '' }) => {
                   className={clsx(
                     'w-full h-11 px-3 rounded-lg py-2 flex items-center justify-between',
                     isDarkMode ? 'text-white' : 'text-gray-800',
-                    activeGroupId === group._id
+                    currentGroupId === group._id
                       ? isDarkMode
                         ? 'text-primary'
                         : 'text-primary'
@@ -248,7 +266,7 @@ const OrganizationDropdown = ({ className = '' }) => {
                   <div className="flex-shrink-0 ml-2">
                     {loading && selectedGroupId === group._id ? (
                       <Spinner width={16} height={16} />
-                    ) : activeGroupId === group._id ? (
+                    ) : currentGroupId === group._id ? (
                       <svg
                         width="16"
                         height="16"
@@ -298,11 +316,7 @@ const OrganizationDropdown = ({ className = '' }) => {
       <CustomDropdown
         icon={orgIcon}
         disableMobileCollapse
-        text={
-          <div className="max-w-[100px] truncate">
-            {cleanGroupName(activeGroupTitle)}
-          </div>
-        }
+        text={<div className="max-w-[100px] truncate">{displayTitle}</div>}
         onClick={handleButtonClick}
         isButton={isCollapsed}
         className="w-full"
@@ -328,7 +342,7 @@ const OrganizationDropdown = ({ className = '' }) => {
               key={group?._id}
               className={clsx(
                 'p-1 rounded-lg mb-1',
-                activeGroupId === group._id
+                currentGroupId === group._id
                   ? isDarkMode
                     ? 'bg-primary/10'
                     : 'bg-primary/5'
@@ -340,7 +354,7 @@ const OrganizationDropdown = ({ className = '' }) => {
                 className={clsx(
                   'w-full h-11 px-3 rounded-lg py-2 flex items-center justify-between',
                   isDarkMode ? 'text-white' : 'text-gray-800',
-                  activeGroupId === group._id
+                  currentGroupId === group._id
                     ? isDarkMode
                       ? 'text-primary'
                       : 'text-primary'
@@ -369,7 +383,7 @@ const OrganizationDropdown = ({ className = '' }) => {
                 <div className="flex-shrink-0 ml-2">
                   {loading && selectedGroupId === group._id ? (
                     <Spinner width={16} height={16} />
-                  ) : activeGroupId === group._id ? (
+                  ) : currentGroupId === group._id ? (
                     <svg
                       width="16"
                       height="16"
