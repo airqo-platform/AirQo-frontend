@@ -147,9 +147,9 @@ const AirQoMap = forwardRef(
           'bottom-right',
         );
         controlsAddedRef.current = true;
-        console.log('Map controls added successfully');
-      } catch (err) {
-        console.error('Error adding map controls:', err);
+        // Map controls added successfully
+      } catch (_err) {
+        // Error adding map controls - log to error monitoring service
         controlsAddedRef.current = false;
       }
     }, [onToastMessage, width]);

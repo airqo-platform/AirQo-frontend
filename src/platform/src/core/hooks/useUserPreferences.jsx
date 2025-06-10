@@ -28,10 +28,9 @@ const useUserPreferences = () => {
             identifier: userID,
             groupID: activeGroupId,
           }),
-        );
-        // Only proceed if the component is still mounted
+        ); // Only proceed if the component is still mounted
         if (isMounted) {
-          console.log('User preferences fetched successfully.');
+          // User preferences fetched successfully
         }
       } catch (error) {
         if (isMounted) {

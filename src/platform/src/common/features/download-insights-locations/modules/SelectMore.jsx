@@ -39,8 +39,6 @@ const SelectMoreHeader = () => {
  */
 const SelectMore = ({ onClose }) => {
   const dispatch = useDispatch();
-  const { data } = useSelector((state) => state.modal.modalType);
-  console.log(data);
 
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(

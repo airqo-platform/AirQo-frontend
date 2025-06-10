@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
-import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
+import AuthenticatedSideBar from '../SideBar/AuthenticatedSidebar';
 import PageTopBar from '@/components/PageTopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
@@ -14,7 +14,7 @@ import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 
 /**

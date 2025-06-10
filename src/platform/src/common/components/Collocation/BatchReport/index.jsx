@@ -28,7 +28,6 @@ const styles = StyleSheet.create({
 });
 
 const ExportStatusReport = ({ batchData }) => {
-  console.log('batchData', batchData);
   return (
     <PDFViewer>
       <Document>

@@ -4,7 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import PropTypes from 'prop-types';
 import Button from '../Button';
 import MenuBarIcon from '@/icons/menu_bar';

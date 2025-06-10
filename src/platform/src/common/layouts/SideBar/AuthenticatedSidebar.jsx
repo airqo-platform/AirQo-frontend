@@ -201,14 +201,9 @@ const AuthenticatedSideBar = ({
                     />
                   );
                 })}
-            </div>
-
+            </div>{' '}
             {/* Bottom Section */}
-            <div className="mt-auto pb-4">
-              {footerContent || (
-                <div>{/* Placeholder for future components */}</div>
-              )}
-            </div>
+            <div className="mt-auto pb-4">{footerContent}</div>
           </div>
         </Card>
 

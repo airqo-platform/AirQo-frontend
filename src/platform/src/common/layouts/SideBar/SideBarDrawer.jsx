@@ -15,7 +15,6 @@ import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
-// import Carousel_1 from '../carousels/Carousel_1';
 import LogoutUser from '@/core/HOC/LogoutUser';
 import Card from '@/components/CardWrapper';
 
@@ -192,9 +191,6 @@ const SideBarDrawer = () => {
               />
             </div>
           </div>
-
-          {/* TODO: Add carousel BACK later */}
-          {/* <Carousel_1 className="w-full" cardWidth="min-w-[250px]" /> */}
         </div>
       </Card>
     </>

@@ -1,6 +1,3 @@
-// Re-export URL utilities from urlHelpers for backwards compatibility
-export { normalizeUrl as stripTrailingSlash } from './urlHelpers';
-
 export const capitalizeAllText = (text) => {
   if (!text) {
     return '';
@@ -12,11 +9,4 @@ export const capitalizeAllText = (text) => {
     return firstLetter + restOfWord;
   });
   return capitalizedWords?.join(' ');
-};
-
-export const capitalizeFirstLetter = (text) => {
-  if (!text) {
-    return '';
-  }
-  return text?.charAt(0)?.toUpperCase() + text?.slice(1)?.toLowerCase();
 };

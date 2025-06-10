@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
