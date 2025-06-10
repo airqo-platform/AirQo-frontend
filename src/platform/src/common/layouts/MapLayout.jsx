@@ -7,7 +7,7 @@ import Head from 'next/head';
 import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '@/components/TopBar';
+import PageTopBar from '@/components/PageTopBar';
 import SideBarDrawer from '@/components/SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -71,7 +71,7 @@ export default function MapLayout({ children, forceMapView = false }) {
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
           {/* TopBar - Only show on mobile */}
           {!routeConfig.noTopNav && isMobile && (
-            <TopBar
+            <PageTopBar
               topbarTitle={routeConfig.topbarTitle}
               noBorderBottom={routeConfig.noBorderBottom}
               showSearch={routeConfig.showSearch}

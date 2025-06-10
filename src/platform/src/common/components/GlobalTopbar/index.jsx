@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import { useWindowSize } from '@/lib/windowSize';
 import PropTypes from 'prop-types';
 import Button from '../Button';
 import MenuBarIcon from '@/icons/menu_bar';
@@ -11,17 +12,34 @@ import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
 import ChartIcon from '@/icons/Topbar/chartIcon';
 import CustomDropdown from '../Button/CustomDropdown';
-import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import {
+  setTogglingGlobalDrawer,
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import LogoutUser from '@/core/utils/LogoutUser';
 import GroupLogo from '../GroupLogo';
+import MenuIcon from '@/icons/Actions/menu';
+import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
 
-const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
+const GlobalTopbar = ({ topbarTitle }) => {
   const router = useRouter();
+  const { width } = useWindowSize();
   const dispatch = useDispatch();
+  const { theme, systemTheme } = useTheme();
+
+  const isDarkMode = useMemo(() => {
+    return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  }, [theme, systemTheme]);
+
+  const styles = useMemo(
+    () => ({
+      text: isDarkMode ? 'text-white' : 'text-gray-800',
+      background: isDarkMode ? 'bg-[#1d1f20]' : 'bg-white',
+      border: isDarkMode ? 'border-b-gray-700' : 'border-b-gray-200',
+    }),
+    [isDarkMode],
+  );
   const { data: session } = useSession();
 
   // Safe selector for Redux login state with error handling
@@ -39,7 +57,16 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
 
   const togglingDrawer = useSelector((state) => {
     try {
-      return state?.sidebar?.toggleDrawer || false;
+      return state?.sidebar?.togglingDrawer || false;
+    } catch {
+      // Silent fallback during logout when store is reset
+      return false;
+    }
+  });
+
+  const togglingGlobalDrawer = useSelector((state) => {
+    try {
+      return state?.sidebar?.togglingGlobalDrawer || false;
     } catch {
       // Silent fallback during logout when store is reset
       return false;
@@ -91,13 +118,18 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
     (e) => {
       e.preventDefault();
       try {
-        dispatch(setToggleDrawer(!togglingDrawer));
-        dispatch(setSidebar(false));
+        if (width < 1024) {
+          dispatch(setToggleDrawer(!togglingDrawer));
+          dispatch(setSidebar(false));
+        } else {
+          dispatch(setTogglingGlobalDrawer(!togglingGlobalDrawer));
+          dispatch(setSidebar(false));
+        }
       } catch {
         // Silent fallback if dispatch fails during logout
       }
     },
-    [dispatch, togglingDrawer],
+    [dispatch, togglingGlobalDrawer, togglingDrawer, width],
   );
 
   const renderUserInfo = () => (
@@ -166,19 +198,8 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
     </>
   );
 
-  const handleOpenModal = useCallback(
-    (type, ids = []) => {
-      try {
-        dispatch(setOpenModal(true));
-        dispatch(setModalType({ type, ids }));
-      } catch {
-        // Silent fallback if dispatch fails during logout
-      }
-    },
-    [dispatch],
-  );
   const renderProfileTrigger = () => (
-    <div className="cursor-pointer">
+    <div className="cursor-pointer lg:mr-3">
       <img
         className="w-8 h-8 rounded-full object-cover"
         src={userInfo?.profilePicture || placeholderImage}
@@ -217,7 +238,7 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
   return (
     <div className="space-y-3">
       <nav
-        className={`z-50 w-full py-2 px-2 md:px-0 rounded-xl bg-white shadow-sm border border-gray-200 lg:shadow-none lg:bg-transparent lg:border-none ${!noBorderBottom ? 'border-b-[1px] border-b-grey-750' : ''}`}
+        className={`fixed top-0 left-0 z-[999] right-0 w-screen py-2 px-2  shadow-sm border-b ${styles.border} ${styles.background} lg:shadow-none`}
       >
         <div id="topBar-nav" className="flex justify-between items-center">
           <div className="block lg:hidden relative z-10 w-full">
@@ -234,10 +255,22 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
 
           <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
             <div className="flex items-center gap-[10px]">
-              <span className="p-2 rounded-full bg-[#E2E3E5]">
-                <ChartIcon width={20} height={20} />
-              </span>
-              <div>{topbarTitle}</div>
+              <button type="button" className="p-2 m-0" onClick={handleDrawer}>
+                <MenuIcon width={20} height={20} />
+              </button>
+              <div className="flex justify-between items-center">
+                <Button
+                  padding="p-0 m-0"
+                  onClick={() => router.push('/Home')}
+                  variant="text"
+                >
+                  <div
+                    className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
+                  >
+                    <GroupLogo />
+                  </div>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -258,40 +291,17 @@ const TopBar = ({ topbarTitle, noBorderBottom, showSearch = false }) => {
             variant="text"
           >
             <span className="p-2">
-              <MenuBarIcon />
+              <MenuBarIcon fill={isDarkMode ? '#fff' : '#1C1D20'} />
             </span>
           </Button>
         </div>
       </nav>
-      {showSearch && (
-        <div className="lg:hidden flex flex-col md:flex-row justify-between py-2 gap-3 items-center w-full">
-          <div className="font-medium flex items-center justify-start w-full text-2xl text-neutral-light-800">
-            <div className="flex items-center gap-[10px]">
-              <span className="p-2 rounded-full bg-[#E2E3E5]">
-                <ChartIcon width={20} height={20} />
-              </span>
-              <div>{topbarTitle}</div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleOpenModal('search');
-            }}
-          >
-            {/* <TopBarSearch customWidth="md:max-w-[192px]" /> */}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
 
-TopBar.propTypes = {
-  showSearch: PropTypes.bool,
+GlobalTopbar.propTypes = {
   topbarTitle: PropTypes.string,
-  noBorderBottom: PropTypes.bool,
 };
 
-export default React.memo(TopBar);
+export default React.memo(GlobalTopbar);

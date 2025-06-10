@@ -109,6 +109,33 @@ export const createOrganisationRequestApi = (data) =>
     })
     .then((response) => response.data);
 
+export const getOrganisationRequestsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/org-requests`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
+
+export const approveOrganisationRequestApi = (requestId) =>
+  secureApiProxy
+    .patch(
+      `${USERS_URL}/org-requests/${requestId}/approve`,
+      {},
+      {
+        authType: AUTH_TYPES.JWT,
+      },
+    )
+    .then((response) => response.data);
+
+export const rejectOrganisationRequestApi = (requestId, feedback) =>
+  secureApiProxy
+    .patch(
+      `${USERS_URL}/org-requests/${requestId}/reject`,
+      {
+        rejection_reason: feedback,
+      },
+      { authType: AUTH_TYPES.JWT },
+    )
+    .then((response) => response.data);
+
 export const getOrganisationSlugAvailabilityApi = (slug) =>
   secureApiProxy
     .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {

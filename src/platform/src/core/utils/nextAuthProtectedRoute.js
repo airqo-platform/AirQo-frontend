@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import logger from '../../lib/logger';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import Loading from '../../app/loading';
 
 export default function withNextAuth(Component) {
   return function WithNextAuthComponent(props) {
@@ -109,4 +111,41 @@ export const checkAccess = (requiredPermission) => {
   }
 
   return false;
+};
+
+export const withAdminAccess = (Component) => {
+  return function WithAdminAccess(props) {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+    const { activeGroup, loading } = useGetActiveGroup();
+
+    // Show loading state while checking authentication or active group
+    if (status === 'loading' || loading) {
+      return <Loading />;
+    }
+
+    // Check authentication
+    if (status === 'unauthenticated') {
+      router.push('/account/login');
+      return null;
+    }
+
+    // Check admin access
+    if (session?.user && activeGroup) {
+      const groupRole = activeGroup?.role?.role_name?.toLowerCase() || '';
+      const isSuperAdmin =
+        groupRole.includes('super_admin') || groupRole.includes('super admin');
+      const isAirqoGroup = activeGroup?.grp_title?.toLowerCase() === 'airqo';
+
+      if (!isSuperAdmin || !isAirqoGroup) {
+        router.push('/permission-denied');
+        return null;
+      }
+    }
+
+    // Only render if authenticated and has admin access
+    return status === 'authenticated' && session ? (
+      <Component {...props} />
+    ) : null;
+  };
 };
