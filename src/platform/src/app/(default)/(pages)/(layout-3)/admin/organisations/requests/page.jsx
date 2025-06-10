@@ -506,7 +506,7 @@ export default function OrgRequestsPage() {
           <h3 className="font-bold text-lg">Approve Organization</h3>
           <p className="text-sm text-gray-500">
             {selectedRequest?.organization_name} will be granted access to
-            NetManager.
+            AirQo Analytics.
           </p>
         </div>
       </DialogWrapper>
@@ -523,7 +523,7 @@ export default function OrgRequestsPage() {
           <h3 className="font-bold text-lg">Reject Organization</h3>
           <p className="text-sm text-gray-500">
             {selectedRequest?.organization_name} will be denied access to
-            NetManager.
+            AirQo Analytics.
           </p>
           <div className="space-y-4 mt-4">
             <div>
