@@ -46,30 +46,54 @@ const OrganizationDashboardPage = () => {
   }, [organization]);
   const StatCard = ({ title, value, subtitle, icon }) => (
     <CardWrapper
-      title={title}
-      icon={
-        <div
-          className="text-white p-3 rounded-lg"
-          style={{ backgroundColor: primaryColor || '#3B82F6' }}
-        >
-          {icon}
-        </div>
-      }
-      className="hover:shadow-md transition-shadow border-l-4"
-      style={{ borderLeftColor: primaryColor || '#3B82F6' }}
-      hoverable={true}
+      className="hover:shadow-md transition-shadow duration-200"
+      padding="p-6"
     >
-      <div className="space-y-1">
-        <p className="text-2xl font-bold text-gray-900 dark:text-white">
-          {value}
-        </p>
-        {subtitle && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
-        )}
+      <div className="flex flex-col h-full space-y-4">
+        {/* Header with icon */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0 pr-2">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* Simple Icon */}
+          <div className="flex-shrink-0">
+            <div
+              className="w-10 h-10 flex justify-center items-center rounded-lg"
+              style={{ backgroundColor: `${primaryColor || '#3B82F6'}10` }}
+            >
+              <div style={{ color: primaryColor || '#3B82F6' }}>{icon}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Value Display */}
+        <div className="flex items-end justify-between mt-auto">
+          <div className="flex-1">
+            <div className="flex items-baseline space-x-2">
+              <span className="text-3xl font-bold text-gray-800 dark:text-white">
+                {value}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Simple Status */}
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            Live Data
+          </span>
+        </div>
       </div>
     </CardWrapper>
   );
-
   if (!organization) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -84,89 +108,83 @@ const OrganizationDashboardPage = () => {
   }
   return (
     <div className="space-y-8">
-      {/* Welcome Section with Organization Branding */}
-      <CardWrapper
-        className="relative overflow-hidden border-t-4"
-        style={{ borderTopColor: primaryColor || '#3B82F6' }}
-        padding="p-8"
-      >
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 opacity-10">
-          <div
-            className="w-full h-full rounded-full"
-            style={{ backgroundColor: primaryColor || '#3B82F6' }}
-          />
-        </div>
-
+      {' '}
+      {/* Welcome Section with Simple Design */}
+      <CardWrapper className="relative overflow-hidden" padding="p-6">
         <div className="flex items-center space-x-4 relative z-10">
-          {organization.logo && (
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-lg blur-md opacity-30"
-                style={{ backgroundColor: primaryColor || '#3B82F6' }}
-              />
+          {/* Organization Logo - Simple */}
+          <div className="flex-shrink-0">
+            {organization.logo ? (
               <Image
                 src={organization.logo}
                 alt={`${organization.name} logo`}
-                width={64}
-                height={64}
-                className="relative rounded-lg"
+                width={60}
+                height={60}
+                className="rounded-lg"
               />
-            </div>
-          )}
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Welcome to {organization.name}
+            ) : (
+              <div className="w-15 h-15 bg-primary/10 rounded-lg flex items-center justify-center">
+                <span className="text-xl font-medium text-primary">
+                  {organization.name?.charAt(0)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Organization Details */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-1">
+              {organization.name}
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-600 dark:text-gray-400 mb-3">
               {organization.description || 'Air Quality Monitoring Dashboard'}
             </p>
-            <div className="flex items-center mt-3 space-x-4">
+
+            {/* Status indicators */}
+            <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
                 <div
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: primaryColor || '#3B82F6' }}
                 />
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
                   Live Dashboard
                 </span>
               </div>
-              <span className="text-sm text-gray-400">•</span>
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 Last updated: {new Date().toLocaleTimeString()}
               </span>
             </div>
           </div>
         </div>
-      </CardWrapper>
-
-      {/* Statistics Grid */}
+      </CardWrapper>{' '}
+      {/* Statistics Grid - Only 4 Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Monitoring Sites"
           value={stats.totalSites}
-          subtitle="Active locations"
-          icon={<MapIcon className="w-6 h-6" />}
+          subtitle="Active monitoring locations"
+          icon={<MapIcon className="w-5 h-5" />}
         />
         <StatCard
           title="Active Sites"
           value={stats.activeSites}
-          subtitle="Currently reporting"
-          icon={<DashboardIcon className="w-6 h-6" />}
+          subtitle="Currently reporting data"
+          icon={<DashboardIcon className="w-5 h-5" />}
         />
         <StatCard
-          title="Data Points"
+          title="Data Points Collected"
           value={stats.dataPoints.toLocaleString()}
-          subtitle="Total collected"
-          icon={<AnalyticsIcon className="w-6 h-6" />}
+          subtitle="Total measurements"
+          icon={<AnalyticsIcon className="w-5 h-5" />}
         />
         <StatCard
-          title="Last Updated"
-          value={stats.lastUpdated.toLocaleTimeString()}
-          subtitle={stats.lastUpdated.toLocaleDateString()}
-          icon={<DashboardIcon className="w-6 h-6" />}
-        />{' '}
-      </div>
+          title="System Status"
+          value="Online"
+          subtitle={`Updated ${stats.lastUpdated.toLocaleTimeString()}`}
+          icon={<DashboardIcon className="w-5 h-5" />}
+        />
+      </div>{' '}
     </div>
   );
 };
