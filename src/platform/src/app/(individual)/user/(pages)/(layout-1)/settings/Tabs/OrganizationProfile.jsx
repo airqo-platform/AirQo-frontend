@@ -9,7 +9,7 @@ import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
 import TextField from '@/components/TextInputField';
 import SelectDropdown from '@/components/SelectDropdown';
-import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
+import { fetchGroupDetails } from '@/lib/store/services/groups';
 import { updateGroupDetailsApi } from '@/core/apis/Account';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
@@ -79,16 +79,15 @@ const OrganizationProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
   const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
-  const orgInfo = useSelector((state) => state.groupInfo.groupInfo);
+  const orgInfo = useSelector((state) => state.groups.groupDetails);
   const { data: session } = useSession();
 
   // Fetch group info on mount using active group ID from session
   useEffect(() => {
     setIsLoading(true);
     const activeGroupId = session?.user?.activeGroup?._id;
-
     if (activeGroupId) {
-      dispatch(fetchGroupInfo(activeGroupId));
+      dispatch(fetchGroupDetails(activeGroupId));
     }
     setIsLoading(false);
   }, [dispatch, session]);
@@ -171,7 +170,7 @@ const OrganizationProfile = () => {
 
     try {
       await updateGroupDetailsApi(activeGroupId, orgData);
-      dispatch(fetchGroupInfo(activeGroupId));
+      dispatch(fetchGroupDetails(activeGroupId));
       setErrorState({
         isError: true,
         message: 'Organization details successfully updated',
@@ -275,7 +274,7 @@ const OrganizationProfile = () => {
       await updateGroupDetailsApi(activeGroupId, {
         grp_image: responseData.secure_url,
       });
-      dispatch(fetchGroupInfo(activeGroupId));
+      dispatch(fetchGroupDetails(activeGroupId));
       setErrorState({
         isError: true,
         message: 'Organization image successfully added',
@@ -304,7 +303,7 @@ const OrganizationProfile = () => {
     }
     updateGroupDetailsApi(activeGroupId, { grp_image: '' })
       .then(() => {
-        dispatch(fetchGroupInfo(activeGroupId));
+        dispatch(fetchGroupDetails(activeGroupId));
         setShowDeleteProfileModal(false);
         setErrorState({
           isError: true,

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { getUserDetails } from '@/core/apis/Account';
-import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
+import { setActiveGroup } from '@/lib/store/services/groups';
 
 const findGroupByOrgName = (groups, orgName) =>
   groups?.find(
@@ -18,7 +18,7 @@ export function useGetActiveGroup() {
   const { data: session } = useSession();
   const userInfo = useSelector((state) => state?.login?.userInfo);
   const chartData = useSelector((state) => state.chart);
-  const activeGroup = useSelector((state) => state.activeGroup?.activeGroup);
+  const activeGroup = useSelector((state) => state.groups?.activeGroup);
 
   // Fetch user groups from API using session user ID
   const fetchUserGroups = useCallback(async () => {

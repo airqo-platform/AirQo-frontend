@@ -11,8 +11,9 @@ import {
 } from '@/lib/store/services/account/LoginSlice';
 import {
   setActiveGroup,
-  clearActiveGroup,
-} from '@/lib/store/services/activeGroup/ActiveGroupSlice';
+  setUserGroups,
+  clearAllGroupData,
+} from '@/lib/store/services/groups';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import {
   validateClientSession,
@@ -31,7 +32,7 @@ const AuthSync = () => {
   const router = useRouter();
   const pathname = usePathname();
   const reduxLoginState = useSelector((state) => state.login);
-  const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
+  const activeGroup = useSelector((state) => state.groups.activeGroup);
 
   // Prevent infinite loops and duplicate processing
   const isProcessingRef = useRef(false);
@@ -180,9 +181,9 @@ const AuthSync = () => {
             } catch (prefError) {
               logger.warn('Failed to fetch preferences:', prefError.message);
             }
-
-            // Update Redux with complete data
+            dispatch(setSuccess(true));
             dispatch(setUserInfo(user));
+            dispatch(setUserGroups(user.groups || [])); // Store groups in dedicated slice
             dispatch(setActiveGroup(activeGroupData));
           }
 
@@ -196,11 +197,10 @@ const AuthSync = () => {
         dispatch(setSuccess(true));
       }
     };
-
     const handleUnauthenticatedState = () => {
       // Clear Redux state
       dispatch(resetStore());
-      dispatch(clearActiveGroup());
+      dispatch(clearAllGroupData()); // Clear all group-related data
 
       // Only redirect if on protected routes
       const protectedUserRoutes = [

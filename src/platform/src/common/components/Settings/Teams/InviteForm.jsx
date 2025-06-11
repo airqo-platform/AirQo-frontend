@@ -17,9 +17,8 @@ const TeamInviteForm = ({ open, closeModal }) => {
     isError: false,
     message: '',
     type: '',
-  });
-  // Get active group from Redux store instead of localStorage
-  const activeGroup = useSelector((state) => state.activeGroup.activeGroup);
+  }); // Get active group from Redux store instead of localStorage
+  const activeGroup = useSelector((state) => state.groups.activeGroup);
 
   const handleEmailChange = (index, value) => {
     const updatedEmails = [...emails];

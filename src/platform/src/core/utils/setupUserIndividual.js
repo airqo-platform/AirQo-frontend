@@ -4,7 +4,7 @@ import {
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
-import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
+import { setActiveGroup } from '@/lib/store/services/groups';
 import logger from '@/lib/logger';
 import { retryWithDelay } from './retryUtils';
 

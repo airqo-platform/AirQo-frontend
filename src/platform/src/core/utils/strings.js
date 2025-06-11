@@ -10,3 +10,15 @@ export const capitalizeAllText = (text) => {
   });
   return capitalizedWords?.join(' ');
 };
+
+/**
+ * Removes spaces and converts text to lowercase
+ * @param {string} text - The text to process
+ * @returns {string} - Text with spaces removed and converted to lowercase
+ */
+export const removeSpacesAndLowerCase = (text) => {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+  return text.replace(/\s+/g, '').toLowerCase();
+};

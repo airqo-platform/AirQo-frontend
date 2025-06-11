@@ -39,7 +39,7 @@ import recentMeasurementReducer from './services/deviceRegistry/RecentMeasuremen
 import cardReducer from './services/checklists/CheckList';
 import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
-import { groupInfoSlice } from './services/groups/GroupInfoSlice';
+import groupsReducer from './services/groups/GroupsSlice';
 import { mapSlice } from './services/map/MapSlice';
 import { locationSearchSlice } from './services/search/LocationSearchSlice';
 import apiClientReducer from './services/apiClient/index';
@@ -47,7 +47,6 @@ import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
 import { organisationRequestsSlice } from './services/admin/OrgRequestsSlice';
-import activeGroupReducer from './services/activeGroup/ActiveGroupSlice';
 
 // Combine all the reducers
 const rootReducer = combineReducers({
@@ -67,12 +66,11 @@ const rootReducer = combineReducers({
   recentMeasurements: recentMeasurementReducer,
   checklists: checklistsReducer,
   analytics: analyticsReducer,
-  groupInfo: groupInfoSlice.reducer,
+  groups: groupsReducer,
   locationSearch: locationSearchSlice.reducer,
   apiClient: apiClientReducer,
   sites: sitesSummaryReducer,
   organisationRequests: organisationRequestsSlice.reducer,
-  activeGroup: activeGroupReducer,
 });
 
 // Root reducer wrapper to handle state reset on logout

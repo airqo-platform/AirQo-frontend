@@ -9,6 +9,8 @@ import Button from '@/common/components/Button';
 import MenuBarIcon from '@/icons/menu_bar';
 import MenuIcon from '@/icons/Actions/menu';
 import UserProfileDropdown from '../TopBar/UserProfileDropdown';
+import TopbarOrganizationDropdown from '@/common/components/TopbarOrganizationDropdown';
+import OrganizationLoadingOverlay from '@/common/components/OrganizationLoadingOverlay';
 import {
   setTogglingGlobalDrawer,
   setToggleDrawer,
@@ -21,7 +23,7 @@ import CardWrapper from '@/common/components/CardWrapper';
 /**
  * Unified Global Topbar Component
  * Works for both individual users and organizations
- * Contains profile dropdown, organization logo, and menu button
+ * Contains profile dropdown, organization logo, menu button, and organization dropdown
  */
 const GlobalTopbar = ({
   topbarTitle,
@@ -35,6 +37,13 @@ const GlobalTopbar = ({
   const { width } = useWindowSize();
   const dispatch = useDispatch();
   const { theme, systemTheme } = useTheme();
+
+  // Organization loading state
+  const [organizationLoading, setOrganizationLoading] = useState({
+    isLoading: false,
+    organizationName: '',
+    message: 'Switching organizations...',
+  });
 
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
@@ -93,14 +102,42 @@ const GlobalTopbar = ({
     },
     [dispatch, togglingGlobalDrawer, togglingDrawer, width],
   );
-
   const handleLogoClick = useCallback(() => {
     if (onLogoClick) {
       onLogoClick();
     } else {
       router.push(homeNavPath);
     }
-  }, [onLogoClick, router, homeNavPath]); // Don't render until client-side hydration is complete to prevent mismatch
+  }, [onLogoClick, router, homeNavPath]);
+  // Handle organization changes with loading state
+  const handleOrganizationChange = useCallback(
+    ({ loading, group, isChangingOrg, isUserContext }) => {
+      if (loading) {
+        setOrganizationLoading({
+          isLoading: true,
+          organizationName:
+            group?.grp_title?.replace(/[-_]/g, ' ').toUpperCase() || '',
+          message: isChangingOrg
+            ? 'Switching organizations...'
+            : isUserContext
+              ? 'Updating organization preferences...'
+              : 'Loading organization data...',
+        });
+      } else {
+        // Delay hiding loading to allow for smooth transition
+        setTimeout(() => {
+          setOrganizationLoading({
+            isLoading: false,
+            organizationName: '',
+            message: '',
+          });
+        }, 500);
+      }
+    },
+    [],
+  );
+
+  // Don't render until client-side hydration is complete to prevent mismatch
   if (!mounted) {
     return (
       <>
@@ -177,7 +214,6 @@ const GlobalTopbar = ({
                 >
                   <MenuIcon width={20} height={20} />
                 </button>
-
                 {/* Logo */}
                 <Button
                   padding="p-0 m-0"
@@ -190,16 +226,20 @@ const GlobalTopbar = ({
                     {logoComponent || <GroupLogo />}
                   </div>
                 </Button>
-
                 {/* Title (optional) */}
                 {topbarTitle && (
                   <div className={`ml-4 ${styles.text}`}>{topbarTitle}</div>
-                )}
+                )}{' '}
               </div>
             </div>
 
-            {/* Desktop Right Section - Custom Actions + Profile Dropdown */}
+            {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
             <div className="hidden lg:flex gap-2 items-center">
+              {/* Organization Dropdown - Show for users with multiple groups */}
+              <TopbarOrganizationDropdown
+                onGroupChange={handleOrganizationChange}
+                className="mr-2"
+              />
               {customActions}
               <UserProfileDropdown
                 dropdownAlign="right"
@@ -252,13 +292,25 @@ const GlobalTopbar = ({
                 {topbarTitle}
               </div>
             )}
+            {/* Organization Dropdown for mobile */}
+            <TopbarOrganizationDropdown
+              onGroupChange={handleOrganizationChange}
+              showTitle={false}
+              className="mr-2"
+            />
             {/* Custom actions for mobile if any */}
             {customActions && (
               <div className="flex gap-1 items-center">{customActions}</div>
-            )}
+            )}{' '}
           </div>
         </CardWrapper>
       </div>
+      {/* Organization Loading Overlay */}
+      <OrganizationLoadingOverlay
+        isVisible={organizationLoading.isLoading}
+        organizationName={organizationLoading.organizationName}
+        message={organizationLoading.message}
+      />
     </div>
   );
 };

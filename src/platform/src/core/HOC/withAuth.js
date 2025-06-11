@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
-import { setActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
+import { setActiveGroup } from '@/lib/store/services/groups';
 import { checkAccess } from './authUtils';
 import {
   validateClientSession,

@@ -1,6 +1,6 @@
 import { signOut } from 'next-auth/react';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { clearActiveGroup } from '@/lib/store/services/activeGroup/ActiveGroupSlice';
+import { clearAllGroupData } from '@/lib/store/services/groups';
 import logger from '@/lib/logger';
 
 /**
@@ -103,11 +103,9 @@ const clearAuthCookies = () => {
 const resetAllReduxSlices = (dispatch) => {
   try {
     // Dispatch the global reset action that triggers all slices to reset
-    dispatch({ type: 'RESET_APP' });
-
-    // Also dispatch specific slice resets for critical slices
+    dispatch({ type: 'RESET_APP' }); // Also dispatch specific slice resets for critical slices
     dispatch(resetStore());
-    dispatch(clearActiveGroup());
+    dispatch(clearAllGroupData());
 
     logger.debug('All Redux slices reset successfully');
   } catch (error) {

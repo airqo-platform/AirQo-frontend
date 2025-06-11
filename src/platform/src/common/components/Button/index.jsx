@@ -8,6 +8,7 @@ const Button = React.forwardRef(
     {
       variant = 'filled', // filled | outlined | text | disabled
       padding = 'py-2 px-4',
+      paddingStyles, // Legacy prop for backward compatibility
       className,
       disabled = false,
       path,
@@ -56,18 +57,19 @@ const Button = React.forwardRef(
     };
     const activeVariant = disabled ? 'disabled' : variant;
     const variantStyles = variantMap[activeVariant] || variantMap.filled;
-    const disabledStyles = disabled && 'cursor-not-allowed opacity-50';
-
-    // Responsive detection
+    const disabledStyles = disabled && 'cursor-not-allowed opacity-50'; // Responsive detection
     const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
     // Determine if text should be hidden
     const hideText = isMobile && Icon && !showTextOnMobile;
     // Only apply right margin on icon when there's visible text
     const iconMargin = hideText ? '' : 'mr-2';
 
+    // Determine padding - paddingStyles takes precedence for backward compatibility
+    const finalPadding = paddingStyles || padding;
+
     const btnClass = clsx(
       base,
-      padding,
+      finalPadding,
       variantStyles,
       disabledStyles,
       className,
@@ -116,6 +118,7 @@ Button.displayName = 'Button';
 Button.propTypes = {
   variant: PropTypes.oneOf(['filled', 'outlined', 'text', 'disabled']),
   padding: PropTypes.string,
+  paddingStyles: PropTypes.string, // Legacy prop for backward compatibility
   className: PropTypes.string,
   disabled: PropTypes.bool,
   path: PropTypes.string,

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import Image from 'next/image';
-import { fetchGroupInfo } from '@/lib/store/services/groups/GroupInfoSlice';
+import { fetchGroupDetails } from '@/lib/store/services/groups';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
@@ -12,9 +12,8 @@ const LOGO_REFRESH_EVENT = 'logoRefresh';
 const GroupLogo = ({ className = '', style = {} }) => {
   const dispatch = useDispatch();
   const { id: activeGroupId, loading: fetchingGroup } = useGetActiveGroup();
-  const { groupInfo: orgInfo, loading: fetchingProfile } = useSelector(
-    (state) => state.groupInfo,
-  );
+  const { groupDetails: orgInfo, groupDetailsLoading: fetchingProfile } =
+    useSelector((state) => state.groups);
 
   const [displaySrc, setDisplaySrc] = useState(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
@@ -33,7 +32,7 @@ const GroupLogo = ({ className = '', style = {} }) => {
       setHasError(false);
 
       if (activeGroupId) {
-        dispatch(fetchGroupInfo(activeGroupId));
+        dispatch(fetchGroupDetails(activeGroupId));
       }
     };
 
@@ -56,7 +55,7 @@ const GroupLogo = ({ className = '', style = {} }) => {
     setHasError(false);
     setDisplaySrc(null);
 
-    dispatch(fetchGroupInfo(activeGroupId))
+    dispatch(fetchGroupDetails(activeGroupId))
       .unwrap()
       .catch(() => setHasError(true));
 

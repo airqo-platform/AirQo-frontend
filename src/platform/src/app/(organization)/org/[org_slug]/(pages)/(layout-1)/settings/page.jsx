@@ -8,9 +8,9 @@ import CardWrapper from '@/common/components/CardWrapper';
 import withOrgAuth from '@/core/HOC/withOrgAuth';
 import { updateGroupDetailsApi } from '@/core/apis/Account';
 import {
-  fetchGroupInfo,
+  fetchGroupDetails,
   updateGroupLogo,
-} from '@/lib/store/services/groups/GroupInfoSlice';
+} from '@/lib/store/services/groups';
 
 // Icons
 import {
@@ -104,7 +104,7 @@ const OrganizationSettingsPage = () => {
 
       // Refresh group info to update logo across the app immediately
       if (organization.grp_id) {
-        await dispatch(fetchGroupInfo(organization.grp_id)).unwrap();
+        await dispatch(fetchGroupDetails(organization.grp_id)).unwrap();
       }
 
       // Clear cached logo to force refresh
