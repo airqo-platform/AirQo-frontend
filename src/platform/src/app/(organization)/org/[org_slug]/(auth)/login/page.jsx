@@ -37,8 +37,8 @@ const OrganizationLogin = () => {
     const checkInitialAuth = async () => {
       try {
         const session = await getSession();
-        if (session?.user?.organization && session?.orgSlug === orgSlug) {
-          // User is already authenticated with correct organization context
+        if (session?.user?.organization) {
+          // User is already authenticated with organization context
           router.replace(`/org/${orgSlug}/dashboard`);
         }
       } catch {
@@ -67,26 +67,23 @@ const OrganizationLogin = () => {
       }
 
       try {
-        const result = await signIn('org-credentials', {
-          userName: email, // NextAuth org provider expects userName
+        const result = await signIn('credentials', {
+          userName: email, // NextAuth provider expects userName
           password,
           orgSlug,
           redirect: false,
         });
-
         if (result?.error) {
           setError('Invalid credentials. Please try again.');
         } else if (result?.ok) {
           // Get the session after successful login
           const session = await getSession();
 
-          if (session?.user && session?.orgSlug === orgSlug) {
-            // Navigate directly to organization dashboard
+          if (session?.user) {
+            // Navigate directly to organization dashboard since login was successful
             router.replace(`/org/${orgSlug}/dashboard`);
           } else {
-            throw new Error(
-              'Session data is incomplete or organization mismatch',
-            );
+            throw new Error('Session data is incomplete');
           }
         }
       } catch (error) {

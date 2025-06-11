@@ -10,9 +10,7 @@ export default withAuth(
   async function middleware(request) {
     try {
       // Validate session using professional utilities
-      const validation = await validateServerSession(request);
-
-      // Log validation for debugging in development
+      const validation = await validateServerSession(request); // Log validation for debugging in development
       logSessionValidation(validation, 'Middleware validation');
 
       // If validation fails, redirect to appropriate login

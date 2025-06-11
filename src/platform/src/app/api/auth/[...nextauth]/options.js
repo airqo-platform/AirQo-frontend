@@ -175,14 +175,13 @@ export const options = {
         session.user.updatedAt = token.updatedAt;
         session.user.rateLimit = token.rateLimit;
         session.user.lastLogin = token.lastLogin;
-        session.user.accessToken = token.accessToken;
-
-        // Add accessToken to root level for compatibility
+        session.user.accessToken = token.accessToken; // Add accessToken to root level for compatibility
         session.accessToken = token.accessToken;
         session.iat = token.iat;
 
         // Store organization information for context switching
         session.user.requestedOrgSlug = token.requestedOrgSlug;
+        session.orgSlug = token.requestedOrgSlug; // Add orgSlug to session root for easier access
       }
       return session;
     },
