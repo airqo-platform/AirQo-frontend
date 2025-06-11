@@ -187,28 +187,29 @@ const GlobalTopbar = ({
           className={`w-full ${styles.background}`}
           padding="py-1 px-4"
         >
+          {' '}
           <div
             id="global-topbar-nav"
-            className="flex justify-between items-center"
+            className="flex justify-between items-center min-h-[48px]"
           >
             {/* Mobile Logo */}
-            <div className="block lg:hidden relative z-10 w-full">
+            <div className="lg:hidden relative z-10 w-full flex items-center justify-start">
               <Button
                 paddingStyles="p-0 m-0"
                 onClick={handleLogoClick}
                 variant="text"
+                className="flex items-center justify-center"
               >
                 {logoComponent || <GroupLogo />}
               </Button>
             </div>
-
             {/* Desktop Left Section - Menu Button + Logo */}
             <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
               <div className="flex items-center gap-[10px]">
                 {/* Menu Button */}
                 <button
                   type="button"
-                  className="p-2 m-0"
+                  className="p-2 m-0 flex items-center justify-center"
                   onClick={handleDrawer}
                   aria-label="Open navigation menu"
                 >
@@ -219,37 +220,42 @@ const GlobalTopbar = ({
                   padding="p-0 m-0"
                   onClick={handleLogoClick}
                   variant="text"
+                  className="flex items-center justify-center"
                 >
                   <div
-                    className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
+                    className={`w-[46.56px] h-8 flex items-center justify-center ${styles.text}`}
                   >
                     {logoComponent || <GroupLogo />}
                   </div>
                 </Button>
                 {/* Title (optional) */}
                 {topbarTitle && (
-                  <div className={`ml-4 ${styles.text}`}>{topbarTitle}</div>
-                )}{' '}
+                  <div className={`ml-4 ${styles.text} flex items-center`}>
+                    {topbarTitle}
+                  </div>
+                )}
               </div>
-            </div>
-
+            </div>{' '}
             {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
-            <div className="hidden lg:flex gap-2 items-center">
+            <div className="hidden lg:flex gap-2 items-center justify-center">
               {/* Organization Dropdown - Show for users with multiple groups */}
               <TopbarOrganizationDropdown
                 onGroupChange={handleOrganizationChange}
                 className="mr-2"
               />
-              {customActions}
+              {customActions && (
+                <div className="flex items-center justify-center">
+                  {customActions}
+                </div>
+              )}
               <UserProfileDropdown
                 dropdownAlign="right"
                 showUserInfo={true}
                 isOrganization={isOrganization}
               />
             </div>
-
             {/* Mobile Profile Dropdown - Moved to main topbar */}
-            <div className="block lg:hidden">
+            <div className="lg:hidden flex items-center justify-center">
               <UserProfileDropdown
                 dropdownAlign="right"
                 showUserInfo={false}
@@ -265,8 +271,7 @@ const GlobalTopbar = ({
           className={`w-full ${styles.background} ${styles.border} border-t`}
           padding="py-1 px-2"
         >
-          <div className="flex justify-between items-center h-8">
-            {' '}
+          <div className="flex justify-between items-center min-h-[40px]">
             {/* Mobile Menu Button */}
             <Button
               paddingStyles="p-0 m-0"
@@ -275,23 +280,22 @@ const GlobalTopbar = ({
               variant="text"
               aria-label="Open navigation menu"
             >
-              {' '}
-              <span className="p-1">
+              <span className="p-1 flex items-center justify-center">
                 <MenuBarIcon
                   fill={isDarkMode ? '#fff' : '#1C1D20'}
                   width={18}
                   height={18}
                 />
               </span>
-            </Button>{' '}
+            </Button>
             {/* Title (optional) */}
             {topbarTitle && (
               <div
-                className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate`}
+                className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate flex items-center`}
               >
                 {topbarTitle}
               </div>
-            )}
+            )}{' '}
             {/* Organization Dropdown for mobile */}
             <TopbarOrganizationDropdown
               onGroupChange={handleOrganizationChange}
@@ -300,8 +304,10 @@ const GlobalTopbar = ({
             />
             {/* Custom actions for mobile if any */}
             {customActions && (
-              <div className="flex gap-1 items-center">{customActions}</div>
-            )}{' '}
+              <div className="flex gap-1 items-center justify-center">
+                {customActions}
+              </div>
+            )}
           </div>
         </CardWrapper>
       </div>

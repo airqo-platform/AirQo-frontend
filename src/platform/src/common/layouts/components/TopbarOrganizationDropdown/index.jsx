@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { isEmpty } from 'underscore';
 import { IoChevronDown } from 'react-icons/io5';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
 import PropTypes from 'prop-types';
 
 // Hooks
@@ -178,7 +178,6 @@ const TopbarOrganizationDropdown = ({
   if (!activeGroup) {
     return null;
   }
-
   return (
     <Menu as="div" className={`relative ${className}`} ref={dropdownRef}>
       <Menu.Button
@@ -210,78 +209,66 @@ const TopbarOrganizationDropdown = ({
           }`}
         />
       </Menu.Button>
-      <Transition
-        show={isOpen}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <Menu.Items
-          static
-          className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-primary/20 bg-white py-1 shadow-lg ring-1 ring-primary/10 ring-opacity-5 focus:outline-none dark:border-primary/30 dark:bg-gray-800 dark:ring-primary/20 transition-colors duration-200"
-        >
-          <div className="px-3 py-2 text-xs font-semibold text-primary/70 uppercase tracking-wide dark:text-primary/80">
-            Switch Organization
-          </div>
-          <div className="max-h-60 overflow-y-auto">
-            {userGroups.map((group) => (
-              <Menu.Item key={group._id}>
-                {({ active }) => (
-                  <button
-                    onClick={() => handleGroupSelect(group)}
-                    className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm transition-colors duration-200 ${
-                      active
-                        ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
-                        : 'text-gray-700 hover:bg-primary/5 dark:text-gray-200 dark:hover:bg-primary/10'
-                    } ${
-                      activeGroup._id === group._id
-                        ? 'bg-primary/15 font-medium text-primary dark:bg-primary/25 dark:text-primary'
-                        : ''
-                    }`}
-                  >
-                    {/* Group Logo */}
-                    {group.grp_image ? (
-                      <img
-                        src={group.grp_image}
-                        alt={`${group.grp_title} logo`}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary dark:bg-primary/20 dark:text-primary">
-                        {group.grp_title?.charAt(0)?.toUpperCase() || 'O'}
-                      </div>
-                    )}
-                    {/* Group Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate font-medium">
-                        {group.grp_title || 'Unnamed Organization'}
-                      </div>
-                      {group.grp_website && (
-                        <div className="truncate text-xs text-primary/60 dark:text-primary/70">
-                          {group.grp_website}
-                        </div>
-                      )}
+
+      <Menu.Items className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-primary/20 bg-white py-1 shadow-lg ring-1 ring-primary/10 ring-opacity-5 focus:outline-none dark:border-primary/30 dark:bg-gray-800 dark:ring-primary/20 transition-colors duration-200">
+        <div className="px-3 py-2 text-xs font-semibold text-primary/70 uppercase tracking-wide dark:text-primary/80">
+          Switch Organization
+        </div>
+        <div className="max-h-60 overflow-y-auto">
+          {userGroups.map((group) => (
+            <Menu.Item key={group._id}>
+              {({ active }) => (
+                <button
+                  onClick={() => handleGroupSelect(group)}
+                  className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm transition-colors duration-200 ${
+                    active
+                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
+                      : 'text-gray-700 hover:bg-primary/5 dark:text-gray-200 dark:hover:bg-primary/10'
+                  } ${
+                    activeGroup._id === group._id
+                      ? 'bg-primary/15 font-medium text-primary dark:bg-primary/25 dark:text-primary'
+                      : ''
+                  }`}
+                >
+                  {/* Group Logo */}
+                  {group.grp_image ? (
+                    <img
+                      src={group.grp_image}
+                      alt={`${group.grp_title} logo`}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary dark:bg-primary/20 dark:text-primary">
+                      {group.grp_title?.charAt(0)?.toUpperCase() || 'O'}
                     </div>
-                    {/* Active Indicator */}
-                    {activeGroup._id === group._id && (
-                      <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
+                  )}
+                  {/* Group Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate font-medium">
+                      {group.grp_title || 'Unnamed Organization'}
+                    </div>
+                    {group.grp_website && (
+                      <div className="truncate text-xs text-primary/60 dark:text-primary/70">
+                        {group.grp_website}
+                      </div>
                     )}
-                  </button>
-                )}
-              </Menu.Item>
-            ))}
+                  </div>
+                  {/* Active Indicator */}
+                  {activeGroup._id === group._id && (
+                    <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
+                  )}
+                </button>
+              )}
+            </Menu.Item>
+          ))}
+        </div>
+        {/* Footer */}
+        {userGroups.length === 0 && (
+          <div className="px-3 py-4 text-center text-sm text-primary/60 dark:text-primary/70">
+            No organizations available
           </div>
-          {/* Footer */}
-          {userGroups.length === 0 && (
-            <div className="px-3 py-4 text-center text-sm text-primary/60 dark:text-primary/70">
-              No organizations available
-            </div>
-          )}
-        </Menu.Items>
-      </Transition>
+        )}
+      </Menu.Items>
     </Menu>
   );
 };
