@@ -5,7 +5,6 @@ import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
@@ -18,7 +17,6 @@ const SideBarDrawer = () => {
   const { width } = useWindowSize();
   const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
-  const userInfo = useSelector((state) => state.login.userInfo);
   const [isLoading, setIsLoading] = useState(false);
   const [collocationOpen, setCollocationOpen] = useState(() => {
     try {
@@ -62,7 +60,6 @@ const SideBarDrawer = () => {
     },
     [dispatch, router, isLoading],
   );
-
   const toggleCollocation = useCallback(() => {
     setCollocationOpen((prev) => {
       const newState = !prev;
@@ -70,18 +67,6 @@ const SideBarDrawer = () => {
       return newState;
     });
   }, []);
-  const renderUserAvatar = () =>
-    userInfo.profilePicture ? (
-      <img
-        className="w-12 h-12 rounded-full object-cover"
-        src={userInfo.profilePicture}
-        alt="User avatar"
-      />
-    ) : (
-      <div className="w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]">
-        <PersonIcon fill="#485972" />
-      </div>
-    );
 
   // Prevent body scrolling when drawer is open
   useEffect(() => {
@@ -103,43 +88,38 @@ const SideBarDrawer = () => {
           onClick={closeDrawer}
           className="absolute inset-0 w-full h-dvh opacity-50 bg-black-700 z-[999998] transition-all duration-200 ease-in-out"
         />
-      )}
+      )}{' '}
       <Card
         width={drawerWidth}
         className="fixed right-0 top-0 h-full z-[999999] border-l-grey-750 border-l-[1px] transition-all duration-200 ease-in-out overflow-hidden"
-        contentClassName="flex p-4 h-full flex-col overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
+        contentClassName="flex p-2 lg:p-4 h-full flex-col overflow-y-auto border-t-0 border-r-[1px] border-r-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
       >
-        <div className="pb-4 flex justify-between items-center">
-          {' '}
+        <div className="pb-2 lg:pb-4 flex justify-between items-center">
           {width < 1024 ? (
-            <div
-              className="cursor-pointer"
-              onClick={() => router.push('/user/settings')}
-            >
-              {renderUserAvatar()}
-            </div>
+            // On mobile, show just the logo since profile is in topbar
+            <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
           ) : (
             <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
           )}
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-1 lg:p-2"
             onClick={closeDrawer}
           >
             <CloseIcon />
           </button>
         </div>
-        <div className="mt-4">
+        <div className="mt-2 lg:mt-4">
           <OrganizationDropdown />
-        </div>{' '}
+        </div>
         <div className="flex flex-col justify-between h-full">
-          <div className="mt-11 space-y-3">
+          <div className="mt-6 lg:mt-11 space-y-2 lg:space-y-3">
             {navigationItems.map((item, index) => {
               if (item.type === 'divider') {
                 return (
                   <div
                     key={index}
-                    className="text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out"
+                    className="text-xs text-[#6F87A1] px-[10px] my-2 lg:my-3 mx-2 lg:mx-4 font-semibold transition-all duration-300 ease-in-out"
                   >
                     {item.label}
                   </div>

@@ -76,7 +76,7 @@ function OrganizationPagesLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-16 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-14 z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar>
           <OrganizationSidebarContent
             isCollapsed={isCollapsed}
@@ -89,7 +89,7 @@ function OrganizationPagesLayout({ children }) {
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 overflow-y-auto pt-16 ${
+        className={`flex-1 transition-all duration-300 overflow-y-auto pt-36 lg:pt-14 ${
           isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'
         }`}
       >

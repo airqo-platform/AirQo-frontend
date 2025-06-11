@@ -48,6 +48,7 @@ const GlobalTopbar = ({
     }),
     [isDarkMode],
   );
+
   const togglingDrawer = useSelector((state) => {
     try {
       return state?.sidebar?.togglingDrawer || false;
@@ -102,102 +103,162 @@ const GlobalTopbar = ({
   }, [onLogoClick, router, homeNavPath]); // Don't render until client-side hydration is complete to prevent mismatch
   if (!mounted) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[999] p-1">
-        <CardWrapper className="w-full shadow-sm animate-pulse" padding="p-2">
-          <div className="flex justify-between items-center">
-            <div className="block lg:hidden relative z-10 w-full">
-              <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-            <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
-              <div className="flex items-center gap-[10px]">
-                <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
-                <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+      <>
+        {/* Main Topbar Loading State */}
+        <div className="fixed top-0 left-0 right-0 z-[999] p-1">
+          <CardWrapper className="w-full shadow-sm animate-pulse" padding="p-2">
+            {' '}
+            <div className="flex justify-between items-center">
+              <div className="block lg:hidden relative z-10 w-full">
+                <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
               </div>
+              <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
+                <div className="flex items-center gap-[10px]">
+                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="hidden lg:flex gap-2 items-center">
+                <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div className="lg:hidden w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
             </div>
-            <div className="hidden lg:flex gap-2 items-center">
-              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+          </CardWrapper>
+        </div>{' '}
+        {/* Mobile Bar Loading State */}
+        <div className="fixed top-20 left-0 right-0 z-[998] lg:hidden p-1">
+          <CardWrapper
+            className="w-full shadow-sm animate-pulse border-t"
+            padding="py-1 px-2"
+          >
+            <div className="flex justify-between items-center h-8">
+              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-24 h-3 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
             </div>
-            <div className="lg:hidden w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </CardWrapper>
-      </div>
+          </CardWrapper>
+        </div>
+      </>
     );
   }
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-[999] p-1">
-      <CardWrapper className={`w-full ${styles.background}`} padding="p-2">
-        <div
-          id="global-topbar-nav"
-          className="flex justify-between items-center"
+    <div className="fixed top-0 left-0  right-0 z-[999]">
+      {/* Main Global Topbar */}
+      <div className="p-1">
+        <CardWrapper
+          className={`w-full ${styles.background}`}
+          padding="py-1 px-4"
         >
-          {/* Mobile Logo */}
-          <div className="block lg:hidden relative z-10 w-full">
-            <Button
-              paddingStyles="p-0 m-0"
-              onClick={handleLogoClick}
-              variant="text"
-            >
-              {logoComponent || <GroupLogo />}
-            </Button>
-          </div>
-
-          {/* Desktop Left Section - Menu Button + Logo */}
-          <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
-            <div className="flex items-center gap-[10px]">
-              {/* Menu Button */}
-              <button
-                type="button"
-                className="p-2 m-0"
-                onClick={handleDrawer}
-                aria-label="Open navigation menu"
-              >
-                <MenuIcon width={20} height={20} />
-              </button>
-
-              {/* Logo */}
+          <div
+            id="global-topbar-nav"
+            className="flex justify-between items-center"
+          >
+            {/* Mobile Logo */}
+            <div className="block lg:hidden relative z-10 w-full">
               <Button
-                padding="p-0 m-0"
+                paddingStyles="p-0 m-0"
                 onClick={handleLogoClick}
                 variant="text"
               >
-                <div
-                  className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
-                >
-                  {logoComponent || <GroupLogo />}
-                </div>
+                {logoComponent || <GroupLogo />}
               </Button>
+            </div>
 
-              {/* Title (optional) */}
-              {topbarTitle && (
-                <div className={`ml-4 ${styles.text}`}>{topbarTitle}</div>
-              )}
+            {/* Desktop Left Section - Menu Button + Logo */}
+            <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
+              <div className="flex items-center gap-[10px]">
+                {/* Menu Button */}
+                <button
+                  type="button"
+                  className="p-2 m-0"
+                  onClick={handleDrawer}
+                  aria-label="Open navigation menu"
+                >
+                  <MenuIcon width={20} height={20} />
+                </button>
+
+                {/* Logo */}
+                <Button
+                  padding="p-0 m-0"
+                  onClick={handleLogoClick}
+                  variant="text"
+                >
+                  <div
+                    className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
+                  >
+                    {logoComponent || <GroupLogo />}
+                  </div>
+                </Button>
+
+                {/* Title (optional) */}
+                {topbarTitle && (
+                  <div className={`ml-4 ${styles.text}`}>{topbarTitle}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop Right Section - Custom Actions + Profile Dropdown */}
+            <div className="hidden lg:flex gap-2 items-center">
+              {customActions}
+              <UserProfileDropdown
+                dropdownAlign="right"
+                showUserInfo={true}
+                isOrganization={isOrganization}
+              />
+            </div>
+
+            {/* Mobile Profile Dropdown - Moved to main topbar */}
+            <div className="block lg:hidden">
+              <UserProfileDropdown
+                dropdownAlign="right"
+                showUserInfo={false}
+                isOrganization={isOrganization}
+              />
             </div>
           </div>
-
-          {/* Desktop Right Section - Custom Actions + Profile Dropdown */}
-          <div className="hidden lg:flex gap-2 items-center">
-            {customActions}
-            <UserProfileDropdown
-              dropdownAlign="right"
-              showUserInfo={true}
-              isOrganization={isOrganization}
-            />
+        </CardWrapper>
+      </div>{' '}
+      {/* Mobile Navigation Bar - Below main topbar with gap */}
+      <div className="lg:hidden p-1">
+        <CardWrapper
+          className={`w-full ${styles.background} ${styles.border} border-t`}
+          padding="py-1 px-2"
+        >
+          <div className="flex justify-between items-center h-8">
+            {' '}
+            {/* Mobile Menu Button */}
+            <Button
+              paddingStyles="p-0 m-0"
+              className="flex items-center justify-center focus:outline-none"
+              onClick={handleDrawer}
+              variant="text"
+              aria-label="Open navigation menu"
+            >
+              {' '}
+              <span className="p-1">
+                <MenuBarIcon
+                  fill={isDarkMode ? '#fff' : '#1C1D20'}
+                  width={18}
+                  height={18}
+                />
+              </span>
+            </Button>{' '}
+            {/* Title (optional) */}
+            {topbarTitle && (
+              <div
+                className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate`}
+              >
+                {topbarTitle}
+              </div>
+            )}
+            {/* Custom actions for mobile if any */}
+            {customActions && (
+              <div className="flex gap-1 items-center">{customActions}</div>
+            )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <Button
-            paddingStyles="p-0 m-0"
-            className="lg:hidden relative flex items-center justify-start z-10 w-auto focus:outline-none"
-            onClick={handleDrawer}
-            variant="text"
-            aria-label="Open navigation menu"
-          >
-            <span className="p-2">
-              <MenuBarIcon fill={isDarkMode ? '#fff' : '#1C1D20'} />
-            </span>
-          </Button>
-        </div>
-      </CardWrapper>
+        </CardWrapper>
+      </div>
     </div>
   );
 };

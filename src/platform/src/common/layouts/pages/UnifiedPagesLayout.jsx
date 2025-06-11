@@ -138,7 +138,7 @@ export default function UnifiedPagesLayout({ children }) {
         customActions={customActions}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-16 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-14 z-50 text-sidebar-text transition-all duration-300">
         {isOrganizationContext ? (
           <AuthenticatedSideBar>
             <OrganizationSidebarContent
@@ -152,10 +152,10 @@ export default function UnifiedPagesLayout({ children }) {
         ) : (
           <IndividualUserSidebar />
         )}
-      </aside>{' '}
+      </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-16 
+        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
