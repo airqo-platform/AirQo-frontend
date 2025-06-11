@@ -137,48 +137,31 @@ const clearAxiosAuthHeaders = () => {
 };
 
 /**
- * Enhanced logout utility that handles both user and organization sessions
- * Automatically detects session type and redirects to appropriate login page
+ * Enhanced logout utility with unified session management
+ * Uses path-based context detection for appropriate redirects
  * Includes comprehensive session and cache cleanup with immediate UI feedback
  */
 const LogoutUser = async (dispatch, router, showImmediateRedirect = true) => {
   try {
     logger.info('Starting comprehensive logout process');
 
-    // Determine the appropriate redirect URL based on session type and current route
+    // Determine redirect URL based on current route context (unified session approach)
     let redirectUrl = '/user/login'; // Default for individual users
 
-    // Try to get current session for accurate routing
-    try {
-      const { getSession } = await import('next-auth/react');
-      const session = await getSession();
+    // Check current route for context detection
+    const currentPath =
+      typeof window !== 'undefined' ? window.location.pathname : '';
 
-      if (session?.sessionType === 'organization' && session?.orgSlug) {
-        // Use organization-specific login from session
-        redirectUrl = `/org/${session.orgSlug}/login`;
-        logger.info(`Using session-based org redirect: ${redirectUrl}`);
-      } else if (session?.sessionType === 'user') {
-        // Explicitly use user login
-        redirectUrl = '/user/login';
-        logger.info('Using session-based user redirect');
-      }
-    } catch (sessionError) {
-      logger.warn(
-        'Could not get session for redirect, falling back to URL-based detection:',
-        sessionError,
-      );
-    }
-
-    // Fallback: Check current route if session-based detection failed
-    if (redirectUrl === '/user/login') {
-      const currentPath =
-        typeof window !== 'undefined' ? window.location.pathname : '';
-      if (currentPath.startsWith('/org/')) {
-        const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
-        const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
-        redirectUrl = `/org/${orgSlug}/login`;
-        logger.info(`Using URL-based org redirect: ${redirectUrl}`);
-      }
+    if (currentPath.includes('/org/')) {
+      // Extract organization slug from current path
+      const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+      const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+      redirectUrl = `/org/${orgSlug}/login`;
+      logger.info(`Using path-based org redirect: ${redirectUrl}`);
+    } else {
+      // Default to user login for user context or ambiguous paths
+      redirectUrl = '/user/login';
+      logger.info('Using user redirect based on path context');
     }
 
     // Step 1: Provide immediate visual feedback by redirecting first

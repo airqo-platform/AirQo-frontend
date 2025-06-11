@@ -1,83 +1,70 @@
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import SidebarItem, {
   SideBarDropdownItem,
 } from '@/common/layouts/SideBar/SideBarItem';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import { checkAccess } from '@/core/HOC/authUtils';
+import {
+  getUserNavigationItems,
+  shouldForceIconOnly,
+} from './navigationConfig';
 
 const UserSidebarContent = ({ isCollapsed, styles }) => {
   const [collocationOpen, setCollocationOpen] = useState(false);
+  const pathname = usePathname();
+  const navigationItems = getUserNavigationItems();
 
-  const renderCollocationItem = () => {
-    if (!checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
-      return null;
-    }
-
-    return (
-      <SidebarItem
-        label="Collocation"
-        Icon={CollocateIcon}
-        dropdown
-        toggleMethod={() => setCollocationOpen(!collocationOpen)}
-        toggleState={collocationOpen}
-        iconOnly={isCollapsed}
-      >
-        <SideBarDropdownItem
-          itemLabel="Overview"
-          itemPath="/user/collocation/overview"
-        />
-        <SideBarDropdownItem
-          itemLabel="Collocate"
-          itemPath="/user/collocation/collocate"
-        />
-      </SidebarItem>
-    );
-  };
+  // Check if current route should force icons only (like map route)
+  const forceIconOnly = shouldForceIconOnly(pathname);
+  const shouldShowIconsOnly = isCollapsed || forceIconOnly;
 
   return (
     <>
-      <SidebarItem
-        label="Home"
-        Icon={HomeIcon}
-        navPath="/user/Home"
-        iconOnly={isCollapsed}
-      />
-      <SidebarItem
-        label="Analytics"
-        Icon={BarChartIcon}
-        navPath="/user/analytics"
-        iconOnly={isCollapsed}
-      />
+      {navigationItems.map((item, index) => {
+        if (item.type === 'divider') {
+          return shouldShowIconsOnly ? (
+            <hr key={index} className={`my-3 border-t ${styles.divider}`} />
+          ) : (
+            <div
+              key={index}
+              className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
+            >
+              {item.label}
+            </div>
+          );
+        }
 
-      {/* Network Section */}
-      {isCollapsed ? (
-        <hr className={`my-3 border-t ${styles.divider}`} />
-      ) : (
-        <div
-          className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
-        >
-          Network
-        </div>
-      )}
+        if (item.type === 'dropdown') {
+          return (
+            <SidebarItem
+              key={index}
+              label={item.label}
+              Icon={item.icon}
+              dropdown
+              toggleMethod={() => setCollocationOpen(!collocationOpen)}
+              toggleState={collocationOpen}
+              iconOnly={shouldShowIconsOnly}
+            >
+              {item.children?.map((child, childIndex) => (
+                <SideBarDropdownItem
+                  key={childIndex}
+                  itemLabel={child.label}
+                  itemPath={child.path}
+                />
+              ))}
+            </SidebarItem>
+          );
+        }
 
-      {renderCollocationItem()}
-
-      <SidebarItem
-        label="Map"
-        Icon={WorldIcon}
-        navPath="/user/map"
-        iconOnly={isCollapsed}
-      />
-      <SidebarItem
-        label="Settings"
-        Icon={SettingsIcon}
-        navPath="/user/settings"
-        iconOnly={isCollapsed}
-      />
+        return (
+          <SidebarItem
+            key={index}
+            label={item.label}
+            Icon={item.icon}
+            navPath={item.path}
+            iconOnly={shouldShowIconsOnly}
+          />
+        );
+      })}
     </>
   );
 };

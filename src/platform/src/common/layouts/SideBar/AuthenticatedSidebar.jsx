@@ -9,19 +9,15 @@ import {
   setToggleDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import { useRouter, usePathname } from 'next/navigation';
-import Button from '@/common/components/Button';
+import { usePathname } from 'next/navigation';
 import Card from '@/common/components/CardWrapper';
-import GroupLogo from '@/common/components/GroupLogo';
+import { shouldForceIconOnly } from './navigationConfig';
 
 const MAX_WIDTH = '(max-width: 1024px)';
 
 const AuthenticatedSideBar = ({
   forceCollapse,
   children,
-  logoComponent,
-  onLogoClick,
-  homeNavPath = '/user/Home',
   showOrganizationDropdown = true,
   headerContent,
   footerContent,
@@ -31,12 +27,15 @@ const AuthenticatedSideBar = ({
   const dispatch = useDispatch();
   const size = useWindowSize();
   const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
-  const router = useRouter();
-  const pathname = usePathname();
-
-  // Use forceCollapse prop if provided, otherwise use the store value
+  const pathname = usePathname(); // Use forceCollapse prop if provided, otherwise use the store value
   const isCollapsed =
     forceCollapse !== undefined ? forceCollapse : storeCollapsed;
+
+  // Check if current route should force icons only (like map route)
+  const forceIconOnly = shouldForceIconOnly(pathname);
+
+  // Override iconOnly for navigation - show icons only if collapsed OR if route forces it
+  const shouldShowIconsOnly = isCollapsed || forceIconOnly;
 
   // Static styling (removing theme customizer dependencies)
   const isDarkMode = false; // Simplified for organization context
@@ -124,30 +123,19 @@ const AuthenticatedSideBar = ({
             scrollbar-thin ${styles.scrollbar}
           `}
         >
-          {/* Logo Section */}
-          <div className="pb-4 flex justify-between items-center">
-            {headerContent || (
-              <Button
-                padding="p-0 m-0"
-                onClick={onLogoClick || (() => router.push(homeNavPath))}
-                variant="text"
-              >
-                <div
-                  className={`w-[46.56px] h-8 flex flex-col flex-1 ${styles.text}`}
-                >
-                  {logoComponent || <GroupLogo />}
-                </div>
-              </Button>
-            )}
-          </div>
-
+          {' '}
+          {/* Header Section - Remove logo since it's in TopBar */}
+          {headerContent && (
+            <div className="pb-4 flex justify-between items-center">
+              {headerContent}
+            </div>
+          )}
           {/* Organization Dropdown */}
           {showOrganizationDropdown && (
             <div>
               <OrganizationDropdown />
             </div>
           )}
-
           {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
             <div className="mt-4 space-y-1">
@@ -168,7 +156,6 @@ const AuthenticatedSideBar = ({
                       </div>
                     );
                   }
-
                   if (item.dropdown) {
                     return (
                       <SidebarItem
@@ -178,7 +165,7 @@ const AuthenticatedSideBar = ({
                         dropdown
                         toggleMethod={item.toggleMethod}
                         toggleState={item.toggleState}
-                        iconOnly={isCollapsed}
+                        iconOnly={shouldShowIconsOnly}
                       >
                         {item.children?.map((child, childIndex) => (
                           <SideBarDropdownItem
@@ -197,7 +184,7 @@ const AuthenticatedSideBar = ({
                       label={item.label}
                       Icon={item.icon}
                       navPath={item.path}
-                      iconOnly={isCollapsed}
+                      iconOnly={shouldShowIconsOnly}
                     />
                   );
                 })}

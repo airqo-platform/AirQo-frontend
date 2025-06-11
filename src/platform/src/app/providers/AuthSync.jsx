@@ -17,7 +17,6 @@ import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import {
   validateClientSession,
   logSessionValidation,
-  SESSION_TYPES,
   ROUTE_TYPES,
 } from '@/core/utils/sessionUtils';
 import logger from '@/lib/logger';
@@ -71,18 +70,18 @@ const AuthSync = () => {
             logger.warn(`AuthSync validation failed: ${validation.reason}`);
             router.replace(validation.redirectPath);
             return;
-          }
-
-          // Process valid sessions based on type
-          if (validation.sessionType === SESSION_TYPES.ORGANIZATION) {
+          } // Process valid sessions based on current route context
+          if (validation.isOrganizationContext) {
             await handleOrganizationSession(validation);
-          } else if (validation.sessionType === SESSION_TYPES.USER) {
+          } else if (validation.isUserContext) {
             await handleUserSession(validation);
           } else {
-            logger.error('Invalid or missing session type:', {
-              sessionType: validation.sessionType,
+            logger.error('Invalid route context detected:', {
+              routeType: validation.routeType,
               sessionData: session,
-            }); // Redirect based on current route type
+            });
+
+            // Redirect based on current route type
             if (validation.routeType === ROUTE_TYPES.ORGANIZATION) {
               const orgSlug = validation.orgSlug || 'airqo';
               router.replace(`/org/${orgSlug}/login`);

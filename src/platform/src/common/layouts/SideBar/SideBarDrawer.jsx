@@ -3,20 +3,15 @@ import { useWindowSize } from '@/core/hooks/useWindowSize';
 import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from './OrganizationDropdown';
-import { checkAccess } from '@/core/HOC/authUtils';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
 import LogoutUser from '@/core/HOC/LogoutUser';
 import Card from '@/components/CardWrapper';
+import { getMobileNavigationItems } from './navigationConfig';
 
 const SideBarDrawer = () => {
   const dispatch = useDispatch();
@@ -37,6 +32,9 @@ const SideBarDrawer = () => {
       return false;
     }
   });
+
+  // Get navigation items from configuration
+  const navigationItems = getMobileNavigationItems();
 
   // Compute the drawer width based on the toggle state.
   // This ensures that on desktop it uses the fixed width ('w-72') and not full screen.
@@ -72,7 +70,6 @@ const SideBarDrawer = () => {
       return newState;
     });
   }, []);
-
   const renderUserAvatar = () =>
     userInfo.profilePicture ? (
       <img
@@ -85,31 +82,6 @@ const SideBarDrawer = () => {
         <PersonIcon fill="#485972" />
       </div>
     );
-
-  const renderCollocationSection = useCallback(() => {
-    if (!checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
-      return null;
-    }
-    return (
-      <SideBarItem
-        label="Collocation"
-        Icon={CollocateIcon}
-        dropdown
-        toggleMethod={toggleCollocation}
-        toggleState={collocationOpen}
-      >
-        {' '}
-        <SideBarDropdownItem
-          itemLabel="Overview"
-          itemPath="/user/collocation/overview"
-        />
-        <SideBarDropdownItem
-          itemLabel="Collocate"
-          itemPath="/user/collocation/collocate"
-        />
-      </SideBarItem>
-    );
-  }, [collocationOpen, toggleCollocation]);
 
   // Prevent body scrolling when drawer is open
   useEffect(() => {
@@ -159,25 +131,53 @@ const SideBarDrawer = () => {
         </div>
         <div className="mt-4">
           <OrganizationDropdown />
-        </div>
+        </div>{' '}
         <div className="flex flex-col justify-between h-full">
           <div className="mt-11 space-y-3">
-            <SideBarItem label="Home" Icon={HomeIcon} navPath="/user/Home" />{' '}
-            <SideBarItem
-              label="Analytics"
-              Icon={BarChartIcon}
-              navPath="/user/analytics"
-            />{' '}
-            <div className="text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out">
-              Network
-            </div>
-            {renderCollocationSection()}{' '}
-            <SideBarItem label="Map" Icon={WorldIcon} navPath="/user/map" />
-            <SideBarItem
-              label="Settings"
-              Icon={SettingsIcon}
-              navPath="/user/settings"
-            />
+            {navigationItems.map((item, index) => {
+              if (item.type === 'divider') {
+                return (
+                  <div
+                    key={index}
+                    className="text-xs text-[#6F87A1] px-[10px] my-3 mx-4 font-semibold transition-all duration-300 ease-in-out"
+                  >
+                    {item.label}
+                  </div>
+                );
+              }
+
+              if (item.type === 'dropdown') {
+                return (
+                  <SideBarItem
+                    key={index}
+                    label={item.label}
+                    Icon={item.icon}
+                    dropdown
+                    toggleMethod={toggleCollocation}
+                    toggleState={collocationOpen}
+                  >
+                    {item.children?.map((child, childIndex) => (
+                      <SideBarDropdownItem
+                        key={childIndex}
+                        itemLabel={child.label}
+                        itemPath={child.path}
+                      />
+                    ))}
+                  </SideBarItem>
+                );
+              }
+
+              return (
+                <SideBarItem
+                  key={index}
+                  label={item.label}
+                  Icon={item.icon}
+                  navPath={item.path}
+                />
+              );
+            })}
+
+            {/* Logout Item */}
             <div
               onClick={handleLogout}
               className={

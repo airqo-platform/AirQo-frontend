@@ -2,12 +2,13 @@
 
 import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Head from 'next/head';
 import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '../SideBar/AuthenticatedSidebar';
-import PageTopBar from '@/components/PageTopBar';
+import UserSidebarContent from '../SideBar/UserSidebarContent';
+import GlobalTopbar from '@/common/components/GlobalTopbar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -16,25 +17,34 @@ import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 /**
  * Map Layout Component
  * Provides a specialized layout for the map route
  * Map page has different layout requirements
  */
-export default function MapLayout({ children, forceMapView = false }) {
+export default function MapLayout({ children }) {
   const dispatch = useDispatch();
   const pathname = usePathname();
   const { userID } = useGetActiveGroup();
-  const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
   const { width } = useWindowSize();
+  const { theme, systemTheme } = useTheme();
 
   // Force sidebar collapse on small screens and when map is the main focus
   const isMobile = width < 768;
 
   // Get route configuration based on current pathname
   const routeConfig = LAYOUT_CONFIGS.MAP[pathname] || DEFAULT_CONFIGS.MAP;
+
+  // Generate styles for sidebar content
+  const isDarkMode =
+    theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
+  const styles = {
+    divider: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    mutedText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
+  };
 
   // Initialize hooks
   useUserPreferences();
@@ -49,34 +59,38 @@ export default function MapLayout({ children, forceMapView = false }) {
       }
     };
   }, [dispatch, isMobile]);
-
   return (
     <div className="flex overflow-hidden min-h-screen" data-testid="layout">
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
-      </Head>{' '}
+      </Head>
+
+      {/* Global TopBar - Always visible */}
+      <GlobalTopbar
+        topbarTitle={routeConfig.topbarTitle}
+        showSearch={routeConfig.showSearch}
+      />
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar forceCollapse={isMobile || forceMapView} />
+      <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
+        <AuthenticatedSideBar
+          forceCollapse={true}
+          showOrganizationDropdown={true}
+        >
+          <UserSidebarContent isCollapsed={true} styles={styles} />
+        </AuthenticatedSideBar>
       </aside>
+
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 
-          overflow-hidden
-          ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
+          overflow-hidden mt-20 lg:mt-12
+          lg:ml-[88px]`}
       >
         <div className="overflow-hidden">
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
-          {/* TopBar - Only show on mobile */}
-          {!routeConfig.noTopNav && isMobile && (
-            <PageTopBar
-              topbarTitle={routeConfig.topbarTitle}
-              noBorderBottom={routeConfig.noBorderBottom}
-              showSearch={routeConfig.showSearch}
-            />
-          )}
 
           {/* Content */}
           <div className="text-text transition-all duration-300 overflow-hidden">
@@ -85,12 +99,11 @@ export default function MapLayout({ children, forceMapView = false }) {
         </div>
       </main>
       {/* SideBar Drawer */}
-      <SideBarDrawer />{' '}
+      <SideBarDrawer />
     </div>
   );
 }
 
 MapLayout.propTypes = {
   children: PropTypes.node.isRequired,
-  forceMapView: PropTypes.bool,
 };

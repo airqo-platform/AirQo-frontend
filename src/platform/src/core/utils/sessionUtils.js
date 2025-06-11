@@ -1,7 +1,7 @@
 /**
- * Simplified Session Management Utilities
- * Uses path-based context detection instead of session types
- * Following Next.js and NextAuth best practices
+ * Unified Session Management Utilities
+ * Uses path-based context detection for seamless user/organization navigation
+ * Users can access both contexts with a single login session
  */
 
 import { getToken } from 'next-auth/jwt';
@@ -88,6 +88,7 @@ export const isUserContext = (pathname) => {
 
 /**
  * Validates session access based on route context
+ * Unified sessions allow access to both user and organization contexts
  * @param {Object} session - The session object
  * @param {string} routeType - The route type
  * @param {Object} options - Additional validation options
@@ -106,7 +107,7 @@ export const validateSessionAccess = (session, routeType, options = {}) => {
     return { isValid: true };
   }
 
-  // No session - redirect to appropriate login
+  // No session - redirect to appropriate login based on context
   if (!session) {
     if (routeType === ROUTE_TYPES.ORGANIZATION) {
       const orgSlug = extractOrgSlug(pathname) || 'airqo';
@@ -124,7 +125,7 @@ export const validateSessionAccess = (session, routeType, options = {}) => {
   }
 
   // If session exists, allow access to both contexts
-  // The unified layout will handle context detection automatically
+  // Context switching is handled by the UI layout and navigation
   return { isValid: true };
 };
 
@@ -264,6 +265,7 @@ export const getNavigationConfig = (pathname) => {
 
 /**
  * Check if current user has access to organization
+ * With unified sessions, all authenticated users can access any organization they belong to
  * @param {Object} session - The session object
  * @param {string} orgSlug - The organization slug
  * @returns {boolean} True if user has access
@@ -271,9 +273,18 @@ export const getNavigationConfig = (pathname) => {
 export const hasOrganizationAccess = (session, orgSlug) => {
   if (!session || !orgSlug) return false;
 
-  // For now, allow access if user is logged in
-  // This can be enhanced later with proper organization membership validation
-  return !!session.user;
+  // For unified sessions, check if user belongs to the organization
+  // This should be enhanced with proper organization membership validation
+  const userOrg = session.user?.organization;
+  if (!userOrg) return false;
+
+  // Allow different formats: direct match, case-insensitive match, or slug format
+  return (
+    userOrg === orgSlug ||
+    userOrg.toLowerCase() === orgSlug.toLowerCase() ||
+    userOrg.replace(/[\s-_]/g, '').toLowerCase() ===
+      orgSlug.replace(/[\s-_]/g, '').toLowerCase()
+  );
 };
 
 /**
@@ -286,9 +297,9 @@ export const getUserOrganizationContext = (session) => {
 
   // Extract organization context from session if available
   return {
-    orgSlug: session.user.organizationSlug || null,
-    organizationId: session.user.organizationId || null,
-    role: session.user.role || 'user',
+    organization: session.user.organization || null,
+    long_organization: session.user.long_organization || null,
+    role: session.user.privilege || 'user',
     permissions: session.user.permissions || [],
   };
 };
@@ -343,6 +354,7 @@ export const logSessionValidation = (
 };
 
 // Legacy compatibility - maintain existing API surface for backward compatibility
+// Note: SESSION_TYPES are kept for compatibility but no longer used for validation
 export const SESSION_TYPES = {
   USER: 'user',
   ORGANIZATION: 'organization',
