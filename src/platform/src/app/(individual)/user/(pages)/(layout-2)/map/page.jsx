@@ -47,6 +47,7 @@ const MapPage = () => {
       try {
         await dispatch(getGridsDataSummary());
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch grids data:', error);
         setToastMessage({
           message: 'Failed to load site data. Please try again.',
@@ -102,7 +103,10 @@ const MapPage = () => {
             }),
           );
         },
-        (error) => console.error('Geolocation error:', error),
+        (error) => {
+          // eslint-disable-next-line no-console
+          console.error('Geolocation error:', error);
+        },
       );
     }
   }, []);
@@ -117,15 +121,15 @@ const MapPage = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isControlsExpanded]);
-
   // Responsive layout classes based on screen size
   const isMobile = width < 1024;
 
   // Mobile layout: Map (40% height) on top, Sidebar (60% height) at bottom
   // Desktop layout: Sidebar on left, Map on right (full height for both)
+  // Account for global topbar (3rem = 48px) in height calculations
   const containerClassName = isMobile
-    ? 'flex flex-col w-full h-dvh overflow-hidden'
-    : 'flex flex-row w-full h-dvh pt-2 pr-2 pb-2 pl-0 overflow-hidden';
+    ? 'flex flex-col w-full h-full overflow-hidden'
+    : 'flex flex-row w-full h-full pt-2 pr-2 pb-2 pl-0 overflow-hidden';
 
   const sidebarClassName = isMobile
     ? 'transition-all duration-500 ease-in-out h-[60%] w-full sidebar-scroll-bar order-2'
