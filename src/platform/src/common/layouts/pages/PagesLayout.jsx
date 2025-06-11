@@ -7,8 +7,7 @@ import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar'
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
-import PageTopBar from '@/common/components/PageTopBar';
-import GlobalSideBarDrawer from '@/common/components/GlobalTopbar/sidebar';
+import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -73,7 +72,7 @@ export default function PagesLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-14 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar />
       </aside>
       {/* Main Content */}
@@ -82,16 +81,10 @@ export default function PagesLayout({ children }) {
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
+        {' '}
         <div className={`overflow-hidden ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
-
-          {/* TopBar */}
-          <PageTopBar
-            topbarTitle={routeConfig.topbarTitle}
-            noBorderBottom={routeConfig.noBorderBottom}
-            showSearch={routeConfig.showSearch}
-          />
 
           {/* Content */}
           <div className="text-text transition-all duration-300 overflow-hidden">

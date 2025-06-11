@@ -1,8 +1,8 @@
 'use client';
 
-import HeaderNav from '@/components/Layout/header';
+import HeaderNav from '@/common/layouts/components/HeaderNav';
 import Box from '@/components/Collocation/Report/box';
-import ContentBox from '@/components/Layout/content_box';
+import ContentBox from '@/common/layouts/components/ContentBox';
 import withUserAuth from '@/core/HOC/withUserAuth';
 
 const CollocationReports = () => {

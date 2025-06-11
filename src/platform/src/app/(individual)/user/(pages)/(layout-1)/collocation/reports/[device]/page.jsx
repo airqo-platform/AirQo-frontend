@@ -10,7 +10,7 @@ import Toast from '@/components/Toast';
 import Spinner from '@/components/Spinner';
 import CustomTable from '@/components/Table';
 import { isEmpty } from 'underscore';
-import ContentBox from '@/components/Layout/content_box';
+import ContentBox from '@/common/layouts/components/ContentBox';
 import CustomLegend from '@/components/Collocation/Report/MonitorReport/IntraCorrelation/custom_legend';
 // Remove unused import since middleware handles auth
 import { useDispatch, useSelector } from 'react-redux';

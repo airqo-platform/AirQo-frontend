@@ -2,7 +2,7 @@
 
 import React from 'react';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
-import ContentLessTopBar from '@/common/layouts/TopBar/content_less_header';
+import ContentLessTopBar from '@/common/layouts/components/ContentLessTopBar';
 import Button from '@/components/Button';
 import withUserAuth from '@/core/HOC/withUserAuth';
 

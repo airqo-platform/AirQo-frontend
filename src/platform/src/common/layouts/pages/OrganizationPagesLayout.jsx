@@ -7,8 +7,6 @@ import Head from 'next/head';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
-import TopBar from '@/common/layouts/TopBar';
-import UserProfileDropdown from '@/common/layouts/TopBar/UserProfileDropdown';
 import OrganizationSideBarDrawer from '@/common/layouts/SideBar/OrganizationSideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
@@ -19,7 +17,6 @@ import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
-import DarkModeToggle from '@/common/components/DarkModeToggle';
 
 function OrganizationPagesLayout({ children }) {
   const pathname = usePathname();
@@ -76,7 +73,7 @@ function OrganizationPagesLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-14 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar>
           <OrganizationSidebarContent
             isCollapsed={isCollapsed}
@@ -93,37 +90,11 @@ function OrganizationPagesLayout({ children }) {
           isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'
         }`}
       >
+        {' '}
         <div className={`overflow-hidden ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
-          {/* TopBar */}{' '}
-          <TopBar
-            topbarTitle={routeConfig.topbarTitle}
-            noBorderBottom={routeConfig.noBorderBottom}
-            showSearch={routeConfig.showSearch}
-            logoComponent={
-              organization?.logo ? (
-                <img
-                  src={organization.logo}
-                  alt={`${organization.name} Logo`}
-                  className="h-8 w-auto"
-                />
-              ) : null
-            }
-            onLogoClick={() =>
-              (window.location.href = `/org/${orgSlug}/dashboard`)
-            }
-            showUserProfile={true}
-            customActions={
-              <div className="flex items-center gap-2">
-                <DarkModeToggle size="md" />
-                <UserProfileDropdown
-                  dropdownAlign="right"
-                  showUserInfo={true}
-                />
-              </div>
-            }
-          />
+
           {/* Content */}
           <div className="text-text transition-all duration-300 overflow-hidden">
             {children}

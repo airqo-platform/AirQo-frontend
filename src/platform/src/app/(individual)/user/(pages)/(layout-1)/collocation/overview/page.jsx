@@ -16,7 +16,7 @@ import {
   getDeviceStatusSummary,
 } from '@/lib/store/services/collocation';
 
-import HeaderNav from '@/components/Layout/header';
+import HeaderNav from '@/common/layouts/components/HeaderNav';
 import Card from '@/components/CardWrapper';
 import GraphCard from '@/components/Collocation/AddMonitor/Overview/graph_card';
 import Button from '@/components/Button';

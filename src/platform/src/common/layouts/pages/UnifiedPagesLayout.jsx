@@ -8,7 +8,7 @@ import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import OrganizationSideBarDrawer from '../SideBar/OrganizationSideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
-import IndividualUserSidebar from '@/common/layouts/components/IndividualUserSidebar';
+import UserSidebarContent from '@/common/layouts/SideBar/UserSidebarContent';
 import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -138,7 +138,7 @@ export default function UnifiedPagesLayout({ children }) {
         customActions={customActions}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-14 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300">
         {isOrganizationContext ? (
           <AuthenticatedSideBar>
             <OrganizationSidebarContent
@@ -150,7 +150,9 @@ export default function UnifiedPagesLayout({ children }) {
             />
           </AuthenticatedSideBar>
         ) : (
-          <IndividualUserSidebar />
+          <AuthenticatedSideBar>
+            <UserSidebarContent isCollapsed={isCollapsed} styles={{}} />
+          </AuthenticatedSideBar>
         )}
       </aside>
       {/* Main Content */}

@@ -8,8 +8,8 @@ import PropTypes from 'prop-types';
 import Button from '@/common/components/Button';
 import MenuBarIcon from '@/icons/menu_bar';
 import MenuIcon from '@/icons/Actions/menu';
-import UserProfileDropdown from '../TopBar/UserProfileDropdown';
-import TopbarOrganizationDropdown from '@/common/components/TopbarOrganizationDropdown';
+import UserProfileDropdown from '../components/UserProfileDropdown';
+import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
 import OrganizationLoadingOverlay from '@/common/components/OrganizationLoadingOverlay';
 import {
   setTogglingGlobalDrawer,

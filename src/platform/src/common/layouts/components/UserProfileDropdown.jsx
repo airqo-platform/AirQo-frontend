@@ -2,14 +2,13 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import UserIcon from '@/icons/Topbar/userIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import LogoutUser from '@/core/HOC/LogoutUser';
-import { useDispatch } from 'react-redux';
 
 /**
  * Reusable user profile dropdown component that adapts to different contexts
@@ -48,6 +47,7 @@ const UserProfileDropdown = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
   // Determine context (individual vs organization)
   const isOrganizationContext = useMemo(() => {
     return isOrganization || pathname.includes('/org/');
@@ -61,12 +61,13 @@ const UserProfileDropdown = ({
     }
     return null;
   }, [isOrganizationContext, pathname]);
+
   // Generate navigation paths based on context
   const navigationPaths = useMemo(() => {
     if (isOrganizationContext && orgSlug) {
       return {
         profile: `/org/${orgSlug}/profile`,
-        settings: `/org/${orgSlug}/settings`, // Updated to use settings page instead
+        settings: `/org/${orgSlug}/settings`,
       };
     }
     return {
@@ -138,7 +139,7 @@ const UserProfileDropdown = ({
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
             {userInfo?.email || 'No email'}
-          </div>{' '}
+          </div>
           {isOrganizationContext && (
             <div className="text-xs text-[var(--org-primary,var(--color-primary,#145fff))] truncate max-w-[21ch]">
               {userInfo?.organization || 'Organization User'}
@@ -154,7 +155,7 @@ const UserProfileDropdown = ({
       {renderUserInfo()}
       {showUserInfo && (
         <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
-      )}{' '}
+      )}
       <ul className="dropdown-list p-2">
         <li
           onClick={handleNavigation(navigationPaths.profile)}

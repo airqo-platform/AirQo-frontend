@@ -71,13 +71,13 @@ export default function MapLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-16 z-40 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-40 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar forceCollapse={true}>
           <UserSidebarContent isCollapsed={true} styles={styles} />
         </AuthenticatedSideBar>
       </aside>
       {/* Main Content - Account for both topbar and sidebar */}
-      <main className="flex-1 transition-all duration-300 overflow-hidden pt-36 lg:pt-16 lg:ml-[96px]">
+      <main className="flex-1 transition-all duration-300 overflow-hidden pt-36 lg:pt-[60px] lg:ml-[86px]">
         <div className="h-[calc(100vh-9rem)] lg:h-[calc(100vh-4rem)] overflow-hidden">
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}

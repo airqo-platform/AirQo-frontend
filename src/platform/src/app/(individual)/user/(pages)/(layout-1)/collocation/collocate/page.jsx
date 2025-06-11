@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { withPermission } from '@/core/HOC/withUserAuth';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 
-import HeaderNav from '@/components/Layout/header';
+import HeaderNav from '@/common/layouts/components/HeaderNav';
 import Card from '@/components/CardWrapper';
 import Button from '@/components/Button';
 import Tabs from '@/components/Tabs';
