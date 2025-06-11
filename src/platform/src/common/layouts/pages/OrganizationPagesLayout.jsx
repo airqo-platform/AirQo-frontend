@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import Head from 'next/head';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
+import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import TopBar from '@/common/layouts/TopBar';
 import UserProfileDropdown from '@/common/layouts/TopBar/UserProfileDropdown';
 import OrganizationSideBarDrawer from '@/common/layouts/SideBar/OrganizationSideBarDrawer';
@@ -45,7 +46,6 @@ function OrganizationPagesLayout({ children }) {
     layout === THEME_LAYOUT.COMPACT
       ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
       : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
-
   return (
     <div
       className="flex overflow-hidden min-h-screen"
@@ -59,23 +59,25 @@ function OrganizationPagesLayout({ children }) {
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
       </Head>
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar
-          logoComponent={
-            organization?.logo ? (
-              <img
-                src={organization.logo}
-                alt={`${organization.name} Logo`}
-                className="h-8 w-auto"
-              />
-            ) : null
-          }
-          onLogoClick={() =>
-            (window.location.href = `/org/${orgSlug}/dashboard`)
-          }
-          homeNavPath={`/org/${orgSlug}/dashboard`}
-        >
+      {/* Global TopBar - Full width at top */}
+      <GlobalTopbar
+        topbarTitle={routeConfig.topbarTitle}
+        logoComponent={
+          organization?.logo ? (
+            <img
+              src={organization.logo}
+              alt={`${organization.name} Logo`}
+              className="h-8 w-auto"
+            />
+          ) : null
+        }
+        onLogoClick={() => (window.location.href = `/org/${orgSlug}/dashboard`)}
+        homeNavPath={`/org/${orgSlug}/dashboard`}
+        showSearch={routeConfig.showSearch}
+      />{' '}
+      {/* Sidebar - Fixed position below topbar */}
+      <aside className="fixed left-0 top-16 z-50 text-sidebar-text transition-all duration-300">
+        <AuthenticatedSideBar>
           <OrganizationSidebarContent
             isCollapsed={isCollapsed}
             styles={{
@@ -87,7 +89,7 @@ function OrganizationPagesLayout({ children }) {
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 overflow-y-auto ${
+        className={`flex-1 transition-all duration-300 overflow-y-auto pt-16 ${
           isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'
         }`}
       >

@@ -28,7 +28,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
     ? 'text-primary'
     : isDarkMode
       ? 'text-gray-200'
-      : 'text-black';
+      : 'text-gray-600';
 
   const handleClick = useCallback(
     (e) => {
@@ -50,11 +50,13 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
     <Link
       href={itemPath}
       onClick={handleClick}
-      className={`block transition-colors duration-200 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-md p-1`}
+      className={`block transition-colors duration-200 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg p-2 ml-2`}
     >
-      <div className="h-10 flex items-center">
+      <div className="h-8 flex items-center">
         {(!isMediumDevice || itemLabel) && (
-          <h3 className={`text-sm leading-5 ${textClass}`}>{itemLabel}</h3>
+          <h3 className={`text-sm font-normal leading-5 ${textClass}`}>
+            {itemLabel}
+          </h3>
         )}
       </div>
     </Link>
@@ -80,7 +82,8 @@ const SidebarItem = ({
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
   const currentRoute = pathname;
   const isCurrentRoute = useMemo(() => {
-    if (!navPath) return false; // Exact match for root/home routes
+    if (!navPath) return false;
+    // Exact match for root/home routes
     if (navPath === '/' && currentRoute === '/') return true;
     if (
       navPath === '/user/Home' &&
@@ -110,13 +113,13 @@ const SidebarItem = ({
     ? 'text-primary'
     : isDarkMode
       ? 'text-gray-200'
-      : 'text-black';
+      : 'text-gray-600';
 
   const iconColor = isCurrentRoute
     ? 'text-primary'
     : isDarkMode
       ? 'text-white'
-      : 'text-black';
+      : 'text-gray-600';
 
   // Background classes
   const bgClass = isCurrentRoute
@@ -129,14 +132,12 @@ const SidebarItem = ({
 
   const commonClasses = `
     cursor-pointer transition-all duration-300 ease-in-out
-    ${textClass}
-    ${toggleState ? `${isDarkMode ? 'bg-gray-700' : 'bg-primary/10'} rounded-xl` : ''}
+    ${toggleState ? `${isDarkMode ? 'bg-gray-700' : 'bg-primary/10'} rounded-lg` : ''}
   `;
 
-  const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-xl';
+  const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-lg';
 
   const handleItemClick = hasDropdown ? toggleMethod : onClick;
-
   return (
     <div
       className={commonClasses}
@@ -148,27 +149,43 @@ const SidebarItem = ({
         href={navPath || '#'}
         className={`
           relative flex items-center
-          ${iconOnly ? 'p-0' : 'p-3 w-full'}
+          ${
+            iconOnly
+              ? 'p-0 justify-center items-center w-12 h-12 mx-auto'
+              : 'py-2.5 px-3 w-full'
+          }
           ${bgClass}
-          rounded-xl
+          rounded-lg
         `}
       >
-        {' '}
-        {isCurrentRoute && <div className={leftIndicatorClass} />}
-        <div
-          className={`flex items-center justify-center ${iconOnly ? 'w-12 h-12' : 'w-6 h-6 mr-4'}`}
-        >
-          {Icon && (
-            <Icon className={`${iconColor} w-5 h-5`} width="20" height="20" />
-          )}
-        </div>
-        {!iconOnly && (
-          <div className="flex-grow">
-            <h3 className={`font-medium ${textClass}`}>{label}</h3>
+        {isCurrentRoute && !iconOnly && <div className={leftIndicatorClass} />}
+
+        {iconOnly ? (
+          // Collapsed state - centered icon
+          <div className="flex items-center justify-center w-full h-full">
+            {Icon && (
+              <Icon className={`${iconColor} w-5 h-5`} width="20" height="20" />
+            )}
           </div>
-        )}
-        {hasDropdown && !iconOnly && (
-          <ArrowDropDownIcon className={`${textClass}`} />
+        ) : (
+          // Expanded state - normal layout
+          <>
+            <div className="flex items-center justify-center w-5 h-5 mr-3">
+              {Icon && (
+                <Icon
+                  className={`${iconColor} w-5 h-5`}
+                  width="20"
+                  height="20"
+                />
+              )}
+            </div>
+            <div className="flex-grow">
+              <h3 className={`font-normal text-sm ${textClass}`}>{label}</h3>
+            </div>
+            {hasDropdown && (
+              <ArrowDropDownIcon className={`${textClass} w-4 h-4`} />
+            )}
+          </>
         )}
       </Link>
 

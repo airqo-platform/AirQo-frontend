@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '../SideBar/AuthenticatedSidebar';
 import UserSidebarContent from '../SideBar/UserSidebarContent';
-import GlobalTopbar from '@/common/components/GlobalTopbar';
+import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -64,26 +64,21 @@ export default function MapLayout({ children }) {
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
-      </Head>
-
-      {/* Global TopBar - Always visible - Fixed at top */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <GlobalTopbar
-          topbarTitle={routeConfig.topbarTitle}
-          showSearch={routeConfig.showSearch}
-        />
-      </div>
-
-      {/* Sidebar - Fixed position accounting for topbar */}
-      <aside className="fixed left-0 top-12 z-40 text-sidebar-text transition-all duration-300">
+      </Head>{' '}
+      {/* Global TopBar - Full width at top */}
+      <GlobalTopbar
+        topbarTitle={routeConfig.topbarTitle}
+        showSearch={routeConfig.showSearch}
+      />
+      {/* Sidebar - Fixed position below topbar */}
+      <aside className="fixed left-0 top-16 z-40 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar forceCollapse={true}>
           <UserSidebarContent isCollapsed={true} styles={styles} />
         </AuthenticatedSideBar>
       </aside>
-
       {/* Main Content - Account for both topbar and sidebar */}
-      <main className="flex-1 transition-all duration-300 overflow-hidden pt-12 lg:ml-[88px]">
-        <div className="h-[calc(100vh-3rem)] overflow-hidden">
+      <main className="flex-1 transition-all duration-300 overflow-hidden pt-16 lg:ml-[96px]">
+        <div className="h-[calc(100vh-4rem)] overflow-hidden">
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
@@ -93,7 +88,6 @@ export default function MapLayout({ children }) {
           </div>
         </div>
       </main>
-
       {/* SideBar Drawer */}
       <SideBarDrawer />
     </div>

@@ -129,24 +129,18 @@ export default function UnifiedPagesLayout({ children }) {
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
-      </Head>
-
-      {/* Global Topbar */}
+      </Head>{' '}
+      {/* Global Topbar - Full width at top */}
       <GlobalTopbar
         topbarTitle={routeConfig.topbarTitle}
         logoComponent={logoComponent}
         homeNavPath={homeNavPath}
         customActions={customActions}
-      />
-
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
+      />{' '}
+      {/* Sidebar - Fixed position below topbar */}
+      <aside className="fixed left-0 top-16 z-50 text-sidebar-text transition-all duration-300">
         {isOrganizationContext ? (
-          <AuthenticatedSideBar
-            logoComponent={logoComponent}
-            onLogoClick={() => (window.location.href = homeNavPath)}
-            homeNavPath={homeNavPath}
-          >
+          <AuthenticatedSideBar>
             <OrganizationSidebarContent
               isCollapsed={isCollapsed}
               styles={{
@@ -158,11 +152,10 @@ export default function UnifiedPagesLayout({ children }) {
         ) : (
           <IndividualUserSidebar />
         )}
-      </aside>
-
+      </aside>{' '}
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 mt-20 lg:mt-12 
+        className={`flex-1 transition-all duration-300 pt-16 
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
@@ -176,7 +169,6 @@ export default function UnifiedPagesLayout({ children }) {
           </div>
         </div>
       </main>
-
       {/* SideBar Drawer */}
       {isOrganizationContext ? (
         <OrganizationSideBarDrawer />
