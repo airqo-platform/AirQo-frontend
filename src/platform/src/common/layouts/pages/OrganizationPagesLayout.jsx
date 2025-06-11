@@ -89,7 +89,7 @@ function OrganizationPagesLayout({ children }) {
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 overflow-y-auto pt-36 lg:pt-14 ${
+        className={`flex-1 transition-all duration-300 overflow-y-auto pt-32 lg:pt-14 ${
           isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'
         }`}
       >
