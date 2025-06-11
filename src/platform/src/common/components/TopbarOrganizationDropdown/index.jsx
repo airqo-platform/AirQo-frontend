@@ -8,6 +8,7 @@ import { Menu, Transition } from '@headlessui/react';
 
 // Hooks
 import { useOutsideClick } from '@/core/hooks';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 // Redux
 import {
@@ -33,20 +34,25 @@ const isValidObjectId = (id) => {
 
 /**
  * Dropdown component for selecting organization/group in topbar
- * Handles both individual user flows and organization flows
+ * Handles both individual user flows and organization flows with dark mode support
  */
 const TopbarOrganizationDropdown = () => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const pathname = usePathname();
 
+  // Theme variables for dark mode classes (used in template conditionals)
+  const { theme: _theme, systemTheme: _systemTheme } = useTheme();
+
   // Redux state
   const activeGroup = useSelector(selectActiveGroup);
   const userGroups = useSelector(selectUserGroups);
   const isLoadingGroups = useSelector(selectUserGroupsLoading);
+
   // Local state
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+
   // Handle outside click to close dropdown
   useOutsideClick(dropdownRef, () => {
     if (isOpen) {
@@ -67,6 +73,7 @@ const TopbarOrganizationDropdown = () => {
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen]);
+
   // Determine if we're in organization context
   const isOrganizationContext = useMemo(() => {
     return (
@@ -144,8 +151,8 @@ const TopbarOrganizationDropdown = () => {
   if (isLoadingGroups || isEmpty(userGroups)) {
     return (
       <div className="flex items-center space-x-2">
-        <div className="h-4 w-4 animate-pulse rounded bg-gray-300"></div>
-        <div className="h-4 w-24 animate-pulse rounded bg-gray-300"></div>
+        <div className="h-4 w-4 animate-pulse rounded bg-gray-300 dark:bg-gray-600"></div>
+        <div className="h-4 w-24 animate-pulse rounded bg-gray-300 dark:bg-gray-600"></div>
       </div>
     );
   }
@@ -154,10 +161,11 @@ const TopbarOrganizationDropdown = () => {
   if (!activeGroup) {
     return null;
   }
+
   return (
     <Menu as="div" className="relative" ref={dropdownRef}>
       <Menu.Button
-        className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200"
         onClick={() => setIsOpen(!isOpen)}
       >
         {/* Organization/Group Logo */}
@@ -168,17 +176,15 @@ const TopbarOrganizationDropdown = () => {
             className="h-6 w-6 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-600">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary">
             {activeGroup.grp_title?.charAt(0)?.toUpperCase() || 'O'}
           </div>
         )}
-
         {/* Organization/Group Name */}
         <span className="max-w-32 truncate">
           {activeGroup.grp_title || ORGANIZATION_LABEL}
         </span>
-
-        {/* Dropdown Arrow */}
+        {/* Dropdown Arrow */}{' '}
         <IoChevronDown
           className={`h-4 w-4 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
@@ -197,25 +203,24 @@ const TopbarOrganizationDropdown = () => {
       >
         <Menu.Items
           static
-          className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-gray-200 bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+          className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-primary/20 bg-white py-1 shadow-lg ring-1 ring-primary/10 ring-opacity-5 focus:outline-none dark:border-primary/30 dark:bg-gray-800 dark:ring-primary/20 transition-colors duration-200"
         >
-          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <div className="px-3 py-2 text-xs font-semibold text-primary/70 uppercase tracking-wide dark:text-primary/80">
             Switch Organization
           </div>
-
           <div className="max-h-60 overflow-y-auto">
             {userGroups.map((group) => (
               <Menu.Item key={group._id}>
                 {({ active }) => (
                   <button
                     onClick={() => handleGroupSelect(group)}
-                    className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm ${
+                    className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm transition-colors duration-200 ${
                       active
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
+                        : 'text-gray-700 hover:bg-primary/5 dark:text-gray-200 dark:hover:bg-primary/10'
                     } ${
                       activeGroup._id === group._id
-                        ? 'bg-blue-100 font-medium text-blue-800'
+                        ? 'bg-primary/15 font-medium text-primary dark:bg-primary/25 dark:text-primary'
                         : ''
                     }`}
                   >
@@ -227,36 +232,33 @@ const TopbarOrganizationDropdown = () => {
                         className="h-8 w-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-600">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary dark:bg-primary/20 dark:text-primary">
                         {group.grp_title?.charAt(0)?.toUpperCase() || 'O'}
                       </div>
                     )}
-
                     {/* Group Info */}
                     <div className="flex-1 min-w-0">
                       <div className="truncate font-medium">
                         {group.grp_title || 'Unnamed Organization'}
-                      </div>
+                      </div>{' '}
                       {group.grp_website && (
-                        <div className="truncate text-xs text-gray-500">
+                        <div className="truncate text-xs text-primary/60 dark:text-primary/70">
                           {group.grp_website}
                         </div>
                       )}
-                    </div>
-
+                    </div>{' '}
                     {/* Active Indicator */}
                     {activeGroup._id === group._id && (
-                      <div className="flex h-2 w-2 rounded-full bg-blue-600"></div>
+                      <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
                     )}
                   </button>
                 )}
               </Menu.Item>
             ))}
-          </div>
-
+          </div>{' '}
           {/* Footer */}
           {userGroups.length === 0 && (
-            <div className="px-3 py-4 text-center text-sm text-gray-500">
+            <div className="px-3 py-4 text-center text-sm text-primary/60 dark:text-primary/70">
               No organizations available
             </div>
           )}
