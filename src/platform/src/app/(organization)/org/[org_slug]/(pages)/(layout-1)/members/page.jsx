@@ -2,19 +2,18 @@
 
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
-import CardWrapper from '@/common/components/CardWrapper';
 import Button from '@/common/components/Button';
 import {
-  FaUserPlus as InviteIcon,
-  FaEnvelope as EmailIcon,
-  FaPhone as PhoneIcon,
-  FaCrown as AdminIcon,
-  FaUser as UserIcon,
-  FaEllipsisV as MoreIcon,
-  FaSearch as SearchIcon,
-  FaFilter as FilterIcon,
-  FaUserCheck as ActiveIcon,
-  FaUserTimes as InactiveIcon,
+  FaUserPlus,
+  FaEnvelope,
+  FaPhone,
+  FaCrown,
+  FaUser,
+  FaEllipsisV,
+  FaSearch,
+  FaFilter,
+  FaUserCheck,
+  FaUserTimes,
 } from 'react-icons/fa';
 import withOrgAuth from '@/core/HOC/withOrgAuth';
 
@@ -108,6 +107,7 @@ const OrganizationMembersPage = ({ params: _params }) => {
 
     setFilteredMembers(filtered);
   }, [members, searchTerm, roleFilter, statusFilter]);
+
   const handleInviteMember = () => {
     if (inviteData.email && inviteData.firstName && inviteData.lastName) {
       // In a real app, this would make an API call to invite the member
@@ -136,11 +136,11 @@ const OrganizationMembersPage = ({ params: _params }) => {
   const getRoleIcon = (role) => {
     switch (role) {
       case 'admin':
-        return <AdminIcon className="w-4 h-4 text-yellow-600" />;
+        return <FaCrown className="w-4 h-4 text-yellow-600" />;
       case 'moderator':
-        return <UserIcon className="w-4 h-4 text-blue-600" />;
+        return <FaUser className="w-4 h-4 text-blue-600" />;
       default:
-        return <UserIcon className="w-4 h-4 text-gray-600" />;
+        return <FaUser className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -171,9 +171,9 @@ const OrganizationMembersPage = ({ params: _params }) => {
     };
 
     const icons = {
-      active: <ActiveIcon className="w-3 h-3" />,
-      inactive: <InactiveIcon className="w-3 h-3" />,
-      pending: <EmailIcon className="w-3 h-3" />,
+      active: <FaUserCheck className="w-3 h-3" />,
+      inactive: <FaUserTimes className="w-3 h-3" />,
+      pending: <FaEnvelope className="w-3 h-3" />,
     };
 
     return (
@@ -201,29 +201,33 @@ const OrganizationMembersPage = ({ params: _params }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <CardWrapper
-        title="Team Members"
-        subtitle="Manage your organization's team members and their roles"
-        rightContent={
-          <Button
-            onClick={() => setShowInviteModal(true)}
-            variant="filled"
-            className="inline-flex items-center text-white transition-colors duration-200 hover:opacity-90"
-            style={{ backgroundColor: primaryColor || '#3B82F6' }}
-          >
-            <InviteIcon className="w-4 h-4 mr-2" />
-            Invite Member
-          </Button>
-        }
-        padding="p-6"
-      />
-      {/* Filters and Search */}
-      <CardWrapper padding="p-6">
+      {/* Header with Invite Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Team Members
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Manage your organization&apos;s team members and their roles
+          </p>
+        </div>
+        <Button
+          onClick={() => setShowInviteModal(true)}
+          variant="filled"
+          className="inline-flex items-center text-white transition-colors duration-200 hover:opacity-90 px-4 py-2 rounded-lg"
+          style={{ backgroundColor: primaryColor || '#3B82F6' }}
+        >
+          <FaUserPlus className="w-4 h-4 mr-2" />
+          Invite Member
+        </Button>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               placeholder="Search members..."
@@ -235,7 +239,7 @@ const OrganizationMembersPage = ({ params: _params }) => {
 
           {/* Role Filter */}
           <div className="relative">
-            <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
@@ -258,14 +262,14 @@ const OrganizationMembersPage = ({ params: _params }) => {
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
-              <option value="pending">Pending</option>{' '}
+              <option value="pending">Pending</option>
             </select>
           </div>
         </div>
-      </CardWrapper>
+      </div>
 
       {/* Members Table */}
-      <CardWrapper className="overflow-hidden" padding="p-0">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Members ({filteredMembers.length})
@@ -323,12 +327,12 @@ const OrganizationMembersPage = ({ params: _params }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-white flex items-center">
-                      <EmailIcon className="w-4 h-4 text-gray-400 mr-2" />
+                      <FaEnvelope className="w-4 h-4 text-gray-400 mr-2" />
                       {member.email}
                     </div>
                     {member.phone && (
                       <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
-                        <PhoneIcon className="w-4 h-4 text-gray-400 mr-2" />
+                        <FaPhone className="w-4 h-4 text-gray-400 mr-2" />
                         {member.phone}
                       </div>
                     )}
@@ -341,13 +345,13 @@ const OrganizationMembersPage = ({ params: _params }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {member.lastActive}
-                  </td>{' '}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Button
                       variant="text"
                       className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
-                      <MoreIcon className="w-4 h-4" />
+                      <FaEllipsisV className="w-4 h-4" />
                     </Button>
                   </td>
                 </tr>
@@ -357,7 +361,7 @@ const OrganizationMembersPage = ({ params: _params }) => {
         </div>
         {filteredMembers.length === 0 && (
           <div className="text-center py-12">
-            <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <FaUser className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
               No members found
             </h3>
@@ -366,7 +370,8 @@ const OrganizationMembersPage = ({ params: _params }) => {
             </p>
           </div>
         )}
-      </CardWrapper>
+      </div>
+
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -383,7 +388,7 @@ const OrganizationMembersPage = ({ params: _params }) => {
                     className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
                     style={{ backgroundColor: `${primaryColor}20` }}
                   >
-                    <InviteIcon
+                    <FaUserPlus
                       className="h-6 w-6"
                       style={{ color: primaryColor }}
                     />
@@ -470,7 +475,6 @@ const OrganizationMembersPage = ({ params: _params }) => {
                 </div>
               </div>
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                {' '}
                 <Button
                   onClick={handleInviteMember}
                   variant="filled"
