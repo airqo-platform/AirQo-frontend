@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-netmanager-app
+  repository: eu.gcr.io/airqo-250220/airqo-stage-vertex
   tag: latest
   pullPolicy: Always
 imagePullSecrets: []
@@ -8,12 +8,12 @@ nameOverride: ''
 fullnameOverride: ''
 service:
   type: NodePort
-  nodePort: 30113
+  nodePort: 31113
   targetPort: 3000
   port: 3000
 ingress:
   enabled: false
-nodeSelector: 
+nodeSelector:
   role: high-mem
 tolerations: {}
 resources:
@@ -26,19 +26,19 @@ resources:
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
-  targetMemoryUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
       - preference:
           matchExpressions:
-          - key: role
-            operator: In
-            values:
-            - control-plane
+            - key: role
+              operator: In
+              values:
+                - high-mem
         weight: 1
 app:
-  name: airqo-netmanager-app
-  label: netmanager
-  namespace: production
-  configmap: env-netmanager-production
+  name: airqo-stage-vertex
+  label: vertex
+  namespace: staging
+  configmap: env-vertex-staging

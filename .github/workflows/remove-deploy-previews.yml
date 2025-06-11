@@ -28,7 +28,7 @@ jobs:
       remove_docs: ${{ steps.check_files.outputs.remove_docs }} # docs
       remove_inventory: ${{ steps.check_files.outputs.remove_inventory }} # inventory
       remove_reports: ${{ steps.check_files.outputs.remove_reports }} # reports
-      remove_netmanager-app: ${{ steps.check_files.outputs.remove_netmanager-app }} # netmanager-app
+      remove_vertex: ${{ steps.check_files.outputs.remove_vertex }} # vertex
 
 
     runs-on: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
           echo "remove_docs=false" >>$GITHUB_OUTPUT
           echo "remove_inventory=false" >>$GITHUB_OUTPUT
           echo "remove_reports=false" >>$GITHUB_OUTPUT
-          echo "remove_netmanager-app=false" >>$GITHUB_OUTPUT
+          echo "remove_vertex=false" >>$GITHUB_OUTPUT
 
 
           while IFS= read -r file
@@ -83,8 +83,8 @@ jobs:
               echo "remove_reports=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/netmanager-app/* ]]; then
-              echo "remove_netmanager-app=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/vertex/* ]]; then
+              echo "remove_vertex=true" >>$GITHUB_OUTPUT
             fi            
 
           done < files.txt
@@ -215,11 +215,11 @@ jobs:
             --region=${{ secrets.REGION }} \
             --quiet          
 
-  ### remove netmanager-app deploy preview ###
-  remove-netmanager-app-preview:
-    name: remove-netmanager-app-preview
+  ### remove vertex deploy preview ###
+  remove-vertex-preview:
+    name: remove-vertex-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.remove_netmanager-app == 'true'
+    if: needs.check.outputs.remove_vertex == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Google login
@@ -232,6 +232,6 @@ jobs:
 
       - name: Delete PR deploy preview
         run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-netmanager-app-preview \
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
             --region=${{ secrets.REGION }} \
             --quiet             
