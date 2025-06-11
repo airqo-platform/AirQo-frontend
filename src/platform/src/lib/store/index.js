@@ -85,7 +85,7 @@ const appReducer = (state, action) => {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'checklists'],
+  whitelist: ['login', 'checklists', 'groups'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);

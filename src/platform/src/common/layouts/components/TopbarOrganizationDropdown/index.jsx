@@ -20,6 +20,12 @@ import {
   fetchUserGroups,
 } from '@/lib/store/services/groups';
 
+// APIs
+import { recentUserPreferencesAPI } from '@/core/apis/Account';
+
+// Redux Actions for preferences
+import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+
 // Utils
 import { removeSpacesAndLowerCase } from '@/core/utils/strings';
 import { ORGANIZATION_LABEL } from '@/lib/constants';
@@ -106,9 +112,7 @@ const TopbarOrganizationDropdown = ({
     ) {
       dispatch(fetchUserGroups(userID));
     }
-  }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]);
-
-  // Effect to set default active group based on context - only when no active group exists
+  }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]); // Effect to set default active group based on context - only when no active group exists
   useEffect(() => {
     if (isEmpty(userGroups) || !session?.user?.id) return;
 
@@ -127,13 +131,39 @@ const TopbarOrganizationDropdown = ({
         dispatch(setActiveGroup(orgGroup));
       }
     } else if (!isOrganizationContext) {
-      // In individual context: set AirQo as default only if no group is selected
+      // In individual context: only set AirQo as default if it's the first time or no preferences exist
+      // This prevents overriding user's previously selected organization after page refresh
       const airqoGroup = userGroups.find(
         (group) => removeSpacesAndLowerCase(group.grp_title) === 'airqo',
       );
 
-      if (airqoGroup) {
-        dispatch(setActiveGroup(airqoGroup));
+      // Only set AirQo as default if:
+      // 1. AirQo group exists, AND
+      // 2. User has no stored preferences (first time user)
+      if (airqoGroup && userGroups.length > 0) {
+        // Try to get user's last preference first
+        const trySetFromPreferences = async () => {
+          try {
+            const prefRes = await recentUserPreferencesAPI(session.user.id);
+            if (prefRes.success && prefRes.preference?.group_id) {
+              const preferredGroup = userGroups.find(
+                (g) => g._id === prefRes.preference.group_id,
+              );
+              if (preferredGroup) {
+                dispatch(setActiveGroup(preferredGroup));
+                return;
+              }
+            }
+          } catch {
+            // If preferences API fails, fall back to AirQo only if it's available
+            // Silent error handling in production
+          }
+
+          // Fallback: set AirQo as default only if no other preference was found
+          dispatch(setActiveGroup(airqoGroup));
+        };
+
+        trySetFromPreferences();
       }
     }
   }, [
@@ -142,14 +172,27 @@ const TopbarOrganizationDropdown = ({
     organizationSlug,
     session?.user?.id,
     dispatch,
+    activeGroup,
   ]);
-
   /**
    * Handle group selection
    */
   const handleGroupSelect = (group) => {
     if (group._id !== activeGroup?._id) {
       dispatch(setActiveGroup(group));
+
+      // Persist the user's group selection to preferences
+      if (session?.user?.id) {
+        dispatch(
+          replaceUserPreferences({
+            user_id: session.user.id,
+            group_id: group._id,
+          }),
+        ).catch(() => {
+          // Silent error handling for preference update failures
+          // The Redux state will still be updated, ensuring UI consistency
+        });
+      }
 
       // Call the callback to notify parent component about the change
       if (onGroupChange) {
