@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
-import OrganizationDropdown from './OrganizationDropdown';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,
@@ -18,7 +17,6 @@ const MAX_WIDTH = '(max-width: 1024px)';
 const AuthenticatedSideBar = ({
   forceCollapse,
   children,
-  showOrganizationDropdown = true,
   headerContent,
   footerContent,
   showCollapseButton = true,
@@ -104,13 +102,13 @@ const AuthenticatedSideBar = ({
     }),
     [isDarkMode],
   );
-
   return (
     <div>
       <div
         className={`
-          transition-all duration-200 ease-in-out relative z-50 h-dvh hidden lg:block p-2
+          transition-all duration-200 ease-in-out relative z-50 hidden lg:block p-2
           ${isCollapsed ? 'w-[88px]' : 'w-[256px]'}
+          h-[calc(100vh-3rem)]
         `}
       >
         <Card
@@ -123,19 +121,13 @@ const AuthenticatedSideBar = ({
             scrollbar-thin ${styles.scrollbar}
           `}
         >
-          {' '}
-          {/* Header Section - Remove logo since it's in TopBar */}
+          {/* Header Section */}
           {headerContent && (
             <div className="pb-4 flex justify-between items-center">
               {headerContent}
             </div>
           )}
-          {/* Organization Dropdown */}
-          {showOrganizationDropdown && (
-            <div>
-              <OrganizationDropdown />
-            </div>
-          )}
+
           {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
             <div className="mt-4 space-y-1">
@@ -254,10 +246,6 @@ const AuthenticatedSideBar = ({
 AuthenticatedSideBar.propTypes = {
   forceCollapse: PropTypes.bool,
   children: PropTypes.node,
-  logoComponent: PropTypes.node,
-  onLogoClick: PropTypes.func,
-  homeNavPath: PropTypes.string,
-  showOrganizationDropdown: PropTypes.bool,
   headerContent: PropTypes.node,
   footerContent: PropTypes.node,
   showCollapseButton: PropTypes.bool,

@@ -75,7 +75,6 @@ function OrganizationPagesLayout({ children }) {
             (window.location.href = `/org/${orgSlug}/dashboard`)
           }
           homeNavPath={`/org/${orgSlug}/dashboard`}
-          showOrganizationDropdown={true}
         >
           <OrganizationSidebarContent
             isCollapsed={isCollapsed}

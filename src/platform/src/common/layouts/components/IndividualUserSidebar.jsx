@@ -54,10 +54,8 @@ export default function IndividualUserSidebar() {
       }}
     />
   );
-
   return (
     <AuthenticatedSideBar
-      showOrganizationDropdown={false}
       logoComponent={logoComponent}
       homeNavPath="/user/Home"
       showCollapseButton={true}

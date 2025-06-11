@@ -65,23 +65,17 @@ export default function MapLayout({ children }) {
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
       </Head>
-
       {/* Global TopBar - Always visible */}
       <GlobalTopbar
         topbarTitle={routeConfig.topbarTitle}
         showSearch={routeConfig.showSearch}
-      />
-
+      />{' '}
       {/* Sidebar */}
       <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar
-          forceCollapse={true}
-          showOrganizationDropdown={true}
-        >
+        <AuthenticatedSideBar forceCollapse={true}>
           <UserSidebarContent isCollapsed={true} styles={styles} />
         </AuthenticatedSideBar>
       </aside>
-
       {/* Main Content */}
       <main
         className={`flex-1 transition-all duration-300 

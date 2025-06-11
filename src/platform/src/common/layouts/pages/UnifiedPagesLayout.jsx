@@ -146,7 +146,6 @@ export default function UnifiedPagesLayout({ children }) {
             logoComponent={logoComponent}
             onLogoClick={() => (window.location.href = homeNavPath)}
             homeNavPath={homeNavPath}
-            showOrganizationDropdown={true}
           >
             <OrganizationSidebarContent
               isCollapsed={isCollapsed}
