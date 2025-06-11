@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { isEmpty } from 'underscore';
 import { IoChevronDown } from 'react-icons/io5';
 import { Menu, Transition } from '@headlessui/react';
+import PropTypes from 'prop-types';
 
 // Hooks
 import { useOutsideClick } from '@/core/hooks';
@@ -36,7 +37,11 @@ const isValidObjectId = (id) => {
  * Dropdown component for selecting organization/group in topbar
  * Handles both individual user flows and organization flows with dark mode support
  */
-const TopbarOrganizationDropdown = () => {
+const TopbarOrganizationDropdown = ({
+  onGroupChange,
+  showTitle = true,
+  className = '',
+}) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const pathname = usePathname();
@@ -103,9 +108,12 @@ const TopbarOrganizationDropdown = () => {
     }
   }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]);
 
-  // Effect to set default active group based on context
+  // Effect to set default active group based on context - only when no active group exists
   useEffect(() => {
     if (isEmpty(userGroups) || !session?.user?.id) return;
+
+    // Only set default if no active group is currently selected
+    if (activeGroup) return;
 
     if (isOrganizationContext && organizationSlug) {
       // In organization context: find group by slug
@@ -115,22 +123,21 @@ const TopbarOrganizationDropdown = () => {
           organizationSlug.toLowerCase(),
       );
 
-      if (orgGroup && (!activeGroup || activeGroup._id !== orgGroup._id)) {
+      if (orgGroup) {
         dispatch(setActiveGroup(orgGroup));
       }
     } else if (!isOrganizationContext) {
-      // In individual context: set AirQo as default
+      // In individual context: set AirQo as default only if no group is selected
       const airqoGroup = userGroups.find(
         (group) => removeSpacesAndLowerCase(group.grp_title) === 'airqo',
       );
 
-      if (airqoGroup && (!activeGroup || activeGroup._id !== airqoGroup._id)) {
+      if (airqoGroup) {
         dispatch(setActiveGroup(airqoGroup));
       }
     }
   }, [
     userGroups,
-    activeGroup,
     isOrganizationContext,
     organizationSlug,
     session?.user?.id,
@@ -143,6 +150,16 @@ const TopbarOrganizationDropdown = () => {
   const handleGroupSelect = (group) => {
     if (group._id !== activeGroup?._id) {
       dispatch(setActiveGroup(group));
+
+      // Call the callback to notify parent component about the change
+      if (onGroupChange) {
+        onGroupChange({
+          loading: false,
+          group: group,
+          isChangingOrg: true,
+          isUserContext: false,
+        });
+      }
     }
     setIsOpen(false);
   };
@@ -163,7 +180,7 @@ const TopbarOrganizationDropdown = () => {
   }
 
   return (
-    <Menu as="div" className="relative" ref={dropdownRef}>
+    <Menu as="div" className={`relative ${className}`} ref={dropdownRef}>
       <Menu.Button
         className="flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200"
         onClick={() => setIsOpen(!isOpen)}
@@ -181,17 +198,18 @@ const TopbarOrganizationDropdown = () => {
           </div>
         )}
         {/* Organization/Group Name */}
-        <span className="max-w-32 truncate">
-          {activeGroup.grp_title || ORGANIZATION_LABEL}
-        </span>
-        {/* Dropdown Arrow */}{' '}
+        {showTitle && (
+          <span className="max-w-32 truncate">
+            {activeGroup.grp_title || ORGANIZATION_LABEL}
+          </span>
+        )}
+        {/* Dropdown Arrow */}
         <IoChevronDown
           className={`h-4 w-4 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
       </Menu.Button>
-
       <Transition
         show={isOpen}
         enter="transition ease-out duration-100"
@@ -240,13 +258,13 @@ const TopbarOrganizationDropdown = () => {
                     <div className="flex-1 min-w-0">
                       <div className="truncate font-medium">
                         {group.grp_title || 'Unnamed Organization'}
-                      </div>{' '}
+                      </div>
                       {group.grp_website && (
                         <div className="truncate text-xs text-primary/60 dark:text-primary/70">
                           {group.grp_website}
                         </div>
                       )}
-                    </div>{' '}
+                    </div>
                     {/* Active Indicator */}
                     {activeGroup._id === group._id && (
                       <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
@@ -255,7 +273,7 @@ const TopbarOrganizationDropdown = () => {
                 )}
               </Menu.Item>
             ))}
-          </div>{' '}
+          </div>
           {/* Footer */}
           {userGroups.length === 0 && (
             <div className="px-3 py-4 text-center text-sm text-primary/60 dark:text-primary/70">
@@ -266,6 +284,18 @@ const TopbarOrganizationDropdown = () => {
       </Transition>
     </Menu>
   );
+};
+
+TopbarOrganizationDropdown.propTypes = {
+  onGroupChange: PropTypes.func,
+  showTitle: PropTypes.bool,
+  className: PropTypes.string,
+};
+
+TopbarOrganizationDropdown.defaultProps = {
+  onGroupChange: null,
+  showTitle: true,
+  className: '',
 };
 
 export default TopbarOrganizationDropdown;
