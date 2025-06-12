@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSelector, useDispatch } from 'react-redux';
-import DialogWrapper from '../../Modal/DialogWrapper';
+import DialogWrapper from '@/components/Modal/DialogWrapper';
 import Toast from '@/components/Toast';
 import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
 import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';

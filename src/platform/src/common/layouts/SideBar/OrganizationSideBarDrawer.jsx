@@ -5,9 +5,9 @@ import SideBarItem from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+// import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+// import UsersIcon from '@/icons/SideBar/UsersIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import UsersIcon from '@/icons/SideBar/UsersIcon';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import OrganizationDropdown from './OrganizationDropdown';
@@ -107,14 +107,14 @@ const OrganizationSideBarDrawer = () => {
               navPath={`/org/${orgSlug}/insights`}
             />
 
-            <div className="text-xs text-[#6F87A1] px-[10px] my-2 lg:my-3 mx-2 lg:mx-4 font-semibold transition-all duration-300 ease-in-out">
+            {/* <div className="text-xs text-[#6F87A1] px-[10px] my-2 lg:my-3 mx-2 lg:mx-4 font-semibold transition-all duration-300 ease-in-out">
               Organization
             </div>
             <SideBarItem
               label="Members"
               Icon={UsersIcon}
               navPath={`/org/${orgSlug}/members`}
-            />
+            /> */}
 
             <div className="text-xs text-[#6F87A1] px-[10px] my-2 lg:my-3 mx-2 lg:mx-4 font-semibold transition-all duration-300 ease-in-out">
               Account
@@ -124,11 +124,11 @@ const OrganizationSideBarDrawer = () => {
               Icon={PersonIcon}
               navPath={`/org/${orgSlug}/profile`}
             />
-            <SideBarItem
+            {/* <SideBarItem
               label="Settings"
               Icon={SettingsIcon}
               navPath={`/org/${orgSlug}/settings`}
-            />
+            /> */}
 
             <div
               onClick={handleLogout}

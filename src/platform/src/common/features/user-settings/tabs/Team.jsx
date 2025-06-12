@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import Card from '@/components/CardWrapper';
-import TeamsTable from '@/components/Settings/Teams/table';
+import TeamsTable from '../components/Teams/table';
 import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
-import TeamInviteForm from '@/components/Settings/Teams/InviteForm';
+import TeamInviteForm from '../components/Teams/InviteForm';
 
 const Team = ({ users, loading }) => {
   const [teamMembers, setTeamMembers] = useState([]);

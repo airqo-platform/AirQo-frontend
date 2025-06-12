@@ -5,8 +5,8 @@ import PlusIcon from '@/icons/Settings/plus.svg';
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
 import { inviteUserToGroupTeam } from '@/core/apis/Account';
-import AlertBox from '../../AlertBox';
-import DialogWrapper from '../../Modal/DialogWrapper';
+import AlertBox from '@/components/AlertBox';
+import DialogWrapper from '@/components/Modal/DialogWrapper';
 import { useSelector } from 'react-redux';
 
 const TeamInviteForm = ({ open, closeModal }) => {

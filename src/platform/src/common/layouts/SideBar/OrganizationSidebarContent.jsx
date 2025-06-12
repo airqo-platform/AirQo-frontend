@@ -1,10 +1,9 @@
-import React from 'react';
 import { useParams } from 'next/navigation';
 import SideBarItem from '@/common/layouts/SideBar/SideBarItem';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import UsersIcon from '@/icons/SideBar/UsersIcon';
+// import SettingsIcon from '@/icons/SideBar/SettingsIcon';
+// import UsersIcon from '@/icons/SideBar/UsersIcon';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import PropTypes from 'prop-types';
 
@@ -28,7 +27,7 @@ const OrganizationSidebarContent = ({ isCollapsed, styles }) => {
         iconOnly={isCollapsed}
       />{' '}
       {/* Organization Management Section */}
-      {isCollapsed ? (
+      {/* {isCollapsed ? (
         <hr
           className={`my-3 border-t ${styles?.divider || 'border-gray-200'}`}
         />
@@ -44,7 +43,7 @@ const OrganizationSidebarContent = ({ isCollapsed, styles }) => {
         Icon={UsersIcon}
         navPath={`/org/${orgSlug}/members`}
         iconOnly={isCollapsed}
-      />{' '}
+      /> */}
       {/* Account Section */}
       {isCollapsed ? (
         <hr
@@ -63,12 +62,12 @@ const OrganizationSidebarContent = ({ isCollapsed, styles }) => {
         navPath={`/org/${orgSlug}/profile`}
         iconOnly={isCollapsed}
       />
-      <SideBarItem
+      {/* <SideBarItem
         label="Settings"
         Icon={SettingsIcon}
         navPath={`/org/${orgSlug}/settings`}
         iconOnly={isCollapsed}
-      />
+      /> */}
     </>
   );
 };

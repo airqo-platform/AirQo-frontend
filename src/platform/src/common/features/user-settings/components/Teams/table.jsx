@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
+import Skeleton from '@/components/Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
 import Image from 'next/image';
 import Card from '@/components/CardWrapper';

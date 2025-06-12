@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Card from '@/components/CardWrapper';
-import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
+import Skeleton from '@/components/Collocation/DeviceStatus/Table/Skeleton';
 import CloseIcon from '@/icons/close_icon';
 import CheckIcon from '@/icons/tickIcon';
 import Toast from '@/components/Toast';
-import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
-import DialogWrapper from '../../Modal/DialogWrapper';
+import Pagination from '@/components/Collocation/AddMonitor/Table/Pagination';
+import DialogWrapper from '@/components/Modal/DialogWrapper';
 import {
   getAllUserClientsApi,
   activateUserClientApi,

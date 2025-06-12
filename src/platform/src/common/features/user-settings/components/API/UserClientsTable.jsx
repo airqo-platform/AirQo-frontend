@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import Skeleton from '../../Collocation/DeviceStatus/Table/Skeleton';
+import Skeleton from '@/components/Collocation/DeviceStatus/Table/Skeleton';
 import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
 import EditIcon from '@/icons/Common/edit-pencil.svg';
@@ -20,9 +20,9 @@ import {
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
 import CopyIcon from '@/icons/Common/copy.svg';
-import DialogWrapper from '../../Modal/DialogWrapper';
+import DialogWrapper from '@/components/Modal/DialogWrapper';
 import InfoCircleIcon from '@/icons/Common/info_circle.svg';
-import Pagination from '../../Collocation/AddMonitor/Table/Pagination';
+import Pagination from '@/components/Collocation/AddMonitor/Table/Pagination';
 import Card from '@/components/CardWrapper';
 
 const UserClientsTable = () => {

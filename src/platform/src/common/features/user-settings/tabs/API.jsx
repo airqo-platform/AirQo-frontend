@@ -2,10 +2,10 @@ import { useState } from 'react';
 import Card from '@/components/CardWrapper';
 import Button from '@/components/Button';
 import AddIcon from '@/icons/Actions/plus.svg';
-import UserClientsTable from '@/components/Settings/API/UserClientsTable';
-import AddClientForm from '@/components/Settings/API/AddClientForm';
-import AdminClientsTable from '@/components/Settings/API/AdminClientsTable';
-import { checkAccess } from '../page';
+import UserClientsTable from '../components/API/UserClientsTable';
+import AddClientForm from '../components/API/AddClientForm';
+import AdminClientsTable from '../components/API/AdminClientsTable';
+import { checkAccess } from '../index';
 
 const API = ({ userPermissions }) => {
   const [showAddClientForm, setShowAddClientForm] = useState(false);
