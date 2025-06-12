@@ -21,6 +21,7 @@ const CareerPage: React.FC = () => {
     isLoading: careersLoading,
     isError: careersError,
   } = useCareers();
+
   const [selectedDepartmentId, setSelectedDepartmentId] =
     useState<string>('all'); // Default to All
 
@@ -34,20 +35,18 @@ const CareerPage: React.FC = () => {
   const isJobOpen = (closingDate: string) => {
     return isBefore(new Date(), parseISO(closingDate));
   };
-
   // Filter jobs based on the selected department ID and show only open positions
   const filteredJobs = careers?.filter((career: any) => {
     const isOpen = isJobOpen(career.closing_date);
     if (selectedDepartmentId === 'all') return isOpen;
-    return isOpen && career.department === selectedDepartmentId;
+    // Fix: career.department is an object, we need to access career.department.id
+    return isOpen && career.department?.id == selectedDepartmentId;
   });
 
   // Group the jobs by department and filter only open jobs
   const groupedJobsByDepartment = filteredJobs?.reduce((acc: any, job: any) => {
-    const department = departments?.find(
-      (dept: any) => dept.id === job.department,
-    );
-    const departmentName = department ? department.name : 'Open Positions';
+    // Fix: job.department is already an object with name property
+    const departmentName = job.department?.name || 'Open Positions';
     if (!acc[departmentName]) {
       acc[departmentName] = { jobs: [], openCount: 0 };
     }
