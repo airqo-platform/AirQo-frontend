@@ -3,13 +3,15 @@
 
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 
 import AuthenticatedSideBar from '@/components/SideBar/AuthenticatedSidebar';
-import TopBar from '../TopBar';
+import PageTopBar from '../PageTopBar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import MaintenanceBanner from '../MaintenanceBanner';
+import GlobalTopbar from '../GlobalTopbar';
+import GlobalSideBarDrawer from '../GlobalTopbar/sidebar';
 
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -55,14 +57,16 @@ const Layout = ({
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
 
+      <GlobalTopbar topbarTitle={topbarTitle} />
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-12 z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar />
       </aside>
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 
+        className={`flex-1 transition-all mt-20 lg:mt-12 duration-300 
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
@@ -70,9 +74,9 @@ const Layout = ({
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
-          {/* TopBar */}
+          {/* PageTopBar */}
           {noTopNav && (
-            <TopBar
+            <PageTopBar
               topbarTitle={topbarTitle}
               noBorderBottom={noBorderBottom}
               showSearch={showSearch}
@@ -88,6 +92,8 @@ const Layout = ({
 
       {/* SideBar Drawer */}
       <SideBarDrawer />
+
+      <GlobalSideBarDrawer />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import LogoutUser from '@/core/utils/LogoutUser';
 
 const useInactivityLogout = (userId) => {

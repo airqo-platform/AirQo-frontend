@@ -17,9 +17,9 @@ const SearchBar = ({ onSearch }) => {
       </div>
       <input
         type="search"
-        placeholder="Search monitors"
+        placeholder="Search"
         value={searchTerm}
-        className="bg-grey-250 text-grey-400 flex justify-center pl-10 rounded-md text-sm border-0 focus:outline-none focus:ring focus:ring-violet-300"
+        className="bg-gray-300 text-gray-400 flex justify-center pl-10 rounded-md text-sm border-0 focus:outline-none focus:ring focus:ring-violet-300"
         onChange={handleSearch}
       />
     </div>

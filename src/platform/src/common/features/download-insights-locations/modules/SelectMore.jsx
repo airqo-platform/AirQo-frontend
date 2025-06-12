@@ -6,6 +6,7 @@ import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
  * Header component for the Add Location modal.
@@ -57,22 +58,8 @@ const SelectMore = ({ onClose }) => {
     loading,
     error: fetchError,
   } = useSelector((state) => state.sites);
-
-  // Retrieve user ID from localStorage and memoize it
-  const userID = useMemo(() => {
-    const storedUser = localStorage.getItem('loggedUser');
-    if (!storedUser) {
-      return null;
-    }
-
-    try {
-      const parsedUser = JSON.parse(storedUser);
-      return parsedUser?._id ?? null;
-    } catch (error) {
-      console.error('Error parsing "loggedUser" from localStorage:', error);
-      return null;
-    }
-  }, []);
+  // Get user ID from useGetActiveGroup hook
+  const { userID } = useGetActiveGroup();
 
   // Extract selected site IDs from user preferences
   const selectedSiteIds = useMemo(() => {

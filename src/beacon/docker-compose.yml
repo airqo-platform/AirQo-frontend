@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  airqo-frontend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: airqo-frontend-microservice
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - BACKEND_API_URL=http://srv828289.hstgr.cloud:8000
+      - NEXT_PUBLIC_API_URL=/api
+      - SERVICE_NAME=airqo-frontend
+      - SERVICE_VERSION=1.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      - "service=airqo-frontend"
+      - "version=1.0.0"
+      - "environment=production"
+    networks:
+      - airqo-network
+
+networks:
+  airqo-network:
+    driver: bridge

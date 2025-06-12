@@ -1,4 +1,9 @@
 import axios from 'axios';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options.js';
+
+// For App Router compatibility
+/* global Response */
 
 /**
  * Creates a proxy request handler for Next.js API routes
@@ -10,18 +15,46 @@ import axios from 'axios';
 export const createProxyHandler = (options = {}) => {
   const { requiresAuth = false, requiresApiToken = false } = options;
 
-  return async (req, res) => {
-    // Extract the target path from the request
-    const { path, ...queryParams } = req.query;
+  return async (req, context) => {
+    // Handle both App Router and Pages Router formats
+    let path, queryParams, res;
+
+    if (context && context.params) {
+      // App Router format - context contains params
+      path = context.params.path;
+      res = new Response(); // We'll build this manually for App Router
+      // For App Router, query params need to be extracted from the URL
+      const url = new URL(req.url);
+      queryParams = Object.fromEntries(url.searchParams.entries());
+    } else {
+      // Pages Router format - second parameter is res object
+      res = context;
+      const extracted = req.query;
+      path = extracted.path;
+      const { path: _, ...otherParams } = extracted;
+      queryParams = otherParams;
+    }
+
     const targetPath = Array.isArray(path) ? path.join('/') : path;
 
     // Only allow specified methods
     const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
     if (!allowedMethods.includes(req.method)) {
-      return res.status(405).json({
+      const errorResponse = {
         success: false,
         message: 'Method not allowed',
-      });
+      };
+
+      if (context && context.params) {
+        // App Router - return Response object
+        return new Response(JSON.stringify(errorResponse), {
+          status: 405,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        // Pages Router - use res object
+        return res.status(405).json(errorResponse);
+      }
     }
 
     try {
@@ -42,8 +75,24 @@ export const createProxyHandler = (options = {}) => {
       };
 
       // Handle request body for POST, PUT, PATCH
-      if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
-        config.data = req.body;
+      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+        if (context && context.params) {
+          // App Router - request body needs to be read differently
+          try {
+            const body = await req.text();
+            if (body) {
+              config.data = JSON.parse(body);
+            }
+          } catch {
+            // Handle case where body is not JSON or empty
+            config.data = {};
+          }
+        } else {
+          // Pages Router - body is directly available
+          if (req.body) {
+            config.data = req.body;
+          }
+        }
       }
 
       // Add API token if required (server-side only)
@@ -53,23 +102,59 @@ export const createProxyHandler = (options = {}) => {
 
         if (!API_TOKEN) {
           throw new Error('API_TOKEN environment variable not defined');
+        } // Add the token to the request params
+        config.params.token = API_TOKEN;
+      } // Add JWT token if required
+      if (requiresAuth) {
+        let authHeader;
+
+        if (context && context.params) {
+          // App Router - try to get token from NextAuth session first
+          try {
+            const session = await getServerSession(authOptions);
+            if (session?.user?.accessToken) {
+              // Ensure token starts with "JWT " as required by the API
+              const token = session.user.accessToken;
+              authHeader = token.startsWith('JWT ') ? token : `JWT ${token}`;
+            } else {
+              // Fallback to header from Request object
+              authHeader = req.headers.get('authorization');
+            }
+          } catch {
+            // Fallback to header if session retrieval fails
+            authHeader = req.headers.get('authorization');
+          }
+        } else {
+          // Pages Router - get from req.headers object
+          authHeader = req.headers.authorization;
         }
 
-        // Add the token to the request params
-        config.params.token = API_TOKEN;
-      }
-
-      // Add JWT token if required
-      if (requiresAuth && req.headers.authorization) {
-        // Forward the authorization header from the client
-        config.headers.Authorization = req.headers.authorization;
+        if (authHeader) {
+          // Ensure the token starts with "JWT " for API compatibility
+          if (
+            !authHeader.startsWith('JWT ') &&
+            !authHeader.startsWith('Bearer ')
+          ) {
+            authHeader = `JWT ${authHeader}`;
+          }
+          config.headers.Authorization = authHeader;
+        }
       }
 
       // Make the request
       const response = await axios(config);
 
-      // Return the response
-      return res.status(response.status).json(response.data);
+      // Return the response based on the format
+      if (context && context.params) {
+        // App Router - return Response object
+        return new Response(JSON.stringify(response.data), {
+          status: response.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        // Pages Router - use res object
+        return res.status(response.status).json(response.data);
+      }
     } catch (error) {
       // Forward error status code and message or fallback to generic error
       const statusCode = error.response?.status || 500;
@@ -78,7 +163,16 @@ export const createProxyHandler = (options = {}) => {
         message: 'An error occurred while processing the request',
       };
 
-      return res.status(statusCode).json(errorMessage);
+      if (context && context.params) {
+        // App Router - return Response object
+        return new Response(JSON.stringify(errorMessage), {
+          status: statusCode,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        // Pages Router - use res object
+        return res.status(statusCode).json(errorMessage);
+      }
     }
   };
 };
