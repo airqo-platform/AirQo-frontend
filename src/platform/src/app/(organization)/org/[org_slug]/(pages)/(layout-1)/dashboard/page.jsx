@@ -35,69 +35,42 @@ const OrganizationDashboardPage = () => {
       setStats(mockStats);
     }
   }, [organization]);
-
-  const StatCard = ({ title, value, subtitle, icon, trend }) => (
+  const StatCard = ({ title, value, subtitle, icon }) => (
     <CardWrapper
-      className="hover:shadow-lg transition-all duration-300 border-l-4 border-primary/20 hover:border-primary/50"
-      padding="p-6"
+      width="w-full"
+      height="h-full"
+      className=""
+      contentClassName="flex flex-col gap-4"
+      padding="p-4"
     >
-      <div className="flex flex-col h-full space-y-4">
-        {/* Header with icon */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0 pr-2">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-              {title}
-            </h3>
-            {subtitle && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {subtitle}
-              </p>
-            )}
-          </div>
-
-          {/* Simple Icon */}
-          <div className="flex-shrink-0">
-            <div className="w-12 h-12 flex justify-center items-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-200">
-              <div className="text-primary text-lg">{icon}</div>
-            </div>
-          </div>
+      {/* Icon - Like user home page design but with icons */}
+      <div className="flex items-start">
+        <div className="w-12 h-12 flex justify-center items-center rounded-full bg-primary/10">
+          <div className="text-primary text-lg">{icon}</div>
         </div>
+      </div>
 
-        {/* Main Value Display */}
-        <div className="flex items-end justify-between mt-auto">
-          <div className="flex-1">
-            <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-gray-800 dark:text-white">
-                {value}
-              </span>{' '}
-              {trend && (
-                <span
-                  className={`text-sm font-medium px-2 py-1 rounded-full ${
-                    trend.type === 'up'
-                      ? 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20'
-                      : trend.type === 'down'
-                        ? 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
-                        : 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-900/20'
-                  }`}
-                >
-                  {trend.value}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* Step Content - Like user home page design */}
+      <div>
+        <p className="text-base font-medium">{title}</p>
+        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+      </div>
 
-        {/* Simple Status */}
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            Live Data
-          </span>{' '}
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-            <span className="text-xs text-green-600 dark:text-green-400">
-              Active
+      {/* Main Value Display */}
+      <div className="flex items-end justify-between mt-auto">
+        <div className="flex-1">
+          <div className="flex items-baseline space-x-2">
+            <span className="text-3xl font-bold text-gray-800 dark:text-white">
+              {value}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Action Button - Like user home page design */}
+      <div>
+        <div className="flex justify-end">
+          <span className="text-primary font-medium">Live</span>
         </div>
       </div>
     </CardWrapper>
@@ -116,7 +89,6 @@ const OrganizationDashboardPage = () => {
   }
   return (
     <div className="space-y-8">
-      {' '}
       {/* Welcome Section with Simple Design */}
       <CardWrapper className="relative overflow-hidden" padding="p-6">
         <div className="flex items-center space-x-4 relative z-10">
@@ -138,15 +110,14 @@ const OrganizationDashboardPage = () => {
               </div>
             )}
           </div>
-
           {/* Organization Details */}
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-1">
               {organization.name}
-            </h1>
+            </h1>{' '}
             <p className="text-gray-600 dark:text-gray-400 mb-3">
               {organization.description || 'Air Quality Monitoring Dashboard'}
-            </p>{' '}
+            </p>
             {/* Status indicators */}
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
@@ -159,7 +130,7 @@ const OrganizationDashboardPage = () => {
                 Last updated: {new Date().toLocaleTimeString()}
               </span>
             </div>
-          </div>
+          </div>{' '}
         </div>
       </CardWrapper>{' '}
       {/* Statistics Grid - Only 4 Cards */}
@@ -188,7 +159,7 @@ const OrganizationDashboardPage = () => {
           subtitle={`Updated ${stats.lastUpdated.toLocaleTimeString()}`}
           icon={<DashboardIcon className="w-5 h-5" />}
         />
-      </div>{' '}
+      </div>
     </div>
   );
 };
