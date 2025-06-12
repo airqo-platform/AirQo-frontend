@@ -14,22 +14,13 @@ import {
 import withOrgAuth from '@/core/HOC/withOrgAuth';
 
 const OrganizationDashboardPage = () => {
-  const { organization, primaryColor, secondaryColor } = useOrganization();
+  const { organization } = useOrganization();
   const [stats, setStats] = useState({
     totalSites: 0,
     activeSites: 0,
     dataPoints: 0,
     lastUpdated: new Date(),
   });
-
-  // Apply organization theme
-  useEffect(() => {
-    if (primaryColor && secondaryColor) {
-      const root = document.documentElement;
-      root.style.setProperty('--org-primary', primaryColor);
-      root.style.setProperty('--org-secondary', secondaryColor);
-    }
-  }, [primaryColor, secondaryColor]);
 
   // Simulate loading organization stats
   useEffect(() => {
@@ -44,9 +35,10 @@ const OrganizationDashboardPage = () => {
       setStats(mockStats);
     }
   }, [organization]);
-  const StatCard = ({ title, value, subtitle, icon }) => (
+
+  const StatCard = ({ title, value, subtitle, icon, trend }) => (
     <CardWrapper
-      className="hover:shadow-md transition-shadow duration-200"
+      className="hover:shadow-lg transition-all duration-300 border-l-4 border-primary/20 hover:border-primary/50"
       padding="p-6"
     >
       <div className="flex flex-col h-full space-y-4">
@@ -65,11 +57,8 @@ const OrganizationDashboardPage = () => {
 
           {/* Simple Icon */}
           <div className="flex-shrink-0">
-            <div
-              className="w-10 h-10 flex justify-center items-center rounded-lg"
-              style={{ backgroundColor: `${primaryColor || '#3B82F6'}10` }}
-            >
-              <div style={{ color: primaryColor || '#3B82F6' }}>{icon}</div>
+            <div className="w-12 h-12 flex justify-center items-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-200">
+              <div className="text-primary text-lg">{icon}</div>
             </div>
           </div>
         </div>
@@ -80,7 +69,20 @@ const OrganizationDashboardPage = () => {
             <div className="flex items-baseline space-x-2">
               <span className="text-3xl font-bold text-gray-800 dark:text-white">
                 {value}
-              </span>
+              </span>{' '}
+              {trend && (
+                <span
+                  className={`text-sm font-medium px-2 py-1 rounded-full ${
+                    trend.type === 'up'
+                      ? 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20'
+                      : trend.type === 'down'
+                        ? 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20'
+                        : 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-900/20'
+                  }`}
+                >
+                  {trend.value}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -89,7 +91,13 @@ const OrganizationDashboardPage = () => {
         <div className="flex justify-between items-center">
           <span className="text-xs text-gray-400 dark:text-gray-500">
             Live Data
-          </span>
+          </span>{' '}
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <span className="text-xs text-green-600 dark:text-green-400">
+              Active
+            </span>
+          </div>
         </div>
       </div>
     </CardWrapper>
@@ -98,8 +106,8 @@ const OrganizationDashboardPage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
             Loading organization dashboard...
           </p>
         </div>
@@ -123,7 +131,7 @@ const OrganizationDashboardPage = () => {
                 className="rounded-lg"
               />
             ) : (
-              <div className="w-15 h-15 bg-primary/10 rounded-lg flex items-center justify-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center">
                 <span className="text-xl font-medium text-primary">
                   {organization.name?.charAt(0)}
                 </span>
@@ -138,15 +146,11 @@ const OrganizationDashboardPage = () => {
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-3">
               {organization.description || 'Air Quality Monitoring Dashboard'}
-            </p>
-
+            </p>{' '}
             {/* Status indicators */}
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: primaryColor || '#3B82F6' }}
-                />
+                <div className="w-2 h-2 rounded-full bg-primary" />
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   Live Dashboard
                 </span>

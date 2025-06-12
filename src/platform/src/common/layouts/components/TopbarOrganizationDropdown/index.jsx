@@ -163,7 +163,9 @@ const TopbarOrganizationDropdown = ({
     session?.user?.id,
     dispatch,
     activeGroup,
-  ]); /**
+  ]);
+
+  /**
    * Handle group selection with navigation support
    */
   const handleGroupSelect = async (group) => {
@@ -173,11 +175,12 @@ const TopbarOrganizationDropdown = ({
     }
 
     try {
-      setIsNavigating(true);
       setIsOpen(false);
 
       // If we're in organization context, navigate to the new organization's route
       if (isOrganizationContext) {
+        setIsNavigating(true);
+
         const orgSlug = titleToSlug(group.grp_title);
 
         // Extract the current route segment after the organization slug
@@ -206,6 +209,7 @@ const TopbarOrganizationDropdown = ({
         }
       } else {
         // In individual context, just update the active group and preferences
+        // No navigation needed, so no loading state
         dispatch(setActiveGroup(group));
 
         // Persist the user's group selection to preferences
@@ -226,14 +230,16 @@ const TopbarOrganizationDropdown = ({
           onGroupChange({
             loading: false,
             group: group,
-            isChangingOrg: true,
+            isChangingOrg: false, // Fixed: Individual context doesn't change organization
             isUserContext: true,
           });
         }
       }
     } catch {
-      // Reset navigation state on error
-      setIsNavigating(false);
+      // Reset navigation state on error (only relevant for organization context)
+      if (isOrganizationContext) {
+        setIsNavigating(false);
+      }
     }
   };
 
