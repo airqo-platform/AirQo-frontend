@@ -25,7 +25,7 @@ const OrganizationSidebarContent = ({ isCollapsed, styles }) => {
         Icon={BarChartIcon}
         navPath={`/org/${orgSlug}/insights`}
         iconOnly={isCollapsed}
-      />{' '}
+      />
       {/* Organization Management Section */}
       {/* {isCollapsed ? (
         <hr
