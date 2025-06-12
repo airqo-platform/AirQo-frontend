@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { isEmpty } from 'underscore';
 import { IoChevronDown } from 'react-icons/io5';
 import { Menu } from '@headlessui/react';
@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 // Hooks
 import { useOutsideClick } from '@/core/hooks';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { useOrgSlugActiveGroup } from '@/core/hooks/useOrgSlugActiveGroup';
 
 // Redux
 import {
@@ -40,6 +41,19 @@ const isValidObjectId = (id) => {
 };
 
 /**
+ * Utility function to convert organization title to URL slug
+ * @param {string} title - Organization title
+ * @returns {string} URL-safe slug
+ */
+const titleToSlug = (title) => {
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+/**
  * Dropdown component for selecting organization/group in topbar
  * Handles both individual user flows and organization flows with dark mode support
  */
@@ -50,10 +64,15 @@ const TopbarOrganizationDropdown = ({
 }) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
+  const router = useRouter();
   const pathname = usePathname();
 
   // Theme variables for dark mode classes (used in template conditionals)
   const { theme: _theme, systemTheme: _systemTheme } = useTheme();
+
+  // Use the organization slug hook to manage active group based on URL
+  const { isOrganizationContext, organizationSlug: _organizationSlug } =
+    useOrgSlugActiveGroup();
 
   // Redux state
   const activeGroup = useSelector(selectActiveGroup);
@@ -62,6 +81,7 @@ const TopbarOrganizationDropdown = ({
 
   // Local state
   const [isOpen, setIsOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const dropdownRef = useRef(null);
 
   // Handle outside click to close dropdown
@@ -84,22 +104,6 @@ const TopbarOrganizationDropdown = ({
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen]);
-
-  // Determine if we're in organization context
-  const isOrganizationContext = useMemo(() => {
-    return (
-      pathname?.includes('/organization/') ||
-      pathname?.startsWith('/organization')
-    );
-  }, [pathname]);
-
-  // Get organization slug from URL if in organization context
-  const organizationSlug = useMemo(() => {
-    if (!isOrganizationContext || !pathname) return null;
-    const match = pathname.match(/\/organization\/([^/]+)/);
-    return match ? match[1] : null;
-  }, [isOrganizationContext, pathname]);
-
   // Effect to fetch user groups when component mounts or user changes
   useEffect(() => {
     const userID = session?.user?.id;
@@ -112,101 +116,131 @@ const TopbarOrganizationDropdown = ({
     ) {
       dispatch(fetchUserGroups(userID));
     }
-  }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]); // Effect to set default active group based on context - only when no active group exists
+  }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]);
+
+  // Effect to set default active group for individual context when no group is selected
   useEffect(() => {
-    if (isEmpty(userGroups) || !session?.user?.id) return;
+    if (isEmpty(userGroups) || !session?.user?.id || isOrganizationContext)
+      return;
 
     // Only set default if no active group is currently selected
     if (activeGroup) return;
 
-    if (isOrganizationContext && organizationSlug) {
-      // In organization context: find group by slug
-      const orgGroup = userGroups.find(
-        (group) =>
-          removeSpacesAndLowerCase(group.grp_title) ===
-          organizationSlug.toLowerCase(),
-      );
+    // In individual context: only set AirQo as default if it's the first time or no preferences exist
+    const airqoGroup = userGroups.find(
+      (group) => removeSpacesAndLowerCase(group.grp_title) === 'airqo',
+    );
 
-      if (orgGroup) {
-        dispatch(setActiveGroup(orgGroup));
-      }
-    } else if (!isOrganizationContext) {
-      // In individual context: only set AirQo as default if it's the first time or no preferences exist
-      // This prevents overriding user's previously selected organization after page refresh
-      const airqoGroup = userGroups.find(
-        (group) => removeSpacesAndLowerCase(group.grp_title) === 'airqo',
-      );
-
-      // Only set AirQo as default if:
-      // 1. AirQo group exists, AND
-      // 2. User has no stored preferences (first time user)
-      if (airqoGroup && userGroups.length > 0) {
-        // Try to get user's last preference first
-        const trySetFromPreferences = async () => {
-          try {
-            const prefRes = await recentUserPreferencesAPI(session.user.id);
-            if (prefRes.success && prefRes.preference?.group_id) {
-              const preferredGroup = userGroups.find(
-                (g) => g._id === prefRes.preference.group_id,
-              );
-              if (preferredGroup) {
-                dispatch(setActiveGroup(preferredGroup));
-                return;
-              }
+    // Only set AirQo as default if AirQo group exists
+    if (airqoGroup && userGroups.length > 0) {
+      // Try to get user's last preference first
+      const trySetFromPreferences = async () => {
+        try {
+          const prefRes = await recentUserPreferencesAPI(session.user.id);
+          if (prefRes.success && prefRes.preference?.group_id) {
+            const preferredGroup = userGroups.find(
+              (g) => g._id === prefRes.preference.group_id,
+            );
+            if (preferredGroup) {
+              dispatch(setActiveGroup(preferredGroup));
+              return;
             }
-          } catch {
-            // If preferences API fails, fall back to AirQo only if it's available
-            // Silent error handling in production
           }
+        } catch {
+          // If preferences API fails, fall back to AirQo only if it's available
+          // Silent error handling in production
+        }
 
-          // Fallback: set AirQo as default only if no other preference was found
-          dispatch(setActiveGroup(airqoGroup));
-        };
+        // Fallback: set AirQo as default only if no other preference was found
+        dispatch(setActiveGroup(airqoGroup));
+      };
 
-        trySetFromPreferences();
-      }
+      trySetFromPreferences();
     }
   }, [
     userGroups,
     isOrganizationContext,
-    organizationSlug,
     session?.user?.id,
     dispatch,
     activeGroup,
-  ]);
-  /**
-   * Handle group selection
+  ]); /**
+   * Handle group selection with navigation support
    */
-  const handleGroupSelect = (group) => {
-    if (group._id !== activeGroup?._id) {
-      dispatch(setActiveGroup(group));
-
-      // Persist the user's group selection to preferences
-      if (session?.user?.id) {
-        dispatch(
-          replaceUserPreferences({
-            user_id: session.user.id,
-            group_id: group._id,
-          }),
-        ).catch(() => {
-          // Silent error handling for preference update failures
-          // The Redux state will still be updated, ensuring UI consistency
-        });
-      }
-
-      // Call the callback to notify parent component about the change
-      if (onGroupChange) {
-        onGroupChange({
-          loading: false,
-          group: group,
-          isChangingOrg: true,
-          isUserContext: false,
-        });
-      }
+  const handleGroupSelect = async (group) => {
+    if (group._id === activeGroup?._id) {
+      setIsOpen(false);
+      return;
     }
-    setIsOpen(false);
+
+    try {
+      setIsNavigating(true);
+      setIsOpen(false);
+
+      // If we're in organization context, navigate to the new organization's route
+      if (isOrganizationContext) {
+        const orgSlug = titleToSlug(group.grp_title);
+
+        // Extract the current route segment after the organization slug
+        // e.g., /org/airqo/dashboard -> dashboard
+        // e.g., /org/airqo/insights -> insights
+        const currentRoute =
+          pathname.split('/').slice(3).join('/') || 'dashboard';
+
+        // Navigate to the new organization's route
+        const newRoute = `/org/${orgSlug}/${currentRoute}`;
+
+        // Set the active group immediately for UI feedback
+        dispatch(setActiveGroup(group));
+
+        // Navigate to the new route - this will trigger the useOrgSlugActiveGroup hook
+        await router.push(newRoute);
+
+        // Call the callback to notify parent component about the change
+        if (onGroupChange) {
+          onGroupChange({
+            loading: true,
+            group: group,
+            isChangingOrg: true,
+            isUserContext: false,
+          });
+        }
+      } else {
+        // In individual context, just update the active group and preferences
+        dispatch(setActiveGroup(group));
+
+        // Persist the user's group selection to preferences
+        if (session?.user?.id) {
+          dispatch(
+            replaceUserPreferences({
+              user_id: session.user.id,
+              group_id: group._id,
+            }),
+          ).catch(() => {
+            // Silent error handling for preference update failures
+            // The Redux state will still be updated, ensuring UI consistency
+          });
+        }
+
+        // Call the callback to notify parent component about the change
+        if (onGroupChange) {
+          onGroupChange({
+            loading: false,
+            group: group,
+            isChangingOrg: true,
+            isUserContext: true,
+          });
+        }
+      }
+    } catch {
+      // Reset navigation state on error
+      setIsNavigating(false);
+    }
   };
 
+  // Reset navigation state when route changes
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [pathname]);
   // Don't render anything if no groups or loading
   if (isLoadingGroups || isEmpty(userGroups)) {
     return (
@@ -220,6 +254,18 @@ const TopbarOrganizationDropdown = ({
   // Don't render if no active group
   if (!activeGroup) {
     return null;
+  }
+
+  // Show loading state when navigating between organizations
+  if (isNavigating) {
+    return (
+      <div className="flex items-center space-x-2">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          Switching organization...
+        </span>
+      </div>
+    );
   }
   return (
     <Menu as="div" className={`relative ${className}`} ref={dropdownRef}>
@@ -256,13 +302,14 @@ const TopbarOrganizationDropdown = ({
       <Menu.Items className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-primary/20 bg-white py-1 shadow-lg ring-1 ring-primary/10 ring-opacity-5 focus:outline-none dark:border-primary/30 dark:bg-gray-800 dark:ring-primary/20 transition-colors duration-200">
         <div className="px-3 py-2 text-xs font-semibold text-primary/70 uppercase tracking-wide dark:text-primary/80">
           Switch Organization
-        </div>
+        </div>{' '}
         <div className="max-h-60 overflow-y-auto">
           {userGroups.map((group) => (
             <Menu.Item key={group._id}>
               {({ active }) => (
                 <button
                   onClick={() => handleGroupSelect(group)}
+                  disabled={isNavigating}
                   className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm transition-colors duration-200 ${
                     active
                       ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
@@ -271,7 +318,7 @@ const TopbarOrganizationDropdown = ({
                     activeGroup._id === group._id
                       ? 'bg-primary/15 font-medium text-primary dark:bg-primary/25 dark:text-primary'
                       : ''
-                  }`}
+                  } ${isNavigating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {/* Group Logo */}
                   {group.grp_image ? (
@@ -296,9 +343,12 @@ const TopbarOrganizationDropdown = ({
                       </div>
                     )}
                   </div>
-                  {/* Active Indicator */}
-                  {activeGroup._id === group._id && (
+                  {/* Active Indicator or Loading Spinner */}
+                  {activeGroup._id === group._id && !isNavigating && (
                     <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
+                  )}
+                  {isNavigating && (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                   )}
                 </button>
               )}
