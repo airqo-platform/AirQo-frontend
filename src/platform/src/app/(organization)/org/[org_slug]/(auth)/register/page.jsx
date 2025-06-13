@@ -12,7 +12,7 @@ import { registerUserToOrgApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
-import { withOrgAuthRoute } from '@/core/HOC/withAuthRoute';
+import { withOrgAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const registrationSchema = Yup.object().shape({

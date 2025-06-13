@@ -13,7 +13,7 @@ import {
   addActiveSelectedDeviceReport,
 } from '@/lib/store/services/collocation/collocationDataSlice';
 import { isEmpty } from 'underscore';
-import { withPermission } from '@/core/HOC/withUserAuth';
+import { withPermission } from '@/core/HOC';
 import {
   getCollocationResults,
   getDataCompletenessResults,

@@ -3,6 +3,36 @@ import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { clearAllGroupData } from '@/lib/store/services/groups';
 import logger from '@/lib/logger';
 
+// Global logout state to manage overlay
+// This allows components to show logout overlay without tight coupling
+let globalLogoutState = {
+  setIsLoggingOut: null,
+  setLogoutMessage: null,
+};
+
+// Function to set the global logout context handlers
+export const setLogoutContext = (setIsLoggingOut, setLogoutMessage) => {
+  globalLogoutState.setIsLoggingOut = setIsLoggingOut;
+  globalLogoutState.setLogoutMessage = setLogoutMessage;
+};
+
+// Function to trigger logout overlay
+const triggerLogoutOverlay = (message = 'Logging out...') => {
+  if (globalLogoutState.setIsLoggingOut) {
+    globalLogoutState.setIsLoggingOut(true);
+  }
+  if (globalLogoutState.setLogoutMessage) {
+    globalLogoutState.setLogoutMessage(message);
+  }
+};
+
+// Function to hide logout overlay
+const hideLogoutOverlay = () => {
+  if (globalLogoutState.setIsLoggingOut) {
+    globalLogoutState.setIsLoggingOut(false);
+  }
+};
+
 /**
  * Clear token cache from secureApiProxyClient
  * This ensures cached JWT tokens are cleared during logout
@@ -139,9 +169,12 @@ const clearAxiosAuthHeaders = () => {
  * Uses path-based context detection for appropriate redirects
  * Includes comprehensive session and cache cleanup with immediate UI feedback
  */
-const LogoutUser = async (dispatch, router, showImmediateRedirect = true) => {
+const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
   try {
     logger.info('Starting comprehensive logout process');
+
+    // Trigger logout overlay at the start
+    triggerLogoutOverlay('Logging you out...');
 
     // Determine redirect URL based on current route context (unified session approach)
     let redirectUrl = '/user/login'; // Default for individual users
@@ -162,20 +195,17 @@ const LogoutUser = async (dispatch, router, showImmediateRedirect = true) => {
       logger.info('Using user redirect based on path context');
     }
 
-    // Step 1: Provide immediate visual feedback by redirecting first
-    if (showImmediateRedirect && router && router.push) {
-      logger.info(`Providing immediate redirect to: ${redirectUrl}`);
-      router.push(redirectUrl);
-    }
+    // Step 1: Clear all authentication data FIRST before any redirects
+    // This prevents the auth HOC from detecting a session during redirect
 
-    // Step 2: Clear token and session caches in background
+    // Clear token and session caches immediately
     clearTokenCache();
     clearSessionCache();
 
-    // Step 3: Reset all Redux slices to initial state
+    // Reset all Redux slices to initial state immediately
     resetAllReduxSlices(dispatch);
 
-    // Step 3: Clear localStorage but preserve theme and location settings
+    // Step 2: Clear localStorage but preserve theme and location settings
     if (typeof window !== 'undefined') {
       // Preserve user preferences that should survive logout
       const preservedSettings = {
@@ -228,20 +258,14 @@ const LogoutUser = async (dispatch, router, showImmediateRedirect = true) => {
     // Step 7: Clear authentication cookies
     clearAuthCookies();
 
-    // Step 8: Use NextAuth signOut with appropriate redirect URL
+    // Step 8: Use NextAuth signOut with immediate redirect to clear session
+    // This ensures the session is completely cleared before any navigation
     await signOut({
-      redirect: false,
+      redirect: true,
       callbackUrl: redirectUrl,
     });
 
-    logger.debug('NextAuth signOut completed');
-
-    // Step 9: Force a small delay to ensure all cleanup operations complete
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Step 10: Navigate to the appropriate login page (if not already redirected)
-    if (!showImmediateRedirect && router && router.push) {
-      logger.info(`Final redirect to: ${redirectUrl}`);
-      router.push(redirectUrl);
-    }
+    logger.debug('NextAuth signOut completed with redirect');
   } catch (error) {
     logger.error('Logout error:', error);
 
@@ -279,6 +303,9 @@ const LogoutUser = async (dispatch, router, showImmediateRedirect = true) => {
         window.location.href = '/user/login';
       }
     }
+  } finally {
+    // Hide logout overlay at the end of the process
+    hideLogoutOverlay();
   }
 };
 

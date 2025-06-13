@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
-import withOrgAuth from '@/core/HOC/withOrgAuth';
+import { withOrgAuth } from '@/core/HOC';
 import { updateGroupDetailsApi } from '@/core/apis/Account';
 import {
   fetchGroupDetails,

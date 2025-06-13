@@ -9,7 +9,7 @@ import { resetPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import withUserAuthRoute from '@/core/HOC/withAuthRoute';
+import { withUserAuthRoute } from '@/core/HOC';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string().required('Password is required'),

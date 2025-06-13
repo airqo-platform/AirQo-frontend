@@ -15,7 +15,7 @@ import {
   FaUserCheck,
   FaUserTimes,
 } from 'react-icons/fa';
-import withOrgAuth from '@/core/HOC/withOrgAuth';
+import { withOrgAuth } from '@/core/HOC';
 
 const OrganizationMembersPage = ({ params: _params }) => {
   const { organization, primaryColor } = useOrganization();

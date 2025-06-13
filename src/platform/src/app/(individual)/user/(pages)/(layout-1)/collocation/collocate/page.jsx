@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { withPermission } from '@/core/HOC/withUserAuth';
+import { withPermission } from '@/core/HOC';
 import { getDeviceStatusSummary } from '@/lib/store/services/collocation';
 
 import HeaderNav from '@/common/layouts/components/HeaderNav';

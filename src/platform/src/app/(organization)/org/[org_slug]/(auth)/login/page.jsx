@@ -12,7 +12,7 @@ import InputField from '@/common/components/InputField';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withOrgAuthRoute } from '@/core/HOC/withAuthRoute';
+import { withOrgAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -76,12 +76,19 @@ const OrganizationLogin = () => {
         if (result?.error) {
           setError('Invalid credentials. Please try again.');
         } else if (result?.ok) {
-          // Get the session after successful login
+          // Force session refresh after successful login
           const session = await getSession();
-
           if (session?.user) {
-            // Navigate directly to organization dashboard since login was successful
-            router.replace(`/org/${orgSlug}/dashboard`);
+            // The HOC will handle organization setup and redirection
+            logger.info(
+              'Organization login successful, HOC will handle setup and redirect',
+            );
+
+            // Force NextAuth to update the session context immediately
+            // by triggering a window focus event
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new window.Event('focus'));
+            }
           } else {
             throw new Error('Session data is incomplete');
           }

@@ -15,7 +15,7 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
-import withUserAuth from '@/core/HOC/withUserAuth';
+import { withUserAuth } from '@/core/HOC';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';

@@ -5,7 +5,7 @@ import AccountPageLayout from '@/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
-import withUserAuthRoute from '@/core/HOC/withAuthRoute';
+import { withUserAuthRoute } from '@/core/HOC';
 
 const VerifyUserEmail = () => {
   const dispatch = useDispatch();

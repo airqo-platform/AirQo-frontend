@@ -108,7 +108,7 @@ const AuthenticatedSideBar = ({
       <div
         className={`
           transition-all duration-200 ease-in-out relative z-50 hidden lg:block p-1
-          ${isCollapsed ? 'w-[80px]' : 'w-[256px]'}
+          ${isCollapsed ? 'w-[75px]' : 'w-[256px]'}
           h-[calc(100vh-4rem)]
         `}
       >

@@ -15,8 +15,7 @@ import InputField from '@/common/components/InputField';
 
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { setupIndividualUserAfterLogin } from '@/core/utils/setupUserIndividual';
-import withUserAuthRoute from '@/core/HOC/withAuthRoute';
+import { withAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -29,7 +28,6 @@ const loginSchema = Yup.object().shape({
 const UserLogin = () => {
   const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isSettingUp, setIsSettingUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
@@ -65,29 +63,23 @@ const UserLogin = () => {
         }
 
         if (result?.ok) {
-          // Show setup screen while we fetch additional required data
-          setIsSettingUp(true);
-
-          // Get the session after successful login
+          // Force session refresh after successful login
           const session = await _getSession();
 
           if (session?.user && session?.accessToken) {
-            try {
-              // Setup user with the session data using individual user setup
-              await setupIndividualUserAfterLogin(session, dispatch);
+            // The HOC will handle user setup and redirection
+            logger.info('Login successful, HOC will handle setup and redirect');
 
-              // Navigate to home page after setup is complete
-              router.push('/user/Home');
-            } catch (setupError) {
-              setIsSettingUp(false);
-              throw setupError;
+            // Force NextAuth to update the session context immediately
+            // by triggering a window focus event
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new window.Event('focus'));
             }
           } else {
             throw new Error('Session data is incomplete');
           }
         }
       } catch (err) {
-        setIsSettingUp(false);
         const errorMessage =
           err.response?.data?.message ||
           (err.response?.status === 401
@@ -108,22 +100,9 @@ const UserLogin = () => {
     },
     [dispatch],
   );
-
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  }; // Show simple loading screen when setting up user data
-  if (isSettingUp) {
-    return (
-      <div className="w-full h-screen flex flex-grow justify-center items-center bg-white">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="SecondaryMainloader" aria-label="Loading"></div>
-          <p className="text-sm text-gray-600 animate-pulse">
-            Setting up your dashboard...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <ErrorBoundary name="UserLogin" feature="User Authentication">
@@ -206,4 +185,4 @@ const UserLogin = () => {
   );
 };
 
-export default withUserAuthRoute(UserLogin);
+export default withAuthRoute(UserLogin);

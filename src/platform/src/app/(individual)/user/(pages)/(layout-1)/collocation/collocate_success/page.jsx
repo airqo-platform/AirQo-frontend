@@ -4,7 +4,7 @@ import React from 'react';
 import CollocationSuccessImg from '@/icons/Collocation/collocate_success.svg';
 import ContentLessTopBar from '@/common/layouts/components/ContentLessTopBar';
 import Button from '@/components/Button';
-import withUserAuth from '@/core/HOC/withUserAuth';
+import { withUserAuth } from '@/core/HOC';
 
 const CollocationSuccess = () => {
   return (

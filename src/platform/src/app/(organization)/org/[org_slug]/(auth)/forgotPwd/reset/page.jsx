@@ -12,7 +12,7 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
-import withOrgAuthRoute from '@/core/HOC/withAuthRoute';
+import { withOrgAuthRoute } from '@/core/HOC';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()

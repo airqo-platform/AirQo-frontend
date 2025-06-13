@@ -92,7 +92,10 @@ export default function OrgRequestsPage() {
 
   // Memoize sorted requests based on filtered requests and sort parameters
   const memoizedSortedRequests = useMemo(() => {
-    if (!Array.isArray(memoizedFilteredRequests) || memoizedFilteredRequests.length === 0) {
+    if (
+      !Array.isArray(memoizedFilteredRequests) ||
+      memoizedFilteredRequests.length === 0
+    ) {
       return [];
     }
 
@@ -249,15 +252,24 @@ export default function OrgRequestsPage() {
 
   // Calculate filtered requests for each tab
   const pendingRequests = useMemo(
-    () => memoizedFilteredRequests.filter((req) => (req.status || '') === 'pending'),
+    () =>
+      memoizedFilteredRequests.filter(
+        (req) => (req.status || '') === 'pending',
+      ),
     [memoizedFilteredRequests],
   );
   const approvedRequests = useMemo(
-    () => memoizedFilteredRequests.filter((req) => (req.status || '') === 'approved'),
+    () =>
+      memoizedFilteredRequests.filter(
+        (req) => (req.status || '') === 'approved',
+      ),
     [memoizedFilteredRequests],
   );
   const rejectedRequests = useMemo(
-    () => memoizedFilteredRequests.filter((req) => (req.status || '') === 'rejected'),
+    () =>
+      memoizedFilteredRequests.filter(
+        (req) => (req.status || '') === 'rejected',
+      ),
     [memoizedFilteredRequests],
   );
 
@@ -374,7 +386,11 @@ export default function OrgRequestsPage() {
         </div>
         <div label="All Requests">
           <RequestsTable
-            requests={Array.isArray(memoizedPaginatedRequests) ? memoizedPaginatedRequests : []}
+            requests={
+              Array.isArray(memoizedPaginatedRequests)
+                ? memoizedPaginatedRequests
+                : []
+            }
             formatDate={formatDate}
             onView={(request) => {
               setSelectedRequest(request);
@@ -517,8 +533,8 @@ export default function OrgRequestsPage() {
         <div className="space-y-4">
           <h3 className="font-bold text-lg">Approve Organization</h3>
           <p className="text-sm text-gray-500">
-            {selectedRequest?.organization_name} will be granted access to
-            AirQo Analytics.
+            {selectedRequest?.organization_name} will be granted access to AirQo
+            Analytics.
           </p>
         </div>
       </DialogWrapper>
@@ -534,8 +550,8 @@ export default function OrgRequestsPage() {
         <div className="space-y-4">
           <h3 className="font-bold text-lg">Reject Organization</h3>
           <p className="text-sm text-gray-500">
-            {selectedRequest?.organization_name} will be denied access to
-            AirQo Analytics.
+            {selectedRequest?.organization_name} will be denied access to AirQo
+            Analytics.
           </p>
           <div className="space-y-4 mt-4">
             <div>

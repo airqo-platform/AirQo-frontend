@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { withPermission } from '@/core/HOC/withUserAuth';
+import { withPermission } from '@/core/HOC';
 import { getCollocationDevices } from '@/lib/store/services/deviceRegistry';
 import { collocateDevices } from '@/lib/store/services/collocation';
 import {

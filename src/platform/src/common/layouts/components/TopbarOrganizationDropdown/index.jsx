@@ -428,7 +428,9 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
               isSwitching ? 'opacity-50' : ''
             }`}
           >
-            {displayGroup?.grp_title?.charAt(0)?.toUpperCase() || 'O'}
+            {formatGroupName(displayGroup?.grp_title)
+              ?.charAt(0)
+              ?.toUpperCase() || 'O'}
           </div>
         )}
         {/* Organization Name */}
@@ -436,9 +438,10 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
           <span
             className={`max-w-32 truncate ${isSwitching ? 'opacity-50' : ''}`}
           >
+            {' '}
             {isSwitching
               ? 'Switching...'
-              : displayGroup?.grp_title || ORGANIZATION_LABEL}
+              : formatGroupName(displayGroup?.grp_title) || ORGANIZATION_LABEL}
           </span>
         )}
         {/* Dropdown Arrow */}
@@ -480,14 +483,18 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
                     />
                   ) : (
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary dark:bg-primary/20 dark:text-primary">
-                      {group.grp_title?.charAt(0)?.toUpperCase() || 'O'}
+                      {formatGroupName(group.grp_title)
+                        ?.charAt(0)
+                        ?.toUpperCase() || 'O'}
                     </div>
                   )}
 
                   {/* Group Info */}
                   <div className="flex-1 min-w-0">
+                    {' '}
                     <div className="truncate font-medium">
-                      {group.grp_title || 'Unnamed Organization'}
+                      {formatGroupName(group.grp_title) ||
+                        'Unnamed Organization'}
                     </div>
                     {group.grp_website && (
                       <div className="truncate text-xs text-primary/60 dark:text-primary/70">
@@ -523,3 +530,17 @@ TopbarOrganizationDropdown.propTypes = {
 };
 
 export default TopbarOrganizationDropdown;
+
+/**
+ * Utility function to format group names for display
+ * Converts underscores and hyphens to spaces and applies uppercase formatting
+ */
+const formatGroupName = (groupName) => {
+  if (!groupName) return '';
+  return groupName
+    .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+    .split(' ')
+    .map((word) => word.toUpperCase()) // Convert each word to uppercase
+    .join(' ')
+    .trim(); // Remove any extra whitespace
+};

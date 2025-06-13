@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import { useSelector } from 'react-redux';
+import { useSession } from 'next-auth/react';
 
 /**
  * Context for managing organization loading states
@@ -23,9 +24,8 @@ const OrganizationLoadingContext = createContext({
  */
 function OrganizationLoadingOverlay({ isVisible }) {
   if (!isVisible) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col items-center space-y-4 shadow-xl">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         <p className="text-gray-700 dark:text-gray-300 font-medium">
@@ -48,6 +48,7 @@ export function OrganizationLoadingProvider({ children }) {
   const [lastActiveGroupId, setLastActiveGroupId] = useState(null);
   const [lastOrgName, setLastOrgName] = useState(null);
   const isInitialized = useRef(false);
+  const isUserLoggedIn = useRef(false);
   const switchTimeoutRef = useRef(null);
 
   // Get relevant Redux state
@@ -55,6 +56,8 @@ export function OrganizationLoadingProvider({ children }) {
   const userGroupsLoading = useSelector(
     (state) => state.groups?.userGroupsLoading,
   );
+  const { status } = useSession();
+  const loginSuccess = useSelector((state) => state.login?.success);
 
   // Initialize on first mount - don't trigger loading on initial load
   useEffect(() => {
@@ -62,18 +65,24 @@ export function OrganizationLoadingProvider({ children }) {
       setLastActiveGroupId(activeGroup._id);
       setLastOrgName(activeGroup?.grp_title);
       isInitialized.current = true;
-    }
-  }, [activeGroup?._id, activeGroup?.grp_title]);
 
+      // Delay before allowing organization switch detection
+      // This prevents the modal from showing on initial login
+      setTimeout(() => {
+        isUserLoggedIn.current = true;
+      }, 2000); // 2 second delay
+    }
+  }, [activeGroup?._id, activeGroup?.grp_title, status, loginSuccess]);
   // Track when organization switches occur (only when both ID and name change)
   // This prevents triggering on route changes within the same organization
   useEffect(() => {
-    if (!isInitialized.current) return;
+    if (!isInitialized.current || !isUserLoggedIn.current) return;
 
     const currentGroupId = activeGroup?._id;
     const currentOrgName = activeGroup?.grp_title;
 
     // Only trigger if BOTH the group ID changed AND it's a different organization
+    // AND the user has been logged in for a while (not initial login)
     if (
       currentGroupId &&
       currentOrgName &&
