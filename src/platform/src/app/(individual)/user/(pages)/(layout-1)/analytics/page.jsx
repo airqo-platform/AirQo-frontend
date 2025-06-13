@@ -1,9 +1,15 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-// Remove unused import since middleware handles auth
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import OverView from './view/OverView';
+import { setOpenModal } from '@/lib/store/services/downloadModal';
+import AQNumberCard from '@/features/airQuality-cards';
+import Modal from '@/features/download-insights-locations';
+import {
+  useAnalyticsOverviewData,
+  AnalyticsControls,
+  AnalyticsChartsGrid,
+} from '@/features/analytics-overview';
 import AlertBox from '@/components/AlertBox';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
@@ -11,6 +17,7 @@ import withUserAuth from '@/core/HOC/withUserAuth';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
+  const isModalOpen = useSelector((state) => state.modal.openModal);
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const [customise, setCustomise] = useState(false);
   const preferenceData = useSelector(
@@ -21,6 +28,25 @@ const AuthenticatedHomePage = () => {
   useOutsideClick(customiseRef, () => {
     if (customise) setCustomise(false);
   });
+
+  // Use our custom hook for data management
+  const {
+    allSiteData,
+    chartData,
+    dateRange,
+    apiDateRange,
+    isChartLoading,
+    isError,
+    error,
+    handleTimeFrameChange,
+    handlePollutantChange,
+    handleDateChange,
+    refetch,
+  } = useAnalyticsOverviewData();
+
+  const handleCloseModal = useCallback(() => {
+    dispatch(setOpenModal(false));
+  }, [dispatch]);
 
   /**
    * Sets chart details based on user preferences.
@@ -38,7 +64,6 @@ const AuthenticatedHomePage = () => {
       dispatch(setChartSites(chartSites));
     }
   }, [dispatch, preferenceData]);
-
   return (
     <>
       <AlertBox
@@ -47,7 +72,32 @@ const AuthenticatedHomePage = () => {
         show={alert.show}
         hide={() => setAlert({ ...alert, show: false })}
       />
-      <OverView />
+
+      <div className="flex flex-col gap-8">
+        {/* Controls Section */}
+        <AnalyticsControls
+          chartData={chartData}
+          dateRange={dateRange}
+          onTimeFrameChange={handleTimeFrameChange}
+          onPollutantChange={handlePollutantChange}
+          onDateChange={handleDateChange}
+        />
+
+        {/* AQ Number Card */}
+        <AQNumberCard />
+
+        {/* Charts Section */}
+        <AnalyticsChartsGrid
+          allSiteData={allSiteData}
+          isChartLoading={isChartLoading}
+          isError={isError}
+          error={error}
+          refetch={refetch}
+          apiDateRange={apiDateRange}
+        />
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
     </>
   );
 };
