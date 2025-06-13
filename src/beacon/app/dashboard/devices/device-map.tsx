@@ -34,10 +34,7 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null)
   const hasInitializedRef = useRef(false)
 
-  // Log the devices to help with debugging
-  useEffect(() => {
-    console.log("Devices passed to map:", devices);
-  }, [devices]);
+ 
 
   // Initialize map and update markers in a single useEffect
   useEffect(() => {
@@ -103,7 +100,7 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
 
         // Add markers
         devices.forEach((device) => {
-          console.log("Rendering device on map:", device.id, "with readings:", device.latest_reading);
+          
           
           const isSelected = device.id === selectedDeviceId
           const icon = createCustomIcon(device.status, isSelected)

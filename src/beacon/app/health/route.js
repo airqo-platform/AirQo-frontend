@@ -16,7 +16,10 @@ export async function GET() {
 
   try {
     // Test backend connectivity
-    const backendUrl = process.env.BACKEND_API_URL || 'http://srv828289.hstgr.cloud:8000';
+    const backendUrl = process.env.BACKEND_API_URL ;
+    if (!backendUrl) {
+      throw new Error('BACKEND_API_URL is not defined');
+    }
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     
