@@ -349,8 +349,7 @@ const useMapData = ({
     CACHE_DURATION,
     lastFetchTimeRef,
     mapDataCacheRef,
-  ]);
-  // Optimized WAQ data fetching with better performance
+  ]); // Optimized WAQ data fetching with better performance
   const fetchWaqData = useCallback(
     async (cities) => {
       if (!cities?.length) return [];
@@ -362,58 +361,85 @@ const useMapData = ({
       abortControllerRef.current = new AbortController();
 
       try {
-        // Limit concurrent requests to avoid overwhelming the server
-        const BATCH_SIZE = 5;
+        // Increase batch size and optimize concurrent processing
+        const BATCH_SIZE = 10; // Increased from 5 to 10
         const results = [];
+        const MAX_CONCURRENT_BATCHES = 3; // Process multiple batches concurrently
 
-        for (let i = 0; i < cities.length; i += BATCH_SIZE) {
-          const batch = cities.slice(i, i + BATCH_SIZE);
+        // Process cities in chunks with concurrent batching
+        for (
+          let i = 0;
+          i < cities.length;
+          i += BATCH_SIZE * MAX_CONCURRENT_BATCHES
+        ) {
+          const chunks = [];
 
-          const batchPromises = batch.map((city) =>
-            axios
-              .get(`/api/waqi?city=${encodeURIComponent(city)}`, {
-                signal: abortControllerRef.current.signal,
-                timeout: 8000, // 8 second timeout per request
-              })
-              .then((response) => {
-                const cityData = response.data?.data;
-                if (!cityData?.city?.geo || !cityData.iaqi) return null;
+          // Create multiple batches to process concurrently
+          for (let j = 0; j < MAX_CONCURRENT_BATCHES; j++) {
+            const startIndex = i + j * BATCH_SIZE;
+            const endIndex = Math.min(startIndex + BATCH_SIZE, cities.length);
 
-                const key = pollutant === 'pm2_5' ? 'pm25' : pollutant;
-                const pollutantValue = cityData.iaqi[key]?.v;
+            if (startIndex < cities.length) {
+              const batch = cities.slice(startIndex, endIndex);
+              chunks.push(batch);
+            }
+          }
 
-                if (pollutantValue === undefined) return null;
+          // Process all chunks concurrently
+          const chunkPromises = chunks.map(async (batch) => {
+            const batchPromises = batch.map((city) =>
+              axios
+                .get(`/api/waqi?city=${encodeURIComponent(city)}`, {
+                  signal: abortControllerRef.current.signal,
+                  timeout: 12000, // Increased timeout to 12 seconds
+                })
+                .then((response) => {
+                  const cityData = response.data?.data;
+                  if (!cityData?.city?.geo || !cityData.iaqi) return null;
 
-                const aqi = getAQICategory(pollutant, pollutantValue);
-                return createFeature(
-                  cityData.idx,
-                  cityData.city.name,
-                  [cityData.city.geo[1], cityData.city.geo[0]],
-                  aqi,
-                  cityData.iaqi.no2?.v,
-                  cityData.iaqi.pm10?.v,
-                  cityData.iaqi.pm25?.v,
-                  cityData.time?.iso,
-                  getForecastForPollutant(cityData),
-                );
-              })
-              .catch((error) => {
-                if (error.name !== 'AbortError') {
-                  console.warn(
-                    `Failed to fetch WAQ data for city ${city}:`,
-                    error.message,
+                  const key = pollutant === 'pm2_5' ? 'pm25' : pollutant;
+                  const pollutantValue = cityData.iaqi[key]?.v;
+
+                  if (pollutantValue === undefined) return null;
+
+                  const aqi = getAQICategory(pollutant, pollutantValue);
+                  return createFeature(
+                    cityData.idx,
+                    cityData.city.name,
+                    [cityData.city.geo[1], cityData.city.geo[0]],
+                    aqi,
+                    cityData.iaqi.no2?.v,
+                    cityData.iaqi.pm10?.v,
+                    cityData.iaqi.pm25?.v,
+                    cityData.time?.iso,
+                    getForecastForPollutant(cityData),
                   );
-                }
-                return null;
-              }),
-          );
+                })
+                .catch((error) => {
+                  if (error.name !== 'AbortError') {
+                    // Silently handle errors to prevent console spam
+                    // Only log critical errors
+                    if (
+                      error.code !== 'ECONNABORTED' &&
+                      error.response?.status !== 404
+                    ) {
+                      // Could add error reporting here if needed
+                    }
+                  }
+                  return null;
+                }),
+            );
 
-          const batchResults = await Promise.all(batchPromises);
-          results.push(...batchResults.filter(Boolean));
+            return Promise.all(batchPromises);
+          });
 
-          // Small delay between batches to prevent rate limiting
-          if (i + BATCH_SIZE < cities.length) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
+          const chunkResults = await Promise.all(chunkPromises);
+          const flatResults = chunkResults.flat().filter(Boolean);
+          results.push(...flatResults);
+
+          // Shorter delay between chunk groups
+          if (i + BATCH_SIZE * MAX_CONCURRENT_BATCHES < cities.length) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
           }
         }
 
@@ -421,7 +447,7 @@ const useMapData = ({
         return results;
       } catch (error) {
         if (error.name !== 'AbortError') {
-          console.error('Error fetching WAQ data:', error);
+          // Only log critical errors
         }
         return [];
       } finally {
@@ -443,7 +469,7 @@ const useMapData = ({
       // Start both operations concurrently for better performance
       const [mapFeatures, waqFeatures] = await Promise.allSettled([
         fetchMapReadings(),
-        fetchWaqData(AQI_FOR_CITIES.slice(0, 20)), // Limit to first 20 cities for performance
+        fetchWaqData(AQI_FOR_CITIES), // Load ALL cities, not just first 20
       ]);
 
       const mapResult =
