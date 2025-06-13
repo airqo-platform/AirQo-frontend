@@ -261,7 +261,7 @@ const MapPage = () => {
               </div>
             )}
             {loadingOthers && (
-              <div className="absolute bg-white dark:text-black-900 rounded-md p-2 top-4 right-16 flex items-center z-50">
+              <div className="absolute bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md p-2 top-4 right-16 flex items-center z-50">
                 <Loader width={20} height={20} />
                 <span className="ml-2 text-sm">Loading global AQI data...</span>
               </div>
