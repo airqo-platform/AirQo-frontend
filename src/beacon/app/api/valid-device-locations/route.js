@@ -1,7 +1,10 @@
+
+import { config } from '@/lib/config'
+
 export async function GET() {
     try {
       // Connect to your FastAPI backend
-      const response = await fetch('http://localhost:8000/valid-device-locations', {
+      const response = await fetch(`${config.apiUrl}/valid-device-locations`, {
         cache: 'no-store'
       })
   
