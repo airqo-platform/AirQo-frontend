@@ -21,12 +21,13 @@ import {
   setActiveGroup,
   fetchUserGroups,
 } from '@/lib/store/services/groups';
+import {
+  replaceUserPreferences,
+  getIndividualUserPreferences,
+} from '@/lib/store/services/account/UserDefaultsSlice';
 
 // APIs
 import { recentUserPreferencesAPI } from '@/core/apis/Account';
-
-// Redux Actions for preferences
-import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 // Utils
 import {
@@ -173,9 +174,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
             return;
           }
         }
-      }
-
-      // PRIORITY 2: For user flow (/user/*), use AirQo group or user preferences
+      } // PRIORITY 2: For user flow (/user/*), use AirQo group or user preferences
       if (pathname.startsWith('/user/')) {
         // Find AirQo group first
         selectedGroup = userGroups.find(isAirQoGroup);
@@ -185,8 +184,16 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
           if (!activeGroup || activeGroup._id !== selectedGroup._id) {
             dispatch(setActiveGroup(selectedGroup));
 
-            // Update user preferences for AirQo in background
+            // Fetch individual user preferences for AirQo group immediately
             try {
+              await dispatch(
+                getIndividualUserPreferences({
+                  identifier: session.user.id,
+                  groupID: selectedGroup._id,
+                }),
+              );
+
+              // Also update preferences to ensure consistency
               await dispatch(
                 replaceUserPreferences({
                   user_id: session.user.id,
