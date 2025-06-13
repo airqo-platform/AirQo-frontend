@@ -2,7 +2,6 @@
 
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import CardWrapper from '@/common/components/CardWrapper';
 
 // Import icons from react-icons
@@ -66,13 +65,6 @@ const OrganizationDashboardPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Action Button - Like user home page design */}
-      <div>
-        <div className="flex justify-end">
-          <span className="text-primary font-medium">Live</span>
-        </div>
-      </div>
     </CardWrapper>
   );
   if (!organization) {
@@ -92,47 +84,20 @@ const OrganizationDashboardPage = () => {
       {/* Welcome Section with Simple Design */}
       <CardWrapper className="relative overflow-hidden" padding="p-6">
         <div className="flex items-center space-x-4 relative z-10">
-          {/* Organization Logo - Simple */}
-          <div className="flex-shrink-0">
-            {organization.logo ? (
-              <Image
-                src={organization.logo}
-                alt={`${organization.name} logo`}
-                width={60}
-                height={60}
-                className="rounded-lg"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center">
-                <span className="text-xl font-medium text-primary">
-                  {organization.name?.charAt(0)}
-                </span>
-              </div>
-            )}
-          </div>
           {/* Organization Details */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-1">
-              {organization.name}
-            </h1>{' '}
-            <p className="text-gray-600 dark:text-gray-400 mb-3">
+            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">
               {organization.description || 'Air Quality Monitoring Dashboard'}
             </p>
             {/* Status indicators */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Live Dashboard
-                </span>
-              </div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-6">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Last updated: {new Date().toLocaleTimeString()}
               </span>
             </div>
-          </div>{' '}
+          </div>
         </div>
-      </CardWrapper>{' '}
+      </CardWrapper>
       {/* Statistics Grid - Only 4 Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
