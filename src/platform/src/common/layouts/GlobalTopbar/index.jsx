@@ -10,7 +10,6 @@ import MenuBarIcon from '@/icons/menu_bar';
 import MenuIcon from '@/icons/Actions/menu';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
-import OrganizationLoadingOverlay from '@/common/components/OrganizationLoadingOverlay';
 import {
   setTogglingGlobalDrawer,
   setToggleDrawer,
@@ -37,13 +36,6 @@ const GlobalTopbar = ({
   const { width } = useWindowSize();
   const dispatch = useDispatch();
   const { theme, systemTheme } = useTheme();
-
-  // Organization loading state
-  const [organizationLoading, setOrganizationLoading] = useState({
-    isLoading: false,
-    organizationName: '',
-    message: 'Switching organizations...',
-  });
 
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
@@ -109,33 +101,6 @@ const GlobalTopbar = ({
       router.push(homeNavPath);
     }
   }, [onLogoClick, router, homeNavPath]);
-  // Handle organization changes with loading state
-  const handleOrganizationChange = useCallback(
-    ({ loading, group, isChangingOrg, isUserContext }) => {
-      if (loading) {
-        setOrganizationLoading({
-          isLoading: true,
-          organizationName:
-            group?.grp_title?.replace(/[-_]/g, ' ').toUpperCase() || '',
-          message: isChangingOrg
-            ? 'Switching organizations...'
-            : isUserContext
-              ? 'Updating organization preferences...'
-              : 'Loading organization data...',
-        });
-      } else {
-        // Delay hiding loading to allow for smooth transition
-        setTimeout(() => {
-          setOrganizationLoading({
-            isLoading: false,
-            organizationName: '',
-            message: '',
-          });
-        }, 500);
-      }
-    },
-    [],
-  );
 
   // Don't render until client-side hydration is complete to prevent mismatch
   if (!mounted) {
@@ -239,10 +204,7 @@ const GlobalTopbar = ({
             {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
             <div className="hidden lg:flex gap-2 items-center justify-center">
               {/* Organization Dropdown - Show for users with multiple groups */}
-              <TopbarOrganizationDropdown
-                onGroupChange={handleOrganizationChange}
-                className="mr-2"
-              />
+              <TopbarOrganizationDropdown className="mr-2" />
               {customActions && (
                 <div className="flex items-center justify-center">
                   {customActions}
@@ -297,11 +259,7 @@ const GlobalTopbar = ({
               </div>
             )}{' '}
             {/* Organization Dropdown for mobile */}
-            <TopbarOrganizationDropdown
-              onGroupChange={handleOrganizationChange}
-              showTitle={false}
-              className="mr-2"
-            />
+            <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
             {/* Custom actions for mobile if any */}
             {customActions && (
               <div className="flex gap-1 items-center justify-center">
@@ -311,12 +269,6 @@ const GlobalTopbar = ({
           </div>
         </CardWrapper>
       </div>
-      {/* Organization Loading Overlay */}
-      <OrganizationLoadingOverlay
-        isVisible={organizationLoading.isLoading}
-        organizationName={organizationLoading.organizationName}
-        message={organizationLoading.message}
-      />
     </div>
   );
 };

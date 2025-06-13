@@ -1,6 +1,23 @@
+/**
+ * Organization Dropdown Component for Sidebar
+ *
+ * Smart Routing Logic:
+ * - AirQo Group: Routes to individual user flow (/user/*)
+ * - Other Organizations: Routes to organization flow (/org/[slug]/*)
+ * - Preserves current page context when switching between organizations
+ *
+ * Features:
+ * - Consistent routing behavior with TopbarOrganizationDropdown
+ * - Automatic route mapping between user and organization contexts
+ * - Responsive design for collapsed/expanded sidebar states
+ * - Memory efficient with proper cleanup and error handling
+ * - No redundant navigation or infinite loops
+ */
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import { useRouter, usePathname } from 'next/navigation';
 import { GoOrganization } from 'react-icons/go';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import Spinner from '@/common/components/Spinner';
@@ -8,6 +25,7 @@ import { replaceUserPreferences } from '@/lib/store/services/account/UserDefault
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { removeSpacesAndLowerCase } from '@/core/utils/strings';
 import clsx from 'clsx';
 import { Transition } from '@headlessui/react';
 
@@ -16,8 +34,103 @@ const cleanGroupName = (name) => {
   return name.replace(/[-_]/g, ' ').toUpperCase();
 };
 
+/**
+ * Utility function to check if a group is AirQo
+ * @param {Object} group - The group object
+ * @returns {boolean} - True if the group is AirQo
+ */
+const isAirQoGroup = (group) => {
+  if (!group?.grp_title) return false;
+  return removeSpacesAndLowerCase(group.grp_title) === 'airqo';
+};
+
+/**
+ * Utility function to convert organization title to URL slug
+ * @param {string} title - Organization title
+ * @returns {string} URL-safe slug
+ */
+const titleToSlug = (title) => {
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+/**
+ * Utility function to determine the target route based on group type and current route
+ * @param {Object} group - The selected group
+ * @param {string} currentPathname - Current pathname
+ * @param {boolean} isCurrentlyInOrgContext - Whether currently in org context
+ * @returns {string} - The target route
+ */
+const determineTargetRoute = (
+  group,
+  currentPathname,
+  isCurrentlyInOrgContext,
+) => {
+  const isTargetAirQo = isAirQoGroup(group);
+
+  // Extract the page context from current route
+  let pageContext = 'dashboard'; // default fallback
+
+  if (isCurrentlyInOrgContext) {
+    // Extract from /org/[slug]/[page] pattern
+    const orgRouteMatch = currentPathname.match(/^\/org\/[^/]+\/(.+)$/);
+    if (orgRouteMatch) {
+      pageContext = orgRouteMatch[1];
+    }
+  } else {
+    // Extract from /user/[page] pattern or other user routes
+    if (currentPathname.startsWith('/user/')) {
+      const userRouteMatch = currentPathname.match(/^\/user\/(.+)$/);
+      if (userRouteMatch) {
+        pageContext = userRouteMatch[1];
+      }
+    } else {
+      // Handle legacy routes or special cases
+      if (currentPathname.includes('/analytics')) pageContext = 'analytics';
+      else if (currentPathname.includes('/map')) pageContext = 'map';
+      else if (currentPathname.includes('/settings')) pageContext = 'settings';
+      else if (currentPathname.includes('/Home')) pageContext = 'Home';
+      else if (currentPathname.includes('/insights')) pageContext = 'insights';
+      else if (currentPathname.includes('/profile')) pageContext = 'profile';
+    }
+  }
+
+  // Map organization pages to user pages for AirQo navigation
+  const orgToUserPageMap = {
+    dashboard: 'Home',
+    insights: 'analytics',
+    profile: 'settings',
+    settings: 'settings',
+    members: 'settings', // fallback to settings for now
+  };
+
+  // Map user pages to organization pages for non-AirQo navigation
+  const userToOrgPageMap = {
+    Home: 'dashboard',
+    analytics: 'insights',
+    map: 'dashboard', // map doesn't exist in org context, redirect to dashboard
+    settings: 'profile',
+  };
+
+  if (isTargetAirQo) {
+    // Navigate to user flow
+    const targetPage = orgToUserPageMap[pageContext] || pageContext;
+    return `/user/${targetPage}`;
+  } else {
+    // Navigate to organization flow
+    const orgSlug = titleToSlug(group.grp_title);
+    const targetPage = userToOrgPageMap[pageContext] || pageContext;
+    return `/org/${orgSlug}/${targetPage}`;
+  }
+};
+
 const OrganizationDropdown = ({ className = '' }) => {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
   const { data: session, update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
@@ -75,24 +188,21 @@ const OrganizationDropdown = ({ className = '' }) => {
       setSelectedGroupId(group._id);
 
       try {
-        // Check if this is an organization-specific context
-        const currentPath = window.location.pathname;
-        const isOrgContext = currentPath.startsWith('/org/');
+        // Check current context
+        const isCurrentlyInOrgContext = pathname.startsWith('/org/');
+        const isTargetAirQo = isAirQoGroup(group);
+        const targetRoute = determineTargetRoute(
+          group,
+          pathname,
+          isCurrentlyInOrgContext,
+        );
 
-        if (isOrgContext) {
-          // In organization context, we don't update preferences
-          // Instead, we redirect to the selected organization's dashboard
-          const orgSlug =
-            group.grp_title
-              ?.toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/^-+|-+$/g, '') || group._id;
-          if (orgSlug && orgSlug !== currentPath.split('/')[2]) {
-            window.location.href = `/org/${orgSlug}/dashboard`;
-            return;
-          }
-        } else {
-          // In individual user context, update preferences as usual
+        // Navigate to the appropriate route
+        await router.push(targetRoute);
+
+        // Handle preferences based on target organization type
+        if (isTargetAirQo) {
+          // For AirQo (individual context), update preferences
           await dispatch(
             replaceUserPreferences({
               user_id: userID,
@@ -111,20 +221,16 @@ const OrganizationDropdown = ({ className = '' }) => {
             });
           }
         }
-      } catch (error) {
+        // For other organizations, no preference update needed as they are in org context
+      } catch {
         // Silent error handling for production stability
-        // Error details are available in development console
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to update organization/group selection:', error);
-        }
       } finally {
         setLoading(false);
         setSelectedGroupId(null);
         setIsOpen(false);
       }
     },
-    [dispatch, userID, updateSession, session],
+    [dispatch, userID, updateSession, session, router, pathname],
   );
 
   const handleDropdownSelect = (group) => {

@@ -87,6 +87,32 @@ export const isUserContext = (pathname) => {
 };
 
 /**
+ * Determines the appropriate route path based on group/organization
+ * @param {string} groupTitle - The group/organization title
+ * @param {string} defaultPath - The default path if no specific routing needed
+ * @returns {string} The appropriate route path
+ */
+export const getRoutePathForGroup = (
+  groupTitle,
+  defaultPath = '/user/Home',
+) => {
+  if (!groupTitle) return defaultPath;
+
+  // If the group is AirQo, always route to user paths
+  if (groupTitle.toLowerCase() === 'airqo') {
+    return defaultPath
+      .replace('/org/', '/user/')
+      .replace('/dashboard', '/Home');
+  }
+
+  // For other organizations, use organization paths
+  const orgSlug = groupTitle.toLowerCase().replace(/\s+/g, '-');
+  return defaultPath
+    .replace('/user/', `/org/${orgSlug}/`)
+    .replace('/Home', '/dashboard');
+};
+
+/**
  * Validates session access based on route context
  * Unified sessions allow access to both user and organization contexts
  * @param {Object} session - The session object
@@ -124,8 +150,31 @@ export const validateSessionAccess = (session, routeType, options = {}) => {
     };
   }
 
-  // If session exists, allow access to both contexts
-  // Context switching is handled by the UI layout and navigation
+  // If session exists, check for proper routing based on group
+  if (session?.user?.activeGroup?.grp_title) {
+    const groupTitle = session.user.activeGroup.grp_title.toLowerCase();
+
+    // If user is in AirQo group but on organization route, redirect to user route
+    if (groupTitle === 'airqo' && routeType === ROUTE_TYPES.ORGANIZATION) {
+      return {
+        isValid: false,
+        redirectPath: '/user/Home',
+        reason: 'AirQo users should use user routes',
+      };
+    }
+
+    // If user is in non-AirQo group but on user route, redirect to organization route
+    if (groupTitle !== 'airqo' && routeType === ROUTE_TYPES.USER) {
+      const orgSlug = groupTitle.replace(/\s+/g, '-');
+      return {
+        isValid: false,
+        redirectPath: `/org/${orgSlug}/dashboard`,
+        reason: 'Organization users should use organization routes',
+      };
+    }
+  }
+
+  // If session exists and routing is appropriate, allow access
   return { isValid: true };
 };
 

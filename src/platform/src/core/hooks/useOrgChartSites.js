@@ -29,6 +29,8 @@ export const useOrgChartSites = (organizationName, options = {}) => {
     (state) => state.defaults.individual_preferences?.[0],
   );
 
+  // Get current active group to track organization changes
+  const activeGroup = useSelector((state) => state.groups?.activeGroup);
   // Fetch organization sites using the existing hook
   const {
     data: sitesSummaryData,
@@ -37,7 +39,19 @@ export const useOrgChartSites = (organizationName, options = {}) => {
     error: sitesErrorMessage,
   } = useSitesSummary(organizationName?.toLowerCase(), {
     enabled: enabled && !!organizationName,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
   });
+
+  // Clear chart sites when organization changes (before new data loads)
+  useEffect(() => {
+    if (enabled && organizationName) {
+      // Clear chart sites immediately when organization changes
+      // This prevents showing previous organization's data
+      dispatch(setChartSites([]));
+    }
+  }, [dispatch, enabled, organizationName, activeGroup?._id]);
   // Effect to automatically set chart sites when organization sites are fetched
   useEffect(() => {
     if (
@@ -60,8 +74,10 @@ export const useOrgChartSites = (organizationName, options = {}) => {
         if (selectedSiteIds.length > 0) {
           dispatch(setChartSites(selectedSiteIds));
         }
-      } else if (!chartSites || chartSites.length === 0) {
-        // No user preferences and no chart sites - auto-select from available sites
+      } else {
+        // No user preferences - auto-select from available sites
+        // Always set sites when we have org data to ensure proper updates during org switches
+
         // Filter for online sites first, fallback to all sites if no online sites
         const onlineSites = sitesSummaryData.filter(
           (site) => site.isOnline === true,
@@ -75,6 +91,7 @@ export const useOrgChartSites = (organizationName, options = {}) => {
           .map((site) => site._id)
           .filter(Boolean);
 
+        // Always dispatch to ensure sites are set for the new organization
         if (selectedSiteIds.length > 0) {
           dispatch(setChartSites(selectedSiteIds));
         }
@@ -85,14 +102,14 @@ export const useOrgChartSites = (organizationName, options = {}) => {
     enabled,
     organizationName,
     sitesSummaryData,
-    chartSites,
     maxSites,
-    preferences,
+    // Remove preferences from dependencies to prevent refetch when user switches from org to individual
+    activeGroup?._id, // Include activeGroup ID to trigger updates on org changes
   ]);
-
-  // Effect to clear chart sites when organization changes or is cleared
+  // Only clear chart sites when explicitly disabled or organization is completely removed
   useEffect(() => {
-    if (!enabled || !organizationName) {
+    if (!enabled && organizationName) {
+      // Only clear if explicitly disabled
       dispatch(setChartSites([]));
     }
   }, [dispatch, enabled, organizationName]);

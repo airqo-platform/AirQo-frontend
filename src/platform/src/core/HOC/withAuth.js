@@ -11,6 +11,7 @@ import {
   validateClientSession,
   logSessionValidation,
   extractOrgSlug,
+  getRoutePathForGroup,
 } from '@/core/utils/sessionUtils';
 import logger from '@/lib/logger';
 
@@ -40,12 +41,23 @@ export const withAuth = (Component, options = {}) => {
 
           if (type === 'userAuth' || type === 'orgAuth') {
             if (status === 'authenticated' && session?.user) {
+              // Determine route based on active group
+              const activeGroup = session?.user?.activeGroup;
+              const groupTitle = activeGroup?.grp_title || 'airqo';
+
               if (type === 'userAuth') {
-                router.replace('/user/Home');
+                const appropriateRoute = getRoutePathForGroup(
+                  groupTitle,
+                  '/user/Home',
+                );
+                router.replace(appropriateRoute);
                 return;
               } else if (type === 'orgAuth') {
-                const orgSlug = extractOrgSlug(pathname) || 'airqo';
-                router.replace(`/org/${orgSlug}/dashboard`);
+                const appropriateRoute = getRoutePathForGroup(
+                  groupTitle,
+                  '/org/airqo/dashboard',
+                );
+                router.replace(appropriateRoute);
                 return;
               }
             }

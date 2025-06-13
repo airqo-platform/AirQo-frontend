@@ -7,6 +7,7 @@ import {
   setPollutant,
   setChartDataRange,
   setRefreshChart,
+  clearChartDataForOrganizationSwitch,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useOrgChartSites } from '@/core/hooks/useOrgChartSites';
@@ -19,6 +20,23 @@ export const useOrganizationAnalyticsData = (organization) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
+
+  // Track previous organization to detect changes
+  const [previousOrgId, setPreviousOrgId] = useState(null);
+
+  // Clear previous organization data when organization changes
+  useEffect(() => {
+    const currentOrgId = organization?._id;
+
+    if (previousOrgId && currentOrgId && previousOrgId !== currentOrgId) {
+      // Clear all chart data when switching organizations
+      // This prevents showing previous organization's data
+      dispatch(clearChartDataForOrganizationSwitch());
+    }
+
+    setPreviousOrgId(currentOrgId);
+  }, [organization?._id, previousOrgId, dispatch]);
+
   // Use the organization chart sites hook to automatically fetch and set chart sites
   const {
     isLoading: sitesLoading,
@@ -68,13 +86,20 @@ export const useOrganizationAnalyticsData = (organization) => {
 
   // Fetch analytics data with memoized parameters
   const { allSiteData, chartLoading, isError, error, refetch } =
-    useAnalyticsData({
-      selectedSiteIds: chartData.chartSites,
-      dateRange: apiDateRange,
-      frequency: chartData.timeFrame,
-      pollutant: chartData.pollutionType,
-      organisationName: organization?.name || '',
-    });
+    useAnalyticsData(
+      {
+        selectedSiteIds: chartData.chartSites,
+        dateRange: apiDateRange,
+        frequency: chartData.timeFrame,
+        pollutant: chartData.pollutionType,
+        organisationName: organization?.name || '',
+      },
+      {
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
+      },
+    );
 
   // Initialize chart data range if not set
   useEffect(() => {
@@ -114,7 +139,6 @@ export const useOrganizationAnalyticsData = (organization) => {
       );
     };
   }, [dispatch, defaultDateRange]);
-
   // Handle chart refresh when AddLocations saves new locations
   useEffect(() => {
     if (refreshChart) {

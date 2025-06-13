@@ -15,6 +15,7 @@ import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
 import AuthSync from './AuthSync';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
+import { OrganizationLoadingProvider } from './OrganizationLoadingProvider';
 
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);
@@ -133,8 +134,10 @@ export default function ClientProviders({ children }) {
     <NextAuthProvider>
       <ReduxProviders>
         <ThemeProvider>
-          <AuthSync />
-          {children}
+          <OrganizationLoadingProvider>
+            <AuthSync />
+            {children}
+          </OrganizationLoadingProvider>
         </ThemeProvider>
       </ReduxProviders>
     </NextAuthProvider>

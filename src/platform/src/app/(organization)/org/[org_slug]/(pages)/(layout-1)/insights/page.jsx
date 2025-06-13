@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import withOrgAuth from '@/core/HOC/withOrgAuth';
@@ -17,7 +17,6 @@ import AlertBox from '@/components/AlertBox';
 const OrganizationInsightsPage = ({ params: _params }) => {
   const dispatch = useDispatch();
   const { organization } = useOrganization();
-  const [isLoading, setIsLoading] = useState(true);
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const isModalOpen = useSelector((state) => state.modal.openModal);
 
@@ -27,7 +26,6 @@ const OrganizationInsightsPage = ({ params: _params }) => {
     chartData,
     dateRange,
     apiDateRange,
-    sitesLoading,
     sitesError,
     sitesErrorMessage,
     hasSites,
@@ -45,23 +43,6 @@ const OrganizationInsightsPage = ({ params: _params }) => {
   const handleCloseModal = useCallback(() => {
     dispatch(setOpenModal(false));
   }, [dispatch]);
-
-  useEffect(() => {
-    if (organization && !sitesLoading) {
-      setIsLoading(false);
-    }
-  }, [organization, sitesLoading]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading insights dashboard...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!organization) {
     return (

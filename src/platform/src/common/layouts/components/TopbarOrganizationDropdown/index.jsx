@@ -9,8 +9,9 @@ import PropTypes from 'prop-types';
 
 // Hooks
 import { useOutsideClick } from '@/core/hooks';
-import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
-import { useOrgSlugActiveGroup } from '@/core/hooks/useOrgSlugActiveGroup';
+
+// Organization Loading Context
+import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 
 // Redux
 import {
@@ -33,7 +34,6 @@ import { ORGANIZATION_LABEL } from '@/lib/constants';
 
 /**
  * Utility function to validate ObjectId format
- * Prevents API calls with invalid ObjectIds
  */
 const isValidObjectId = (id) => {
   if (!id || typeof id !== 'string') return false;
@@ -42,8 +42,6 @@ const isValidObjectId = (id) => {
 
 /**
  * Utility function to convert organization title to URL slug
- * @param {string} title - Organization title
- * @returns {string} URL-safe slug
  */
 const titleToSlug = (title) => {
   if (!title) return '';
@@ -54,34 +52,96 @@ const titleToSlug = (title) => {
 };
 
 /**
- * Dropdown component for selecting organization/group in topbar
- * Handles both individual user flows and organization flows with dark mode support
+ * Utility function to check if a group is AirQo
  */
-const TopbarOrganizationDropdown = ({
-  onGroupChange,
-  showTitle = true,
-  className = '',
-}) => {
+const isAirQoGroup = (group) => {
+  if (!group?.grp_title) return false;
+  return removeSpacesAndLowerCase(group.grp_title) === 'airqo';
+};
+
+/**
+ * Utility function to determine the target route based on group selection
+ */
+const determineTargetRoute = (group, currentPathname) => {
+  const isTargetAirQo = isAirQoGroup(group);
+
+  // Extract page context from current route
+  let pageContext = 'dashboard'; // default fallback
+
+  if (currentPathname.startsWith('/org/')) {
+    // Extract from /org/[slug]/[page] pattern
+    const orgRouteMatch = currentPathname.match(/^\/org\/[^/]+\/(.+)$/);
+    if (orgRouteMatch) {
+      pageContext = orgRouteMatch[1];
+    }
+  } else if (currentPathname.startsWith('/user/')) {
+    // Extract from /user/[page] pattern
+    const userRouteMatch = currentPathname.match(/^\/user\/(.+)$/);
+    if (userRouteMatch) {
+      pageContext = userRouteMatch[1];
+    }
+  } else {
+    // Handle legacy routes
+    if (currentPathname.includes('/analytics')) pageContext = 'analytics';
+    else if (currentPathname.includes('/map')) pageContext = 'map';
+    else if (currentPathname.includes('/settings')) pageContext = 'settings';
+    else if (currentPathname.includes('/Home')) pageContext = 'Home';
+    else if (currentPathname.includes('/insights')) pageContext = 'insights';
+    else if (currentPathname.includes('/profile')) pageContext = 'profile';
+  }
+
+  // Map organization pages to user pages for AirQo navigation
+  const orgToUserPageMap = {
+    dashboard: 'Home',
+    insights: 'analytics',
+    profile: 'settings',
+    settings: 'settings',
+    members: 'settings',
+  };
+
+  // Map user pages to organization pages for non-AirQo navigation
+  const userToOrgPageMap = {
+    Home: 'dashboard',
+    analytics: 'insights',
+    map: 'dashboard', // map doesn't exist in org context
+    settings: 'profile',
+  };
+
+  if (isTargetAirQo) {
+    // Navigate to user flow
+    const targetPage = orgToUserPageMap[pageContext] || pageContext;
+    return `/user/${targetPage}`;
+  } else {
+    // Navigate to organization flow
+    const orgSlug = titleToSlug(group.grp_title);
+    const targetPage = userToOrgPageMap[pageContext] || pageContext;
+    return `/org/${orgSlug}/${targetPage}`;
+  }
+};
+
+/**
+ * TopbarOrganizationDropdown Component
+ *
+ * Robust Organization Switching with Smart Routing:
+ * - AirQo Group: Routes to /user/* flow and sets as active group
+ * - Other Organizations: Routes to /org/[slug]/* flow
+ * - Always displays current active group or default state
+ * - Preserves current page context when switching
+ */
+const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-
-  // Theme variables for dark mode classes (used in template conditionals)
-  const { theme: _theme, systemTheme: _systemTheme } = useTheme();
-
-  // Use the organization slug hook to manage active group based on URL
-  const { isOrganizationContext, organizationSlug: _organizationSlug } =
-    useOrgSlugActiveGroup();
+  const { setIsSwitchingOrganization } = useOrganizationLoading();
 
   // Redux state
   const activeGroup = useSelector(selectActiveGroup);
   const userGroups = useSelector(selectUserGroups);
   const isLoadingGroups = useSelector(selectUserGroupsLoading);
-
-  // Local state
+  // Local state  // Local state
   const [isOpen, setIsOpen] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
   const dropdownRef = useRef(null);
 
   // Handle outside click to close dropdown
@@ -104,10 +164,10 @@ const TopbarOrganizationDropdown = ({
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen]);
-  // Effect to fetch user groups when component mounts or user changes
+
+  // Fetch user groups when component mounts
   useEffect(() => {
     const userID = session?.user?.id;
-    // Only fetch if we have a valid user ID and no groups loaded yet
     if (
       userID &&
       isValidObjectId(userID) &&
@@ -118,189 +178,273 @@ const TopbarOrganizationDropdown = ({
     }
   }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]);
 
-  // Effect to set default active group for individual context when no group is selected
+  // Critical: Initialize active group based on current route context
   useEffect(() => {
-    if (isEmpty(userGroups) || !session?.user?.id || isOrganizationContext)
+    if (isEmpty(userGroups) || !session?.user?.id) {
       return;
+    }
 
-    // Only set default if no active group is currently selected
-    if (activeGroup) return;
+    const initializeActiveGroup = async () => {
+      let selectedGroup = null;
 
-    // In individual context: only set AirQo as default if it's the first time or no preferences exist
-    const airqoGroup = userGroups.find(
-      (group) => removeSpacesAndLowerCase(group.grp_title) === 'airqo',
-    );
+      // PRIORITY 1: For organization flow (/org/[slug]/*), ALWAYS use slug to determine active group
+      if (pathname.startsWith('/org/')) {
+        const slugMatch = pathname.match(/^\/org\/([^/]+)/);
+        if (slugMatch) {
+          const currentSlug = slugMatch[1];
+          selectedGroup = userGroups.find(
+            (g) => titleToSlug(g.grp_title) === currentSlug,
+          );
 
-    // Only set AirQo as default if AirQo group exists
-    if (airqoGroup && userGroups.length > 0) {
-      // Try to get user's last preference first
-      const trySetFromPreferences = async () => {
+          // If we found the group from slug, set it immediately and return
+          if (selectedGroup) {
+            // Only set if it's different from current active group
+            if (!activeGroup || activeGroup._id !== selectedGroup._id) {
+              dispatch(setActiveGroup(selectedGroup));
+            }
+            return;
+          }
+        }
+      }
+
+      // PRIORITY 2: For user flow (/user/*), use AirQo group or user preferences
+      if (pathname.startsWith('/user/')) {
+        // Find AirQo group first
+        selectedGroup = userGroups.find(isAirQoGroup);
+
+        // If AirQo found, use it
+        if (selectedGroup) {
+          if (!activeGroup || activeGroup._id !== selectedGroup._id) {
+            dispatch(setActiveGroup(selectedGroup));
+
+            // Update user preferences for AirQo in background
+            try {
+              await dispatch(
+                replaceUserPreferences({
+                  user_id: session.user.id,
+                  group_id: selectedGroup._id,
+                }),
+              ).unwrap();
+            } catch (error) {
+              void error; // Silent fail
+            }
+          }
+          return;
+        }
+      }
+
+      // PRIORITY 3: If we're not on a specific route or no route-based group found,
+      // check user preferences as fallback
+      if (!selectedGroup) {
         try {
           const prefRes = await recentUserPreferencesAPI(session.user.id);
           if (prefRes.success && prefRes.preference?.group_id) {
-            const preferredGroup = userGroups.find(
+            selectedGroup = userGroups.find(
               (g) => g._id === prefRes.preference.group_id,
             );
-            if (preferredGroup) {
-              dispatch(setActiveGroup(preferredGroup));
-              return;
-            }
           }
-        } catch {
-          // If preferences API fails, fall back to AirQo only if it's available
-          // Silent error handling in production
+        } catch (error) {
+          void error; // Silent fallback
         }
+      }
 
-        // Fallback: set AirQo as default only if no other preference was found
-        dispatch(setActiveGroup(airqoGroup));
-      };
+      // PRIORITY 4: Final fallback to first available group
+      if (!selectedGroup && userGroups.length > 0) {
+        selectedGroup = userGroups[0];
+      }
 
-      trySetFromPreferences();
-    }
+      // Set the selected group if different from current
+      if (
+        selectedGroup &&
+        (!activeGroup || activeGroup._id !== selectedGroup._id)
+      ) {
+        dispatch(setActiveGroup(selectedGroup));
+      }
+    };
+
+    initializeActiveGroup();
   }, [
     userGroups,
-    isOrganizationContext,
     session?.user?.id,
     dispatch,
-    activeGroup,
+    pathname, // Important: Re-run when pathname changes
+    // Removed activeGroup and isInitialized from deps to allow re-initialization on route changes
   ]);
 
-  /**
-   * Handle group selection with navigation support
-   */
+  // Monitor pathname changes and update active group for organization flow
+  useEffect(() => {
+    if (isEmpty(userGroups)) return;
+
+    // Only handle organization flow - user flow is handled by preferences
+    if (pathname.startsWith('/org/')) {
+      const slugMatch = pathname.match(/^\/org\/([^/]+)/);
+      if (slugMatch) {
+        const currentSlug = slugMatch[1];
+        const groupFromSlug = userGroups.find(
+          (g) => titleToSlug(g.grp_title) === currentSlug,
+        );
+
+        // If we found a group and it's different from current active group
+        if (
+          groupFromSlug &&
+          (!activeGroup || activeGroup._id !== groupFromSlug._id)
+        ) {
+          dispatch(setActiveGroup(groupFromSlug));
+        }
+      }
+    }
+  }, [pathname, userGroups, activeGroup, dispatch]);
+  // Handle organization switching with proper state clearing and loading
   const handleGroupSelect = async (group) => {
-    if (group._id === activeGroup?._id) {
+    if (!group || group._id === activeGroup?._id) {
       setIsOpen(false);
       return;
     }
 
+    setIsOpen(false);
+
+    // Set switching state for UI feedback - this will persist until all data is ready
+    setIsSwitching(true);
+    setIsSwitchingOrganization(true); // Global loading state
+
     try {
-      setIsOpen(false);
+      const isTargetAirQo = isAirQoGroup(group);
+      const targetRoute = determineTargetRoute(group, pathname); // STEP 1: Clear relevant Redux states BEFORE setting new group to prevent stale data
+      const { setChartSites, resetChartStore } = await import(
+        '@/lib/store/services/charts/ChartSlice'
+      );
+      const { clearIndividualPreferences } = await import(
+        '@/lib/store/services/account/UserDefaultsSlice'
+      );
 
-      // If we're in organization context, navigate to the new organization's route
-      if (isOrganizationContext) {
-        setIsNavigating(true);
+      // Clear chart-related data to prevent showing old organization's data
+      dispatch(setChartSites([]));
 
-        const orgSlug = titleToSlug(group.grp_title);
+      // For organization switches, clear chart data completely
+      if (!isTargetAirQo) {
+        dispatch(resetChartStore());
+      }
 
-        // Extract the current route segment after the organization slug
-        // e.g., /org/airqo/dashboard -> dashboard
-        // e.g., /org/airqo/insights -> insights
-        const currentRoute =
-          pathname.split('/').slice(3).join('/') || 'dashboard';
+      // STEP 2: Set the active group for immediate UI feedback
+      dispatch(setActiveGroup(group));
 
-        // Navigate to the new organization's route
-        const newRoute = `/org/${orgSlug}/${currentRoute}`;
+      // STEP 3: Navigate to the determined route
+      await router.push(targetRoute);
 
-        // Set the active group immediately for UI feedback
-        dispatch(setActiveGroup(group));
-
-        // Navigate to the new route - this will trigger the useOrgSlugActiveGroup hook
-        await router.push(newRoute);
-
-        // Call the callback to notify parent component about the change
-        if (onGroupChange) {
-          onGroupChange({
-            loading: true,
-            group: group,
-            isChangingOrg: true,
-            isUserContext: false,
-          });
-        }
+      // STEP 4: Handle organization-specific data loading and preferences
+      if (isTargetAirQo) {
+        // For AirQo (user flow), update preferences in background
+        setTimeout(async () => {
+          try {
+            await dispatch(
+              replaceUserPreferences({
+                user_id: session.user.id,
+                group_id: group._id,
+              }),
+            ).unwrap();
+          } catch (error) {
+            void error; // Silent fail
+          }
+        }, 0);
       } else {
-        // In individual context, just update the active group and preferences
-        // No navigation needed, so no loading state
-        dispatch(setActiveGroup(group));
-
-        // Persist the user's group selection to preferences
-        if (session?.user?.id) {
-          dispatch(
-            replaceUserPreferences({
-              user_id: session.user.id,
-              group_id: group._id,
-            }),
-          ).catch(() => {
-            // Silent error handling for preference update failures
-            // The Redux state will still be updated, ensuring UI consistency
-          });
-        }
-
-        // Call the callback to notify parent component about the change
-        if (onGroupChange) {
-          onGroupChange({
-            loading: false,
-            group: group,
-            isChangingOrg: false, // Fixed: Individual context doesn't change organization
-            isUserContext: true,
-          });
-        }
+        // For organizations, clear user preferences to prevent conflicts
+        dispatch(clearIndividualPreferences());
       }
-    } catch {
-      // Reset navigation state on error (only relevant for organization context)
-      if (isOrganizationContext) {
-        setIsNavigating(false);
-      }
+
+      // STEP 5: Set up a timer to keep the loading state until components are ready
+      // This ensures the loader persists until all org-specific data is loaded
+      const minLoadingTime = 1500; // Minimum loading time for UX
+      setTimeout(() => {
+        setIsSwitching(false);
+      }, minLoadingTime);
+    } catch (error) {
+      // Error in navigation - provide user feedback
+      void error;
+      setIsSwitching(false);
+      setIsSwitchingOrganization(false); // Clear global loading state on error
     }
   };
 
-  // Reset navigation state when route changes
-  useEffect(() => {
-    setIsNavigating(false);
-  }, [pathname]);
-  // Don't render anything if no groups or loading
-  if (isLoadingGroups || isEmpty(userGroups)) {
-    return (
-      <div className="flex items-center space-x-2">
-        <div className="h-4 w-4 animate-pulse rounded bg-gray-300 dark:bg-gray-600"></div>
-        <div className="h-4 w-24 animate-pulse rounded bg-gray-300 dark:bg-gray-600"></div>
-      </div>
-    );
-  }
+  // Determine what to display - always prioritize activeGroup
+  const getDisplayGroup = () => {
+    // First priority: Return the active group if it exists and is valid
+    if (activeGroup && userGroups.find((g) => g._id === activeGroup._id)) {
+      return activeGroup;
+    }
 
-  // Don't render if no active group
-  if (!activeGroup) {
+    // Second priority: If we have userGroups but no valid activeGroup,
+    // this means we're still initializing - show the first group temporarily
+    if (!isEmpty(userGroups)) {
+      return userGroups[0];
+    }
+
+    // Last resort: no groups available
     return null;
-  }
+  };
 
-  // Show loading state when navigating between organizations
-  if (isNavigating) {
+  const displayGroup = getDisplayGroup();
+
+  // Loading state
+  if (isLoadingGroups && isEmpty(userGroups)) {
     return (
       <div className="flex items-center space-x-2">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-        <span className="text-sm text-gray-600 dark:text-gray-400">
-          Switching organization...
-        </span>
+        <div className="h-6 w-6 animate-pulse rounded-full bg-gray-300 dark:bg-gray-600"></div>
+        {showTitle && (
+          <div className="h-4 w-24 animate-pulse rounded bg-gray-300 dark:bg-gray-600"></div>
+        )}
       </div>
     );
   }
+
+  // No groups available
+  if (isEmpty(userGroups)) {
+    return (
+      <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
+          <span className="text-xs">?</span>
+        </div>
+        {showTitle && <span>No Organizations</span>}
+      </div>
+    );
+  }
+
+  // Render the dropdown
   return (
     <Menu as="div" className={`relative ${className}`} ref={dropdownRef}>
-      <Menu.Button
-        className="flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {/* Organization/Group Logo */}
-        {activeGroup.grp_image ? (
+      <Menu.Button className="flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200">
+        {' '}
+        {/* Organization Logo */}
+        {displayGroup?.grp_image ? (
           <img
-            src={activeGroup.grp_image}
-            alt={`${activeGroup.grp_title} logo`}
-            className="h-6 w-6 rounded-full object-cover"
+            src={displayGroup.grp_image}
+            alt={`${displayGroup.grp_title} logo`}
+            className={`h-6 w-6 rounded-full object-cover ${
+              isSwitching ? 'opacity-50' : ''
+            }`}
           />
         ) : (
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary">
-            {activeGroup.grp_title?.charAt(0)?.toUpperCase() || 'O'}
+          <div
+            className={`flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary ${
+              isSwitching ? 'opacity-50' : ''
+            }`}
+          >
+            {displayGroup?.grp_title?.charAt(0)?.toUpperCase() || 'O'}
           </div>
         )}
-        {/* Organization/Group Name */}
+        {/* Organization Name */}
         {showTitle && (
-          <span className="max-w-32 truncate">
-            {activeGroup.grp_title || ORGANIZATION_LABEL}
+          <span
+            className={`max-w-32 truncate ${isSwitching ? 'opacity-50' : ''}`}
+          >
+            {isSwitching
+              ? 'Switching...'
+              : displayGroup?.grp_title || ORGANIZATION_LABEL}
           </span>
         )}
         {/* Dropdown Arrow */}
         <IoChevronDown
           className={`h-4 w-4 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
+            isSwitching ? 'animate-spin opacity-50' : ''
           }`}
         />
       </Menu.Button>
@@ -308,23 +452,24 @@ const TopbarOrganizationDropdown = ({
       <Menu.Items className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-primary/20 bg-white py-1 shadow-lg ring-1 ring-primary/10 ring-opacity-5 focus:outline-none dark:border-primary/30 dark:bg-gray-800 dark:ring-primary/20 transition-colors duration-200">
         <div className="px-3 py-2 text-xs font-semibold text-primary/70 uppercase tracking-wide dark:text-primary/80">
           Switch Organization
-        </div>{' '}
+        </div>
+
         <div className="max-h-60 overflow-y-auto">
           {userGroups.map((group) => (
             <Menu.Item key={group._id}>
               {({ active }) => (
                 <button
+                  type="button"
                   onClick={() => handleGroupSelect(group)}
-                  disabled={isNavigating}
                   className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm transition-colors duration-200 ${
                     active
                       ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
                       : 'text-gray-700 hover:bg-primary/5 dark:text-gray-200 dark:hover:bg-primary/10'
                   } ${
-                    activeGroup._id === group._id
+                    activeGroup?._id === group._id
                       ? 'bg-primary/15 font-medium text-primary dark:bg-primary/25 dark:text-primary'
                       : ''
-                  } ${isNavigating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  }`}
                 >
                   {/* Group Logo */}
                   {group.grp_image ? (
@@ -338,6 +483,7 @@ const TopbarOrganizationDropdown = ({
                       {group.grp_title?.charAt(0)?.toUpperCase() || 'O'}
                     </div>
                   )}
+
                   {/* Group Info */}
                   <div className="flex-1 min-w-0">
                     <div className="truncate font-medium">
@@ -349,18 +495,17 @@ const TopbarOrganizationDropdown = ({
                       </div>
                     )}
                   </div>
-                  {/* Active Indicator or Loading Spinner */}
-                  {activeGroup._id === group._id && !isNavigating && (
+
+                  {/* Active Indicator */}
+                  {activeGroup?._id === group._id && (
                     <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
-                  )}
-                  {isNavigating && (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                   )}
                 </button>
               )}
             </Menu.Item>
           ))}
         </div>
+
         {/* Footer */}
         {userGroups.length === 0 && (
           <div className="px-3 py-4 text-center text-sm text-primary/60 dark:text-primary/70">
@@ -373,15 +518,8 @@ const TopbarOrganizationDropdown = ({
 };
 
 TopbarOrganizationDropdown.propTypes = {
-  onGroupChange: PropTypes.func,
   showTitle: PropTypes.bool,
   className: PropTypes.string,
-};
-
-TopbarOrganizationDropdown.defaultProps = {
-  onGroupChange: null,
-  showTitle: true,
-  className: '',
 };
 
 export default TopbarOrganizationDropdown;

@@ -10,6 +10,7 @@ import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Toast from '@/components/Toast';
+import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 
 /**
  * Validates MongoDB ObjectId format
@@ -27,10 +28,12 @@ const AQNumberCard = () => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
   const [error, setError] = useState(null);
+  const { isOrganizationLoading } = useOrganizationLoading();
 
   // Fetch group and pollutant data from Redux state
   const { loading: isFetchingActiveGroup } = useGetActiveGroup();
   const pollutantType = useSelector((state) => state.chart.pollutionType);
+
   // Get user preferences and selected sites from Redux state
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences?.[0],
@@ -55,16 +58,19 @@ const AQNumberCard = () => {
 
     return [];
   }, [preferences, chartSites]);
+  // Only fetch measurements if we have valid site IDs and not switching organizations
+  const shouldFetch = selectedSiteIds.length > 0 && !isOrganizationLoading;
 
-  // Only fetch measurements if we have valid site IDs
   const {
     data: measurements,
     isLoading,
     error: measurementsError,
   } = useRecentMeasurements(
-    selectedSiteIds.length > 0 ? { site_id: selectedSiteIds.join(',') } : null,
+    shouldFetch ? { site_id: selectedSiteIds.join(',') } : null,
     {
       revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
       revalidateOnMount: true,
       // Don't retry on 400 errors
       onError: (_err) => {
@@ -121,7 +127,8 @@ const AQNumberCard = () => {
     [dispatch],
   );
 
-  const isLoadingData = isLoading || isFetchingActiveGroup;
+  const isLoadingData =
+    isLoading || isFetchingActiveGroup || isOrganizationLoading;
 
   const getMeasurementForSite = useCallback(
     (siteId) => {

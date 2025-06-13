@@ -57,13 +57,20 @@ export const useAnalyticsOverviewData = () => {
 
   // Fetch analytics data with memoized parameters
   const { allSiteData, chartLoading, isError, error, refetch } =
-    useAnalyticsData({
-      selectedSiteIds: chartData.chartSites,
-      dateRange: apiDateRange,
-      frequency: chartData.timeFrame,
-      pollutant: chartData.pollutionType,
-      organisationName: chartData.organizationName || groupTitle,
-    });
+    useAnalyticsData(
+      {
+        selectedSiteIds: chartData.chartSites,
+        dateRange: apiDateRange,
+        frequency: chartData.timeFrame,
+        pollutant: chartData.pollutionType,
+        organisationName: chartData.organizationName || groupTitle,
+      },
+      {
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
+      },
+    );
 
   // Initialize chart data range if not set
   useEffect(() => {

@@ -103,6 +103,13 @@ const chartSlice = createSlice({
       }
     },
 
+    // Clear all chart data and analytics data when switching organizations
+    clearChartDataForOrganizationSwitch: (state) => {
+      state.chartSites = [];
+      state.chartAnalyticsData = [];
+      state.refreshChart = true; // Trigger refresh of charts
+    },
+
     setDefaultID: (state, action) => {
       const newDefaultID = action.payload;
       if (state.userDefaultID !== newDefaultID) {
@@ -188,6 +195,7 @@ export const {
   setRefreshChart,
   setChartDataAtOnce,
   setAqStandard,
+  clearChartDataForOrganizationSwitch,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

@@ -36,6 +36,7 @@ import {
   CustomReferenceLabel,
 } from './components';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import Button from '@/components/Button';
 
 // Custom tick renderer with improved readability
@@ -101,6 +102,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   height = '100%',
 }) {
   const { theme, systemTheme } = useTheme();
+  const { isOrganizationLoading } = useOrganizationLoading();
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   const [activeIndex, setActiveIndex] = useState(null);
@@ -293,10 +295,21 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   // Render empty state with appropriate message
   const renderEmpty = () => {
     if (!normalizedSelectedIds.length) {
+      // Show loading state during organization switching instead of "No sites selected"
+      if (isOrganizationLoading) {
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 px-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+            <h4 className="mb-2 text-lg font-semibold">Loading...</h4>
+            <p className="text-center">Please wait while we load your data.</p>
+          </div>
+        );
+      }
+
       return (
         <InfoMessage
           title="No Sites Selected"
-          description="Select sites to view."
+          description="Select sites to view chart data."
           variant="info"
           className="w-full h-full flex items-center justify-center"
         />
