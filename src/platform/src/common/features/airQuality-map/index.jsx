@@ -148,7 +148,7 @@ const AirQoMap = forwardRef(
         );
         controlsAddedRef.current = true;
         // Map controls added successfully
-      } catch (_err) {
+      } catch {
         // Error adding map controls - log to error monitoring service
         controlsAddedRef.current = false;
       }
@@ -230,9 +230,7 @@ const AirQoMap = forwardRef(
         );
         dispatch(setZoom(urlParams.zm));
       }
-    }, [dispatch, urlParams]);
-
-    // Initialize map
+    }, [dispatch, urlParams]); // Optimized map initialization with performance improvements
     const initializeMap = useCallback(() => {
       if (!mapContainerRef.current || !styleUrl || isReloadingRef.current) {
         return;
@@ -254,6 +252,8 @@ const AirQoMap = forwardRef(
       handleMainLoading(true);
 
       mapboxgl.accessToken = mapboxApiAccessToken;
+
+      // Optimize map configuration for better performance
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: styleUrl,
@@ -261,54 +261,80 @@ const AirQoMap = forwardRef(
         center: initialCenter,
         zoom: initialZoom,
         preserveDrawingBuffer: true,
+        // Performance optimizations
+        antialias: false, // Disable antialiasing for better performance
+        optimizeForTerrain: false,
+        renderWorldCopies: false,
+        refreshExpiredTiles: false,
+        maxTileCacheSize: 50, // Reduce tile cache size
+        transformRequest: (url, resourceType) => {
+          // Add compression headers for better network performance
+          if (resourceType === 'Source' && url.includes('mapbox')) {
+            return {
+              url,
+              headers: {
+                'Accept-Encoding': 'gzip, br',
+              },
+            };
+          }
+        },
       });
 
       mapRef.current = map;
       map.nodeType = nodeType;
 
-      map.on('load', () => {
-        mapInitializedRef.current = true;
-
+      // Use requestIdleCallback for non-critical operations
+      const initializeMapFeatures = () => {
         map.resize();
         addControls();
 
-        // Also set up a check a bit later to ensure controls are added
+        // Defer data fetching to improve initial load time
         setTimeout(() => {
-          if (!controlsAddedRef.current) {
-            addControls();
-          }
-        }, 500);
-
-        fetchAndProcessData()
-          .catch((err) => {
-            console.error('Data fetch error:', err);
-            onToastMessage?.({
-              message: 'Failed to load map data',
-              type: 'error',
-              bgColor: 'bg-red-500',
+          fetchAndProcessData()
+            .catch(() => {
+              onToastMessage?.({
+                message: 'Failed to load map data',
+                type: 'error',
+                bgColor: 'bg-red-500',
+              });
+            })
+            .finally(() => {
+              handleMainLoading(false);
+              dispatch(setMapLoading(false));
+              isReloadingRef.current = false;
+              ensureControls();
             });
-          })
-          .finally(() => {
-            handleMainLoading(false);
-            dispatch(setMapLoading(false));
-            isReloadingRef.current = false;
-            ensureControls();
-          });
-      });
+        }, 100); // Small delay to let map render first
+      };
 
-      map.on('zoomend', () => {
-        if (!isReloadingRef.current) {
-          clusterUpdate();
+      map.on('load', () => {
+        mapInitializedRef.current = true;
+
+        // Use requestIdleCallback for better performance if available
+        if (window.requestIdleCallback) {
+          window.requestIdleCallback(initializeMapFeatures, { timeout: 1000 });
+        } else {
+          initializeMapFeatures();
         }
       });
 
+      // Optimize event handlers
+      let zoomTimeout;
+      map.on('zoomend', () => {
+        if (!isReloadingRef.current) {
+          clearTimeout(zoomTimeout);
+          zoomTimeout = setTimeout(() => {
+            clusterUpdate();
+          }, 100); // Debounce zoom events
+        }
+      });
+
+      // Use passive listeners for better scroll performance
       map.on('idle', () => {
-        // Ensure controls on idle state
         ensureControls();
       });
 
-      map.on('error', (e) => {
-        console.error('Mapbox error:', e.error);
+      map.on('error', () => {
         handleMainLoading(false);
         dispatch(setMapLoading(false));
         isReloadingRef.current = false;
