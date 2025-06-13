@@ -65,7 +65,6 @@ const AuthenticatedHomePage = () => {
     }
   }, [dispatch, preferenceData]);
 
-  console.info('Organization Insights Page Loaded', allSiteData);
   return (
     <>
       <AlertBox

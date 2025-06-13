@@ -31,28 +31,30 @@ const AQNumberCard = () => {
   // Fetch group and pollutant data from Redux state
   const { loading: isFetchingActiveGroup } = useGetActiveGroup();
   const pollutantType = useSelector((state) => state.chart.pollutionType);
-
   // Get user preferences and selected sites from Redux state
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences?.[0],
   );
 
+  // Get chart sites from Redux (used for organizations)
+  const chartSites = useSelector((state) => state.chart.chartSites);
+
   // Get selected site IDs and validate them before using
   const selectedSiteIds = useMemo(() => {
-    if (!preferences?.selected_sites?.length) return [];
-    // Filter out any invalid ObjectIds
-    return preferences.selected_sites
-      .map((site) => site._id)
-      .filter(isValidObjectId);
-  }, [preferences]);
+    // For individual users, use their preferences
+    if (preferences?.selected_sites?.length) {
+      return preferences.selected_sites
+        .map((site) => site._id)
+        .filter(isValidObjectId);
+    }
 
-  const selectedSites = useMemo(() => {
-    if (!preferences?.selected_sites?.length) return [];
-    // Only include sites with valid IDs
-    return preferences.selected_sites
-      .filter((site) => isValidObjectId(site._id))
-      .slice(0, MAX_CARDS);
-  }, [preferences]);
+    // For organizations or when no user preferences, use chart sites
+    if (chartSites?.length) {
+      return chartSites.filter(isValidObjectId);
+    }
+
+    return [];
+  }, [preferences, chartSites]);
 
   // Only fetch measurements if we have valid site IDs
   const {
@@ -65,12 +67,42 @@ const AQNumberCard = () => {
       revalidateOnFocus: false,
       revalidateOnMount: true,
       // Don't retry on 400 errors
-      onError: (err) => {
-        console.error('Error fetching measurements:', err);
+      onError: (_err) => {
         setError('Failed to fetch air quality data. Please try again later.');
       },
     },
   );
+
+  const selectedSites = useMemo(() => {
+    // For individual users, use their preferences directly
+    if (preferences?.selected_sites?.length) {
+      return preferences.selected_sites
+        .filter((site) => isValidObjectId(site._id))
+        .slice(0, MAX_CARDS);
+    }
+
+    // For organizations, create site objects from measurements data
+    if (chartSites?.length && measurements?.length) {
+      return chartSites
+        .map((siteId) => {
+          const measurement = measurements.find((m) => m.site_id === siteId);
+          if (measurement) {
+            return {
+              _id: siteId,
+              name: measurement.site?.name || measurement.site_id,
+              location: measurement.site?.location || {},
+              // Add other site properties from measurement if available
+              ...measurement.site,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .slice(0, MAX_CARDS);
+    }
+
+    return [];
+  }, [preferences, chartSites, measurements]);
 
   // Clear error after 5 seconds
   useEffect(() => {

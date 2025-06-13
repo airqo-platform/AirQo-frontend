@@ -12,7 +12,10 @@ import {
   replaceUserPreferences,
   getIndividualUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
-import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import {
+  setRefreshChart,
+  setChartSites,
+} from '@/lib/store/services/charts/ChartSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -217,13 +220,22 @@ const AddLocations = ({ onClose }) => {
             }),
           );
         }
+
+        // For organizations, also update chart sites directly
+        const selectedSiteIds = selectedSitesData
+          .map((site) => site._id)
+          .filter(Boolean);
+        if (selectedSiteIds.length > 0) {
+          dispatch(setChartSites(selectedSiteIds));
+        }
+
         dispatch(setRefreshChart(true));
         completeStep(1);
       })
-      .catch((err) => {
+      .catch((_err) => {
         setError('Failed to update preferences.');
         setMessageType(MESSAGE_TYPES.ERROR);
-        console.error(err);
+        // Log error for debugging but avoid console in production
       })
       .finally(() => {
         setSubmitLoading(false);

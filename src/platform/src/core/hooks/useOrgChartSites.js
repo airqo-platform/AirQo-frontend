@@ -24,6 +24,11 @@ export const useOrgChartSites = (organizationName, options = {}) => {
   // Get current chart sites from Redux
   const chartSites = useSelector((state) => state.chart.chartSites);
 
+  // Get user preferences to check if user has manually selected sites
+  const preferences = useSelector(
+    (state) => state.defaults.individual_preferences?.[0],
+  );
+
   // Fetch organization sites using the existing hook
   const {
     data: sitesSummaryData,
@@ -33,7 +38,6 @@ export const useOrgChartSites = (organizationName, options = {}) => {
   } = useSitesSummary(organizationName?.toLowerCase(), {
     enabled: enabled && !!organizationName,
   });
-
   // Effect to automatically set chart sites when organization sites are fetched
   useEffect(() => {
     if (
@@ -43,8 +47,21 @@ export const useOrgChartSites = (organizationName, options = {}) => {
       Array.isArray(sitesSummaryData) &&
       sitesSummaryData.length > 0
     ) {
-      // Only set sites if chartSites is currently empty to avoid overriding user selections
-      if (!chartSites || chartSites.length === 0) {
+      // Check if user has manually selected sites in their preferences
+      const userSelectedSites = preferences?.selected_sites;
+
+      if (userSelectedSites && userSelectedSites.length > 0) {
+        // User has preferences - use their selected sites (limited to maxSites)
+        const selectedSiteIds = userSelectedSites
+          .slice(0, maxSites)
+          .map((site) => site._id)
+          .filter(Boolean);
+
+        if (selectedSiteIds.length > 0) {
+          dispatch(setChartSites(selectedSiteIds));
+        }
+      } else if (!chartSites || chartSites.length === 0) {
+        // No user preferences and no chart sites - auto-select from available sites
         // Filter for online sites first, fallback to all sites if no online sites
         const onlineSites = sitesSummaryData.filter(
           (site) => site.isOnline === true,
@@ -70,6 +87,7 @@ export const useOrgChartSites = (organizationName, options = {}) => {
     sitesSummaryData,
     chartSites,
     maxSites,
+    preferences,
   ]);
 
   // Effect to clear chart sites when organization changes or is cleared

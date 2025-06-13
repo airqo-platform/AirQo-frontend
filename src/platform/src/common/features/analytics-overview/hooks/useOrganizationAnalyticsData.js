@@ -19,7 +19,6 @@ export const useOrganizationAnalyticsData = (organization) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
-
   // Use the organization chart sites hook to automatically fetch and set chart sites
   const {
     isLoading: sitesLoading,
@@ -30,7 +29,7 @@ export const useOrganizationAnalyticsData = (organization) => {
     onlineSites,
   } = useOrgChartSites(organization?.name, {
     enabled: !!organization?.name,
-    maxSites: 10,
+    maxSites: 4, // Limit to 4 sites for easier analysis
   });
 
   // Memoized default date range to prevent unnecessary re-renders
