@@ -22,11 +22,11 @@ export class GlobeControl {
     );
     this.container.appendChild(this.button);
   }
-
   _createContainer() {
     const c = document.createElement('div');
     c.className =
       'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-1 m-1 md:p-2 md:m-2';
+    c.style.borderRadius = '2.375rem';
     return c;
   }
 
@@ -137,11 +137,11 @@ export class CustomZoomControl {
       this.zoomOutButton,
     );
   }
-
   createContainer() {
     const container = document.createElement('div');
     container.className =
       'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col bg-white dark:text-black rounded-full shadow-md overflow-hidden';
+    container.style.borderRadius = '2.375rem';
     return container;
   }
 
@@ -214,14 +214,13 @@ export class CustomGeolocateControl {
     this.geolocateButton = this.createButton('Locate Me', <GeoIcon />, () => {
       this.locateUser();
     });
-
     this.container.appendChild(this.geolocateButton);
   }
-
   createContainer() {
     const container = document.createElement('div');
     container.className =
       'mapboxgl-ctrl mapboxgl-ctrl-group flex flex-col items-center justify-center rounded-full shadow-md overflow-hidden bg-white p-1 m-1 md:p-2 md:m-2';
+    container.style.borderRadius = '2.375rem';
     return container;
   }
 
