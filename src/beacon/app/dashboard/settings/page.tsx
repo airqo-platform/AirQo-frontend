@@ -156,8 +156,17 @@ export default function SettingsPage() {
         return
       }
 
+      interface UpdatePayload {
+      first_name: string
+      last_name: string
+      email: string
+      phone: string
+      current_password?: string
+      new_password?: string
+      }
+
       // Prepare the update payload
-      const updatePayload: any = {
+      const updatePayload: UpdatePayload = {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,

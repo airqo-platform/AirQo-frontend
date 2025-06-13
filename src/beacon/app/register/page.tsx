@@ -11,6 +11,11 @@ export default function RegisterPage() {
     router.push("/login")
   }, [router])
   
-  // Return empty or loading state while redirecting
-  return null
+   return (
+    <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <p>Redirecting to login...</p>
+      </div>
+    </div>
+  )
 }
