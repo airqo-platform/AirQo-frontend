@@ -312,6 +312,9 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
       // STEP 1: Set the active group immediately for UI feedback
       dispatch(setActiveGroup(group));
 
+      // Wait for group to be set in Redux before proceeding
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // STEP 2: Clear relevant Redux states to prevent stale data
       const { setChartSites, resetChartStore } = await import(
         '@/lib/store/services/charts/ChartSlice'
@@ -329,7 +332,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
       await new Promise((resolve) => {
         switchingTimeoutRef.current = setTimeout(async () => {
           try {
-            // Fetch individual preferences for both flows
+            // Fetch individual preferences for the new group
             await dispatch(
               replaceUserPreferences({
                 user_id: session.user.id,
@@ -341,7 +344,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
           } finally {
             resolve();
           }
-        }, 500); // Short delay to ensure route is stable
+        }, 300); // Reduced delay for faster response
       });
 
       // STEP 5: Additional wait for data to load properly
@@ -350,7 +353,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
           setIsSwitching(false);
           setIsSwitchingOrganization(false);
           resolve();
-        }, 1500); // Total loading time: 2 seconds
+        }, 500); // Reduced total loading time for better UX
       });
     } catch (error) {
       logger.error('Organization switch failed:', error);

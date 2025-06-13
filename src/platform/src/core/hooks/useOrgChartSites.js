@@ -103,7 +103,7 @@ export const useOrgChartSites = (organizationName, options = {}) => {
     organizationName,
     sitesSummaryData,
     maxSites,
-    // Remove preferences from dependencies to prevent refetch when user switches from org to individual
+    preferences, // Add preferences to trigger updates when user preferences change
     activeGroup?._id, // Include activeGroup ID to trigger updates on org changes
   ]);
   // Only clear chart sites when explicitly disabled or organization is completely removed

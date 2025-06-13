@@ -12,6 +12,7 @@ import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
 /**
  * OrganizationAnalyticsControls component handles control elements for organization analytics
@@ -30,6 +31,23 @@ const OrganizationAnalyticsControls = ({
 }) => {
   const dispatch = useDispatch();
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+  // Get the active group to display the correct organization name
+  const { title: activeGroupTitle } = useGetActiveGroup();
+
+  // Function to format group names for display
+  const formatGroupName = (name) => {
+    if (!name) return 'Organization';
+
+    return name
+      .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize first letter of each word
+      .join(' ')
+      .trim(); // Remove any extra whitespace
+  };
+
+  // Use active group title if available, otherwise fallback to organization name
+  const displayName = formatGroupName(activeGroupTitle || organization?.name);
 
   const handleOpenModal = (type, ids = []) => {
     dispatch(setOpenModal(true));
@@ -41,11 +59,11 @@ const OrganizationAnalyticsControls = ({
       {/* Organization Header */}
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-gray-900">
-          {organization.name} - Air Quality Insights
+          {displayName} - Air Quality Insights
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p className="text-gray-600">
-            Monitor and analyze air quality data for {organization.name}
+            Monitor and analyze air quality data for {displayName}
           </p>
           {hasSites && (
             <div className="text-sm text-gray-500">

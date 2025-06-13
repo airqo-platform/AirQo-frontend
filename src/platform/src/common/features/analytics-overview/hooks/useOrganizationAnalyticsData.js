@@ -8,9 +8,12 @@ import {
   setChartDataRange,
   setRefreshChart,
   clearChartDataForOrganizationSwitch,
+  setChartSites,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useOrgChartSites } from '@/core/hooks/useOrgChartSites';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**
  * Custom hook for managing organization analytics overview data
@@ -21,8 +24,17 @@ export const useOrganizationAnalyticsData = (organization) => {
   const chartData = useSelector((state) => state.chart);
   const refreshChart = useSelector((state) => state.chart.refreshChart);
 
-  // Track previous organization to detect changes
+  // Get user preferences from Redux state
+  const preferenceData = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
+
+  // Get active group data for preferences
+  const { id: activeGroupId, userID } = useGetActiveGroup();
+  // Track previous organization and group to detect changes
   const [previousOrgId, setPreviousOrgId] = useState(null);
+  const [previousGroupId, setPreviousGroupId] = useState(null);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   // Clear previous organization data when organization changes
   useEffect(() => {
@@ -32,10 +44,52 @@ export const useOrganizationAnalyticsData = (organization) => {
       // Clear all chart data when switching organizations
       // This prevents showing previous organization's data
       dispatch(clearChartDataForOrganizationSwitch());
+      setPreferencesLoaded(false);
     }
 
     setPreviousOrgId(currentOrgId);
   }, [organization?._id, previousOrgId, dispatch]);
+
+  // Reset preferences when active group changes
+  useEffect(() => {
+    if (previousGroupId && activeGroupId && previousGroupId !== activeGroupId) {
+      setPreferencesLoaded(false);
+    }
+    setPreviousGroupId(activeGroupId);
+  }, [activeGroupId, previousGroupId]);
+  // Fetch organization-specific user preferences when organization or group changes
+  useEffect(() => {
+    const fetchOrganizationPreferences = async () => {
+      if (!userID || !activeGroupId) {
+        return;
+      }
+
+      // Validate ObjectId format
+      const isValidObjectId = (id) => id && /^[0-9a-fA-F]{24}$/.test(id);
+
+      if (!isValidObjectId(userID) || !isValidObjectId(activeGroupId)) {
+        return;
+      }
+
+      try {
+        // Fetch preferences with the current active group ID
+        await dispatch(
+          getIndividualUserPreferences({
+            identifier: userID,
+            groupID: activeGroupId,
+          }),
+        );
+        setPreferencesLoaded(true);
+      } catch {
+        setPreferencesLoaded(true); // Don't block the UI
+      }
+    };
+
+    // Fetch if we haven't loaded preferences for this group yet
+    if (!preferencesLoaded && activeGroupId && userID) {
+      fetchOrganizationPreferences();
+    }
+  }, [dispatch, userID, activeGroupId, organization?.name, preferencesLoaded]);
 
   // Use the organization chart sites hook to automatically fetch and set chart sites
   const {
@@ -146,6 +200,31 @@ export const useOrganizationAnalyticsData = (organization) => {
       dispatch(setRefreshChart(false));
     }
   }, [refreshChart, refetch, dispatch]);
+  // Set chart sites from user preferences (similar to user analytics page)
+  useEffect(() => {
+    if (
+      preferenceData &&
+      preferenceData.length > 0 &&
+      preferenceData[0]?.selected_sites
+    ) {
+      const { selected_sites } = preferenceData[0];
+      const chartSites = selected_sites
+        .map((site) => site?._id)
+        .filter(Boolean);
+
+      // Only update if we have valid site IDs and they differ from current ones
+      if (chartSites.length > 0) {
+        const currentSites = chartData.chartSites || [];
+        const sitesChanged =
+          chartSites.length !== currentSites.length ||
+          chartSites.some((siteId) => !currentSites.includes(siteId));
+
+        if (sitesChanged) {
+          dispatch(setChartSites(chartSites));
+        }
+      }
+    }
+  }, [dispatch, preferenceData, chartData.chartSites]);
 
   // Handlers with useCallback to prevent unnecessary re-renders
   const handleTimeFrameChange = useCallback(
@@ -197,7 +276,10 @@ export const useOrganizationAnalyticsData = (organization) => {
 
   // Computed loading state
   const isChartLoading =
-    chartLoading || sitesLoading || (!allSiteData && !isError);
+    chartLoading ||
+    sitesLoading ||
+    (!allSiteData && !isError) ||
+    !preferencesLoaded;
 
   return {
     // Data
@@ -214,6 +296,7 @@ export const useOrganizationAnalyticsData = (organization) => {
     hasSites,
     totalSites,
     onlineSites,
+    preferencesLoaded,
 
     // Loading states
     isChartLoading,

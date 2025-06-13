@@ -219,6 +219,9 @@ const OrganizationDropdown = ({ className = '' }) => {
         // Set active group immediately for UI feedback
         dispatch(setActiveGroup(group));
 
+        // Wait for group to be set in Redux before proceeding
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         // Navigate to the appropriate route
         await router.push(targetRoute);
 
@@ -226,7 +229,7 @@ const OrganizationDropdown = ({ className = '' }) => {
         await new Promise((resolve) => {
           switchingTimeoutRef.current = setTimeout(async () => {
             try {
-              // Fetch individual preferences for both flows (needed for analytics)
+              // Fetch individual preferences for the new group
               await dispatch(
                 replaceUserPreferences({
                   user_id: userID,
@@ -249,14 +252,14 @@ const OrganizationDropdown = ({ className = '' }) => {
             } finally {
               resolve();
             }
-          }, 500); // Short delay for route stabilization
+          }, 300); // Reduced delay for faster response
         });
 
         // Additional wait for smooth transition
         await new Promise((resolve) => {
           switchingTimeoutRef.current = setTimeout(() => {
             resolve();
-          }, 1000); // Total loading time: 1.5 seconds
+          }, 500); // Reduced total loading time for better UX
         });
       } catch (error) {
         // Error handling - fallback to AirQo user flow
