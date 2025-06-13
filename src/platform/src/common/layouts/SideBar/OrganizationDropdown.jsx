@@ -23,6 +23,7 @@ import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import Spinner from '@/common/components/Spinner';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
+import { setActiveGroup } from '@/lib/store/services/groups';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { removeSpacesAndLowerCase } from '@/core/utils/strings';
@@ -50,11 +51,18 @@ const isAirQoGroup = (group) => {
  * @returns {string} URL-safe slug
  */
 const titleToSlug = (title) => {
-  if (!title) return '';
-  return title
+  if (!title || typeof title !== 'string') return null;
+  const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+  // Prevent empty or "default" slugs
+  if (!slug || slug === 'default') {
+    return null;
+  }
+
+  return slug;
 };
 
 /**
@@ -114,7 +122,6 @@ const determineTargetRoute = (
     map: 'dashboard', // map doesn't exist in org context, redirect to dashboard
     settings: 'profile',
   };
-
   if (isTargetAirQo) {
     // Navigate to user flow
     const targetPage = orgToUserPageMap[pageContext] || pageContext;
@@ -122,6 +129,12 @@ const determineTargetRoute = (
   } else {
     // Navigate to organization flow
     const orgSlug = titleToSlug(group.grp_title);
+
+    // If slug is invalid, fallback to AirQo user flow
+    if (!orgSlug) {
+      return '/user/Home';
+    }
+
     const targetPage = userToOrgPageMap[pageContext] || pageContext;
     return `/org/${orgSlug}/${targetPage}`;
   }
@@ -135,6 +148,7 @@ const OrganizationDropdown = ({ className = '' }) => {
   const [loading, setLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const switchingTimeoutRef = useRef(null); // For cleanup
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark' || theme === 'system';
   const buttonRef = useRef(null);
@@ -179,10 +193,15 @@ const OrganizationDropdown = ({ className = '' }) => {
       dispatch(setOrganizationName(activeGroupTitle));
     }
   }, [isFetchingActiveGroup, activeGroupTitle, dispatch]);
-
   const handleUpdatePreferences = useCallback(
     async (group) => {
       if (!group?._id) return;
+
+      // Clear any existing timeout to prevent memory leaks
+      if (switchingTimeoutRef.current) {
+        clearTimeout(switchingTimeoutRef.current);
+        switchingTimeoutRef.current = null;
+      }
 
       setLoading(true);
       setSelectedGroupId(group._id);
@@ -197,40 +216,67 @@ const OrganizationDropdown = ({ className = '' }) => {
           isCurrentlyInOrgContext,
         );
 
+        // Set active group immediately for UI feedback
+        dispatch(setActiveGroup(group));
+
         // Navigate to the appropriate route
         await router.push(targetRoute);
 
-        // Handle preferences based on target organization type
-        if (isTargetAirQo) {
-          // For AirQo (individual context), update preferences
-          await dispatch(
-            replaceUserPreferences({
-              user_id: userID,
-              group_id: group._id,
-            }),
-          );
+        // Wait for route to stabilize before fetching preferences
+        await new Promise((resolve) => {
+          switchingTimeoutRef.current = setTimeout(async () => {
+            try {
+              // Fetch individual preferences for both flows (needed for analytics)
+              await dispatch(
+                replaceUserPreferences({
+                  user_id: userID,
+                  group_id: group._id,
+                }),
+              );
 
-          // Update session with new active group if possible
-          if (updateSession) {
-            await updateSession({
-              ...session,
-              user: {
-                ...session?.user,
-                activeGroup: group,
-              },
-            });
+              // Update session for AirQo groups
+              if (isTargetAirQo && updateSession) {
+                await updateSession({
+                  ...session,
+                  user: {
+                    ...session?.user,
+                    activeGroup: group,
+                  },
+                });
+              }
+            } catch (error) {
+              void error; // Silent fail for preferences
+            } finally {
+              resolve();
+            }
+          }, 500); // Short delay for route stabilization
+        });
+
+        // Additional wait for smooth transition
+        await new Promise((resolve) => {
+          switchingTimeoutRef.current = setTimeout(() => {
+            resolve();
+          }, 1000); // Total loading time: 1.5 seconds
+        });
+      } catch (error) {
+        // Error handling - fallback to AirQo user flow
+        void error;
+        try {
+          const airqoGroup = groupList.find(isAirQoGroup);
+          if (airqoGroup) {
+            dispatch(setActiveGroup(airqoGroup));
+            await router.push('/user/Home');
           }
+        } catch (fallbackError) {
+          void fallbackError;
         }
-        // For other organizations, no preference update needed as they are in org context
-      } catch {
-        // Silent error handling for production stability
       } finally {
         setLoading(false);
         setSelectedGroupId(null);
         setIsOpen(false);
       }
     },
-    [dispatch, userID, updateSession, session, router, pathname],
+    [dispatch, userID, updateSession, session, router, pathname, groupList],
   );
 
   const handleDropdownSelect = (group) => {

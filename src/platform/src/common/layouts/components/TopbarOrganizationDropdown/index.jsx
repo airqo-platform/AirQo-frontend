@@ -29,8 +29,12 @@ import { recentUserPreferencesAPI } from '@/core/apis/Account';
 import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 // Utils
-import { removeSpacesAndLowerCase } from '@/core/utils/strings';
+import {
+  isAirQoGroup,
+  shouldUseUserFlow,
+} from '@/core/utils/organizationUtils';
 import { ORGANIZATION_LABEL } from '@/lib/constants';
+import logger from '@/lib/logger';
 
 /**
  * Utility function to validate ObjectId format
@@ -52,71 +56,34 @@ const titleToSlug = (title) => {
 };
 
 /**
- * Utility function to check if a group is AirQo
- */
-const isAirQoGroup = (group) => {
-  if (!group?.grp_title) return false;
-  return removeSpacesAndLowerCase(group.grp_title) === 'airqo';
-};
-
-/**
  * Utility function to determine the target route based on group selection
+ * Enhanced with explicit AirQo routing rules and error prevention
  */
-const determineTargetRoute = (group, currentPathname) => {
-  const isTargetAirQo = isAirQoGroup(group);
-
-  // Extract page context from current route
-  let pageContext = 'dashboard'; // default fallback
-
-  if (currentPathname.startsWith('/org/')) {
-    // Extract from /org/[slug]/[page] pattern
-    const orgRouteMatch = currentPathname.match(/^\/org\/[^/]+\/(.+)$/);
-    if (orgRouteMatch) {
-      pageContext = orgRouteMatch[1];
-    }
-  } else if (currentPathname.startsWith('/user/')) {
-    // Extract from /user/[page] pattern
-    const userRouteMatch = currentPathname.match(/^\/user\/(.+)$/);
-    if (userRouteMatch) {
-      pageContext = userRouteMatch[1];
-    }
-  } else {
-    // Handle legacy routes
-    if (currentPathname.includes('/analytics')) pageContext = 'analytics';
-    else if (currentPathname.includes('/map')) pageContext = 'map';
-    else if (currentPathname.includes('/settings')) pageContext = 'settings';
-    else if (currentPathname.includes('/Home')) pageContext = 'Home';
-    else if (currentPathname.includes('/insights')) pageContext = 'insights';
-    else if (currentPathname.includes('/profile')) pageContext = 'profile';
+const determineTargetRoute = (group) => {
+  // STRICT REQUIREMENT: If group is AirQo, ALWAYS redirect to /user/Home
+  if (shouldUseUserFlow(group)) {
+    return '/user/Home';
   }
 
-  // Map organization pages to user pages for AirQo navigation
-  const orgToUserPageMap = {
-    dashboard: 'Home',
-    insights: 'analytics',
-    profile: 'settings',
-    settings: 'settings',
-    members: 'settings',
-  };
-
-  // Map user pages to organization pages for non-AirQo navigation
-  const userToOrgPageMap = {
-    Home: 'dashboard',
-    analytics: 'insights',
-    map: 'dashboard', // map doesn't exist in org context
-    settings: 'profile',
-  };
-
-  if (isTargetAirQo) {
-    // Navigate to user flow
-    const targetPage = orgToUserPageMap[pageContext] || pageContext;
-    return `/user/${targetPage}`;
-  } else {
-    // Navigate to organization flow
-    const orgSlug = titleToSlug(group.grp_title);
-    const targetPage = userToOrgPageMap[pageContext] || pageContext;
-    return `/org/${orgSlug}/${targetPage}`;
+  // REQUIREMENT: If group is NOT AirQo, redirect to /org/[slug]/dashboard
+  // Ensure we have a valid group title, fallback to AirQo if invalid
+  if (!group?.grp_title?.trim()) {
+    logger.warn('Invalid group title, falling back to AirQo user flow');
+    return '/user/Home';
   }
+
+  // Use the same titleToSlug function used everywhere else for consistency
+  const groupSlug = titleToSlug(group.grp_title);
+
+  // Prevent "default" or empty slugs
+  if (!groupSlug || groupSlug === 'default') {
+    logger.warn(
+      'Invalid group slug generated, falling back to AirQo user flow',
+    );
+    return '/user/Home';
+  }
+
+  return `/org/${groupSlug}/dashboard`;
 };
 
 /**
@@ -143,6 +110,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const dropdownRef = useRef(null);
+  const switchingTimeoutRef = useRef(null); // For cleanup
 
   // Handle outside click to close dropdown
   useOutsideClick(dropdownRef, () => {
@@ -294,7 +262,22 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
       }
     }
   }, [pathname, userGroups, activeGroup, dispatch]);
-  // Handle organization switching with proper state clearing and loading
+
+  /**
+   * Utility function to format group names for display
+   * Converts underscores and hyphens to spaces and applies uppercase formatting
+   */
+  const formatGroupName = (groupName) => {
+    if (!groupName) return '';
+    return groupName
+      .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+      .split(' ')
+      .map((word) => word.toUpperCase()) // Convert each word to uppercase
+      .join(' ')
+      .trim(); // Remove any extra whitespace
+  };
+
+  // Handle organization switching with proper cleanup and route completion detection
   const handleGroupSelect = async (group) => {
     if (!group || group._id === activeGroup?._id) {
       setIsOpen(false);
@@ -303,39 +286,50 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
 
     setIsOpen(false);
 
-    // Set switching state for UI feedback - this will persist until all data is ready
+    // Clear any existing switching timeout to prevent memory leaks
+    if (switchingTimeoutRef.current) {
+      clearTimeout(switchingTimeoutRef.current);
+      switchingTimeoutRef.current = null;
+    }
+
+    // Set switching state for UI feedback
     setIsSwitching(true);
-    setIsSwitchingOrganization(true); // Global loading state
+    setIsSwitchingOrganization(true);
 
     try {
       const isTargetAirQo = isAirQoGroup(group);
-      const targetRoute = determineTargetRoute(group, pathname); // STEP 1: Clear relevant Redux states BEFORE setting new group to prevent stale data
+      const targetRoute = determineTargetRoute(group);
+
+      // Debug logging to understand what's happening
+      logger.info('Organization switch attempt:', {
+        groupName: group.grp_name,
+        groupTitle: group.grp_title,
+        isTargetAirQo,
+        targetRoute,
+        shouldUseUserFlow: shouldUseUserFlow(group),
+      });
+
+      // STEP 1: Set the active group immediately for UI feedback
+      dispatch(setActiveGroup(group));
+
+      // STEP 2: Clear relevant Redux states to prevent stale data
       const { setChartSites, resetChartStore } = await import(
         '@/lib/store/services/charts/ChartSlice'
       );
-      const { clearIndividualPreferences } = await import(
-        '@/lib/store/services/account/UserDefaultsSlice'
-      );
 
-      // Clear chart-related data to prevent showing old organization's data
       dispatch(setChartSites([]));
-
-      // For organization switches, clear chart data completely
       if (!isTargetAirQo) {
         dispatch(resetChartStore());
       }
 
-      // STEP 2: Set the active group for immediate UI feedback
-      dispatch(setActiveGroup(group));
-
-      // STEP 3: Navigate to the determined route
+      // STEP 3: Navigate and wait for route completion
       await router.push(targetRoute);
 
-      // STEP 4: Handle organization-specific data loading and preferences
-      if (isTargetAirQo) {
-        // For AirQo (user flow), update preferences in background
-        setTimeout(async () => {
+      // STEP 4: Wait for route to stabilize and then fetch preferences
+      await new Promise((resolve) => {
+        switchingTimeoutRef.current = setTimeout(async () => {
           try {
+            // Fetch individual preferences for both flows
             await dispatch(
               replaceUserPreferences({
                 user_id: session.user.id,
@@ -343,27 +337,50 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
               }),
             ).unwrap();
           } catch (error) {
-            void error; // Silent fail
+            logger.warn('Failed to fetch user preferences:', error);
+          } finally {
+            resolve();
           }
-        }, 0);
-      } else {
-        // For organizations, clear user preferences to prevent conflicts
-        dispatch(clearIndividualPreferences());
+        }, 500); // Short delay to ensure route is stable
+      });
+
+      // STEP 5: Additional wait for data to load properly
+      await new Promise((resolve) => {
+        switchingTimeoutRef.current = setTimeout(() => {
+          setIsSwitching(false);
+          setIsSwitchingOrganization(false);
+          resolve();
+        }, 1500); // Total loading time: 2 seconds
+      });
+    } catch (error) {
+      logger.error('Organization switch failed:', error);
+
+      // Fallback to AirQo user flow
+      try {
+        const airqoGroup = userGroups.find(isAirQoGroup);
+        if (airqoGroup) {
+          dispatch(setActiveGroup(airqoGroup));
+          await router.push('/user/Home');
+        }
+      } catch (fallbackError) {
+        logger.error('Fallback failed:', fallbackError);
       }
 
-      // STEP 5: Set up a timer to keep the loading state until components are ready
-      // This ensures the loader persists until all org-specific data is loaded
-      const minLoadingTime = 1500; // Minimum loading time for UX
-      setTimeout(() => {
-        setIsSwitching(false);
-      }, minLoadingTime);
-    } catch (error) {
-      // Error in navigation - provide user feedback
-      void error;
+      // Always clear loading state on error
       setIsSwitching(false);
-      setIsSwitchingOrganization(false); // Clear global loading state on error
+      setIsSwitchingOrganization(false);
     }
   };
+
+  // Cleanup timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (switchingTimeoutRef.current) {
+        clearTimeout(switchingTimeoutRef.current);
+        switchingTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Determine what to display - always prioritize activeGroup
   const getDisplayGroup = () => {
@@ -530,17 +547,3 @@ TopbarOrganizationDropdown.propTypes = {
 };
 
 export default TopbarOrganizationDropdown;
-
-/**
- * Utility function to format group names for display
- * Converts underscores and hyphens to spaces and applies uppercase formatting
- */
-const formatGroupName = (groupName) => {
-  if (!groupName) return '';
-  return groupName
-    .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
-    .split(' ')
-    .map((word) => word.toUpperCase()) // Convert each word to uppercase
-    .join(' ')
-    .trim(); // Remove any extra whitespace
-};

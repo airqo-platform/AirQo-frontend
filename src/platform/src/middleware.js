@@ -10,11 +10,19 @@ export default withAuth(
   async function middleware(request) {
     try {
       // Validate session using professional utilities
-      const validation = await validateServerSession(request); // Log validation for debugging in development
+      const validation = await validateServerSession(request);
+
+      // Log validation for debugging in development
       logSessionValidation(validation, 'Middleware validation');
 
       // If validation fails, redirect to appropriate login
       if (!validation.isValid && validation.redirectPath) {
+        logger.info('Middleware redirecting:', {
+          from: request.nextUrl.pathname,
+          to: validation.redirectPath,
+          reason: validation.reason,
+        });
+
         return NextResponse.redirect(
           new URL(validation.redirectPath, request.url),
         );
@@ -22,9 +30,36 @@ export default withAuth(
 
       return NextResponse.next();
     } catch (error) {
-      // Log error and fallback to user login on error
+      // Log error and fallback to appropriate login based on route context
       logger.error('Middleware error:', error);
-      return NextResponse.redirect(new URL('/user/login', request.url));
+
+      // Determine fallback redirect using enhanced routing logic
+      const pathname = request.nextUrl.pathname;
+      let fallbackLogin = '/user/login';
+
+      // Enhanced fallback logic that considers AirQo rules
+      try {
+        // Try to get active group from request headers or other context
+        // For now, use pathname-based fallback with AirQo considerations
+        if (pathname.includes('/org/')) {
+          const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
+          const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+
+          // If the org slug is 'airqo', redirect to user login instead
+          if (orgSlug === 'airqo') {
+            fallbackLogin = '/user/login';
+          } else {
+            fallbackLogin = `/org/${orgSlug}/login`;
+          }
+        } else {
+          fallbackLogin = '/user/login';
+        }
+      } catch (fallbackError) {
+        logger.error('Fallback login determination failed:', fallbackError);
+        fallbackLogin = '/user/login';
+      }
+
+      return NextResponse.redirect(new URL(fallbackLogin, request.url));
     }
   },
   {

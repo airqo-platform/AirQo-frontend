@@ -19,9 +19,16 @@ const HomePage = () => {
         setIsRedirecting(true);
 
         if (status === 'authenticated' && session?.user) {
-          // Check if user is organization user
-          if (session.user.organization) {
-            // Extract org slug from user data or default to 'airqo'
+          // Check if this was an organization login
+          const isOrgLogin = session.isOrgLogin || session.user.isOrgLogin;
+          const sessionOrgSlug =
+            session.orgSlug || session.user.requestedOrgSlug;
+
+          if (isOrgLogin && sessionOrgSlug) {
+            // Organization login - redirect to org dashboard
+            router.replace(`/org/${sessionOrgSlug}/dashboard`);
+          } else if (session.user.organization) {
+            // Check if user is organization user (legacy check)
             const orgSlug = session.user.organization_slug || 'airqo';
             router.replace(`/org/${orgSlug}/dashboard`);
           } else {

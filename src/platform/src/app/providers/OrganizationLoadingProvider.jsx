@@ -11,6 +11,16 @@ import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 
 /**
+ * Global logout state detection
+ * This helps prevent organization switching modal during logout
+ */
+let isGlobalLogout = false;
+
+export const setGlobalLogoutState = (isLoggingOut) => {
+  isGlobalLogout = isLoggingOut;
+};
+
+/**
  * Context for managing organization loading states
  */
 const OrganizationLoadingContext = createContext({
@@ -81,8 +91,22 @@ export function OrganizationLoadingProvider({ children }) {
     const currentGroupId = activeGroup?._id;
     const currentOrgName = activeGroup?.grp_title;
 
+    // Don't trigger organization switch modal during logout
+    // Check if active group is being cleared (going from value to null) which indicates logout
+    // OR if global logout state is active
+    const isLogout = lastActiveGroupId && !currentGroupId;
+    const isGlobalLogoutActive = isGlobalLogout;
+
+    if (isLogout || isGlobalLogoutActive) {
+      // If this looks like logout (group ID going from value to null), don't show switch modal
+      setLastActiveGroupId(null);
+      setLastOrgName(null);
+      return;
+    }
+
     // Only trigger if BOTH the group ID changed AND it's a different organization
     // AND the user has been logged in for a while (not initial login)
+    // AND it's not a logout scenario
     if (
       currentGroupId &&
       currentOrgName &&

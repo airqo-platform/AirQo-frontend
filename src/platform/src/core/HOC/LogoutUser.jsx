@@ -1,6 +1,11 @@
 import { signOut } from 'next-auth/react';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { clearAllGroupData } from '@/lib/store/services/groups';
+import { setGlobalLogoutState } from '@/app/providers/OrganizationLoadingProvider';
+import {
+  getContextualLoginPath,
+  isAirQoGroup,
+} from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
 
 // Global logout state to manage overlay
@@ -173,27 +178,51 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
   try {
     logger.info('Starting comprehensive logout process');
 
+    // Set global logout state to prevent organization switching modal
+    setGlobalLogoutState(true);
+
     // Trigger logout overlay at the start
     triggerLogoutOverlay('Logging you out...');
 
-    // Determine redirect URL based on current route context (unified session approach)
+    // Determine redirect URL based on current context and active group
     let redirectUrl = '/user/login'; // Default for individual users
+    let activeGroup = null;
 
     // Check current route for context detection
     const currentPath =
       typeof window !== 'undefined' ? window.location.pathname : '';
 
-    if (currentPath.includes('/org/')) {
-      // Extract organization slug from current path
-      const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
-      const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
-      redirectUrl = `/org/${orgSlug}/login`;
-      logger.info(`Using path-based org redirect: ${redirectUrl}`);
-    } else {
-      // Default to user login for user context or ambiguous paths
-      redirectUrl = '/user/login';
-      logger.info('Using user redirect based on path context');
+    // Try to get active group from Redux or localStorage
+    try {
+      // Try to get Redux state first
+      if (typeof window !== 'undefined' && window.__NEXT_REDUX_STORE__) {
+        const reduxState = window.__NEXT_REDUX_STORE__.getState();
+        activeGroup =
+          reduxState?.groups?.activeGroup ||
+          reduxState?.activeGroup?.activeGroup;
+      }
+
+      // Fallback to localStorage
+      if (!activeGroup) {
+        const storedSession = localStorage.getItem('loggedUser');
+        if (storedSession) {
+          const sessionData = JSON.parse(storedSession);
+          activeGroup = sessionData.activeGroup;
+        }
+      }
+    } catch (error) {
+      logger.debug('Could not get active group for logout redirect:', error);
     }
+
+    // Use enhanced routing logic that respects AirQo group rules
+    redirectUrl = getContextualLoginPath(currentPath, null, activeGroup);
+
+    logger.info('Logout redirect determined:', {
+      currentPath,
+      activeGroupName: activeGroup?.grp_name || activeGroup?.grp_title,
+      isAirQo: isAirQoGroup(activeGroup),
+      redirectUrl,
+    });
 
     // Step 1: Clear all authentication data FIRST before any redirects
     // This prevents the auth HOC from detecting a session during redirect
@@ -302,10 +331,16 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
       if (typeof window !== 'undefined') {
         window.location.href = '/user/login';
       }
+    } finally {
+      // Clear global logout state even in error cases
+      setGlobalLogoutState(false);
     }
   } finally {
     // Hide logout overlay at the end of the process
     hideLogoutOverlay();
+
+    // Clear global logout state
+    setGlobalLogoutState(false);
   }
 };
 

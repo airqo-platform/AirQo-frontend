@@ -112,6 +112,8 @@ export const options = {
               iat: decodedToken.iat,
               // Store organization slug if provided for context
               requestedOrgSlug: credentials.orgSlug || null,
+              // Add flag to indicate this is an organization login
+              isOrgLogin: !!credentials.orgSlug,
             };
           }
 
@@ -153,6 +155,7 @@ export const options = {
 
         // Store the organization slug if provided during login
         token.requestedOrgSlug = user.requestedOrgSlug;
+        token.isOrgLogin = user.isOrgLogin;
       }
       return token;
     },
@@ -181,7 +184,9 @@ export const options = {
 
         // Store organization information for context switching
         session.user.requestedOrgSlug = token.requestedOrgSlug;
+        session.user.isOrgLogin = token.isOrgLogin;
         session.orgSlug = token.requestedOrgSlug; // Add orgSlug to session root for easier access
+        session.isOrgLogin = token.isOrgLogin; // Add isOrgLogin to session root
       }
       return session;
     },

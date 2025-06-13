@@ -2,9 +2,15 @@
  * Unified Session Management Utilities
  * Uses path-based context detection for seamless user/organization navigation
  * Users can access both contexts with a single login session
+ * Enhanced with AirQo group routing rules
  */
 
 import { getToken } from 'next-auth/jwt';
+import {
+  getContextualLoginPath,
+  isAirQoGroup,
+  shouldUseUserFlow,
+} from './organizationUtils';
 import logger from '@/lib/logger';
 
 // Route type constants
@@ -133,44 +139,97 @@ export const validateSessionAccess = (session, routeType, options = {}) => {
     return { isValid: true };
   }
 
-  // No session - redirect to appropriate login based on context
+  // No session - redirect to appropriate login based on context and AirQo rules
   if (!session) {
-    if (routeType === ROUTE_TYPES.ORGANIZATION) {
-      const orgSlug = extractOrgSlug(pathname) || 'airqo';
-      return {
-        isValid: false,
-        redirectPath: `/org/${orgSlug}/login`,
-        reason: 'No session for organization route',
-      };
-    }
+    // Use enhanced contextual login path
+    const redirectPath = getContextualLoginPath(pathname, null, null);
     return {
       isValid: false,
-      redirectPath: '/user/login',
-      reason: 'No session for user route',
+      redirectPath,
+      reason: 'No session - redirecting to appropriate login',
     };
   }
 
-  // If session exists, check for proper routing based on group
-  if (session?.user?.activeGroup?.grp_title) {
-    const groupTitle = session.user.activeGroup.grp_title.toLowerCase();
+  // If session exists, check for proper routing based on login context and group
+  // Enhanced with AirQo routing rules
+  const activeGroup = session?.user?.activeGroup;
 
-    // If user is in AirQo group but on organization route, redirect to user route
-    if (groupTitle === 'airqo' && routeType === ROUTE_TYPES.ORGANIZATION) {
+  // Priority 1: AirQo group ALWAYS uses user flow
+  if (shouldUseUserFlow(activeGroup)) {
+    if (routeType === ROUTE_TYPES.ORGANIZATION) {
       return {
         isValid: false,
         redirectPath: '/user/Home',
-        reason: 'AirQo users should use user routes',
+        reason: 'AirQo group must use user flow routes',
       };
     }
+    // Valid for user routes
+    return { isValid: true };
+  }
 
-    // If user is in non-AirQo group but on user route, redirect to organization route
-    if (groupTitle !== 'airqo' && routeType === ROUTE_TYPES.USER) {
-      const orgSlug = groupTitle.replace(/\s+/g, '-');
+  // Priority 2: Check if this was an organization login
+  const isOrgLogin = session.isOrgLogin || session.user?.isOrgLogin;
+  const sessionOrgSlug = session.orgSlug || session.user?.requestedOrgSlug;
+
+  if (isOrgLogin && routeType === ROUTE_TYPES.USER) {
+    // User logged in through org route but is on user route - redirect to org dashboard
+    const orgSlug = sessionOrgSlug || 'airqo';
+    // But if orgSlug is 'airqo', redirect to user dashboard instead
+    if (orgSlug === 'airqo') {
+      return { isValid: true }; // Allow user route for AirQo
+    }
+    return {
+      isValid: false,
+      redirectPath: `/org/${orgSlug}/dashboard`,
+      reason: 'Organization login users should use organization routes',
+    };
+  }
+
+  // Priority 3: Check activeGroup for traditional routing (non-AirQo groups)
+  if (activeGroup && !isAirQoGroup(activeGroup)) {
+    const groupTitle = activeGroup.grp_title || activeGroup.grp_name || '';
+
+    // Non-AirQo group on user route - redirect to organization route
+    if (routeType === ROUTE_TYPES.USER && !isOrgLogin) {
+      const orgSlug = groupTitle.toLowerCase().replace(/[^a-z0-9]/g, '-');
       return {
         isValid: false,
         redirectPath: `/org/${orgSlug}/dashboard`,
         reason: 'Organization users should use organization routes',
       };
+    }
+  }
+
+  // Priority 4: For organization routes, validate that active group matches slug
+  if (routeType === ROUTE_TYPES.ORGANIZATION && pathname) {
+    const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
+    if (orgSlugMatch) {
+      const urlSlug = orgSlugMatch[1];
+
+      // If URL slug is 'airqo', redirect to user flow
+      if (urlSlug === 'airqo') {
+        return {
+          isValid: false,
+          redirectPath: '/user/Home',
+          reason: 'AirQo routes should use user flow',
+        };
+      }
+
+      // Check if active group matches the URL slug
+      if (activeGroup) {
+        const activeGroupSlug = activeGroup.grp_name
+          ?.toLowerCase()
+          .replace(/[^a-z0-9]/g, '-');
+
+        // If active group doesn't match URL slug, this is invalid
+        if (activeGroupSlug !== urlSlug) {
+          return {
+            isValid: false,
+            redirectPath: `/org/${activeGroupSlug}/dashboard`,
+            reason: 'Active group does not match organization route slug',
+          };
+        }
+      }
     }
   }
 

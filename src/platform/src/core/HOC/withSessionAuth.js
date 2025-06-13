@@ -135,12 +135,18 @@ export const withSessionAuth = (
                   // Smart redirect logic - prioritize organization flow
                   let smartRedirect = redirectPath || setupResult.redirectPath;
 
-                  // If no redirect path is set, determine based on current route
+                  // If no redirect path is set, determine based on session context and current route
                   if (!smartRedirect) {
                     const routeType = getRouteType(pathname);
-                    if (routeType === ROUTE_TYPES.ORGANIZATION) {
-                      // For organization routes, try to extract org slug and redirect to dashboard
-                      const pathOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
+                    const isOrgLogin =
+                      session.isOrgLogin || session.user.isOrgLogin;
+                    const sessionOrgSlug =
+                      session.orgSlug || session.user.requestedOrgSlug;
+
+                    if (isOrgLogin || routeType === ROUTE_TYPES.ORGANIZATION) {
+                      // For organization logins or organization routes, redirect to org dashboard
+                      const pathOrgSlug =
+                        pathname.match(/\/org\/([^/]+)/)?.[1] || sessionOrgSlug;
                       if (pathOrgSlug) {
                         smartRedirect = `/org/${pathOrgSlug}/dashboard`;
                       } else {
