@@ -460,11 +460,8 @@ const Profile = () => {
                     <Button
                       onClick={handleProfileImageUpdate}
                       disabled={!updatedProfilePicture}
-                      className={`text-sm font-medium ${
-                        updatedProfilePicture
-                          ? 'text-blue-600 bg-blue-50 rounded'
-                          : 'text-gray-600'
-                      }`}
+                      variant={updatedProfilePicture ? 'outlined' : 'disabled'}
+                      className="text-sm font-medium"
                     >
                       {updatedProfilePicture && !profileUploading
                         ? 'Save photo'
@@ -561,7 +558,8 @@ const Profile = () => {
                     onClick={handleSubmit}
                     type="button"
                     disabled={isLoading}
-                    className="py-3 px-4 text-sm rounded bg-blue-600 text-white"
+                    variant={isLoading ? 'disabled' : 'filled'}
+                    className="py-3 px-4 text-sm rounded"
                   >
                     {isLoading ? 'Saving...' : 'Save'}
                   </Button>

@@ -184,11 +184,8 @@ const Password = () => {
                 onClick={handleSubmit}
                 type="button"
                 disabled={isDisabled}
-                className={`py-3 px-4 text-sm rounded ${
-                  isDisabled
-                    ? 'bg-blue-300 opacity-50 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
+                variant={isDisabled ? 'disabled' : 'filled'}
+                className="py-3 px-4 text-sm rounded"
               >
                 {isDisabled ? (
                   <div className="flex items-center gap-1">

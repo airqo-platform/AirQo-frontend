@@ -35,7 +35,7 @@ const API = ({ userPermissions }) => {
             </div>
             <Button
               onClick={() => setShowAddClientForm(true)}
-              className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 bg-blue-600 text-white text-sm font-medium"
+              className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 text-sm font-medium"
             >
               <AddIcon /> Create client
             </Button>

@@ -292,12 +292,15 @@ const UserClientsTable = () => {
                                 ? 'Tap to generate token'
                                 : 'Token already generated'
                             }
-                            className={`px-4 py-2 rounded-2xl inline-flex justify-center items-center text-sm ${
+                            variant={
                               !hasAccessToken(client._id)
-                                ? 'bg-green-700 text-green-50 cursor-pointer'
-                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300'
-                            }`}
-                            disabled={isLoadingToken}
+                                ? 'filled'
+                                : 'disabled'
+                            }
+                            className="px-4 py-2 rounded-2xl inline-flex justify-center items-center text-sm"
+                            disabled={
+                              isLoadingToken || hasAccessToken(client._id)
+                            }
                             onClick={() => {
                               const clientData = {
                                 name: client.name,
