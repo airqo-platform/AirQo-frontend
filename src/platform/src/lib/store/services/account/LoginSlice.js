@@ -25,6 +25,11 @@ export const userLoginSlice = createSlice({
     },
     resetStore: () => initialState,
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase({ type: 'RESET_APP' }, () => initialState)
+      .addCase({ type: 'LOGOUT_USER' }, () => initialState);
+  },
 });
 
 export const { setUserData, setUserInfo, setError, setSuccess, resetStore } =

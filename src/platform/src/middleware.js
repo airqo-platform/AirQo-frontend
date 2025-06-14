@@ -1,89 +1,111 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import {
+  validateServerSession,
+  logSessionValidation,
+} from './core/utils/sessionUtils';
+import logger from './lib/logger';
 
 export default withAuth(
-  function middleware(req) {
-    const { pathname } = req.nextUrl;
+  async function middleware(request) {
+    try {
+      // Validate session using professional utilities
+      const validation = await validateServerSession(request);
 
-    // Log access for debugging in development
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log(`🔍 Middleware checking: ${pathname}`);
+      // Log validation for debugging in development
+      logSessionValidation(validation, 'Middleware validation');
+
+      // If validation fails, redirect to appropriate login
+      if (!validation.isValid && validation.redirectPath) {
+        logger.info('Middleware redirecting:', {
+          from: request.nextUrl.pathname,
+          to: validation.redirectPath,
+          reason: validation.reason,
+        });
+
+        return NextResponse.redirect(
+          new URL(validation.redirectPath, request.url),
+        );
+      }
+
+      return NextResponse.next();
+    } catch (error) {
+      // Log error and fallback to appropriate login based on route context
+      logger.error('Middleware error:', error);
+
+      // Determine fallback redirect using enhanced routing logic
+      const pathname = request.nextUrl.pathname;
+      let fallbackLogin = '/user/login';
+
+      // Enhanced fallback logic that considers AirQo rules
+      try {
+        // Try to get active group from request headers or other context
+        // For now, use pathname-based fallback with AirQo considerations
+        if (pathname.includes('/org/')) {
+          const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
+          const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
+
+          // If the org slug is 'airqo', redirect to user login instead
+          if (orgSlug === 'airqo') {
+            fallbackLogin = '/user/login';
+          } else {
+            fallbackLogin = `/org/${orgSlug}/login`;
+          }
+        } else {
+          fallbackLogin = '/user/login';
+        }
+      } catch (fallbackError) {
+        logger.error('Fallback login determination failed:', fallbackError);
+        fallbackLogin = '/user/login';
+      }
+
+      return NextResponse.redirect(new URL(fallbackLogin, request.url));
     }
-
-    return NextResponse.next();
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Always allow access to auth pages (client-side redirects handle logged-in users)
-        if (pathname.includes('(auth)') || pathname.startsWith('/account/')) {
-          return true;
-        }
-
-        // Allow access to API routes and static files
+        // Always allow access to authentication pages
         if (
-          pathname.startsWith('/api/') ||
-          pathname.startsWith('/_next') ||
-          pathname.startsWith('/favicon') ||
-          pathname.startsWith('/robots') ||
-          pathname.startsWith('/sitemap')
+          pathname.includes('/login') ||
+          pathname.includes('/register') ||
+          pathname.includes('/forgotPwd') ||
+          pathname.includes('/creation') ||
+          pathname.includes('/verify-email')
         ) {
           return true;
         }
 
-        // Protected routes that require authentication
-        const protectedRoutes = [
-          '/Home',
-          '/map',
-          '/analytics',
-          '/settings',
-          '/collocation',
-          '/admin',
-        ];
-
-        // Check for organization-specific routes under /org/
-        const orgRoutePattern =
-          /^\/org\/([^/]+)(\/([^/]+))?\/(dashboard|insights|preferences|map)/;
-        const isOrgRoute = orgRoutePattern.test(pathname);
-
-        const isProtectedRoute =
-          protectedRoutes.some((route) => pathname.startsWith(route)) ||
-          isOrgRoute;
-
-        // Allow non-protected routes without authentication
-        if (!isProtectedRoute) {
+        // Allow access to public routes
+        if (
+          pathname === '/' ||
+          pathname.startsWith('/public/') ||
+          pathname.startsWith('/_next/') ||
+          pathname.startsWith('/api/auth/') ||
+          pathname === '/favicon.ico'
+        ) {
           return true;
         }
 
-        // For protected routes, require valid authentication
-        if (!token) {
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            console.log(
-              `❌ Unauthorized access attempt to protected route: ${pathname}`,
-            );
-          }
-          return false;
+        // Require authentication for protected routes
+        if (
+          pathname.includes('/org/') ||
+          pathname.includes('/user/') ||
+          pathname.includes('(individual)') ||
+          pathname.includes('(organization)') ||
+          pathname.startsWith('/Home') ||
+          pathname.startsWith('/analytics') ||
+          pathname.startsWith('/collocation') ||
+          pathname.startsWith('/settings')
+        ) {
+          return !!token;
         }
 
-        // Validate token structure for protected routes
-        if (!token.email || !token.accessToken) {
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            console.log(`❌ Invalid token structure for: ${pathname}`);
-          }
-          return false;
-        }
-
+        // Default allow for unmatched routes
         return true;
       },
-    },
-    pages: {
-      signIn: '/account/login',
-      error: '/account/login',
     },
   },
 );
@@ -91,13 +113,12 @@ export default withAuth(
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - api routes (except auth)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, robots.txt, sitemap.xml (metadata files)
-     * - images in public folder
+     * Match all routes except:
+     * - API routes (/api/*)
+     * - Static files (/_next/*)
+     * - Public files
+     * - Favicon
      */
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$|.*\\.ico$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

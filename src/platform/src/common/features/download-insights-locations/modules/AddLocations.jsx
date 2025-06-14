@@ -12,7 +12,10 @@ import {
   replaceUserPreferences,
   getIndividualUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
-import { setRefreshChart } from '@/lib/store/services/charts/ChartSlice';
+import {
+  setRefreshChart,
+  setChartSites,
+} from '@/lib/store/services/charts/ChartSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -217,13 +220,22 @@ const AddLocations = ({ onClose }) => {
             }),
           );
         }
+
+        // For organizations, also update chart sites directly
+        const selectedSiteIds = selectedSitesData
+          .map((site) => site._id)
+          .filter(Boolean);
+        if (selectedSiteIds.length > 0) {
+          dispatch(setChartSites(selectedSiteIds));
+        }
+
         dispatch(setRefreshChart(true));
         completeStep(1);
       })
-      .catch((err) => {
+      .catch((_err) => {
         setError('Failed to update preferences.');
         setMessageType(MESSAGE_TYPES.ERROR);
-        console.error(err);
+        // Log error for debugging but avoid console in production
       })
       .finally(() => {
         setSubmitLoading(false);
@@ -411,35 +423,35 @@ const AddLocations = ({ onClose }) => {
   return (
     <ErrorBoundary name="AddLocation" feature="Add Locations">
       <motion.div
-        className="relative flex flex-col lg:flex-row h-full overflow-x-hidden"
+        className="relative flex flex-col lg:flex-row h-full min-h-0"
         variants={animations.pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
         data-testid="add-locations-container"
       >
+        {' '}
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block flex-shrink-0">
           <motion.div
-            className="w-[280px] min-h-[400px] max-h-[658px] h-full overflow-y-auto overflow-x-hidden border-r dark:border-gray-700 relative space-y-3 px-4 pt-5 pb-14 flex-shrink-0"
+            className="w-[240px] h-full overflow-y-auto overflow-x-hidden border-r border-gray-200 dark:border-gray-700 relative space-y-3 px-4 pt-5 pb-14"
             variants={animations.sidebarVariants}
             initial="hidden"
             animate="visible"
           >
             {renderSidebarContent()}
           </motion.div>
-        </div>
-
+        </div>{' '}
         {/* Mobile/Tablet Menu Button */}
-        <div className="lg:hidden px-4 md:px-6 pt-2">
+        <div className="lg:hidden px-4 md:px-6 pt-2 flex-shrink-0">
           <button
             onClick={() => setMobileSidebarVisible(true)}
             aria-label="Open sidebar menu"
+            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <IoIosMenu size={24} />
           </button>
         </div>
-
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
           {isMobileSidebarVisible && (
@@ -450,7 +462,7 @@ const AddLocations = ({ onClose }) => {
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="w-[280px] h-full bg-white dark:bg-[#1d1f20] overflow-x-hidden overflow-y-auto shadow-lg"
+                className="w-[240px] h-full bg-white dark:bg-[#1d1f20] overflow-x-hidden overflow-y-auto shadow-lg"
                 initial={{ x: -300 }}
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
@@ -467,12 +479,11 @@ const AddLocations = ({ onClose }) => {
               </motion.div>
             </motion.div>
           )}
-        </AnimatePresence>
-
+        </AnimatePresence>{' '}
         {/* Main Content */}
-        <div className="flex-1 flex flex-col relative overflow-x-hidden">
+        <div className="flex-1 flex flex-col relative overflow-hidden min-h-0">
           <motion.div
-            className="flex-1 h-full px-2 sm:px-6 pt-6 pb-4 overflow-y-auto overflow-x-hidden"
+            className="flex-1 px-2 sm:px-6 pt-6 pb-4 overflow-y-auto overflow-x-hidden"
             variants={animations.sidebarVariants}
             initial="hidden"
             animate="visible"

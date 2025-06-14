@@ -1,12 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const initialState = {
+  isCollapsed: false,
+  toggleDrawer: false,
+  toggleGlobalDrawer: false,
+};
+
 const sidebarSlice = createSlice({
   name: 'sidebar',
-  initialState: {
-    isCollapsed: false,
-    toggleDrawer: false,
-    toggleGlobalDrawer: false,
-  },
+  initialState,
   reducers: {
     toggleSidebar: (state) => {
       state.isCollapsed = !state.isCollapsed;
@@ -26,6 +28,12 @@ const sidebarSlice = createSlice({
     toggleGlobalDrawer: (state) => {
       state.toggleGlobalDrawer = !state.toggleGlobalDrawer;
     },
+    resetSidebar: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase({ type: 'RESET_APP' }, () => initialState)
+      .addCase({ type: 'LOGOUT_USER' }, () => initialState);
   },
 });
 
@@ -36,6 +44,7 @@ export const {
   toggleDrawer,
   setTogglingGlobalDrawer,
   toggleGlobalDrawer,
+  resetSidebar,
 } = sidebarSlice.actions;
 
 export default sidebarSlice.reducer;

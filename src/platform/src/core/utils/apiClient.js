@@ -1,85 +1,39 @@
-import axios from 'axios';
-import logger from '../../lib/logger';
-import { NEXT_PUBLIC_API_BASE_URL } from '../../lib/envConstants';
-
-// Function to get JWT Token
-const getJwtToken = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
-};
-
-// API base URL and token from environment variables
-const API_BASE_URL = NEXT_PUBLIC_API_BASE_URL;
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+import { secureApiProxy, AUTH_TYPES } from './secureApiProxyClient';
 
 /**
- * Create pre-configured axios instance with error handling
+ * Compatibility layer for old apiClient imports
+ * Wraps secureApiProxyClient functionality
  */
-const createApiClient = (useJwt = true) => {
-  // Create axios instance
-  const instance = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-  });
 
-  // Add request interceptor
-  instance.interceptors.request.use(
-    (config) => {
-      if (useJwt) {
-        // Set JWT authentication
-        const token = getJwtToken();
-        if (token) {
-          config.headers['Authorization'] = token;
-        }
-      } else {
-        // Use API token instead
-        delete config.headers['Authorization'];
-        config.params = {
-          ...config.params,
-          token: API_TOKEN?.replace(/[\u200B-\u200D\uFEFF]/g, '').trim(),
-        };
-      }
-
-      // Log request in development
-      if (process.env.NODE_ENV !== 'production') {
-        logger.debug('API Request', {
-          url: config.url,
-          method: config.method,
-          headers: config.headers,
-        });
-      }
-
-      return config;
-    },
-    (error) => {
-      logger.error('Request config error', error);
-      return Promise.reject(error);
-    },
-  );
-
-  // Add response interceptor with error logging
-  instance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      // Log detailed error information
-      const errorInfo = {
-        url: error.config?.url,
-        method: error.config?.method,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-      };
-
-      logger.error('API request failed', error, errorInfo);
-      return Promise.reject(error);
-    },
-  );
-
-  return instance;
+// Public API client (no auth required)
+export const publicApi = {
+  get: (url, config = {}) =>
+    secureApiProxy(url, { method: 'GET', ...config }, AUTH_TYPES.NONE),
+  post: (url, data, config = {}) =>
+    secureApiProxy(url, { method: 'POST', data, ...config }, AUTH_TYPES.NONE),
+  put: (url, data, config = {}) =>
+    secureApiProxy(url, { method: 'PUT', data, ...config }, AUTH_TYPES.NONE),
+  delete: (url, config = {}) =>
+    secureApiProxy(url, { method: 'DELETE', ...config }, AUTH_TYPES.NONE),
+  patch: (url, data, config = {}) =>
+    secureApiProxy(url, { method: 'PATCH', data, ...config }, AUTH_TYPES.NONE),
 };
 
-// Create default instances
-export const api = createApiClient(true); // With JWT
-export const publicApi = createApiClient(false); // Without JWT
+// Authenticated API client
+export const api = {
+  get: (url, config = {}) =>
+    secureApiProxy(url, { method: 'GET', ...config }, AUTH_TYPES.JWT),
+  post: (url, data, config = {}) =>
+    secureApiProxy(url, { method: 'POST', data, ...config }, AUTH_TYPES.JWT),
+  put: (url, data, config = {}) =>
+    secureApiProxy(url, { method: 'PUT', data, ...config }, AUTH_TYPES.JWT),
+  delete: (url, config = {}) =>
+    secureApiProxy(url, { method: 'DELETE', ...config }, AUTH_TYPES.JWT),
+  patch: (url, data, config = {}) =>
+    secureApiProxy(url, { method: 'PATCH', data, ...config }, AUTH_TYPES.JWT),
+};
 
-export default createApiClient;
+// Default export - creates an authenticated instance
+const createAxiosInstance = () => api;
+
+export default createAxiosInstance;

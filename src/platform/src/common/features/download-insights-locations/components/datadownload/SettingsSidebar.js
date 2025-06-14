@@ -3,7 +3,6 @@ import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
 import CustomFields from '../CustomFields';
-import WorldIcon from '@/icons/SideBar/world_Icon';
 import { motion } from 'framer-motion';
 
 import {
@@ -20,7 +19,6 @@ const SettingsSidebar = ({
   handleOptionSelect,
   edit,
   filteredDataTypeOptions,
-  ORGANIZATION_OPTIONS,
   durationGuidance,
   handleSubmit,
   handleTitleChange,
@@ -45,7 +43,7 @@ const SettingsSidebar = ({
 
   return (
     <motion.form
-      className="w-[280px] h-full min-h-[400px] max-h-[658px] relative space-y-3 px-5 pt-5 pb-14 border-r dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
+      className="w-[240px] h-full relative space-y-3 px-5 pt-5 pb-14 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
       onSubmit={handleSubmit}
       variants={sidebarVariants}
@@ -68,18 +66,6 @@ const SettingsSidebar = ({
               disabled={edit}
             />
           </div>
-        </motion.div>
-
-        <motion.div variants={formItemVariants}>
-          <CustomFields
-            title="Organization"
-            options={ORGANIZATION_OPTIONS}
-            id="organization"
-            icon={<WorldIcon width={16} height={16} />}
-            defaultOption={formData.organization}
-            handleOptionSelect={handleOptionSelect}
-            textFormat="uppercase"
-          />
         </motion.div>
 
         <motion.div variants={formItemVariants}>

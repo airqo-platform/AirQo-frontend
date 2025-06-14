@@ -1,15 +1,16 @@
+/* eslint-env cypress */
 import React from 'react';
 import { mount } from '@cypress/react';
 import { Provider } from 'react-redux';
-import PageTopBar from '@/components/PageTopBar';
+import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import createStore from '@/lib/store';
 
-describe('PageTopBar Component', () => {
-  it('should render the PageTopBar component', () => {
+describe('GlobalTopbar Component', () => {
+  it('should render the GlobalTopbar component', () => {
     const store = createStore();
     mount(
       <Provider store={store}>
-        <PageTopBar />
+        <GlobalTopbar />
       </Provider>,
     );
     cy.get('[data-cy=topbar]').should('be.visible');
@@ -19,7 +20,7 @@ describe('PageTopBar Component', () => {
     const store = createStore();
     mount(
       <Provider store={store}>
-        <PageTopBar />
+        <GlobalTopbar />
       </Provider>,
     );
     cy.get('[data-cy=profile-btn]').click();

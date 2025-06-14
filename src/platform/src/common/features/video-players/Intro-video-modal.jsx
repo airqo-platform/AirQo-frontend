@@ -124,14 +124,13 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   const handleVideoLoad = () => setLoading(false);
 
   if (!open) return null;
-
   return (
     <ErrorBoundary name="VideoModal" feature="Video Player">
       <div
         ref={modalRef}
         id="custom-modal"
         tabIndex="-1"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-800/50 backdrop-blur-sm"
       >
         <div className="relative w-full max-w-2xl mx-4 md:mx-0">
           <button

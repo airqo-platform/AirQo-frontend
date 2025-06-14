@@ -1,6 +1,6 @@
 import React from 'react';
-import Button from '@/components/Button';
-import Card from '@/components/CardWrapper';
+import Button from '@/common/components/Button';
+import Card from '@/common/components/CardWrapper';
 
 export const DialogWrapper = ({
   children,

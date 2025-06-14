@@ -179,7 +179,6 @@ export const useAnalyticsData = (params, options = {}) => {
     pollutant,
     organisationName,
   });
-
   // Use SWR for data fetching with caching
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,

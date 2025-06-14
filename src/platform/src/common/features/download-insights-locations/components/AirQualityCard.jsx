@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 
 import PropTypes from 'prop-types';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 const AirQualityCard = ({
   // airQuality,

@@ -1,13 +1,15 @@
 import React from 'react';
+import Skeleton from '@/common/components/Skeleton';
 
 const SearchResultsSkeleton = () => {
   const numElements = 6;
   return (
-    <div className="flex flex-col gap-4 animate-pulse px-4 mt-5">
+    <div className="flex flex-col gap-4 px-4 mt-5">
       {Array.from({ length: numElements }).map((_, i) => (
-        <div
+        <Skeleton
           key={i}
-          className="bg-gray-200 dark:bg-gray-700 rounded-xl w-full h-16"
+          className="rounded-xl w-full h-16"
+          variant="rectangular"
         />
       ))}
     </div>

@@ -3,11 +3,12 @@
  */
 export const SWR_CONFIG = {
   revalidateOnFocus: false,
-  revalidateOnReconnect: true,
+  revalidateOnReconnect: false, // Prevent refetch on window focus/reconnect
+  revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
   refreshInterval: 0,
   shouldRetryOnError: true,
   errorRetryCount: 3,
-  dedupingInterval: 2000,
+  dedupingInterval: 5000, // Increased to prevent duplicate calls
   suspense: false,
 };
 
@@ -16,11 +17,12 @@ export const SWR_CONFIG = {
  */
 export const ANALYTICS_SWR_CONFIG = {
   revalidateOnFocus: false,
-  revalidateOnReconnect: true,
+  revalidateOnReconnect: false, // Prevent refetch on window focus/reconnect
+  revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
   refreshInterval: 0,
   shouldRetryOnError: true,
   errorRetryCount: 3,
-  dedupingInterval: 10000,
+  dedupingInterval: 15000, // Increased to prevent duplicate calls
   keepPreviousData: true,
-  focusThrottleInterval: 10000,
+  focusThrottleInterval: 30000, // Increase throttle time
 };

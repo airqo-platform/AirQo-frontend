@@ -306,7 +306,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
       variants={variants.sidebar}
       initial="hidden"
       animate="visible"
-      className="space-y-3 p-4 border-r dark:border-gray-700 dark:bg-[#1d1f20] h-full overflow-y-auto min-h-full"
+      className="space-y-3 p-4 h-full"
     >
       {allSites.map((site) => (
         <motion.div
@@ -372,7 +372,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
         <motion.div
           initial="hidden"
           animate="visible"
-          className="h-[400px] w-full"
+          className="h-[350px] sm:h-[400px] w-full"
         >
           <MoreInsightsChart
             data={allSiteData}
@@ -410,27 +410,35 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
 
   return (
     <ErrorBoundary name="MoreInsights" feature="Air Quality Insights">
+      {' '}
       <motion.div
-        className="relative flex flex-col lg:flex-row h-full overflow-hidden bg-transparent"
+        className="relative flex flex-col lg:flex-row h-full min-h-0 bg-transparent"
         variants={variants.content}
         initial="initial"
         animate="animate"
       >
+        {' '}
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-[280px] h-full overflow-y-auto">
-          {renderSidebar()}
+        <div className="hidden lg:block flex-shrink-0">
+          <motion.div
+            className="w-[240px] h-full overflow-y-auto overflow-x-hidden border-r border-gray-200 dark:border-gray-700 relative"
+            variants={variants.sidebar}
+            initial="hidden"
+            animate="visible"
+          >
+            {renderSidebar()}
+          </motion.div>
         </div>
-
         {/* Mobile Menu Button */}
-        <div className="lg:hidden px-4 pt-2">
+        <div className="lg:hidden px-4 pt-2 flex-shrink-0">
           <button
             aria-label="Open sidebar"
             onClick={() => setMobileSidebarVisible(true)}
+            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <IoIosMenu size={24} className="text-gray-600 dark:text-gray-200" />
           </button>
         </div>
-
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
           {mobileSidebarVisible && (
@@ -440,7 +448,7 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                   initial={{ x: -300 }}
                   animate={{ x: 0 }}
                   exit={{ x: -300 }}
-                  className="w-[280px] h-full bg-white dark:bg-[#1d1f20] shadow-lg"
+                  className="w-[240px] h-full bg-white dark:bg-[#1d1f20] shadow-lg overflow-y-auto overflow-x-hidden"
                 >
                   <div className="flex justify-end p-2">
                     <button
@@ -456,9 +464,8 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
             </>
           )}
         </AnimatePresence>
-
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           <div className="px-4 sm:px-6 py-4 flex flex-col space-y-4 flex-1 overflow-y-auto overflow-x-hidden">
             {/* Controls Bar */}
             <motion.div
@@ -540,7 +547,6 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                 </Tooltip>
               </div>
             </motion.div>
-
             {/* Download Error */}
             <AnimatePresence>
               {downloadError && (
@@ -554,12 +560,11 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                   </SelectionMessage>
                 </motion.div>
               )}
-            </AnimatePresence>
-
+            </AnimatePresence>{' '}
             {/* Chart Container */}
             <motion.div
               variants={variants.item}
-              className="relative border dark:border-gray-700 rounded-xl p-2 h-auto"
+              className="relative border dark:border-gray-700 rounded-xl p-2 h-[360px] sm:h-[410px] flex-shrink-0"
             >
               <AnimatePresence>
                 {refreshSuccess && !isValidating && (
@@ -578,7 +583,6 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
               </AnimatePresence>
               {renderChart()}
             </motion.div>
-
             {/* Hidden sites info */}
             <AnimatePresence>
               {dataLoadingSites.length > visibleSites.length && (
@@ -596,7 +600,6 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
                 </motion.div>
               )}
             </AnimatePresence>
-
             {/* Air Quality Card */}
             <motion.div variants={variants.item} className="flex-shrink-0">
               <AirQualityCard

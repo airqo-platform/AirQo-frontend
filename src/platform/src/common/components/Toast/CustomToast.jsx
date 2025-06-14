@@ -36,7 +36,8 @@ const CustomToast = ({
       break;
     case 'info':
       icon = <IoInformationCircle size={20} className="text-white" />;
-      className = 'bg-blue-600 text-white';
+      className =
+        'bg-[var(--org-primary,var(--color-primary,#145fff))] text-white';
       break;
     case 'success':
     default:

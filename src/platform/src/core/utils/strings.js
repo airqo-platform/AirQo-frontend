@@ -1,10 +1,3 @@
-export const stripTrailingSlash = (url) => {
-  if (!url || typeof url !== 'string') {
-    return '';
-  }
-  return url.trim().replace(/\/$/, '');
-};
-
 export const capitalizeAllText = (text) => {
   if (!text) {
     return '';
@@ -18,9 +11,14 @@ export const capitalizeAllText = (text) => {
   return capitalizedWords?.join(' ');
 };
 
-export const capitalizeFirstLetter = (text) => {
-  if (!text) {
+/**
+ * Removes spaces and converts text to lowercase
+ * @param {string} text - The text to process
+ * @returns {string} - Text with spaces removed and converted to lowercase
+ */
+export const removeSpacesAndLowerCase = (text) => {
+  if (!text || typeof text !== 'string') {
     return '';
   }
-  return text?.charAt(0)?.toUpperCase() + text?.slice(1)?.toLowerCase();
+  return text.replace(/\s+/g, '').toLowerCase();
 };

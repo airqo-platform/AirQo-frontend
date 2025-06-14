@@ -90,11 +90,30 @@ const SiteCard = memo(
           }
         : null;
 
-    // display values
+    // display values with improved site name handling
     const pollutantDisplay = pollutantType === 'pm2_5' ? 'PM2.5' : 'PM10';
     const measurementValue = getMeasurementValue(measurement, pollutantType);
-    const siteName = site.name || '---';
-    const siteCountry = site.country || '---';
+
+    // Enhanced site name formatting to handle IDs gracefully
+    const formatSiteName = (name) => {
+      if (!name || name === '---') return 'Unknown Site';
+
+      // If the name looks like an ObjectId (24 hex characters), format it nicely
+      if (/^[0-9a-fA-F]{24}$/.test(name)) {
+        return `Site ${name.substring(0, 8)}...`;
+      }
+
+      // If the name starts with "Site " and followed by what looks like an ID, keep it
+      if (name.startsWith('Site ') && name.includes('...')) {
+        return name;
+      }
+
+      return name;
+    };
+
+    const siteName = formatSiteName(site.name);
+    const siteCountry =
+      site.country || site.city || site.region || 'Unknown Location';
 
     const handleClick = useCallback(() => {
       onOpenModal('inSights', [], site);

@@ -5,6 +5,7 @@ import StepProgress from './CircularStepper';
 import ChecklistStepCard from './ChecklistStepCard';
 import ChecklistSkeleton from './ChecklistSkeleton';
 import { createSteps, mergeStepsWithChecklist } from '../utils/steps';
+import logger from '@/lib/logger';
 import {
   fetchUserChecklists,
   updateTaskProgress,
@@ -51,8 +52,7 @@ const Checklist = ({ openVideoModal }) => {
         try {
           // Log for debugging
           if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
-            console.log('Fetching checklist data for user:', userId);
+            logger.info('Fetching checklist data for user:', userId);
           }
 
           await dispatch(fetchUserChecklists(userId));
@@ -63,8 +63,7 @@ const Checklist = ({ openVideoModal }) => {
         } catch (error) {
           // Log error but don't expose in production
           if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
-            console.error('Error fetching checklist data:', error);
+            logger.error('Error fetching checklist data:', error);
           }
         }
       }

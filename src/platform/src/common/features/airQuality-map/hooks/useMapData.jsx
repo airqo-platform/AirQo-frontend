@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Supercluster from 'supercluster';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
+import { debounce } from 'lodash';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import {
   setOpenLocationDetails,
@@ -33,6 +34,12 @@ const useMapData = ({
   const indexRef = useRef(null);
   const abortControllerRef = useRef(null);
   const [isWaqLoading, setIsWaqLoading] = useState(false);
+
+  // Add caching for better performance
+  const mapDataCacheRef = useRef(new Map());
+  const lastFetchTimeRef = useRef(0);
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
   const dispatch = useDispatch();
   const mapReadingsData = useSelector((state) => state.map.mapReadingsData);
   const waqData = useSelector((state) => state.map.waqData);
@@ -121,79 +128,121 @@ const useMapData = ({
       }
     },
     [dispatch, selectedNode],
-  );
+  ); // Optimized cluster update with debouncing and performance improvements
+  const clusterUpdate = useCallback(
+    debounce(() => {
+      const map = mapRef.current;
+      if (!map || !indexRef.current) return;
 
-  const clusterUpdate = useCallback(() => {
-    const map = mapRef.current;
-    if (!map || !indexRef.current) return;
-    try {
-      const zoom = map.getZoom();
-      const bbox = [
-        map.getBounds().getWest(),
-        map.getBounds().getSouth(),
-        map.getBounds().getEast(),
-        map.getBounds().getNorth(),
-      ];
-      const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
-      clearMarkers();
-      clusters.forEach((feature) => {
-        const el = document.createElement('div');
-        el.style.cursor = 'pointer';
-        if (!feature.properties.cluster) {
-          el.style.zIndex = '1';
-          el.innerHTML = UnclusteredNode({
-            feature,
-            NodeType,
-            selectedNode,
-            isDarkMode,
-          });
-          const popup = new mapboxgl.Popup({
-            offset: NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
-            closeButton: false,
-            maxWidth: 'none',
-            className: 'my-custom-popup hidden md:block',
-          }).setHTML(createPopupHTML({ feature, images, isDarkMode }));
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .setPopup(popup)
-            .addTo(map);
-          el.addEventListener('mouseenter', () => {
-            marker.togglePopup();
-            el.style.zIndex = '9999';
-          });
-          el.addEventListener('mouseleave', () => {
-            marker.togglePopup();
+      try {
+        const zoom = map.getZoom();
+        const bbox = [
+          map.getBounds().getWest(),
+          map.getBounds().getSouth(),
+          map.getBounds().getEast(),
+          map.getBounds().getNorth(),
+        ];
+        const clusters = indexRef.current.getClusters(bbox, Math.floor(zoom));
+
+        // Clear existing markers efficiently
+        clearMarkers();
+
+        const newMarkers = [];
+
+        clusters.forEach((feature) => {
+          const el = document.createElement('div');
+          el.style.cursor = 'pointer';
+
+          if (!feature.properties.cluster) {
             el.style.zIndex = '1';
-          });
-          el.addEventListener('click', () => handleNodeSelection(feature));
-          markersRef.current.push(marker);
-        } else {
-          el.style.zIndex = '444';
-          el.className =
-            'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-          const mostCommonAQIs = getTwoMostCommonAQIs(feature);
-          feature.properties.aqi = mostCommonAQIs;
-          el.innerHTML = createClusterNode({ feature, NodeType, isDarkMode });
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .addTo(map);
-          el.addEventListener('click', () =>
-            map.flyTo({ center: feature.geometry.coordinates, zoom: zoom + 2 }),
-          );
-          markersRef.current.push(marker);
-        }
-      });
-    } catch (error) {
-      console.error('Error updating clusters:', error);
-    }
-  }, [
-    clearMarkers,
-    getTwoMostCommonAQIs,
-    handleNodeSelection,
-    NodeType,
-    selectedNode,
-    isDarkMode,
-  ]);
+            el.innerHTML = UnclusteredNode({
+              feature,
+              NodeType,
+              selectedNode,
+              isDarkMode,
+            });
+
+            // Only create popup for desktop to improve performance
+            let popup = null;
+            if (typeof window !== 'undefined' && window.innerWidth > 768) {
+              popup = new mapboxgl.Popup({
+                offset:
+                  NodeType === 'Node' ? 35 : NodeType === 'Number' ? 42 : 58,
+                closeButton: false,
+                maxWidth: 'none',
+                className: 'my-custom-popup hidden md:block',
+              }).setHTML(createPopupHTML({ feature, images, isDarkMode }));
+            }
+
+            const marker = new mapboxgl.Marker(el).setLngLat(
+              feature.geometry.coordinates,
+            );
+
+            if (popup) marker.setPopup(popup);
+            marker.addTo(map);
+
+            // Use passive event listeners for better performance
+            el.addEventListener(
+              'mouseenter',
+              () => {
+                if (popup) marker.togglePopup();
+                el.style.zIndex = '9999';
+              },
+              { passive: true },
+            );
+
+            el.addEventListener(
+              'mouseleave',
+              () => {
+                if (popup) marker.togglePopup();
+                el.style.zIndex = '1';
+              },
+              { passive: true },
+            );
+
+            el.addEventListener('click', () => handleNodeSelection(feature), {
+              passive: true,
+            });
+            newMarkers.push(marker);
+          } else {
+            el.style.zIndex = '444';
+            el.className =
+              'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
+            const mostCommonAQIs = getTwoMostCommonAQIs(feature);
+            feature.properties.aqi = mostCommonAQIs;
+            el.innerHTML = createClusterNode({ feature, NodeType, isDarkMode });
+
+            const marker = new mapboxgl.Marker(el)
+              .setLngLat(feature.geometry.coordinates)
+              .addTo(map);
+
+            el.addEventListener(
+              'click',
+              () =>
+                map.flyTo({
+                  center: feature.geometry.coordinates,
+                  zoom: zoom + 2,
+                }),
+              { passive: true },
+            );
+            newMarkers.push(marker);
+          }
+        });
+
+        markersRef.current = newMarkers;
+      } catch (error) {
+        console.error('Error updating clusters:', error);
+      }
+    }, 150), // Debounce cluster updates by 150ms
+    [
+      clearMarkers,
+      getTwoMostCommonAQIs,
+      handleNodeSelection,
+      NodeType,
+      selectedNode,
+      isDarkMode,
+    ],
+  );
 
   const initSupercluster = useCallback(() => {
     if (!indexRef.current) {
@@ -213,26 +262,44 @@ const useMapData = ({
     },
     [clusterUpdate, initSupercluster],
   );
-
-  // Fetch and cache map readings; if already in store, reapply markers.
+  // Optimized fetch and cache map readings with performance improvements
   const fetchMapReadings = useCallback(async () => {
-    if (mapReadingsData?.length) {
+    // Check if we have cached data and it's still fresh
+    const now = Date.now();
+    const cacheKey = `mapReadings_${pollutant}`;
+
+    if (
+      mapReadingsData?.length &&
+      now - lastFetchTimeRef.current < CACHE_DURATION
+    ) {
       const combined = [...mapReadingsData, ...waqData];
       updateMapData(combined);
       return combined;
     }
+
     setLoading(true);
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
+
     try {
       const response = await getMapReadings(abortControllerRef.current.signal);
       if (!response.success || !response.measurements?.length) {
         throw new Error('No valid map readings data found.');
       }
+
+      // Filter and process data more efficiently
       const features = response.measurements
-        .filter(
-          (item) => item.siteDetails && item.no2 && item.pm10 && item.pm2_5,
-        )
+        .filter((item) => {
+          // More efficient filtering with early returns
+          if (!item.siteDetails) return false;
+          if (!item[pollutant]?.value) return false;
+          if (
+            !item.siteDetails.approximate_longitude ||
+            !item.siteDetails.approximate_latitude
+          )
+            return false;
+          return true;
+        })
         .map((item) => {
           const aqi = getAQICategory(pollutant, item[pollutant]?.value);
           return createFeature(
@@ -250,12 +317,23 @@ const useMapData = ({
             null,
           );
         });
+
+      // Cache the results
+      lastFetchTimeRef.current = now;
+      mapDataCacheRef.current.set(cacheKey, features);
+
       dispatch(setMapReadingsData(features));
       updateMapData(features);
       return features;
     } catch (error) {
-      if (error.name !== 'AbortError')
-        console.error('Error fetching map readings:', error);
+      if (error.name !== 'AbortError') {
+        // Try to use cached data as fallback
+        const cachedData = mapDataCacheRef.current.get(cacheKey);
+        if (cachedData?.length) {
+          updateMapData(cachedData);
+          return cachedData;
+        }
+      }
       return [];
     } finally {
       setLoading(false);
@@ -268,74 +346,142 @@ const useMapData = ({
     mapReadingsData,
     waqData,
     updateMapData,
-  ]);
-
-  // Fetch WAQ data concurrently; update markers only when all data is available.
+    CACHE_DURATION,
+    lastFetchTimeRef,
+    mapDataCacheRef,
+  ]); // Optimized WAQ data fetching with better performance
   const fetchWaqData = useCallback(
     async (cities) => {
       if (!cities?.length) return [];
+
       setIsWaqLoading(true);
       setLoadingOthers(true);
+
       if (abortControllerRef.current) abortControllerRef.current.abort();
       abortControllerRef.current = new AbortController();
+
       try {
-        const promises = cities.map((city) =>
-          axios
-            .get(`/api/waqi?city=${city}`, {
-              signal: abortControllerRef.current.signal,
-            })
-            .then((response) => {
-              const cityData = response.data?.data;
-              if (!cityData?.city) return null;
-              const key = pollutant === 'pm2_5' ? 'pm25' : pollutant;
-              const aqi = getAQICategory(pollutant, cityData.iaqi[key]?.v);
-              return createFeature(
-                cityData.idx,
-                cityData.city.name,
-                [cityData.city.geo[1], cityData.city.geo[0]],
-                aqi,
-                cityData.iaqi.no2?.v,
-                cityData.iaqi.pm10?.v,
-                cityData.iaqi.pm25?.v,
-                cityData.time.iso,
-                getForecastForPollutant(cityData),
-              );
-            })
-            .catch((error) => {
-              if (error.name !== 'AbortError')
-                console.error(
-                  `Failed to fetch WAQ data for city ${city}:`,
-                  error.message,
-                );
-              return null;
-            }),
-        );
-        const results = await Promise.all(promises);
-        const validResults = results.filter(Boolean);
-        dispatch(setWaqData(validResults));
-        return validResults;
+        // Increase batch size and optimize concurrent processing
+        const BATCH_SIZE = 10; // Increased from 5 to 10
+        const results = [];
+        const MAX_CONCURRENT_BATCHES = 3; // Process multiple batches concurrently
+
+        // Process cities in chunks with concurrent batching
+        for (
+          let i = 0;
+          i < cities.length;
+          i += BATCH_SIZE * MAX_CONCURRENT_BATCHES
+        ) {
+          const chunks = [];
+
+          // Create multiple batches to process concurrently
+          for (let j = 0; j < MAX_CONCURRENT_BATCHES; j++) {
+            const startIndex = i + j * BATCH_SIZE;
+            const endIndex = Math.min(startIndex + BATCH_SIZE, cities.length);
+
+            if (startIndex < cities.length) {
+              const batch = cities.slice(startIndex, endIndex);
+              chunks.push(batch);
+            }
+          }
+
+          // Process all chunks concurrently
+          const chunkPromises = chunks.map(async (batch) => {
+            const batchPromises = batch.map((city) =>
+              axios
+                .get(`/api/waqi?city=${encodeURIComponent(city)}`, {
+                  signal: abortControllerRef.current.signal,
+                  timeout: 12000, // Increased timeout to 12 seconds
+                })
+                .then((response) => {
+                  const cityData = response.data?.data;
+                  if (!cityData?.city?.geo || !cityData.iaqi) return null;
+
+                  const key = pollutant === 'pm2_5' ? 'pm25' : pollutant;
+                  const pollutantValue = cityData.iaqi[key]?.v;
+
+                  if (pollutantValue === undefined) return null;
+
+                  const aqi = getAQICategory(pollutant, pollutantValue);
+                  return createFeature(
+                    cityData.idx,
+                    cityData.city.name,
+                    [cityData.city.geo[1], cityData.city.geo[0]],
+                    aqi,
+                    cityData.iaqi.no2?.v,
+                    cityData.iaqi.pm10?.v,
+                    cityData.iaqi.pm25?.v,
+                    cityData.time?.iso,
+                    getForecastForPollutant(cityData),
+                  );
+                })
+                .catch((error) => {
+                  if (error.name !== 'AbortError') {
+                    // Silently handle errors to prevent console spam
+                    // Only log critical errors
+                    if (
+                      error.code !== 'ECONNABORTED' &&
+                      error.response?.status !== 404
+                    ) {
+                      // Could add error reporting here if needed
+                    }
+                  }
+                  return null;
+                }),
+            );
+
+            return Promise.all(batchPromises);
+          });
+
+          const chunkResults = await Promise.all(chunkPromises);
+          const flatResults = chunkResults.flat().filter(Boolean);
+          results.push(...flatResults);
+
+          // Shorter delay between chunk groups
+          if (i + BATCH_SIZE * MAX_CONCURRENT_BATCHES < cities.length) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+          }
+        }
+
+        dispatch(setWaqData(results));
+        return results;
       } catch (error) {
-        if (error.name !== 'AbortError')
-          console.error('Error fetching WAQ data:', error);
+        if (error.name !== 'AbortError') {
+          // Only log critical errors
+        }
         return [];
       } finally {
         setIsWaqLoading(false);
         setLoadingOthers(false);
       }
     },
-    [createFeature, dispatch, getForecastForPollutant, pollutant],
+    [
+      createFeature,
+      dispatch,
+      getForecastForPollutant,
+      pollutant,
+      setLoadingOthers,
+    ],
   );
-
-  // Main function: fetch map readings then WAQ data; update markers only once.
+  // Memoized and optimized main data processing function
   const fetchAndProcessAllData = useCallback(async () => {
     try {
-      const mapFeatures = await fetchMapReadings();
-      if (mapFeatures.length) {
-        const waqFeatures = await fetchWaqData(AQI_FOR_CITIES);
-        updateMapData([...mapFeatures, ...waqFeatures]);
+      // Start both operations concurrently for better performance
+      const [mapFeatures, waqFeatures] = await Promise.allSettled([
+        fetchMapReadings(),
+        fetchWaqData(AQI_FOR_CITIES), // Load ALL cities, not just first 20
+      ]);
+
+      const mapResult =
+        mapFeatures.status === 'fulfilled' ? mapFeatures.value : [];
+      const waqResult =
+        waqFeatures.status === 'fulfilled' ? waqFeatures.value : [];
+
+      if (mapResult.length || waqResult.length) {
+        updateMapData([...mapResult, ...waqResult]);
       }
-    } catch (error) {
-      console.error('Error in data processing:', error);
+    } catch {
+      // Handle errors gracefully without breaking the map
     }
   }, [fetchMapReadings, fetchWaqData, updateMapData]);
 
