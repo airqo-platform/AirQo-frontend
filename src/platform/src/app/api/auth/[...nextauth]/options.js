@@ -1,14 +1,16 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import jwtDecode from 'jwt-decode';
+import jwt_decode from 'jwt-decode';
 
 export const options = {
   providers: [
+    // Unified credentials provider for both user and organization access
     CredentialsProvider({
       id: 'credentials',
       name: 'Credentials',
       credentials: {
         userName: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        orgSlug: { label: 'Organization', type: 'text', required: false },
       },
       async authorize(credentials) {
         if (!credentials?.userName || !credentials?.password) {
@@ -28,45 +30,67 @@ export const options = {
           const baseUrl = API_BASE_URL.replace(/\/$/, '');
           const url = new URL(`${baseUrl}/users/loginUser`);
 
-          // Add API token if available (some endpoints might require it)
+          // Add API token if available
           const API_TOKEN = process.env.API_TOKEN;
           if (API_TOKEN) {
             url.searchParams.append('token', API_TOKEN);
           }
 
+          // Prepare headers
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+
           // Call your existing API endpoint
           const response = await fetch(url.toString(), {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               userName: credentials.userName,
               password: credentials.password,
             }),
           });
 
-          // Check if response is JSON before parsing
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            // Get response text to see what was actually returned
-            const responseText = await response.text();
-
-            throw new Error(
-              `API returned ${response.status} ${response.statusText}. Expected JSON but got ${contentType}. Response: ${responseText.substring(0, 200)}...`,
-            );
+          if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorBody}`);
           }
 
           const data = await response.json();
 
-          if (!response.ok) {
-            throw new Error(data.message || 'Authentication failed');
-          }
-
           if (data && data.token) {
             // Decode the JWT to get user information
-            const decodedToken = jwtDecode(data.token);
+            const decodedToken = jwt_decode(data.token);
 
+            // For organization access, validate if user belongs to the organization
+            if (credentials.orgSlug) {
+              const tokenOrg = decodedToken.organization;
+              const requestedOrg = credentials.orgSlug;
+
+              // Check if user belongs to the requested organization
+              const isValidOrganization =
+                tokenOrg &&
+                requestedOrg &&
+                (tokenOrg === requestedOrg ||
+                  tokenOrg.toLowerCase() === requestedOrg.toLowerCase() ||
+                  tokenOrg.replace(/[\s-_]/g, '').toLowerCase() ===
+                    requestedOrg.replace(/[\s-_]/g, '').toLowerCase());
+
+              if (!isValidOrganization) {
+                if (process.env.NODE_ENV === 'development') {
+                  // eslint-disable-next-line no-console
+                  console.log('Organization validation failed:', {
+                    tokenOrg,
+                    requestedOrg,
+                  });
+                }
+                throw new Error(
+                  'User does not belong to the requested organization',
+                );
+              }
+            }
+
+            // Return unified user object - no session type distinction
             return {
               id: data._id,
               userName: data.userName,
@@ -77,7 +101,7 @@ export const options = {
               lastName: decodedToken.lastName,
               organization: decodedToken.organization,
               long_organization: decodedToken.long_organization,
-              privilege: decodedToken.privilege, // TODO:REMOVE
+              privilege: decodedToken.privilege,
               country: decodedToken.country,
               profilePicture: decodedToken.profilePicture,
               phoneNumber: decodedToken.phoneNumber,
@@ -86,34 +110,35 @@ export const options = {
               rateLimit: decodedToken.rateLimit,
               lastLogin: decodedToken.lastLogin,
               iat: decodedToken.iat,
+              // Store organization slug if provided for context
+              requestedOrgSlug: credentials.orgSlug || null,
+              // Add flag to indicate this is an organization login
+              isOrgLogin: !!credentials.orgSlug,
             };
           }
 
-          throw new Error('Invalid credentials');
+          return null;
         } catch (error) {
+          // Authentication failed - throw the actual error for better debugging
           throw new Error(error.message || 'Authentication failed');
         }
       },
     }),
   ],
+
   pages: {
-    signIn: '/account/login',
-    signOut: '/account/login',
-    error: '/account/login',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-  session: {
-    strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
+    signIn: '/user/login', // Default to user login - dynamic routing handled in components
+    signOut: '/user/login', // Default to user login - will be overridden by custom logout logic
+    error: '/user/login', // Error code passed in query string as ?error=
   },
   callbacks: {
     async jwt({ token, user }) {
-      // Persist the OAuth access_token and user data to the token right after signin
       if (user) {
+        // Store user data in JWT token
+        token.accessToken = user.token;
         token.id = user.id;
         token.userName = user.userName;
         token.email = user.email;
-        token.accessToken = user.token;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.organization = user.organization;
@@ -127,19 +152,17 @@ export const options = {
         token.rateLimit = user.rateLimit;
         token.lastLogin = user.lastLogin;
         token.iat = user.iat;
-      }
 
-      // Check if token is expired
-      if (token.iat && Date.now() / 1000 > token.iat + 24 * 60 * 60) {
-        // Token is expired, return null to force logout
-        return null;
+        // Store the organization slug if provided during login
+        token.requestedOrgSlug = user.requestedOrgSlug;
+        token.isOrgLogin = user.isOrgLogin;
       }
-
       return token;
     },
+
     async session({ session, token }) {
-      // Send properties to the client
       if (token) {
+        // Transfer token data to session
         session.user.id = token.id;
         session.user.userName = token.userName;
         session.user.email = token.email;
@@ -155,8 +178,15 @@ export const options = {
         session.user.updatedAt = token.updatedAt;
         session.user.rateLimit = token.rateLimit;
         session.user.lastLogin = token.lastLogin;
+        session.user.accessToken = token.accessToken; // Add accessToken to root level for compatibility
         session.accessToken = token.accessToken;
         session.iat = token.iat;
+
+        // Store organization information for context switching
+        session.user.requestedOrgSlug = token.requestedOrgSlug;
+        session.user.isOrgLogin = token.isOrgLogin;
+        session.orgSlug = token.requestedOrgSlug; // Add orgSlug to session root for easier access
+        session.isOrgLogin = token.isOrgLogin; // Add isOrgLogin to session root
       }
       return session;
     },

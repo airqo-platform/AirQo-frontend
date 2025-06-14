@@ -28,7 +28,7 @@ const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
   const imageContainerClasses = `
     relative w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 
     transition-all duration-300 ease-in-out
-    ${isSelected ? 'border-blue-500 ring-4 ring-blue-100' : 'border-gray-300'}
+    ${isSelected ? 'border-[var(--org-primary,var(--color-primary,#145fff))] ring-4 ring-[var(--org-primary-100,rgba(20,95,255,0.2))]' : 'border-gray-300'}
   `;
 
   return (
@@ -218,7 +218,7 @@ const LayerModal = ({
             onClick={handleApply}
             className={`
               px-4 py-2 rounded-md text-white transition-colors
-              ${hasChanges ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-400'}
+              ${hasChanges ? 'bg-[var(--org-primary,var(--color-primary,#145fff))] hover:bg-[var(--org-primary-600,var(--color-primary,#145fff))]' : 'bg-[var(--org-primary-400,rgba(20,95,255,0.8))]'}
             `}
             disabled={!hasChanges}
           >

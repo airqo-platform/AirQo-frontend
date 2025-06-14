@@ -1,27 +1,8 @@
 import { isEmpty } from 'underscore';
 import DetailCard from './detail_card';
 import { useRouter } from 'next/navigation';
-import Button from '@/components/Button';
-import { useEffect, useState } from 'react';
-import { useGetCollocationBatchResultsQuery } from '@/lib/store/services/collocation';
-import { saveAs } from 'file-saver';
-import ReactPDF, {
-  PDFViewer,
-  Document,
-  Page,
-  Text,
-  View,
-  PDFDownloadLink,
-  pdf,
-} from '@react-pdf/renderer';
-import ExportStatusReport from '../../BatchReport';
-import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-
-const DynamicPDFDownloadLink = dynamic(
-  () => import('@react-pdf/renderer').then((module) => module.PDFDownloadLink),
-  { ssr: false },
-);
 
 const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
   const router = useRouter();
@@ -47,17 +28,16 @@ const ReportDetailCard = ({ deviceName, batchId, data, open, closeModal }) => {
       setSkip(false);
     }
   };
-
-  //   useEffect(() => {
+  // File download handling commented for future implementation
+  // useEffect(() => {
   //   if (collocationBatchResultsData && isSuccess) {
-  //     console.log(fileBlob);
   //     if(fileBlob) {
-
-  //     saveAs(fileBlob, 'collocation_report.pdf');
+  //       saveAs(fileBlob, 'collocation_report.pdf');
   //     };
-
   //     setSkip(true);
   //     setCollocationBatchId('');
+  //   }
+  // }, [collocationBatchResultsData, isSuccess, fileBlob]);
   //   }
   // }, [collocationBatchResultsData, isSuccess]);
 

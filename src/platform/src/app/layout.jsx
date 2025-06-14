@@ -32,9 +32,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <ClientProviders>{children}</ClientProviders>
+        <ClientProviders>{children}</ClientProviders>{' '}
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places&loading=async`}
           strategy="afterInteractive"
         />
       </body>

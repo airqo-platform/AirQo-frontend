@@ -11,7 +11,7 @@ import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
@@ -75,7 +75,7 @@ const Modal = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
           <div className="fixed inset-0 transition-opacity" aria-hidden="true">
             <div className="absolute inset-0 bg-gray-500 opacity-60"></div>
           </div>

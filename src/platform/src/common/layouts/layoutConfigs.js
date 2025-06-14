@@ -2,6 +2,7 @@
 export const LAYOUT_CONFIGS = {
   // Dashboard routes configuration
   DASHBOARD: {
+    // Legacy routes (for backward compatibility)
     '/Home': {
       pageTitle: 'Home - AirQo Analytics',
       topbarTitle: 'Home',
@@ -44,50 +45,118 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
-    '/admin/organisations/requests': {
-      pageTitle: 'Pending Organisation Requests - AirQo Analytics',
-      topbarTitle: 'Pending Organisation Requests',
+    // New user routes with /user/ prefix
+    '/user/Home': {
+      pageTitle: 'Home - AirQo Analytics',
+      topbarTitle: 'Home',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/analytics': {
+      pageTitle: 'Analytics - AirQo Analytics',
+      topbarTitle: 'Analytics',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/user/settings': {
+      pageTitle: 'Settings - AirQo Analytics',
+      topbarTitle: 'Settings',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/collocation': {
+      pageTitle: 'Collocation - AirQo Analytics',
+      topbarTitle: 'Collocation',
       noBorderBottom: false,
       showSearch: false,
       noTopNav: false,
     },
-    '/admin/organisations': {
-      pageTitle: 'All Organisations - AirQo Analytics',
-      topbarTitle: 'All Organisations',
+    '/user/collocation/overview': {
+      pageTitle: 'Collocation Overview - AirQo Analytics',
+      topbarTitle: 'Collocation Overview',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/user/collocation/collocate': {
+      pageTitle: 'Collocate Devices - AirQo Analytics',
+      topbarTitle: 'Collocate Devices',
       noBorderBottom: false,
       showSearch: false,
       noTopNav: false,
     },
   },
-
   // Auth routes configuration
   AUTH: {
-    '/account/login': {
+    '/user/login': {
       pageTitle: 'Sign In - AirQo Analytics',
       rightText:
         'Welcome back! Sign in to access your AirQo Analytics dashboard and monitor air quality data.',
-      sideBackgroundColor: 'bg-blue-50 dark:bg-[#252627]',
+      sideBackgroundColor:
+        'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
     },
-    '/account/creation': {
+    '/user/creation': {
       pageTitle: 'Create Account - AirQo Analytics',
       rightText:
         'Join AirQo Analytics to start monitoring and analyzing air quality data in your area.',
-      sideBackgroundColor: 'bg-green-50 dark:bg-[#252627]',
+      sideBackgroundColor:
+        'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
     },
-    '/account/forgotPwd': {
+    '/user/forgotPwd': {
       pageTitle: 'Reset Password - AirQo Analytics',
       rightText:
         'Reset your password to regain access to your AirQo Analytics account.',
-      sideBackgroundColor: 'bg-orange-50 dark:bg-[#252627]',
+      sideBackgroundColor:
+        'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
     },
-  },
-
-  // Map routes configuration
+  }, // Map routes configuration
   MAP: {
-    '/map': {
+    '/user/map': {
       pageTitle: 'Air Quality Map - AirQo Analytics',
       topbarTitle: 'Air Quality Map',
       noBorderBottom: true,
+      showSearch: true,
+      noTopNav: false,
+    },
+  },
+  // Organization routes configuration
+  ORGANIZATION: {
+    // Dashboard routes
+    '/org/[org_slug]/dashboard': {
+      pageTitle: 'Dashboard - Organization Analytics',
+      topbarTitle: 'Dashboard',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/insights': {
+      pageTitle: 'Insights - Organization Analytics',
+      topbarTitle: 'Data Insights',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/profile': {
+      pageTitle: 'Profile - Organization Analytics',
+      topbarTitle: 'Profile',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/settings': {
+      pageTitle: 'Settings - Organization Analytics',
+      topbarTitle: 'Settings',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/members': {
+      pageTitle: 'Members - Organization Analytics',
+      topbarTitle: 'Members',
+      noBorderBottom: false,
       showSearch: true,
       noTopNav: false,
     },
@@ -107,13 +176,21 @@ export const DEFAULT_CONFIGS = {
     pageTitle: 'AirQo Analytics',
     rightText:
       'Access your AirQo Analytics account to monitor air quality data.',
-    sideBackgroundColor: 'bg-blue-50 dark:bg-[#252627]',
+    sideBackgroundColor:
+      'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
   },
   MAP: {
     pageTitle: 'Map - AirQo Analytics',
     topbarTitle: 'Air Quality Map',
     noBorderBottom: true,
     showSearch: true,
+    noTopNav: false,
+  },
+  ORGANIZATION: {
+    pageTitle: 'Organization Analytics',
+    topbarTitle: 'Dashboard',
+    noBorderBottom: false,
+    showSearch: false,
     noTopNav: false,
   },
 };

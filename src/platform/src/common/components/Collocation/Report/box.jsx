@@ -1,6 +1,5 @@
-import ContentBox from '@/components/Layout/content_box';
+import ContentBox from '@/common/layouts/components/ContentBox';
 import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
-import Button from '@/components/Button';
 import Link from 'next/link';
 import { isEmpty } from 'underscore';
 import { useRouter } from 'next/navigation';
@@ -54,7 +53,7 @@ const Box = ({
                   {dropdownItems.map((item, index) => {
                     if (item.type === 'path') {
                       return (
-                        <li>
+                        <li key={index}>
                           <a onClick={() => router.push(item.link)}>
                             {item.label}
                           </a>
@@ -64,11 +63,13 @@ const Box = ({
 
                     if (item.type === 'event') {
                       return (
-                        <li>
+                        <li key={index}>
                           <a onClick={item.event}>{item.label}</a>
                         </li>
                       );
                     }
+
+                    return null;
                   })}
                 </ul>
               )}

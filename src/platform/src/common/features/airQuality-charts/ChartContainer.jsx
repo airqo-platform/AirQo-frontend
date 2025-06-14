@@ -18,8 +18,9 @@ import CustomToast from '@/components/Toast/CustomToast';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
 import StandardsMenu from './components/StandardsMenu';
 import Card from '@/components/CardWrapper';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Spinner from '@/components/Spinner';
+import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 
 const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];
 const SKELETON_DELAY = 500;
@@ -43,17 +44,17 @@ const ChartContainer = ({
   const chartContentRef = useRef(null);
   const dropdownRef = useRef(null);
   const refreshTimerRef = useRef(null);
-
   const { theme, systemTheme } = useTheme();
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
-
   const { chartSites, timeFrame, pollutionType } = useSelector(
     (state) => state.chart,
   );
   const userSelectedSites = useSelector(
     (state) => state.defaults.individual_preferences?.[0]?.selected_sites || [],
   );
+  // Organization loading context
+  const { isOrganizationLoading } = useOrganizationLoading();
 
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
@@ -67,16 +68,16 @@ const ChartContainer = ({
     setDownloadComplete(null);
   });
 
-  // Handle skeleton visibility based on loading state
+  // Handle skeleton visibility based on loading state (including organization switching)
   useEffect(() => {
     let timer;
-    if (!chartLoading) {
+    if (!chartLoading && !isOrganizationLoading) {
       timer = setTimeout(() => setShowSkeleton(false), SKELETON_DELAY);
     } else {
       setShowSkeleton(true);
     }
     return () => timer && clearTimeout(timer);
-  }, [chartLoading]);
+  }, [chartLoading, isOrganizationLoading]);
 
   // Handle refresh indicator state
   useEffect(() => {
@@ -191,7 +192,6 @@ const ChartContainer = ({
           type: 'success',
         });
       } catch (error) {
-        console.error('Error exporting chart:', error);
         setExportError(error.message || 'Export failed');
         CustomToast({
           message: `Failed to export chart as ${format.toUpperCase()}.`,

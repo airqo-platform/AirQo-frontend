@@ -1,6 +1,3 @@
-import React from 'react';
-import cn from 'classnames';
-
-export const Skeleton = ({ className }) => (
-  <div className={cn('bg-skeleton rounded animate-pulse', className)} />
-);
+// This component has been consolidated into the unified Skeleton component
+// Please use: import Skeleton from '@/components/Skeleton'
+export { default as Skeleton } from '@/components/Skeleton';

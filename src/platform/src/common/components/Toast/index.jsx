@@ -14,13 +14,12 @@ const Toast = ({
   position = 'center', // Default to center positioning
 }) => {
   const [visible, setVisible] = useState(true);
-
   // Memoize the colors object to prevent unnecessary re-renders
   const colors = useCallback(() => {
     return {
       success: bgColor || 'bg-green-500',
       error: bgColor || 'bg-red-500',
-      info: bgColor || 'bg-blue-500',
+      info: bgColor || 'bg-[var(--org-primary,var(--color-primary,#145fff))]',
     };
   }, [bgColor]);
 

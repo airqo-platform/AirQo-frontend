@@ -3,19 +3,44 @@ import { getSession } from 'next-auth/react';
 import logger from '../../lib/logger';
 import { NEXT_PUBLIC_API_TOKEN } from '../../lib/envConstants';
 
-// Function to get JWT Token from NextAuth session
+// Token cache to avoid repeated session checks
+let tokenCache = null;
+let tokenCacheExpiry = 0;
+const TOKEN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Function to get JWT Token from NextAuth session with caching
 const getJwtToken = async () => {
   if (typeof window === 'undefined') return null;
+
+  // Check cache first
+  const now = Date.now();
+  if (tokenCache && now < tokenCacheExpiry) {
+    return tokenCache;
+  }
 
   try {
     // Get token from NextAuth session
     const session = await getSession();
+    let token = null;
+
     if (session?.accessToken) {
-      // The session already contains the JWT token with "JWT " prefix
-      return session.accessToken;
+      token = session.accessToken;
+    } else if (session?.user?.accessToken) {
+      token = session.user.accessToken;
     }
+
+    // Cache the token
+    if (token) {
+      tokenCache = token;
+      tokenCacheExpiry = now + TOKEN_CACHE_TTL;
+    }
+
+    return token;
   } catch (error) {
-    logger.warn('Failed to get NextAuth session', error);
+    // Only log in development to reduce noise
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Failed to get NextAuth session', error);
+    }
   }
 
   return null;
@@ -46,6 +71,7 @@ const createSecureApiClient = () => {
     baseURL: '/api',
     withCredentials: true,
   });
+
   // Override standard methods to handle authentication
   const originalGet = instance.get;
   const originalPost = instance.post;
@@ -103,32 +129,51 @@ const createSecureApiClient = () => {
           break;
         }
         case AUTH_TYPES.API_TOKEN: {
-          // Use API token from environment variables
+          // Use API token from environment variables as URL parameter
           const apiToken = getApiToken();
           if (apiToken) {
-            config.headers['Authorization'] = `Bearer ${apiToken}`;
+            // Add API token as 'token' parameter in URL
+            const url = new URL(config.url, config.baseURL);
+            url.searchParams.set('token', apiToken);
+            config.url = url.pathname + url.search;
           }
           break;
         }
         case AUTH_TYPES.JWT:
         case AUTH_TYPES.AUTO:
         default: {
-          // Use JWT token from session
+          // Use JWT token from session in Authorization header
           const jwtToken = await getJwtToken();
           if (jwtToken) {
-            config.headers['Authorization'] = jwtToken;
+            // Clean up any double JWT prefixes that might cause 401 errors
+            let cleanToken = jwtToken;
+
+            // Handle double JWT prefix issue
+            if (jwtToken.startsWith('JWT JWT ')) {
+              cleanToken = jwtToken.replace('JWT JWT ', 'JWT ');
+            }
+            // Ensure token has JWT prefix if it doesn't already (no Bearer support)
+            else if (!jwtToken.startsWith('JWT ')) {
+              cleanToken = `JWT ${jwtToken}`;
+            }
+
+            config.headers['Authorization'] = cleanToken;
           }
           break;
         }
       }
 
-      // Log request in development
-      if (process.env.NODE_ENV !== 'production') {
-        logger.debug('Secure API Request', {
+      // Minimal logging in development only for auth issues
+      if (
+        process.env.NODE_ENV === 'development' &&
+        !config.headers['Authorization'] &&
+        authType !== AUTH_TYPES.API_TOKEN &&
+        authType !== AUTH_TYPES.NONE
+      ) {
+        logger.debug('Secure API Request without auth', {
           url: config.url,
           method: config.method,
           authType: authType,
-          hasAuth: !!config.headers['Authorization'],
         });
       }
 
@@ -140,20 +185,29 @@ const createSecureApiClient = () => {
     },
   );
 
-  // Add response interceptor with error logging
+  // Add response interceptor with minimal error logging
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Log detailed error information
-      const errorInfo = {
-        url: error.config?.url,
-        method: error.config?.method,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-      };
-
-      logger.error('Secure API request failed', error, errorInfo);
+      // Log 401 errors for debugging authentication issues
+      if (error.response?.status === 401) {
+        logger.warn('Authentication failed', {
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+          message: error.response?.data?.message || error.message,
+        });
+      }
+      // Only log errors for 5xx status codes or network errors to reduce noise
+      else if (!error.response || error.response.status >= 500) {
+        const errorInfo = {
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+          message: error.message,
+        };
+        logger.error('Secure API request failed', errorInfo);
+      }
       return Promise.reject(error);
     },
   );

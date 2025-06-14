@@ -13,12 +13,7 @@ const Modal = ({
   const [loading, setLoading] = useState(false);
   const handleClick = async () => {
     setLoading(true);
-    try {
-      await handleConfirm();
-    } catch (error) {
-      throw error;
-    }
-
+    await handleConfirm();
     setLoading(false);
   };
 

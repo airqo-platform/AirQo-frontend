@@ -39,7 +39,7 @@ import { getPlaceDetails } from '@/core/utils/getLocationGeomtry';
 import { getAutocompleteSuggestions } from '@/core/utils/AutocompleteSuggestions';
 import allCountries from '../../constants/countries.json';
 
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 
 const SectionDivider = () => (
   <div className="border border-secondary-neutral-light-100 dark:border-gray-700 my-3" />
@@ -68,7 +68,7 @@ const LoadingSkeleton = () => (
   </Card>
 );
 
-const MapSidebar = ({ siteDetails, isAdmin }) => {
+const MapSidebar = ({ siteDetails, isAdmin, children }) => {
   const dispatch = useDispatch();
   const contentRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -433,6 +433,8 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
             <SectionDivider />
           </div>
         )}
+        {/* Custom children content */}
+        {children && <div className="px-3 py-2">{children}</div>}
         <div
           ref={contentRef}
           style={{
@@ -449,6 +451,7 @@ const MapSidebar = ({ siteDetails, isAdmin }) => {
 MapSidebar.propTypes = {
   siteDetails: PropTypes.arrayOf(PropTypes.object).isRequired,
   isAdmin: PropTypes.bool,
+  children: PropTypes.node,
 };
 
 MapSidebar.defaultProps = { isAdmin: false };

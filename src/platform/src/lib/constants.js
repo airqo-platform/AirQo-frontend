@@ -9,3 +9,6 @@ export const CHART_TYPE = [
   { id: 'bar', name: 'Bar' },
   { id: 'line', name: 'Line' },
 ];
+
+// UI Labels
+export const ORGANIZATION_LABEL = 'Organization';

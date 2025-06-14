@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { stripTrailingSlash } from '../../../core/utils/strings';
 
 export function GET() {
   // Get the base URL, with fallback
-  const baseUrl =
-    stripTrailingSlash(process.env.NEXT_PUBLIC_ORIGINAL_PLATFORM) ||
-    'https://analytics.airqo.net';
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_ORIGINAL_PLATFORM || 'https://analytics.airqo.net'
+  ).replace(/\/$/, '');
 
   // Generate the robots.txt content
   const robotsTxt = `User-agent: *

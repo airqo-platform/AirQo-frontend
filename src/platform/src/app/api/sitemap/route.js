@@ -14,11 +14,11 @@ export async function GET() {
     // List all the pages you want to include in your sitemap
     const pages = [
       { url: '/', changefreq: 'monthly', priority: 1 },
-      { url: '/home', changefreq: 'monthly', priority: 0.8 },
-      { url: '/map', changefreq: 'weekly', priority: 0.8 },
-      { url: '/analytics', changefreq: 'weekly', priority: 0.7 },
-      { url: '/collocation', changefreq: 'monthly', priority: 0.7 },
-      { url: '/settings', changefreq: 'monthly', priority: 0.6 },
+      { url: '/user/Home', changefreq: 'monthly', priority: 0.8 },
+      { url: '/user/map', changefreq: 'weekly', priority: 0.8 },
+      { url: '/user/analytics', changefreq: 'weekly', priority: 0.7 },
+      { url: '/user/collocation', changefreq: 'monthly', priority: 0.7 },
+      { url: '/user/settings', changefreq: 'monthly', priority: 0.6 },
       // add any other pages you want to include
     ];
 
@@ -34,6 +34,7 @@ export async function GET() {
     const sitemap = await streamToPromise(smStream).then((sm) => sm.toString());
 
     // Return the XML response
+    // eslint-disable-next-line no-undef
     return new Response(sitemap, {
       status: 200,
       headers: {
@@ -42,7 +43,9 @@ export async function GET() {
       },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log(error);
+    // eslint-disable-next-line no-undef
     return new Response('Internal Server Error', { status: 500 });
   }
 }
