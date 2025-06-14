@@ -6,7 +6,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
-import UserIcon from '@/icons/Topbar/userIcon';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import LogoutUser from '@/core/HOC/LogoutUser';
 
@@ -157,16 +156,6 @@ const UserProfileDropdown = ({
         <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
       )}
       <ul className="dropdown-list p-2">
-        <li
-          onClick={handleNavigation(navigationPaths.profile)}
-          className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-        >
-          <span className="mr-3">
-            <UserIcon width={16} height={16} />
-          </span>
-          My Profile
-        </li>
-
         {/* Show Settings only for admin users in organization context or always in individual context */}
         {(!isOrganizationContext ||
           (isOrganizationContext && userInfo?.isAdmin)) && (
