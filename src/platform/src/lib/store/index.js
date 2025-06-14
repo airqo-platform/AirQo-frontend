@@ -75,7 +75,8 @@ const rootReducer = combineReducers({
 
 // Root reducer wrapper to handle state reset on logout
 const appReducer = (state, action) => {
-  if (action.type === 'RESET_APP') {
+  if (action.type === 'RESET_APP' || action.type === 'LOGOUT_USER') {
+    // Clear all state on logout or reset
     state = undefined; // This will clear the persisted state
   }
   return rootReducer(state, action);

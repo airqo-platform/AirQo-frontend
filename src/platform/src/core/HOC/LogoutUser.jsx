@@ -138,7 +138,10 @@ const clearAuthCookies = () => {
 const resetAllReduxSlices = (dispatch) => {
   try {
     // Dispatch the global reset action that triggers all slices to reset
-    dispatch({ type: 'RESET_APP' }); // Also dispatch specific slice resets for critical slices
+    dispatch({ type: 'RESET_APP' });
+    dispatch({ type: 'LOGOUT_USER' }); // Additional logout action for any slices that specifically listen for logout
+
+    // Also dispatch specific slice resets for critical slices
     dispatch(resetStore());
     dispatch(clearAllGroupData());
 

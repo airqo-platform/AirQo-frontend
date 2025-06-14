@@ -179,7 +179,11 @@ const groupsSlice = createSlice({
       .addCase(fetchGroupDetails.rejected, (state, action) => {
         state.groupDetailsLoading = false;
         state.groupDetailsError = action.payload;
-      });
+      })
+
+      // Handle logout actions
+      .addCase({ type: 'RESET_APP' }, () => initialState)
+      .addCase({ type: 'LOGOUT_USER' }, () => initialState);
   },
 });
 
