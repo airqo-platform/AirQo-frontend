@@ -162,6 +162,36 @@ export const getOrganizationThemeApi = async (orgSlug) => {
  */
 export const registerUserToOrgApi = async (userData) => {
   try {
+    // In a real implementation, this would send data to your backend API
+    // The backend would verify the reCAPTCHA token and register the user
+
+    // For now, we'll simulate the API call with the expected data structure
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      jobTitle,
+      recaptchaToken,
+      organizationSlug,
+    } = userData;
+
+    // Validate required fields
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !phoneNumber ||
+      !jobTitle ||
+      !recaptchaToken
+    ) {
+      throw new Error(
+        'All fields are required, including reCAPTCHA verification',
+      );
+    }
+
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
@@ -169,11 +199,12 @@ export const registerUserToOrgApi = async (userData) => {
           message: 'Registration successful',
           user: {
             _id: 'temp-user-id',
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            role: userData.role || 'user',
-            organizationSlug: userData.organizationSlug,
+            email,
+            firstName,
+            lastName,
+            phoneNumber,
+            jobTitle,
+            organizationSlug,
           },
         });
       }, 500);
@@ -182,7 +213,7 @@ export const registerUserToOrgApi = async (userData) => {
     logger.error('Error registering user:', error);
     return {
       success: false,
-      message: 'Registration failed',
+      message: error.message || 'Registration failed',
     };
   }
 };

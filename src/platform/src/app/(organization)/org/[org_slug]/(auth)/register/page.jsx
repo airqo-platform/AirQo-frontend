@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash, FaCheckCircle } from 'react-icons/fa';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
@@ -13,6 +14,7 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import { withOrgAuthRoute } from '@/core/HOC';
+import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 import logger from '@/lib/logger';
 
 const registrationSchema = Yup.object().shape({
@@ -36,11 +38,26 @@ const registrationSchema = Yup.object().shape({
       'Password must contain at least one uppercase letter',
     )
     .matches(/(?=.*\d)/, 'Password must contain at least one number')
+    .matches(
+      /(?=.*[!@#$%^&*])/,
+      'Password must contain at least one special character',
+    )
     .required('Password is required'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
     .required('Confirm password is required'),
-  role: Yup.string().required('Please select your role'),
+  phoneNumber: Yup.string()
+    .matches(
+      /^\+?[1-9]\d{1,14}$/,
+      'Please enter a valid phone number (e.g., +256700123456)',
+    )
+    .required('Phone number is required'),
+  jobTitle: Yup.string()
+    .min(2, 'Job title must be at least 2 characters')
+    .required('Job title is required'),
+  recaptchaToken: Yup.string().required(
+    'Please complete the reCAPTCHA verification',
+  ),
 });
 
 const OrganizationRegister = () => {
@@ -49,13 +66,16 @@ const OrganizationRegister = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: '',
+    phoneNumber: '',
+    jobTitle: '',
+    recaptchaToken: '',
   });
 
   const router = useRouter();
@@ -120,7 +140,6 @@ const OrganizationRegister = () => {
       </AuthLayout>
     );
   }
-
   const handleInputChange = useCallback((field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -129,6 +148,14 @@ const OrganizationRegister = () => {
     setErrorState('');
   }, []);
 
+  const handleRecaptchaChange = useCallback((token) => {
+    setRecaptchaToken(token || '');
+    setFormData((prev) => ({
+      ...prev,
+      recaptchaToken: token || '',
+    }));
+    setErrorState('');
+  }, []);
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -136,8 +163,16 @@ const OrganizationRegister = () => {
       setErrorState('');
 
       try {
+        // Update form data with recaptcha token before validation
+        const formDataWithRecaptcha = {
+          ...formData,
+          recaptchaToken,
+        };
+
         // Validate form data
-        await registrationSchema.validate(formData, { abortEarly: false });
+        await registrationSchema.validate(formDataWithRecaptcha, {
+          abortEarly: false,
+        });
 
         // Register user to organization
         const userData = {
@@ -145,7 +180,9 @@ const OrganizationRegister = () => {
           lastName: formData.lastName,
           email: formData.email,
           password: formData.password,
-          role: formData.role,
+          phoneNumber: formData.phoneNumber,
+          jobTitle: formData.jobTitle,
+          recaptchaToken,
           organizationSlug: orgSlug,
         };
 
@@ -156,12 +193,18 @@ const OrganizationRegister = () => {
         }, 3000);
       } catch (err) {
         logger.error('Organization registration error:', err);
-        setErrorState(err.message || 'Registration failed. Please try again.');
+        if (err.name === 'ValidationError') {
+          setErrorState(err.errors.join(', '));
+        } else {
+          setErrorState(
+            err.message || 'Registration failed. Please try again.',
+          );
+        }
       } finally {
         setLoading(false);
       }
     },
-    [formData, orgSlug, router],
+    [formData, recaptchaToken, orgSlug, router],
   );
 
   // Show success message
@@ -247,43 +290,51 @@ const OrganizationRegister = () => {
             }}
           />
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="Email Address"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={(value) => handleInputChange('email', value)}
+            required
+            placeholder="Enter your email address"
+            className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
+            style={{
+              '--tw-ring-color': primaryColor,
+              borderColor: error ? '#EF4444' : undefined,
+            }}
+          />
+
+          <InputField
+            label="Phone Number"
+            name="phoneNumber"
+            type="tel"
+            value={formData.phoneNumber}
+            onChange={(value) => handleInputChange('phoneNumber', value)}
+            required
+            placeholder="Enter your phone number (e.g., +256700123456)"
+            className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
+            style={{
+              '--tw-ring-color': primaryColor,
+              borderColor: error ? '#EF4444' : undefined,
+            }}
+          />
+        </div>
         <InputField
-          label="Email Address"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={(value) => handleInputChange('email', value)}
+          label="Job Title"
+          name="jobTitle"
+          type="text"
+          value={formData.jobTitle}
+          onChange={(value) => handleInputChange('jobTitle', value)}
           required
-          placeholder="Enter your email address"
+          placeholder="Enter your job title (e.g., Air Quality Researcher)"
           className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
           style={{
             '--tw-ring-color': primaryColor,
             borderColor: error ? '#EF4444' : undefined,
           }}
         />
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Role *
-          </label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={(e) => handleInputChange('role', e.target.value)}
-            required
-            className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
-            style={{
-              '--tw-ring-color': primaryColor,
-              borderColor: error ? '#EF4444' : undefined,
-            }}
-          >
-            <option value="">Select your role</option>
-            <option value="researcher">Researcher</option>
-            <option value="data_analyst">Data Analyst</option>
-            <option value="admin">Administrator</option>
-            <option value="viewer">Viewer</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
         <div className="relative">
           <InputField
             label="Password"
@@ -339,6 +390,28 @@ const OrganizationRegister = () => {
               <FaEye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
             )}
           </button>
+        </div>
+        {/* reCAPTCHA */}
+        <div className="flex justify-center">
+          {NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+            <ReCAPTCHA
+              sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+              onChange={handleRecaptchaChange}
+              onErrored={() =>
+                setErrorState('reCAPTCHA error. Please try again.')
+              }
+              onExpired={() => {
+                setRecaptchaToken('');
+                setFormData((prev) => ({ ...prev, recaptchaToken: '' }));
+              }}
+            />
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800">
+                reCAPTCHA is not configured. Please contact the administrator.
+              </p>
+            </div>
+          )}
         </div>
         {error && (
           <Toast
