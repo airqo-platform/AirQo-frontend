@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { FaCheckCircle } from 'react-icons/fa';
 
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
-import { forgotPasswordApi } from '@/core/apis/Account';
+import { forgotPasswordApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
 import { withOrgAuthRoute } from '@/core/HOC';
+import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 
 const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -26,11 +28,12 @@ const OrganizationForgotPassword = () => {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const recaptchaRef = useRef(null);
   const params = useParams();
   const { getDisplayName, primaryColor } = useOrganization();
 
   const orgSlug = params?.org_slug || 'airqo';
-
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -41,13 +44,25 @@ const OrganizationForgotPassword = () => {
         // Validate email
         await forgotPasswordSchema.validate({ email }, { abortEarly: false });
 
+        // Validate reCAPTCHA
+        if (!recaptchaToken) {
+          setErrorState('Please complete the reCAPTCHA verification');
+          setLoading(false);
+          return;
+        }
+
         // Send forgot password request with organization context
-        await forgotPasswordApi({
+        const result = await forgotPasswordApi({
           email,
           organizationSlug: orgSlug,
+          recaptchaToken,
         });
 
-        setSuccess(true);
+        if (result.success) {
+          setSuccess(true);
+        } else {
+          setErrorState(result.message || 'Failed to send reset email');
+        }
       } catch (err) {
         logger.error('Forgot password error:', err);
         setErrorState(
@@ -55,9 +70,14 @@ const OrganizationForgotPassword = () => {
         );
       } finally {
         setLoading(false);
+        // Reset reCAPTCHA
+        if (recaptchaRef.current) {
+          recaptchaRef.current.reset();
+          setRecaptchaToken(null);
+        }
       }
     },
-    [email, orgSlug],
+    [email, orgSlug, recaptchaToken],
   );
 
   // Show success message
@@ -127,6 +147,16 @@ const OrganizationForgotPassword = () => {
             message={error}
           />
         )}
+
+        <div>
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+            onChange={setRecaptchaToken}
+            onExpired={() => setRecaptchaToken(null)}
+            onError={() => setRecaptchaToken(null)}
+          />
+        </div>
 
         <div>
           <button

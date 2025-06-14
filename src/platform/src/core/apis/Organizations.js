@@ -1,171 +1,112 @@
 /**
  * Organizations API
- * Handles organization-related API calls
- * Simplified version without mock data - uses real backend endpoints
+ * Handles organization-related API calls using real backend endpoints
  */
 
+import axios from 'axios';
 import logger from '@/lib/logger';
-
-// Default organizations data - minimal set for testing
-const DEFAULT_ORGANIZATIONS = {
-  airqo: {
-    _id: '1',
-    slug: 'airqo',
-    name: 'AirQo',
-    description: 'Air Quality Monitoring Network',
-    logo: '/icons/airqo_logo.svg',
-    primaryColor: '#135DFF',
-    secondaryColor: '#1B2559',
-    domain: 'airqo.net',
-    status: 'ACTIVE',
-    settings: {
-      allowSelfRegistration: true,
-      requireApproval: false,
-      defaultRole: 'user',
-    },
-  },
-  nuaqi: {
-    _id: '2',
-    slug: 'nuaqi',
-    name: 'NUAQI',
-    description: 'Northern Uganda Air Quality Initiative',
-    logo: 'https://img.freepik.com/free-vector/bird-colorful-gradient-design-vector_343694-2506.jpg?semt=ais_hybrid&w=740',
-    primaryColor: '#28A745',
-    secondaryColor: '#155724',
-    domain: 'nuaqi.org',
-    status: 'ACTIVE',
-    settings: {
-      allowSelfRegistration: true,
-      requireApproval: true,
-      defaultRole: 'viewer',
-    },
-  },
-  makerere: {
-    _id: '3',
-    slug: 'makerere',
-    name: 'Makerere University',
-    description: 'Academic Air Quality Research',
-    logo: 'https://www.vhv.rs/dpng/d/412-4127322_cool-logo-png-transparent-svg-vector-cool-logo.png',
-    primaryColor: '#DC3545',
-    secondaryColor: '#721C24',
-    domain: 'mak.ac.ug',
-    status: 'ACTIVE',
-    settings: {
-      allowSelfRegistration: false,
-      requireApproval: true,
-      defaultRole: 'student',
-    },
-  },
-};
+import {
+  ORGANIZATION_THEME_URL,
+  ORGANIZATION_REGISTER_URL,
+  ORGANIZATION_FORGOT_PASSWORD_URL,
+  ORGANIZATION_RESET_PASSWORD_URL,
+} from '../urls/organizations';
 
 /**
- * Get organization by slug
+ * Get organization theme and branding data by slug
+ * @param {string} orgSlug - Organization slug from URL
+ * @returns {Promise} Organization data including theme settings
  */
-export const getOrganizationBySlugApi = async (slug) => {
+export const getOrganizationBySlugApi = async (orgSlug) => {
   try {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const slugParts = slug.split('/').filter(Boolean);
-        const [parentSlug] = slugParts;
+    const response = await axios.get(ORGANIZATION_THEME_URL(orgSlug));
 
-        const org = DEFAULT_ORGANIZATIONS[parentSlug];
+    if (response.data.success) {
+      return {
+        success: true,
+        data: {
+          _id: response.data.data._id || null,
+          slug: response.data.data.slug,
+          name: response.data.data.name,
+          logo: response.data.data.logo,
+          primaryColor: response.data.data.theme?.primaryColor || '#135DFF',
+          secondaryColor: response.data.data.theme?.secondaryColor || '#1B2559',
+          font: response.data.data.theme?.font || 'Inter',
+          status: 'ACTIVE',
+          // Set default settings for auth pages
+          settings: {
+            allowSelfRegistration: true,
+            requireApproval: false,
+            defaultRole: 'user',
+          },
+        },
+      };
+    }
 
-        if (!org) {
-          resolve({
-            success: false,
-            message: 'Organization not found',
-            data: null,
-          });
-          return;
-        }
-
-        resolve({
-          success: true,
-          data: org,
-        });
-      }, 100);
-    });
+    return {
+      success: false,
+      message: response.data.message || 'Failed to fetch organization',
+      data: null,
+    };
   } catch (error) {
     logger.error('Error fetching organization:', error);
+
+    // Handle 404 specifically
+    if (error.response?.status === 404) {
+      return {
+        success: false,
+        message: 'Organization not found',
+        data: null,
+      };
+    }
+
     return {
       success: false,
-      message: 'Failed to fetch organization',
+      message: error.response?.data?.message || 'Failed to fetch organization',
       data: null,
     };
   }
 };
 
 /**
- * Get all organizations
- */
-export const getAllOrganizationsApi = async () => {
-  try {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          data: Object.values(DEFAULT_ORGANIZATIONS),
-        });
-      }, 100);
-    });
-  } catch (error) {
-    logger.error('Error fetching organizations:', error);
-    return {
-      success: false,
-      message: 'Failed to fetch organizations',
-      data: [],
-    };
-  }
-};
-
-/**
- * Get organization theme
+ * Get organization theme data (alias for getOrganizationBySlugApi for backward compatibility)
+ * @param {string} orgSlug - Organization slug
+ * @returns {Promise} Organization theme data
  */
 export const getOrganizationThemeApi = async (orgSlug) => {
-  try {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const org = DEFAULT_ORGANIZATIONS[orgSlug];
+  const result = await getOrganizationBySlugApi(orgSlug);
 
-        if (!org) {
-          resolve({
-            success: false,
-            message: 'Organization not found',
-            data: null,
-          });
-          return;
-        }
-
-        resolve({
-          success: true,
-          data: {
-            primaryColor: org.primaryColor,
-            secondaryColor: org.secondaryColor,
-            logo: org.logo,
-            name: org.name,
-          },
-        });
-      }, 100);
-    });
-  } catch (error) {
-    logger.error('Error fetching organization theme:', error);
+  if (result.success && result.data) {
     return {
-      success: false,
-      message: 'Failed to fetch organization theme',
-      data: null,
+      success: true,
+      data: {
+        name: result.data.name,
+        logo: result.data.logo,
+        primaryColor: result.data.primaryColor,
+        secondaryColor: result.data.secondaryColor,
+        font: result.data.font,
+      },
     };
   }
+
+  return result;
 };
 
 /**
  * Register user to organization
+ * @param {Object} userData - User registration data
+ * @param {string} userData.firstName - User's first name
+ * @param {string} userData.lastName - User's last name
+ * @param {string} userData.email - User's email address
+ * @param {string} userData.password - User's password
+ * @param {string} userData.phoneNumber - User's phone number
+ * @param {string} userData.jobTitle - User's job title
+ * @param {string} userData.recaptchaToken - reCAPTCHA verification token
+ * @param {string} userData.organizationSlug - Organization slug
+ * @returns {Promise} Registration result
  */
 export const registerUserToOrgApi = async (userData) => {
   try {
-    // In a real implementation, this would send data to your backend API
-    // The backend would verify the reCAPTCHA token and register the user
-
-    // For now, we'll simulate the API call with the expected data structure
     const {
       firstName,
       lastName,
@@ -192,147 +133,281 @@ export const registerUserToOrgApi = async (userData) => {
       );
     }
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          message: 'Registration successful',
-          user: {
-            _id: 'temp-user-id',
-            email,
-            firstName,
-            lastName,
-            phoneNumber,
-            jobTitle,
-            organizationSlug,
-          },
-        });
-      }, 500);
-    });
+    const registrationData = {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      jobTitle,
+      recaptchaToken,
+    };
+
+    const response = await axios.post(
+      ORGANIZATION_REGISTER_URL(organizationSlug),
+      registrationData,
+    );
+
+    if (response.data.success) {
+      return {
+        success: true,
+        message: response.data.message || 'Registration successful',
+        user: response.data.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data.message || 'Registration failed',
+      errors: response.data.errors || {},
+    };
   } catch (error) {
     logger.error('Error registering user:', error);
-    return {
-      success: false,
-      message: error.message || 'Registration failed',
-    };
-  }
-};
 
-/**
- * Login user to organization
- */
-export const loginUserToOrgApi = async (loginData) => {
-  try {
-    const { organizationSlug, email, password } = loginData;
+    // Handle specific error cases
+    if (error.response) {
+      const { status, data } = error.response;
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const org = DEFAULT_ORGANIZATIONS[organizationSlug];
+      switch (status) {
+        case 400:
+          // Validation errors or reCAPTCHA failure
+          return {
+            success: false,
+            message: data.message || 'Validation failed',
+            errors: data.errors || {},
+          };
 
-        if (!org) {
-          resolve({
+        case 404:
+          return {
             success: false,
             message: 'Organization not found',
-          });
-          return;
-        }
+            errors: { organization: 'Invalid organization' },
+          };
 
-        if (!email || !password) {
-          resolve({
+        case 429:
+          // Rate limiting
+          return {
             success: false,
-            message: 'Email and password are required',
-          });
-          return;
-        }
+            message:
+              data.message || 'Too many attempts, please try again later',
+            errors: data.errors || {},
+          };
 
-        // Successful login
-        resolve({
-          success: true,
-          token: 'demo-jwt-token-' + Date.now(),
-          user: {
-            _id: 'demo-user-' + Date.now(),
-            email: email,
-            firstName: email.split('@')[0],
-            lastName: 'User',
-            role: 'user',
-            organizationId: org._id,
-            organizationSlug: organizationSlug,
-            permissions: ['read:dashboard', 'read:analytics'],
-          },
-          message: 'Login successful',
-        });
-      }, 300);
-    });
-  } catch (error) {
-    logger.error('Error logging in user:', error);
+        default:
+          return {
+            success: false,
+            message: data.message || 'Registration failed',
+            errors: data.errors || {},
+          };
+      }
+    } // Network or other errors
     return {
       success: false,
-      message: 'Login failed',
+      message: error.message || 'Registration failed. Please try again.',
+      errors: { network: 'Unable to connect to server' },
     };
   }
 };
 
 /**
- * Check organization access for user
+ * Send password reset email to user in organization
+ * @param {Object} data - Password reset request data
+ * @param {string} data.email - User's email address
+ * @param {string} data.organizationSlug - Organization slug
+ * @param {string} data.recaptchaToken - reCAPTCHA verification token
+ * @returns {Promise} Password reset request result
  */
-export const checkOrganizationAccessApi = async (orgSlug, userId) => {
+export const forgotPasswordApi = async (data) => {
   try {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const org = DEFAULT_ORGANIZATIONS[orgSlug];
+    const { email, organizationSlug, recaptchaToken } = data;
 
-        if (!org) {
-          resolve({
-            success: false,
-            message: 'Organization not found',
-            hasAccess: false,
-          });
-          return;
-        }
+    // Validate required fields
+    if (!email || !recaptchaToken) {
+      throw new Error('Email and reCAPTCHA verification are required');
+    }
 
-        resolve({
-          success: true,
-          hasAccess: !!(org && userId),
-          role: 'user',
-          permissions: ['read:dashboard', 'read:analytics'],
-        });
-      }, 100);
-    });
-  } catch (error) {
-    logger.error('Error checking organization access:', error);
+    const requestData = {
+      email,
+      recaptchaToken,
+    };
+
+    const response = await axios.post(
+      ORGANIZATION_FORGOT_PASSWORD_URL(organizationSlug),
+      requestData,
+    );
+
+    if (response.data.success) {
+      return {
+        success: true,
+        message:
+          response.data.message ||
+          'Password reset instructions sent to your email',
+      };
+    }
+
     return {
       success: false,
-      message: 'Failed to check access',
-      hasAccess: false,
+      message: response.data.message || 'Failed to send reset email',
+      errors: response.data.errors || {},
+    };
+  } catch (error) {
+    logger.error('Error sending password reset email:', error);
+
+    // Handle specific error cases
+    if (error.response) {
+      const { status, data } = error.response;
+
+      switch (status) {
+        case 400:
+          // Validation errors or reCAPTCHA failure
+          return {
+            success: false,
+            message: data.message || 'Invalid request',
+            errors: data.errors || {},
+          };
+
+        case 404:
+          return {
+            success: false,
+            message:
+              data.message || 'Email address not found in this organization',
+            errors: { email: 'Email not found' },
+          };
+
+        case 429:
+          // Rate limiting
+          return {
+            success: false,
+            message:
+              data.message || 'Too many requests, please try again later',
+            errors: data.errors || {},
+          };
+
+        default:
+          return {
+            success: false,
+            message: data.message || 'Failed to send reset email',
+            errors: data.errors || {},
+          };
+      }
+    }
+
+    // Network or other errors
+    return {
+      success: false,
+      message: error.message || 'Failed to send reset email. Please try again.',
+      errors: { network: 'Unable to connect to server' },
     };
   }
 };
 
 /**
- * Get available test credentials for development
+ * Reset user password with token
+ * @param {Object} data - Password reset data
+ * @param {string} data.token - Password reset token from email
+ * @param {string} data.password - New password
+ * @param {string} data.confirmPassword - Password confirmation
+ * @param {string} data.organizationSlug - Organization slug
+ * @param {string} data.recaptchaToken - reCAPTCHA verification token
+ * @returns {Promise} Password reset result
  */
-export const getTestCredentials = () => {
-  return [
-    {
-      organization: 'AirQo',
-      slug: 'airqo',
-      email: 'demo@airqo.net',
-      password: 'demo123',
-      role: 'admin',
-    },
-    {
-      organization: 'NUAQI',
-      slug: 'nuaqi',
-      email: 'demo@nuaqi.org',
-      password: 'demo123',
-      role: 'researcher',
-    },
-    {
-      organization: 'Makerere University',
-      slug: 'makerere',
-      email: 'demo@mak.ac.ug',
-      password: 'demo123',
-      role: 'student',
-    },
-  ];
+export const resetPasswordApi = async (data) => {
+  try {
+    const {
+      token,
+      password,
+      confirmPassword,
+      organizationSlug,
+      recaptchaToken,
+    } = data;
+
+    // Validate required fields
+    if (!token || !password || !confirmPassword || !recaptchaToken) {
+      throw new Error(
+        'All fields are required, including reCAPTCHA verification',
+      );
+    }
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      return {
+        success: false,
+        message: 'Passwords do not match',
+        errors: { confirmPassword: 'Passwords must match' },
+      };
+    }
+
+    const requestData = {
+      token,
+      password,
+      confirmPassword,
+      recaptchaToken,
+    };
+
+    const response = await axios.post(
+      ORGANIZATION_RESET_PASSWORD_URL(organizationSlug),
+      requestData,
+    );
+
+    if (response.data.success) {
+      return {
+        success: true,
+        message: response.data.message || 'Password reset successfully',
+        user: response.data.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data.message || 'Password reset failed',
+      errors: response.data.errors || {},
+    };
+  } catch (error) {
+    logger.error('Error resetting password:', error);
+
+    // Handle specific error cases
+    if (error.response) {
+      const { status, data } = error.response;
+
+      switch (status) {
+        case 400:
+          // Validation errors, expired token, or reCAPTCHA failure
+          return {
+            success: false,
+            message: data.message || 'Invalid or expired reset token',
+            errors: data.errors || {},
+          };
+
+        case 404:
+          return {
+            success: false,
+            message: data.message || 'Invalid reset token or organization',
+            errors: { token: 'Invalid reset token' },
+          };
+
+        case 429:
+          // Rate limiting
+          return {
+            success: false,
+            message:
+              data.message || 'Too many attempts, please try again later',
+            errors: data.errors || {},
+          };
+
+        default:
+          return {
+            success: false,
+            message: data.message || 'Password reset failed',
+            errors: data.errors || {},
+          };
+      }
+    }
+
+    // Network or other errors
+    return {
+      success: false,
+      message: error.message || 'Password reset failed. Please try again.',
+      errors: { network: 'Unable to connect to server' },
+    };
+  }
 };

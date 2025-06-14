@@ -193,8 +193,23 @@ const OrganizationRegister = () => {
         }, 3000);
       } catch (err) {
         logger.error('Organization registration error:', err);
-        if (err.name === 'ValidationError') {
-          setErrorState(err.errors.join(', '));
+
+        // Handle different types of errors
+        if (err.errors) {
+          // Handle validation errors from API
+          const errorMessages = [];
+          Object.entries(err.errors).forEach(([field, message]) => {
+            if (field === 'email') {
+              errorMessages.push(`Email: ${message}`);
+            } else if (field === 'password') {
+              errorMessages.push(`Password: ${message}`);
+            } else if (field === 'recaptchaToken' || field === 'message') {
+              errorMessages.push(message);
+            } else {
+              errorMessages.push(`${field}: ${message}`);
+            }
+          });
+          setErrorState(errorMessages.join('. '));
         } else {
           setErrorState(
             err.message || 'Registration failed. Please try again.',

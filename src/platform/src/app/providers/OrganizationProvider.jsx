@@ -12,6 +12,7 @@ import { setActiveGroup } from '@/lib/store/services/groups';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
+import logger from '@/lib/logger';
 
 const OrganizationContext = createContext();
 
@@ -68,27 +69,41 @@ export function OrganizationProvider({
         dispatch(setOrganizationName(matchedGroup.grp_title));
       }
     }
-  }, [currentOrganization, groupList, orgSlug, dispatch]);
-  // Fetch organization data if orgSlug is provided but organization is not
+  }, [currentOrganization, groupList, orgSlug, dispatch]); // Fetch organization data if orgSlug is provided but organization is not
   useEffect(() => {
     if (orgSlug && !organization) {
       setIsLoading(true);
       setError(null);
+
       getOrganizationBySlugApi(orgSlug)
         .then((response) => {
-          const orgData = response?.data || response;
-          setCurrentOrganization(orgData);
-          // Fetch theme data separately
-          return getOrganizationThemeApi(orgSlug);
+          if (response.success && response.data) {
+            const orgData = response.data;
+            setCurrentOrganization(orgData);
+
+            // Fetch theme data separately
+            return getOrganizationThemeApi(orgSlug);
+          } else {
+            // Handle organization not found
+            throw new Error(response.message || 'Organization not found');
+          }
         })
         .then((response) => {
-          const themeData = response?.data || response;
-          setCurrentTheme(themeData);
-          setError(null);
+          if (response.success && response.data) {
+            const themeData = response.data;
+            setCurrentTheme(themeData);
+            setError(null);
+          } else {
+            // Theme is optional, so we don't fail if it's not found
+            setCurrentTheme(null);
+            setError(null);
+          }
         })
         .catch((err) => {
+          logger.error('Error loading organization:', err);
           setError(err);
           setCurrentOrganization(null);
+          setCurrentTheme(null);
         })
         .finally(() => {
           setIsLoading(false);

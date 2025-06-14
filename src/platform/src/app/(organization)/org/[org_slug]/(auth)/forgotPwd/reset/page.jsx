@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import * as Yup from 'yup';
 import Link from 'next/link';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
-import { resetPasswordApi } from '@/core/apis/Account';
+import { resetPasswordApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
 import { withOrgAuthRoute } from '@/core/HOC';
+import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -29,6 +31,8 @@ const OrganizationResetPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const recaptchaRef = useRef(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,7 +41,6 @@ const OrganizationResetPassword = () => {
 
   const token = searchParams.get('token');
   const orgSlug = params?.org_slug || 'airqo';
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -56,11 +59,20 @@ const OrganizationResetPassword = () => {
         return;
       }
 
+      // Validate reCAPTCHA
+      if (!recaptchaToken) {
+        setError('Please complete the reCAPTCHA verification');
+        setLoading(false);
+        return;
+      }
+
       // Reset password with organization context
       const response = await resetPasswordApi({
+        token,
         password,
-        resetPasswordToken: token,
+        confirmPassword,
         organizationSlug: orgSlug,
+        recaptchaToken,
       });
 
       if (response.success) {
@@ -82,6 +94,11 @@ const OrganizationResetPassword = () => {
       }
     } finally {
       setLoading(false);
+      // Reset reCAPTCHA
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+        setRecaptchaToken(null);
+      }
     }
   };
 
@@ -165,6 +182,16 @@ const OrganizationResetPassword = () => {
               required
               placeholder="Confirm your new password"
             />
+
+            <div>
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                onChange={setRecaptchaToken}
+                onExpired={() => setRecaptchaToken(null)}
+                onError={() => setRecaptchaToken(null)}
+              />
+            </div>
 
             <div>
               <button
