@@ -77,6 +77,7 @@ const SidebarItem = ({
   toggleMethod,
   toggleState,
   iconOnly = false,
+  isExternal = false,
 }) => {
   const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
@@ -138,6 +139,61 @@ const SidebarItem = ({
   const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-lg';
 
   const handleItemClick = hasDropdown ? toggleMethod : onClick;
+
+  // If it's an external link, handle it differently
+  if (isExternal) {
+    return (
+      <div
+        className={commonClasses}
+        role="button"
+        tabIndex={0}
+        onClick={() => window.open(navPath, '_blank', 'noopener,noreferrer')}
+      >
+        <div
+          className={`
+            relative flex items-center cursor-pointer
+            ${
+              iconOnly
+                ? 'p-0 justify-center items-center w-12 h-12 mx-auto'
+                : 'py-2.5 px-3 w-full'
+            }
+            ${bgClass}
+            rounded-lg
+          `}
+        >
+          {iconOnly ? (
+            // Collapsed state - centered icon
+            <div className="flex items-center justify-center w-full h-full">
+              {Icon && (
+                <Icon
+                  className={`${iconColor} w-5 h-5`}
+                  width="20"
+                  height="20"
+                />
+              )}
+            </div>
+          ) : (
+            // Expanded state - normal layout
+            <>
+              <div className="flex items-center justify-center w-5 h-5 mr-3">
+                {Icon && (
+                  <Icon
+                    className={`${iconColor} w-5 h-5`}
+                    width="20"
+                    height="20"
+                  />
+                )}
+              </div>
+              <div className="flex-grow">
+                <h3 className={`font-normal text-sm ${textClass}`}>{label}</h3>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={commonClasses}
@@ -205,6 +261,7 @@ SidebarItem.propTypes = {
   toggleMethod: PropTypes.func,
   toggleState: PropTypes.bool,
   iconOnly: PropTypes.bool,
+  isExternal: PropTypes.bool,
 };
 
 export default SidebarItem;
