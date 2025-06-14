@@ -70,10 +70,9 @@ export function OrganizationLoadingProvider({ children }) {
   );
   const { status } = useSession();
   const loginSuccess = useSelector((state) => state.login?.success);
-
   // Initialize on first mount - don't trigger loading on initial load
   useEffect(() => {
-    if (!isInitialized.current && activeGroup?._id) {
+    if (!isInitialized.current && activeGroup?._id && loginSuccess) {
       setLastActiveGroupId(activeGroup._id);
       setLastOrgName(activeGroup?.grp_title);
       isInitialized.current = true;
@@ -82,13 +81,15 @@ export function OrganizationLoadingProvider({ children }) {
       // This prevents the modal from showing on initial login
       setTimeout(() => {
         isUserLoggedIn.current = true;
-      }, 2000); // 2 second delay
+      }, 3000); // Increased to 3 second delay to ensure login process is complete
     }
   }, [activeGroup?._id, activeGroup?.grp_title, status, loginSuccess]);
+
   // Track when organization switches occur (only when both ID and name change)
   // This prevents triggering on route changes within the same organization
   useEffect(() => {
-    if (!isInitialized.current || !isUserLoggedIn.current) return;
+    if (!isInitialized.current || !isUserLoggedIn.current || !loginSuccess)
+      return;
 
     const currentGroupId = activeGroup?._id;
     const currentOrgName = activeGroup?.grp_title;
@@ -106,16 +107,18 @@ export function OrganizationLoadingProvider({ children }) {
       return;
     }
 
-    // Only trigger if BOTH the group ID changed AND it's a different organization
-    // AND the user has been logged in for a while (not initial login)
-    // AND it's not a logout scenario
+    // Only trigger if we have valid current data and it's ACTUALLY different from last stored data
+    // AND this is not an initial data load (we already have a lastActiveGroupId)
+    // AND the user has been logged in for sufficient time
     if (
       currentGroupId &&
       currentOrgName &&
+      lastActiveGroupId && // Must have a previous group ID (not initial load)
+      lastOrgName && // Must have a previous org name (not initial load)
       (currentGroupId !== lastActiveGroupId ||
         currentOrgName !== lastOrgName) &&
-      // Additional safety: ensure it's actually a different group, not just a state refresh
-      !(currentGroupId === lastActiveGroupId && currentOrgName === lastOrgName)
+      // Ensure the session status is stable (not during initial authentication)
+      status === 'authenticated'
     ) {
       // Clear any existing timeout
       if (switchTimeoutRef.current) {
@@ -132,6 +135,8 @@ export function OrganizationLoadingProvider({ children }) {
     activeGroup?.grp_title,
     lastActiveGroupId,
     lastOrgName,
+    loginSuccess,
+    status,
   ]);
   // Auto-complete loading based on data availability or timeout
   useEffect(() => {
@@ -169,6 +174,15 @@ export function OrganizationLoadingProvider({ children }) {
       }
     };
   }, []);
+  // Reset switching state on login status changes to prevent modal during login/logout
+  useEffect(() => {
+    if (status === 'loading' || !loginSuccess) {
+      setIsSwitchingOrganization(false);
+      if (switchTimeoutRef.current) {
+        clearTimeout(switchTimeoutRef.current);
+      }
+    }
+  }, [status, loginSuccess]);
 
   // Only show organization loading during actual switches, not on tab focus
   const isOrganizationLoading = isSwitchingOrganization;

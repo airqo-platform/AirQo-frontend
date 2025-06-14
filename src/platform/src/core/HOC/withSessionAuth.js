@@ -123,7 +123,7 @@ export const withSessionAuth = (
               if (protectionLevel === PROTECTION_LEVELS.AUTH_ONLY) {
                 // Start setup process for authenticated users on auth pages
                 setIsSettingUp(true);
-                setSetupMessage('Setting up your dashboard...');
+                setSetupMessage('Setting up your workspace...');
 
                 const setupResult = await setupUserSession(
                   session,
