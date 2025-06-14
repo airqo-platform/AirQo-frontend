@@ -57,10 +57,9 @@ const GlobalTopbar = ({
       return false;
     }
   });
-
   const togglingGlobalDrawer = useSelector((state) => {
     try {
-      return state?.sidebar?.togglingGlobalDrawer || false;
+      return state?.sidebar?.toggleGlobalDrawer || false;
     } catch {
       return false;
     }

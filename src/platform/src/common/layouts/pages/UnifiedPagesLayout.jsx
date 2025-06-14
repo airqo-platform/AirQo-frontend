@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Head from 'next/head';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
+import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
 import OrganizationSideBarDrawer from '../SideBar/OrganizationSideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
@@ -164,11 +165,10 @@ export default function UnifiedPagesLayout({ children }) {
         <div className={`overflow-hidden ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
-
           {/* Content */}
           <div className="text-text transition-all duration-300 overflow-hidden">
             {children}
-          </div>
+          </div>{' '}
         </div>
       </main>
       {/* SideBar Drawer */}
@@ -177,6 +177,8 @@ export default function UnifiedPagesLayout({ children }) {
       ) : (
         <SideBarDrawer />
       )}
+      {/* Global SideBar Drawer */}
+      <GlobalSideBarDrawer />
     </div>
   );
 }

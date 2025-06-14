@@ -4,7 +4,6 @@ import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
-import OrganizationDropdown from './OrganizationDropdown';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
@@ -109,9 +108,7 @@ const SideBarDrawer = () => {
             <CloseIcon />
           </button>
         </div>
-        <div className="mt-2 lg:mt-4">
-          <OrganizationDropdown />
-        </div>
+
         <div className="flex flex-col justify-between h-full">
           <div className="mt-6 lg:mt-11 space-y-2 lg:space-y-3">
             {navigationItems.map((item, index) => {

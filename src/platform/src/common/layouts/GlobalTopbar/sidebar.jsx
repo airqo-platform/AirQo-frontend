@@ -1,11 +1,7 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { useWindowSize } from '@/core/hooks/useWindowSize';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
-import AirqoLogo from '@/icons/airqo_logo.svg';
 import CloseIcon from '@/icons/close_icon';
 import HomeIcon from '@/icons/SideBar/HomeIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import PersonIcon from '@/icons/Settings/PersonIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setTogglingGlobalDrawer,
@@ -13,15 +9,14 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
 import Card from '@/components/CardWrapper';
+import { MdAdminPanelSettings } from 'react-icons/md';
 
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
-  const { width } = useWindowSize();
   const togglingGlobalDrawer = useSelector(
     (state) => state.sidebar.toggleGlobalDrawer,
   );
   const router = useRouter();
-  const userInfo = useSelector((state) => state.login.userInfo);
 
   // Compute the drawer width based on the toggle state.
   // This ensures that on desktop it uses the fixed width ('w-72') and not full screen.
@@ -35,18 +30,20 @@ const GlobalSideBarDrawer = () => {
     dispatch(setSidebar(false));
   }, [dispatch]);
 
-  const renderUserAvatar = () =>
-    userInfo.profilePicture ? (
-      <img
-        className="w-12 h-12 rounded-full object-cover"
-        src={userInfo.profilePicture}
-        alt="User avatar"
-      />
-    ) : (
-      <div className="w-12 h-12 rounded-[28px] flex justify-center items-center bg-[#F3F6F8]">
-        <PersonIcon fill="#485972" />
-      </div>
-    );
+  // Custom Admin Panel Icon component using react-icons
+  const AdminPanelIcon = ({ width = 24, height = 24, fill = '#485972' }) => (
+    <div
+      style={{
+        width,
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <MdAdminPanelSettings size={width} color={fill} />
+    </div>
+  );
 
   // Prevent body scrolling when drawer is open
   useEffect(() => {
@@ -74,17 +71,7 @@ const GlobalSideBarDrawer = () => {
         className="fixed left-0 top-0 h-full z-[999999] border-r-grey-750 border-r-[1px] transition-all duration-200 ease-in-out overflow-hidden"
         contentClassName="flex p-4 h-full flex-col overflow-y-auto border-t-0 border-l-[1px] border-l-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
       >
-        <div className="pb-4 flex justify-between items-center">
-          {width < 1024 ? (
-            <div
-              className="cursor-pointer"
-              onClick={() => router.push('/settings')}
-            >
-              {renderUserAvatar()}
-            </div>
-          ) : (
-            <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
-          )}
+        <div className="pb-4 flex justify-end items-center">
           <button
             type="button"
             className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
@@ -94,7 +81,7 @@ const GlobalSideBarDrawer = () => {
           </button>
         </div>
         <div className="flex flex-col justify-between h-full">
-          <div className="mt-11 space-y-3">
+          <div className="mt-1 space-y-3">
             <SideBarItem
               label="Data Access"
               Icon={HomeIcon}
@@ -105,8 +92,8 @@ const GlobalSideBarDrawer = () => {
               }
             />
             <SideBarItem
-              label="Admin Panel"
-              Icon={BarChartIcon}
+              label="Organisation Requests"
+              Icon={AdminPanelIcon}
               navPath="/admin/organisations/requests"
             />
           </div>

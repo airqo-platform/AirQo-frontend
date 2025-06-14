@@ -10,7 +10,6 @@ import HomeIcon from '@/icons/SideBar/HomeIcon';
 import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import PersonIcon from '@/icons/Settings/PersonIcon';
 import LogoutIcon from '@/icons/SideBar/LogoutIcon';
-import OrganizationDropdown from './OrganizationDropdown';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useRouter } from 'next/navigation';
@@ -87,10 +86,6 @@ const OrganizationSideBarDrawer = () => {
           >
             <CloseIcon />
           </button>
-        </div>
-
-        <div className="mt-2 lg:mt-4">
-          <OrganizationDropdown />
         </div>
 
         <div className="flex flex-col justify-between h-full">
