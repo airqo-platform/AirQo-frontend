@@ -1,27 +1,27 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
 import CloseIcon from '@/icons/close_icon';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
+import LineChartIcon from '@/icons/Charts/LineChartIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setTogglingGlobalDrawer,
   setSidebar,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import { useRouter } from 'next/navigation';
 import Card from '@/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
+import { FiExternalLink } from 'react-icons/fi';
+import AirqoLogo from '@/icons/airqo_logo.svg';
 
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
   const togglingGlobalDrawer = useSelector(
     (state) => state.sidebar.toggleGlobalDrawer,
   );
-  const router = useRouter();
 
   // Compute the drawer width based on the toggle state.
   // This ensures that on desktop it uses the fixed width ('w-72') and not full screen.
   const drawerWidth = useMemo(
-    () => (togglingGlobalDrawer ? 'w-72' : 'w-0'),
+    () => (togglingGlobalDrawer ? 'w-64' : 'w-0'),
     [togglingGlobalDrawer],
   );
 
@@ -29,7 +29,6 @@ const GlobalSideBarDrawer = () => {
     dispatch(setTogglingGlobalDrawer(false));
     dispatch(setSidebar(false));
   }, [dispatch]);
-
   // Custom Admin Panel Icon component using react-icons
   const AdminPanelIcon = ({ width = 24, height = 24, fill = '#485972' }) => (
     <div
@@ -42,6 +41,21 @@ const GlobalSideBarDrawer = () => {
       }}
     >
       <MdAdminPanelSettings size={width} color={fill} />
+    </div>
+  );
+
+  // Custom External Link Icon component using react-icons
+  const ExternalLinkIcon = ({ width = 24, height = 24, fill = '#485972' }) => (
+    <div
+      style={{
+        width,
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <FiExternalLink size={width} color={fill} />
     </div>
   );
 
@@ -68,10 +82,14 @@ const GlobalSideBarDrawer = () => {
       )}
       <Card
         width={drawerWidth}
+        padding="p-0 m-0"
         className="fixed left-0 top-0 h-full z-[999999] border-r-grey-750 border-r-[1px] transition-all duration-200 ease-in-out overflow-hidden"
-        contentClassName="flex p-4 h-full flex-col overflow-y-auto border-t-0 border-l-[1px] border-l-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
+        contentClassName="flex h-full flex-col overflow-y-auto border-t-0 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
       >
-        <div className="pb-4 flex justify-end items-center">
+        <div className="px-2 py-4 flex justify-between border-b border-gray-400 items-center">
+          <div className="flex items-center space-x-2">
+            <AirqoLogo />
+          </div>
           <button
             type="button"
             className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
@@ -80,21 +98,26 @@ const GlobalSideBarDrawer = () => {
             <CloseIcon />
           </button>
         </div>
-        <div className="flex flex-col justify-between h-full">
+        <div className="flex flex-col justify-between px-1 h-full">
           <div className="mt-1 space-y-3">
             <SideBarItem
-              label="Data Access"
-              Icon={HomeIcon}
-              navPath={
-                ['/Home', '/analytics', '/map'].includes(router.pathname)
-                  ? router.pathname
-                  : '/Home'
-              }
+              label="Data Analytics"
+              Icon={LineChartIcon}
+              navPath="/user/analytics"
+              onClick={closeDrawer}
             />
             <SideBarItem
               label="Organisation Requests"
               Icon={AdminPanelIcon}
               navPath="/admin/organisations/requests"
+              onClick={closeDrawer}
+            />
+            <SideBarItem
+              label="AirQo Website"
+              Icon={ExternalLinkIcon}
+              navPath="https://airqo.africa"
+              isExternal={true}
+              onClick={closeDrawer}
             />
           </div>
         </div>

@@ -9,37 +9,31 @@ import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
 import SelectDropdown from '@/components/SelectDropdown';
 import TextField from '@/components/TextInputField';
+import ProfileSkeleton from '../components/ProfileSkeleton';
 import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
-import timeZones from 'timezones.json';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
 
-// Country and timezone setup
+// Country setup
 countries.registerLocale(enLocale);
 const countryObj = countries.getNames('en', { select: 'official' });
 const countryOptions = Object.entries(countryObj).map(([key, value]) => ({
   label: value,
   value: key,
 }));
-const timeZonesArr = timeZones.map((tz) => ({
-  label: tz.text,
-  value: tz.text,
-}));
 
-// Yup validation schema
+// Yup validation schema (removed phone and timezone)
 const validationSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
   lastName: Yup.string().required('Last name is required'),
   email: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
-  phone: Yup.string().optional(),
   jobTitle: Yup.string().optional(),
   country: Yup.string().required('Country is required'),
-  timezone: Yup.string().optional(),
   description: Yup.string().optional(),
 });
 
@@ -56,10 +50,8 @@ const Profile = () => {
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
     jobTitle: '',
     country: '',
-    timezone: '',
     description: '',
     profilePicture: '',
   });
@@ -106,15 +98,13 @@ const Profile = () => {
       if (res.success && res.users && res.users.length > 0) {
         const user = res.users[0];
 
-        // Map API response fields to form fields
+        // Map API response fields to form fields (removed phone and timezone)
         setUserData({
           firstName: user.firstName || '',
           lastName: user.lastName || '',
           email: user.email || '',
-          phone: user.phoneNumber || '', // API uses phoneNumber, form uses phone
           jobTitle: user.jobTitle || '',
           country: user.country || '',
-          timezone: user.timezone || '',
           description: user.description || '',
           profilePicture: user.profilePicture || '',
         });
@@ -149,7 +139,6 @@ const Profile = () => {
       setValidationErrors({ ...validationErrors, [id]: '' });
     }
   };
-
   // Handlers for SelectDropdown fields
   const handleCountryChange = (option) => {
     setUserData({ ...userData, country: option.value });
@@ -158,12 +147,6 @@ const Profile = () => {
     }
   };
 
-  const handleTimezoneChange = (option) => {
-    setUserData({ ...userData, timezone: option.value });
-    if (validationErrors.timezone) {
-      setValidationErrors({ ...validationErrors, timezone: '' });
-    }
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -259,12 +242,13 @@ const Profile = () => {
       setIsLoading(false);
     }
   };
-  const handleCancel = async () => {
-    // Reset form to original API data by refetching user details
-    await fetchUserDetails();
-
-    // Clear any validation errors
+  // Handler for cancel button
+  const handleCancel = () => {
+    // Reset form to initial state
+    fetchUserDetails();
+    setUpdatedProfilePicture('');
     setValidationErrors({});
+    setErrorState({ isError: false, message: '', type: '' });
   };
 
   const cropImage = () =>
@@ -423,187 +407,165 @@ const Profile = () => {
   };
 
   return (
-    <>
+    <div data-testid="tab-content">
       <AlertBox
         message={errorState.message}
         type={errorState.type}
         show={errorState.isError}
         hide={() => setErrorState({ isError: false, message: '', type: '' })}
       />
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-white">
-            Personal information
-          </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        <div>
+          <h1 className="text-2xl font-medium text-gray-700 dark:text-white">
+            My Profile
+          </h1>
           <p className="text-sm text-gray-500">
             Update your photo and personal details.
           </p>
         </div>
-        <div className="w-full mb-12">
+        <div className="md:col-span-2">
           <Card>
-            <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-              <div
-                className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
-                onClick={handleAvatarClick}
-                title="Tap to change profile image"
-              >
-                {userData.profilePicture ? (
-                  <img
-                    src={userData.profilePicture}
-                    alt={`${userData.firstName} ${userData.lastName} profile image`}
-                    className="w-full h-full rounded-full object-cover"
+            {isLoading ? (
+              <ProfileSkeleton />
+            ) : (
+              <>
+                <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
+                  <div
+                    className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
+                    onClick={handleAvatarClick}
+                    title="Tap to change profile image"
+                  >
+                    {userData.profilePicture ? (
+                      <img
+                        src={userData.profilePicture}
+                        alt={`${userData.firstName} ${userData.lastName} profile image`}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <h3 className="text-2xl font-medium text-blue-600">
+                        {userData.firstName && userData.lastName
+                          ? userData.firstName[0] + userData.lastName[0]
+                          : ''}
+                      </h3>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={() => setShowDeleteProfileModal(true)}
+                      disabled={!userData.profilePicture}
+                      className="text-sm font-medium text-gray-600"
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      onClick={handleProfileImageUpdate}
+                      disabled={!updatedProfilePicture}
+                      variant={updatedProfilePicture ? 'outlined' : 'disabled'}
+                      className="text-sm font-medium"
+                    >
+                      {updatedProfilePicture && !profileUploading
+                        ? 'Save photo'
+                        : profileUploading
+                          ? 'Uploading...'
+                          : 'Update'}
+                    </Button>
+                  </div>
+                </div>
+                <form
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                  onSubmit={handleSubmit}
+                >
+                  {/* Row 1: First and Last Name */}
+                  <InputField
+                    id="firstName"
+                    value={userData.firstName}
+                    onChange={handleChange}
+                    label="First name"
+                    placeholder="Enter first name"
+                    error={validationErrors.firstName}
+                    required
                   />
-                ) : (
-                  <h3 className="text-2xl font-medium text-blue-600">
-                    {userData.firstName && userData.lastName
-                      ? userData.firstName[0] + userData.lastName[0]
-                      : ''}
-                  </h3>
-                )}
-              </div>
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={() => setShowDeleteProfileModal(true)}
-                  disabled={!userData.profilePicture}
-                  className="text-sm font-medium text-gray-600"
-                >
-                  Delete
-                </Button>
-                <Button
-                  onClick={handleProfileImageUpdate}
-                  disabled={!updatedProfilePicture}
-                  className={`text-sm font-medium ${
-                    updatedProfilePicture
-                      ? 'text-blue-600 bg-blue-50 rounded'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  {updatedProfilePicture && !profileUploading
-                    ? 'Save photo'
-                    : profileUploading
-                      ? 'Uploading...'
-                      : 'Update'}
-                </Button>
-              </div>
-            </div>
-            <form
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-              onSubmit={handleSubmit}
-            >
-              {' '}
-              {/* Row 1: First and Last Name */}
-              <InputField
-                id="firstName"
-                value={userData.firstName}
-                onChange={handleChange}
-                label="First name"
-                placeholder="Enter first name"
-                error={validationErrors.firstName}
-                required
-              />
-              <InputField
-                id="lastName"
-                value={userData.lastName}
-                onChange={handleChange}
-                label="Last name"
-                placeholder="Enter last name"
-                error={validationErrors.lastName}
-                required
-              />{' '}
-              {/* Row 2: Email and Phone */}
-              <InputField
-                id="email"
-                value={userData.email}
-                onChange={handleChange}
-                label="Email"
-                placeholder="Enter email address"
-                error={validationErrors.email}
-                required
-              />
-              <InputField
-                id="phone"
-                value={userData.phone}
-                onChange={handleChange}
-                label="Phone"
-                placeholder="Enter phone number"
-                error={validationErrors.phone}
-              />
-              {/* Row 3: Job Title and Country */}
-              <InputField
-                id="jobTitle"
-                value={userData.jobTitle}
-                onChange={handleChange}
-                label="Job title"
-                placeholder="Enter job title"
-                error={validationErrors.jobTitle}
-              />{' '}
-              <div className="flex flex-col">
-                <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-                  Country
-                  <span className="ml-1 text-blue-600 dark:text-blue-400">
-                    *
-                  </span>
-                </label>
-                <SelectDropdown
-                  items={countryOptions}
-                  selected={
-                    countryOptions.find(
-                      (option) => option.value === userData.country,
-                    ) || null
-                  }
-                  onChange={handleCountryChange}
-                  placeholder="Select a country"
-                  error={validationErrors.country}
-                  required
-                />
-              </div>
-              {/* Row 4: Timezone */}
-              <div className="flex flex-col">
-                <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Timezone
-                </label>
-                <SelectDropdown
-                  items={timeZonesArr}
-                  selected={
-                    timeZonesArr.find(
-                      (option) => option.value === userData.timezone,
-                    ) || null
-                  }
-                  onChange={handleTimezoneChange}
-                  placeholder="Select a timezone"
-                  error={validationErrors.timezone}
-                />
-              </div>
-              {/* Row 5: Bio/Description (full width) using TextField */}
-              <div className="md:col-span-2">
-                <TextField
-                  id="description"
-                  value={userData.description}
-                  onChange={handleChange}
-                  label="Bio"
-                  placeholder="Enter your bio"
-                  error={validationErrors.description}
-                />
-              </div>
-            </form>
-            <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
-              <Button
-                onClick={handleCancel}
-                type="button"
-                variant="outlined"
-                className="py-3 px-4 text-sm dark:bg-transparent"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                type="button"
-                disabled={isLoading}
-                className="py-3 px-4 text-sm rounded bg-blue-600 text-white"
-              >
-                {isLoading ? 'Loading...' : 'Save'}
-              </Button>
-            </div>
+                  <InputField
+                    id="lastName"
+                    value={userData.lastName}
+                    onChange={handleChange}
+                    label="Last name"
+                    placeholder="Enter last name"
+                    error={validationErrors.lastName}
+                    required
+                  />
+                  {/* Row 2: Email and Job Title */}
+                  <InputField
+                    id="email"
+                    value={userData.email}
+                    onChange={handleChange}
+                    label="Email"
+                    placeholder="Enter email address"
+                    error={validationErrors.email}
+                    required
+                  />
+                  <InputField
+                    id="jobTitle"
+                    value={userData.jobTitle}
+                    onChange={handleChange}
+                    label="Job title"
+                    placeholder="Enter job title"
+                    error={validationErrors.jobTitle}
+                  />
+                  {/* Row 3: Country */}
+                  <div className="flex flex-col">
+                    <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
+                      Country
+                      <span className="ml-1 text-blue-600 dark:text-blue-400">
+                        *
+                      </span>
+                    </label>
+                    <SelectDropdown
+                      items={countryOptions}
+                      selected={
+                        countryOptions.find(
+                          (option) => option.value === userData.country,
+                        ) || null
+                      }
+                      onChange={handleCountryChange}
+                      placeholder="Select a country"
+                      error={validationErrors.country}
+                      required
+                    />
+                  </div>
+                  {/* Bio/Description (full width) using TextField */}
+                  <div className="md:col-span-2">
+                    <TextField
+                      id="description"
+                      value={userData.description}
+                      onChange={handleChange}
+                      label="Bio"
+                      placeholder="Enter your bio"
+                      error={validationErrors.description}
+                    />
+                  </div>
+                </form>
+                <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+                  <Button
+                    onClick={handleCancel}
+                    type="button"
+                    variant="outlined"
+                    className="py-3 px-4 text-sm dark:bg-transparent"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    type="button"
+                    disabled={isLoading}
+                    variant={isLoading ? 'disabled' : 'filled'}
+                    className="py-3 px-4 text-sm rounded"
+                  >
+                    {isLoading ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </>
+            )}
           </Card>
         </div>
       </div>
@@ -614,7 +576,7 @@ const Profile = () => {
         description="Are you sure you want to delete your profile image?"
         confirmButton="Delete"
       />
-    </>
+    </div>
   );
 };
 

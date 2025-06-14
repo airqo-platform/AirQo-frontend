@@ -323,6 +323,105 @@ export const withPermission = (Component, requiredPermissions, options = {}) =>
     permissions: requiredPermissions,
   })(Component);
 
+/**
+ * HOC for admin access - requires super admin role and AirQo organization
+ */
+export const withAdminAccess = (Component, options = {}) => {
+  return withSessionAuth(PROTECTION_LEVELS.PROTECTED, {
+    ...options,
+    customValidation: (session, activeGroup) => {
+      if (!session?.user || !activeGroup) {
+        return { isValid: false, redirectTo: '/account/login' };
+      }
+
+      const groupRole = activeGroup?.role?.role_name?.toLowerCase() || '';
+      const isSuperAdmin =
+        groupRole.includes('super_admin') || groupRole.includes('super admin');
+      const isAirqoGroup = activeGroup?.grp_title?.toLowerCase() === 'airqo';
+
+      if (!isSuperAdmin || !isAirqoGroup) {
+        return { isValid: false, redirectTo: '/permission-denied' };
+      }
+
+      return { isValid: true };
+    },
+  })(Component);
+};
+
+/**
+ * Hook that provides session-aware permission checking
+ * Consolidated from withSessionAwarePermissions for better organization
+ */
+export const useSessionAwarePermissions = () => {
+  const { data: session, status } = useSession();
+
+  const hasPermission = (permission) => {
+    if (status === 'loading') return true; // Allow during loading
+    if (status === 'unauthenticated') return false;
+    return checkAccess(permission, session);
+  };
+
+  const hasAnyPermission = (permissions) => {
+    if (!Array.isArray(permissions)) return hasPermission(permissions);
+    return permissions.some((permission) => hasPermission(permission));
+  };
+
+  const hasAllPermissions = (permissions) => {
+    if (!Array.isArray(permissions)) return hasPermission(permissions);
+    return permissions.every((permission) => hasPermission(permission));
+  };
+
+  return {
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    session,
+    status,
+    isLoading: status === 'loading',
+    isAuthenticated: status === 'authenticated',
+  };
+};
+
+/**
+ * HOC that provides session-aware permission checking (for compatibility)
+ * Note: withSessionAuth already includes permission checking.
+ * This is mainly for components that need just permission utilities.
+ */
+export const withSessionAwarePermissions = (Component, options = {}) => {
+  const { requiredPermissions = [], fallbackComponent = null } = options;
+  return function SessionAwarePermissionsComponent(props) {
+    const { status } = useSession();
+
+    // Use the same hook internally
+    const permissionUtils = useSessionAwarePermissions();
+
+    // Check required permissions if specified
+    if (requiredPermissions.length > 0) {
+      if (status === 'loading') {
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="SecondaryMainloader" aria-label="Loading..."></div>
+          </div>
+        );
+      }
+
+      if (status === 'unauthenticated') {
+        return fallbackComponent || null;
+      }
+
+      const hasRequiredPermissions = requiredPermissions.every((permission) =>
+        permissionUtils.hasPermission(permission),
+      );
+
+      if (!hasRequiredPermissions) {
+        return fallbackComponent || null;
+      }
+    }
+
+    return <Component {...props} permissions={permissionUtils} />;
+  };
+};
+
 // Backward compatibility aliases
 export const withUserAuth = withAuth;
 export const withOrgAuth = withAuth;

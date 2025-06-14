@@ -183,7 +183,6 @@ const TeamInviteForm = ({ open, closeModal }) => {
               variant="text"
               className="shadow-none"
               paddingStyles="py-3 m-0"
-              color="text-blue-600"
               onClick={handleAddEmail}
             >
               <PlusIcon /> <span>Add email</span>

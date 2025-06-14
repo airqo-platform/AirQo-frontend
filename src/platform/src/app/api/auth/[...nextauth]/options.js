@@ -1,7 +1,15 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import jwt_decode from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
+import logger from '@/lib/logger';
+import {
+  getApiBaseUrl,
+  getApiToken,
+  getNextAuthSecret,
+} from '@/lib/envConstants';
 
 export const options = {
+  // Add the secret configuration with validation
+  secret: getNextAuthSecret() || 'fallback-secret-for-development',
   providers: [
     // Unified credentials provider for both user and organization access
     CredentialsProvider({
@@ -16,24 +24,32 @@ export const options = {
         if (!credentials?.userName || !credentials?.password) {
           throw new Error('Email and password are required');
         }
+
         try {
-          // Use server-side API_BASE_URL for NextAuth (server-side context)
-          const API_BASE_URL =
-            process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
-          if (!API_BASE_URL) {
-            throw new Error(
-              'Neither API_BASE_URL nor NEXT_PUBLIC_API_BASE_URL environment variable is defined',
-            );
+          // Use centralized API base URL getter
+          const baseUrl = getApiBaseUrl();
+
+          if (!baseUrl) {
+            const error =
+              'API base URL is not configured. Please check your environment variables.';
+            logger.error('[NextAuth] Environment Error:', error);
+            throw new Error(error);
           }
 
-          // Remove trailing slash and properly construct URL
-          const baseUrl = API_BASE_URL.replace(/\/$/, '');
-          const url = new URL(`${baseUrl}/users/loginUser`);
+          let url;
+
+          try {
+            url = new URL(`${baseUrl}/users/loginUser`);
+          } catch (urlError) {
+            const error = `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`;
+            logger.error('[NextAuth] URL Error:', error);
+            throw new Error(error);
+          }
 
           // Add API token if available
-          const API_TOKEN = process.env.API_TOKEN;
-          if (API_TOKEN) {
-            url.searchParams.append('token', API_TOKEN);
+          const apiToken = getApiToken();
+          if (apiToken) {
+            url.searchParams.append('token', apiToken);
           }
 
           // Prepare headers
@@ -53,14 +69,22 @@ export const options = {
 
           if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorBody}`);
+            const error = `Authentication failed: HTTP ${response.status}: ${errorBody}`;
+            logger.error('[NextAuth] API Error:', error);
+            throw new Error(error);
           }
 
           const data = await response.json();
 
           if (data && data.token) {
             // Decode the JWT to get user information
-            const decodedToken = jwt_decode(data.token);
+            let decodedToken;
+            try {
+              decodedToken = jwtDecode(data.token);
+            } catch (jwtError) {
+              logger.error('[NextAuth] JWT decode error:', jwtError.message);
+              throw new Error('Invalid token received from API');
+            }
 
             // For organization access, validate if user belongs to the organization
             if (credentials.orgSlug) {
@@ -79,7 +103,7 @@ export const options = {
               if (!isValidOrganization) {
                 if (process.env.NODE_ENV === 'development') {
                   // eslint-disable-next-line no-console
-                  console.log('Organization validation failed:', {
+                  console.warn('Organization validation failed:', {
                     tokenOrg,
                     requestedOrg,
                   });

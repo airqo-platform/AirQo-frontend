@@ -12,6 +12,7 @@ import {
   shouldUseUserFlow,
 } from './organizationUtils';
 import logger from '@/lib/logger';
+import { getNextAuthSecret } from '@/lib/envConstants';
 
 // Route type constants
 export const ROUTE_TYPES = {
@@ -250,7 +251,7 @@ export const validateServerSession = async (request) => {
     // Get token from middleware context
     const token = await getToken({
       req: request,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: getNextAuthSecret(),
     });
 
     const orgSlug = extractOrgSlug(pathname);

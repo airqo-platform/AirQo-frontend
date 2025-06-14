@@ -14,6 +14,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './tabs/API';
 import { withUserAuth } from '@/core/HOC';
+import { useSessionAwarePermissions } from '@/core/HOC';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions =
@@ -31,7 +32,10 @@ const Settings = () => {
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences,
   );
+
   const { data: session } = useSession();
+  const { hasPermission, isLoading: permissionsLoading } =
+    useSessionAwarePermissions();
 
   useEffect(() => {
     setLoading(true);
@@ -66,6 +70,15 @@ const Settings = () => {
       });
   }, [session, preferences, dispatch]);
 
+  // Show loading state while checking permissions
+  if (permissionsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="SecondaryMainloader" aria-label="Loading..."></div>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary name="Settings" feature="User Account Settings">
       <Tabs>
@@ -79,20 +92,14 @@ const Settings = () => {
           <API userPermissions={userPermissions} />
         </div>
         {userPermissions &&
-          checkAccess(
-            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-            userPermissions,
-          ) && (
+          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') && (
             <div label="Organisation">
               <OrganizationProfile />
             </div>
           )}
         {userGroup &&
           userPermissions &&
-          checkAccess(
-            'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
-            userPermissions,
-          ) && (
+          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') && (
             <div label="Team">
               <Team users={teamMembers} loading={loading} />
             </div>

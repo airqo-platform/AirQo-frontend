@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
 import { useSelector, useDispatch } from 'react-redux';
@@ -190,7 +191,7 @@ const AuthenticatedSideBar = ({
         {showCollapseButton && pathname !== '/user/map' && (
           <div
             className={`
-              absolute flex rounded-full top-4 -right-[6px] z-50 
+              absolute flex rounded-full dark:bg-slate-700 top-4 -right-[6px] z-50 
               shadow-lg justify-center items-center border w-6 h-6
               ${styles.collapseButton}
               hover:shadow-xl transition-all duration-200
@@ -199,42 +200,19 @@ const AuthenticatedSideBar = ({
             <button
               type="button"
               onClick={() => dispatch(toggleSidebar())}
-              className="p-1.5 focus:outline-none w-full h-full flex items-center justify-center"
+              className="p-1 focus:outline-none w-full h-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full transition-colors duration-200"
               aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? (
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="transform rotate-180"
-                >
-                  <path
-                    d="M15 18L9 12L15 6"
-                    stroke={styles.stroke}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <IoChevronForward
+                  size={14}
+                  className="text-gray-600 dark:text-gray-300"
+                />
               ) : (
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15 18L9 12L15 6"
-                    stroke={styles.stroke}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <IoChevronBack
+                  size={14}
+                  className="text-gray-600 dark:text-gray-300"
+                />
               )}
             </button>
           </div>

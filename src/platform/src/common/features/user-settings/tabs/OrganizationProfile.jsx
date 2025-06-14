@@ -282,7 +282,7 @@ const OrganizationProfile = () => {
       });
       setUpdatedProfilePicture('');
     } catch (error) {
-      console.error('Error uploading/updating organization image:', error);
+      // Error uploading/updating organization image
       setUpdatedProfilePicture('');
       setErrorState({ isError: true, message: error.message, type: 'error' });
     } finally {
@@ -372,11 +372,8 @@ const OrganizationProfile = () => {
                   <Button
                     onClick={handleProfileImageUpdate}
                     disabled={!updatedProfilePicture}
-                    className={`text-sm font-medium ${
-                      updatedProfilePicture
-                        ? 'text-blue-600 bg-blue-50 rounded'
-                        : 'text-gray-600'
-                    }`}
+                    variant={updatedProfilePicture ? 'outlined' : 'disabled'}
+                    className="text-sm font-medium"
                   >
                     {updatedProfilePicture && !profileUploading
                       ? 'Save photo'

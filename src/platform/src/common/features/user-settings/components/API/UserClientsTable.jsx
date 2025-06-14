@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import Skeleton from '@/components/Collocation/DeviceStatus/Table/Skeleton';
+import ApiTableSkeleton from './ApiTableSkeleton';
 import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
 import EditIcon from '@/icons/Common/edit-pencil.svg';
@@ -39,7 +39,7 @@ const UserClientsTable = () => {
     type: '',
   });
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with true
   const [isLoadingToken, setIsLoadingToken] = useState(false);
   const [isLoadingActivationRequest, setIsLoadingActivationRequest] =
     useState(false);
@@ -66,8 +66,9 @@ const UserClientsTable = () => {
       type,
     });
   };
+
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    const fetchAllData = async () => {
       if (!userId) {
         setIsLoading(false);
         return;
@@ -75,57 +76,45 @@ const UserClientsTable = () => {
 
       setIsLoading(true);
       try {
-        const res = await getUserDetails(userId);
-        if (res.success) {
-          dispatch(addClients(res.users[0].clients));
+        // Fetch user details and clients in parallel
+        const [userDetailsRes, clientsDetailsRes] = await Promise.allSettled([
+          getUserDetails(userId),
+          getClientsApi(userId),
+        ]);
+
+        // Handle user details response
+        if (
+          userDetailsRes.status === 'fulfilled' &&
+          userDetailsRes.value.success
+        ) {
+          dispatch(addClients(userDetailsRes.value.users[0].clients));
           setCurrentPage(1);
         }
-      } catch (error) {
-        setErrorState(
-          error?.message || 'Failed to fetch user details',
-          'error',
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserDetails();
-  }, [refresh, userId, dispatch]);
-  useEffect(() => {
-    const fetchClientsDetails = async () => {
-      if (!userId) {
-        setIsLoading(false);
-        return;
-      }
 
-      setIsLoading(true);
-      try {
-        const response = await getClientsApi(userId);
-        if (response.success) {
-          dispatch(addClientsDetails(response.clients));
-        }
-      } catch (error) {
-        // Check if this is a "no clients exist" response (404 with success=true)
+        // Handle clients details response
         if (
-          error?.response?.status === 404 &&
-          error?.response?.data?.success === true &&
-          error?.response?.data?.message === 'no clients exist'
+          clientsDetailsRes.status === 'fulfilled' &&
+          clientsDetailsRes.value.success
+        ) {
+          dispatch(addClientsDetails(clientsDetailsRes.value.clients));
+        } else if (
+          clientsDetailsRes.status === 'rejected' &&
+          clientsDetailsRes.reason?.response?.status === 404 &&
+          clientsDetailsRes.reason?.response?.data?.success === true &&
+          clientsDetailsRes.reason?.response?.data?.message ===
+            'no clients exist'
         ) {
           // Handle "no clients exist" as a successful response with empty clients array
           dispatch(addClientsDetails([]));
-        } else {
-          setErrorState(
-            error?.response?.data?.message ||
-              error?.message ||
-              'Failed to fetch clients details',
-            'error',
-          );
         }
+      } catch (error) {
+        setErrorState(error?.message || 'Failed to fetch data', 'error');
       } finally {
         setIsLoading(false);
       }
     };
-    fetchClientsDetails();
+
+    fetchAllData();
   }, [refresh, userId, dispatch]);
 
   const hasAccessToken = (clientId) => {
@@ -242,7 +231,7 @@ const UserClientsTable = () => {
             </tr>
           </thead>
           {isLoading ? (
-            <Skeleton />
+            <ApiTableSkeleton rows={4} />
           ) : (
             <tbody>
               {clients?.length > 0 ? (
@@ -303,12 +292,15 @@ const UserClientsTable = () => {
                                 ? 'Tap to generate token'
                                 : 'Token already generated'
                             }
-                            className={`px-4 py-2 rounded-2xl inline-flex justify-center items-center text-sm ${
+                            variant={
                               !hasAccessToken(client._id)
-                                ? 'bg-green-700 text-green-50 cursor-pointer'
-                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300'
-                            }`}
-                            disabled={isLoadingToken}
+                                ? 'filled'
+                                : 'disabled'
+                            }
+                            className="px-4 py-2 rounded-2xl inline-flex justify-center items-center text-sm"
+                            disabled={
+                              isLoadingToken || hasAccessToken(client._id)
+                            }
                             onClick={() => {
                               const clientData = {
                                 name: client.name,

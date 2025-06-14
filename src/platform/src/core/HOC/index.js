@@ -14,6 +14,10 @@ export {
   withAuthRoute,
   withPublicRoute,
   withPermission,
+  withAdminAccess,
+  // Session-aware permission utilities (consolidated)
+  withSessionAwarePermissions,
+  useSessionAwarePermissions,
   // Backward compatibility aliases
   withUserAuth,
   withOrgAuth,

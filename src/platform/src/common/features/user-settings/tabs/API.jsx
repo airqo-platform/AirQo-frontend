@@ -9,9 +9,8 @@ import { checkAccess } from '../index';
 
 const API = ({ userPermissions }) => {
   const [showAddClientForm, setShowAddClientForm] = useState(false);
-
   return (
-    <div data-testid="api-tab" className="flex w-full flex-col gap-10">
+    <div data-testid="tab-content">
       <Card
         header={
           <div className="px-3 py-4 md:flex w-full justify-between items-center gap-5">
@@ -36,7 +35,7 @@ const API = ({ userPermissions }) => {
             </div>
             <Button
               onClick={() => setShowAddClientForm(true)}
-              className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 bg-blue-600 text-white text-sm font-medium"
+              className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 text-sm font-medium"
             >
               <AddIcon /> Create client
             </Button>
