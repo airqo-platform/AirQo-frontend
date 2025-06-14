@@ -56,23 +56,22 @@ const PlantTree = ({ onClose }) => {
   }, []);
 
   return (
-    <>
+    <div className="flex flex-col lg:flex-row h-full min-h-0">
       {/* Left side - Image */}
-      <div className="w-full md:w-1/2 relative h-[658px]">
-        {' '}
+      <div className="w-full lg:w-1/2 relative h-48 lg:h-full flex-shrink-0">
         <Image
           src={PlantTreeImg}
           alt="Plant a Tree"
           fill
           style={{ objectFit: 'cover' }}
           loading="eager"
-          className="rounded-l-md"
+          className="rounded-l-md lg:rounded-l-lg"
         />
       </div>
 
       {/* Right side - Donation options */}
-      <div className="w-full relative">
-        <div className="p-8 flex flex-col space-y-4">
+      <div className="w-full lg:w-1/2 flex flex-col min-h-0">
+        <div className="p-4 sm:p-6 lg:p-8 flex flex-col space-y-4 flex-1 overflow-y-auto">
           {predefinedDonations.map((donation) => (
             <button
               key={donation.amount}
@@ -87,7 +86,6 @@ const PlantTree = ({ onClose }) => {
               {donation.label}
             </button>
           ))}
-
           {/* Custom Donation Input with Clear Button */}
           <div className="relative w-full">
             <input
@@ -108,21 +106,21 @@ const PlantTree = ({ onClose }) => {
                 &times;
               </button>
             )}
-          </div>
-
-          {/* Footer Section */}
-          <Footer
-            btnText="Continue"
-            setError={null}
-            errorMessage={null}
-            selectedSites={null}
-            handleClearSelection={handleClearSelection}
-            handleSubmit={handleSubmit}
-            onClose={onClose}
-          />
+          </div>{' '}
         </div>
+
+        {/* Footer Section */}
+        <Footer
+          btnText="Continue"
+          setError={null}
+          errorMessage={null}
+          selectedSites={null}
+          handleClearSelection={handleClearSelection}
+          handleSubmit={handleSubmit}
+          onClose={onClose}
+        />
       </div>
-    </>
+    </div>
   );
 };
 

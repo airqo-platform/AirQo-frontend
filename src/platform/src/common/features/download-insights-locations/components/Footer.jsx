@@ -74,12 +74,12 @@ const EnhancedFooter = ({
   }, [selectedItems.length, handleClearSelection, minimumSelection]);
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 bg-background border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6 flex flex-col md:flex-row items-start md:items-center gap-2 justify-between shadow-lg z-10">
+    <div className="sticky bottom-0 left-0 right-0 bg-background border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center gap-2 justify-between shadow-lg z-10">
       {/* Animated message area */}
       <AnimatePresence mode="wait">
         <motion.div
           key={message || 'status'}
-          className="text-sm leading-5 font-normal flex-1 mb-2 md:mb-0 overflow-hidden"
+          className="text-sm leading-5 font-normal flex-1 mb-2 sm:mb-0 overflow-hidden min-w-0"
           initial={{ opacity: 0, y: 5, height: 0 }}
           animate={{
             opacity: 1,
@@ -103,10 +103,9 @@ const EnhancedFooter = ({
             </span>
           )}
         </motion.div>
-      </AnimatePresence>
-
+      </AnimatePresence>{' '}
       {/* Action buttons */}
-      <div className="flex w-full md:w-auto gap-2 justify-end">
+      <div className="flex w-full sm:w-auto gap-2 justify-end flex-wrap">
         {/* Clear Button (conditionally rendered) */}
         {showClearButton && (
           <Button

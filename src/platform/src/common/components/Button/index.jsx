@@ -32,7 +32,6 @@ const Button = React.forwardRef(
         'text-white',
         'border border-transparent',
         'shadow-sm hover:shadow-md',
-        'hover:-translate-y-0.5',
         'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
       ),
       outlined: clsx(

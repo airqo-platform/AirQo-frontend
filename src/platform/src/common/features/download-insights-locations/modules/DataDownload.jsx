@@ -973,37 +973,36 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   return (
     <ErrorBoundary name="DataDownload" feature="Air Quality Data Download">
       <motion.div
-        className="relative flex flex-col lg:flex-row h-full overflow-hidden"
+        className="relative flex flex-col lg:flex-row h-full min-h-0"
         variants={animations.pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
         data-testid="data-download-container"
       >
+        {' '}
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block flex-shrink-0">
           <motion.div
-            className="w-[280px] min-h-[400px] max-h-[658px] h-full overflow-y-auto overflow-x-hidden border-r dark:border-gray-700 relative"
+            className="w-[240px] h-full overflow-y-auto overflow-x-hidden border-r border-gray-200 dark:border-gray-700 relative"
             variants={animations.sidebarVariants}
             initial="hidden"
             animate="visible"
           >
             {renderSidebarContent()}
           </motion.div>
-        </div>
-
+        </div>{' '}
         {/* Mobile/Tablet Menu Button */}
-        <div className="lg:hidden px-4 md:px-6 pt-2">
+        <div className="lg:hidden px-4 md:px-6 pt-2 flex-shrink-0">
           <button
             onClick={() => setMobileSidebarVisible(true)}
             aria-label="Open settings menu"
-            className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-200"
+            className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <IoIosMenu size={24} className="mr-1" />
             <span>Settings</span>
           </button>
         </div>
-
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
           {isMobileSidebarVisible && (
@@ -1014,7 +1013,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="w-[280px] h-full relative dark:bg-[#1d1f20] overflow-x-hidden overflow-y-auto shadow-lg"
+                className="w-[240px] h-full relative bg-white dark:bg-[#1d1f20] overflow-x-hidden overflow-y-auto shadow-lg"
                 initial={{ x: -350 }}
                 animate={{ x: 0 }}
                 exit={{ x: -350 }}
@@ -1031,12 +1030,11 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
               </motion.div>
             </motion.div>
           )}
-        </AnimatePresence>
-
+        </AnimatePresence>{' '}
         {/* Main Content */}
-        <div className="flex-1 flex flex-col relative overflow-x-hidden">
+        <div className="flex-1 flex flex-col relative overflow-hidden min-h-0">
           <motion.div
-            className="flex-1 h-full overflow-y-auto overflow-x-hidden"
+            className="flex-1 overflow-y-auto overflow-x-hidden"
             variants={animations.sidebarVariants}
             initial="hidden"
             animate="visible"

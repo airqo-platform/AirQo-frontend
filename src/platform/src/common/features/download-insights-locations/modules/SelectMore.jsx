@@ -175,7 +175,7 @@ const SelectMore = ({ onClose }) => {
   return (
     <>
       {/* Selected Sites Sidebar */}
-      <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+      <div className="w-[240px] h-full overflow-y-auto border-r border-gray-200 dark:border-gray-700 relative space-y-3 px-4 pt-5 pb-14">
         {selectedSitesContent}
       </div>
 
