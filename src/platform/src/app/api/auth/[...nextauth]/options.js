@@ -1,5 +1,5 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { jwtDecode } from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
 import logger from '@/lib/logger';
 import {
   getApiBaseUrl,

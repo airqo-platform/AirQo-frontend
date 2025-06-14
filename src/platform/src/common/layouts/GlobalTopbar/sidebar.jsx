@@ -84,7 +84,7 @@ const GlobalSideBarDrawer = () => {
         width={drawerWidth}
         padding="p-0 m-0"
         className="fixed left-0 top-0 h-full z-[999999] border-r-grey-750 border-r-[1px] transition-all duration-200 ease-in-out overflow-hidden"
-        contentClassName="flex h-full flex-col overflow-y-auto border-t-0 border-l-[1px] border-l-grey-750 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
+        contentClassName="flex h-full flex-col overflow-y-auto border-t-0 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-gray-200 overflow-x-hidden"
       >
         <div className="px-2 py-4 flex justify-between border-b border-gray-400 items-center">
           <div className="flex items-center space-x-2">
