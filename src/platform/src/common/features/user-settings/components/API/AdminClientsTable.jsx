@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Card from '@/components/CardWrapper';
-import Skeleton from '@/components/Collocation/DeviceStatus/Table/Skeleton';
+import AdminApiTableSkeleton from './AdminApiTableSkeleton';
 import CloseIcon from '@/icons/close_icon';
 import CheckIcon from '@/icons/tickIcon';
 import Toast from '@/components/Toast';
@@ -20,7 +20,7 @@ const AdminClientsTable = () => {
     message: '',
     type: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with true
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
   const [isLoadingDeactivation, setIsLoadingDeactivation] = useState(false);
   const [confirmActivation, setConfirmActivation] = useState(false);
@@ -41,8 +41,8 @@ const AdminClientsTable = () => {
           setClients(res.clients);
           setCurrentPage(1);
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
+        setError('Failed to fetch clients', 'error');
       } finally {
         setIsLoading(false);
       }
@@ -121,7 +121,7 @@ const AdminClientsTable = () => {
             </tr>
           </thead>
           {isLoading ? (
-            <Skeleton />
+            <AdminApiTableSkeleton rows={8} />
           ) : (
             <tbody>
               {clients?.length > 0 ? (
