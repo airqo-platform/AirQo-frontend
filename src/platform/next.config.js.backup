@@ -3,6 +3,12 @@ const withVideos = require('next-videos');
 
 module.exports = withVideos({
   transpilePackages: ['redux-persist'],
+  experimental: {
+    // Suppress Edge Runtime warnings for specific modules
+    serverComponentsExternalPackages: ['axios'],
+  },
+  // Suppress specific webpack warnings
+  webpack(config, { isServer }) {
   images: {
     remotePatterns: [
       {
@@ -30,9 +36,7 @@ module.exports = withVideos({
   reactStrictMode: false, // Temporarily disabled to fix "Should have a queue" error
   eslint: {
     dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
-  },
-
-  webpack(config, { isServer, dev }) {
+  },  webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
@@ -45,20 +49,23 @@ module.exports = withVideos({
       tls: false,
     };
 
-    // Suppress axios warnings in Edge Runtime by excluding it from edge builds
-    if (!isServer && !dev) {
+    // Exclude problematic Node.js modules from Edge Runtime
+    if (config.name === 'edge-runtime') {
       config.resolve.alias = {
         ...config.resolve.alias,
-        // Only exclude axios in production client builds to avoid edge runtime warnings
+        axios: false,
+        // Also exclude the logger that imports axios
+        '@/lib/logger': false,
       };
     }
 
-    // Ignore specific warnings related to Node.js APIs in Edge Runtime
-    config.ignoreWarnings = [
-      { module: /node_modules\/axios\/lib\/utils\.js/ },
-      /A Node\.js API is used \(setImmediate\)/,
-      /A Node\.js API is used \(process\.nextTick\)/,
-    ];
+    // Add externals for server-side bundles to reduce warnings
+    if (config.target === 'node') {
+      config.externals = config.externals || [];
+      config.externals.push({
+        'axios': 'axios',
+      });
+    }
 
     return config;
   },
