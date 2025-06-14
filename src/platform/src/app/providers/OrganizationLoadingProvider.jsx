@@ -36,14 +36,16 @@ function OrganizationLoadingOverlay({ isVisible }) {
   if (!isVisible) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col items-center space-y-4 shadow-xl">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="text-gray-700 dark:text-gray-300 font-medium">
-          Switching organization...
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-          Please wait while we load your organization data
-        </p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-48 h-48 flex flex-col items-center justify-center space-y-4 shadow-xl">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div className="text-center px-4">
+          <p className="text-gray-700 dark:text-gray-300 font-medium text-base">
+            Loading data...
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Just a moment
+          </p>
+        </div>
       </div>
     </div>
   );
