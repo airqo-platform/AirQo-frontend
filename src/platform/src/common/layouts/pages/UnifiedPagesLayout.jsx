@@ -16,6 +16,7 @@ import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import DarkModeToggle from '@/common/components/DarkModeToggle';
@@ -168,7 +169,7 @@ export default function UnifiedPagesLayout({ children }) {
           {/* Content */}
           <div className="text-text transition-all duration-300 overflow-hidden">
             {children}
-          </div>{' '}
+          </div>
         </div>
       </main>
       {/* SideBar Drawer */}
@@ -179,6 +180,8 @@ export default function UnifiedPagesLayout({ children }) {
       )}
       {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />
+      {/* Theme Customizer - Available in both individual and organization contexts */}
+      <ThemeCustomizer />
     </div>
   );
 }
