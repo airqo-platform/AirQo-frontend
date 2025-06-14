@@ -1,10 +1,12 @@
 import { SitemapStream, streamToPromise } from 'sitemap';
+import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
+import { getSiteUrl } from '@/lib/envConstants';
 
 export async function GET() {
   try {
     // Define site URLs
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || 'https://analytics.airqo.net';
+    const siteUrl = getSiteUrl();
 
     // Create a stream to write to
     const smStream = new SitemapStream({
@@ -31,11 +33,8 @@ export async function GET() {
     smStream.end();
 
     // Generate the XML
-    const sitemap = await streamToPromise(smStream).then((sm) => sm.toString());
-
-    // Return the XML response
-    // eslint-disable-next-line no-undef
-    return new Response(sitemap, {
+    const sitemap = await streamToPromise(smStream).then((sm) => sm.toString()); // Return the XML response
+    return new NextResponse(sitemap, {
       status: 200,
       headers: {
         'Content-Type': 'application/xml',
@@ -43,9 +42,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.log(error);
-    // eslint-disable-next-line no-undef
-    return new Response('Internal Server Error', { status: 500 });
+    logger.error('Sitemap generation error:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

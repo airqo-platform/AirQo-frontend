@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { getServerSession } from 'next-auth';
 import { options as authOptions } from '@/app/api/auth/[...nextauth]/options.js';
+import logger from '@/lib/logger';
+import { getApiBaseUrl, getApiToken } from '@/lib/envConstants';
 
 // For App Router compatibility
 /* global Response */
@@ -53,8 +55,17 @@ export const createProxyHandler = (options = {}) => {
       path = context.params.path;
       res = new Response(); // We'll build this manually for App Router
       // For App Router, query params need to be extracted from the URL
-      const url = new URL(req.url);
-      queryParams = Object.fromEntries(url.searchParams.entries());
+      try {
+        const url = new URL(req.url);
+        queryParams = Object.fromEntries(url.searchParams.entries());
+      } catch (urlError) {
+        logger.error('Proxy client: Failed to parse request URL', {
+          message: "Failed to construct 'URL': Invalid base URL",
+          url: req.url,
+          error: urlError.message,
+        });
+        return new Response('Bad Request: Invalid URL', { status: 400 });
+      }
     } else {
       // Pages Router format - second parameter is res object
       res = context;
@@ -87,19 +98,80 @@ export const createProxyHandler = (options = {}) => {
     }
 
     try {
-      // Create request config
-      const API_BASE_URL = process.env.API_BASE_URL;
+      // Create request config with enhanced error handling
+      let API_BASE_URL;
+      try {
+        API_BASE_URL = getApiBaseUrl();
+      } catch (envError) {
+        logger.error('Failed to get API base URL from environment:', envError);
+        const errorResponse = {
+          success: false,
+          message: 'API configuration error: Unable to determine base URL',
+        };
+
+        if (context && context.params) {
+          return new Response(JSON.stringify(errorResponse), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } else {
+          return res.status(500).json(errorResponse);
+        }
+      }
       if (!API_BASE_URL) {
-        throw new Error('API_BASE_URL environment variable not defined');
+        logger.error('API_BASE_URL environment variable not defined');
+        const errorResponse = {
+          success: false,
+          message: 'API configuration error: Base URL not defined',
+        };
+
+        if (context && context.params) {
+          return new Response(JSON.stringify(errorResponse), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } else {
+          return res.status(500).json(errorResponse);
+        }
       }
 
-      // Import the URL helper functions
-      const { normalizeUrl } = await import('../utils/urlHelpers');
+      // Import the URL helper functions safely
+      let normalizeUrl;
+      try {
+        const urlHelpers = await import('../utils/urlHelpers');
+        normalizeUrl = urlHelpers.normalizeUrl;
+      } catch (importError) {
+        logger.error('Failed to import URL helpers:', importError);
+        // Fallback URL normalization
+        normalizeUrl = (url) => url?.replace(/\/+$/, '') || '';
+      }
 
-      // Normalize the base URL (remove trailing slashes)
-      const normalizedBaseUrl = normalizeUrl(API_BASE_URL);
+      // Normalize the base URL (remove trailing slashes) with validation
+      let normalizedBaseUrl;
+      try {
+        normalizedBaseUrl = normalizeUrl(API_BASE_URL);
+        // Validate that we have a proper URL
+        if (!normalizedBaseUrl || normalizedBaseUrl.length === 0) {
+          throw new Error('Invalid base URL after normalization');
+        }
+      } catch (urlError) {
+        logger.error('Failed to normalize base URL:', urlError);
+        const errorResponse = {
+          success: false,
+          message: 'API configuration error: Invalid base URL',
+        };
 
-      // Configure the request
+        if (context && context.params) {
+          return new Response(JSON.stringify(errorResponse), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } else {
+          return res.status(500).json(errorResponse);
+        }
+      }
+
+      // Configure the request with safe URL construction
       const config = {
         method: req.method,
         url: `${normalizedBaseUrl}/${targetPath}`,
@@ -107,6 +179,7 @@ export const createProxyHandler = (options = {}) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        timeout: 30000, // 30 second timeout to prevent hanging requests
       };
 
       // Handle request body for POST, PUT, PATCH
@@ -128,12 +201,10 @@ export const createProxyHandler = (options = {}) => {
             config.data = req.body;
           }
         }
-      }
-
-      // Add API token if required (server-side only)
+      } // Add API token if required (server-side only)
       if (requiresApiToken) {
         // Use server-side environment variable - not exposed to client
-        const API_TOKEN = process.env.API_TOKEN;
+        const API_TOKEN = getApiToken();
 
         if (!API_TOKEN) {
           throw new Error('API_TOKEN environment variable not defined');

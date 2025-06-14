@@ -1,5 +1,10 @@
-export const GRIDS = process.env.NEXT_PUBLIC_GRIDS;
-export const DEFAULT_CHART_SITES = process.env.NEXT_PUBLIC_DEFAULT_CHART_SITES;
+import {
+  NEXT_PUBLIC_GRIDS,
+  NEXT_PUBLIC_DEFAULT_CHART_SITES,
+} from './envConstants';
+
+export const GRIDS = NEXT_PUBLIC_GRIDS;
+export const DEFAULT_CHART_SITES = NEXT_PUBLIC_DEFAULT_CHART_SITES;
 export const TIME_OPTIONS = ['hourly', 'daily', 'weekly', 'monthly'];
 export const POLLUTANT_OPTIONS = [
   { id: 'pm2_5', name: 'PM2.5' },

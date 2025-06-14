@@ -11,19 +11,28 @@ import logger from '@/lib/logger';
  */
 export const checkAccess = (requiredPermission, session = null) => {
   if (!requiredPermission) {
-    logger.warn('checkAccess called without requiredPermission');
+    // Only log in development to reduce noise
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('checkAccess called without requiredPermission');
+    }
     return false;
   }
 
   if (!session) {
-    logger.warn(
-      'checkAccess called without session. Consider using withPermission HOC or useSession hook.',
-    );
+    // Only log in development - suppress in staging/production
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn(
+        'checkAccess called without session. Consider using withPermission HOC or useSession hook.',
+      );
+    }
     return false;
   }
 
   if (!session.user) {
-    logger.warn('checkAccess called with session but no user data');
+    // Only log in development to reduce noise
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('checkAccess called with session but no user data');
+    }
     return false;
   }
 

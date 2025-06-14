@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
+import { getSiteUrl } from '@/lib/envConstants';
 
 export function GET() {
   // Get the base URL, with fallback
-  const baseUrl = (
-    process.env.NEXT_PUBLIC_ORIGINAL_PLATFORM || 'https://analytics.airqo.net'
-  ).replace(/\/$/, '');
+  const baseUrl = getSiteUrl().replace(/\/$/, '');
 
   // Generate the robots.txt content
   const robotsTxt = `User-agent: *
