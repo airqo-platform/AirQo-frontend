@@ -139,15 +139,19 @@ const SidebarItem = ({
   const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-lg';
 
   const handleItemClick = hasDropdown ? toggleMethod : onClick;
-
   // If it's an external link, handle it differently
   if (isExternal) {
+    const handleExternalClick = () => {
+      window.open(navPath, '_blank', 'noopener,noreferrer');
+      if (onClick) onClick(); // Close sidebar or perform other actions
+    };
+
     return (
       <div
         className={commonClasses}
         role="button"
         tabIndex={0}
-        onClick={() => window.open(navPath, '_blank', 'noopener,noreferrer')}
+        onClick={handleExternalClick}
       >
         <div
           className={`
@@ -203,6 +207,7 @@ const SidebarItem = ({
     >
       <Link
         href={navPath || '#'}
+        onClick={onClick}
         className={`
           relative flex items-center
           ${

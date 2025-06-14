@@ -104,17 +104,20 @@ const GlobalSideBarDrawer = () => {
               label="Data Analytics"
               Icon={LineChartIcon}
               navPath="/user/analytics"
+              onClick={closeDrawer}
             />
             <SideBarItem
               label="Organisation Requests"
               Icon={AdminPanelIcon}
               navPath="/admin/organisations/requests"
+              onClick={closeDrawer}
             />
             <SideBarItem
               label="AirQo Website"
               Icon={ExternalLinkIcon}
               navPath="https://airqo.africa"
               isExternal={true}
+              onClick={closeDrawer}
             />
           </div>
         </div>
