@@ -58,8 +58,20 @@ const AQNumberCard = () => {
 
     return [];
   }, [preferences, chartSites]);
-  // Only fetch measurements if we have valid site IDs and not switching organizations
-  const shouldFetch = selectedSiteIds.length > 0 && !isOrganizationLoading;
+
+  // Improved fetch logic to handle view transitions
+  const shouldFetch = useMemo(() => {
+    // Don't fetch if no site IDs
+    if (selectedSiteIds.length === 0) return false;
+
+    // For user view with preferences - always fetch
+    if (preferences?.selected_sites?.length) return true;
+
+    // For organization view - only fetch if not switching organizations and we have chart sites
+    if (chartSites?.length && !isOrganizationLoading) return true;
+
+    return false;
+  }, [selectedSiteIds, preferences, chartSites, isOrganizationLoading]);
 
   const {
     data: measurements,
@@ -70,9 +82,10 @@ const AQNumberCard = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateOnVisibilityChange: false, // Prevent refetch when tab becomes visible again
+      revalidateOnVisibilityChange: false,
       revalidateOnMount: true,
-      // Don't retry on 400 errors
+      // Force refetch when switching between views
+      dedupingInterval: isOrganizationLoading ? 0 : 30000,
       onError: (_err) => {
         setError('Failed to fetch air quality data. Please try again later.');
       },
@@ -93,11 +106,68 @@ const AQNumberCard = () => {
         .map((siteId) => {
           const measurement = measurements.find((m) => m.site_id === siteId);
           if (measurement) {
+            // Extract proper location name from various possible sources
+            const extractLocationName = (measurement) => {
+              // Try to get name from site details in measurement
+              if (
+                measurement.site?.name &&
+                measurement.site.name !== measurement.site_id
+              ) {
+                return measurement.site.name;
+              }
+
+              // Try to get from siteDetails (common in recent measurements)
+              if (
+                measurement.siteDetails?.name &&
+                measurement.siteDetails.name !== measurement.site_id
+              ) {
+                return measurement.siteDetails.name;
+              }
+
+              // Try search_name or location_name
+              if (measurement.siteDetails?.search_name) {
+                return measurement.siteDetails.search_name;
+              }
+
+              if (measurement.siteDetails?.location_name) {
+                return measurement.siteDetails.location_name;
+              }
+
+              // Try formatted name
+              if (measurement.siteDetails?.formatted_name) {
+                return measurement.siteDetails.formatted_name;
+              }
+
+              // Fallback to abbreviated site_id
+              return measurement.site_id?.substring(0, 8)
+                ? `Site ${measurement.site_id.substring(0, 8)}...`
+                : 'Unknown Location';
+            };
+
+            // Extract country information
+            const extractCountry = (measurement) => {
+              if (measurement.site?.country) return measurement.site.country;
+              if (measurement.siteDetails?.country)
+                return measurement.siteDetails.country;
+              if (measurement.siteDetails?.city)
+                return measurement.siteDetails.city;
+              if (measurement.siteDetails?.region)
+                return measurement.siteDetails.region;
+              return 'Unknown Location';
+            };
+
             return {
               _id: siteId,
-              name: measurement.site?.name || measurement.site_id,
-              location: measurement.site?.location || {},
-              // Add other site properties from measurement if available
+              name: extractLocationName(measurement),
+              country: extractCountry(measurement),
+              location:
+                measurement.site?.location ||
+                measurement.siteDetails?.location ||
+                {},
+              // Include additional site properties
+              search_name: measurement.siteDetails?.search_name,
+              city: measurement.siteDetails?.city,
+              region: measurement.siteDetails?.region,
               ...measurement.site,
             };
           }
@@ -118,6 +188,32 @@ const AQNumberCard = () => {
     }
   }, [error, measurementsError]);
 
+  // Force refresh when switching between organization and user contexts
+  useEffect(() => {
+    // If we were loading organizations and now we're not, but we have no data
+    if (
+      !isOrganizationLoading &&
+      selectedSiteIds.length > 0 &&
+      (!measurements || measurements.length === 0) &&
+      shouldFetch
+    ) {
+      // Add a small delay to ensure the context has fully switched
+      const refreshTimeout = setTimeout(() => {
+        // Force a re-render by updating a state if needed
+        if (selectedSites.length === 0 && selectedSiteIds.length > 0) {
+          setError(null); // This triggers a re-render
+        }
+      }, 100);
+      return () => clearTimeout(refreshTimeout);
+    }
+  }, [
+    isOrganizationLoading,
+    selectedSiteIds.length,
+    measurements,
+    shouldFetch,
+    selectedSites.length,
+  ]);
+
   // Handler to open modals for card actions
   const handleOpenModal = useCallback(
     (type, ids = [], data = null) => {
@@ -126,9 +222,35 @@ const AQNumberCard = () => {
     },
     [dispatch],
   );
+  const isLoadingData = useMemo(() => {
+    // Show loading only when actively fetching or transitioning
+    if (isFetchingActiveGroup) return true;
 
-  const isLoadingData =
-    isLoading || isFetchingActiveGroup || isOrganizationLoading;
+    // During organization loading, show loading state
+    if (isOrganizationLoading) return true;
+
+    // Show loading when we expect data but don't have it yet
+    if (isLoading && shouldFetch) return true;
+
+    // If we have site IDs but no selected sites or measurements, show loading
+    if (
+      selectedSiteIds.length > 0 &&
+      selectedSites.length === 0 &&
+      !measurements
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [
+    isLoading,
+    isFetchingActiveGroup,
+    isOrganizationLoading,
+    shouldFetch,
+    selectedSiteIds.length,
+    selectedSites.length,
+    measurements,
+  ]);
 
   const getMeasurementForSite = useCallback(
     (siteId) => {
