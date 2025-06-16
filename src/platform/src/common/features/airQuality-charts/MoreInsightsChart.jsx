@@ -445,7 +445,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 fill={isDark ? '#D1D5DB' : '#1C1D20'}
                 fontSize={12}
                 dy={-30}
-                dx={15}
+                dx={25}
                 style={{ textAnchor: 'start' }}
                 className="chart-y-label"
               />
