@@ -1,2 +1,2 @@
-export { default as CreateOrganizationDialog } from './CreateOrganizationDialog.jsx';
-export { useCreateOrganization } from './useCreateOrganization.js';
+export { default as CreateOrganizationDialog } from './components/CreateOrganizationDialog.jsx';
+export { useCreateOrganization } from './hooks/useCreateOrganization.js';

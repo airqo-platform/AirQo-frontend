@@ -1,46 +1,33 @@
 import React from 'react';
 
 /**
- * InputField Component
- * Renders an input field with an optional label, icon, and error message.
+ * SelectField Component
+ * Renders a select dropdown with an optional label and error message.
  * Props:
  * - label: Optional label text
  * - error: Optional error message
- * - type: Input type (default: 'text')
  * - containerClassName: Additional classes for the container
- * - className: Additional classes for the input element
+ * - className: Additional classes for the select element
  * - required: Whether the field is required
- * - disabled: Whether the input is disabled
- * - onChange: Change handler function (can accept value or event)
- * - ...inputProps: Additional props for the input element
+ * - disabled: Whether the select is disabled
+ * - children: Option elements
+ * - onChange: Change handler function
+ * - ...selectProps: Additional props for the select element
  */
-const InputField = ({
+const SelectField = ({
   label,
   error,
-  type = 'text',
   containerClassName = '',
   className = '',
   required = false,
   disabled = false,
   description,
   onChange,
-  ...inputProps
+  children,
+  ...selectProps
 }) => {
-  // Handle onChange to support both value-only and event-based patterns
-  const handleChange = (e) => {
-    if (onChange) {
-      // Safety check: ensure event and target exist
-      if (!e || !e.target) {
-        return;
-      }
-
-      // Always pass the full event for form handling consistency
-      onChange(e);
-    }
-  };
   return (
     <div className={`flex flex-col mb-4 ${containerClassName}`}>
-      {' '}
       {label && (
         <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
           {label}
@@ -60,22 +47,26 @@ const InputField = ({
               ? 'bg-gray-100 dark:bg-gray-700'
               : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
           }
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]        `}
+          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]
+        `}
       >
-        <input
-          type={type}
+        <select
           className={`
             w-full px-4 py-2.5 rounded-xl border-gray-400 bg-transparent outline-none text-sm
             text-gray-700 dark:text-gray-200
-            placeholder-gray-400 dark:placeholder-gray-500
             disabled:text-gray-500 disabled:dark:text-gray-400
-            disabled:cursor-not-allowed ${className}
+            disabled:cursor-not-allowed
+            [&>option]:bg-white [&>option]:dark:bg-gray-800 
+            [&>option]:text-gray-900 [&>option]:dark:text-gray-100
+            [&>option:disabled]:text-gray-400 [&>option:disabled]:dark:text-gray-500 ${className}
           `}
           disabled={disabled}
           required={required}
-          onChange={handleChange}
-          {...inputProps}
-        />
+          onChange={onChange}
+          {...selectProps}
+        >
+          {children}
+        </select>
       </div>
       {error && (
         <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
@@ -102,4 +93,4 @@ const InputField = ({
   );
 };
 
-export default InputField;
+export default SelectField;
