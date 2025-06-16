@@ -398,11 +398,13 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
             className="chart-component"
           >
             <CartesianGrid
-              stroke={isDark ? '#555' : '#ccc'}
-              strokeDasharray="3 3"
-              vertical={false}
+              stroke={isDark ? '#555' : '#999'}
+              strokeDasharray="2 2"
+              vertical={true}
+              horizontal={true}
               className="chart-grid"
-              opacity={0.3}
+              opacity={1}
+              strokeWidth={1}
             />
             <XAxis
               dataKey="time"
