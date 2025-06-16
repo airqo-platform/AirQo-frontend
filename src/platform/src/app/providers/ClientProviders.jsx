@@ -22,19 +22,24 @@ import { validateEnvironment } from '@/lib/envConstants';
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);
   const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
     // Mark as client-side
     setIsClient(true);
 
     // Initialize environment validation
     try {
-      // Validate environment variables
+      // Validate environment variables (for development debugging only)
       const envValidation = validateEnvironment();
-      if (envValidation.errors.length > 0) {
+      if (
+        envValidation.errors.length > 0 &&
+        process.env.NODE_ENV === 'development'
+      ) {
         logger.error('Environment validation errors:', envValidation.errors);
       }
-      if (envValidation.warnings.length > 0) {
+      if (
+        envValidation.warnings.length > 0 &&
+        process.env.NODE_ENV === 'development'
+      ) {
         logger.warn('Environment validation warnings:', envValidation.warnings);
       }
 

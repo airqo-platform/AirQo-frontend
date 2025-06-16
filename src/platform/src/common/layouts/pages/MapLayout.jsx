@@ -10,6 +10,7 @@ import AuthenticatedSideBar from '../SideBar/AuthenticatedSidebar';
 import UserSidebarContent from '../SideBar/UserSidebarContent';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import SideBarDrawer from '../SideBar/SideBarDrawer';
+import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -81,15 +82,16 @@ export default function MapLayout({ children }) {
         <div className="h-[calc(100vh-9rem)] lg:h-[calc(100vh-4rem)] overflow-hidden">
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
-
           {/* Content - Full remaining height */}
           <div className="h-full text-text transition-all duration-300 overflow-hidden">
             {children}
-          </div>
+          </div>{' '}
         </div>
       </main>
       {/* SideBar Drawer */}
       <SideBarDrawer />
+      {/* Global SideBar Drawer */}
+      <GlobalSideBarDrawer />
     </div>
   );
 }

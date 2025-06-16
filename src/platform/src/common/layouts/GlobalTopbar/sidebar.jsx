@@ -101,12 +101,6 @@ const GlobalSideBarDrawer = () => {
         <div className="flex flex-col justify-between px-1 h-full">
           <div className="mt-1 space-y-3">
             <SideBarItem
-              label="Data Analytics"
-              Icon={LineChartIcon}
-              navPath="/user/analytics"
-              onClick={closeDrawer}
-            />
-            <SideBarItem
               label="Admin Panel"
               Icon={AdminPanelIcon}
               navPath="/admin"
@@ -117,6 +111,12 @@ const GlobalSideBarDrawer = () => {
               Icon={ExternalLinkIcon}
               navPath="https://airqo.africa"
               isExternal={true}
+              onClick={closeDrawer}
+            />
+            <SideBarItem
+              label="Data Analytics"
+              Icon={LineChartIcon}
+              navPath="/user/analytics"
               onClick={closeDrawer}
             />
           </div>

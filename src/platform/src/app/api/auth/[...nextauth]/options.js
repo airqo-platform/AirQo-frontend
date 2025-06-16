@@ -31,8 +31,10 @@ export const options = {
 
           if (!baseUrl) {
             const error =
-              'API base URL is not configured. Please check your environment variables.';
-            logger.error('[NextAuth] Environment Error:', error);
+              'Authentication service is temporarily unavailable. Please try again later.';
+            logger.error(
+              '[NextAuth] Environment Error: API base URL not configured',
+            );
             throw new Error(error);
           }
 
@@ -41,8 +43,12 @@ export const options = {
           try {
             url = new URL(`${baseUrl}/users/loginUser`);
           } catch (urlError) {
-            const error = `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`;
-            logger.error('[NextAuth] URL Error:', error);
+            const error =
+              'Authentication service configuration error. Please try again later.';
+            logger.error(
+              '[NextAuth] URL Error:',
+              `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`,
+            );
             throw new Error(error);
           }
 
