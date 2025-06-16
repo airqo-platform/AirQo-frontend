@@ -99,7 +99,6 @@ const ChartContainer = ({
     return () =>
       refreshTimerRef.current && clearTimeout(refreshTimerRef.current);
   }, []);
-
   // Enhanced export chart function with dom-to-image-more
   const exportChart = useCallback(
     async (format) => {
@@ -110,29 +109,55 @@ const ChartContainer = ({
       setExportError(null);
 
       try {
-        // Wait for chart rendering to complete
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        // Wait for chart rendering to complete and any animations to finish
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Get the actual chart element (without padding container)
+        const chartElement =
+          chartContentRef.current.querySelector('.recharts-wrapper') ||
+          chartContentRef.current;
 
         // Apply temporary class for better export quality
         chartContentRef.current.classList.add('exporting');
 
-        // Configure export options for better quality
+        // Calculate proper dimensions for high-quality export
+        const actualWidth = chartElement.offsetWidth;
+        const actualHeight = chartElement.offsetHeight;
+        const scale = 2; // Higher scale for better quality
+
+        // Configure export options for better quality and no padding
         const exportOptions = {
-          width: chartContentRef.current.offsetWidth,
-          height: chartContentRef.current.offsetHeight,
+          width: actualWidth * scale,
+          height: actualHeight * scale,
           style: {
-            transform: 'scale(1)',
+            transform: `scale(${scale})`,
             transformOrigin: 'top left',
+            width: `${actualWidth}px`,
+            height: `${actualHeight}px`,
+            padding: '0',
+            margin: '0',
+            overflow: 'visible',
+            backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
           },
-          quality: format === 'jpg' ? 0.95 : 1.0,
+          quality: format === 'jpg' ? 0.98 : 1.0,
           bgcolor: isDark ? '#1F2937' : '#FFFFFF',
+          imagePlaceholder: '',
+          cacheBust: true,
           filter: (node) => {
-            // Filter out certain elements that might cause issues
+            // Filter out problematic elements
             if (node.classList) {
               return (
                 !node.classList.contains('dropdown') &&
-                !node.classList.contains('tooltip')
+                !node.classList.contains('tooltip') &&
+                !node.classList.contains('recharts-tooltip-wrapper') &&
+                !node.classList.contains('absolute') &&
+                !node.id?.includes('dropdown')
               );
+            }
+            // Filter out text nodes that are whitespace only
+            if (node.nodeType === 3) {
+              // 3 is TEXT_NODE constant
+              return node.textContent.trim() !== '';
             }
             return true;
           },
@@ -140,23 +165,14 @@ const ChartContainer = ({
 
         let dataUrl;
 
-        // Use appropriate method based on format
+        // Use appropriate method based on format with better element targeting
         if (format === 'png') {
-          dataUrl = await domtoimage.toPng(
-            chartContentRef.current,
-            exportOptions,
-          );
+          dataUrl = await domtoimage.toPng(chartElement, exportOptions);
         } else if (format === 'jpg') {
-          dataUrl = await domtoimage.toJpeg(
-            chartContentRef.current,
-            exportOptions,
-          );
+          dataUrl = await domtoimage.toJpeg(chartElement, exportOptions);
         } else {
           // For PDF, first convert to PNG then to PDF
-          dataUrl = await domtoimage.toPng(
-            chartContentRef.current,
-            exportOptions,
-          );
+          dataUrl = await domtoimage.toPng(chartElement, exportOptions);
         }
 
         // Remove temporary class
@@ -171,39 +187,64 @@ const ChartContainer = ({
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            // Calculate dimensions to fit the chart properly
+            // Calculate dimensions to fit the chart properly with margins
+            const margin = 20; // 20mm margin
+            const availableWidth = pdfWidth - margin * 2;
+            const availableHeight = pdfHeight - margin * 3; // Extra margin for title and timestamp
+
             const imgAspectRatio = img.width / img.height;
-            const pdfAspectRatio = pdfWidth / pdfHeight;
+            const availableAspectRatio = availableWidth / availableHeight;
 
             let finalWidth, finalHeight;
 
-            if (imgAspectRatio > pdfAspectRatio) {
-              // Image is wider relative to PDF
-              finalWidth = pdfWidth - 20; // 10mm margin on each side
+            if (imgAspectRatio > availableAspectRatio) {
+              // Image is wider relative to available space
+              finalWidth = availableWidth;
               finalHeight = finalWidth / imgAspectRatio;
             } else {
-              // Image is taller relative to PDF
-              finalHeight = pdfHeight - 20; // 10mm margin on top and bottom
+              // Image is taller relative to available space
+              finalHeight = availableHeight;
               finalWidth = finalHeight * imgAspectRatio;
             }
 
             // Center the image
             const x = (pdfWidth - finalWidth) / 2;
-            const y = (pdfHeight - finalHeight) / 2;
+            const y = margin + 20; // Leave space for title
 
             // Add title
             pdf.setFontSize(16);
-            pdf.text(chartTitle || 'Air Quality Chart', pdfWidth / 2, 15, {
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(chartTitle || 'Air Quality Chart', pdfWidth / 2, margin, {
               align: 'center',
             });
 
-            // Add image
-            pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
+            // Add image with high quality
+            pdf.addImage(
+              dataUrl,
+              'PNG',
+              x,
+              y,
+              finalWidth,
+              finalHeight,
+              '',
+              'FAST',
+            );
 
-            // Add timestamp
+            // Add timestamp and metadata
             pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
             const timestamp = new Date().toLocaleString();
-            pdf.text(`Generated on: ${timestamp}`, 10, pdfHeight - 10);
+            pdf.text(`Generated on: ${timestamp}`, margin, pdfHeight - 10);
+
+            // Add page info
+            pdf.text(
+              `AirQo Platform - Air Quality Data`,
+              pdfWidth - margin,
+              pdfHeight - 10,
+              {
+                align: 'right',
+              },
+            );
 
             pdf.save(
               `air-quality-chart-${new Date().toISOString().slice(0, 10)}.pdf`,
@@ -449,9 +490,10 @@ const ChartContainer = ({
             ref={chartContentRef}
             className="w-full h-full chart-content"
             style={{
-              padding: '24px 16px 16px 4px',
+              padding: '8px 8px 16px 8px', // Minimal padding for better exports
               backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
               margin: 0,
+              overflow: 'visible',
             }}
           >
             <MoreInsightsChart
@@ -486,7 +528,6 @@ const ChartContainer = ({
       isDark,
     ],
   );
-
   // Add CSS styles to help with export and improve appearance
   useEffect(() => {
     const styleTag = document.createElement('style');
@@ -501,26 +542,37 @@ const ChartContainer = ({
         box-shadow: none !important;
         border: none !important;
         border-radius: 0 !important;
+        overflow: visible !important;
       }
       .chart-content.exporting {
         overflow: visible !important;
         height: auto !important;
         box-shadow: none !important;
         border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: ${isDark ? '#1F2937' : '#FFFFFF'} !important;
       }
       .chart-content.exporting .recharts-wrapper,
       .chart-content.exporting .recharts-surface {
         overflow: visible !important;
+        background: ${isDark ? '#1F2937' : '#FFFFFF'} !important;
       }
       .chart-content.exporting .recharts-legend-wrapper {
         overflow: visible !important;
         position: relative !important;
       }
+      .chart-content.exporting .recharts-cartesian-axis {
+        overflow: visible !important;
+      }
+      .chart-content.exporting .recharts-cartesian-axis-tick {
+        overflow: visible !important;
+      }
       .chart-container {
         padding: 0 !important;
         margin: 0 !important;
       }
-      /* Enhanced chart styling */
+      /* Enhanced chart styling for better exports */
       .recharts-cartesian-grid line {
         stroke-opacity: 0.3;
       }
@@ -529,14 +581,33 @@ const ChartContainer = ({
       }
       .recharts-tooltip-wrapper {
         z-index: 100 !important;
+        display: none !important; /* Hide tooltips in exports */
+      }
+      .chart-content.exporting .recharts-tooltip-wrapper {
+        display: none !important;
       }
       /* Ensure proper chart sizing and spacing */
       .recharts-wrapper {
         width: 100% !important;
         height: 100% !important;
+        overflow: visible !important;
       }
       .recharts-surface {
         overflow: visible !important;
+        background: ${isDark ? '#1F2937' : '#FFFFFF'} !important;
+      }
+      /* Better text rendering for exports */
+      .recharts-text {
+        font-family: system-ui, -apple-system, sans-serif !important;
+        font-weight: 500 !important;
+      }
+      .recharts-cartesian-axis-tick text {
+        font-size: 12px !important;
+        fill: ${isDark ? '#D1D5DB' : '#4B5563'} !important;
+      }
+      .recharts-legend-item text {
+        font-size: 14px !important;
+        fill: ${isDark ? '#F9FAFB' : '#1F2937'} !important;
       }
     `;
     document.head.appendChild(styleTag);
