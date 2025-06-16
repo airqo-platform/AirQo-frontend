@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 import CheckIcon from '@/icons/tickIcon';
 import CustomDropdown from '@/components/Button/CustomDropdown';
 import MoreInsightsChart from './MoreInsightsChart';
@@ -100,7 +100,7 @@ const ChartContainer = ({
       refreshTimerRef.current && clearTimeout(refreshTimerRef.current);
   }, []);
 
-  // Improved export chart function
+  // Enhanced export chart function with dom-to-image-more
   const exportChart = useCallback(
     async (format) => {
       if (!chartContentRef.current || !EXPORT_FORMATS.includes(format)) return;
@@ -110,76 +110,110 @@ const ChartContainer = ({
       setExportError(null);
 
       try {
-        // Wait a tick to ensure chart rendering is complete
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Wait for chart rendering to complete
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
-        // Set up improved html2canvas options
-        const options = {
-          scale: 2, // Higher scale for better quality
-          useCORS: true,
-          logging: false,
-          backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-          allowTaint: true,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: document.documentElement.offsetWidth,
-          windowHeight: document.documentElement.offsetHeight,
-          width: chartContentRef.current.offsetWidth,
-          height: chartContentRef.current.offsetHeight,
-        };
-
-        // Apply a temporary class to enhance export visibility
+        // Apply temporary class for better export quality
         chartContentRef.current.classList.add('exporting');
 
-        // Convert chart to canvas
-        const canvas = await html2canvas(chartContentRef.current, options);
+        // Configure export options for better quality
+        const exportOptions = {
+          width: chartContentRef.current.offsetWidth,
+          height: chartContentRef.current.offsetHeight,
+          style: {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+          },
+          quality: format === 'jpg' ? 0.95 : 1.0,
+          bgcolor: isDark ? '#1F2937' : '#FFFFFF',
+          filter: (node) => {
+            // Filter out certain elements that might cause issues
+            if (node.classList) {
+              return (
+                !node.classList.contains('dropdown') &&
+                !node.classList.contains('tooltip')
+              );
+            }
+            return true;
+          },
+        };
+
+        let dataUrl;
+
+        // Use appropriate method based on format
+        if (format === 'png') {
+          dataUrl = await domtoimage.toPng(
+            chartContentRef.current,
+            exportOptions,
+          );
+        } else if (format === 'jpg') {
+          dataUrl = await domtoimage.toJpeg(
+            chartContentRef.current,
+            exportOptions,
+          );
+        } else {
+          // For PDF, first convert to PNG then to PDF
+          dataUrl = await domtoimage.toPng(
+            chartContentRef.current,
+            exportOptions,
+          );
+        }
 
         // Remove temporary class
         chartContentRef.current.classList.remove('exporting');
 
         // Process export based on format
         if (format === 'pdf') {
-          // For PDF, we need to maintain aspect ratio
-          const imgWidth = 210;
-          const pageHeight = 297;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          let heightLeft = imgHeight;
-          let position = 0;
+          // Create PDF with proper dimensions
+          const img = new window.Image();
+          img.onload = () => {
+            const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape for better chart viewing
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
 
-          const pdf = new jsPDF('p', 'mm', 'a4');
-          pdf.addImage(
-            canvas.toDataURL('image/png', 1.0),
-            'PNG',
-            0,
-            position,
-            imgWidth,
-            imgHeight,
-          );
+            // Calculate dimensions to fit the chart properly
+            const imgAspectRatio = img.width / img.height;
+            const pdfAspectRatio = pdfWidth / pdfHeight;
 
-          // For multi-page handling if needed
-          heightLeft -= pageHeight;
-          while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(
-              canvas.toDataURL('image/png', 1.0),
-              'PNG',
-              0,
-              position,
-              imgWidth,
-              imgHeight,
+            let finalWidth, finalHeight;
+
+            if (imgAspectRatio > pdfAspectRatio) {
+              // Image is wider relative to PDF
+              finalWidth = pdfWidth - 20; // 10mm margin on each side
+              finalHeight = finalWidth / imgAspectRatio;
+            } else {
+              // Image is taller relative to PDF
+              finalHeight = pdfHeight - 20; // 10mm margin on top and bottom
+              finalWidth = finalHeight * imgAspectRatio;
+            }
+
+            // Center the image
+            const x = (pdfWidth - finalWidth) / 2;
+            const y = (pdfHeight - finalHeight) / 2;
+
+            // Add title
+            pdf.setFontSize(16);
+            pdf.text(chartTitle || 'Air Quality Chart', pdfWidth / 2, 15, {
+              align: 'center',
+            });
+
+            // Add image
+            pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
+
+            // Add timestamp
+            pdf.setFontSize(10);
+            const timestamp = new Date().toLocaleString();
+            pdf.text(`Generated on: ${timestamp}`, 10, pdfHeight - 10);
+
+            pdf.save(
+              `air-quality-chart-${new Date().toISOString().slice(0, 10)}.pdf`,
             );
-            heightLeft -= pageHeight;
-          }
-
-          pdf.save(
-            `air-quality-chart-${new Date().toISOString().slice(0, 10)}.pdf`,
-          );
+          };
+          img.src = dataUrl;
         } else {
           // For PNG/JPG, create download link
           const link = document.createElement('a');
-          const quality = format === 'jpg' ? 0.95 : 1.0;
-          link.href = canvas.toDataURL(`image/${format}`, quality);
+          link.href = dataUrl;
           link.download = `air-quality-chart-${new Date().toISOString().slice(0, 10)}.${format}`;
           document.body.appendChild(link);
           link.click();
@@ -192,6 +226,11 @@ const ChartContainer = ({
           type: 'success',
         });
       } catch (error) {
+        // Remove temporary class if error occurs
+        if (chartContentRef.current) {
+          chartContentRef.current.classList.remove('exporting');
+        }
+
         setExportError(error.message || 'Export failed');
         CustomToast({
           message: `Failed to export chart as ${format.toUpperCase()}.`,
@@ -201,7 +240,7 @@ const ChartContainer = ({
         setLoadingFormat(null);
       }
     },
-    [isDark],
+    [isDark, chartTitle],
   );
 
   // Refresh chart data
@@ -400,7 +439,7 @@ const ChartContainer = ({
     () => (
       <div
         className="relative export-chart-container"
-        style={{ width, height }}
+        style={{ width, height, minHeight: '380px' }}
       >
         {ErrorOverlay}
         {showSkeleton ? (
@@ -409,7 +448,11 @@ const ChartContainer = ({
           <div
             ref={chartContentRef}
             className="w-full h-full chart-content"
-            style={{ padding: '4px 4px 16px 4px' }}
+            style={{
+              padding: '24px 16px 16px 4px',
+              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+              margin: 0,
+            }}
           >
             <MoreInsightsChart
               data={data}
@@ -440,26 +483,59 @@ const ChartContainer = ({
       pollutionType,
       handleRefreshChart,
       isRefreshing,
+      isDark,
     ],
   );
 
-  // Add CSS styles to help with export
+  // Add CSS styles to help with export and improve appearance
   useEffect(() => {
     const styleTag = document.createElement('style');
     styleTag.innerHTML = `
       .export-chart-container {
         position: relative;
         overflow: visible !important;
+        background: ${isDark ? '#1F2937' : '#FFFFFF'};
       }
       .chart-content {
         transform-origin: top left;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
       }
       .chart-content.exporting {
         overflow: visible !important;
         height: auto !important;
+        box-shadow: none !important;
+        border: none !important;
       }
       .chart-content.exporting .recharts-wrapper,
       .chart-content.exporting .recharts-surface {
+        overflow: visible !important;
+      }
+      .chart-content.exporting .recharts-legend-wrapper {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      .chart-container {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      /* Enhanced chart styling */
+      .recharts-cartesian-grid line {
+        stroke-opacity: 0.3;
+      }
+      .recharts-legend-item {
+        margin-right: 16px !important;
+      }
+      .recharts-tooltip-wrapper {
+        z-index: 100 !important;
+      }
+      /* Ensure proper chart sizing and spacing */
+      .recharts-wrapper {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      .recharts-surface {
         overflow: visible !important;
       }
     `;
@@ -468,8 +544,7 @@ const ChartContainer = ({
     return () => {
       document.head.removeChild(styleTag);
     };
-  }, []);
-
+  }, [isDark]);
   return (
     <div className="relative" id={id} ref={chartRef}>
       {RefreshIndicator}
@@ -478,20 +553,21 @@ const ChartContainer = ({
         padding="p-0"
         width="w-full"
         overflow={false}
-        className={`relative ${
+        className={`relative border ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}
         contentClassName="p-0 m-0"
         headerProps={{
-          className: 'pt-4 pb-2 px-6 flex items-center justify-between',
+          className:
+            'pt-4 pb-2 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-700',
         }}
       >
-        <div className="px-4 pb-2 pt-0 chart-container">{chartContent}</div>
+        <div className="chart-container p-0 m-0">{chartContent}</div>
       </Card>
 
       {/* Export error message if any */}
       {exportError && (
-        <div className="absolute bottom-2 right-2 bg-red-100 text-red-700 px-3 py-1 rounded text-sm">
+        <div className="absolute bottom-2 right-2 bg-red-100 text-red-700 px-3 py-1 rounded text-sm z-50">
           {exportError}
         </div>
       )}

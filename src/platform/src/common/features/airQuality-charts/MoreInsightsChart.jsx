@@ -381,12 +381,12 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   // Choose chart component based on chart type
   const ChartComponent = chartType === 'bar' ? BarChart : LineChart;
   const SeriesComponent = chartType === 'bar' ? Bar : Line;
-
   return (
     <div
       id={id}
       ref={containerRef}
-      className="w-full h-full pt-4 relative chart-container"
+      className="w-full h-full relative chart-container"
+      style={{ padding: '8px 0', minHeight: '300px' }}
       data-chart-id={id}
     >
       {chartData.length && seriesKeys.length ? (
@@ -394,14 +394,15 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
           <ChartComponent
             ref={chartRef}
             data={chartData}
-            margin={{ top: 25, right: 10, left: -20, bottom: 10 }}
+            margin={{ top: 40, right: 20, left: -10, bottom: 60 }}
             className="chart-component"
           >
             <CartesianGrid
               stroke={isDark ? '#555' : '#ccc'}
-              strokeDasharray="5 5"
+              strokeDasharray="3 3"
               vertical={false}
               className="chart-grid"
+              opacity={0.3}
             />
             <XAxis
               dataKey="time"
@@ -426,23 +427,25 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               domain={[0, 'auto']}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20' }}
+              tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20', fontSize: 12 }}
               tickFormatter={formatYAxisTick}
               className="chart-y-axis"
+              width={45}
             >
               <Label
                 value={
                   pollutantType === 'pm2_5'
-                    ? 'PM2.5'
+                    ? 'PM2.5 (μg/m³)'
                     : pollutantType === 'pm10'
-                      ? 'PM10'
-                      : 'Pollutant'
+                      ? 'PM10 (μg/m³)'
+                      : 'Pollutant (μg/m³)'
                 }
                 position="insideTopLeft"
+                offset={-5}
                 fill={isDark ? '#D1D5DB' : '#1C1D20'}
                 fontSize={12}
                 dy={-30}
-                dx={28}
+                dx={15}
                 style={{ textAnchor: 'start' }}
                 className="chart-y-label"
               />
@@ -459,6 +462,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 })
               }
               wrapperClassName="chart-legend-wrapper"
+              margin={{ top: 20 }}
             />
 
             <Tooltip
@@ -485,6 +489,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                     }
               }
               className="chart-tooltip"
+              animationDuration={200}
             />
 
             {seriesKeys.map((key, idx) => {
@@ -499,12 +504,14 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                   stroke={chartType === 'line' ? getColor(idx) : undefined}
                   fill={chartType === 'bar' ? getColor(idx) : undefined}
                   strokeWidth={
-                    chartType === 'line' ? (isActive ? 3 : 1.5) : undefined
+                    chartType === 'line' ? (isActive ? 3 : 2) : undefined
                   }
-                  barSize={chartType === 'bar' ? (isActive ? 8 : 6) : undefined}
+                  barSize={
+                    chartType === 'bar' ? (isActive ? 12 : 8) : undefined
+                  }
                   opacity={isActive ? 1 : 0.5}
                   dot={chartType === 'line' ? <CustomDot /> : undefined}
-                  activeDot={chartType === 'line' ? { r: 5 } : undefined}
+                  activeDot={chartType === 'line' ? { r: 6 } : undefined}
                   shape={chartType === 'bar' ? <CustomBar /> : undefined}
                   onMouseEnter={() => handleSeriesMouseEnter(idx)}
                   onMouseLeave={handleSeriesMouseLeave}
@@ -522,6 +529,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 }
                 stroke="red"
                 strokeDasharray="3 3"
+                strokeWidth={2}
                 ifOverflow="extendDomain"
                 className="chart-reference-line"
               />
