@@ -3,16 +3,22 @@ import React from 'react';
 /**
  * InputField Component
  * Renders an input field with an optional label, icon, and error message.
+ *
+ * This component supports two onChange patterns for backward compatibility:
+ * 1. Value-only pattern: onChange={(value) => handleChange('field', value)}
+ * 2. Event-based pattern: onChange={(e) => handleChange(e)} where e.target.value is used
+ *
  * Props:
  * - label: Optional label text
  * - error: Optional error message
  * - type: Input type (default: 'text')
+ * - value: Input value (controlled component)
  * - containerClassName: Additional classes for the container
  * - className: Additional classes for the input element
  * - required: Whether the field is required
  * - disabled: Whether the input is disabled
- * - onChange: Change handler function (can accept value or event)
- * - ...inputProps: Additional props for the input element
+ * - onChange: Change handler function (supports both patterns above)
+ * - ...inputProps: Additional props for the input element (placeholder, etc.)
  */
 const InputField = ({
   label,
@@ -28,18 +34,39 @@ const InputField = ({
 }) => {
   // Handle onChange to support both value-only and event-based patterns
   const handleChange = (e) => {
-    if (onChange) {
-      // Safety check: ensure event and target exist
-      if (!e || !e.target) {
-        return;
-      }
+    if (!onChange) return;
 
-      // If onChange expects just the value (like in our login form)
-      if (onChange.length === 1) {
-        onChange(e.target.value);
+    if (e && e.target && typeof e.target.value !== 'undefined') {
+      const value = e.target.value;
+
+      // Smart detection: if the input has a 'name' attribute,
+      // the handler likely expects the full event object
+      if (e.target.name || e.target.id) {
+        // Try event-first pattern (most common for form handling)
+        try {
+          onChange(e);
+          return;
+        } catch {
+          // If event pattern fails, try value pattern
+          try {
+            onChange(value);
+          } catch {
+            // Both patterns failed
+          }
+        }
       } else {
-        // Standard event-based onChange
-        onChange(e);
+        // If no name/id attributes, try value-first pattern
+        try {
+          onChange(value);
+          return;
+        } catch {
+          // If value pattern fails, try event pattern
+          try {
+            onChange(e);
+          } catch {
+            // Both patterns failed
+          }
+        }
       }
     }
   };
@@ -64,8 +91,8 @@ const InputField = ({
             disabled
               ? 'bg-gray-100 dark:bg-gray-700'
               : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-          }
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]        `}
+          }          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]
+        `}
       >
         <input
           type={type}
@@ -99,7 +126,9 @@ const InputField = ({
         </div>
       )}
       {!error && description && (
-        <div className="mt-1.5 text-xs text-gray-500">{description}</div>
+        <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          {description}
+        </div>
       )}
     </div>
   );

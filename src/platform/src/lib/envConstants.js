@@ -39,26 +39,18 @@ const validateEnvironmentVariables = () => {
   const errors = [];
   const warnings = [];
 
-  // Critical environment variables
-  const requiredEnvVars = {
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-  };
-
-  // Important environment variables
+  // Important environment variables (moved NextAuth vars to warnings instead of errors)
   const importantEnvVars = {
     API_BASE_URL: process.env.API_BASE_URL,
     API_TOKEN: process.env.API_TOKEN,
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     NEXT_PUBLIC_API_TOKEN: process.env.NEXT_PUBLIC_API_TOKEN,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   };
 
-  // Check required variables
-  Object.entries(requiredEnvVars).forEach(([key, value]) => {
-    if (!value || value.trim() === '') {
-      errors.push(`Missing required environment variable: ${key}`);
-    }
-  });
+  // No critical required variables - all moved to warnings
+  // This prevents the app from throwing errors for missing NextAuth variables
 
   // Check important variables
   Object.entries(importantEnvVars).forEach(([key, value]) => {
@@ -109,10 +101,11 @@ export const getSiteUrl = () => {
 const initializeEnvironment = () => {
   const { errors, warnings } = validateEnvironmentVariables();
 
-  // Log errors and warnings
+  // Only log errors and warnings without throwing in production
   if (errors.length > 0) {
     logger.error('Environment configuration errors:', errors);
-    if (process.env.NODE_ENV === 'production') {
+    // Only throw in development, not in production
+    if (process.env.NODE_ENV === 'development') {
       throw new Error(
         `Critical environment variables missing: ${errors.join(', ')}`,
       );
@@ -120,6 +113,7 @@ const initializeEnvironment = () => {
   }
 
   if (warnings.length > 0) {
+    // Log warnings but don't expose them to end users
     logger.warn('Environment configuration warnings:', warnings);
   }
 

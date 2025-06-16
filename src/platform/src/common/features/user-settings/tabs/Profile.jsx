@@ -8,7 +8,7 @@ import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
 import SelectDropdown from '@/components/SelectDropdown';
-import TextField from '@/components/TextInputField';
+import TextField from '@/common/components/TextInputField';
 import ProfileSkeleton from '../components/ProfileSkeleton';
 import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';

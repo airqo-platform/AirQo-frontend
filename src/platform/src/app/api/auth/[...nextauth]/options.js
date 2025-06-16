@@ -31,8 +31,10 @@ export const options = {
 
           if (!baseUrl) {
             const error =
-              'API base URL is not configured. Please check your environment variables.';
-            logger.error('[NextAuth] Environment Error:', error);
+              'Authentication service is temporarily unavailable. Please try again later.';
+            logger.error(
+              '[NextAuth] Environment Error: API base URL not configured',
+            );
             throw new Error(error);
           }
 
@@ -41,8 +43,12 @@ export const options = {
           try {
             url = new URL(`${baseUrl}/users/loginUser`);
           } catch (urlError) {
-            const error = `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`;
-            logger.error('[NextAuth] URL Error:', error);
+            const error =
+              'Authentication service configuration error. Please try again later.';
+            logger.error(
+              '[NextAuth] URL Error:',
+              `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`,
+            );
             throw new Error(error);
           }
 
@@ -57,6 +63,12 @@ export const options = {
             'Content-Type': 'application/json',
           };
 
+          logger.info('[NextAuth] Making API request to:', url.toString());
+          logger.info('[NextAuth] Request payload:', {
+            userName: credentials.userName,
+            password: '***HIDDEN***',
+          });
+
           // Call your existing API endpoint
           const response = await fetch(url.toString(), {
             method: 'POST',
@@ -67,14 +79,43 @@ export const options = {
             }),
           });
 
+          logger.info('[NextAuth] API Response status:', response.status);
+
           if (!response.ok) {
-            const errorBody = await response.text();
-            const error = `Authentication failed: HTTP ${response.status}: ${errorBody}`;
-            logger.error('[NextAuth] API Error:', error);
-            throw new Error(error);
+            let errorMessage = 'Authentication failed';
+
+            try {
+              const errorBody = await response.text();
+              logger.info('[NextAuth] Error response body:', errorBody);
+
+              // Try to parse as JSON to extract the message
+              try {
+                const errorData = JSON.parse(errorBody);
+                if (errorData && errorData.message) {
+                  errorMessage = errorData.message;
+                } else {
+                  errorMessage = `HTTP ${response.status}: ${errorBody}`;
+                }
+              } catch {
+                // If JSON parsing fails, use the raw error body
+                errorMessage = `HTTP ${response.status}: ${errorBody}`;
+              }
+            } catch {
+              // If we can't even read the response body
+              errorMessage = `HTTP ${response.status}: Failed to read error response`;
+            }
+
+            logger.error('[NextAuth] API Error:', errorMessage);
+            throw new Error(errorMessage);
           }
 
           const data = await response.json();
+          logger.info('[NextAuth] API Response data:', {
+            hasToken: !!data.token,
+            userId: data._id,
+            userName: data.userName,
+            email: data.email,
+          });
 
           if (data && data.token) {
             // Decode the JWT to get user information
@@ -136,12 +177,12 @@ export const options = {
               iat: decodedToken.iat,
               // Store organization slug if provided for context
               requestedOrgSlug: credentials.orgSlug || null,
-              // Add flag to indicate this is an organization login
-              isOrgLogin: !!credentials.orgSlug,
+              // Add flag to indicate this is an organization login              isOrgLogin: !!credentials.orgSlug,
             };
+          } else {
+            logger.error('[NextAuth] No token received from API');
+            throw new Error('No authentication token received from server');
           }
-
-          return null;
         } catch (error) {
           // Authentication failed - throw the actual error for better debugging
           throw new Error(error.message || 'Authentication failed');

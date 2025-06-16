@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
 import { signIn as _signIn, getSession as _getSession } from 'next-auth/react';
 import Link from 'next/link';
 import * as Yup from 'yup';
@@ -30,18 +29,22 @@ const UserLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
-  const router = useRouter();
   const { userData } = useSelector((state) => state.login);
-
   const handleLogin = useCallback(
     async (e) => {
       e.preventDefault();
       setLoading(true);
       setErrorState('');
 
+      // Get form data
+      const formData = {
+        userName: userData.userName?.trim() || '',
+        password: userData.password || '',
+      };
+
       // Validate credentials
       try {
-        await loginSchema.validate(userData, { abortEarly: false });
+        await loginSchema.validate(formData, { abortEarly: false });
       } catch (validationError) {
         const messages = validationError.inner
           .map((err) => err.message)
@@ -51,47 +54,74 @@ const UserLogin = () => {
       }
 
       try {
+        logger.info('Attempting login with NextAuth...');
+
         // Use NextAuth signIn
         const result = await _signIn('credentials', {
-          userName: userData.userName,
-          password: userData.password,
+          userName: formData.userName,
+          password: formData.password,
           redirect: false,
         });
+
+        logger.info('NextAuth signIn result:', result);
 
         if (result?.error) {
           throw new Error(result.error);
         }
 
         if (result?.ok) {
+          logger.info('Login successful, waiting for session...');
+
           // Force session refresh after successful login
           const session = await _getSession();
+          logger.info('Session after login:', session);
 
           if (session?.user && session?.accessToken) {
-            // The HOC will handle user setup and redirection
-            logger.info('Login successful, HOC will handle setup and redirect');
+            logger.info(
+              'Session validated, HOC will handle setup and redirect',
+            );
 
             // Force NextAuth to update the session context immediately
-            // by triggering a window focus event
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new window.Event('focus'));
             }
           } else {
             throw new Error('Session data is incomplete');
           }
+        } else {
+          throw new Error('Login failed without specific error');
         }
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message ||
-          (err.response?.status === 401
-            ? 'Invalid credentials. Please check your email and password.'
-            : err.message || 'Something went wrong, please try again');
-        setErrorState(errorMessage);
         logger.error('Login error:', err);
+
+        let errorMessage = 'Something went wrong, please try again';
+
+        if (err.message) {
+          // Handle specific error messages
+          if (
+            err.message.includes('Invalid credentials') ||
+            err.message.includes('Authentication failed') ||
+            err.message.includes('HTTP 401')
+          ) {
+            errorMessage =
+              'Invalid email or password. Please check your credentials.';
+          } else if (
+            err.message.includes('Network Error') ||
+            err.message.includes('fetch')
+          ) {
+            errorMessage =
+              'Network error. Please check your connection and try again.';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+
+        setErrorState(errorMessage);
       } finally {
         setLoading(false);
       }
     },
-    [userData, dispatch, router],
+    [userData],
   );
 
   const handleInputChange = useCallback(
@@ -124,17 +154,18 @@ const UserLogin = () => {
                 label="Email Address"
                 type="email"
                 placeholder="e.g. greta.nagawa@gmail.com"
+                value={userData.userName || ''}
                 onChange={(value) => handleInputChange('userName', value)}
                 required
               />
             </div>
             <div className="mt-6">
               <div className="relative">
-                {' '}
                 <InputField
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="******"
+                  value={userData.password || ''}
                   onChange={(value) => handleInputChange('password', value)}
                   required
                 />

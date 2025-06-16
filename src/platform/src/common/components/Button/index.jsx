@@ -24,14 +24,14 @@ const Button = React.forwardRef(
   ) => {
     // Base styles
     const base =
-      'flex items-center justify-center rounded-xl transition transform active:scale-95 duration-200';
+      'flex items-center justify-center rounded-lg transition transform active:scale-95 duration-200';
     const variantMap = {
       filled: clsx(
         'bg-[var(--org-primary,var(--color-primary,#145fff))]',
         'hover:bg-[var(--org-primary-600,var(--color-primary,#145fff))]',
         'text-white',
         'border border-transparent',
-        'shadow-sm hover:shadow-md',
+        'shadow-sm hover:shadow-lg',
         'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
       ),
       outlined: clsx(
