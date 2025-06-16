@@ -68,10 +68,29 @@ export const options = {
           });
 
           if (!response.ok) {
-            const errorBody = await response.text();
-            const error = `Authentication failed: HTTP ${response.status}: ${errorBody}`;
-            logger.error('[NextAuth] API Error:', error);
-            throw new Error(error);
+            let errorMessage = 'Authentication failed';
+
+            try {
+              const errorBody = await response.text();
+              // Try to parse as JSON to extract the message
+              try {
+                const errorData = JSON.parse(errorBody);
+                if (errorData && errorData.message) {
+                  errorMessage = errorData.message;
+                } else {
+                  errorMessage = `HTTP ${response.status}: ${errorBody}`;
+                }
+              } catch {
+                // If JSON parsing fails, use the raw error body
+                errorMessage = `HTTP ${response.status}: ${errorBody}`;
+              }
+            } catch {
+              // If we can't even read the response body
+              errorMessage = `HTTP ${response.status}: Failed to read error response`;
+            }
+
+            logger.error('[NextAuth] API Error:', errorMessage);
+            throw new Error(errorMessage);
           }
 
           const data = await response.json();
