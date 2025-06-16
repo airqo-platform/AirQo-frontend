@@ -233,7 +233,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
               className="text-xs"
               padding="px-3 py-2"
             >
-              Add New
+              Request New Org
             </Button>
           </div>
           {/* Search Bar */}
