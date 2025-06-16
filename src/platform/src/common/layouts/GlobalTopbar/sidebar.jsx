@@ -107,9 +107,9 @@ const GlobalSideBarDrawer = () => {
               onClick={closeDrawer}
             />
             <SideBarItem
-              label="Organisation Requests"
+              label="Admin Panel"
               Icon={AdminPanelIcon}
-              navPath="/admin/organisations/requests"
+              navPath="/admin"
               onClick={closeDrawer}
             />
             <SideBarItem

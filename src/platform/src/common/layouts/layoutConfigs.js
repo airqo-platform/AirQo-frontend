@@ -161,6 +161,65 @@ export const LAYOUT_CONFIGS = {
       noTopNav: false,
     },
   },
+  // Admin routes configuration
+  ADMIN: {
+    '/admin': {
+      pageTitle: 'Admin Dashboard - AirQo Analytics',
+      topbarTitle: 'Admin Dashboard',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/organisations': {
+      pageTitle: 'Organizations - Admin Panel',
+      topbarTitle: 'Organizations',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/organisations/requests': {
+      pageTitle: 'Organization Requests - Admin Panel',
+      topbarTitle: 'Organization Requests',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/analytics': {
+      pageTitle: 'System Analytics - Admin Panel',
+      topbarTitle: 'System Analytics',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/users': {
+      pageTitle: 'User Management - Admin Panel',
+      topbarTitle: 'Users',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/roles': {
+      pageTitle: 'Roles & Permissions - Admin Panel',
+      topbarTitle: 'Roles & Permissions',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/settings': {
+      pageTitle: 'System Settings - Admin Panel',
+      topbarTitle: 'System Settings',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/logs': {
+      pageTitle: 'System Logs - Admin Panel',
+      topbarTitle: 'System Logs',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+  },
 };
 
 // Default configurations for fallback
@@ -189,6 +248,13 @@ export const DEFAULT_CONFIGS = {
   ORGANIZATION: {
     pageTitle: 'Organization Analytics',
     topbarTitle: 'Dashboard',
+    noBorderBottom: false,
+    showSearch: false,
+    noTopNav: false,
+  },
+  ADMIN: {
+    pageTitle: 'Admin Panel - AirQo Analytics',
+    topbarTitle: 'Admin Panel',
     noBorderBottom: false,
     showSearch: false,
     noTopNav: false,

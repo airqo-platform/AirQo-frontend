@@ -159,7 +159,6 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
       dispatch(fetchUserGroups(userID));
     }
   }, [session?.user?.id, userGroups, isLoadingGroups, dispatch]);
-
   // Initialize active group based on current route context
   useEffect(() => {
     if (isEmpty(userGroups) || !session?.user?.id) {
@@ -197,7 +196,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
         try {
           const prefRes = await dispatch(
             getIndividualUserPreferences({
-              user_id: session.user.id,
+              identifier: session.user.id,
             }),
           ).unwrap();
           if (prefRes?.preference?.group_id) {
