@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { HiPlus, HiMagnifyingGlass } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
 
@@ -84,6 +84,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const { setIsSwitchingOrganization } = useOrganizationLoading();
 
   // Redux state
@@ -102,6 +103,19 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
     closeModal,
     handleSubmit: handleOrganizationSubmit,
   } = useCreateOrganization();
+
+  // Monitor pathname changes for user flow routes
+  useEffect(() => {
+    if (!userGroups || userGroups.length === 0) return;
+
+    // If route goes back to /user/*, set active group to AirQo
+    if (pathname.startsWith('/user/')) {
+      const airqoGroup = userGroups.find(isAirQoGroup);
+      if (airqoGroup && (!activeGroup || activeGroup._id !== airqoGroup._id)) {
+        dispatch(setActiveGroup(airqoGroup));
+      }
+    }
+  }, [pathname, userGroups, activeGroup, dispatch]);
 
   // Filter groups based on search term
   const filteredGroups =
