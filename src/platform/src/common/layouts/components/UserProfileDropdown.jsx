@@ -41,7 +41,6 @@ const UserProfileDropdown = ({
   // Client-side only state to prevent hydration issues
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-
   // Only render after component has mounted on client
   useEffect(() => {
     setMounted(true);

@@ -28,9 +28,17 @@ const REFRESH_TIMEOUT = 10000;
 
 // Optimized chart configuration with consistent settings
 const CHART_CONFIG = {
-  defaultHeight: '500px',
-  minHeight: '500px',
-  contentPadding: '20px 20px 20px 20px', // Increased top padding for Y-axis label
+  // Unified dimensions - single source of truth
+  dimensions: {
+    defaultHeight: 250, // Reduced from 300 to 250 for more compact design
+    minHeight: 220, // Reduced from 280 to 220
+    aspectRatio: 16 / 9, // For responsive sizing
+  },
+  // Simplified padding - removed from chart content, handled by container
+  spacing: {
+    containerPadding: '0.5rem', // Further reduced for compact design
+    chartMargin: { top: 20, right: 20, bottom: 60, left: 20 },
+  },
   exportSettings: {
     quality: 0.95,
     backgroundColor: (isDark) => (isDark ? '#1F2937' : '#FFFFFF'),
@@ -41,8 +49,8 @@ const CHART_CONFIG = {
 const ChartContainer = ({
   chartType,
   chartTitle,
-  height = CHART_CONFIG.defaultHeight,
-  width = '100%',
+  height, // Remove default value - will be calculated dynamically
+  width, // Remove default value - will be calculated dynamically
   id,
   showTitle = true,
   data = [],
@@ -105,12 +113,34 @@ const ChartContainer = ({
     }
     return () => timer && clearTimeout(timer);
   }, [isValidating, chartLoading, isRefreshing, isManualRefresh]);
-
   // Cleanup timer on unmount
   useEffect(() => {
     return () =>
       refreshTimerRef.current && clearTimeout(refreshTimerRef.current);
   }, []);
+  // Calculate responsive dimensions - single source of truth
+  const chartDimensions = useMemo(() => {
+    const containerWidth = width || '100%';
+    // Set a responsive height that works well with headers - reduced further to 250
+    const calculatedHeight = height || 250; // Reduced default height from 300 to 250
+
+    // Ensure reasonable height range
+    const finalHeight =
+      typeof calculatedHeight === 'number'
+        ? Math.max(calculatedHeight, 190) // Reduced minimum height from 280 to 220
+        : calculatedHeight;
+
+    return {
+      width: containerWidth,
+      height: finalHeight,
+      containerStyle: {
+        width: containerWidth,
+        minHeight: 220, // Reduced minimum height from 280 to 220
+        height:
+          typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight,
+      },
+    };
+  }, [width, height]);
   // Enhanced export chart function with dom-to-image-more
   const exportChart = useCallback(
     async (format) => {
@@ -488,26 +518,28 @@ const ChartContainer = ({
       </div>
     );
   }, [showTitle, chartTitle, renderDropdownContent, isDark]);
-
   // Main chart content with overlay for skeleton or error
   const chartContent = useMemo(
     () => (
       <div
-        className="relative export-chart-container"
-        style={{ width, height, minHeight: CHART_CONFIG.minHeight }}
+        className="relative export-chart-container w-full h-full"
+        style={chartDimensions.containerStyle}
       >
         {ErrorOverlay}
         {showSkeleton ? (
-          <SkeletonLoader width={width} height={height} />
+          <SkeletonLoader
+            width={chartDimensions.width}
+            height={chartDimensions.height}
+          />
         ) : (
           <div
             ref={chartContentRef}
             className="w-full h-full chart-content"
             style={{
-              padding: CHART_CONFIG.contentPadding,
-              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+              padding: CHART_CONFIG.spacing.containerPadding,
               margin: 0,
               overflow: 'hidden',
+              // Remove duplicate background - let parent container handle it
             }}
           >
             <MoreInsightsChart
@@ -527,8 +559,7 @@ const ChartContainer = ({
       </div>
     ),
     [
-      width,
-      height,
+      chartDimensions,
       ErrorOverlay,
       showSkeleton,
       data,
@@ -631,16 +662,15 @@ const ChartContainer = ({
       document.head.removeChild(styleTag);
     };
   }, [isDark]);
-
   return (
-    <div className="relative" id={id} ref={chartRef}>
+    <div className="relative w-full" id={id} ref={chartRef}>
       {RefreshIndicator}
       <Card
         header={cardHeader}
         padding="p-0"
         width="w-full"
         overflow={false}
-        className={`relative border rounded-lg shadow-sm ${
+        className={`relative border rounded-lg shadow-sm transition-colors duration-200 ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}
         contentClassName="p-0 m-0 rounded-b-lg overflow-hidden"
@@ -649,14 +679,17 @@ const ChartContainer = ({
             'pt-4 pb-2 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 rounded-t-lg',
         }}
       >
-        <div className="chart-container p-0 m-0 overflow-hidden">
+        <div
+          className="chart-container w-full h-full flex items-center justify-center overflow-hidden"
+          style={chartDimensions.containerStyle}
+        >
           {chartContent}
         </div>
       </Card>
 
       {/* Export error message if any */}
       {exportError && (
-        <div className="absolute bottom-2 right-2 bg-red-100 text-red-700 px-3 py-1 rounded text-sm z-50">
+        <div className="absolute bottom-2 right-2 bg-red-100 text-red-700 px-3 py-1 rounded text-sm z-50 transition-opacity duration-200">
           {exportError}
         </div>
       )}

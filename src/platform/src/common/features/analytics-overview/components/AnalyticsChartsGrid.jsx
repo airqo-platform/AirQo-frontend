@@ -3,7 +3,7 @@ import ChartContainer from '@/features/airQuality-charts/ChartContainer';
 
 // Optimized chart configuration with consistent styling
 const CHART_CONFIG = {
-  height: '500px',
+  height: '400px', // Reduced from 500px to 400px as requested
   chartTypes: {
     line: {
       title: 'Air Pollution Trends Over Time',

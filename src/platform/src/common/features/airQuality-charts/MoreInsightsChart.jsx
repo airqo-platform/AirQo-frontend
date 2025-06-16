@@ -39,27 +39,26 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import Button from '@/components/Button';
 
-// Optimized chart configuration for consistent display and export quality
+// Simplified responsive chart configuration
 const CHART_CONFIG = {
-  containerMinHeight: '450px',
   chartMargin: {
-    top: 40, // Increased top margin to accommodate Y-axis label
-    right: 15,
-    left: 15,
-    bottom: 120, // Optimized for legend space
+    top: 60, // Increased from 50 to 60 to move chart down even more
+    right: 20,
+    left: 20,
+    bottom: 60, // Space for legend
   },
-  padding: '10px 15px',
-  marginTop: '5px',
+  padding: '8px 12px',
+  marginTop: '20px', // Increased from 15px to 20px to push chart down more
   exportStyles: {
     fontSize: 12,
     fontFamily: 'system-ui, -apple-system, sans-serif',
   },
   yAxisLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     position: {
-      dy: -26, // Moved further up for better visibility at top of Y-axis
-      dx: 5, // Moved more to the right for better visibility
+      dy: -40, // Pushed up even more for better positioning above Y-axis
+      dx: 5, // Moved to the left from 12 to 5 for better alignment
     },
   },
 };
@@ -96,7 +95,7 @@ const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
         dy={16}
         textAnchor="middle"
         fill={fill}
-        fontSize={CHART_CONFIG.exportStyles.fontSize}
+        fontSize={12} // Restored to readable size
         fontFamily={CHART_CONFIG.exportStyles.fontFamily}
         className="chart-tick-text"
       >
@@ -124,7 +123,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   pollutantType,
   refreshChart,
   isRefreshing,
-  width = '100%',
+  _width = '100%', // Underscore prefix to indicate unused
   height = '100%',
 }) {
   const { theme, systemTheme } = useTheme();
@@ -136,6 +135,8 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
+  // Use the height passed from parent (100% by default)
+  const availableHeight = height;
   const chartRef = useRef(null);
 
   // Enhanced tick count calculation
@@ -411,17 +412,17 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
     <div
       id={id}
       ref={containerRef}
-      className="w-full h-full relative chart-container overflow-hidden"
+      className="w-full h-full relative chart-container flex items-center justify-center"
       style={{
         padding: CHART_CONFIG.padding,
-        minHeight: CHART_CONFIG.containerMinHeight,
         marginTop: CHART_CONFIG.marginTop,
         boxSizing: 'border-box',
+        // Let container height be controlled by parent
       }}
       data-chart-id={id}
     >
       {chartData.length && seriesKeys.length ? (
-        <ResponsiveContainer width={width} height={height}>
+        <ResponsiveContainer width="100%" height={availableHeight}>
           <ChartComponent
             ref={chartRef}
             data={chartData}
@@ -452,7 +453,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               interval={0}
               angle={containerWidth < 480 ? -45 : -25}
               textAnchor="end"
-              height={60}
+              height={50} // Restored to reasonable size
               className="chart-x-axis"
               padding={{ left: 10, right: 10 }}
             />
@@ -462,12 +463,12 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               tickLine={false}
               tick={{
                 fill: isDark ? '#D1D5DB' : '#1C1D20',
-                fontSize: CHART_CONFIG.exportStyles.fontSize,
+                fontSize: 12, // Restored to readable size
                 fontFamily: CHART_CONFIG.exportStyles.fontFamily,
               }}
               tickFormatter={formatYAxisTick}
               className="chart-y-axis"
-              width={45}
+              width={50} // Restored to reasonable size
             >
               <Label
                 value={
@@ -488,7 +489,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 className="chart-y-label"
               />
             </YAxis>
-
             <Legend
               content={(props) =>
                 renderCustomizedLegend({
@@ -500,11 +500,10 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 })
               }
               wrapperClassName="chart-legend-wrapper"
-              margin={{ top: 12 }}
+              margin={{ top: 8 }} // Restored reasonable margin
               verticalAlign="bottom"
               align="center"
             />
-
             <Tooltip
               content={
                 <CustomGraphTooltip
@@ -531,7 +530,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               className="chart-tooltip"
               animationDuration={200}
             />
-
             {seriesKeys.map((key, idx) => {
               const isActive = activeIndex === null || activeIndex === idx;
 
@@ -560,7 +558,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 />
               );
             })}
-
             {WHO_STANDARD_VALUE > 0 && (
               <ReferenceLine
                 y={WHO_STANDARD_VALUE}
