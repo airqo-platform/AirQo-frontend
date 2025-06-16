@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
-import { IoChevronDown } from 'react-icons/io5';
+import { HiSquares2X2 } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
 
 // Components
@@ -116,16 +116,14 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
               ?.toUpperCase() || 'O'}
           </div>
         )}
-
         {/* Organization Name */}
         {showTitle && (
           <span className="max-w-32 truncate">
             {formatGroupName(displayGroup?.grp_title) || ORGANIZATION_LABEL}
           </span>
-        )}
-
-        {/* Dropdown Arrow */}
-        <IoChevronDown className="h-4 w-4 transition-transform duration-200" />
+        )}{' '}
+        {/* Grid Icon - Google style */}
+        <HiSquares2X2 className="h-4 w-4" />
       </button>
 
       {/* Organization Select Modal */}
