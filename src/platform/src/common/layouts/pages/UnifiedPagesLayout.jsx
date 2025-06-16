@@ -114,10 +114,9 @@ export default function UnifiedPagesLayout({ children }) {
       <DarkModeToggle size="md" />
     </div>
   ) : null;
-
   return (
     <div
-      className="flex overflow-hidden min-h-screen"
+      className="flex overflow-hidden min-h-screen h-screen bg-background"
       data-testid={isOrganizationContext ? 'organization-layout' : 'layout'}
       style={
         isOrganizationContext
@@ -159,15 +158,15 @@ export default function UnifiedPagesLayout({ children }) {
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16
+        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
-        <div className={`overflow-hidden ${containerClasses}`}>
+        <div className={`h-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
           {/* Content */}
-          <div className="text-text transition-all duration-300 overflow-hidden">
+          <div className="text-text transition-all duration-300 bg-background h-full">
             {children}
           </div>
         </div>

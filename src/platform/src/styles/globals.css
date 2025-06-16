@@ -20,7 +20,7 @@
   /* Optionally override primary in dark mode: */
   --color-primary: #145fff;
 
-  --background: #1d1f20f0;
+  --background: #252627;
   --text: #f9fafb;
   --border: #374151;
   --scrollbar-track: #1f2937;
@@ -58,12 +58,34 @@ body {
 #root,
 #__next {
   height: 100%;
+  background-color: var(--background);
 }
 body > div#__next {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--background);
+  overflow: hidden;
+}
+
+/* Ensure all major layout containers inherit background */
+main,
+section,
+article,
+div[data-testid*='layout'] {
   background-color: inherit;
+}
+
+/* Fix for any potential white backgrounds */
+.bg-white {
+  background-color: var(--background) !important;
+}
+
+/* Ensure modal overlays and dropdowns also respect theme */
+[data-radix-portal],
+[data-headlessui-portal] {
+  background-color: var(--background);
 }
 
 /* Scrollbars */

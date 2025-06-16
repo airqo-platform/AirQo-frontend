@@ -16,6 +16,9 @@ module.exports = {
           }
           return `rgb(var(--color-primary-rgb))`;
         },
+        background: 'var(--background)',
+        text: 'var(--text)',
+        border: 'var(--border)',
       },
       keyframes: {
         'accordion-down': {
