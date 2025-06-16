@@ -44,7 +44,7 @@ const AdminSidebarContent = ({ isCollapsed, styles }) => {
       <SideBarItem
         label="Organizations"
         Icon={MdBusiness}
-        navPath="/admin/organizations"
+        navPath="/admin/organizations/requests"
         iconOnly={isCollapsed}
       />
       <SideBarItem
