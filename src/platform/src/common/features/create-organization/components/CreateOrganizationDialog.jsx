@@ -230,7 +230,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl max-h-[95vh] transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all flex flex-col mx-2 sm:mx-4">
+              <Dialog.Panel className="w-[90vw] max-w-[800px] min-w-[320px] max-h-[95vh] transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all flex flex-col mx-2 sm:mx-4">
                 {/* Fixed Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
                   <Dialog.Title
@@ -771,7 +771,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
                         <Button
                           type="button"
                           onClick={handlePrevStep}
-                          variant="outline"
+                          variant="outlined"
                           className="text-sm"
                         >
                           Back
@@ -782,7 +782,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
                         <Button
                           type="button"
                           onClick={handleClose}
-                          variant="outline"
+                          variant="outlined"
                           className="text-sm"
                         >
                           Cancel

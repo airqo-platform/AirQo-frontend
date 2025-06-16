@@ -24,7 +24,7 @@ const Button = React.forwardRef(
   ) => {
     // Base styles
     const base =
-      'flex items-center justify-center rounded-xl transition transform active:scale-95 duration-200';
+      'flex items-center justify-center rounded-md transition transform active:scale-95 duration-200';
     const variantMap = {
       filled: clsx(
         'bg-[var(--org-primary,var(--color-primary,#145fff))]',
