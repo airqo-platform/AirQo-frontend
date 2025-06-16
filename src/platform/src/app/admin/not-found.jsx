@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Button from '@/common/components/Button';
 
-export default function OrganizationNotFound() {
+export default function AdminNotFound() {
   const router = useRouter();
 
   const handleGoBack = () => {
@@ -19,11 +19,11 @@ export default function OrganizationNotFound() {
       <div className="flex flex-col items-center space-y-6 text-center max-w-md">
         <div className="text-6xl font-bold text-gray-300">404</div>
         <h1 className="text-2xl font-semibold text-gray-900">
-          Organization Page Not Found
+          Admin Page Not Found
         </h1>
         <p className="text-gray-600">
-          The organization page you&apos;re looking for doesn&apos;t exist or
-          has been moved.
+          The admin page you&apos;re looking for doesn&apos;t exist or has been
+          moved.
         </p>
         <div className="flex gap-4">
           <Button
