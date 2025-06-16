@@ -212,9 +212,9 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
-    '/admin/logs': {
-      pageTitle: 'System Logs - Admin Panel',
-      topbarTitle: 'System Logs',
+    '/admin/activity-logs': {
+      pageTitle: 'Activity Logs - Admin Panel',
+      topbarTitle: 'Activity Logs',
       noBorderBottom: false,
       showSearch: true,
       noTopNav: false,

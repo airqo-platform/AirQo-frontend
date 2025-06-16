@@ -75,9 +75,9 @@ const AdminSidebarContent = ({ isCollapsed, styles }) => {
         iconOnly={isCollapsed}
       />
       <SideBarItem
-        label="System Logs"
+        label="Activity Logs"
         Icon={MdDescription}
-        navPath="/admin/logs"
+        navPath="/admin/activity-logs"
         iconOnly={isCollapsed}
       />
       {/* System Section */}

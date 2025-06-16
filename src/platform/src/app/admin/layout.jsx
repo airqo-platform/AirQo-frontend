@@ -4,7 +4,7 @@ import { withAdminAccess } from '@/core/HOC';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import AdminSidebarContent from '@/common/layouts/SideBar/AdminSidebarContent';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
-import SideBarDrawer from '@/common/layouts/SideBar/SideBarDrawer';
+import AdminSideBarDrawer from '@/common/layouts/SideBar/AdminSideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -15,6 +15,7 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
+import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 
 /**
  * Admin Layout Component
@@ -82,8 +83,11 @@ function AdminLayout({ children }) {
         </div>
       </main>
 
-      {/* SideBar Drawer */}
-      <SideBarDrawer />
+      {/* Theme Customizer */}
+      <ThemeCustomizer />
+
+      {/* Admin SideBar Drawer */}
+      <AdminSideBarDrawer />
       <GlobalSideBarDrawer />
     </div>
   );
