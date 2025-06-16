@@ -188,15 +188,25 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       setIsSwitching(false);
       setIsSwitchingOrganization(false);
     }
-  };
-  // Handle opening the organization creation modal
+  }; // Handle opening the organization creation modal
   const handleOpenModal = () => {
-    onClose(); // Close the current modal first
-    openModal();
+    openModal(); // Just open the create modal, don't close the current one
   };
-
   if (!isOpen) return null;
 
+  // If create organization modal is open, render only that
+  if (isModalOpen) {
+    return (
+      <CreateOrganizationDialog
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubmit={handleOrganizationSubmit}
+        isSubmitting={isSubmitting}
+      />
+    );
+  }
+
+  // Otherwise render the organization selection modal
   return (
     <>
       {/* Backdrop */}
@@ -326,17 +336,10 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
               padding="px-4 py-2"
             >
               Close
-            </Button>
+            </Button>{' '}
           </div>
         </div>
       </div>
-      {/* Organization creation dialog */}
-      <CreateOrganizationDialog
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSubmit={handleOrganizationSubmit}
-        isSubmitting={isSubmitting}
-      />
     </>
   );
 };
