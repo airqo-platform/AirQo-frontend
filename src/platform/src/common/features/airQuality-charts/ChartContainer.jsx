@@ -26,10 +26,22 @@ const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];
 const SKELETON_DELAY = 500;
 const REFRESH_TIMEOUT = 10000;
 
+// Optimized chart configuration with consistent settings
+const CHART_CONFIG = {
+  defaultHeight: '500px',
+  minHeight: '500px',
+  contentPadding: '20px 20px 20px 20px', // Increased top padding for Y-axis label
+  exportSettings: {
+    quality: 0.95,
+    backgroundColor: (isDark) => (isDark ? '#1F2937' : '#FFFFFF'),
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+  },
+};
+
 const ChartContainer = ({
   chartType,
   chartTitle,
-  height = '300px',
+  height = CHART_CONFIG.defaultHeight,
   width = '100%',
   id,
   showTitle = true,
@@ -123,9 +135,7 @@ const ChartContainer = ({
         // Calculate proper dimensions for high-quality export
         const actualWidth = chartElement.offsetWidth;
         const actualHeight = chartElement.offsetHeight;
-        const scale = 2; // Higher scale for better quality
-
-        // Configure export options for better quality and no padding
+        const scale = 2; // Higher scale for better quality        // Configure export options for better quality and consistent styling
         const exportOptions = {
           width: actualWidth * scale,
           height: actualHeight * scale,
@@ -138,6 +148,10 @@ const ChartContainer = ({
             margin: '0',
             overflow: 'visible',
             backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+            fontFamily:
+              'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+            fontSize: '12px',
+            fontWeight: '500',
           },
           quality: format === 'jpg' ? 0.98 : 1.0,
           bgcolor: isDark ? '#1F2937' : '#FFFFFF',
@@ -480,7 +494,7 @@ const ChartContainer = ({
     () => (
       <div
         className="relative export-chart-container"
-        style={{ width, height, minHeight: '380px' }}
+        style={{ width, height, minHeight: CHART_CONFIG.minHeight }}
       >
         {ErrorOverlay}
         {showSkeleton ? (
@@ -490,10 +504,10 @@ const ChartContainer = ({
             ref={chartContentRef}
             className="w-full h-full chart-content"
             style={{
-              padding: '8px 8px 16px 8px', // Minimal padding for better exports
+              padding: CHART_CONFIG.contentPadding,
               backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
               margin: 0,
-              overflow: 'visible',
+              overflow: 'hidden',
             }}
           >
             <MoreInsightsChart
@@ -595,18 +609,19 @@ const ChartContainer = ({
       .recharts-surface {
         overflow: visible !important;
         background: ${isDark ? '#1F2937' : '#FFFFFF'} !important;
-      }
-      /* Better text rendering for exports */
+      }      /* Better text rendering for exports */
       .recharts-text {
-        font-family: system-ui, -apple-system, sans-serif !important;
+        font-family: ${CHART_CONFIG.exportPadding ? 'system-ui, -apple-system, sans-serif' : 'system-ui, -apple-system, sans-serif'} !important;
         font-weight: 500 !important;
       }
       .recharts-cartesian-axis-tick text {
         font-size: 12px !important;
+        font-family: system-ui, -apple-system, sans-serif !important;
         fill: ${isDark ? '#D1D5DB' : '#4B5563'} !important;
       }
       .recharts-legend-item text {
         font-size: 14px !important;
+        font-family: system-ui, -apple-system, sans-serif !important;
         fill: ${isDark ? '#F9FAFB' : '#1F2937'} !important;
       }
     `;
@@ -616,6 +631,7 @@ const ChartContainer = ({
       document.head.removeChild(styleTag);
     };
   }, [isDark]);
+
   return (
     <div className="relative" id={id} ref={chartRef}>
       {RefreshIndicator}
@@ -624,16 +640,18 @@ const ChartContainer = ({
         padding="p-0"
         width="w-full"
         overflow={false}
-        className={`relative border ${
+        className={`relative border rounded-lg shadow-sm ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}
-        contentClassName="p-0 m-0"
+        contentClassName="p-0 m-0 rounded-b-lg overflow-hidden"
         headerProps={{
           className:
-            'pt-4 pb-2 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-700',
+            'pt-4 pb-2 px-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 rounded-t-lg',
         }}
       >
-        <div className="chart-container p-0 m-0">{chartContent}</div>
+        <div className="chart-container p-0 m-0 overflow-hidden">
+          {chartContent}
+        </div>
       </Card>
 
       {/* Export error message if any */}

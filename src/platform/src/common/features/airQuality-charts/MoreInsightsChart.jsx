@@ -39,6 +39,31 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import Button from '@/components/Button';
 
+// Optimized chart configuration for consistent display and export quality
+const CHART_CONFIG = {
+  containerMinHeight: '450px',
+  chartMargin: {
+    top: 40, // Increased top margin to accommodate Y-axis label
+    right: 15,
+    left: 15,
+    bottom: 120, // Optimized for legend space
+  },
+  padding: '10px 15px',
+  marginTop: '5px',
+  exportStyles: {
+    fontSize: 12,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+  },
+  yAxisLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    position: {
+      dy: -26, // Moved further up for better visibility at top of Y-axis
+      dx: 5, // Moved more to the right for better visibility
+    },
+  },
+};
+
 // Custom tick renderer with improved readability
 const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
   const date = new Date(payload.value);
@@ -71,7 +96,8 @@ const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
         dy={16}
         textAnchor="middle"
         fill={fill}
-        fontSize={12}
+        fontSize={CHART_CONFIG.exportStyles.fontSize}
+        fontFamily={CHART_CONFIG.exportStyles.fontFamily}
         className="chart-tick-text"
       >
         {label}
@@ -111,6 +137,14 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
   const chartRef = useRef(null);
+
+  // Enhanced tick count calculation
+  const tickCount = useMemo(() => {
+    if (containerWidth < 480) return 4;
+    if (containerWidth < 768) return 6;
+    if (containerWidth < 1024) return 8;
+    return 12;
+  }, [containerWidth]);
 
   const getColor = useCallback(
     (idx) => {
@@ -152,14 +186,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
     },
     [activeIndex, theme, systemTheme],
   );
-
-  // Enhanced tick count calculation
-  const tickCount = useMemo(() => {
-    if (containerWidth < 480) return 4;
-    if (containerWidth < 768) return 6;
-    if (containerWidth < 1024) return 8;
-    return 12;
-  }, [containerWidth]);
 
   // Normalize selected site IDs for consistent processing
   const normalizedSelectedIds = useMemo(() => {
@@ -387,8 +413,9 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
       ref={containerRef}
       className="w-full h-full relative chart-container overflow-hidden"
       style={{
-        padding: '8px 12px',
-        minHeight: '400px',
+        padding: CHART_CONFIG.padding,
+        minHeight: CHART_CONFIG.containerMinHeight,
+        marginTop: CHART_CONFIG.marginTop,
         boxSizing: 'border-box',
       }}
       data-chart-id={id}
@@ -398,7 +425,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
           <ChartComponent
             ref={chartRef}
             data={chartData}
-            margin={{ top: 40, right: 15, left: 10, bottom: 50 }}
+            margin={CHART_CONFIG.chartMargin}
             className="chart-component"
           >
             <CartesianGrid
@@ -433,7 +460,11 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               domain={[0, 'auto']}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20', fontSize: 12 }}
+              tick={{
+                fill: isDark ? '#D1D5DB' : '#1C1D20',
+                fontSize: CHART_CONFIG.exportStyles.fontSize,
+                fontFamily: CHART_CONFIG.exportStyles.fontFamily,
+              }}
               tickFormatter={formatYAxisTick}
               className="chart-y-axis"
               width={45}
@@ -446,12 +477,13 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                       ? 'PM10 (μg/m³)'
                       : 'Pollutant (μg/m³)'
                 }
-                position="insideTopLeft"
-                offset={-5}
+                position="insideTop"
+                offset={CHART_CONFIG.yAxisLabel.position.dy}
+                dx={CHART_CONFIG.yAxisLabel.position.dx}
                 fill={isDark ? '#D1D5DB' : '#1C1D20'}
-                fontSize={12}
-                dy={-35}
-                dx={30}
+                fontSize={CHART_CONFIG.yAxisLabel.fontSize}
+                fontWeight={CHART_CONFIG.yAxisLabel.fontWeight}
+                fontFamily={CHART_CONFIG.exportStyles.fontFamily}
                 style={{ textAnchor: 'start' }}
                 className="chart-y-label"
               />
@@ -468,7 +500,9 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 })
               }
               wrapperClassName="chart-legend-wrapper"
-              margin={{ top: 20 }}
+              margin={{ top: 12 }}
+              verticalAlign="bottom"
+              align="center"
             />
 
             <Tooltip
