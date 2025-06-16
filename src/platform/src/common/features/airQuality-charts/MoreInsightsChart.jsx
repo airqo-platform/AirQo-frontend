@@ -385,8 +385,12 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
     <div
       id={id}
       ref={containerRef}
-      className="w-full h-full relative chart-container"
-      style={{ padding: '8px 0', minHeight: '300px' }}
+      className="w-full h-full relative chart-container overflow-hidden"
+      style={{
+        padding: '8px 12px',
+        minHeight: '400px',
+        boxSizing: 'border-box',
+      }}
       data-chart-id={id}
     >
       {chartData.length && seriesKeys.length ? (
@@ -394,7 +398,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
           <ChartComponent
             ref={chartRef}
             data={chartData}
-            margin={{ top: 40, right: 20, left: -10, bottom: 60 }}
+            margin={{ top: 40, right: 15, left: 10, bottom: 50 }}
             className="chart-component"
           >
             <CartesianGrid
@@ -446,8 +450,8 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 offset={-5}
                 fill={isDark ? '#D1D5DB' : '#1C1D20'}
                 fontSize={12}
-                dy={-30}
-                dx={25}
+                dy={-35}
+                dx={30}
                 style={{ textAnchor: 'start' }}
                 className="chart-y-label"
               />
