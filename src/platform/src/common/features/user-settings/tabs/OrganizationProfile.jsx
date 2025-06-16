@@ -7,7 +7,7 @@ import AlertBox from '@/components/AlertBox';
 import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
-import TextField from '@/components/TextInputField';
+import TextField from '@/common/components/TextInputField';
 import SelectDropdown from '@/components/SelectDropdown';
 import { fetchGroupDetails } from '@/lib/store/services/groups';
 import { updateGroupDetailsApi } from '@/core/apis/Account';

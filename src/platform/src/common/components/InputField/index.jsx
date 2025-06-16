@@ -34,8 +34,23 @@ const InputField = ({
         return;
       }
 
-      // Always pass the full event for form handling consistency
-      onChange(e);
+      // Check if onChange expects just the value by looking at the parameter count
+      // This is a heuristic but works for most cases
+      try {
+        if (
+          onChange.toString().includes('(value)') ||
+          onChange.toString().includes('value =>')
+        ) {
+          // Likely expects just the value
+          onChange(e.target.value);
+        } else {
+          // Standard event-based onChange
+          onChange(e);
+        }
+      } catch {
+        // Fallback to event-based if we can't determine
+        onChange(e);
+      }
     }
   };
   return (
