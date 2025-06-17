@@ -5,11 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { isEmpty } from 'underscore';
 import { IoChevronDown } from 'react-icons/io5';
 import { HiPlus } from 'react-icons/hi2';
-import { Menu } from '@headlessui/react';
 import PropTypes from 'prop-types';
-
-// Hooks
-import { useOutsideClick } from '@/core/hooks';
 
 // Organization Loading Context
 import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
@@ -19,6 +15,9 @@ import {
   CreateOrganizationDialog,
   useCreateOrganization,
 } from '@/common/features/create-organization';
+
+// Components
+import DialogWrapper from '@/common/components/Modal/DialogWrapper';
 
 // Redux
 import {
@@ -32,9 +31,6 @@ import {
   replaceUserPreferences,
   getIndividualUserPreferences,
 } from '@/lib/store/services/account/UserDefaultsSlice';
-
-// APIs
-// import { recentUserPreferencesAPI } from '@/core/apis/Account';
 
 // Utils
 import {
@@ -110,42 +106,35 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   const activeGroup = useSelector(selectActiveGroup);
   const userGroups = useSelector(selectUserGroups);
   const isLoadingGroups = useSelector(selectUserGroupsLoading);
+
   // Local state
-  const [isOpen, setIsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
 
   // Organization creation feature
   const {
-    isModalOpen,
+    isModalOpen: isCreateModalOpen,
     isSubmitting,
     openModal,
     closeModal,
     handleSubmit: handleOrganizationSubmit,
   } = useCreateOrganization();
 
-  const dropdownRef = useRef(null);
   const switchingTimeoutRef = useRef(null);
-
-  // Handle outside click to close dropdown
-  useOutsideClick(dropdownRef, () => {
-    if (isOpen) {
-      setIsOpen(false);
-    }
-  });
 
   // Handle keyboard events for accessibility
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && isOpen) {
-        setIsOpen(false);
+      if (event.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false);
       }
     };
 
-    if (isOpen) {
+    if (isModalOpen) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen]);
+  }, [isModalOpen]);
 
   // Fetch user groups when component mounts
   useEffect(() => {
@@ -261,14 +250,24 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
       .trim();
   };
 
+  // Handle opening the organization modal
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Handle closing the organization modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   // Handle organization switching
   const handleGroupSelect = async (group) => {
     if (!group || group._id === activeGroup?._id) {
-      setIsOpen(false);
+      handleCloseModal();
       return;
     }
 
-    setIsOpen(false);
+    handleCloseModal();
 
     if (switchingTimeoutRef.current) {
       clearTimeout(switchingTimeoutRef.current);
@@ -344,9 +343,9 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   }, []);
 
   // Handle opening the organization creation modal
-  const handleOpenModal = () => {
+  const handleOpenCreateModal = () => {
     openModal();
-    setIsOpen(false);
+    handleCloseModal();
   };
 
   // Determine what to display
@@ -388,159 +387,148 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
     );
   }
 
-  // Render the dropdown
+  // Custom footer for the organization modal
+  const modalFooter = (
+    <div className="flex justify-end items-center gap-3 w-full border-t border-gray-200 pt-4 mt-4 bg-white">
+      <button
+        type="button"
+        onClick={handleCloseModal}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        onClick={handleOpenCreateModal}
+        className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-200"
+      >
+        <HiPlus className="h-4 w-4" />
+        <span>Add New Organization</span>
+      </button>
+    </div>
+  );
+
+  // Render the organization selector and modals
   return (
     <>
-      <Menu as="div" className={`relative ${className}`} ref={dropdownRef}>
-        {({ open }) => (
-          <>
-            <Menu.Button className="flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200">
-              {/* Organization Logo */}
-              {displayGroup?.grp_image ? (
-                <img
-                  src={displayGroup.grp_image}
-                  alt={`${displayGroup.grp_title} logo`}
-                  className={`h-6 w-6 rounded-full object-cover ${
-                    isSwitching ? 'opacity-50' : ''
-                  }`}
-                />
-              ) : (
-                <div
-                  className={`flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary ${
-                    isSwitching ? 'opacity-50' : ''
-                  }`}
-                >
-                  {formatGroupName(displayGroup?.grp_title)
-                    ?.charAt(0)
-                    ?.toUpperCase() || 'O'}
-                </div>
-              )}
-
-              {/* Organization Name */}
-              {showTitle && (
-                <span
-                  className={`max-w-32 truncate ${isSwitching ? 'opacity-50' : ''}`}
-                >
-                  {isSwitching
-                    ? 'Switching...'
-                    : formatGroupName(displayGroup?.grp_title) ||
-                      ORGANIZATION_LABEL}
-                </span>
-              )}
-
-              {/* Dropdown Arrow with rotation */}
-              <IoChevronDown
-                className={`h-4 w-4 transition-transform duration-200 ${
-                  open ? 'rotate-180' : ''
-                } ${isSwitching ? 'animate-spin opacity-50' : ''}`}
-              />
-            </Menu.Button>
-
-            <Menu.Items className="absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-lg border border-primary/20 bg-white py-1 shadow-lg ring-1 ring-primary/10 ring-opacity-5 focus:outline-none dark:border-primary/30 dark:bg-gray-800 dark:ring-primary/20 transition-colors duration-200">
-              <div className="px-3 py-2 text-xs font-semibold text-primary/70 uppercase tracking-wide dark:text-primary/80">
-                Switch Organization
-              </div>
-
-              <div className="max-h-60 overflow-y-auto">
-                {userGroups.map((group) => (
-                  <Menu.Item key={group._id}>
-                    {({ active }) => (
-                      <button
-                        type="button"
-                        onClick={() => handleGroupSelect(group)}
-                        className={`flex w-full items-center space-x-3 px-3 py-2 text-left text-sm transition-colors duration-200 ${
-                          active
-                            ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
-                            : 'text-gray-700 hover:bg-primary/5 dark:text-gray-200 dark:hover:bg-primary/10'
-                        } ${
-                          activeGroup?._id === group._id
-                            ? 'bg-primary/15 font-medium text-primary dark:bg-primary/25 dark:text-primary'
-                            : ''
-                        }`}
-                      >
-                        {/* Group Logo */}
-                        {group.grp_image ? (
-                          <img
-                            src={group.grp_image}
-                            alt={`${group.grp_title} logo`}
-                            className="h-8 w-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary dark:bg-primary/20 dark:text-primary">
-                            {formatGroupName(group.grp_title)
-                              ?.charAt(0)
-                              ?.toUpperCase() || 'O'}
-                          </div>
-                        )}
-
-                        {/* Group Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="truncate font-medium">
-                            {formatGroupName(group.grp_title) ||
-                              'Unnamed Organization'}
-                          </div>
-                          {group.grp_website && (
-                            <div className="truncate text-xs text-primary/60 dark:text-primary/70">
-                              {group.grp_website}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Active Indicator */}
-                        {activeGroup?._id === group._id && (
-                          <div className="flex h-2 w-2 rounded-full bg-primary dark:bg-primary"></div>
-                        )}
-                      </button>
-                    )}
-                  </Menu.Item>
-                ))}
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-primary/10 dark:border-primary/20 my-1"></div>
-
-              {/* Add New Organization Button */}
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    type="button"
-                    onClick={handleOpenModal}
-                    className={`flex w-full items-center space-x-3 px-3 py-2.5 text-left text-sm font-medium transition-colors duration-200 ${
-                      active
-                        ? 'bg-primary text-white'
-                        : 'text-primary hover:bg-primary/10 dark:hover:bg-primary/20'
-                    }`}
-                  >
-                    <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                        active
-                          ? 'bg-white/20'
-                          : 'bg-primary/10 dark:bg-primary/20'
-                      }`}
-                    >
-                      <HiPlus
-                        className={`h-4 w-4 ${active ? 'text-white' : 'text-primary'}`}
-                      />
-                    </div>
-                    <span>Add New Organization</span>
-                  </button>
-                )}
-              </Menu.Item>
-
-              {/* Footer */}
-              {userGroups.length === 0 && (
-                <div className="px-3 py-4 text-center text-sm text-primary/60 dark:text-primary/70">
-                  No organizations available
-                </div>
-              )}
-            </Menu.Items>
-          </>
+      <button
+        onClick={handleOpenModal}
+        className={`flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200 ${className}`}
+      >
+        {/* Organization Logo */}
+        {displayGroup?.grp_image ? (
+          <img
+            src={displayGroup.grp_image}
+            alt={`${displayGroup.grp_title} logo`}
+            className={`h-6 w-6 rounded-full object-cover ${
+              isSwitching ? 'opacity-50' : ''
+            }`}
+          />
+        ) : (
+          <div
+            className={`flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary ${
+              isSwitching ? 'opacity-50' : ''
+            }`}
+          >
+            {formatGroupName(displayGroup?.grp_title)
+              ?.charAt(0)
+              ?.toUpperCase() || 'O'}
+          </div>
         )}
-      </Menu>
+
+        {/* Organization Name */}
+        {showTitle && (
+          <span
+            className={`max-w-32 truncate ${isSwitching ? 'opacity-50' : ''}`}
+          >
+            {isSwitching
+              ? 'Switching...'
+              : formatGroupName(displayGroup?.grp_title) || ORGANIZATION_LABEL}
+          </span>
+        )}
+
+        {/* Dropdown Arrow */}
+        <IoChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${
+            isModalOpen ? 'rotate-180' : ''
+          } ${isSwitching ? 'animate-spin opacity-50' : ''}`}
+        />
+      </button>
+
+      {/* Organization Selection Modal */}
+      <DialogWrapper
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        footer={modalFooter}
+        width="w-full max-w-[700px]"
+      >
+        <div>
+          <div className="text-xl font-semibold text-gray-900 mb-1">
+            Select an organization
+          </div>
+          <div className="text-sm text-gray-500 mb-4">
+            Choose which organization you want to work with.
+          </div>
+          <div className="border-b border-gray-200 mb-4" />
+          <div className="max-h-[50vh] overflow-y-auto divide-y divide-gray-100">
+            {userGroups.map((group) => (
+              <button
+                key={group._id}
+                type="button"
+                onClick={() => handleGroupSelect(group)}
+                className={`w-full flex items-center px-2 py-1 text-left transition-colors duration-200 hover:bg-primary/5 dark:hover:bg-primary/10 ${
+                  activeGroup?._id === group._id
+                    ? 'bg-primary/10 font-semibold text-primary'
+                    : 'text-gray-700 dark:text-gray-200'
+                }`}
+              >
+                {group.grp_image ? (
+                  <img
+                    src={group.grp_image}
+                    alt={`${group.grp_title} logo`}
+                    className="h-8 w-8 rounded-full object-cover mr-4"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary dark:bg-primary/20 dark:text-primary mr-4">
+                    {formatGroupName(group.grp_title)
+                      ?.charAt(0)
+                      ?.toUpperCase() || 'O'}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="truncate text-sm">
+                    {formatGroupName(group.grp_title) || 'Unnamed Organization'}
+                  </div>
+                  {group.grp_website && (
+                    <div className="truncate text-xs text-primary/60 dark:text-primary/70">
+                      {group.grp_website}
+                    </div>
+                  )}
+                </div>
+                {activeGroup?._id === group._id && (
+                  <svg
+                    className="ml-3 h-5 w-5 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </DialogWrapper>
 
       {/* Organization creation dialog */}
       <CreateOrganizationDialog
-        isOpen={isModalOpen}
+        isOpen={isCreateModalOpen}
         onClose={closeModal}
         onSubmit={handleOrganizationSubmit}
         isSubmitting={isSubmitting}
