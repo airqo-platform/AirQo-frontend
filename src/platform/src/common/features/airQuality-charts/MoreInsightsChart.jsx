@@ -431,7 +431,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
             ref={chartRef}
             data={chartData}
             margin={CHART_CONFIG.chartMargin}
-            className="chart-component"
           >
             <CartesianGrid
               stroke={isDark ? '#555' : '#999'}

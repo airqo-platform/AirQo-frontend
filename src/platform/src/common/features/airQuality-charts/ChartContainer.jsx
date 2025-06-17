@@ -30,13 +30,13 @@ const REFRESH_TIMEOUT = 10000;
 const CHART_CONFIG = {
   // Unified dimensions - single source of truth
   dimensions: {
-    defaultHeight: 250, // Reduced from 300 to 250 for more compact design
-    minHeight: 220, // Reduced from 280 to 220
-    aspectRatio: 16 / 9, // For responsive sizing
+    defaultHeight: 250,
+    minHeight: 220,
+    aspectRatio: 16 / 9,
   },
   // Simplified padding - removed from chart content, handled by container
   spacing: {
-    containerPadding: '0.5rem', // Further reduced for compact design
+    containerPadding: '0.5rem',
     chartMargin: { top: 20, right: 20, bottom: 60, left: 20 },
   },
   exportSettings: {
@@ -49,8 +49,8 @@ const CHART_CONFIG = {
 const ChartContainer = ({
   chartType,
   chartTitle,
-  height, // Remove default value - will be calculated dynamically
-  width, // Remove default value - will be calculated dynamically
+  height,
+  width,
   id,
   showTitle = true,
   data = [],
@@ -539,7 +539,6 @@ const ChartContainer = ({
               padding: CHART_CONFIG.spacing.containerPadding,
               margin: 0,
               overflow: 'hidden',
-              // Remove duplicate background - let parent container handle it
             }}
           >
             <MoreInsightsChart
