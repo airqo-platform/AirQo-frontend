@@ -192,7 +192,6 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       icon: PersonIcon,
       path: `/org/${orgSlug}/profile`,
     },
-    // Note: Commented out items from original can be uncommented when needed
     // {
     //   type: 'item',
     //   label: 'Settings',

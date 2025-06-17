@@ -12,4 +12,9 @@ export { SideBarDropdownItem } from './SideBarItem';
 export { default as AnnouncementCard } from './AnnouncementCard';
 
 // Legacy navigation config (for backward compatibility)
-export * from './navigationConfig';
+// Note: Import specific functions to avoid conflicts with sidebarConfig
+export {
+  getUserNavigationItems as legacyGetUserNavigationItems,
+  getMobileNavigationItems as legacyGetMobileNavigationItems,
+  shouldForceIconOnly as legacyShouldForceIconOnly,
+} from './navigationConfig';
