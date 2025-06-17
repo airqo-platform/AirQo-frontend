@@ -46,6 +46,7 @@ const GlobalTopbar = ({
       text: isDarkMode ? 'text-white' : 'text-gray-800',
       background: isDarkMode ? 'bg-[#1d1f20]' : 'bg-white',
       border: isDarkMode ? 'border-b-gray-700' : 'border-b-gray-200',
+      hover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100',
     }),
     [isDarkMode],
   );
@@ -93,6 +94,7 @@ const GlobalTopbar = ({
     },
     [dispatch, togglingGlobalDrawer, togglingDrawer, width],
   );
+
   const handleLogoClick = useCallback(() => {
     if (onLogoClick) {
       onLogoClick();
@@ -100,6 +102,54 @@ const GlobalTopbar = ({
       router.push(homeNavPath);
     }
   }, [onLogoClick, router, homeNavPath]);
+
+  // Shared Logo Component to avoid duplication
+  const LogoComponent = useCallback(
+    ({ className = '', buttonProps = {} }) => (
+      <Button
+        paddingStyles="p-0 m-0"
+        onClick={handleLogoClick}
+        variant="text"
+        className={`flex items-center justify-center ${className}`}
+        {...buttonProps}
+      >
+        {logoComponent || <GroupLogo />}
+      </Button>
+    ),
+    [logoComponent, handleLogoClick],
+  );
+
+  // Shared Menu Button Component
+  const MenuButton = useCallback(
+    ({ isMobile = false, className = '' }) => (
+      <Button
+        paddingStyles="p-0 m-0"
+        className={`flex items-center justify-center focus:outline-none ${className}`}
+        onClick={handleDrawer}
+        variant="text"
+        aria-label="Open navigation menu"
+      >
+        <span
+          className={
+            isMobile
+              ? 'p-1 flex items-center justify-center'
+              : 'p-2 m-0 flex items-center justify-center'
+          }
+        >
+          {isMobile ? (
+            <MenuBarIcon
+              fill={isDarkMode ? '#fff' : '#1C1D20'}
+              width={18}
+              height={18}
+            />
+          ) : (
+            <MenuIcon width={20} height={20} />
+          )}
+        </span>
+      </Button>
+    ),
+    [handleDrawer, isDarkMode],
+  );
 
   // Don't render until client-side hydration is complete to prevent mismatch
   if (!mounted) {
@@ -158,40 +208,17 @@ const GlobalTopbar = ({
           >
             {/* Mobile Logo */}
             <div className="lg:hidden relative z-10 w-full flex items-center justify-start">
-              <Button
-                paddingStyles="p-0 m-0"
-                onClick={handleLogoClick}
-                variant="text"
-                className="flex items-center justify-center"
-              >
-                {logoComponent || <GroupLogo />}
-              </Button>
+              <LogoComponent className="" />
             </div>
             {/* Desktop Left Section - Menu Button + Logo */}
             <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
               <div className="flex items-center gap-[10px]">
                 {/* Menu Button */}
-                <button
-                  type="button"
-                  className="p-2 m-0 flex items-center justify-center"
-                  onClick={handleDrawer}
-                  aria-label="Open navigation menu"
-                >
-                  <MenuIcon width={20} height={20} />
-                </button>
+                <MenuButton isMobile={false} />
                 {/* Logo */}
-                <Button
-                  padding="p-0 m-0"
-                  onClick={handleLogoClick}
-                  variant="text"
-                  className="flex items-center justify-center"
-                >
-                  <div
-                    className={`w-[46.56px] h-8 flex items-center justify-center ${styles.text}`}
-                  >
-                    {logoComponent || <GroupLogo />}
-                  </div>
-                </Button>
+                <LogoComponent
+                  className={`w-[46.56px] h-8 flex items-center justify-center ${styles.text}`}
+                />
                 {/* Title (optional) */}
                 {topbarTitle && (
                   <div className={`ml-4 ${styles.text} flex items-center`}>
@@ -234,21 +261,7 @@ const GlobalTopbar = ({
         >
           <div className="flex justify-between items-center min-h-[40px]">
             {/* Mobile Menu Button */}
-            <Button
-              paddingStyles="p-0 m-0"
-              className="flex items-center justify-center focus:outline-none"
-              onClick={handleDrawer}
-              variant="text"
-              aria-label="Open navigation menu"
-            >
-              <span className="p-1 flex items-center justify-center">
-                <MenuBarIcon
-                  fill={isDarkMode ? '#fff' : '#1C1D20'}
-                  width={18}
-                  height={18}
-                />
-              </span>
-            </Button>
+            <MenuButton isMobile={true} />
             {/* Title (optional) */}
             {topbarTitle && (
               <div

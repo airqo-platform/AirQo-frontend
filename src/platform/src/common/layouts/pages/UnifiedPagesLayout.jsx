@@ -6,11 +6,8 @@ import Head from 'next/head';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
-import SideBarDrawer from '../SideBar/SideBarDrawer';
-import OrganizationSideBarDrawer from '../SideBar/OrganizationSideBarDrawer';
+import { UnifiedSideBarDrawer, UnifiedSidebarContent } from '../SideBar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
-import UserSidebarContent from '@/common/layouts/SideBar/UserSidebarContent';
-import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -114,10 +111,9 @@ export default function UnifiedPagesLayout({ children }) {
       <DarkModeToggle size="md" />
     </div>
   ) : null;
-
   return (
     <div
-      className="flex overflow-hidden min-h-screen"
+      className="flex overflow-hidden min-h-screen h-screen bg-background"
       data-testid={isOrganizationContext ? 'organization-layout' : 'layout'}
       style={
         isOrganizationContext
@@ -140,12 +136,13 @@ export default function UnifiedPagesLayout({ children }) {
         customActions={customActions}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[63px] z-50 text-sidebar-text transition-all duration-300">
         {isOrganizationContext ? (
           <AuthenticatedSideBar>
-            <OrganizationSidebarContent
+            <UnifiedSidebarContent
+              userType="organization"
               isCollapsed={isCollapsed}
-              styles={{
+              style={{
                 '--org-primary': primaryColor,
                 '--org-secondary': secondaryColor,
               }}
@@ -153,30 +150,30 @@ export default function UnifiedPagesLayout({ children }) {
           </AuthenticatedSideBar>
         ) : (
           <AuthenticatedSideBar>
-            <UserSidebarContent isCollapsed={isCollapsed} styles={{}} />
+            <UnifiedSidebarContent userType="user" isCollapsed={isCollapsed} />
           </AuthenticatedSideBar>
         )}
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16
+        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
-        <div className={`overflow-hidden ${containerClasses}`}>
+        <div className={`h-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
           {/* Content */}
-          <div className="text-text transition-all duration-300 overflow-hidden">
+          <div className="text-text transition-all duration-300 bg-background h-full">
             {children}
           </div>
         </div>
       </main>
       {/* SideBar Drawer */}
       {isOrganizationContext ? (
-        <OrganizationSideBarDrawer />
+        <UnifiedSideBarDrawer userType="organization" />
       ) : (
-        <SideBarDrawer />
+        <UnifiedSideBarDrawer userType="user" />
       )}
       {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />

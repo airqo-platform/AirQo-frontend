@@ -7,9 +7,11 @@ import Head from 'next/head';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
-import OrganizationSideBarDrawer from '@/common/layouts/SideBar/OrganizationSideBarDrawer';
+import {
+  UnifiedSideBarDrawer,
+  UnifiedSidebarContent,
+} from '@/common/layouts/SideBar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
-import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -73,11 +75,12 @@ function OrganizationPagesLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[63px] z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar>
-          <OrganizationSidebarContent
+          <UnifiedSidebarContent
+            userType="organization"
             isCollapsed={isCollapsed}
-            styles={{
+            style={{
               '--org-primary': primaryColor,
               '--org-secondary': secondaryColor,
             }}
@@ -100,9 +103,9 @@ function OrganizationPagesLayout({ children }) {
             {children}
           </div>
         </div>
-      </main>{' '}
+      </main>
       {/* SideBar Drawer */}
-      <OrganizationSideBarDrawer />
+      <UnifiedSideBarDrawer userType="organization" />
     </div>
   );
 }

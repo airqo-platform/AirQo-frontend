@@ -197,7 +197,7 @@ const UserLogin = () => {
             <span>
               Don&apos;t have an account?
               <Link
-                href="/user/creation"
+                href="/user/creation/individual/register"
                 className="font-medium text-blue-600 ml-2 dark:text-blue-400"
               >
                 Register

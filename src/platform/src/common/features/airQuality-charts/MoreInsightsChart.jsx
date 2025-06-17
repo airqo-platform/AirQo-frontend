@@ -39,6 +39,34 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import Button from '@/components/Button';
 
+// Simplified responsive chart configuration
+const CHART_CONFIG = {
+  chartMargin: {
+    top: 50,
+    right: 20,
+    bottom: 30,
+  },
+  // Minimal margins for exports to reduce whitespace
+  exportMargin: {
+    top: 5,
+    right: 5,
+    left: 15,
+    bottom: 30,
+  },
+  exportStyles: {
+    fontSize: 12,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+  },
+  yAxisLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    position: {
+      dy: -40,
+      dx: 5,
+    },
+  },
+};
+
 // Custom tick renderer with improved readability
 const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
   const date = new Date(payload.value);
@@ -71,7 +99,8 @@ const ImprovedAxisTick = ({ x, y, payload, fill, frequency }) => {
         dy={16}
         textAnchor="middle"
         fill={fill}
-        fontSize={12}
+        fontSize={12} // Restored to readable size
+        fontFamily={CHART_CONFIG.exportStyles.fontFamily}
         className="chart-tick-text"
       >
         {label}
@@ -98,7 +127,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   pollutantType,
   refreshChart,
   isRefreshing,
-  width = '100%',
+  _width = '100%', // Underscore prefix to indicate unused
   height = '100%',
 }) {
   const { theme, systemTheme } = useTheme();
@@ -110,7 +139,17 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   const containerRef = useRef(null);
   const { width: containerWidth } = useResizeObserver(containerRef);
   const aqStandard = useSelector((state) => state.chart.aqStandard);
+  // Use the height passed from parent (100% by default)
+  const availableHeight = height;
   const chartRef = useRef(null);
+
+  // Enhanced tick count calculation
+  const tickCount = useMemo(() => {
+    if (containerWidth < 480) return 4;
+    if (containerWidth < 768) return 6;
+    if (containerWidth < 1024) return 8;
+    return 12;
+  }, [containerWidth]);
 
   const getColor = useCallback(
     (idx) => {
@@ -152,14 +191,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
     },
     [activeIndex, theme, systemTheme],
   );
-
-  // Enhanced tick count calculation
-  const tickCount = useMemo(() => {
-    if (containerWidth < 480) return 4;
-    if (containerWidth < 768) return 6;
-    if (containerWidth < 1024) return 8;
-    return 12;
-  }, [containerWidth]);
 
   // Normalize selected site IDs for consistent processing
   const normalizedSelectedIds = useMemo(() => {
@@ -381,27 +412,34 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   // Choose chart component based on chart type
   const ChartComponent = chartType === 'bar' ? BarChart : LineChart;
   const SeriesComponent = chartType === 'bar' ? Bar : Line;
-
   return (
     <div
       id={id}
       ref={containerRef}
-      className="w-full h-full pt-4 relative chart-container"
+      className="w-full h-full relative chart-container flex items-center justify-center"
+      style={{
+        padding: CHART_CONFIG.padding,
+        marginTop: CHART_CONFIG.marginTop,
+        boxSizing: 'border-box',
+        // Let container height be controlled by parent
+      }}
       data-chart-id={id}
     >
       {chartData.length && seriesKeys.length ? (
-        <ResponsiveContainer width={width} height={height}>
+        <ResponsiveContainer width="100%" height={availableHeight}>
           <ChartComponent
             ref={chartRef}
             data={chartData}
-            margin={{ top: 25, right: 10, left: -20, bottom: 10 }}
-            className="chart-component"
+            margin={CHART_CONFIG.chartMargin}
           >
             <CartesianGrid
-              stroke={isDark ? '#555' : '#ccc'}
-              strokeDasharray="5 5"
-              vertical={false}
+              stroke={isDark ? '#555' : '#999'}
+              strokeDasharray="2 2"
+              vertical={true}
+              horizontal={true}
               className="chart-grid"
+              opacity={1}
+              strokeWidth={1}
             />
             <XAxis
               dataKey="time"
@@ -418,7 +456,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               interval={0}
               angle={containerWidth < 480 ? -45 : -25}
               textAnchor="end"
-              height={60}
+              height={50} // Restored to reasonable size
               className="chart-x-axis"
               padding={{ left: 10, right: 10 }}
             />
@@ -426,28 +464,34 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               domain={[0, 'auto']}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: isDark ? '#D1D5DB' : '#1C1D20' }}
+              tick={{
+                fill: isDark ? '#D1D5DB' : '#1C1D20',
+                fontSize: 12, // Restored to readable size
+                fontFamily: CHART_CONFIG.exportStyles.fontFamily,
+              }}
               tickFormatter={formatYAxisTick}
               className="chart-y-axis"
+              width={50} // Restored to reasonable size
             >
               <Label
                 value={
                   pollutantType === 'pm2_5'
-                    ? 'PM2.5'
+                    ? 'PM2.5 (μg/m³)'
                     : pollutantType === 'pm10'
-                      ? 'PM10'
-                      : 'Pollutant'
+                      ? 'PM10 (μg/m³)'
+                      : 'Pollutant (μg/m³)'
                 }
-                position="insideTopLeft"
+                position="insideTop"
+                offset={CHART_CONFIG.yAxisLabel.position.dy}
+                dx={CHART_CONFIG.yAxisLabel.position.dx}
                 fill={isDark ? '#D1D5DB' : '#1C1D20'}
-                fontSize={12}
-                dy={-30}
-                dx={28}
+                fontSize={CHART_CONFIG.yAxisLabel.fontSize}
+                fontWeight={CHART_CONFIG.yAxisLabel.fontWeight}
+                fontFamily={CHART_CONFIG.exportStyles.fontFamily}
                 style={{ textAnchor: 'start' }}
                 className="chart-y-label"
               />
             </YAxis>
-
             <Legend
               content={(props) =>
                 renderCustomizedLegend({
@@ -459,8 +503,10 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 })
               }
               wrapperClassName="chart-legend-wrapper"
+              margin={{ top: 8 }} // Restored reasonable margin
+              verticalAlign="bottom"
+              align="center"
             />
-
             <Tooltip
               content={
                 <CustomGraphTooltip
@@ -485,8 +531,8 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                     }
               }
               className="chart-tooltip"
+              animationDuration={200}
             />
-
             {seriesKeys.map((key, idx) => {
               const isActive = activeIndex === null || activeIndex === idx;
 
@@ -499,12 +545,14 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                   stroke={chartType === 'line' ? getColor(idx) : undefined}
                   fill={chartType === 'bar' ? getColor(idx) : undefined}
                   strokeWidth={
-                    chartType === 'line' ? (isActive ? 3 : 1.5) : undefined
+                    chartType === 'line' ? (isActive ? 3 : 2) : undefined
                   }
-                  barSize={chartType === 'bar' ? (isActive ? 8 : 6) : undefined}
+                  barSize={
+                    chartType === 'bar' ? (isActive ? 12 : 8) : undefined
+                  }
                   opacity={isActive ? 1 : 0.5}
                   dot={chartType === 'line' ? <CustomDot /> : undefined}
-                  activeDot={chartType === 'line' ? { r: 5 } : undefined}
+                  activeDot={chartType === 'line' ? { r: 6 } : undefined}
                   shape={chartType === 'bar' ? <CustomBar /> : undefined}
                   onMouseEnter={() => handleSeriesMouseEnter(idx)}
                   onMouseLeave={handleSeriesMouseLeave}
@@ -513,7 +561,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 />
               );
             })}
-
             {WHO_STANDARD_VALUE > 0 && (
               <ReferenceLine
                 y={WHO_STANDARD_VALUE}
@@ -522,6 +569,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 }
                 stroke="red"
                 strokeDasharray="3 3"
+                strokeWidth={2}
                 ifOverflow="extendDomain"
                 className="chart-reference-line"
               />

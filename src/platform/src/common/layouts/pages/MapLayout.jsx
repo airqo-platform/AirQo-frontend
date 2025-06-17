@@ -7,9 +7,8 @@ import Head from 'next/head';
 import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '../SideBar/AuthenticatedSidebar';
-import UserSidebarContent from '../SideBar/UserSidebarContent';
+import { UnifiedSidebarContent, UnifiedSideBarDrawer } from '../SideBar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
-import SideBarDrawer from '../SideBar/SideBarDrawer';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -38,14 +37,9 @@ export default function MapLayout({ children }) {
 
   // Get route configuration based on current pathname
   const routeConfig = LAYOUT_CONFIGS.MAP[pathname] || DEFAULT_CONFIGS.MAP;
-
-  // Generate styles for sidebar content
+  // Generate dark mode flag for sidebar content
   const isDarkMode =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
-  const styles = {
-    divider: isDarkMode ? 'border-gray-700' : 'border-gray-200',
-    mutedText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
-  };
 
   // Initialize hooks
   useUserPreferences();
@@ -72,9 +66,13 @@ export default function MapLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[60px] z-40 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[63px] z-40 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar forceCollapse={true}>
-          <UserSidebarContent isCollapsed={true} styles={styles} />
+          <UnifiedSidebarContent
+            userType="user"
+            isCollapsed={true}
+            isDarkMode={isDarkMode}
+          />
         </AuthenticatedSideBar>
       </aside>
       {/* Main Content - Account for both topbar and sidebar */}
@@ -89,7 +87,7 @@ export default function MapLayout({ children }) {
         </div>
       </main>
       {/* SideBar Drawer */}
-      <SideBarDrawer />
+      <UnifiedSideBarDrawer userType="user" />
       {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />
     </div>
