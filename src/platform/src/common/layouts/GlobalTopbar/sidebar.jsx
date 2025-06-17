@@ -177,7 +177,7 @@ const GlobalSideBarDrawer = () => {
         <button
           type="button"
           onClick={closeDrawer}
-          className="fixed inset-0 w-full h-full bg-black/40 dark:bg-black/60 z-[9999] transition-opacity duration-200 ease-in-out"
+          className="fixed inset-0 bg-black bg-opacity-25 dark:bg-opacity-50 z-[9999]     transition-opacity duration-200 ease-in-out"
           aria-label="Close sidebar"
         />
       )}
