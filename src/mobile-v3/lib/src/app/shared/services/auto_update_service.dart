@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 
 class AutoUpdateService with UiLoggy {
   static final AutoUpdateService _instance = AutoUpdateService._internal();
@@ -391,22 +391,41 @@ class AutoUpdateService with UiLoggy {
       return;
     }
 
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode 
+            ? AppColors.darkHighlight 
+            : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.shade100,
+                color: AppColors.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(Icons.system_update, color: Colors.blue.shade700, size: 24),
+              child: Icon(
+                Icons.system_update, 
+                color: AppColors.primaryColor, 
+                size: 24,
+              ),
             ),
             const SizedBox(width: 12),
-            const Expanded(child: Text('Update Available')),
+            Expanded(
+              child: Text(
+                'Update Available',
+                style: TextStyle(
+                  color: isDarkMode 
+                      ? Colors.white 
+                      : AppColors.boldHeadlineColor4,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -416,7 +435,9 @@ class AutoUpdateService with UiLoggy {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: isDarkMode 
+                    ? AppColors.dividerColordark 
+                    : AppColors.lightHighlight,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -424,16 +445,45 @@ class AutoUpdateService with UiLoggy {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Current:', style: TextStyle(fontWeight: FontWeight.w500)),
-                      Text(currentVersion),
+                      Text(
+                        'Current:', 
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode 
+                              ? AppColors.secondaryHeadlineColor2 
+                              : AppColors.boldHeadlineColor4,
+                        ),
+                      ),
+                      Text(
+                        currentVersion,
+                        style: TextStyle(
+                          color: isDarkMode 
+                              ? Colors.white 
+                              : AppColors.boldHeadlineColor4,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Latest:', style: TextStyle(fontWeight: FontWeight.w500)),
-                      Text(latestVersion, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Latest:', 
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode 
+                              ? AppColors.secondaryHeadlineColor2 
+                              : AppColors.boldHeadlineColor4,
+                        ),
+                      ),
+                      Text(
+                        latestVersion, 
+                        style: const TextStyle(
+                          color: Colors.green, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -443,18 +493,29 @@ class AutoUpdateService with UiLoggy {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(
+                  color: AppColors.primaryColor.withOpacity(0.3),
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.star, color: Colors.blue.shade700, size: 20),
+                  Icon(
+                    Icons.star, 
+                    color: AppColors.primaryColor, 
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Get the latest features and improvements by updating now.',
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDarkMode 
+                            ? Colors.white 
+                            : AppColors.boldHeadlineColor4,
+                      ),
                     ),
                   ),
                 ],
@@ -468,10 +529,20 @@ class AutoUpdateService with UiLoggy {
               Navigator.of(context).pop();
               _skipVersion(latestVersion);
             },
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+            ),
             child: const Text('Skip This Version'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+            ),
             child: const Text('Later'),
           ),
           ElevatedButton.icon(
@@ -481,6 +552,10 @@ class AutoUpdateService with UiLoggy {
             },
             icon: const Icon(Icons.download),
             label: const Text('Update'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),

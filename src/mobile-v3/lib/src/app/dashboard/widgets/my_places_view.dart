@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
+import 'package:airqo/src/app/dashboard/widgets/unmatched_site_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loggy/loggy.dart';
@@ -82,7 +83,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       for (final measurement in state.response.measurements!) {
         if (measurement.siteId != null && measurement.siteId!.isNotEmpty) {
           measurementsBySiteId[measurement.siteId!] = measurement;
-          
+
           await _cacheMeasurement(measurement.siteId!, measurement);
         }
       }
@@ -97,10 +98,12 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         } else {
           final cachedMeasurement = await _getCachedMeasurement(site.id);
           if (cachedMeasurement != null) {
-            loggy.info('Found cached measurement for site: ${site.name} (ID: ${site.id})');
+            loggy.info(
+                'Found cached measurement for site: ${site.name} (ID: ${site.id})');
             matched.add(cachedMeasurement);
           } else {
-            loggy.warning('No matching measurement found for site ID: ${site.id}');
+            loggy.warning(
+                'No matching measurement found for site ID: ${site.id}');
             unmatched.add(site);
           }
         }
@@ -115,7 +118,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       await _loadAllFromCache();
     }
   }
-  
 
   Future<void> _cacheMeasurement(String siteId, Measurement measurement) async {
     try {
@@ -129,7 +131,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       loggy.error('Error caching measurement: $e');
     }
   }
-  
+
   Future<Measurement?> _getCachedMeasurement(String siteId) async {
     try {
       final cachedData = await _cacheManager.get<Measurement>(
@@ -137,7 +139,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         key: 'site_measurement_$siteId',
         fromJson: (json) => Measurement.fromJson(json),
       );
-      
+
       if (cachedData != null) {
         return cachedData.data;
       }
@@ -146,19 +148,19 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     }
     return null;
   }
-  
+
   Future<void> _loadAllFromCache() async {
-    if (widget.userPreferences == null || 
+    if (widget.userPreferences == null ||
         widget.userPreferences!.selectedSites.isEmpty) {
       setState(() {
         isLoading = false;
       });
       return;
     }
-    
+
     final matched = <Measurement>[];
     final unmatched = <SelectedSite>[];
-    
+
     for (final site in widget.userPreferences!.selectedSites) {
       final cachedMeasurement = await _getCachedMeasurement(site.id);
       if (cachedMeasurement != null) {
@@ -169,7 +171,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         unmatched.add(site);
       }
     }
-    
+
     setState(() {
       selectedMeasurements = matched;
       unmatchedSites = unmatched;
@@ -308,7 +310,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                 children: [
                   if (isLoading)
                     _buildLoadingState()
-                  else if (selectedMeasurements.isEmpty && unmatchedSites.isEmpty)
+                  else if (selectedMeasurements.isEmpty &&
+                      unmatchedSites.isEmpty)
                     _buildEmptyState()
                   else ...[
                     ...selectedMeasurements.map((measurement) => Padding(
@@ -320,7 +323,10 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                         )),
                     ...unmatchedSites.map((site) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildUnmatchedSiteCard(site),
+                          child: UnmatchedSiteCard(
+                            site: site,
+                            onRemove: _removeLocation,
+                          ),
                         )),
                   ],
                 ],
@@ -332,97 +338,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     );
   }
 
-  Widget _buildUnmatchedSiteCard(SelectedSite site) {
-    return Dismissible(
-      key: Key(site.id),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
-      ),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
-        _removeLocation(site.id);
-      },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.location_on,
-                                color: AppColors.primaryColor),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                site.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (site.searchName.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 32, top: 4),
-                            child: Text(
-                              site.searchName,
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Chip(
-                    label: const Text('Loading data'),
-                    backgroundColor: Colors.amber.shade100,
-                    labelStyle: TextStyle(
-                      color: Colors.amber.shade900,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (site.latitude != null && site.longitude != null)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Lat: ${site.latitude!.toStringAsFixed(6)}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    Text(
-                      'Long: ${site.longitude!.toStringAsFixed(6)}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildLoadingState() {
     return Container(
@@ -436,7 +351,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
               height: 32,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
               ),
             ),
           ],
