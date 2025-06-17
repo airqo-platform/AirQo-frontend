@@ -74,15 +74,10 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
           },
           onHorizontalDragEnd: (details) {
             if (_dragOffset < -_deleteWidth / 2) {
-              setState(() {
-                _dragOffset = -_deleteWidth;
-                _isDeleteVisible = true;
-              });
-            } else {
-              setState(() {
-                _dragOffset = 0;
-                _isDeleteVisible = false;
-              });
+              widget.onRemove(widget.site.id);
+              _dragOffset = 0;       
+              _isDeleteVisible = false;
+              setState(() {});
             }
           },
           child: Transform.translate(
