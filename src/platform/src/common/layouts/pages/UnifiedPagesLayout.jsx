@@ -6,11 +6,8 @@ import Head from 'next/head';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
-import SideBarDrawer from '../SideBar/SideBarDrawer';
-import OrganizationSideBarDrawer from '../SideBar/OrganizationSideBarDrawer';
+import { UnifiedSideBarDrawer, UnifiedSidebarContent } from '../SideBar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
-import UserSidebarContent from '@/common/layouts/SideBar/UserSidebarContent';
-import OrganizationSidebarContent from '@/common/layouts/SideBar/OrganizationSidebarContent';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -142,9 +139,10 @@ export default function UnifiedPagesLayout({ children }) {
       <aside className="fixed left-0 top-36 lg:top-[63px] z-50 text-sidebar-text transition-all duration-300">
         {isOrganizationContext ? (
           <AuthenticatedSideBar>
-            <OrganizationSidebarContent
+            <UnifiedSidebarContent
+              userType="organization"
               isCollapsed={isCollapsed}
-              styles={{
+              style={{
                 '--org-primary': primaryColor,
                 '--org-secondary': secondaryColor,
               }}
@@ -152,7 +150,7 @@ export default function UnifiedPagesLayout({ children }) {
           </AuthenticatedSideBar>
         ) : (
           <AuthenticatedSideBar>
-            <UserSidebarContent isCollapsed={isCollapsed} styles={{}} />
+            <UnifiedSidebarContent userType="user" isCollapsed={isCollapsed} />
           </AuthenticatedSideBar>
         )}
       </aside>
@@ -173,9 +171,9 @@ export default function UnifiedPagesLayout({ children }) {
       </main>
       {/* SideBar Drawer */}
       {isOrganizationContext ? (
-        <OrganizationSideBarDrawer />
+        <UnifiedSideBarDrawer userType="organization" />
       ) : (
-        <SideBarDrawer />
+        <UnifiedSideBarDrawer userType="user" />
       )}
       {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />

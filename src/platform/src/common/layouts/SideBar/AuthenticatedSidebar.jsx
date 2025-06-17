@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
-import SidebarItem, { SideBarDropdownItem } from './SideBarItem';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   toggleSidebar,
@@ -11,9 +10,8 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { usePathname } from 'next/navigation';
 import Card from '@/common/components/CardWrapper';
-import { shouldForceIconOnly } from './navigationConfig';
-
-const MAX_WIDTH = '(max-width: 1024px)';
+import UnifiedSidebarContent from './UnifiedSidebarContent';
+import { getSidebarStyles, getUserTypeFromPath } from './sidebarConfig';
 
 const AuthenticatedSideBar = ({
   forceCollapse,
@@ -22,28 +20,23 @@ const AuthenticatedSideBar = ({
   footerContent,
   showCollapseButton = true,
   navigationItems,
+  userType,
 }) => {
   const dispatch = useDispatch();
   const size = useWindowSize();
   const storeCollapsed = useSelector((state) => state.sidebar.isCollapsed);
-  const pathname = usePathname(); // Use forceCollapse prop if provided, otherwise use the store value
+  const pathname = usePathname();
+  // Use forceCollapse prop if provided, otherwise use the store value
   const isCollapsed =
     forceCollapse !== undefined ? forceCollapse : storeCollapsed;
 
-  // Check if current route should force icons only (like map route)
-  const forceIconOnly = shouldForceIconOnly(pathname);
-
-  // Override iconOnly for navigation - show icons only if collapsed OR if route forces it
-  const shouldShowIconsOnly = isCollapsed || forceIconOnly;
+  // Determine user type from pathname if not provided
+  const resolvedUserType = userType || getUserTypeFromPath(pathname);
 
   // Static styling (removing theme customizer dependencies)
   const isDarkMode = false; // Simplified for organization context
-
-  // Determine if dark mode should be applied
-  /*const isDarkMode = useMemo(() => {
-    return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
-  }, [theme, systemTheme]);*/
-
+  // Theme-based styling using memoized values
+  const styles = getSidebarStyles(isDarkMode);
   // Media query and route handling
   useEffect(() => {
     const handleRouteChange = () => {
@@ -58,7 +51,7 @@ const AuthenticatedSideBar = ({
       }
     };
 
-    const mediaQuery = window.matchMedia(MAX_WIDTH);
+    const mediaQuery = window.matchMedia('(max-width: 1024px)');
     handleRouteChange();
 
     if (mediaQuery.addEventListener) {
@@ -83,26 +76,6 @@ const AuthenticatedSideBar = ({
       dispatch(setToggleDrawer(false));
     }
   }, [size.width, dispatch]);
-
-  // Theme-based styling using memoized values
-  const styles = useMemo(
-    () => ({
-      collapseButton: isDarkMode
-        ? 'bg-gray-800 border-gray-700 text-white'
-        : 'bg-white border-gray-200 text-gray-800',
-      background: isDarkMode ? 'bg-[#1d1f20]' : 'bg-white',
-      border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
-      scrollbar: isDarkMode
-        ? 'scrollbar-thumb-gray-600 scrollbar-track-gray-800'
-        : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100',
-      divider: isDarkMode ? 'border-gray-700' : 'border-gray-200',
-      text: isDarkMode ? 'text-white' : 'text-gray-800',
-      mutedText: isDarkMode ? 'text-gray-400' : 'text-gray-500',
-      iconFill: isDarkMode ? 'ffffff' : undefined,
-      stroke: isDarkMode ? 'white' : '#1f2937',
-    }),
-    [isDarkMode],
-  );
   return (
     <div>
       {' '}
@@ -129,59 +102,18 @@ const AuthenticatedSideBar = ({
             <div className="pb-4 flex justify-between items-center">
               {headerContent}
             </div>
-          )}{' '}
+          )}
           {/* Navigation Items */}
           <div className="flex flex-col justify-between h-full">
             <div className="mt-3 space-y-2">
-              {children ||
-                navigationItems?.map((item, index) => {
-                  if (item.type === 'divider') {
-                    return isCollapsed ? (
-                      <hr
-                        key={index}
-                        className={`my-3 border-t ${styles.divider}`}
-                      />
-                    ) : (
-                      <div
-                        key={index}
-                        className={`px-3 pt-5 pb-2 text-xs font-semibold ${styles.mutedText}`}
-                      >
-                        {item.label}
-                      </div>
-                    );
-                  }
-                  if (item.dropdown) {
-                    return (
-                      <SidebarItem
-                        key={index}
-                        label={item.label}
-                        Icon={item.icon}
-                        dropdown
-                        toggleMethod={item.toggleMethod}
-                        toggleState={item.toggleState}
-                        iconOnly={shouldShowIconsOnly}
-                      >
-                        {item.children?.map((child, childIndex) => (
-                          <SideBarDropdownItem
-                            key={childIndex}
-                            itemLabel={child.label}
-                            itemPath={child.path}
-                          />
-                        ))}
-                      </SidebarItem>
-                    );
-                  }
-
-                  return (
-                    <SidebarItem
-                      key={index}
-                      label={item.label}
-                      Icon={item.icon}
-                      navPath={item.path}
-                      iconOnly={shouldShowIconsOnly}
-                    />
-                  );
-                })}
+              {children || (
+                <UnifiedSidebarContent
+                  isCollapsed={isCollapsed}
+                  userType={resolvedUserType}
+                  isDarkMode={isDarkMode}
+                  customNavigationItems={navigationItems}
+                />
+              )}
             </div>{' '}
             {/* Bottom Section */}
             <div className="mt-auto pb-4">{footerContent}</div>
@@ -228,6 +160,7 @@ AuthenticatedSideBar.propTypes = {
   headerContent: PropTypes.node,
   footerContent: PropTypes.node,
   showCollapseButton: PropTypes.bool,
+  userType: PropTypes.oneOf(['user', 'admin', 'organization']),
   navigationItems: PropTypes.arrayOf(
     PropTypes.shape({
       type: PropTypes.oneOf(['item', 'divider', 'dropdown']),

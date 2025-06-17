@@ -44,7 +44,7 @@ const CHART_CONFIG = {
   chartMargin: {
     top: 50,
     right: 20,
-    bottom: 50,
+    bottom: 30,
   },
   // Minimal margins for exports to reduce whitespace
   exportMargin: {
