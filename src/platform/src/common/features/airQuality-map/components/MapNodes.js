@@ -334,7 +334,7 @@ export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
 
       <div class="flex justify-between gap-2 w-full items-center">
         <div class="flex items-center space-x-2">
-          <div class="rounded-full bg-blue-500 w-3 h-3"></div>
+          <div class="rounded-full bg-[var(--org-primary,var(--color-primary,#145fff))] w-3 h-3"></div>
           <div
             class="font-semibold text-sm leading-4"
             style="width:25ch; color: ${popupTextColor};"

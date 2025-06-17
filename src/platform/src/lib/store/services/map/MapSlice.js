@@ -72,6 +72,11 @@ export const mapSlice = createSlice({
       state.waqData = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase({ type: 'RESET_APP' }, () => initialState)
+      .addCase({ type: 'LOGOUT_USER' }, () => initialState);
+  },
 });
 
 export const {

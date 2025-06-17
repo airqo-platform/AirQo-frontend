@@ -1,0 +1,86 @@
+'use client';
+
+import Head from 'next/head';
+import GlobalTopbar from '@/common/layouts/GlobalTopbar';
+import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
+import { UnifiedSideBarDrawer } from '@/common/layouts/SideBar';
+import MaintenanceBanner from '@/components/MaintenanceBanner';
+import useUserPreferences from '@/core/hooks/useUserPreferences';
+import useInactivityLogout from '@/core/hooks/useInactivityLogout';
+import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
+import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
+import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
+
+/**
+ * Create Organization Layout Component
+ *
+ * Matches UnifiedPagesLayout structure exactly but without authenticated sidebar.
+ * Provides the same layout experience as user pages but focused on organization creation.
+ */
+export default function CreateOrganizationLayout({ children }) {
+  const { userID } = useGetActiveGroup();
+  const { maintenance } = useMaintenanceStatus();
+
+  // Initialize hooks exactly like UnifiedPagesLayout
+  useUserPreferences();
+  useInactivityLogout(userID);
+
+  // Get current layout (compact or wide)
+  const { layout } = useTheme();
+  // Route configuration for create organization page
+  const routeConfig = {
+    pageTitle: 'Request Organization Access - AirQo Analytics',
+    topbarTitle: 'Request Organization Access',
+  };
+
+  // Determine container classes based on layout preference (same as UnifiedPagesLayout)
+  const containerClasses =
+    layout === THEME_LAYOUT.COMPACT
+      ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
+      : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
+
+  const homeNavPath = '/user/Home';
+
+  return (
+    <div
+      className="flex overflow-hidden min-h-screen h-screen bg-background"
+      data-testid="create-organization-layout"
+    >
+      <Head>
+        <title>{routeConfig.pageTitle}</title>
+        <meta property="og:title" content={routeConfig.pageTitle} key="title" />
+      </Head>
+
+      {/* Global Topbar - Full width at top */}
+      <GlobalTopbar
+        topbarTitle={routeConfig.topbarTitle}
+        homeNavPath={homeNavPath}
+        showBreadcrumb={false}
+      />
+
+      {/* Main Content - Full width without sidebar */}
+      <main className="flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto">
+        <div className={`h-full bg-background ${containerClasses}`}>
+          {/* Maintenance Banner */}
+          {maintenance && <MaintenanceBanner maintenance={maintenance} />}
+
+          {/* Content */}
+          <div className="text-text transition-all duration-300 bg-background h-full">
+            {children}
+          </div>
+        </div>
+      </main>
+
+      {/* SideBar Drawer for mobile - keeping for consistency */}
+      <UnifiedSideBarDrawer userType="user" />
+
+      {/* Global SideBar Drawer */}
+      <GlobalSideBarDrawer />
+
+      {/* Theme Customizer - Available like other layouts */}
+      <ThemeCustomizer />
+    </div>
+  );
+}

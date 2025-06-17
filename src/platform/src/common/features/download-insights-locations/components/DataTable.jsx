@@ -9,7 +9,7 @@ import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Button from '@/components/Button';
 
 /**
