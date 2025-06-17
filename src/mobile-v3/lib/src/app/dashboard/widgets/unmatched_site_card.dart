@@ -26,33 +26,40 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
     return Stack(
       children: [
         Positioned.fill(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Remove',
-                      style: TextStyle(
+          child: GestureDetector(
+            onTap: () {
+              if (_dragOffset < 0) {
+                widget.onRemove(widget.site.id);
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.delete,
                         color: Colors.white,
-                        fontSize: 14,
+                        size: 24,
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 4),
+                      Text(
+                        'Remove',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
