@@ -3,8 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { isEmpty } from 'underscore';
-import { IoChevronDown } from 'react-icons/io5';
 import { HiPlus } from 'react-icons/hi2';
+import { ImSpinner8 } from 'react-icons/im';
 import PropTypes from 'prop-types';
 
 // Organization Loading Context
@@ -447,12 +447,10 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
           </span>
         )}
 
-        {/* Dropdown Arrow */}
-        <IoChevronDown
-          className={`h-4 w-4 transition-transform duration-200 ${
-            isModalOpen ? 'rotate-180' : ''
-          } ${isSwitching ? 'animate-spin opacity-50' : ''}`}
-        />
+        {/* Loading Spinner */}
+        {isSwitching && (
+          <ImSpinner8 className="h-4 w-4 animate-spin text-primary" />
+        )}
       </button>
 
       {/* Organization Selection Modal */}
