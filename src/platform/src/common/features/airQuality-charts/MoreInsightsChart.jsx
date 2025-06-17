@@ -44,10 +44,15 @@ const CHART_CONFIG = {
   chartMargin: {
     top: 50,
     right: 20,
+    bottom: 50,
+  },
+  // Minimal margins for exports to reduce whitespace
+  exportMargin: {
+    top: 5,
+    right: 5,
+    left: 15,
     bottom: 30,
   },
-  padding: '8px 12px',
-  marginTop: '20px',
   exportStyles: {
     fontSize: 12,
     fontFamily: 'system-ui, -apple-system, sans-serif',
