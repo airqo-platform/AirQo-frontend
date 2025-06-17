@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Button from '@/common/components/Button';
 import Card from '@/common/components/CardWrapper';
 
@@ -13,9 +13,27 @@ export const DialogWrapper = ({
   width = 'w-full max-w-[400px]',
   footer,
 }) => {
+  const dialogRef = useRef(null);
+
   const handleCancel = () => {
     onClose();
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dialogRef.current && !dialogRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, onClose]);
 
   return (
     <dialog
@@ -24,7 +42,9 @@ export const DialogWrapper = ({
         open ? 'visible modal modal-open' : 'hidden'
       } w-screen h-screen flex items-center justify-center`}
     >
+      <div onClick={onClose} />
       <Card
+        ref={dialogRef}
         width={width}
         height="h-auto"
         className="mx-auto p-2"

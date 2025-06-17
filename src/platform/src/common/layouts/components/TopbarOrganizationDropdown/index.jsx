@@ -458,7 +458,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
         open={isModalOpen}
         onClose={handleCloseModal}
         footer={modalFooter}
-        width="w-full max-w-[700px]"
+        width="w-full max-w-[600px]"
       >
         <div>
           <div className="text-xl font-semibold text-gray-900 mb-1">
