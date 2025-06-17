@@ -11,32 +11,18 @@ const useThemeInitialization = () => {
   const { data: session, status } = useSession();
   const { setPrimaryColor, toggleTheme, toggleSkin, setLayout } = useTheme();
   const [isThemeApplied, setIsThemeApplied] = useState(false);
+
   // Monitor for cached theme and apply it when available
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('useThemeInitialization useEffect running:', {
-      status,
-      userId: session?.user?.id,
-    });
-
     if (status === 'authenticated' && session?.user?.id) {
       const checkForCachedTheme = () => {
         if (typeof window !== 'undefined') {
           try {
             const storedTheme = window.sessionStorage.getItem('userTheme');
             const isLoaded = window.sessionStorage.getItem('userThemeLoaded');
-            // eslint-disable-next-line no-console
-            console.log('Checking for cached theme:', {
-              storedTheme,
-              isLoaded,
-              isThemeApplied,
-            });
 
             if (storedTheme && isLoaded === 'true' && !isThemeApplied) {
               const setupTheme = JSON.parse(storedTheme);
-
-              // eslint-disable-next-line no-console
-              console.log('Applying cached theme:', setupTheme);
 
               // Apply the cached theme
               setPrimaryColor(setupTheme.primaryColor);
@@ -47,9 +33,6 @@ const useThemeInitialization = () => {
               // Clear the setup flag
               window.sessionStorage.removeItem('userThemeLoaded');
               setIsThemeApplied(true);
-
-              // eslint-disable-next-line no-console
-              console.log('Theme applied successfully');
             }
           } catch {
             // Error applying cached theme, mark as applied to avoid retrying

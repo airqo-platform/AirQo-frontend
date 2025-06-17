@@ -26,16 +26,6 @@ import { validateEnvironment } from '@/lib/envConstants';
  */
 function ThemeInitializer() {
   useThemeInitialization();
-
-  // Debug logging
-  if (typeof window !== 'undefined') {
-    // eslint-disable-next-line no-console
-    console.log('ThemeInitializer running, session storage:', {
-      userTheme: window.sessionStorage.getItem('userTheme'),
-      userThemeLoaded: window.sessionStorage.getItem('userThemeLoaded'),
-    });
-  }
-
   return null; // This component doesn't render anything
 }
 

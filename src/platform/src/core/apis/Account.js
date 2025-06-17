@@ -267,7 +267,7 @@ export const getUserThemeApi = (userId, tenant = 'airqo') => {
 };
 
 /**
- * Update user theme preferences (only sends changed properties)
+ * Update user theme preferences (sends all theme properties)
  * @param {string} userId - MongoDB ObjectId of the user
  * @param {Object} currentTheme - Current theme state
  * @param {Object} newTheme - New theme settings object
@@ -294,70 +294,73 @@ export const updateUserThemeApi = (
     return Promise.reject(new Error('Valid current theme data is required'));
   }
 
-  // Calculate the differences (only changed properties)
-  const changedProperties = {};
+  // Build complete theme object with all four properties
   const validThemeKeys = [
     'primaryColor',
     'mode',
     'interfaceStyle',
     'contentLayout',
   ];
-
+  const completeTheme = {};
   validThemeKeys.forEach((key) => {
-    if (newTheme[key] !== undefined && newTheme[key] !== currentTheme[key]) {
-      changedProperties[key] = newTheme[key];
-    }
+    // Use new value if provided, otherwise use current value
+    completeTheme[key] =
+      newTheme[key] !== undefined ? newTheme[key] : currentTheme[key];
   });
 
+  // Check if there are any actual changes for early return optimization
+  const hasChanges = validThemeKeys.some(
+    (key) => newTheme[key] !== undefined && newTheme[key] !== currentTheme[key],
+  );
+
   // If no changes, return success without making API call
-  if (Object.keys(changedProperties).length === 0) {
+  if (!hasChanges) {
     return Promise.resolve({
       success: true,
       message: 'No changes to update',
       data: currentTheme,
     });
   }
-
-  // Validate changed properties
-  if (changedProperties.primaryColor) {
+  // Validate complete theme properties
+  if (completeTheme.primaryColor) {
     const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    if (!hexColorRegex.test(changedProperties.primaryColor)) {
+    if (!hexColorRegex.test(completeTheme.primaryColor)) {
       return Promise.reject(
         new Error('Primary color must be in valid hex format'),
       );
     }
   }
 
-  if (changedProperties.mode) {
+  if (completeTheme.mode) {
     const validModes = ['light', 'dark', 'system'];
-    if (!validModes.includes(changedProperties.mode)) {
+    if (!validModes.includes(completeTheme.mode)) {
       return Promise.reject(
         new Error('Mode must be one of: light, dark, system'),
       );
     }
   }
 
-  if (changedProperties.interfaceStyle) {
+  if (completeTheme.interfaceStyle) {
     const validStyles = ['default', 'bordered'];
-    if (!validStyles.includes(changedProperties.interfaceStyle)) {
+    if (!validStyles.includes(completeTheme.interfaceStyle)) {
       return Promise.reject(
         new Error('Interface style must be one of: default, bordered'),
       );
     }
   }
 
-  if (changedProperties.contentLayout) {
+  if (completeTheme.contentLayout) {
     const validLayouts = ['compact', 'wide'];
-    if (!validLayouts.includes(changedProperties.contentLayout)) {
+    if (!validLayouts.includes(completeTheme.contentLayout)) {
       return Promise.reject(
         new Error('Content layout must be one of: compact, wide'),
       );
     }
   }
 
-  // Wrap changes in theme object as required by backend
+  // Wrap complete theme in theme object as required by backend
   const requestBody = {
-    theme: changedProperties,
+    theme: completeTheme,
   };
 
   const params = { tenant };
