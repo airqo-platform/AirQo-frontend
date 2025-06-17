@@ -42,13 +42,12 @@ import Button from '@/components/Button';
 // Simplified responsive chart configuration
 const CHART_CONFIG = {
   chartMargin: {
-    top: 60, // Increased from 50 to 60 to move chart down even more
+    top: 50,
     right: 20,
-    left: 20,
-    bottom: 60, // Space for legend
+    bottom: 30,
   },
   padding: '8px 12px',
-  marginTop: '20px', // Increased from 15px to 20px to push chart down more
+  marginTop: '20px',
   exportStyles: {
     fontSize: 12,
     fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -57,8 +56,8 @@ const CHART_CONFIG = {
     fontSize: 12,
     fontWeight: '600',
     position: {
-      dy: -40, // Pushed up even more for better positioning above Y-axis
-      dx: 5, // Moved to the left from 12 to 5 for better alignment
+      dy: -40,
+      dx: 5,
     },
   },
 };
