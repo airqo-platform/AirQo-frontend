@@ -23,7 +23,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
     if (!itemPath) return false;
     return currentRoute === itemPath || currentRoute.startsWith(itemPath + '/');
   }, [currentRoute, itemPath]);
-  // Determine dark mode
+
   const isDarkMode = useMemo(() => {
     if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark'))
       return true;
@@ -58,8 +58,7 @@ SideBarDropdownItem.propTypes = {
 };
 
 /**
- * Subroute Popup Component
- * Displays a hover popup with subroute navigation items
+ * Subroute Popup Component with FIXED z-index and stable hover
  */
 const SubroutePopup = ({
   referenceElement,
@@ -67,25 +66,24 @@ const SubroutePopup = ({
   isVisible,
   isDarkMode,
   onSubrouteClick,
-  onMouseEnter,
-  onMouseLeave,
+  onPopupHover,
 }) => {
   const [popperElement, setPopperElement] = useState(null);
+
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'right-start',
     modifiers: [
       {
         name: 'offset',
         options: {
-          offset: [8, -32], // Move popup 8px right and 32px up for better positioning
+          offset: [8, 0], // 8px gap from sidebar
         },
       },
       {
         name: 'preventOverflow',
         options: {
-          boundary: 'clippingParents',
-          padding: 16,
-          altBoundary: true,
+          boundary: 'viewport',
+          padding: 20,
         },
       },
       {
@@ -95,99 +93,95 @@ const SubroutePopup = ({
         },
       },
     ],
-    strategy: 'fixed', // Use fixed positioning to escape container constraints
+    strategy: 'fixed',
   });
 
+  const handleSubrouteSelect = useCallback(
+    (e, subroute) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (onSubrouteClick) {
+        onSubrouteClick(e, subroute);
+      }
+    },
+    [onSubrouteClick],
+  );
+
   if (!isVisible || !subroutes?.length) return null;
-  // Debug logging for development
-  if (isVisible && process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('🎯 Popup rendering:', {
-      isVisible,
-      subroutesCount: subroutes?.length,
-      hasReference: !!referenceElement,
-      strategy: 'portal to document.body',
-    });
-  }
 
   const popupContent = (
     <div
       ref={setPopperElement}
       style={{
         ...styles.popper,
-        zIndex: 2147483647, // Maximum z-index value
+        zIndex: 10000, // Higher than backdrop (9999)
         position: 'fixed',
       }}
       {...attributes.popper}
+      onMouseEnter={() => onPopupHover?.(true)}
+      onMouseLeave={() => onPopupHover?.(false)}
       className="pointer-events-auto"
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      data-popup="subroute-popup"
     >
-      {/* Extended invisible bridge to prevent popup from closing - covers the gap */}
+      {/* Hover bridge - invisible connection area */}
       <div
-        className="absolute -left-16 top-0 w-16 h-full bg-transparent pointer-events-auto"
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        className="absolute -left-2 top-0 w-2 h-full bg-transparent pointer-events-auto"
+        onMouseEnter={() => onPopupHover?.(true)}
+        onMouseLeave={() => onPopupHover?.(false)}
       />
 
+      {/* Main popup */}
       <div
         className={`
-          min-w-[260px] py-2 rounded-lg shadow-2xl border backdrop-blur-sm pointer-events-auto
+          min-w-[280px] max-w-[360px] py-2 rounded-xl shadow-2xl border pointer-events-auto
+          transform transition-all duration-200 ease-out
+          ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
           ${
             isDarkMode
-              ? 'bg-gray-800/95 border-gray-600 shadow-black/60'
-              : 'bg-white/95 border-gray-200 shadow-gray-900/20'
+              ? 'bg-gray-900 border-gray-700 shadow-black/80'
+              : 'bg-white border-gray-200 shadow-gray-900/30'
           }
-          transform transition-all duration-200 ease-out
-          hover:shadow-2xl
         `}
         style={{
-          transform: 'translateZ(0)', // Force hardware acceleration
-          willChange: 'transform', // Optimize for animations
+          transformOrigin: 'left center',
+          backdropFilter: 'blur(8px)',
         }}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        onMouseEnter={() => onPopupHover?.(true)}
+        onMouseLeave={() => onPopupHover?.(false)}
       >
         {subroutes.map((subroute, index) => (
           <div
-            key={subroute.path || index}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (onSubrouteClick) {
-                onSubrouteClick(e, subroute);
-              }
-            }}
+            key={subroute.path || `subroute-${index}`}
+            onClick={(e) => handleSubrouteSelect(e, subroute)}
             className={`
-              cursor-pointer px-4 py-3 text-sm transition-all duration-150 ease-out
-              first:rounded-t-lg last:rounded-b-lg
+              group cursor-pointer px-4 py-3 text-sm transition-all duration-150
+              flex items-center gap-3 mx-1 rounded-lg
               ${
                 isDarkMode
-                  ? 'text-gray-200 hover:bg-gray-700/70 hover:text-white'
-                  : 'text-gray-700 hover:bg-blue-50 hover:text-blue-800'
+                  ? 'text-gray-200 hover:bg-gray-800 hover:text-white active:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100'
               }
             `}
-            onMouseEnter={onMouseEnter}
           >
-            <div className="flex items-center">
-              {subroute.icon && (
-                <subroute.icon
-                  className={`w-4 h-4 mr-3 flex-shrink-0 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                  }`}
-                  size={16}
-                />
-              )}
-              <span className="font-medium truncate">{subroute.label}</span>
-            </div>
+            {subroute.icon && (
+              <subroute.icon
+                className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-400 group-hover:text-blue-400'
+                    : 'text-gray-500 group-hover:text-blue-600'
+                }`}
+                size={16}
+              />
+            )}
+            <span className="font-medium truncate text-left flex-1">
+              {subroute.label}
+            </span>
           </div>
         ))}
       </div>
     </div>
   );
 
-  // Render popup in a portal to escape sidebar container constraints
   return createPortal(popupContent, document.body);
 };
 
@@ -203,8 +197,7 @@ SubroutePopup.propTypes = {
   isVisible: PropTypes.bool.isRequired,
   isDarkMode: PropTypes.bool.isRequired,
   onSubrouteClick: PropTypes.func,
-  onMouseEnter: PropTypes.func,
-  onMouseLeave: PropTypes.func,
+  onPopupHover: PropTypes.func,
 };
 
 const SidebarItem = ({
@@ -222,105 +215,123 @@ const SidebarItem = ({
 }) => {
   const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
-  const [isHovering, setIsHovering] = useState(false);
-  const [hoverTimeout, setHoverTimeout] = useState(null);
+
+  // Simplified hover state management
+  const [showPopup, setShowPopup] = useState(false);
   const itemRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+
   const currentRoute = pathname;
   const isCurrentRoute = useMemo(() => {
     if (!navPath) return false;
-    // Exact match for root/home routes
     if (navPath === '/' && currentRoute === '/') return true;
     if (
       navPath === '/user/Home' &&
       (currentRoute === '/' || currentRoute === '/user/Home')
     )
       return true;
-
-    // Exact match for other routes
     if (currentRoute === navPath) return true;
-
-    // For dropdown items, check if current route starts with the navPath
     if (children && currentRoute.startsWith(navPath)) return true;
-
     return false;
   }, [currentRoute, navPath, children]);
 
   const hasDropdown = !!children;
   const hasSubroutes = !!subroutes && subroutes.length > 0;
-  // Enhanced hover system for seamless popup interaction
-  const handleMouseEnter = useCallback(() => {
-    if (!hasSubroutes || iconOnly) return;
 
-    // Clear any existing timeout
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-      setHoverTimeout(null);
-    }
-
-    // Show popup immediately for responsive feel
-    setIsHovering(true);
-  }, [hasSubroutes, iconOnly, hoverTimeout]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (!hasSubroutes || iconOnly) return;
-
-    // Clear any existing timeout
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-      setHoverTimeout(null);
-    }
-
-    // Add generous delay to allow smooth mouse movement to popup
-    const timeout = setTimeout(() => {
-      setIsHovering(false);
-    }, 300); // Reduced from 500ms to 300ms for better responsiveness
-
-    setHoverTimeout(timeout);
-  }, [hasSubroutes, iconOnly, hoverTimeout]);
-
-  // Handle popup mouse events - these override the main item handlers
-  const handlePopupMouseEnter = useCallback(() => {
-    // Cancel any pending hide timeout
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-      setHoverTimeout(null);
-    }
-    // Ensure popup stays visible
-    setIsHovering(true);
-  }, [hoverTimeout]);
-
-  const handlePopupMouseLeave = useCallback(() => {
-    // Clear any existing timeout
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-      setHoverTimeout(null);
-    }
-
-    // Hide popup after leaving popup area - immediate but with small delay for accidental mouse moves
-    const timeout = setTimeout(() => {
-      setIsHovering(false);
-    }, 100); // Very quick hide when leaving popup
-
-    setHoverTimeout(timeout);
-  }, [hoverTimeout]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-      }
-    };
-  }, [hoverTimeout]);
-
-  // Determine dark mode
   const isDarkMode = useMemo(() => {
     if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark'))
       return true;
     return isSemiDarkEnabled;
   }, [theme, systemTheme, isSemiDarkEnabled]);
 
-  // Text and icon color
+  // Clear any pending timeouts
+  const clearHoverTimeout = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Handle item hover
+  const handleItemHover = useCallback(
+    (isHovering) => {
+      if (!hasSubroutes || iconOnly) return;
+
+      clearHoverTimeout();
+
+      if (isHovering) {
+        // Show popup immediately
+        setShowPopup(true);
+      } else {
+        // Hide popup after delay
+        hoverTimeoutRef.current = setTimeout(() => {
+          setShowPopup(false);
+        }, 300);
+      }
+    },
+    [hasSubroutes, iconOnly, clearHoverTimeout],
+  );
+
+  // Handle popup hover
+  const handlePopupHover = useCallback(
+    (isHovering) => {
+      clearHoverTimeout();
+
+      if (isHovering) {
+        // Keep popup visible
+        setShowPopup(true);
+      } else {
+        // Hide popup after shorter delay
+        hoverTimeoutRef.current = setTimeout(() => {
+          setShowPopup(false);
+        }, 150);
+      }
+    },
+    [clearHoverTimeout],
+  );
+
+  // Handle subroute clicks
+  const handleSubrouteClick = useCallback(
+    (e, subroute) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Hide popup immediately
+      clearHoverTimeout();
+      setShowPopup(false);
+
+      // Navigate
+      if (subroute.path) {
+        if (
+          subroute.path.startsWith('http') ||
+          subroute.path.includes('/admin')
+        ) {
+          window.location.href = subroute.path;
+        } else {
+          window.location.href = subroute.path;
+        }
+      }
+
+      // Call parent handlers
+      if (onSubrouteClick) {
+        onSubrouteClick(e, subroute);
+      }
+
+      if (onClick) {
+        setTimeout(() => onClick(), 50);
+      }
+    },
+    [onSubrouteClick, onClick, clearHoverTimeout],
+  );
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      clearHoverTimeout();
+    };
+  }, [clearHoverTimeout]);
+
+  // Styling
   const textClass = isCurrentRoute
     ? 'text-primary'
     : isDarkMode
@@ -333,7 +344,6 @@ const SidebarItem = ({
       ? 'text-white'
       : 'text-gray-600';
 
-  // Background classes
   const bgClass = isCurrentRoute
     ? isDarkMode
       ? 'bg-gray-700/30'
@@ -348,14 +358,13 @@ const SidebarItem = ({
   `;
 
   const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-lg';
-
   const handleItemClick = hasDropdown ? toggleMethod : onClick;
 
-  // If it's an external link, handle it differently
+  // External link handling
   if (isExternal) {
     const handleExternalClick = () => {
       window.open(navPath, '_blank', 'noopener,noreferrer');
-      if (onClick) onClick(); // Close sidebar or perform other actions
+      if (onClick) onClick();
     };
 
     return (
@@ -368,22 +377,15 @@ const SidebarItem = ({
         <div
           className={`
             relative flex items-center cursor-pointer
-            ${
-              iconOnly
-                ? 'p-0 justify-center items-center w-12 h-12 mx-auto'
-                : 'py-2.5 px-3 w-full'
-            }
-            ${bgClass}
-            rounded-lg
+            ${iconOnly ? 'p-0 justify-center items-center w-12 h-12 mx-auto' : 'py-2.5 px-3 w-full'}
+            ${bgClass} rounded-lg
           `}
         >
           {iconOnly ? (
-            // Collapsed state - centered icon
             <div className="flex items-center justify-center w-full h-full">
               {Icon && <Icon className={`${iconColor} w-5 h-5`} size={20} />}
             </div>
           ) : (
-            // Expanded state - normal layout
             <>
               <div className="flex items-center justify-center w-5 h-5 mr-3">
                 {Icon && <Icon className={`${iconColor} w-5 h-5`} size={20} />}
@@ -400,29 +402,22 @@ const SidebarItem = ({
 
   return (
     <div className="relative">
-      {/* Main sidebar item */}
       <div
         ref={itemRef}
         className={`${commonClasses} group`}
         role="button"
         tabIndex={0}
         onClick={handleItemClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={() => handleItemHover(true)}
+        onMouseLeave={() => handleItemHover(false)}
       >
         <Link
           href={navPath || '#'}
           onClick={onClick}
           className={`
             relative flex items-center transition-all duration-200 ease-out
-            ${
-              iconOnly
-                ? 'p-0 justify-center items-center w-12 h-12 mx-auto'
-                : 'py-2.5 px-3 w-full'
-            }
-            ${bgClass}
-            rounded-lg
-            ${hasSubroutes && !iconOnly ? 'pr-2' : ''}
+            ${iconOnly ? 'p-0 justify-center items-center w-12 h-12 mx-auto' : 'py-2.5 px-3 w-full'}
+            ${bgClass} rounded-lg
           `}
         >
           {isCurrentRoute && !iconOnly && (
@@ -430,12 +425,10 @@ const SidebarItem = ({
           )}
 
           {iconOnly ? (
-            // Collapsed state - centered icon
             <div className="flex items-center justify-center w-full h-full">
               {Icon && <Icon className={`${iconColor} w-5 h-5`} size={20} />}
             </div>
           ) : (
-            // Expanded state - normal layout
             <>
               <div className="flex items-center justify-center w-5 h-5 mr-3">
                 {Icon && <Icon className={`${iconColor} w-5 h-5`} size={20} />}
@@ -448,7 +441,9 @@ const SidebarItem = ({
               )}
               {hasSubroutes && !hasDropdown && (
                 <MdKeyboardArrowRight
-                  className={`${textClass} w-4 h-4 transition-transform duration-200 group-hover:translate-x-1`}
+                  className={`${textClass} w-4 h-4 transition-transform duration-200 ${
+                    showPopup ? 'translate-x-1' : 'group-hover:translate-x-0.5'
+                  }`}
                 />
               )}
             </>
@@ -460,16 +455,15 @@ const SidebarItem = ({
         )}
       </div>
 
-      {/* Hover Popup for Subroutes - Enhanced for debugging */}
+      {/* Popup for subroutes */}
       {hasSubroutes && !iconOnly && (
         <SubroutePopup
           referenceElement={itemRef.current}
           subroutes={subroutes}
-          isVisible={isHovering}
+          isVisible={showPopup}
           isDarkMode={isDarkMode}
-          onSubrouteClick={onSubrouteClick}
-          onMouseEnter={handlePopupMouseEnter}
-          onMouseLeave={handlePopupMouseLeave}
+          onSubrouteClick={handleSubrouteClick}
+          onPopupHover={handlePopupHover}
         />
       )}
     </div>
