@@ -9,7 +9,7 @@ import Button from '@/common/components/Button';
 import MenuBarIcon from '@/icons/menu_bar';
 import MenuIcon from '@/icons/Actions/menu';
 import UserProfileDropdown from '../components/UserProfileDropdown';
-import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
+import TopbarOrganizationSelector from '../components/TopbarOrganizationSelector';
 import {
   setTogglingGlobalDrawer,
   setToggleDrawer,
@@ -203,7 +203,7 @@ const GlobalTopbar = ({
             {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
             <div className="hidden lg:flex gap-2 items-center justify-center">
               {/* Organization Dropdown - Show for users with multiple groups */}
-              <TopbarOrganizationDropdown className="mr-2" />
+              <TopbarOrganizationSelector className="mr-2" />
               {customActions && (
                 <div className="flex items-center justify-center">
                   {customActions}
@@ -258,7 +258,7 @@ const GlobalTopbar = ({
               </div>
             )}{' '}
             {/* Organization Dropdown for mobile */}
-            <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
+            <TopbarOrganizationSelector showTitle={false} className="mr-2" />
             {/* Custom actions for mobile if any */}
             {customActions && (
               <div className="flex gap-1 items-center justify-center">

@@ -86,7 +86,7 @@ const determineTargetRoute = (group) => {
 };
 
 /**
- * Enhanced TopbarOrganizationDropdown Component
+ * Enhanced TopbarOrganizationSelectorComponent
  *
  * Features:
  * - Rotating arrow animation when dropdown opens/closes
@@ -95,7 +95,7 @@ const determineTargetRoute = (group) => {
  * - Improved design with primary colors
  * - Form validation and error handling
  */
-const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
+const TopbarOrganizationSelector = ({ showTitle = true, className = '' }) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const router = useRouter();
@@ -535,9 +535,9 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   );
 };
 
-TopbarOrganizationDropdown.propTypes = {
+TopbarOrganizationSelector.propTypes = {
   showTitle: PropTypes.bool,
   className: PropTypes.string,
 };
 
-export default TopbarOrganizationDropdown;
+export default TopbarOrganizationSelector;

@@ -7,7 +7,7 @@
  * - Preserves current page context when switching between organizations
  *
  * Features:
- * - Consistent routing behavior with TopbarOrganizationDropdown
+ * - Consistent routing behavior with TopbarOrganizationSelector
  * - Automatic route mapping between user and organization contexts
  * - Responsive design for collapsed/expanded sidebar states
  * - Memory efficient with proper cleanup and error handling
