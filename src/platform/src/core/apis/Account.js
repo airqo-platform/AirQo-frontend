@@ -13,6 +13,8 @@ import {
   FORGOT_PWD_URL,
   RESET_PWD_URL,
   MAINTENANCE_STATUS_URL,
+  getUserThemeUrl,
+  updateUserThemeUrl,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 
@@ -235,3 +237,141 @@ export const getMaintenanceStatus = () =>
   secureApiProxy
     .get(MAINTENANCE_STATUS_URL, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
+
+// Theme Management APIs
+/**
+ * Get user theme preferences
+ * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} tenant - Tenant identifier (defaults to 'airqo')
+ * @returns {Promise} - Promise resolving to theme preferences
+ */
+export const getUserThemeApi = (userId, tenant = 'airqo') => {
+  // Validate user ID
+  if (!userId || typeof userId !== 'string') {
+    return Promise.reject(new Error('Valid user ID is required'));
+  }
+  const params = { tenant };
+
+  return secureApiProxy
+    .get(getUserThemeUrl(userId), {
+      params,
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch user theme';
+      throw new Error(errorMessage);
+    });
+};
+
+/**
+ * Update user theme preferences (only sends changed properties)
+ * @param {string} userId - MongoDB ObjectId of the user
+ * @param {Object} currentTheme - Current theme state
+ * @param {Object} newTheme - New theme settings object
+ * @param {string} tenant - Tenant identifier (defaults to 'airqo')
+ * @returns {Promise} - Promise resolving to updated theme preferences
+ */
+export const updateUserThemeApi = (
+  userId,
+  currentTheme,
+  newTheme,
+  tenant = 'airqo',
+) => {
+  // Validate user ID
+  if (!userId || typeof userId !== 'string') {
+    return Promise.reject(new Error('Valid user ID is required'));
+  }
+
+  // Validate theme data
+  if (!newTheme || typeof newTheme !== 'object') {
+    return Promise.reject(new Error('Valid theme data is required'));
+  }
+
+  if (!currentTheme || typeof currentTheme !== 'object') {
+    return Promise.reject(new Error('Valid current theme data is required'));
+  }
+
+  // Calculate the differences (only changed properties)
+  const changedProperties = {};
+  const validThemeKeys = [
+    'primaryColor',
+    'mode',
+    'interfaceStyle',
+    'contentLayout',
+  ];
+
+  validThemeKeys.forEach((key) => {
+    if (newTheme[key] !== undefined && newTheme[key] !== currentTheme[key]) {
+      changedProperties[key] = newTheme[key];
+    }
+  });
+
+  // If no changes, return success without making API call
+  if (Object.keys(changedProperties).length === 0) {
+    return Promise.resolve({
+      success: true,
+      message: 'No changes to update',
+      data: currentTheme,
+    });
+  }
+
+  // Validate changed properties
+  if (changedProperties.primaryColor) {
+    const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    if (!hexColorRegex.test(changedProperties.primaryColor)) {
+      return Promise.reject(
+        new Error('Primary color must be in valid hex format'),
+      );
+    }
+  }
+
+  if (changedProperties.mode) {
+    const validModes = ['light', 'dark', 'system'];
+    if (!validModes.includes(changedProperties.mode)) {
+      return Promise.reject(
+        new Error('Mode must be one of: light, dark, system'),
+      );
+    }
+  }
+
+  if (changedProperties.interfaceStyle) {
+    const validStyles = ['default', 'bordered'];
+    if (!validStyles.includes(changedProperties.interfaceStyle)) {
+      return Promise.reject(
+        new Error('Interface style must be one of: default, bordered'),
+      );
+    }
+  }
+
+  if (changedProperties.contentLayout) {
+    const validLayouts = ['compact', 'wide'];
+    if (!validLayouts.includes(changedProperties.contentLayout)) {
+      return Promise.reject(
+        new Error('Content layout must be one of: compact, wide'),
+      );
+    }
+  }
+
+  // Wrap changes in theme object as required by backend
+  const requestBody = {
+    theme: changedProperties,
+  };
+
+  const params = { tenant };
+
+  return secureApiProxy
+    .put(updateUserThemeUrl(userId), requestBody, {
+      params,
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling
+      const errorMessage =
+        error.response?.data?.message || 'Failed to update user theme';
+      throw new Error(errorMessage);
+    });
+};
