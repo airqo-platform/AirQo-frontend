@@ -71,14 +71,13 @@ const SubroutePopup = ({
   onMouseLeave,
 }) => {
   const [popperElement, setPopperElement] = useState(null);
-
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'right-start',
     modifiers: [
       {
         name: 'offset',
         options: {
-          offset: [24, -18], // Move popup 24px right (further past arrow) and 18px up
+          offset: [8, -32], // Move popup 8px right and 32px up for better positioning
         },
       },
       {
@@ -100,7 +99,6 @@ const SubroutePopup = ({
   });
 
   if (!isVisible || !subroutes?.length) return null;
-
   // Debug logging for development
   if (isVisible && process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console
@@ -126,8 +124,12 @@ const SubroutePopup = ({
       onMouseLeave={onMouseLeave}
       data-popup="subroute-popup"
     >
-      {/* Extended invisible bridge to prevent popup from closing */}
-      <div className="absolute -left-10 top-0 w-10 h-full bg-transparent pointer-events-auto" />
+      {/* Extended invisible bridge to prevent popup from closing - covers the gap */}
+      <div
+        className="absolute -left-16 top-0 w-16 h-full bg-transparent pointer-events-auto"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      />
 
       <div
         className={`
@@ -144,6 +146,8 @@ const SubroutePopup = ({
           transform: 'translateZ(0)', // Force hardware acceleration
           willChange: 'transform', // Optimize for animations
         }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         {subroutes.map((subroute, index) => (
           <div
@@ -164,6 +168,7 @@ const SubroutePopup = ({
                   : 'text-gray-700 hover:bg-blue-50 hover:text-blue-800'
               }
             `}
+            onMouseEnter={onMouseEnter}
           >
             <div className="flex items-center">
               {subroute.icon && (
@@ -242,7 +247,6 @@ const SidebarItem = ({
 
   const hasDropdown = !!children;
   const hasSubroutes = !!subroutes && subroutes.length > 0;
-
   // Enhanced hover system for seamless popup interaction
   const handleMouseEnter = useCallback(() => {
     if (!hasSubroutes || iconOnly) return;
@@ -269,7 +273,7 @@ const SidebarItem = ({
     // Add generous delay to allow smooth mouse movement to popup
     const timeout = setTimeout(() => {
       setIsHovering(false);
-    }, 500); // Increased delay for smooth transition
+    }, 300); // Reduced from 500ms to 300ms for better responsiveness
 
     setHoverTimeout(timeout);
   }, [hasSubroutes, iconOnly, hoverTimeout]);
@@ -292,10 +296,10 @@ const SidebarItem = ({
       setHoverTimeout(null);
     }
 
-    // Hide popup quickly after leaving popup area
+    // Hide popup after leaving popup area - immediate but with small delay for accidental mouse moves
     const timeout = setTimeout(() => {
       setIsHovering(false);
-    }, 150);
+    }, 100); // Very quick hide when leaving popup
 
     setHoverTimeout(timeout);
   }, [hoverTimeout]);
