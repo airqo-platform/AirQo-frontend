@@ -11,12 +11,6 @@ import Button from '@/common/components/Button';
 // Organization Loading Context
 import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 
-// Features
-import {
-  CreateOrganizationDialog,
-  useCreateOrganization,
-} from '@/common/features/create-organization';
-
 // Redux
 import {
   selectActiveGroup,
@@ -90,19 +84,9 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
   // Redux state
   const activeGroup = useSelector(selectActiveGroup);
   const userGroups = useSelector(selectUserGroups);
-
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [isSwitching, setIsSwitching] = useState(false);
-
-  // Organization creation feature
-  const {
-    isModalOpen,
-    isSubmitting,
-    openModal,
-    closeModal,
-    handleSubmit: handleOrganizationSubmit,
-  } = useCreateOrganization();
 
   // Monitor pathname changes for user flow routes
   useEffect(() => {
@@ -188,25 +172,16 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       setIsSwitching(false);
       setIsSwitchingOrganization(false);
     }
-  }; // Handle opening the organization creation modal
-  const handleOpenModal = () => {
-    openModal(); // Just open the create modal, don't close the current one
   };
+  // Handle navigation to create organization page
+  const handleCreateOrganization = () => {
+    onClose(); // Close the current modal
+    router.push('/create-organization'); // Navigate to the create organization page
+  };
+
   if (!isOpen) return null;
 
-  // If create organization modal is open, render only that
-  if (isModalOpen) {
-    return (
-      <CreateOrganizationDialog
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSubmit={handleOrganizationSubmit}
-        isSubmitting={isSubmitting}
-      />
-    );
-  }
-
-  // Otherwise render the organization selection modal
+  // Render the organization selection modal
   return (
     <>
       {/* Backdrop */}
@@ -226,9 +201,9 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {filteredGroups.length} available
               </p>
-            </div>{' '}
+            </div>
             <Button
-              onClick={handleOpenModal}
+              onClick={handleCreateOrganization}
               Icon={HiPlus}
               className="text-xs"
               padding="px-3 py-2"

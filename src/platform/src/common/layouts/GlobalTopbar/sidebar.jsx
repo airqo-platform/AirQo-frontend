@@ -11,6 +11,7 @@ import Card from '@/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import { FiExternalLink } from 'react-icons/fi';
 import AirqoLogo from '@/icons/airqo_logo.svg';
+import HomeIcon from '@/icons/SideBar/HomeIcon';
 import {
   getNavigationItems,
   USER_TYPES,
@@ -210,6 +211,14 @@ const GlobalSideBarDrawer = () => {
         {/* Enhanced navigation section with better dark mode */}
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
+            <SideBarItem
+              label="Home"
+              Icon={HomeIcon}
+              navPath="/user/Home"
+              onClick={closeDrawer}
+              key="home"
+            />
+
             {/* Enhanced Admin Panel with improved subroute functionality */}
             <SideBarItem
               label="Admin Panel"
