@@ -42,7 +42,7 @@ export const DialogWrapper = ({
         open ? 'visible modal modal-open' : 'hidden'
       } w-screen h-screen flex items-center justify-center`}
     >
-      <div onClick={onClose} />
+      <div className="fixed inset-0 bg-black/5" onClick={onClose} />
       <Card
         ref={dialogRef}
         width={width}
