@@ -194,25 +194,21 @@ const GlobalSideBarDrawer = () => {
         }}
       >
         {/* Enhanced header section with better dark mode support */}
-        <div className="px-4 py-4 flex justify-between border-b border-gray-200 dark:border-gray-700 items-center bg-white dark:bg-gray-900">
-          <div className="flex items-center space-x-3">
-            <AirqoLogo className="w-8 h-8 text-primary" />
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
-              AirQo
-            </span>
+        <div className="px-2 py-4 flex justify-between border-b border-gray-400 items-center">
+          <div className="flex items-center space-x-2">
+            <AirqoLogo />
           </div>
           <button
             type="button"
-            className="relative w-auto focus:outline-none focus:ring-2 focus:ring-primary/50 border border-gray-200 dark:border-gray-600 rounded-lg p-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
             onClick={closeDrawer}
-            aria-label="Close sidebar"
           >
-            <CloseIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <CloseIcon />
           </button>
         </div>
 
         {/* Enhanced navigation section with better dark mode */}
-        <div className="flex flex-col justify-between px-3 h-full bg-white dark:bg-gray-900">
+        <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
             {/* Enhanced Admin Panel with improved subroute functionality */}
             <SideBarItem
@@ -243,13 +239,6 @@ const GlobalSideBarDrawer = () => {
               onClick={closeDrawer}
               key="airqo-website"
             />
-          </div>
-
-          {/* Enhanced footer section */}
-          <div className="pb-4 pt-2 border-t border-gray-200 dark:border-gray-700 mt-auto">
-            <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-              Global Navigation
-            </div>
           </div>
         </div>
       </Card>
