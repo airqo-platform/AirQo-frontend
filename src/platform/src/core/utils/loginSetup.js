@@ -1,4 +1,8 @@
-import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
+import {
+  getUserDetails,
+  recentUserPreferencesAPI,
+  getUserThemeApi,
+} from '@/core/apis/Account';
 import {
   setUserInfo,
   setSuccess,
@@ -244,6 +248,36 @@ export const setupUserSession = async (session, dispatch, pathname) => {
     }
 
     dispatch(setSuccess(true));
+
+    // Step Final: Fetch user theme preferences after successful authentication
+    logger.info('Fetching user theme preferences...');
+    let userTheme = null;
+    try {
+      const themeRes = await getUserThemeApi(session.user.id, 'airqo');
+      if (themeRes?.success && themeRes?.data) {
+        userTheme = themeRes.data;
+        logger.info('User theme loaded successfully:', userTheme);
+      } else {
+        logger.info('No user theme found, will use defaults');
+      }
+    } catch (error) {
+      logger.warn('Failed to fetch user theme, will use defaults:', error);
+    }
+
+    // Store theme in global context for immediate access by theme hooks
+    // Always set the loaded flag, even if no theme was found
+    if (typeof window !== 'undefined') {
+      try {
+        if (userTheme) {
+          window.sessionStorage.setItem('userTheme', JSON.stringify(userTheme));
+        }
+        // Always set this flag to indicate theme loading is complete
+        window.sessionStorage.setItem('userThemeLoaded', 'true');
+        logger.info('Theme data stored in sessionStorage');
+      } catch (error) {
+        logger.warn('Failed to store theme in session storage:', error);
+      }
+    }
 
     logger.info('Login setup completed successfully', {
       userId: user._id,

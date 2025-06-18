@@ -81,10 +81,9 @@ const AirQualityLegend = ({ pollutant }) => {
   );
 
   const levels = pollutantLevels[pollutant] || [];
-
   return (
     <Card
-      className="flex flex-col items-center"
+      className="flex flex-col items-center z-50"
       padding="p-0 md:p-2"
       shadow="shadow"
       rounded

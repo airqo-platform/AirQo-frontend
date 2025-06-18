@@ -167,8 +167,8 @@ const SubroutePopup = ({
               <subroute.icon
                 className={`w-4 h-4 flex-shrink-0 transition-colors ${
                   isDarkMode
-                    ? 'text-gray-400 group-hover:text-blue-400'
-                    : 'text-gray-500 group-hover:text-blue-600'
+                    ? 'text-gray-400 group-hover:text-primary'
+                    : 'text-gray-500 group-hover:text-primary'
                 }`}
                 size={16}
               />

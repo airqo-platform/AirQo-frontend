@@ -16,8 +16,18 @@ import NextAuthProvider from './NextAuthProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import { OrganizationLoadingProvider } from './OrganizationLoadingProvider';
 import LogoutProvider from './LogoutProvider';
+import { useThemeInitialization } from '@/core/hooks';
 // Import environment validation
 import { validateEnvironment } from '@/lib/envConstants';
+
+/**
+ * Component that initializes theme settings for authenticated users
+ * This runs globally and handles theme loading during login setup
+ */
+function ThemeInitializer() {
+  useThemeInitialization();
+  return null; // This component doesn't render anything
+}
 
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);
@@ -157,6 +167,7 @@ export default function ClientProviders({ children }) {
     <NextAuthProvider>
       <ReduxProviders>
         <ThemeProvider>
+          <ThemeInitializer />
           <LogoutProvider>
             <OrganizationLoadingProvider>
               {children}

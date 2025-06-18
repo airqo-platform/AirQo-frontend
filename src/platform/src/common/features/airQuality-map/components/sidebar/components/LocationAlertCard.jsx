@@ -146,7 +146,7 @@ const LocationAlertCard = ({
   return (
     <Card
       padding="p-0"
-      className="mb-4 transition-all duration-300"
+      className="mb-4 transition-all duration-300 dark:bg-gray-800 border dark:border-gray-600 rounded-xl"
       shadow="shadow"
       header={cardHeader}
       headerProps={{
