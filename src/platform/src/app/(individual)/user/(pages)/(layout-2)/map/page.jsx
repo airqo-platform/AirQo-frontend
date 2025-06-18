@@ -185,18 +185,13 @@ const MapPage = () => {
             )}
             {/* Show legend only when appropriate */}
             {(width >= 1024 || !selectedNode) && (
-              <div className="absolute left-4 bottom-2 z-[1000]">
+              <div className="absolute left-4 bottom-2 z-50">
                 <AirQualityLegend pollutant={pollutant} />
               </div>
             )}
             {/* Map controls */}
             {(width >= 1024 || !selectedNode) && (
-              <div
-                className="absolute top-4 right-0 controls-container"
-                style={{
-                  zIndex: 10000,
-                }}
-              >
+              <div className="absolute top-4 right-0 controls-container z-50">
                 {width >= 1024 ? (
                   <div className="flex flex-col gap-4">
                     <IconButton
@@ -226,7 +221,7 @@ const MapPage = () => {
                       {isControlsExpanded && (
                         <div
                           className={`
-                            absolute right-full mr-2 flex gap-2 z-[2000]
+                            absolute right-full mr-2 flex gap-2 z-50
                             transform transition-all duration-200 ease-in-out
                             ${isControlsExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
                           `}

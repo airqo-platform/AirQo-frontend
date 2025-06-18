@@ -160,7 +160,7 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
   return (
     <>
       {/* Date selector */}
-      <div className="mb-4 relative">
+      {/* <div className="mb-4 relative">
         <Button
           className="flex flex-row-reverse shadow rounded-md text-sm text-gray-600 font-medium leading-tight bg-white h-8 border border-gray-200"
           variant="outlined"
@@ -179,7 +179,7 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
             />
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Week view: Each prediction wrapped in its own Card */}
       <div className="grid grid-cols-7 gap-2">
@@ -192,7 +192,7 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
               }
             }}
             padding="p-3"
-            className={`cursor-pointer flex flex-col items-center justify-center transition-transform duration-200 `}
+            className={`cursor-pointer flex flex-col items-center justify-center transition-transform duration-200 border border-gray-600 rounded-full`}
             background={`${
               item.isActive ? 'bg-blue-600' : 'bg-secondary-neutral-dark-50'
             }`}

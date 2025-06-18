@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import CustomToast from '@/components/Toast/CustomToast';
 
 /**
@@ -25,14 +26,60 @@ const DEFAULT_THEME = {
 /**
  * Custom hook to manage user theme preferences
  * Handles fetching and updating theme settings with proper error handling and validation
+ *
+ * IMPORTANT FIX: This hook now correctly synchronizes with the theme context to ensure
+ * that API payloads reflect the current UI state. Previously, when users changed theme
+ * settings through the UI (e.g., switching from dark to light mode), the changes were
+ * applied to the theme context but this hook's local state wasn't updated. This caused
+ * API calls to send outdated values instead of the current UI values.
+ *
+ * The fix ensures that:
+ * 1. Current theme context values are always retrieved when making API calls
+ * 2. The payload includes the actual current mode, primaryColor, interfaceStyle, and contentLayout
+ * 3. Debug logging helps troubleshoot any future theme synchronization issues
  */
 const useUserTheme = () => {
   const [theme, setTheme] = useState(DEFAULT_THEME);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-
   const { id: activeGroupId, userID } = useGetActiveGroup();
+
+  // Get current theme context values to ensure API payload reflects current UI state
+  const {
+    theme: currentThemeMode,
+    primaryColor: currentPrimaryColor,
+    skin: currentSkin,
+    layout: currentLayout,
+  } = useTheme();
+
+  /**
+   * Helper function to map theme context values to API format
+   */
+  const mapThemeContextToApiFormat = useCallback(() => {
+    const apiFormat = {
+      primaryColor: currentPrimaryColor || DEFAULT_THEME.primaryColor,
+      mode: currentThemeMode || DEFAULT_THEME.mode,
+      interfaceStyle: currentSkin || DEFAULT_THEME.interfaceStyle,
+      contentLayout: currentLayout || DEFAULT_THEME.contentLayout,
+    };
+
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('Mapping theme context to API format:', {
+        context: {
+          currentThemeMode,
+          currentPrimaryColor,
+          currentSkin,
+          currentLayout,
+        },
+        apiFormat,
+      });
+    }
+
+    return apiFormat;
+  }, [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout]);
 
   /**
    * Get the appropriate tenant based on active group
@@ -153,13 +200,26 @@ const useUserTheme = () => {
 
       try {
         setLoading(true);
-        setError(null);
+        setError(null); // Get current theme values from theme context to ensure API payload reflects current UI state
+        const currentThemeData = mapThemeContextToApiFormat();
 
-        // Merge with current theme to ensure all required fields are present
+        // Merge current context values with the saved theme state and new theme settings
+        // Priority: themeSettings > currentThemeData > theme (saved state)
         const updatedTheme = {
           ...theme,
+          ...currentThemeData,
           ...themeSettings,
         };
+
+        // Debug logging to help troubleshoot theme update issues
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('Theme update payload:', {
+            currentThemeData,
+            themeSettings,
+            updatedTheme,
+          });
+        }
 
         const tenant = getTenant();
         const response = await updateUserThemeApi(
@@ -202,7 +262,7 @@ const useUserTheme = () => {
         setLoading(false);
       }
     },
-    [userID, theme, getTenant],
+    [userID, theme, getTenant, mapThemeContextToApiFormat],
   );
 
   /**
