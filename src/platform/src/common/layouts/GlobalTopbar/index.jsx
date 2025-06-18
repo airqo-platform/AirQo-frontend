@@ -156,7 +156,7 @@ const GlobalTopbar = ({
     return (
       <>
         {/* Main Topbar Loading State */}
-        <div className="fixed top-0 left-0 right-0 z-[999] p-1">
+        <div className="fixed top-0 left-0 right-0 z-[99] p-1">
           <CardWrapper className="w-full shadow-sm animate-pulse" padding="p-2">
             {' '}
             <div className="flex justify-between items-center">
