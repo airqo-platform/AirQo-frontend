@@ -1,7 +1,8 @@
 import { NEXT_PUBLIC_API_BASE_URL } from '../../lib/envConstants';
+import { normalizeUrl } from '../utils/urlHelpers';
 
 // Base URLs
-export const USERS_BASE_URL = `${NEXT_PUBLIC_API_BASE_URL}/users`;
+export const USERS_BASE_URL = `${normalizeUrl(NEXT_PUBLIC_API_BASE_URL)}/users`;
 
 // Organization theme and branding endpoints
 export const ORGANIZATION_THEME_URL = (orgSlug) =>
@@ -19,5 +20,5 @@ export const ORGANIZATION_RESET_PASSWORD_URL = (orgSlug) =>
   `${USERS_BASE_URL}/resetPassword/${orgSlug}`;
 
 // Legacy endpoints (kept for backward compatibility if needed)
-export const ORGANIZATIONS_BASE_URL = `${NEXT_PUBLIC_API_BASE_URL}/organizations`;
+export const ORGANIZATIONS_BASE_URL = `${normalizeUrl(NEXT_PUBLIC_API_BASE_URL)}/organizations`;
 export const ORGANIZATIONS_URL = ORGANIZATIONS_BASE_URL;
