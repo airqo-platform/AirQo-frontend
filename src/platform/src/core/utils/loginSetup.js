@@ -15,11 +15,6 @@ import {
   clearAllGroupData,
 } from '@/lib/store/services/groups';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
-import {
-  createSmartRedirect,
-  isAirQoGroup,
-  shouldUseUserFlow,
-} from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
 
 /**
@@ -142,17 +137,9 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       selectedActiveGroup = user.groups[0];
     }
 
-    // Use smart redirect logic that considers active group and AirQo rules
-    redirectPath = createSmartRedirect(
-      session,
-      pathname,
-      user.groups,
-      selectedActiveGroup,
-    );
-
-    // Step 3b: Determine active group based on route type and context
+    // Step 3b: Determine active group and redirect path based on login context
     if (pathname.includes('/org/')) {
-      // ORGANIZATION ROUTE: Set active group based on slug
+      // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
 
       if (currentOrgSlug) {
@@ -163,57 +150,24 @@ export const setupUserSession = async (session, dispatch, pathname) => {
         });
 
         if (matchingGroup) {
-          // Check if it's AirQo - if so, redirect to user flow
-          if (isAirQoGroup(matchingGroup)) {
-            activeGroup = matchingGroup;
-            redirectPath = '/user/Home'; // AirQo MUST use user flow
-          } else {
-            // Valid organization group - ensure it has a proper name
-            if (!matchingGroup.grp_name?.trim()) {
-              logger.warn(
-                'Organization group has invalid name, falling back to AirQo',
-              );
-              // Find AirQo group as fallback
-              const airqoGroup = user.groups.find(isAirQoGroup);
-              activeGroup = airqoGroup || user.groups[0];
-              redirectPath = '/user/Home';
-            } else {
-              activeGroup = matchingGroup; // Keep organization route - but validate slug
-              const orgSlug = titleToSlug(activeGroup.grp_title);
-
-              if (!orgSlug || orgSlug === 'default') {
-                logger.warn('Invalid organization slug, falling back to AirQo');
-                const airqoGroup = user.groups.find(isAirQoGroup);
-                activeGroup = airqoGroup || user.groups[0];
-                redirectPath = '/user/Home';
-              }
-            }
-          }
+          activeGroup = matchingGroup;
+          // Always redirect to organization dashboard for org login
+          redirectPath = `/org/${currentOrgSlug}/dashboard`;
         } else {
-          // Invalid slug - fallback to user preference or first group
+          // No matching group - use first available group but keep org context
           activeGroup = selectedActiveGroup || user.groups[0];
-          // Redirect based on group type
-          if (shouldUseUserFlow(activeGroup)) {
-            redirectPath = '/user/Home';
-          } else {
-            const orgSlug = titleToSlug(activeGroup.grp_title);
-            redirectPath = `/org/${orgSlug}/dashboard`;
-          }
+          redirectPath = `/org/${currentOrgSlug}/dashboard`;
         }
-      }
-    } else {
-      // USER ROUTE or other: Use preference-based selection
-      activeGroup = selectedActiveGroup || user.groups[0];
-
-      // Ensure routing consistency
-      if (shouldUseUserFlow(activeGroup)) {
-        // AirQo group - ensure user route
-        redirectPath = '/user/Home';
       } else {
-        // Non-AirQo group on user route - redirect to organization
+        // Fallback if no slug found
+        activeGroup = selectedActiveGroup || user.groups[0];
         const orgSlug = titleToSlug(activeGroup.grp_title);
         redirectPath = `/org/${orgSlug}/dashboard`;
       }
+    } else {
+      // USER LOGIN: Always redirect to user dashboard
+      activeGroup = selectedActiveGroup || user.groups[0];
+      redirectPath = '/user/Home';
     }
 
     // Step 4: Update Redux store with complete data

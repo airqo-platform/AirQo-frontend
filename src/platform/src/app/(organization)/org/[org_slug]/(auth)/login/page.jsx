@@ -16,14 +16,14 @@ import { withOrgAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
-  email: Yup.string()
+  userName: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
   password: Yup.string().required('Password is required'),
 });
 
 const OrganizationLogin = () => {
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,7 +48,6 @@ const OrganizationLogin = () => {
 
     checkInitialAuth();
   }, [router, orgSlug]);
-
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -57,7 +56,10 @@ const OrganizationLogin = () => {
 
       // Validate form data
       try {
-        await loginSchema.validate({ email, password }, { abortEarly: false });
+        await loginSchema.validate(
+          { userName, password },
+          { abortEarly: false },
+        );
       } catch (validationError) {
         const messages = validationError.inner
           .map((err) => err.message)
@@ -67,42 +69,75 @@ const OrganizationLogin = () => {
       }
 
       try {
+        logger.info('Attempting organization login with NextAuth...');
+
+        // Use NextAuth signIn - orgSlug is captured for validation but not sent to backend
         const result = await signIn('credentials', {
-          userName: email, // NextAuth provider expects userName
+          userName: userName, // NextAuth provider expects userName
           password,
-          orgSlug,
+          orgSlug, // Captured for organization validation after login
           redirect: false,
         });
+
+        logger.info('NextAuth signIn result:', result);
+
         if (result?.error) {
-          setError('Invalid credentials. Please try again.');
-        } else if (result?.ok) {
+          throw new Error(result.error);
+        }
+
+        if (result?.ok) {
+          logger.info('Organization login successful, waiting for session...');
+
           // Force session refresh after successful login
           const session = await getSession();
-          if (session?.user) {
-            // The HOC will handle organization setup and redirection
+          logger.info('Session after login:', session);
+
+          if (session?.user && session?.accessToken) {
             logger.info(
-              'Organization login successful, HOC will handle setup and redirect',
+              'Session validated, HOC will handle setup and redirect',
             );
 
             // Force NextAuth to update the session context immediately
-            // by triggering a window focus event
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new window.Event('focus'));
             }
           } else {
             throw new Error('Session data is incomplete');
           }
+        } else {
+          throw new Error('Login failed without specific error');
         }
-      } catch (error) {
-        const errorMessage =
-          error.message || 'An error occurred. Please try again.';
+      } catch (err) {
+        logger.error('Organization login error:', err);
+
+        let errorMessage = 'Something went wrong, please try again';
+
+        if (err.message) {
+          // Handle specific error messages
+          if (
+            err.message.includes('Invalid credentials') ||
+            err.message.includes('Authentication failed') ||
+            err.message.includes('HTTP 401')
+          ) {
+            errorMessage =
+              'Invalid email or password. Please check your credentials.';
+          } else if (
+            err.message.includes('Network Error') ||
+            err.message.includes('fetch')
+          ) {
+            errorMessage =
+              'Network error. Please check your connection and try again.';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+
         setError(errorMessage);
-        logger.error('Organization login error:', error);
       } finally {
         setIsLoading(false);
       }
     },
-    [email, password, orgSlug, router],
+    [userName, password, orgSlug],
   );
 
   const togglePasswordVisibility = useCallback(() => {
@@ -126,13 +161,12 @@ const OrganizationLogin = () => {
                 label="Email Address"
                 type="email"
                 placeholder="e.g. user@organization.com"
-                value={email}
-                onChange={setEmail}
+                value={userName}
+                onChange={setUserName}
                 required
                 disabled={isLoading}
               />
             </div>
-
             <div className="mt-6">
               <div className="relative">
                 <InputField
@@ -158,15 +192,11 @@ const OrganizationLogin = () => {
                 </button>
               </div>
             </div>
-
             <div className="mt-10">
               <button
                 type="submit"
                 disabled={isLoading}
                 className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: 'var(--org-primary, #2563eb)',
-                }}
               >
                 {isLoading ? <Spinner width={25} height={25} /> : 'Sign In'}
               </button>
@@ -178,7 +208,6 @@ const OrganizationLogin = () => {
               <Link
                 href={`/org/${orgSlug}/register`}
                 className="font-medium text-blue-600 ml-2 dark:text-blue-400"
-                style={{ color: 'var(--org-primary, #2563eb)' }}
               >
                 Register
               </Link>
@@ -186,7 +215,6 @@ const OrganizationLogin = () => {
             <Link
               href={`/org/${orgSlug}/forgotPwd`}
               className="font-medium text-blue-600 dark:text-blue-400"
-              style={{ color: 'var(--org-primary, #2563eb)' }}
             >
               Forgot Password
             </Link>

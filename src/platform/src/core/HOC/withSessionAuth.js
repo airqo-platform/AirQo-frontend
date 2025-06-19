@@ -132,32 +132,17 @@ export const withSessionAuth = (
                 );
 
                 if (setupResult.success) {
-                  // Smart redirect logic - prioritize organization flow
-                  let smartRedirect = redirectPath || setupResult.redirectPath;
+                  // Use the redirect path from setup result - it already handles all routing logic
+                  const finalRedirect =
+                    setupResult.redirectPath || '/user/Home';
 
-                  // If no redirect path is set, determine based on session context and current route
-                  if (!smartRedirect) {
-                    const routeType = getRouteType(pathname);
-                    const isOrgLogin =
-                      session.isOrgLogin || session.user.isOrgLogin;
-                    const sessionOrgSlug =
-                      session.orgSlug || session.user.requestedOrgSlug;
+                  logger.info('Redirecting after auth setup:', {
+                    setupRedirectPath: setupResult.redirectPath,
+                    finalRedirect,
+                    pathname,
+                  });
 
-                    if (isOrgLogin || routeType === ROUTE_TYPES.ORGANIZATION) {
-                      // For organization logins or organization routes, redirect to org dashboard
-                      const pathOrgSlug =
-                        pathname.match(/\/org\/([^/]+)/)?.[1] || sessionOrgSlug;
-                      if (pathOrgSlug) {
-                        smartRedirect = `/org/${pathOrgSlug}/dashboard`;
-                      } else {
-                        smartRedirect = '/user/Home';
-                      }
-                    } else {
-                      smartRedirect = '/user/Home';
-                    }
-                  }
-
-                  router.replace(smartRedirect);
+                  router.replace(finalRedirect);
                 } else {
                   throw new Error(setupResult.error || 'Setup failed');
                 }

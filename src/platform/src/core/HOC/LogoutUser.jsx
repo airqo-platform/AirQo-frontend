@@ -2,10 +2,6 @@ import { signOut } from 'next-auth/react';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { clearAllGroupData } from '@/lib/store/services/groups';
 import { setGlobalLogoutState } from '@/app/providers/OrganizationLoadingProvider';
-import {
-  getContextualLoginPath,
-  isAirQoGroup,
-} from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
 
 // Global logout state to manage overlay
@@ -173,73 +169,41 @@ const clearAxiosAuthHeaders = () => {
 };
 
 /**
- * Enhanced logout utility with unified session management
- * Uses path-based context detection for appropriate redirects
- * Includes comprehensive session and cache cleanup with immediate UI feedback
+ * Enhanced logout utility with aggressive session termination
+ * Forces complete logout by clearing everything and doing a hard redirect
  */
 const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
+  // Determine redirect URL based on current route
+  const currentPath =
+    typeof window !== 'undefined' ? window.location.pathname : '';
+
+  let redirectUrl = '/user/login'; // Default fallback
+
+  // Simple path-based redirect logic
+  if (currentPath.startsWith('/org/')) {
+    const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+    if (orgSlugMatch && orgSlugMatch[1]) {
+      redirectUrl = `/org/${orgSlugMatch[1]}/login`;
+    }
+  } else if (currentPath.startsWith('/user/')) {
+    redirectUrl = '/user/login';
+  }
+
   try {
-    logger.info('Starting comprehensive logout process');
+    logger.info('Starting aggressive logout process');
 
-    // Set global logout state to prevent organization switching modal
+    // Set global logout state immediately
     setGlobalLogoutState(true);
-
-    // Trigger logout overlay at the start
     triggerLogoutOverlay('Logging you out...');
 
-    // Determine redirect URL based on current context and active group
-    let redirectUrl = '/user/login'; // Default for individual users
-    let activeGroup = null;
-
-    // Check current route for context detection
-    const currentPath =
-      typeof window !== 'undefined' ? window.location.pathname : '';
-
-    // Try to get active group from Redux or localStorage
-    try {
-      // Try to get Redux state first
-      if (typeof window !== 'undefined' && window.__NEXT_REDUX_STORE__) {
-        const reduxState = window.__NEXT_REDUX_STORE__.getState();
-        activeGroup =
-          reduxState?.groups?.activeGroup ||
-          reduxState?.activeGroup?.activeGroup;
-      }
-
-      // Fallback to localStorage
-      if (!activeGroup) {
-        const storedSession = localStorage.getItem('loggedUser');
-        if (storedSession) {
-          const sessionData = JSON.parse(storedSession);
-          activeGroup = sessionData.activeGroup;
-        }
-      }
-    } catch (error) {
-      logger.debug('Could not get active group for logout redirect:', error);
-    }
-
-    // Use enhanced routing logic that respects AirQo group rules
-    redirectUrl = getContextualLoginPath(currentPath, null, activeGroup);
-
-    logger.info('Logout redirect determined:', {
-      currentPath,
-      activeGroupName: activeGroup?.grp_name || activeGroup?.grp_title,
-      isAirQo: isAirQoGroup(activeGroup),
-      redirectUrl,
-    });
-
-    // Step 1: Clear all authentication data FIRST before any redirects
-    // This prevents the auth HOC from detecting a session during redirect
-
-    // Clear token and session caches immediately
+    // Step 1: Immediately clear all authentication data
     clearTokenCache();
     clearSessionCache();
-
-    // Reset all Redux slices to initial state immediately
     resetAllReduxSlices(dispatch);
 
-    // Step 2: Clear localStorage but preserve theme and location settings
+    // Step 2: Clear storage
     if (typeof window !== 'undefined') {
-      // Preserve user preferences that should survive logout
+      // Preserve user preferences
       const preservedSettings = {
         theme: localStorage.getItem('theme'),
         skin: localStorage.getItem('skin'),
@@ -251,8 +215,11 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
         timezone: localStorage.getItem('timezone'),
       };
 
-      // Clear all localStorage
+      // Clear all storage
       localStorage.clear();
+      if (window.sessionStorage) {
+        window.sessionStorage.clear();
+      }
 
       // Restore preserved settings
       Object.entries(preservedSettings).forEach(([key, value]) => {
@@ -260,19 +227,13 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
           localStorage.setItem(key, value);
         }
       });
-      logger.debug('LocalStorage cleaned with preserved settings restored');
     }
 
-    // Step 4: Clear sessionStorage
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.clear();
-      logger.debug('SessionStorage cleared');
-    }
-
-    // Step 5: Clear axios auth headers
+    // Step 3: Clear auth headers and cookies
     clearAxiosAuthHeaders();
+    clearAuthCookies();
 
-    // Step 6: Purge the persisted Redux state
+    // Step 4: Purge Redux persistor
     try {
       if (
         typeof window !== 'undefined' &&
@@ -280,69 +241,32 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
         window.__NEXT_REDUX_STORE__.__persistor
       ) {
         await window.__NEXT_REDUX_STORE__.__persistor.purge();
-        logger.debug('Redux persistor purged');
       }
     } catch (error) {
       logger.warn('Failed to purge Redux persistor:', error);
-      // Don't block logout if persistor purge fails
     }
 
-    // Step 7: Clear authentication cookies
-    clearAuthCookies();
+    // Step 5: Use NextAuth signOut WITHOUT redirect to avoid navigation issues
+    await signOut({ redirect: false });
 
-    // Step 8: Use NextAuth signOut with immediate redirect to clear session
-    // This ensures the session is completely cleared before any navigation
-    await signOut({
-      redirect: true,
-      callbackUrl: redirectUrl,
-    });
+    // Step 6: Force hard redirect after a short delay to ensure cleanup completes
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.location.href = redirectUrl;
+      }
+    }, 100);
 
-    logger.debug('NextAuth signOut completed with redirect');
+    logger.debug('Aggressive logout completed, forcing redirect');
   } catch (error) {
     logger.error('Logout error:', error);
 
-    // If anything fails, still attempt comprehensive cleanup and redirect
-    try {
-      // Emergency cleanup - try all cleanup operations again
-      clearTokenCache();
-      clearSessionCache();
-      clearAuthCookies();
-
-      if (typeof window !== 'undefined') {
-        // Clear storages as fallback
-        try {
-          localStorage.clear();
-        } catch {
-          // Ignore storage clear errors
-        }
-        try {
-          window.sessionStorage.clear();
-        } catch {
-          // Ignore storage clear errors
-        }
-      }
-
-      // Attempt redirect with fallback chain
-      if (router && router.push) {
-        router.push('/user/login');
-      } else if (typeof window !== 'undefined') {
-        window.location.href = '/user/login';
-      }
-    } catch (fallbackError) {
-      logger.error('Fallback logout also failed:', fallbackError);
-      // Last resort - force page reload to clear everything
-      if (typeof window !== 'undefined') {
-        window.location.href = '/user/login';
-      }
-    } finally {
-      // Clear global logout state even in error cases
-      setGlobalLogoutState(false);
+    // Emergency fallback - force hard redirect
+    if (typeof window !== 'undefined') {
+      window.location.href = redirectUrl;
     }
   } finally {
-    // Hide logout overlay at the end of the process
+    // Cleanup
     hideLogoutOverlay();
-
-    // Clear global logout state
     setGlobalLogoutState(false);
   }
 };
