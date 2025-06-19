@@ -8,9 +8,6 @@ import PropTypes from 'prop-types';
 // Components
 import Button from '@/common/components/Button';
 
-// Organization Loading Context
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
-
 // Redux
 import {
   selectActiveGroup,
@@ -65,7 +62,6 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const router = useRouter();
-  const { setIsSwitchingOrganization } = useOrganizationLoading();
 
   // Redux state
   const activeGroup = useSelector(selectActiveGroup);
@@ -99,7 +95,6 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
     });
 
     setIsSwitching(true);
-    setIsSwitchingOrganization(true);
 
     try {
       const isTargetAirQo = isAirQoGroup(group);
@@ -152,7 +147,6 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       }
     } finally {
       setIsSwitching(false);
-      setIsSwitchingOrganization(false);
     }
   };
   // Handle navigation to create organization page

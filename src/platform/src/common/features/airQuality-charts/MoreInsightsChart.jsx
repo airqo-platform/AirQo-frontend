@@ -36,7 +36,6 @@ import {
   CustomReferenceLabel,
 } from './components';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import Button from '@/components/Button';
 
 // Simplified responsive chart configuration
@@ -131,7 +130,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
   height = '100%',
 }) {
   const { theme, systemTheme } = useTheme();
-  const { isOrganizationLoading } = useOrganizationLoading();
+  // Remove organization loading hook as it's no longer needed
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   const [activeIndex, setActiveIndex] = useState(null);
@@ -322,21 +321,9 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
       setActiveIndex(null);
     }
   }, [legendLocked]);
-
   // Render empty state with appropriate message
   const renderEmpty = () => {
     if (!normalizedSelectedIds.length) {
-      // Show loading state during organization switching instead of "No sites selected"
-      if (isOrganizationLoading) {
-        return (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 px-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-            <h4 className="mb-2 text-lg font-semibold">Loading...</h4>
-            <p className="text-center">Please wait while we load your data.</p>
-          </div>
-        );
-      }
-
       return (
         <InfoMessage
           title="No Sites Selected"

@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import { useSession } from 'next-auth/react';
 import CustomToast from '@/components/Toast/CustomToast';
 
@@ -58,7 +57,6 @@ const useUserTheme = () => {
     skin: currentSkin,
     layout: currentLayout,
   } = useTheme();
-  const { setIsSwitchingOrganization } = useOrganizationLoading();
   const { status } = useSession();
 
   // Track the last tenant to avoid unnecessary refetches when active group changes
@@ -363,27 +361,13 @@ const useUserTheme = () => {
       // Update tenant reference
       lastTenantRef.current = currentTenant;
 
-      // For organization switches (not initial load), show loading modal
-      if (isInitialized && currentTenant !== 'airqo') {
-        setIsSwitchingOrganization(true);
-      }
+      // For organization switches (not initial load), no longer show loading modal
+      // Loading is now handled by Next.js loading.jsx files
 
       // Fetch theme data
-      fetchUserTheme().finally(() => {
-        // Hide loading modal after theme is fetched for organization switches
-        if (isInitialized && currentTenant !== 'airqo') {
-          setTimeout(() => setIsSwitchingOrganization(false), 500);
-        }
-      });
+      fetchUserTheme();
     }
-  }, [
-    status,
-    userID,
-    isInitialized,
-    getTenant,
-    fetchUserTheme,
-    setIsSwitchingOrganization,
-  ]);
+  }, [status, userID, isInitialized, getTenant, fetchUserTheme]);
 
   return {
     // Theme state
