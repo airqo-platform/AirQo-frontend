@@ -21,7 +21,8 @@ import { ORGANIZATION_LABEL } from '@/lib/constants';
  * TopbarOrganizationDropdown Component
  *
  * A simple button that opens the OrganizationSelectModal
- * All organization logic is handled in the modal
+ * Shows organization initials (letters only) in the button
+ * The GroupLogo component is used elsewhere for actual logo display
  */
 const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   // Redux state
@@ -45,17 +46,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
       .trim();
   };
 
-  // Handle opening the modal
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  // Handle closing the modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  // Determine what to display
+  // Determine what to display for the title
   const getDisplayGroup = () => {
     if (activeGroup && userGroups.find((g) => g._id === activeGroup._id)) {
       return activeGroup;
@@ -69,6 +60,10 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
   };
 
   const displayGroup = getDisplayGroup();
+
+  // Modal handlers
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
   // Loading state
   if (isLoadingGroups && isEmpty(userGroups)) {
@@ -102,26 +97,17 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
         onClick={handleOpenModal}
         className={`flex items-center space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200 ${className}`}
       >
-        {/* Organization Logo */}
-        {displayGroup?.grp_image ? (
-          <img
-            src={displayGroup.grp_image}
-            alt={`${displayGroup.grp_title} logo`}
-            className="h-6 w-6 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary">
-            {formatGroupName(displayGroup?.grp_title)
-              ?.charAt(0)
-              ?.toUpperCase() || 'O'}
-          </div>
-        )}
+        {/* Organization Logo - Show initials only */}
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary">
+          {formatGroupName(displayGroup?.grp_title)?.charAt(0)?.toUpperCase() ||
+            'O'}
+        </div>
         {/* Organization Name */}
         {showTitle && (
           <span className="max-w-32 truncate">
             {formatGroupName(displayGroup?.grp_title) || ORGANIZATION_LABEL}
           </span>
-        )}{' '}
+        )}
         {/* Grid Icon - Google style */}
         <HiSquares2X2 className="h-4 w-4" />
       </button>

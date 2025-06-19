@@ -26,7 +26,6 @@ import CardWrapper from '@/common/components/CardWrapper';
  */
 const GlobalTopbar = ({
   topbarTitle,
-  logoComponent,
   onLogoClick,
   homeNavPath = '/user/Home',
   customActions,
@@ -110,21 +109,20 @@ const GlobalTopbar = ({
         paddingStyles="p-0 m-0"
         onClick={handleLogoClick}
         variant="text"
-        className={`flex items-center justify-center ${className}`}
+        className={`inline-flex items-center justify-center ${className}`}
         {...buttonProps}
       >
-        {logoComponent || <GroupLogo />}
+        <GroupLogo className="flex-shrink-0" />
       </Button>
     ),
-    [logoComponent, handleLogoClick],
+    [handleLogoClick],
   );
-
   // Shared Menu Button Component
   const MenuButton = useCallback(
     ({ isMobile = false, className = '' }) => (
       <Button
         paddingStyles="p-0 m-0"
-        className={`flex items-center justify-center focus:outline-none ${className}`}
+        className={`inline-flex items-center justify-center focus:outline-none min-h-[32px] ${className}`}
         onClick={handleDrawer}
         variant="text"
         aria-label="Open navigation menu"
@@ -132,8 +130,8 @@ const GlobalTopbar = ({
         <span
           className={
             isMobile
-              ? 'p-1 flex items-center justify-center'
-              : 'p-2 m-0 flex items-center justify-center'
+              ? 'p-1 inline-flex items-center justify-center'
+              : 'p-2 m-0 inline-flex items-center justify-center'
           }
         >
           {isMobile ? (
@@ -192,11 +190,12 @@ const GlobalTopbar = ({
       </>
     );
   }
-
   return (
     <div className="fixed top-0 left-0  right-0 z-[999]">
-      {/* Main Global Topbar */}
+      {' '}
+      {/* Main Global Topbar */}{' '}
       <div className="p-1">
+        {' '}
         <CardWrapper
           className={`w-full ${styles.background}`}
           padding="py-1 px-4"
@@ -204,11 +203,13 @@ const GlobalTopbar = ({
           {' '}
           <div
             id="global-topbar-nav"
-            className="flex justify-between items-center min-h-[48px]"
+            className="flex justify-between items-center min-h-[48px] h-full"
           >
+            {' '}
             {/* Mobile Logo */}
-            <div className="lg:hidden relative z-10 w-full flex items-center justify-start">
-              <LogoComponent className="" />
+            <div className="lg:hidden flex items-center justify-start flex-shrink-0">
+              {' '}
+              <LogoComponent className="flex-shrink-0" />
             </div>
             {/* Desktop Left Section - Menu Button + Logo */}
             <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
@@ -217,7 +218,7 @@ const GlobalTopbar = ({
                 <MenuButton isMobile={false} />
                 {/* Logo */}
                 <LogoComponent
-                  className={`w-[46.56px] h-8 flex items-center justify-center ${styles.text}`}
+                  className={`flex items-center justify-center ${styles.text}`}
                 />
                 {/* Title (optional) */}
                 {topbarTitle && (
@@ -226,13 +227,14 @@ const GlobalTopbar = ({
                   </div>
                 )}
               </div>
-            </div>{' '}
+            </div>
             {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
-            <div className="hidden lg:flex gap-2 items-center justify-center">
+            <div className="hidden lg:flex gap-2 items-center justify-center h-full">
+              {' '}
               {/* Organization Dropdown - Show for users with multiple groups */}
               <TopbarOrganizationDropdown className="mr-2" />
               {customActions && (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center h-full">
                   {customActions}
                 </div>
               )}
@@ -243,7 +245,8 @@ const GlobalTopbar = ({
               />
             </div>
             {/* Mobile Profile Dropdown - Moved to main topbar */}
-            <div className="lg:hidden flex items-center justify-center">
+            <div className="lg:hidden flex items-center justify-center h-full">
+              {' '}
               <UserProfileDropdown
                 dropdownAlign="right"
                 showUserInfo={false}
@@ -252,29 +255,33 @@ const GlobalTopbar = ({
             </div>
           </div>
         </CardWrapper>
-      </div>{' '}
+      </div>
       {/* Mobile Navigation Bar - Below main topbar with gap */}
       <div className="lg:hidden p-1">
         <CardWrapper
           className={`w-full ${styles.background} ${styles.border} border-t`}
           padding="py-1 px-2"
         >
-          <div className="flex justify-between items-center min-h-[40px]">
+          <div className="flex justify-between items-center min-h-[40px] h-full">
             {/* Mobile Menu Button */}
-            <MenuButton isMobile={true} />
+            <div className="flex items-center justify-center h-full">
+              <MenuButton isMobile={true} />
+            </div>
             {/* Title (optional) */}
             {topbarTitle && (
               <div
-                className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate flex items-center`}
+                className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate flex items-center h-full`}
               >
                 {topbarTitle}
               </div>
-            )}{' '}
+            )}
             {/* Organization Dropdown for mobile */}
-            <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
+            <div className="flex items-center justify-center h-full">
+              <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
+            </div>
             {/* Custom actions for mobile if any */}
             {customActions && (
-              <div className="flex gap-1 items-center justify-center">
+              <div className="flex gap-1 items-center justify-center h-full">
                 {customActions}
               </div>
             )}
@@ -287,7 +294,6 @@ const GlobalTopbar = ({
 
 GlobalTopbar.propTypes = {
   topbarTitle: PropTypes.string,
-  logoComponent: PropTypes.node,
   onLogoClick: PropTypes.func,
   homeNavPath: PropTypes.string,
   customActions: PropTypes.node,
