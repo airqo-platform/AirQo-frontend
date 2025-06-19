@@ -142,8 +142,7 @@ const useUserTheme = () => {
         setTheme(userTheme);
       } else {
         // Fallback to normal API fetch
-        const tenant = getTenant();
-        const response = await getUserThemeApi(userID, tenant);
+        const response = await getUserThemeApi(userID);
 
         if (response?.success && response?.data) {
           // Merge with default theme to ensure all properties are present
@@ -167,7 +166,7 @@ const useUserTheme = () => {
       setLoading(false);
       setIsInitialized(true);
     }
-  }, [userID, getTenant]);
+  }, [userID]);
 
   /**
    * Update user theme preferences
@@ -230,13 +229,7 @@ const useUserTheme = () => {
           });
         }
 
-        const tenant = getTenant();
-        const response = await updateUserThemeApi(
-          userID,
-          theme,
-          updatedTheme,
-          tenant,
-        );
+        const response = await updateUserThemeApi(userID, theme, updatedTheme);
 
         if (response?.success) {
           // Update local state
@@ -271,7 +264,7 @@ const useUserTheme = () => {
         setLoading(false);
       }
     },
-    [userID, theme, getTenant, mapThemeContextToApiFormat],
+    [userID, theme, mapThemeContextToApiFormat],
   );
 
   /**

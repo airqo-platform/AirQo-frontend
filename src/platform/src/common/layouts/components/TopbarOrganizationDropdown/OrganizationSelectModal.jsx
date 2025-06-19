@@ -27,17 +27,6 @@ import {
 import logger from '@/lib/logger';
 
 /**
- * Utility function to convert organization title to URL slug
- */
-const titleToSlug = (title) => {
-  if (!title) return '';
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-};
-
-/**
  * Utility function to determine the target route based on group selection
  */
 const determineTargetRoute = (group) => {
@@ -45,16 +34,14 @@ const determineTargetRoute = (group) => {
     return '/user/Home';
   }
 
-  if (!group?.grp_title?.trim()) {
-    logger.warn('Invalid group title, falling back to AirQo user flow');
+  if (!group?.organization_slug?.trim()) {
+    logger.warn('Invalid organization slug, falling back to AirQo user flow');
     return '/user/Home';
   }
 
-  const groupSlug = titleToSlug(group.grp_title);
+  const groupSlug = group.organization_slug;
   if (!groupSlug || groupSlug === 'default') {
-    logger.warn(
-      'Invalid group slug generated, falling back to AirQo user flow',
-    );
+    logger.warn('Invalid group slug, falling back to AirQo user flow');
     return '/user/Home';
   }
 
