@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { usePathname, useParams } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
 import CloseIcon from '@/icons/close_icon';
 import LineChartIcon from '@/icons/Charts/LineChartIcon';
@@ -31,6 +32,9 @@ import {
 
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
+  const pathname = usePathname();
+  const params = useParams();
+
   const togglingGlobalDrawer = useSelector(
     (state) => state.sidebar.toggleGlobalDrawer,
   );
@@ -47,6 +51,26 @@ const GlobalSideBarDrawer = () => {
     dispatch(setTogglingGlobalDrawer(false));
     dispatch(setSidebar(false));
   }, [dispatch]);
+
+  // Route context detection and navigation path generation
+  const getContextAwareNavPaths = useMemo(() => {
+    const isOrganizationRoute = pathname?.startsWith('/org/');
+    const orgSlug = params?.org_slug;
+
+    if (isOrganizationRoute && orgSlug) {
+      // Organization flow - redirect to org-specific routes
+      return {
+        home: `/org/${orgSlug}/dashboard`,
+        analytics: `/org/${orgSlug}/insights`,
+      };
+    } else {
+      // User flow - redirect to user-specific routes
+      return {
+        home: '/user/Home',
+        analytics: '/user/analytics',
+      };
+    }
+  }, [pathname, params]);
 
   // Enhanced subroute click handler with better UX
   const handleSubrouteClick = useCallback(
@@ -206,7 +230,7 @@ const GlobalSideBarDrawer = () => {
             <SideBarItem
               label="Home"
               Icon={HomeIcon}
-              navPath="/user/Home"
+              navPath={getContextAwareNavPaths.home}
               onClick={closeDrawer}
               key="home"
             />
@@ -226,7 +250,7 @@ const GlobalSideBarDrawer = () => {
             <SideBarItem
               label="Data Analytics"
               Icon={LineChartIcon}
-              navPath="/user/analytics"
+              navPath={getContextAwareNavPaths.analytics}
               onClick={closeDrawer}
               key="data-analytics"
             />
