@@ -69,30 +69,6 @@ export const getOrganizationBySlugApi = async (orgSlug) => {
 };
 
 /**
- * Get organization theme data (alias for getOrganizationBySlugApi for backward compatibility)
- * @param {string} orgSlug - Organization slug
- * @returns {Promise} Organization theme data
- */
-export const getOrganizationThemeApi = async (orgSlug) => {
-  const result = await getOrganizationBySlugApi(orgSlug);
-
-  if (result.success && result.data) {
-    return {
-      success: true,
-      data: {
-        name: result.data.name,
-        logo: result.data.logo,
-        primaryColor: result.data.primaryColor,
-        secondaryColor: result.data.secondaryColor,
-        font: result.data.font,
-      },
-    };
-  }
-
-  return result;
-};
-
-/**
  * Register user to organization
  * @param {Object} userData - User registration data
  * @param {string} userData.firstName - User's first name

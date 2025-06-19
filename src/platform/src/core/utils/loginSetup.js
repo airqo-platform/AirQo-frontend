@@ -253,7 +253,7 @@ export const setupUserSession = async (session, dispatch, pathname) => {
     logger.info('Fetching user theme preferences...');
     let userTheme = null;
     try {
-      const themeRes = await getUserThemeApi(session.user.id, 'airqo');
+      const themeRes = await getUserThemeApi(session.user.id);
       if (themeRes?.success && themeRes?.data) {
         userTheme = themeRes.data;
         logger.info('User theme loaded successfully:', userTheme);

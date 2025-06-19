@@ -18,44 +18,6 @@ const AuthLayout = ({
   const organizationName = getDisplayName() || 'AirQo';
   const logoSrc = logo || '/icons/airqo_logo.svg';
 
-  // Get organization primary color or fallback to default
-  const primaryColor = organization?.primaryColor || '#145fff';
-
-  // Apply organization theme colors to CSS custom properties
-  React.useEffect(() => {
-    if (primaryColor && typeof window !== 'undefined') {
-      const root = document.documentElement;
-      root.style.setProperty('--org-primary', primaryColor);
-      root.style.setProperty('--color-primary', primaryColor);
-      root.style.setProperty('--primary-color', primaryColor);
-
-      // Convert hex to RGB for alpha variants
-      const hexToRgb = (hex) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result
-          ? {
-              r: parseInt(result[1], 16),
-              g: parseInt(result[2], 16),
-              b: parseInt(result[3], 16),
-            }
-          : null;
-      };
-
-      const rgb = hexToRgb(primaryColor);
-
-      if (rgb) {
-        root.style.setProperty(
-          '--org-primary-rgb',
-          `${rgb.r}, ${rgb.g}, ${rgb.b}`,
-        );
-        root.style.setProperty(
-          '--color-primary-rgb',
-          `${rgb.r}, ${rgb.g}, ${rgb.b}`,
-        );
-      }
-    }
-  }, [primaryColor]);
-
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 flex justify-center items-center">
@@ -104,7 +66,7 @@ const AuthLayout = ({
                 {' '}
                 <p
                   className="text-xs font-medium"
-                  style={{ color: 'var(--org-primary, #145fff)' }}
+                  style={{ color: 'var(--color-primary, #145fff)' }}
                 >
                   {organization
                     ? `${organizationName}'s Private Dashboard`

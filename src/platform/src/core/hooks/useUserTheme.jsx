@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -44,11 +44,7 @@ const useUserTheme = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const {
-    id: activeGroupId,
-    userID,
-    title: activeGroupTitle,
-  } = useGetActiveGroup();
+  const { userID } = useGetActiveGroup();
 
   // Get current theme context values to ensure API payload reflects current UI state
   const {
@@ -58,9 +54,6 @@ const useUserTheme = () => {
     layout: currentLayout,
   } = useTheme();
   const { status } = useSession();
-
-  // Track the last tenant to avoid unnecessary refetches when active group changes
-  const lastTenantRef = useRef(null);
 
   /**
    * Helper function to map theme context values to API format
@@ -89,17 +82,7 @@ const useUserTheme = () => {
 
     return apiFormat;
   }, [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout]);
-  /**
-   * Get the appropriate tenant based on active group
-   * Returns the active group title (name) if available, otherwise falls back to 'airqo'
-   */
-  const getTenant = useCallback(() => {
-    if (activeGroupId && isValidObjectId(activeGroupId) && activeGroupTitle) {
-      // Return the actual active group title (name)
-      return activeGroupTitle.toLowerCase();
-    }
-    return 'airqo';
-  }, [activeGroupId, activeGroupTitle]);
+
   /**
    * Fetch user theme preferences from the API
    */
@@ -337,37 +320,18 @@ const useUserTheme = () => {
     },
     [updateUserTheme],
   );
-
-  // Unified effect for theme fetching: handles both initial load and organization changes
+  // Effect for theme fetching: handles initial load only
   useEffect(() => {
-    const currentTenant = getTenant();
-
-    // Initialize tenant reference on first run
-    if (lastTenantRef.current === null) {
-      lastTenantRef.current = currentTenant;
-    }
-
-    // Fetch theme on initial load OR when tenant changes (organization switch)
-    const shouldFetch =
-      // Initial fetch: authenticated, has user ID, not yet initialized
-      (status === 'authenticated' &&
-        userID &&
-        isValidObjectId(userID) &&
-        !isInitialized) ||
-      // Organization change: initialized and tenant changed
-      (isInitialized && currentTenant !== lastTenantRef.current);
-
-    if (shouldFetch) {
-      // Update tenant reference
-      lastTenantRef.current = currentTenant;
-
-      // For organization switches (not initial load), no longer show loading modal
-      // Loading is now handled by Next.js loading.jsx files
-
-      // Fetch theme data
+    // Fetch theme only on initial load
+    if (
+      status === 'authenticated' &&
+      userID &&
+      isValidObjectId(userID) &&
+      !isInitialized
+    ) {
       fetchUserTheme();
     }
-  }, [status, userID, isInitialized, getTenant, fetchUserTheme]);
+  }, [status, userID, isInitialized, fetchUserTheme]);
 
   return {
     // Theme state

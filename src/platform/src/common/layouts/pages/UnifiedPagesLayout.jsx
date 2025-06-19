@@ -37,14 +37,10 @@ export default function UnifiedPagesLayout({ children }) {
 
   // Get organization data if in org context - only call hook conditionally
   let organization = null;
-  let primaryColor = null;
-  let secondaryColor = null;
 
   if (isOrganizationContext) {
     const orgData = useOrganization();
     organization = orgData.organization;
-    primaryColor = orgData.primaryColor;
-    secondaryColor = orgData.secondaryColor;
   }
 
   // Get route configuration based on current pathname
@@ -109,14 +105,6 @@ export default function UnifiedPagesLayout({ children }) {
     <div
       className="flex overflow-hidden min-h-screen h-screen bg-background"
       data-testid={isOrganizationContext ? 'organization-layout' : 'layout'}
-      style={
-        isOrganizationContext
-          ? {
-              '--org-primary': primaryColor,
-              '--org-secondary': secondaryColor,
-            }
-          : {}
-      }
     >
       <Head>
         <title>{routeConfig.pageTitle}</title>
@@ -136,10 +124,6 @@ export default function UnifiedPagesLayout({ children }) {
             <UnifiedSidebarContent
               userType="organization"
               isCollapsed={isCollapsed}
-              style={{
-                '--org-primary': primaryColor,
-                '--org-secondary': secondaryColor,
-              }}
             />
           </AuthenticatedSideBar>
         ) : (

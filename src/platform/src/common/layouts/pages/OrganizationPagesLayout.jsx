@@ -24,7 +24,7 @@ function OrganizationPagesLayout({ children }) {
   const pathname = usePathname();
   const params = useParams();
   const orgSlug = params?.org_slug || '';
-  const { organization, primaryColor, secondaryColor } = useOrganization();
+  const { organization } = useOrganization();
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
@@ -45,14 +45,11 @@ function OrganizationPagesLayout({ children }) {
     layout === THEME_LAYOUT.COMPACT
       ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
       : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
+
   return (
     <div
       className="flex overflow-hidden min-h-screen"
       data-testid="organization-layout"
-      style={{
-        '--org-primary': primaryColor,
-        '--org-secondary': secondaryColor,
-      }}
     >
       <Head>
         <title>{routeConfig.pageTitle}</title>
@@ -80,10 +77,6 @@ function OrganizationPagesLayout({ children }) {
           <UnifiedSidebarContent
             userType="organization"
             isCollapsed={isCollapsed}
-            style={{
-              '--org-primary': primaryColor,
-              '--org-secondary': secondaryColor,
-            }}
           />
         </AuthenticatedSideBar>
       </aside>

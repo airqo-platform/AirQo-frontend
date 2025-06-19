@@ -3,10 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  getOrganizationBySlugApi,
-  getOrganizationThemeApi,
-} from '@/core/apis/Organizations';
+import { getOrganizationBySlugApi } from '@/core/apis/Organizations';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
 import { setActiveGroup, selectActiveGroup } from '@/lib/store/services/groups';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
@@ -85,23 +82,18 @@ export function OrganizationProvider({
           if (response.success && response.data) {
             const orgData = response.data;
             setCurrentOrganization(orgData);
-
-            // Fetch theme data separately
-            return getOrganizationThemeApi(orgSlug);
+            // Theme data is already included in organization data
+            setCurrentTheme({
+              name: orgData.name,
+              logo: orgData.logo,
+              primaryColor: orgData.primaryColor,
+              secondaryColor: orgData.secondaryColor,
+              font: orgData.font,
+            });
+            setError(null);
           } else {
             // Handle organization not found
             throw new Error(response.message || 'Organization not found');
-          }
-        })
-        .then((response) => {
-          if (response.success && response.data) {
-            const themeData = response.data;
-            setCurrentTheme(themeData);
-            setError(null);
-          } else {
-            // Theme is optional, so we don't fail if it's not found
-            setCurrentTheme(null);
-            setError(null);
           }
         })
         .catch((err) => {
