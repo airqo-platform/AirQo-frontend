@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { HiPlus, HiMagnifyingGlass } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
 
@@ -65,7 +65,6 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { data: session } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
   const { setIsSwitchingOrganization } = useOrganizationLoading();
 
   // Redux state
@@ -75,18 +74,9 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSwitching, setIsSwitching] = useState(false);
 
-  // Monitor pathname changes for user flow routes
-  useEffect(() => {
-    if (!userGroups || userGroups.length === 0) return;
-
-    // If route goes back to /user/*, set active group to AirQo
-    if (pathname.startsWith('/user/')) {
-      const airqoGroup = userGroups.find(isAirQoGroup);
-      if (airqoGroup && (!activeGroup || activeGroup._id !== airqoGroup._id)) {
-        dispatch(setActiveGroup(airqoGroup));
-      }
-    }
-  }, [pathname, userGroups, activeGroup, dispatch]);
+  // Note: Removed automatic group setting on route changes to prevent
+  // overriding user's explicit group selection. The useGetActiveGroup hook
+  // will handle initial group setting when no group is selected.
 
   // Filter groups based on search term
   const filteredGroups =
@@ -95,13 +85,18 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
         group.grp_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.grp_website?.toLowerCase().includes(searchTerm.toLowerCase()),
     ) || [];
-
   // Handle organization switching
   const handleGroupSelect = async (group) => {
     if (!group || group._id === activeGroup?._id) {
       onClose();
       return;
     }
+
+    logger.info('OrganizationSelectModal: User selected group:', {
+      groupId: group._id,
+      groupName: group.grp_title,
+      previousActiveGroup: activeGroup?.grp_title,
+    });
 
     setIsSwitching(true);
     setIsSwitchingOrganization(true);

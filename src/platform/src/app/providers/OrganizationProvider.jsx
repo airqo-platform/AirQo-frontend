@@ -2,13 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   getOrganizationBySlugApi,
   getOrganizationThemeApi,
 } from '@/core/apis/Organizations';
 import { setOrganizationName } from '@/lib/store/services/charts/ChartSlice';
-import { setActiveGroup } from '@/lib/store/services/groups';
+import { setActiveGroup, selectActiveGroup } from '@/lib/store/services/groups';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
@@ -23,6 +23,7 @@ export function OrganizationProvider({
   theme,
 }) {
   const dispatch = useDispatch();
+  const activeGroup = useSelector(selectActiveGroup);
   const [currentOrganization, setCurrentOrganization] = useState(organization);
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [isLoading, setIsLoading] = useState(!!orgSlug && !organization);
@@ -52,8 +53,7 @@ export function OrganizationProvider({
 
     return matchedGroup;
   };
-
-  // Set active group when organization changes
+  // Set active group when organization changes (only if no active group is set)
   useEffect(() => {
     if (currentOrganization && groupList && groupList.length > 0) {
       const matchedGroup = findGroupByOrganization(
@@ -63,13 +63,18 @@ export function OrganizationProvider({
       );
 
       if (matchedGroup) {
-        // Set the active group in Redux
-        dispatch(setActiveGroup(matchedGroup));
-        // Set organization name for charts
-        dispatch(setOrganizationName(matchedGroup.grp_title));
+        // Only set if there's no active group already set
+        // This prevents overriding user's selection
+        if (!activeGroup) {
+          // Set the active group in Redux
+          dispatch(setActiveGroup(matchedGroup));
+          // Set organization name for charts
+          dispatch(setOrganizationName(matchedGroup.grp_title));
+        }
       }
     }
-  }, [currentOrganization, groupList, orgSlug, dispatch]); // Fetch organization data if orgSlug is provided but organization is not
+  }, [currentOrganization, groupList, orgSlug, dispatch, activeGroup]);
+  // Fetch organization data if orgSlug is provided but organization is not
   useEffect(() => {
     if (orgSlug && !organization) {
       setIsLoading(true);

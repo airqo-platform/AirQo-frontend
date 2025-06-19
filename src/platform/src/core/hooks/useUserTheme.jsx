@@ -368,17 +368,6 @@ const useUserTheme = () => {
         setIsSwitchingOrganization(true);
       }
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log(
-          isInitialized
-            ? 'Organization changed, refetching theme for:'
-            : 'Initial theme fetch for:',
-          currentTenant,
-        );
-      }
-
       // Fetch theme data
       fetchUserTheme().finally(() => {
         // Hide loading modal after theme is fetched for organization switches

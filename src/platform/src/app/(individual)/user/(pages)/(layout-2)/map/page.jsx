@@ -103,9 +103,8 @@ const MapPage = () => {
             }),
           );
         },
-        (error) => {
-          // eslint-disable-next-line no-console
-          console.error('Geolocation error:', error);
+        () => {
+          // User denied geolocation permission - this is expected behavior
         },
       );
     }

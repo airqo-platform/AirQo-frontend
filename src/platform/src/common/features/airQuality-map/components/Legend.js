@@ -120,20 +120,7 @@ const AirQualityLegend = ({ pollutant }) => {
             style="light"
             arrow={true}
             animation="duration-300"
-            popperOptions={{
-              modifiers: [
-                { name: 'offset', options: { offset: [0, 16] } },
-                {
-                  name: 'preventOverflow',
-                  options: {
-                    padding: 8,
-                    boundary: 'viewport',
-                  },
-                },
-              ],
-            }}
             className="w-auto"
-            contentClassName="w-auto min-w-[160px] max-w-xs px-4 py-2 break-words"
           >
             <button
               className="bg-transparent rounded-full"

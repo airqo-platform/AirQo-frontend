@@ -129,12 +129,4 @@ Button.propTypes = {
   showTextOnMobile: PropTypes.bool,
 };
 
-Button.defaultProps = {
-  variant: 'filled',
-  padding: 'py-2 px-4',
-  disabled: false,
-  type: 'button',
-  showTextOnMobile: false,
-};
-
 export default Button;

@@ -115,14 +115,6 @@ const GlobalSideBarDrawer = () => {
         }))
         .slice(0, 10); // Increased limit for better functionality
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(
-          `✅ Loaded ${subroutes.length} admin subroutes:`,
-          subroutes.map((s) => s.label),
-        );
-      }
-
       return subroutes;
     } catch (error) {
       console.error('Error loading admin subroutes:', error);

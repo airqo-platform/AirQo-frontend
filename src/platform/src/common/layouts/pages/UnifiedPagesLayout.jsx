@@ -16,7 +16,6 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
-import DarkModeToggle from '@/common/components/DarkModeToggle';
 import { useOrganization } from '@/app/providers/OrganizationProvider';
 
 /**
@@ -105,12 +104,7 @@ export default function UnifiedPagesLayout({ children }) {
   const homeNavPath = isOrganizationContext
     ? `/org/${orgSlug}/dashboard`
     : '/user/Home';
-
-  const customActions = isOrganizationContext ? (
-    <div className="flex items-center gap-2">
-      <DarkModeToggle size="md" />
-    </div>
-  ) : null;
+  const customActions = null;
   return (
     <div
       className="flex overflow-hidden min-h-screen h-screen bg-background"

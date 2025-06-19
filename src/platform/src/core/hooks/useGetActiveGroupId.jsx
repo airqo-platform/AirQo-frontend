@@ -5,6 +5,7 @@ import { getUserDetails } from '@/core/apis/Account';
 import { setActiveGroup } from '@/lib/store/services/groups';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
+import logger from '@/lib/logger';
 
 const findGroupByOrgName = (groups, orgName) =>
   groups?.find(
@@ -73,91 +74,65 @@ export function useGetActiveGroup() {
   useEffect(() => {
     fetchUserGroups();
   }, [fetchUserGroups]);
-
-  // Determine active group based on chart organization name or fallback
+  // Only set active group if none exists (avoid overriding user selection)
   useEffect(() => {
     if (loading || userGroups.length === 0) return;
 
-    let selectedGroup = null;
-
-    // For individual/user flow, prioritize AirQo group
-    const currentPath = window.location.pathname;
+    // If there's already an active group set, and it exists in userGroups, keep it
     if (
-      currentPath.includes('/user/') ||
-      currentPath.includes('/(individual)')
+      activeGroup &&
+      userGroups.find((group) => group._id === activeGroup._id)
     ) {
-      // Find AirQo group for individual flow
-      selectedGroup = userGroups.find(isAirQoGroup);
+      return; // Don't override existing valid active group
+    }
+
+    // Only set active group if none is currently set
+    if (!activeGroup) {
+      let selectedGroup = null;
+
+      // Try to get from session first (from login setup)
+      if (session?.user?.activeGroup) {
+        selectedGroup = userGroups.find(
+          (group) => group._id === session.user.activeGroup._id,
+        );
+      }
+
+      // Fallback to AirQo or first available group
+      if (!selectedGroup && userGroups.length > 0) {
+        const airqoGroup = userGroups.find(isAirQoGroup);
+        selectedGroup = airqoGroup || userGroups[0];
+      }
 
       if (selectedGroup) {
-        // Set active group and fetch individual preferences
-        if (!activeGroup || activeGroup._id !== selectedGroup._id) {
-          dispatch(setActiveGroup(selectedGroup));
-
-          // Fetch individual user preferences for AirQo group
-          if (
-            session?.user?.id &&
-            isValidObjectId(session.user.id) &&
-            isValidObjectId(selectedGroup._id)
-          ) {
-            dispatch(
-              getIndividualUserPreferences({
-                identifier: session.user.id,
-                groupID: selectedGroup._id,
-              }),
-            ).catch((error) => {
-              // eslint-disable-next-line no-console
-              console.warn('Failed to fetch individual preferences:', error);
-            });
-          }
-        }
-        return;
-      }
-    }
-
-    // First, try to find group matching chart organization name
-    if (chartData?.organizationName) {
-      selectedGroup = findGroupByOrgName(
-        userGroups,
-        chartData.organizationName,
-      );
-    }
-
-    // If no match found, try to get from session
-    if (!selectedGroup && session?.user?.activeGroup) {
-      selectedGroup = userGroups.find(
-        (group) => group._id === session.user.activeGroup._id,
-      );
-    }
-
-    // Fallback to first available group (prioritize AirQo if available)
-    if (!selectedGroup && userGroups.length > 0) {
-      const airqoGroup = userGroups.find(isAirQoGroup);
-      selectedGroup = airqoGroup || userGroups[0];
-    }
-
-    if (selectedGroup) {
-      dispatch(setActiveGroup(selectedGroup));
-
-      // Always fetch preferences when setting active group
-      if (
-        session?.user?.id &&
-        isValidObjectId(session.user.id) &&
-        isValidObjectId(selectedGroup._id)
-      ) {
-        dispatch(
-          getIndividualUserPreferences({
-            identifier: session.user.id,
-            groupID: selectedGroup._id,
-          }),
-        ).catch((error) => {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to fetch preferences for active group:', error);
+        logger.info('useGetActiveGroupId: Setting active group:', {
+          groupId: selectedGroup._id,
+          groupName: selectedGroup.grp_title,
+          source: session?.user?.activeGroup ? 'session' : 'fallback',
         });
+        dispatch(setActiveGroup(selectedGroup));
+
+        // Fetch preferences when setting active group
+        if (
+          session?.user?.id &&
+          isValidObjectId(session.user.id) &&
+          isValidObjectId(selectedGroup._id)
+        ) {
+          dispatch(
+            getIndividualUserPreferences({
+              identifier: session.user.id,
+              groupID: selectedGroup._id,
+            }),
+          ).catch((error) => {
+            // eslint-disable-next-line no-console
+            console.warn(
+              'Failed to fetch preferences for active group:',
+              error,
+            );
+          });
+        }
       }
     }
   }, [
-    chartData?.organizationName,
     userGroups,
     session?.user?.activeGroup,
     session?.user?.id,

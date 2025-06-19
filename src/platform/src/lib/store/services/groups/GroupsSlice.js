@@ -74,6 +74,12 @@ const groupsSlice = createSlice({
   reducers: {
     // Active Group Management (from ActiveGroupSlice)
     setActiveGroup: (state, action) => {
+      const newGroup = action.payload;
+      logger.info('Redux: Setting active group:', {
+        groupId: newGroup?._id,
+        groupName: newGroup?.grp_title,
+        previousGroup: state.activeGroup?.grp_title,
+      });
       state.activeGroup = action.payload;
       state.activeGroupError = null;
     },

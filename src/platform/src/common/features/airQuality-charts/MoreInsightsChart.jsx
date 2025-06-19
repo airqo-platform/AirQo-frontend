@@ -120,13 +120,13 @@ ImprovedAxisTick.propTypes = {
 const MoreInsightsChart = React.memo(function MoreInsightsChart({
   data,
   selectedSites,
-  visibleSiteIds,
-  chartType,
-  frequency,
-  id,
+  visibleSiteIds = [],
+  chartType = 'line',
+  frequency = 'daily',
+  id = undefined,
   pollutantType,
-  refreshChart,
-  isRefreshing,
+  refreshChart = null,
+  isRefreshing = false,
   _width = '100%', // Underscore prefix to indicate unused
   height = '100%',
 }) {
@@ -595,17 +595,6 @@ MoreInsightsChart.propTypes = {
   isRefreshing: PropTypes.bool,
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-MoreInsightsChart.defaultProps = {
-  visibleSiteIds: [],
-  chartType: 'line',
-  frequency: 'daily',
-  id: undefined,
-  refreshChart: null,
-  isRefreshing: false,
-  width: '100%',
-  height: '100%',
 };
 
 export default MoreInsightsChart;

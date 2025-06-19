@@ -1,136 +1,120 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { fetchGroupDetails } from '@/lib/store/services/groups';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
 
-const STORAGE_KEY = 'groupLogoUrl';
-const LOGO_REFRESH_EVENT = 'logoRefresh';
-
+/**
+ * GroupLogo Component
+ *
+ * Logic:
+ * - User flow (not /org/[slug]/*): Always shows AirQo logo
+ * - Organization flow (/org/[slug]/*): Shows organization logo or professional initials
+ * - No fallback to AirQo for organization flow
+ */
 const GroupLogo = ({ className = '', style = {} }) => {
-  const dispatch = useDispatch();
-  const { id: activeGroupId, loading: fetchingGroup } = useGetActiveGroup();
-  const { groupDetails: orgInfo, groupDetailsLoading: fetchingProfile } =
-    useSelector((state) => state.groups);
+  const pathname = usePathname();
+  const { activeGroup } = useGetActiveGroup();
+  const { groupDetails: orgInfo } = useSelector((state) => state.groups);
 
-  const [displaySrc, setDisplaySrc] = useState(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const prevIdRef = useRef(null);
-  // Listen for logo refresh events from settings page
-  useEffect(() => {
-    const handleLogoRefresh = () => {
-      // Clear cache and force refresh
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        // ignore
+  const [imageError, setImageError] = useState(false);
+
+  // Determine if we're in organization flow
+  const isOrganizationFlow = useMemo(() => {
+    return pathname?.startsWith('/org/');
+  }, [pathname]);
+
+  // Get organization data (prefer orgInfo, fallback to activeGroup)
+  const organizationData = useMemo(() => {
+    return orgInfo || activeGroup;
+  }, [orgInfo, activeGroup]);
+
+  // Get organization logo URL
+  const logoUrl = useMemo(() => {
+    if (!isOrganizationFlow || !organizationData) return null;
+    return organizationData.grp_image || organizationData.grp_profile_picture;
+  }, [isOrganizationFlow, organizationData]);
+
+  // Get organization initials for placeholder
+  const organizationInitials = useMemo(() => {
+    if (!organizationData) {
+      // If we're in org flow but no data yet, try to get from pathname
+      if (isOrganizationFlow && pathname) {
+        const matches = pathname.match(/\/org\/([^/]+)/);
+        if (matches && matches[1]) {
+          return matches[1].substring(0, 2).toUpperCase();
+        }
       }
-      setDisplaySrc(null);
-      setHasError(false);
-
-      if (activeGroupId) {
-        dispatch(fetchGroupDetails(activeGroupId));
-      }
-    };
-
-    window.addEventListener(LOGO_REFRESH_EVENT, handleLogoRefresh);
-    return () =>
-      window.removeEventListener(LOGO_REFRESH_EVENT, handleLogoRefresh);
-  }, [activeGroupId, dispatch]);
-
-  // Fetch only when groupId truly changes
-  useEffect(() => {
-    if (!activeGroupId || prevIdRef.current === activeGroupId) return;
-
-    // clear cached logo
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      //empty
+      return 'ORG';
     }
+    const name =
+      organizationData.grp_title || organizationData.grp_name || 'Organization';
+    return name.substring(0, 2).toUpperCase();
+  }, [organizationData, isOrganizationFlow, pathname]);
 
-    setHasError(false);
-    setDisplaySrc(null);
+  // Handle image load error
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+  }, []);
 
-    dispatch(fetchGroupDetails(activeGroupId))
-      .unwrap()
-      .catch(() => setHasError(true));
+  // Handle image load success
+  const handleImageLoad = useCallback(() => {
+    setImageError(false);
+  }, []);
 
-    prevIdRef.current = activeGroupId;
-  }, [activeGroupId, dispatch]);
-
-  // Cache new logo when received
-  useEffect(() => {
-    const pic = orgInfo?.grp_image;
-    if (pic) {
-      setDisplaySrc(pic);
-      try {
-        localStorage.setItem(STORAGE_KEY, pic);
-      } catch {
-        //empty
-      }
-    }
-  }, [orgInfo]);
-
-  // Trigger skeleton overlay while image loads
-  useEffect(() => {
-    if (displaySrc) {
-      setIsLoadingImage(true);
-      setHasError(false);
-    }
-  }, [displaySrc]);
-
-  const isFetching = fetchingGroup || fetchingProfile;
-  const containerStyle = {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...style,
-  };
-
-  const renderSkeleton = () => (
-    <div
-      className={`${className} animate-pulse bg-gray-200 rounded`}
-      style={containerStyle}
-    />
+  // Container styles
+  const containerStyle = useMemo(
+    () => ({
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...style,
+    }),
+    [style],
   );
 
-  const renderFallback = () => (
-    <div className={className} style={containerStyle}>
-      <AirqoLogo />
-    </div>
-  );
-
-  if (!activeGroupId || hasError) return renderFallback();
-  if (isFetching && !displaySrc) return renderSkeleton();
-
-  if (displaySrc) {
+  // Render AirQo logo for user flow ONLY
+  if (!isOrganizationFlow) {
     return (
       <div className={className} style={containerStyle}>
-        {isLoadingImage && renderSkeleton()}
-        <div style={{ position: 'relative', width: '50px', height: '50px' }}>
+        <AirqoLogo />
+      </div>
+    );
+  }
+
+  // For organization flow: NEVER show AirQo logo
+  // Try to show organization logo first
+  if (logoUrl && !imageError) {
+    return (
+      <div className={className} style={containerStyle}>
+        <div className="relative w-12 h-12">
           <Image
-            key={displaySrc}
-            src={displaySrc}
-            alt={orgInfo?.grp_title || 'Group logo'}
+            src={logoUrl}
+            alt={organizationData?.grp_title || 'Organization logo'}
             fill
-            onLoadingComplete={() => setIsLoadingImage(false)}
-            onError={() => {
-              setHasError(true);
-              setIsLoadingImage(false);
-            }}
-            className="object-contain w-full h-full"
+            sizes="48px"
+            className="object-contain rounded"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+            priority
           />
         </div>
       </div>
     );
   }
 
-  return renderFallback();
+  // Always fallback to professional initials for organization flow
+  return (
+    <div className={className} style={containerStyle}>
+      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm border border-blue-200">
+        <span className="text-white font-bold text-sm tracking-wide">
+          {organizationInitials}
+        </span>
+      </div>
+    </div>
+  );
 };
 
 GroupLogo.propTypes = {
