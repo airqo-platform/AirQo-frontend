@@ -511,24 +511,24 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.blue.withOpacity(0.3)),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.my_location,
-                            color: Colors.blue, size: 16),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue.shade700,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                    // child: Row(
+                    //   children: [
+                    //     const Icon(Icons.my_location,
+                    //         color: Colors.blue, size: 16),
+                    //     const SizedBox(width: 6),
+                    //     Expanded(
+                    //       child: Text(
+                    //         "Your location: ${_userPosition!.latitude.toStringAsFixed(4)}, ${_userPosition!.longitude.toStringAsFixed(4)}",
+                    //         textAlign: TextAlign.center,
+                    //         style: TextStyle(
+                    //           fontSize: 12,
+                    //           color: Colors.blue.shade700,
+                    //         ),
+                    //         overflow: TextOverflow.ellipsis,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                   ),
                 ),
               ListView.builder(

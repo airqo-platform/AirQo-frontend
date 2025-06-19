@@ -53,7 +53,10 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
                 "assets/icons/search_icon.svg", 
                 "Search", 
                 1,
-                "assets/icons/search_icon.svg",
+                Theme.of(context).brightness == Brightness.dark
+                    ? "assets/icons/search_icon_light.svg"
+                    : "assets/icons/search_icon_dark.svg",
+      
               ),
               label: ""), // Empty label
           BottomNavigationBarItem(
