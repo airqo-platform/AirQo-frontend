@@ -270,10 +270,13 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       try {
         if (userTheme) {
           window.sessionStorage.setItem('userTheme', JSON.stringify(userTheme));
+          logger.info('User theme stored in sessionStorage:', userTheme);
+        } else {
+          logger.info('No user theme to store, will use defaults');
         }
         // Always set this flag to indicate theme loading is complete
         window.sessionStorage.setItem('userThemeLoaded', 'true');
-        logger.info('Theme data stored in sessionStorage');
+        logger.info('Theme loading flag set in sessionStorage');
       } catch (error) {
         logger.warn('Failed to store theme in session storage:', error);
       }
