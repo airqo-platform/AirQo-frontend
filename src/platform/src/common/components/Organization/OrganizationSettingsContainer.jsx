@@ -12,9 +12,11 @@ const OrganizationSettingsContainer = ({
   logoPreview,
   saveStatus,
   organizationDetails,
+  hasUnsavedChanges = false,
   onInputChange,
   onLogoUpload,
   onSave,
+  onReset,
 }) => {
   const [activeTab, setActiveTab] = useState('organization');
   const [appearanceData, setAppearanceData] = useState({
@@ -22,6 +24,8 @@ const OrganizationSettingsContainer = ({
     primaryColor: '#3B82F6',
   });
   const [isAppearanceUpdating, setIsAppearanceUpdating] = useState(false);
+  const [appearanceHasUnsavedChanges, setAppearanceHasUnsavedChanges] =
+    useState(false);
 
   // Ref for appearance form to access its save function
   const appearanceFormRef = useRef();
@@ -80,12 +84,15 @@ const OrganizationSettingsContainer = ({
       CustomToast({ message, type });
     }
   }, [saveStatus]);
-
   const handleAppearanceChange = (field, value) => {
     setAppearanceData((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleAppearanceUnsavedChanges = (hasChanges) => {
+    setAppearanceHasUnsavedChanges(hasChanges);
   };
   const handleSave = () => {
     if (activeTab === 'appearance' && appearanceFormRef.current) {
@@ -96,12 +103,16 @@ const OrganizationSettingsContainer = ({
       onSave();
     }
   };
-
   // Track appearance form updating state
   useEffect(() => {
     const checkAppearanceUpdating = () => {
       if (appearanceFormRef.current?.isUpdating !== undefined) {
         setIsAppearanceUpdating(appearanceFormRef.current.isUpdating);
+      }
+      if (appearanceFormRef.current?.hasUnsavedChanges !== undefined) {
+        setAppearanceHasUnsavedChanges(
+          appearanceFormRef.current.hasUnsavedChanges,
+        );
       }
     };
 
@@ -130,6 +141,7 @@ const OrganizationSettingsContainer = ({
             ref={appearanceFormRef}
             appearanceData={appearanceData}
             onAppearanceChange={handleAppearanceChange}
+            onUnsavedChanges={handleAppearanceUnsavedChanges}
           />
         );
       default:
@@ -174,6 +186,12 @@ const OrganizationSettingsContainer = ({
             organizationDetails={organizationDetails}
             activeTab={activeTab}
             isAppearanceUpdating={isAppearanceUpdating}
+            hasUnsavedChanges={
+              activeTab === 'organization'
+                ? hasUnsavedChanges
+                : appearanceHasUnsavedChanges
+            }
+            onReset={activeTab === 'organization' ? onReset : undefined}
           />
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSave, FaSpinner } from 'react-icons/fa';
+import { FaSave, FaSpinner, FaUndo } from 'react-icons/fa';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
 
@@ -9,12 +9,20 @@ const SettingsSidebar = ({
   organizationDetails,
   activeTab,
   isAppearanceUpdating = false,
+  hasUnsavedChanges = false,
+  onReset,
 }) => {
   // Determine if the save button should be disabled and what text to show
   const isSaving =
     saveStatus === 'saving' ||
     (activeTab === 'appearance' && isAppearanceUpdating);
   const saveButtonText = isSaving ? 'Saving...' : 'Save Changes';
+
+  // Button variant based on unsaved changes
+  const buttonVariant = hasUnsavedChanges ? 'filled' : 'outlined';
+  const buttonClassName = hasUnsavedChanges
+    ? 'w-full flex items-center justify-center bg-primary hover:bg-primary/90'
+    : 'w-full flex items-center justify-center';
   return (
     <CardWrapper>
       <div className="space-y-6">
@@ -26,8 +34,8 @@ const SettingsSidebar = ({
         <Button
           onClick={onSave}
           disabled={isSaving}
-          variant="filled"
-          className="w-full flex items-center justify-center"
+          variant={buttonVariant}
+          className={buttonClassName}
         >
           {isSaving ? (
             <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
@@ -36,6 +44,31 @@ const SettingsSidebar = ({
           )}
           {saveButtonText}
         </Button>
+        {/* Discard changes button - only show for organization tab and when there are unsaved changes */}
+        {hasUnsavedChanges &&
+          onReset &&
+          activeTab === 'organization' &&
+          !isSaving && (
+            <Button
+              onClick={onReset}
+              variant="outlined"
+              className="w-full flex items-center justify-center mt-2"
+            >
+              <FaUndo className="mr-2 h-4 w-4" />
+              Discard Changes
+            </Button>
+          )}
+        {/* Unsaved changes indicator */}
+        {hasUnsavedChanges && !isSaving && (
+          <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
+              <span className="text-sm text-amber-800 dark:text-amber-200">
+                You have unsaved changes
+              </span>
+            </div>
+          </div>
+        )}
         {/* Organization Stats */}
         {organizationDetails && activeTab === 'organization' && (
           <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">

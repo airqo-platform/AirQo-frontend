@@ -1,5 +1,16 @@
 'use client';
 
+/**
+ * Organization Settings Page
+ *
+ * This component implements a save-only-on-button-click pattern to ensure that:
+ * 1. Form changes are only stored locally until the user explicitly clicks "Save Changes"
+ * 2. No automatic saves occur when users type or make changes
+ * 3. Users are warned about unsaved changes when navigating away
+ * 4. Clear visual indicators show when there are unsaved changes
+ * 5. A "Discard Changes" button allows users to reset to original values
+ */
+
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
 import * as Yup from 'yup';
@@ -27,6 +38,7 @@ const OrganizationSettingsPage = () => {
   const [logoPreview, setLogoPreview] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
   const [organizationDetails, setOrganizationDetails] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [formData, setFormData] = useState({
     grp_title: '',
@@ -81,11 +93,30 @@ const OrganizationSettingsPage = () => {
     fetchOrganizationDetails();
   }, [activeGroup?._id, groupLoading]);
 
+  // Warn user about unsaved changes when leaving the page
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for Chrome
+        return ''; // Required for other browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]); // Handle input changes - only updates local state, does NOT save to server
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
 
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
@@ -95,7 +126,7 @@ const OrganizationSettingsPage = () => {
       }));
     }
   };
-
+  // Handle save button click - ONLY way to save changes to server
   const handleSave = async () => {
     try {
       setSaveStatus('saving');
@@ -122,7 +153,8 @@ const OrganizationSettingsPage = () => {
         // Add other fields to form data
         Object.keys(updateData).forEach((key) => {
           formDataWithFile.append(key, updateData[key]);
-        }); // Update with FormData (includes logo)
+        });
+        // Update with FormData (includes logo)
         const response = await updateGroupDetailsApi(
           activeGroup._id,
           formDataWithFile,
@@ -151,12 +183,16 @@ const OrganizationSettingsPage = () => {
         if (!response.success) {
           throw new Error(response.message || 'Failed to update organization');
         }
-      } // Refresh organization details after successful update
+      }
+
+      // Refresh organization details after successful update
       const refreshResponse = await getGroupDetailsApi(activeGroup._id);
       if (refreshResponse.success && refreshResponse.group) {
         setOrganizationDetails(refreshResponse.group);
       }
 
+      // Mark as saved successfully
+      setHasUnsavedChanges(false);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(''), 3000);
 
@@ -183,7 +219,7 @@ const OrganizationSettingsPage = () => {
       setTimeout(() => setSaveStatus(''), 3000);
     }
   };
-
+  // Handle logo upload - only updates local state, does NOT save to server
   const handleLogoUpload = (event) => {
     const file = event.target.files[0];
 
@@ -192,6 +228,7 @@ const OrganizationSettingsPage = () => {
       const validTypes = [
         'image/jpeg',
         'image/jpg',
+        'image/webp',
         'image/png',
         'image/svg+xml',
       ];
@@ -210,6 +247,8 @@ const OrganizationSettingsPage = () => {
       }
 
       setLogoFile(file);
+      setHasUnsavedChanges(true); // Mark as having unsaved changes
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const newLogoUrl = e.target.result;
@@ -218,6 +257,24 @@ const OrganizationSettingsPage = () => {
       reader.readAsDataURL(file);
     }
   };
+  // Reset form to original values (discard unsaved changes)
+  const handleReset = () => {
+    if (organizationDetails) {
+      setFormData({
+        grp_title: organizationDetails.grp_title || '',
+        grp_description: organizationDetails.grp_description || '',
+        grp_website: organizationDetails.grp_website || '',
+        grp_industry: organizationDetails.grp_industry || '',
+        grp_country: organizationDetails.grp_country || '',
+        grp_timezone: organizationDetails.grp_timezone || '',
+      });
+      setLogoPreview(organizationDetails.grp_profile_picture || '');
+      setLogoFile(null);
+      setHasUnsavedChanges(false);
+      setValidationErrors({});
+    }
+  };
+
   if (isLoading || groupLoading) {
     return <OrganizationSettingsSkeleton />;
   }
@@ -241,7 +298,6 @@ const OrganizationSettingsPage = () => {
       </div>
     );
   }
-
   return (
     <OrganizationSettingsContainer
       formData={formData}
@@ -249,9 +305,11 @@ const OrganizationSettingsPage = () => {
       logoPreview={logoPreview}
       saveStatus={saveStatus}
       organizationDetails={organizationDetails}
+      hasUnsavedChanges={hasUnsavedChanges}
       onInputChange={handleInputChange}
       onLogoUpload={handleLogoUpload}
       onSave={handleSave}
+      onReset={handleReset}
     />
   );
 };

@@ -228,7 +228,7 @@ const OrganizationInformationForm = ({
                 className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                PNG, JPG, SVG up to 5MB
+                PNG, JPG, SVG, WEBP formats supported. Max size: 5MB.
               </p>
             </div>
           </div>

@@ -59,7 +59,14 @@ const colorSuggestions = [
 ];
 
 const AppearanceSettingsForm = forwardRef(
-  ({ onAppearanceChange = () => {}, onSave = () => {} }, ref) => {
+  (
+    {
+      onAppearanceChange = () => {},
+      onSave = () => {},
+      onUnsavedChanges = () => {},
+    },
+    ref,
+  ) => {
     const dispatch = useDispatch();
     const {
       themeData,
@@ -77,6 +84,9 @@ const AppearanceSettingsForm = forwardRef(
       interfaceStyle: 'bordered',
       contentLayout: 'compact',
     });
+
+    // Track if there are unsaved changes
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const handleSave = async () => {
       try {
         const updatedTheme = await updateTheme(formData);
@@ -95,11 +105,15 @@ const AppearanceSettingsForm = forwardRef(
 
         // Store organization theme in Redux after successful update
         dispatch(setOrganizationTheme(formattedThemeData));
-
         CustomToast({
           message: 'Appearance settings updated successfully',
           type: 'success',
         });
+
+        // Reset unsaved changes after successful save
+        setHasUnsavedChanges(false);
+        onUnsavedChanges(false);
+
         onSave(); // Call parent save handler
       } catch (error) {
         CustomToast({
@@ -107,12 +121,11 @@ const AppearanceSettingsForm = forwardRef(
           type: 'error',
         });
       }
-    };
-
-    // Expose handleSave and isUpdating to parent component - MUST be before any conditional returns
+    }; // Expose handleSave, isUpdating, and hasUnsavedChanges to parent component - MUST be before any conditional returns
     useImperativeHandle(ref, () => ({
       handleSave,
       isUpdating,
+      hasUnsavedChanges,
     })); // Update form data when theme data is loaded
     useEffect(() => {
       if (themeData) {
@@ -122,12 +135,15 @@ const AppearanceSettingsForm = forwardRef(
           interfaceStyle: themeData.interfaceStyle || 'bordered',
           contentLayout: themeData.contentLayout || 'compact',
         };
-
         console.log(
           'Setting theme data in AppearanceSettingsForm:',
           formattedData,
         );
         setFormData(formattedData);
+
+        // Reset unsaved changes when loading fresh data
+        setHasUnsavedChanges(false);
+        onUnsavedChanges(false);
 
         // Store organization theme in Redux for use in other parts of the app
         dispatch(setOrganizationTheme(formattedData));
@@ -191,6 +207,11 @@ const AppearanceSettingsForm = forwardRef(
         ...prev,
         [field]: value,
       }));
+
+      // Mark as having unsaved changes
+      setHasUnsavedChanges(true);
+      onUnsavedChanges(true);
+
       // Call the parent callback for backward compatibility
       onAppearanceChange(field, value);
 
