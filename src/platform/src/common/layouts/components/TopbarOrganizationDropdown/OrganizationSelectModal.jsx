@@ -11,6 +11,7 @@ import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 
 // Utils
 import logger from '@/lib/logger';
+import { isAirQoGroup } from '@/core/utils/organizationUtils';
 
 /**
  * Utility function to format group names for display
@@ -27,7 +28,6 @@ const formatGroupName = (groupName) => {
 
 const OrganizationSelectModal = ({ isOpen, onClose }) => {
   const router = useRouter();
-
   // Use unified group provider
   const { activeGroup, userGroups, switchToGroup, isSwitching } =
     useUnifiedGroup();
@@ -70,11 +70,37 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
     } catch (error) {
       logger.error('Organization switching failed:', error);
     }
-  };
-  // Handle navigation to create organization page
-  const handleCreateOrganization = () => {
-    onClose(); // Close the current modal
-    router.push('/create-organization'); // Navigate to the create organization page
+  }; // Handle navigation to create organization page
+  const handleCreateOrganization = async () => {
+    try {
+      // Find AirQo group in user's groups
+      const airqoGroup = userGroups?.find(isAirQoGroup);
+
+      if (airqoGroup && activeGroup?._id !== airqoGroup._id) {
+        logger.info(
+          'OrganizationSelectModal: Switching to AirQo group before navigation',
+          {
+            airqoGroupId: airqoGroup._id,
+            airqoGroupName: airqoGroup.grp_title,
+            currentActiveGroup: activeGroup?.grp_title,
+          },
+        );
+
+        // Switch to AirQo group without navigation (we'll navigate manually)
+        await switchToGroup(airqoGroup, { navigate: false });
+      }
+
+      onClose(); // Close the current modal
+      router.push('/create-organization'); // Navigate to the create organization page
+    } catch (error) {
+      logger.error(
+        'Failed to switch to AirQo group before create organization:',
+        error,
+      );
+      // Still navigate even if group switch fails
+      onClose();
+      router.push('/create-organization');
+    }
   };
 
   if (!isOpen) return null;

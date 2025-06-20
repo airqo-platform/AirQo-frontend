@@ -20,6 +20,7 @@ const UserProfileDropdown = ({
   customMenuItems = [],
   onLogout,
   isOrganization = false,
+  isCreateOrganizationRoute = false,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -110,9 +111,8 @@ const UserProfileDropdown = ({
     },
     [router],
   );
-
   const renderUserInfo = () => {
-    if (!showUserInfo) return null;
+    if (!showUserInfo && !isCreateOrganizationRoute) return null;
 
     return (
       <div className="flex items-center space-x-3 p-1">
@@ -138,7 +138,7 @@ const UserProfileDropdown = ({
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
             {userInfo?.email || 'No email'}
           </div>
-          {isOrganizationContext && (
+          {isOrganizationContext && !isCreateOrganizationRoute && (
             <div className="text-xs text-[var(--org-primary,var(--color-primary,#145fff))] truncate max-w-[21ch]">
               {userInfo?.organization || 'Organization User'}
             </div>
@@ -147,61 +147,71 @@ const UserProfileDropdown = ({
       </div>
     );
   };
-
   const renderDropdownContent = () => (
     <>
+      {/* Always show user info (email and profile picture) */}
       {renderUserInfo()}
-      {showUserInfo && (
+      {(showUserInfo || isCreateOrganizationRoute) && (
         <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
       )}
-      <ul className="dropdown-list p-2">
-        {/* My Profile - only show in organization context */}
-        {isOrganizationContext && (
-          <li
-            onClick={handleNavigation(navigationPaths.profile)}
-            className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-          >
-            <span className="mr-3">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
-            </span>
-            My Profile
-          </li>
-        )}
 
-        {/* Show Settings only for admin users in organization context or always in individual context */}
-        {(!isOrganizationContext ||
-          (isOrganizationContext && userInfo?.isAdmin)) && (
-          <li
-            onClick={handleNavigation(navigationPaths.settings)}
-            className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-          >
-            <span className="mr-3">
-              <SettingsIcon width={17} height={17} />
-            </span>
-            {isOrganizationContext ? 'Organization Settings' : 'Settings'}
-          </li>
-        )}
+      {/* Show menu items only if not on create-organization route */}
+      {!isCreateOrganizationRoute && (
+        <ul className="dropdown-list p-2">
+          {/* My Profile - only show in organization context */}
+          {isOrganizationContext && (
+            <li
+              onClick={handleNavigation(navigationPaths.profile)}
+              className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+            >
+              <span className="mr-3">
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              </span>
+              My Profile
+            </li>
+          )}
 
-        {/* Custom menu items */}
-        {customMenuItems.map((item, index) => (
-          <li
-            key={index}
-            onClick={item.onClick}
-            className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-          >
-            {item.icon && <span className="mr-3">{item.icon}</span>}
-            {item.label}
-          </li>
-        ))}
-      </ul>
-      <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+          {/* Show Settings only for admin users in organization context or always in individual context */}
+          {(!isOrganizationContext ||
+            (isOrganizationContext && userInfo?.isAdmin)) && (
+            <li
+              onClick={handleNavigation(navigationPaths.settings)}
+              className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+            >
+              <span className="mr-3">
+                <SettingsIcon width={17} height={17} />
+              </span>
+              {isOrganizationContext ? 'Organization Settings' : 'Settings'}
+            </li>
+          )}
+
+          {/* Custom menu items */}
+          {customMenuItems.map((item, index) => (
+            <li
+              key={index}
+              onClick={item.onClick}
+              className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+            >
+              {item.icon && <span className="mr-3">{item.icon}</span>}
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Show divider only if we have content above and it's not create-organization route */}
+      {!isCreateOrganizationRoute && (
+        <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+      )}
+
+      {/* Logout section - always show */}
       <ul className="dropdown-list p-2">
         <li
           onClick={handleLogout}
@@ -270,6 +280,7 @@ UserProfileDropdown.propTypes = {
   ),
   onLogout: PropTypes.func,
   isOrganization: PropTypes.bool,
+  isCreateOrganizationRoute: PropTypes.bool,
 };
 
 export default React.memo(UserProfileDropdown);

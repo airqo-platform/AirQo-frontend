@@ -18,6 +18,9 @@ import {
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '@/common/components/GroupLogo';
 import CardWrapper from '@/common/components/CardWrapper';
+import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
+import { isAirQoGroup } from '@/core/utils/organizationUtils';
+import logger from '@/lib/logger';
 
 /**
  * Unified Global Topbar Component
@@ -35,6 +38,9 @@ const GlobalTopbar = ({
   const { width } = useWindowSize();
   const dispatch = useDispatch();
   const { theme, systemTheme } = useTheme();
+
+  // Get unified group provider for AirQo safety check
+  const { activeGroup, userGroups, switchToGroup } = useUnifiedGroup();
 
   const isDarkMode = useMemo(() => {
     return theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
@@ -64,17 +70,57 @@ const GlobalTopbar = ({
       return false;
     }
   });
-
   // Client-side only state to prevent hydration issues
   const [mounted, setMounted] = useState(false);
+
+  // Detect context (individual vs organization)
+  const isOrganization = pathname.startsWith('/org/');
+
+  // Check if we're on the create-organization route
+  const isCreateOrganizationRoute = pathname === '/create-organization';
 
   // Only render after component has mounted on client
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Detect context (individual vs organization)
-  const isOrganization = pathname.startsWith('/org/');
+  // Safety check: Ensure AirQo is active group when on create-organization route
+  useEffect(() => {
+    if (
+      mounted &&
+      isCreateOrganizationRoute &&
+      userGroups?.length > 0 &&
+      activeGroup
+    ) {
+      const airqoGroup = userGroups.find(isAirQoGroup);
+
+      // If AirQo group exists and is not currently active, switch to it
+      if (airqoGroup && activeGroup._id !== airqoGroup._id) {
+        logger.info(
+          'GlobalTopbar: Safety check - switching to AirQo group on create-organization route',
+          {
+            currentActiveGroup: activeGroup.grp_title,
+            airqoGroupId: airqoGroup._id,
+            airqoGroupTitle: airqoGroup.grp_title,
+          },
+        );
+
+        // Switch to AirQo group without navigation
+        switchToGroup(airqoGroup, { navigate: false }).catch((error) => {
+          logger.error(
+            'Failed to switch to AirQo group during safety check:',
+            error,
+          );
+        });
+      }
+    }
+  }, [
+    mounted,
+    isCreateOrganizationRoute,
+    userGroups,
+    activeGroup,
+    switchToGroup,
+  ]);
 
   const handleDrawer = useCallback(
     (e) => {
@@ -227,12 +273,14 @@ const GlobalTopbar = ({
                   </div>
                 )}
               </div>
-            </div>
+            </div>{' '}
             {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
             <div className="hidden lg:flex gap-2 items-center justify-center h-full">
               {' '}
-              {/* Organization Dropdown - Show for users with multiple groups */}
-              <TopbarOrganizationDropdown className="mr-2" />
+              {/* Organization Dropdown - Show for users with multiple groups but hide for create-organization route */}
+              {!isCreateOrganizationRoute && (
+                <TopbarOrganizationDropdown className="mr-2" />
+              )}
               {customActions && (
                 <div className="flex items-center justify-center h-full">
                   {customActions}
@@ -242,8 +290,9 @@ const GlobalTopbar = ({
                 dropdownAlign="right"
                 showUserInfo={true}
                 isOrganization={isOrganization}
+                isCreateOrganizationRoute={isCreateOrganizationRoute}
               />
-            </div>
+            </div>{' '}
             {/* Mobile Profile Dropdown - Moved to main topbar */}
             <div className="lg:hidden flex items-center justify-center h-full">
               {' '}
@@ -251,6 +300,7 @@ const GlobalTopbar = ({
                 dropdownAlign="right"
                 showUserInfo={false}
                 isOrganization={isOrganization}
+                isCreateOrganizationRoute={isCreateOrganizationRoute}
               />
             </div>
           </div>
@@ -274,11 +324,16 @@ const GlobalTopbar = ({
               >
                 {topbarTitle}
               </div>
+            )}{' '}
+            {/* Organization Dropdown for mobile - hide for create-organization route */}
+            {!isCreateOrganizationRoute && (
+              <div className="flex items-center justify-center h-full">
+                <TopbarOrganizationDropdown
+                  showTitle={false}
+                  className="mr-2"
+                />
+              </div>
             )}
-            {/* Organization Dropdown for mobile */}
-            <div className="flex items-center justify-center h-full">
-              <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
-            </div>
             {/* Custom actions for mobile if any */}
             {customActions && (
               <div className="flex gap-1 items-center justify-center h-full">
