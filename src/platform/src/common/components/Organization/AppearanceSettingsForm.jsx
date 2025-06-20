@@ -77,10 +77,25 @@ const AppearanceSettingsForm = forwardRef(
       interfaceStyle: 'bordered',
       contentLayout: 'compact',
     });
-
     const handleSave = async () => {
       try {
-        await updateTheme(formData);
+        const updatedTheme = await updateTheme(formData);
+
+        // Ensure we have proper data format for Redux
+        const themeDataForRedux =
+          updatedTheme?.data || updatedTheme || formData;
+        const formattedThemeData = {
+          primaryColor: themeDataForRedux.primaryColor || formData.primaryColor,
+          mode: themeDataForRedux.mode || formData.mode,
+          interfaceStyle:
+            themeDataForRedux.interfaceStyle || formData.interfaceStyle,
+          contentLayout:
+            themeDataForRedux.contentLayout || formData.contentLayout,
+        };
+
+        // Store organization theme in Redux after successful update
+        dispatch(setOrganizationTheme(formattedThemeData));
+
         CustomToast({
           message: 'Appearance settings updated successfully',
           type: 'success',
@@ -94,25 +109,44 @@ const AppearanceSettingsForm = forwardRef(
       }
     };
 
-    // Expose handleSave to parent component - MUST be before any conditional returns
+    // Expose handleSave and isUpdating to parent component - MUST be before any conditional returns
     useImperativeHandle(ref, () => ({
       handleSave,
-    }));
-
-    // Update form data when theme data is loaded
+      isUpdating,
+    })); // Update form data when theme data is loaded
     useEffect(() => {
       if (themeData) {
-        setFormData({
+        const formattedData = {
           primaryColor: themeData.primaryColor || '#3B82F6',
           mode: themeData.mode || 'light',
           interfaceStyle: themeData.interfaceStyle || 'bordered',
           contentLayout: themeData.contentLayout || 'compact',
-        });
+        };
+
+        console.log(
+          'Setting theme data in AppearanceSettingsForm:',
+          formattedData,
+        );
+        setFormData(formattedData);
 
         // Store organization theme in Redux for use in other parts of the app
-        dispatch(setOrganizationTheme(themeData));
+        dispatch(setOrganizationTheme(formattedData));
       }
     }, [themeData, dispatch]);
+
+    // Also update Redux when hasActiveGroup changes to ensure proper state management
+    useEffect(() => {
+      if (hasActiveGroup && themeData) {
+        const formattedData = {
+          primaryColor: themeData.primaryColor || '#3B82F6',
+          mode: themeData.mode || 'light',
+          interfaceStyle: themeData.interfaceStyle || 'bordered',
+          contentLayout: themeData.contentLayout || 'compact',
+        };
+        console.log('Updating Redux on hasActiveGroup change:', formattedData);
+        dispatch(setOrganizationTheme(formattedData));
+      }
+    }, [hasActiveGroup, themeData, dispatch]);
 
     // Show loading skeleton while fetching data
     if (isLoading) {
@@ -152,7 +186,6 @@ const AppearanceSettingsForm = forwardRef(
         </CardWrapper>
       );
     }
-
     const handleFieldChange = (field, value) => {
       setFormData((prev) => ({
         ...prev,
@@ -160,6 +193,9 @@ const AppearanceSettingsForm = forwardRef(
       }));
       // Call the parent callback for backward compatibility
       onAppearanceChange(field, value);
+
+      // Remove automatic theme update - only update when save is clicked
+      // No longer calling updateTheme here
     };
 
     const handleColorChange = (color) => {
@@ -193,25 +229,28 @@ const AppearanceSettingsForm = forwardRef(
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
                   Customize your organization's visual identity
                 </p>
-              </div>
+              </div>{' '}
               <ThemeResetButton
                 variant="button"
                 size="small"
                 className="!bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 !text-white shadow-md hover:shadow-lg transition-all duration-200"
                 onResetComplete={(orgTheme) => {
-                  setFormData({
+                  const formattedData = {
                     primaryColor: orgTheme.primaryColor || '#3B82F6',
                     mode: orgTheme.mode || 'light',
                     interfaceStyle: orgTheme.interfaceStyle || 'bordered',
                     contentLayout: orgTheme.contentLayout || 'compact',
-                  });
+                  };
+
+                  setFormData(formattedData);
+                  // Update Redux with the reset theme
+                  dispatch(setOrganizationTheme(formattedData));
                 }}
               >
                 Reset to Defaults
               </ThemeResetButton>
             </div>
           </div>
-
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column: Settings */}
@@ -261,7 +300,6 @@ const AppearanceSettingsForm = forwardRef(
                   </div>
                 </div>
               </div>
-
               {/* Theme Mode */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-left">
@@ -314,7 +352,6 @@ const AppearanceSettingsForm = forwardRef(
                   })}
                 </div>
               </div>
-
               {/* Interface Style */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-left">
@@ -359,24 +396,18 @@ const AppearanceSettingsForm = forwardRef(
                     </button>
                   ))}
                 </div>
-              </div>
-
+              </div>{' '}
               {/* Content Layout */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-left">
                   Content Layout
                 </h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: 'compact', label: 'Compact', icon: FaCompress },
                     {
-                      value: 'comfortable',
-                      label: 'Comfortable',
-                      icon: FaLayerGroup,
-                    },
-                    {
-                      value: 'spacious',
-                      label: 'Spacious',
+                      value: 'wide',
+                      label: 'Wide',
                       icon: FaExpandArrowsAlt,
                     },
                   ].map((layout) => (
@@ -386,7 +417,7 @@ const AppearanceSettingsForm = forwardRef(
                         handleFieldChange('contentLayout', layout.value)
                       }
                       className={`
-                        flex flex-col items-center p-2 rounded-lg transition-all duration-200
+                        flex flex-col items-center p-3 rounded-lg transition-all duration-200
                         ${
                           formData.contentLayout === layout.value
                             ? 'shadow-md ring-2 ring-opacity-30'
@@ -409,7 +440,7 @@ const AppearanceSettingsForm = forwardRef(
                       }}
                     >
                       <layout.icon
-                        className="w-4 h-4 mb-1"
+                        className="w-5 h-5 mb-1"
                         style={{
                           color:
                             formData.contentLayout === layout.value
@@ -417,15 +448,14 @@ const AppearanceSettingsForm = forwardRef(
                               : '#6b7280',
                         }}
                       />
-                      <span className="text-xs font-medium text-gray-900 dark:text-white">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {layout.label}
                       </span>
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
-
+            </div>{' '}
             {/* Right Column: Live Preview */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-left">
@@ -435,14 +465,17 @@ const AppearanceSettingsForm = forwardRef(
                 {/* Light Theme Preview */}
                 <div
                   className={`
-                    relative overflow-hidden rounded-lg border-2 transition-all duration-200
-                    ${formData.mode === 'light' || formData.mode === 'system' ? 'ring-2 ring-opacity-30' : 'border-gray-200 dark:border-gray-700'}
+                    relative overflow-hidden rounded-lg transition-all duration-200
+                    ${formData.mode === 'light' || formData.mode === 'system' ? 'ring-2 ring-opacity-30' : ''}
+                    ${formData.interfaceStyle === 'bordered' ? 'border-2' : 'border border-gray-200 dark:border-gray-700'}
                   `}
                   style={{
                     borderColor:
                       formData.mode === 'light' || formData.mode === 'system'
                         ? formData.primaryColor
-                        : undefined,
+                        : formData.interfaceStyle === 'bordered'
+                          ? '#d1d5db'
+                          : undefined,
                     '--tw-ring-color':
                       formData.mode === 'light' || formData.mode === 'system'
                         ? `${formData.primaryColor}30`
@@ -471,8 +504,21 @@ const AppearanceSettingsForm = forwardRef(
                       )}
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    {/* Content Layout Preview */}
+                    <div
+                      className={`space-y-3 transition-all duration-200 ${
+                        formData.contentLayout === 'wide'
+                          ? 'w-full'
+                          : 'max-w-[280px] mx-auto'
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center justify-between p-2 bg-gray-50 rounded ${
+                          formData.interfaceStyle === 'bordered'
+                            ? 'border border-gray-200'
+                            : ''
+                        }`}
+                      >
                         <div className="flex items-center space-x-2">
                           <div className="w-4 h-4 rounded bg-gray-200"></div>
                           <div className="h-2 bg-gray-300 rounded w-16"></div>
@@ -491,10 +537,29 @@ const AppearanceSettingsForm = forwardRef(
 
                       <div className="flex space-x-2">
                         <div
-                          className="h-6 w-16 rounded"
+                          className={`h-6 w-16 rounded ${
+                            formData.interfaceStyle === 'bordered'
+                              ? 'border border-gray-200'
+                              : ''
+                          }`}
                           style={{ backgroundColor: formData.primaryColor }}
                         ></div>
-                        <div className="h-6 w-12 bg-gray-200 rounded"></div>
+                        <div
+                          className={`h-6 w-12 bg-gray-200 rounded ${
+                            formData.interfaceStyle === 'bordered'
+                              ? 'border border-gray-300'
+                              : ''
+                          }`}
+                        ></div>
+                      </div>
+
+                      {/* Layout indicator */}
+                      <div className="text-center">
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {formData.contentLayout === 'wide'
+                            ? 'Wide Layout'
+                            : 'Compact Layout'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -503,14 +568,17 @@ const AppearanceSettingsForm = forwardRef(
                 {/* Dark Theme Preview */}
                 <div
                   className={`
-                    relative overflow-hidden rounded-lg border-2 transition-all duration-200
-                    ${formData.mode === 'dark' || formData.mode === 'system' ? 'ring-2 ring-opacity-30' : 'border-gray-600'}
+                    relative overflow-hidden rounded-lg transition-all duration-200
+                    ${formData.mode === 'dark' || formData.mode === 'system' ? 'ring-2 ring-opacity-30' : ''}
+                    ${formData.interfaceStyle === 'bordered' ? 'border-2 border-gray-600' : 'border border-gray-600'}
                   `}
                   style={{
                     borderColor:
                       formData.mode === 'dark' || formData.mode === 'system'
                         ? formData.primaryColor
-                        : undefined,
+                        : formData.interfaceStyle === 'bordered'
+                          ? '#4b5563'
+                          : undefined,
                     '--tw-ring-color':
                       formData.mode === 'dark' || formData.mode === 'system'
                         ? `${formData.primaryColor}30`
@@ -539,8 +607,21 @@ const AppearanceSettingsForm = forwardRef(
                       )}
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-2 bg-gray-800 rounded">
+                    {/* Content Layout Preview */}
+                    <div
+                      className={`space-y-3 transition-all duration-200 ${
+                        formData.contentLayout === 'wide'
+                          ? 'w-full'
+                          : 'max-w-[280px] mx-auto'
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center justify-between p-2 bg-gray-800 rounded ${
+                          formData.interfaceStyle === 'bordered'
+                            ? 'border border-gray-600'
+                            : ''
+                        }`}
+                      >
                         <div className="flex items-center space-x-2">
                           <div className="w-4 h-4 rounded bg-gray-700"></div>
                           <div className="h-2 bg-gray-600 rounded w-16"></div>
@@ -559,18 +640,36 @@ const AppearanceSettingsForm = forwardRef(
 
                       <div className="flex space-x-2">
                         <div
-                          className="h-6 w-16 rounded"
+                          className={`h-6 w-16 rounded ${
+                            formData.interfaceStyle === 'bordered'
+                              ? 'border border-gray-600'
+                              : ''
+                          }`}
                           style={{ backgroundColor: formData.primaryColor }}
                         ></div>
-                        <div className="h-6 w-12 bg-gray-700 rounded"></div>
+                        <div
+                          className={`h-6 w-12 bg-gray-700 rounded ${
+                            formData.interfaceStyle === 'bordered'
+                              ? 'border border-gray-600'
+                              : ''
+                          }`}
+                        ></div>
+                      </div>
+
+                      {/* Layout indicator */}
+                      <div className="text-center">
+                        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                          {formData.contentLayout === 'wide'
+                            ? 'Wide Layout'
+                            : 'Compact Layout'}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
+          </div>{' '}
           {/* Compact Summary */}
           <div
             className="relative overflow-hidden rounded-lg p-4"
@@ -578,40 +677,42 @@ const AppearanceSettingsForm = forwardRef(
               background: `linear-gradient(135deg, ${formData.primaryColor}10 0%, ${formData.primaryColor}05 50%, transparent 100%)`,
             }}
           >
-            <div className="flex items-center space-x-4">
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${formData.primaryColor}20` }}
-              >
-                <FaPalette
-                  className="text-sm"
-                  style={{ color: formData.primaryColor }}
-                />
-              </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${formData.primaryColor}20` }}
+                >
+                  <FaPalette
+                    className="text-sm"
+                    style={{ color: formData.primaryColor }}
+                  />
+                </div>
 
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                  Current Configuration
-                </h3>
-                <div className="flex flex-wrap gap-2 text-xs mt-1">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {formData.primaryColor.toUpperCase()}
-                  </span>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {formData.mode.charAt(0).toUpperCase() +
-                      formData.mode.slice(1)}{' '}
-                    Mode
-                  </span>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {formData.interfaceStyle.charAt(0).toUpperCase() +
-                      formData.interfaceStyle.slice(1)}{' '}
-                    Style
-                  </span>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {formData.contentLayout.charAt(0).toUpperCase() +
-                      formData.contentLayout.slice(1)}{' '}
-                    Layout
-                  </span>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    Current Configuration
+                  </h3>
+                  <div className="flex flex-wrap gap-2 text-xs mt-1">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {formData.primaryColor.toUpperCase()}
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {formData.mode.charAt(0).toUpperCase() +
+                        formData.mode.slice(1)}{' '}
+                      Mode
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {formData.interfaceStyle.charAt(0).toUpperCase() +
+                        formData.interfaceStyle.slice(1)}{' '}
+                      Style
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {formData.contentLayout.charAt(0).toUpperCase() +
+                        formData.contentLayout.slice(1)}{' '}
+                      Layout
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

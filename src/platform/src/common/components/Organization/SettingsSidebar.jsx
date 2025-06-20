@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSave } from 'react-icons/fa';
+import { FaSave, FaSpinner } from 'react-icons/fa';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
 
@@ -8,7 +8,13 @@ const SettingsSidebar = ({
   saveStatus,
   organizationDetails,
   activeTab,
+  isAppearanceUpdating = false,
 }) => {
+  // Determine if the save button should be disabled and what text to show
+  const isSaving =
+    saveStatus === 'saving' ||
+    (activeTab === 'appearance' && isAppearanceUpdating);
+  const saveButtonText = isSaving ? 'Saving...' : 'Save Changes';
   return (
     <CardWrapper>
       <div className="space-y-6">
@@ -16,15 +22,19 @@ const SettingsSidebar = ({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
           <FaSave className="mr-2 text-primary" />
           Actions
-        </h3>
+        </h3>{' '}
         <Button
           onClick={onSave}
-          disabled={saveStatus === 'saving'}
+          disabled={isSaving}
           variant="filled"
           className="w-full flex items-center justify-center"
         >
-          <FaSave className="mr-2 h-4 w-4" />
-          {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
+          {isSaving ? (
+            <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <FaSave className="mr-2 h-4 w-4" />
+          )}
+          {saveButtonText}
         </Button>
         {/* Organization Stats */}
         {organizationDetails && activeTab === 'organization' && (

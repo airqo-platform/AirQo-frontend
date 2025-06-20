@@ -21,6 +21,7 @@ const OrganizationSettingsContainer = ({
     theme: 'system',
     primaryColor: '#3B82F6',
   });
+  const [isAppearanceUpdating, setIsAppearanceUpdating] = useState(false);
 
   // Ref for appearance form to access its save function
   const appearanceFormRef = useRef();
@@ -96,6 +97,21 @@ const OrganizationSettingsContainer = ({
     }
   };
 
+  // Track appearance form updating state
+  useEffect(() => {
+    const checkAppearanceUpdating = () => {
+      if (appearanceFormRef.current?.isUpdating !== undefined) {
+        setIsAppearanceUpdating(appearanceFormRef.current.isUpdating);
+      }
+    };
+
+    // Check immediately and set up interval to track changes
+    checkAppearanceUpdating();
+    const interval = setInterval(checkAppearanceUpdating, 100);
+
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
   const renderActiveTabContent = () => {
     switch (activeTab) {
       case 'organization':
@@ -145,15 +161,19 @@ const OrganizationSettingsContainer = ({
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Section */}
-        <div className="lg:col-span-2">{renderActiveTabContent()}</div>
-
+        <div className="lg:col-span-2">{renderActiveTabContent()}</div>{' '}
         {/* Side Panel */}
         <div className="lg:col-span-1">
           <SettingsSidebar
             onSave={handleSave}
-            saveStatus={saveStatus}
+            saveStatus={
+              activeTab === 'appearance' && isAppearanceUpdating
+                ? 'saving'
+                : saveStatus
+            }
             organizationDetails={organizationDetails}
             activeTab={activeTab}
+            isAppearanceUpdating={isAppearanceUpdating}
           />
         </div>
       </div>
