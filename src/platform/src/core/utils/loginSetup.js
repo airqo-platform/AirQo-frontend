@@ -1,4 +1,5 @@
 import { getUserDetails, getUserThemeApi } from '@/core/apis/Account';
+import { getOrganizationThemePreferencesApi } from '@/core/apis/Organizations';
 import {
   setUserInfo,
   setSuccess,
@@ -10,6 +11,12 @@ import {
   setUserGroups,
   clearAllGroupData,
 } from '@/lib/store/services/groups';
+import {
+  setOrganizationTheme,
+  setOrganizationThemeLoading,
+  setOrganizationThemeError,
+  clearOrganizationTheme,
+} from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
@@ -223,6 +230,46 @@ export const setupUserSession = async (session, dispatch, pathname) => {
 
     dispatch(setSuccess(true));
 
+    // Step 6: Fetch organization theme preferences for the active group
+    if (activeGroup && activeGroup._id) {
+      try {
+        dispatch(setOrganizationThemeLoading(true));
+        logger.info('Fetching organization theme preferences...', {
+          activeGroupId: activeGroup._id,
+          activeGroupName: activeGroup.grp_title || activeGroup.grp_name,
+        });
+
+        const orgThemeRes = await getOrganizationThemePreferencesApi(
+          activeGroup._id,
+        );
+        if (orgThemeRes?.success && orgThemeRes?.data) {
+          const organizationTheme = orgThemeRes.data;
+          dispatch(setOrganizationTheme(organizationTheme));
+          logger.info(
+            'Organization theme loaded successfully:',
+            organizationTheme,
+          );
+        } else {
+          // No organization theme found, clear any existing data
+          dispatch(clearOrganizationTheme());
+          logger.info('No organization theme found for active group');
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch organization theme:', error);
+        dispatch(
+          setOrganizationThemeError(
+            error.message || 'Failed to fetch organization theme',
+          ),
+        );
+        // Continue without organization theme - non-critical
+      } finally {
+        dispatch(setOrganizationThemeLoading(false));
+      }
+    } else {
+      // No active group, clear organization theme
+      dispatch(clearOrganizationTheme());
+    }
+
     // Step Final: Fetch user theme preferences after successful authentication
     logger.info('Fetching user theme preferences...');
     let userTheme = null;
@@ -299,6 +346,7 @@ export const clearUserSession = (dispatch) => {
     // Clear Redux store
     dispatch(resetStore());
     dispatch(clearAllGroupData());
+    dispatch(clearOrganizationTheme());
     dispatch(setUserInfo(null));
     dispatch(setActiveGroup(null));
     dispatch(setUserGroups([]));
