@@ -7,6 +7,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   setTogglingGlobalDrawer,
   setSidebar,
+  setGlobalSidebarOpen,
+  setGlobalDrawerOpen,
+  toggleGlobalSidebar,
+  toggleGlobalDrawerMobile,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import Card from '@/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
@@ -33,23 +37,43 @@ import {
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
-  const params = useParams();
+  const params = useParams(); // Use the new separate global sidebar states
+  const isGlobalSidebarOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalSidebarOpen || false;
+    } catch {
+      return false;
+    }
+  });
 
-  const togglingGlobalDrawer = useSelector(
-    (state) => state.sidebar.toggleGlobalDrawer,
-  );
+  const isGlobalDrawerOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalDrawerOpen || false;
+    } catch {
+      return false;
+    }
+  });
+  // Show global sidebar if either desktop or mobile state is open
+  const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
+
+  // Debug logging
+  console.log('GlobalSideBarDrawer state:', {
+    isGlobalSidebarOpen,
+    isGlobalDrawerOpen,
+    togglingGlobalDrawer,
+    width: typeof window !== 'undefined' ? window.innerWidth : 'unknown',
+  });
 
   // Optimized drawer width calculation
   const drawerWidth = useMemo(
-    () => (togglingGlobalDrawer ? 'w-64' : 'w-0'),
+    () => (togglingGlobalDrawer ? 'w-72' : 'w-0'),
     [togglingGlobalDrawer],
   );
-
   // Enhanced drawer close handler
   const closeDrawer = useCallback(() => {
-    // Batch state updates for better performance
-    dispatch(setTogglingGlobalDrawer(false));
-    dispatch(setSidebar(false));
+    // Close both global sidebar states
+    dispatch(setGlobalSidebarOpen(false));
+    dispatch(setGlobalDrawerOpen(false));
   }, [dispatch]);
 
   // Route context detection and navigation path generation

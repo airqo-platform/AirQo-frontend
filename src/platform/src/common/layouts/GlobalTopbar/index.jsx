@@ -14,6 +14,10 @@ import {
   setTogglingGlobalDrawer,
   setToggleDrawer,
   setSidebar,
+  setGlobalSidebarOpen,
+  toggleGlobalSidebar,
+  setGlobalDrawerOpen,
+  toggleGlobalDrawerMobile,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '@/common/components/GroupLogo';
@@ -55,7 +59,6 @@ const GlobalTopbar = ({
     }),
     [isDarkMode],
   );
-
   const togglingDrawer = useSelector((state) => {
     try {
       return state?.sidebar?.togglingDrawer || false;
@@ -66,6 +69,22 @@ const GlobalTopbar = ({
   const togglingGlobalDrawer = useSelector((state) => {
     try {
       return state?.sidebar?.toggleGlobalDrawer || false;
+    } catch {
+      return false;
+    }
+  });
+
+  // New selectors for global sidebar (completely separate)
+  const isGlobalSidebarOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalSidebarOpen || false;
+    } catch {
+      return false;
+    }
+  });
+  const isGlobalDrawerOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalDrawerOpen || false;
     } catch {
       return false;
     }
@@ -121,23 +140,22 @@ const GlobalTopbar = ({
     activeGroup,
     switchToGroup,
   ]);
-
   const handleDrawer = useCallback(
     (e) => {
       e.preventDefault();
       try {
         if (width < 1024) {
-          dispatch(setToggleDrawer(!togglingDrawer));
-          dispatch(setSidebar(false));
+          // Mobile: Use the new global drawer mobile action
+          dispatch(toggleGlobalDrawerMobile());
         } else {
-          dispatch(setTogglingGlobalDrawer(!togglingGlobalDrawer));
-          dispatch(setSidebar(false));
+          // Desktop: Use the new global sidebar action
+          dispatch(toggleGlobalSidebar());
         }
-      } catch {
-        // Silent fallback if dispatch fails during logout
+      } catch (error) {
+        console.error('GlobalTopbar: Error toggling drawer:', error);
       }
     },
-    [dispatch, togglingGlobalDrawer, togglingDrawer, width],
+    [dispatch, width],
   );
 
   const handleLogoClick = useCallback(() => {
