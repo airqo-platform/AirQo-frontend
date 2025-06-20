@@ -12,6 +12,7 @@ import {
   ROUTE_TYPES,
 } from '@/core/utils/sessionUtils';
 import LogoutOverlay from '@/common/components/LogoutOverlay';
+import { getLogoutProgress } from './LogoutUser';
 import logger from '@/lib/logger';
 
 /**
@@ -64,7 +65,6 @@ export const withSessionAuth = (
       const pathname = usePathname();
       const dispatch = useDispatch();
       const reduxLoginState = useSelector((state) => state.login);
-
       const [isReady, setIsReady] = useState(false);
       const [isSettingUp, setIsSettingUp] = useState(false);
       const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -73,10 +73,13 @@ export const withSessionAuth = (
       );
       const [authError, setAuthError] = useState(null);
       const hasProcessed = useRef(false);
-
+      const isLogoutInProgress = useRef(false);
       useEffect(() => {
         // Skip if NextAuth is still loading
         if (status === 'loading') {
+          return;
+        } // Skip processing during logout to prevent setup modal
+        if (isLogoutInProgress.current || getLogoutProgress()) {
           return;
         }
 
@@ -96,9 +99,7 @@ export const withSessionAuth = (
             if (protectionLevel === PROTECTION_LEVELS.PUBLIC) {
               setIsReady(true);
               return;
-            }
-
-            // 2. UNAUTHENTICATED users
+            } // 2. UNAUTHENTICATED users
             if (status === 'unauthenticated' || !session?.user) {
               // Allow auth pages for unauthenticated users
               if (protectionLevel === PROTECTION_LEVELS.AUTH_ONLY) {
@@ -106,14 +107,20 @@ export const withSessionAuth = (
                 return;
               }
 
-              // Redirect to login for protected routes
+              // Redirect to login for protected routes (only non-auth routes)
               const routeType = getRouteType(pathname);
-              const loginPath =
-                routeType === ROUTE_TYPES.ORGANIZATION
-                  ? `/org/${extractOrgSlug(pathname) || 'airqo'}/login`
-                  : '/user/login';
+              if (routeType !== ROUTE_TYPES.AUTH) {
+                const loginPath =
+                  routeType === ROUTE_TYPES.ORGANIZATION
+                    ? `/org/${extractOrgSlug(pathname) || 'airqo'}/login`
+                    : '/user/login';
 
-              router.replace(loginPath);
+                router.replace(loginPath);
+                return;
+              }
+
+              // For auth routes that aren't AUTH_ONLY protected, allow access
+              setIsReady(true);
               return;
             }
 
@@ -222,21 +229,29 @@ export const withSessionAuth = (
         router,
         reduxLoginState?.success,
         reduxLoginState?.userInfo?._id,
-      ]);
-
-      // Reset processing flag when pathname changes
+      ]); // Reset processing flag when pathname changes
       useEffect(() => {
+        // Don't reset if logout is in progress
+        if (isLogoutInProgress.current || getLogoutProgress()) {
+          return;
+        }
+
         hasProcessed.current = null; // Reset to null instead of false
         setIsReady(false);
         setIsSettingUp(false);
-      }, [pathname]);
-
-      // Reset processing flag on unmount
+      }, [pathname]); // Reset processing flag on unmount
       useEffect(() => {
         return () => {
-          hasProcessed.current = null;
+          // Don't reset logout state during unmount if logout is in progress
+          if (!getLogoutProgress()) {
+            hasProcessed.current = null;
+            isLogoutInProgress.current = false;
+          }
         };
-      }, []);
+      }, []); // Show logout overlay if logout is in progress
+      if (isLoggingOut || getLogoutProgress()) {
+        return <LogoutOverlay isVisible={true} message="Logging out..." />;
+      }
 
       // Show setup loading screen ONLY during actual setup operations
       if (isSettingUp) {
@@ -260,13 +275,33 @@ export const withSessionAuth = (
                   hasProcessed.current = false;
                   setIsReady(false);
                   setIsLoggingOut(true);
+                  isLogoutInProgress.current = true;
 
                   try {
-                    // Clear session and redirect to login
+                    // Clear session and redirect to appropriate login
                     await clearUserSession(dispatch);
-                    router.replace('/user/login');
+
+                    // Determine appropriate login path based on current route
+                    const currentPath = pathname;
+                    let loginPath = '/user/login';
+
+                    if (currentPath.startsWith('/org/')) {
+                      const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+                      if (orgSlugMatch && orgSlugMatch[1]) {
+                        const orgSlug = orgSlugMatch[1];
+                        // If orgSlug is 'airqo', redirect to user login instead
+                        if (orgSlug === 'airqo') {
+                          loginPath = '/user/login';
+                        } else {
+                          loginPath = `/org/${orgSlug}/login`;
+                        }
+                      }
+                    }
+
+                    router.replace(loginPath);
                   } finally {
                     setIsLoggingOut(false);
+                    isLogoutInProgress.current = false;
                   }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

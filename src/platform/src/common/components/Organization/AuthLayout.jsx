@@ -13,9 +13,31 @@ const AuthLayout = ({
   showBackToAirqo = true,
   backToAirqoPath = '/user/login',
 }) => {
-  const { organization, getDisplayName, logo } = useOrganization();
+  const {
+    organization,
+    getDisplayName,
+    logo,
+    isLoading,
+    isInitialized,
+    error,
+  } = useOrganization();
 
-  const organizationName = getDisplayName() || 'AirQo';
+  // Show loading spinner while organization data is being fetched
+  // Also show loading if we haven't initialized yet (prevents flashing)
+  if (isLoading || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#1b1d1e] flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-gray-600 dark:text-gray-400 mt-4">
+            Loading organization...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const organizationName = getDisplayName?.() || 'AirQo';
   const logoSrc = logo || '/icons/airqo_logo.svg';
 
   return (

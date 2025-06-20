@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import LogoutUser from '@/core/HOC/LogoutUser';
+import { getContextualLoginPath } from '@/core/utils/organizationUtils';
 
 /**
  * Reusable user profile dropdown component that adapts to different contexts

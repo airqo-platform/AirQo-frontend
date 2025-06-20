@@ -10,6 +10,12 @@ let globalLogoutState = {
   setLogoutMessage: null,
 };
 
+// Global logout progress tracking to prevent setup modals during logout
+let isGlobalLogoutInProgress = false;
+
+// Function to get logout progress state
+export const getLogoutProgress = () => isGlobalLogoutInProgress;
+
 // Function to set the global logout context handlers
 export const setLogoutContext = (setIsLoggingOut, setLogoutMessage) => {
   globalLogoutState.setIsLoggingOut = setIsLoggingOut;
@@ -172,28 +178,73 @@ const clearAxiosAuthHeaders = () => {
  * Forces complete logout by clearing everything and doing a hard redirect
  */
 const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
-  // Determine redirect URL based on current route
+  // Set global logout state immediately to prevent setup modals
+  isGlobalLogoutInProgress = true;
+
+  // Determine redirect URL based on current route and Redux state
   const currentPath =
     typeof window !== 'undefined' ? window.location.pathname : '';
 
   let redirectUrl = '/user/login'; // Default fallback
 
-  // Simple path-based redirect logic
+  // Enhanced context-aware redirect logic
   if (currentPath.startsWith('/org/')) {
     const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
     if (orgSlugMatch && orgSlugMatch[1]) {
-      redirectUrl = `/org/${orgSlugMatch[1]}/login`;
+      const orgSlug = orgSlugMatch[1];
+      // If orgSlug is 'airqo', redirect to user login instead
+      if (orgSlug === 'airqo') {
+        redirectUrl = '/user/login';
+      } else {
+        redirectUrl = `/org/${orgSlug}/login`;
+      }
     }
-  } else if (currentPath.startsWith('/user/')) {
+  } else if (
+    currentPath.startsWith('/user/') ||
+    currentPath.startsWith('/admin/')
+  ) {
     redirectUrl = '/user/login';
+  } else if (currentPath.startsWith('/create-organization')) {
+    redirectUrl = '/user/login';
+  } else {
+    // Fallback: try to determine from Redux state if available
+    try {
+      const store =
+        typeof window !== 'undefined' && window.__NEXT_REDUX_STORE__;
+      if (store) {
+        const state = store.getState();
+        const activeGroup = state?.groups?.activeGroup;
+
+        // If we have an active group and it's not AirQo, try to redirect to org login
+        if (
+          activeGroup &&
+          activeGroup.grp_title &&
+          !activeGroup.grp_title.toLowerCase().includes('airqo')
+        ) {
+          const orgSlug =
+            activeGroup.organization_slug ||
+            activeGroup.grp_title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+          if (orgSlug) {
+            redirectUrl = `/org/${orgSlug}/login`;
+          }
+        }
+      }
+    } catch (error) {
+      logger.debug('Could not determine context from Redux state:', error);
+      // Keep default fallback
+    }
   }
 
   try {
-    logger.info('Starting aggressive logout process');
+    logger.info(
+      'Starting aggressive logout process with redirect:',
+      redirectUrl,
+    );
 
-    // Set global logout state immediately
-    // Set global logout state for organization loading providers
-    // (removed since OrganizationLoadingProvider was consolidated)
+    // Set global logout state immediately to prevent setup modals
     triggerLogoutOverlay('Logging you out...');
 
     // Step 1: Immediately clear all authentication data
@@ -249,14 +300,14 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
     // Step 5: Use NextAuth signOut WITHOUT redirect to avoid navigation issues
     await signOut({ redirect: false });
 
+    logger.debug('Aggressive logout completed, redirecting to:', redirectUrl);
+
     // Step 6: Force hard redirect after a short delay to ensure cleanup completes
     setTimeout(() => {
       if (typeof window !== 'undefined') {
         window.location.href = redirectUrl;
       }
     }, 100);
-
-    logger.debug('Aggressive logout completed, forcing redirect');
   } catch (error) {
     logger.error('Logout error:', error);
 
@@ -265,10 +316,12 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
       window.location.href = redirectUrl;
     }
   } finally {
-    // Cleanup
+    // Cleanup and reset logout state
     hideLogoutOverlay();
-    // Reset global logout state
-    // (removed since OrganizationLoadingProvider was consolidated)
+    // Reset global logout state after a delay to ensure all components have time to detect it
+    setTimeout(() => {
+      isGlobalLogoutInProgress = false;
+    }, 2000);
   }
 };
 

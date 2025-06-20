@@ -59,6 +59,7 @@ const UnifiedGroupContext = createContext({
   organizationTheme: null,
   organizationLoading: false,
   organizationError: null,
+  organizationInitialized: false,
 
   // Route helpers
   getGroupRoute: () => '',
@@ -161,12 +162,14 @@ export function UnifiedGroupProvider({ children }) {
   const [organizationTheme, setOrganizationTheme] = useState(null);
   const [organizationLoading, setOrganizationLoading] = useState(false);
   const [organizationError, setOrganizationError] = useState(null);
+  const [organizationInitialized, setOrganizationInitialized] = useState(false);
 
   // Refs for cleanup and state coordination
   const switchTimeoutRef = useRef(null);
   const lastGroupSwitchRef = useRef(null);
   const mountedRef = useRef(true);
-  const groupUpdateLockRef = useRef(false); // Prevents concurrent group updates  // Context detection
+  const groupUpdateLockRef = useRef(false); // Prevents concurrent group updates
+  const loadingOrgSlugRef = useRef(null); // Tracks currently loading organization slug  // Context detection
   const { isOrganizationContext, organizationSlug, isAdminContext } =
     useMemo(() => {
       const isOrgContext =
@@ -174,6 +177,15 @@ export function UnifiedGroupProvider({ children }) {
       const isAdmin =
         pathname?.includes('/admin') || pathname?.startsWith('/admin');
       const orgSlug = extractOrgSlug(pathname);
+
+      // Debug logging for context detection
+      if (isOrgContext) {
+        logger.info('Organization context detected:', {
+          pathname,
+          orgSlug,
+          isOrgContext,
+        });
+      }
 
       return {
         isOrganizationContext: isOrgContext,
@@ -493,52 +505,117 @@ export function UnifiedGroupProvider({ children }) {
       return userGroups.some((g) => g._id === group._id);
     },
     [userGroups],
-  );
-  // Organization data loading effect - optimized
+  ); // Organization data loading effect - optimized with debounced error handling
   useEffect(() => {
-    if (isOrganizationContext && organizationSlug && !organization) {
-      setOrganizationLoading(true);
-      setOrganizationError(null);
+    if (isOrganizationContext && organizationSlug) {
+      // Reset state when slug changes or when we need to load new organization
+      if (
+        !organization ||
+        organization.slug !== organizationSlug ||
+        organization.organization_slug !== organizationSlug
+      ) {
+        // Prevent overlapping requests for the same slug
+        if (loadingOrgSlugRef.current === organizationSlug) {
+          return;
+        }
 
-      getOrganizationBySlugApi(organizationSlug)
-        .then((response) => {
-          if (!mountedRef.current) return;
+        logger.info('Loading organization data for slug:', organizationSlug);
+        setOrganizationLoading(true);
+        setOrganizationError(null);
+        setOrganizationInitialized(false);
+        loadingOrgSlugRef.current = organizationSlug;
 
-          if (response.success && response.data) {
-            const orgData = response.data;
-            setOrganization(orgData);
-            setOrganizationTheme({
-              name: orgData.name,
-              logo: orgData.logo,
-              primaryColor: orgData.primaryColor,
-              secondaryColor: orgData.secondaryColor,
-              font: orgData.font,
-            });
-            setOrganizationError(null);
-          } else {
-            throw new Error(response.message || 'Organization not found');
-          }
-        })
-        .catch((err) => {
-          if (!mountedRef.current) return;
-          logger.error('Error loading organization:', err);
-          setOrganizationError(err);
-          setOrganization(null);
-          setOrganizationTheme(null);
-        })
-        .finally(() => {
-          if (mountedRef.current) {
-            setOrganizationLoading(false);
-          }
-        });
+        // Minimum loading time to prevent UI flashing (400ms for more stable experience)
+        const startTime = Date.now();
+        const minLoadingTime = 400;
+
+        getOrganizationBySlugApi(organizationSlug)
+          .then((response) => {
+            if (
+              !mountedRef.current ||
+              loadingOrgSlugRef.current !== organizationSlug
+            ) {
+              return; // Ignore if component unmounted or slug changed
+            }
+
+            if (response.success && response.data) {
+              const orgData = response.data;
+              logger.info('Organization data loaded successfully:', {
+                name: orgData.name,
+                slug: orgData.slug,
+              });
+
+              // Calculate remaining time to maintain minimum loading duration
+              const elapsedTime = Date.now() - startTime;
+              const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+              setTimeout(() => {
+                if (
+                  !mountedRef.current ||
+                  loadingOrgSlugRef.current !== organizationSlug
+                ) {
+                  return; // Double-check before setting state
+                }
+
+                setOrganization(orgData);
+                setOrganizationTheme({
+                  name: orgData.name,
+                  logo: orgData.logo,
+                  primaryColor: orgData.primaryColor,
+                  secondaryColor: orgData.secondaryColor,
+                  font: orgData.font,
+                });
+                setOrganizationError(null);
+                setOrganizationLoading(false);
+                setOrganizationInitialized(true);
+                loadingOrgSlugRef.current = null; // Clear loading state
+              }, remainingTime);
+            } else {
+              throw new Error(response.message || 'Organization not found');
+            }
+          })
+          .catch((err) => {
+            if (
+              !mountedRef.current ||
+              loadingOrgSlugRef.current !== organizationSlug
+            ) {
+              return; // Ignore if component unmounted or slug changed
+            }
+
+            logger.error('Error loading organization:', err);
+
+            // Calculate remaining time to maintain minimum loading duration
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+            // Delay error display to prevent flashing
+            setTimeout(() => {
+              if (
+                !mountedRef.current ||
+                loadingOrgSlugRef.current !== organizationSlug
+              ) {
+                return; // Double-check before setting state
+              }
+
+              setOrganizationError(err);
+              setOrganization(null);
+              setOrganizationTheme(null);
+              setOrganizationLoading(false);
+              setOrganizationInitialized(true);
+              loadingOrgSlugRef.current = null; // Clear loading state
+            }, remainingTime);
+          });
+      }
     } else if (!isOrganizationContext) {
       // Clear organization data when not in organization context
       setOrganization(null);
       setOrganizationTheme(null);
       setOrganizationError(null);
       setOrganizationLoading(false);
+      setOrganizationInitialized(false);
+      loadingOrgSlugRef.current = null;
     }
-  }, [isOrganizationContext, organizationSlug, organization]);
+  }, [isOrganizationContext, organizationSlug]); // Removed 'organization' from deps to avoid unnecessary re-runs
 
   // Cleanup on unmount
   useEffect(() => {
@@ -547,6 +624,7 @@ export function UnifiedGroupProvider({ children }) {
     return () => {
       mountedRef.current = false;
       groupUpdateLockRef.current = false;
+      loadingOrgSlugRef.current = null;
       if (switchTimeoutRef.current) {
         clearTimeout(switchTimeoutRef.current);
         switchTimeoutRef.current = null;
@@ -575,6 +653,7 @@ export function UnifiedGroupProvider({ children }) {
       organizationTheme,
       organizationLoading,
       organizationError,
+      organizationInitialized,
 
       // Route helpers
       getGroupRoute,
@@ -614,6 +693,7 @@ export function UnifiedGroupProvider({ children }) {
       organizationTheme,
       organizationLoading,
       organizationError,
+      organizationInitialized,
       getGroupRoute,
       canSwitchToGroup,
       isAdminContext,
@@ -621,7 +701,7 @@ export function UnifiedGroupProvider({ children }) {
     ],
   );
 
-  // Handle organization loading and errors
+  // Handle organization loading and errors with improved logic
   if (isOrganizationContext && organizationLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -630,8 +710,13 @@ export function UnifiedGroupProvider({ children }) {
     );
   }
 
+  // Only show error state if:
+  // 1. We're in organization context
+  // 2. Organization loading is complete (organizationInitialized)
+  // 3. There's an error OR we have a slug but no organization data
   if (
     isOrganizationContext &&
+    organizationInitialized &&
     (organizationError || (organizationSlug && !organization))
   ) {
     return <OrganizationNotFound orgSlug={organizationSlug || ''} />;
@@ -686,12 +771,16 @@ export function useOrganization() {
     organizationTheme,
     organizationLoading,
     organizationError,
+    organizationInitialized,
+    isOrganizationContext,
     primaryColor,
     secondaryColor,
     logo,
   } = useUnifiedGroup();
 
-  if (!organization && !organizationLoading && !organizationError) {
+  // Allow usage in organization context, especially during loading
+  // Only throw error if we're definitely not in org context
+  if (!isOrganizationContext) {
     throw new Error(
       'useOrganization must be used within an organization context (routes starting with /org/)',
     );
@@ -702,9 +791,21 @@ export function useOrganization() {
     theme: organizationTheme,
     isLoading: organizationLoading,
     error: organizationError,
+    isInitialized: organizationInitialized,
     primaryColor,
     secondaryColor,
     logo,
+    // Add the missing getDisplayName function
+    getDisplayName: () => {
+      if (organization?.parent) {
+        return `${organization.parent.name} - ${organization.name}`;
+      }
+      return organization?.name || organization?.grp_title || 'AirQo';
+    },
+    // Add additional helper functions that auth pages might need
+    canUserRegister: () =>
+      organization?.settings?.allowSelfRegistration || false,
+    requiresApproval: () => organization?.settings?.requireApproval || false,
   };
 }
 
