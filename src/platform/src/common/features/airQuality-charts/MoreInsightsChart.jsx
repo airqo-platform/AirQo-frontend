@@ -408,7 +408,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
         padding: CHART_CONFIG.padding,
         marginTop: CHART_CONFIG.marginTop,
         boxSizing: 'border-box',
-        // Let container height be controlled by parent
       }}
       data-chart-id={id}
     >
@@ -443,7 +442,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               interval={0}
               angle={containerWidth < 480 ? -45 : -25}
               textAnchor="end"
-              height={50} // Restored to reasonable size
+              height={50}
               className="chart-x-axis"
               padding={{ left: 10, right: 10 }}
             />
@@ -453,12 +452,12 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               tickLine={false}
               tick={{
                 fill: isDark ? '#D1D5DB' : '#1C1D20',
-                fontSize: 12, // Restored to readable size
+                fontSize: 12,
                 fontFamily: CHART_CONFIG.exportStyles.fontFamily,
               }}
               tickFormatter={formatYAxisTick}
               className="chart-y-axis"
-              width={50} // Restored to reasonable size
+              width={50}
             >
               <Label
                 value={

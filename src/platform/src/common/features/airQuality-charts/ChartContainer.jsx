@@ -119,12 +119,12 @@ const ChartContainer = ({
   const chartDimensions = useMemo(() => {
     const containerWidth = width || '100%';
     // Set a responsive height that works well with headers - reduced further to 250
-    const calculatedHeight = height || 250; // Reduced default height from 300 to 250
+    const calculatedHeight = height || 250;
 
     // Ensure reasonable height range
     const finalHeight =
       typeof calculatedHeight === 'number'
-        ? Math.max(calculatedHeight, 190) // Reduced minimum height from 280 to 220
+        ? Math.max(calculatedHeight, 190)
         : calculatedHeight;
 
     return {
@@ -132,7 +132,7 @@ const ChartContainer = ({
       height: finalHeight,
       containerStyle: {
         width: containerWidth,
-        minHeight: 220, // Reduced minimum height from 280 to 220
+        minHeight: 220,
         height:
           typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight,
       },
@@ -162,7 +162,7 @@ const ChartContainer = ({
         // Calculate proper dimensions for high-quality export
         const actualWidth = chartElement.offsetWidth;
         const actualHeight = chartElement.offsetHeight;
-        const scale = 2; // Higher scale for better quality        // Configure export options for better quality and consistent styling
+        const scale = 2;
         const exportOptions = {
           width: actualWidth * scale,
           height: actualHeight * scale,
