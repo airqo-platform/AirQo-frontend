@@ -1,21 +1,22 @@
 'use client';
 
-import Tabs from '@/components/Tabs';
-import Password from './tabs/Password';
-// Remove unused import since middleware handles auth
-import Team from './tabs/Team';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { FaUser, FaLock, FaKey, FaBuilding, FaUsers } from 'react-icons/fa';
+import { SettingsTabNavigation } from '@/common/components/Tabs';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
-import Profile from './tabs/Profile';
-import OrganizationProfile from './tabs/OrganizationProfile';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
-import API from './tabs/API';
 import { useSessionAwarePermissions } from '@/core/HOC';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+// Tab Components
+import Profile from './tabs/Profile';
+import Password from './tabs/Password';
+import API from './tabs/API';
+import OrganizationProfile from './tabs/OrganizationProfile';
+import Team from './tabs/Team';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions =
@@ -25,11 +26,12 @@ export const checkAccess = (requiredPermission, rolePermissions) => {
 };
 
 const Settings = () => {
-  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState('profile');
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userPermissions, setUserPermissions] = useState([]);
   const [userGroup, setUserGroup] = useState({});
+
   const { theme, primaryColor, systemTheme } = useThemeSafe();
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences,
@@ -43,6 +45,54 @@ const Settings = () => {
   const isDarkMode =
     theme === THEME_MODES.DARK ||
     (theme === THEME_MODES.SYSTEM && systemTheme === 'dark');
+
+  // Define user settings tabs
+  const getUserTabs = () => {
+    const baseTabs = [
+      {
+        id: 'profile',
+        name: 'My Profile',
+        icon: FaUser,
+        description: 'Manage your personal information and preferences',
+      },
+      {
+        id: 'password',
+        name: 'Password',
+        icon: FaLock,
+        description: 'Change your account password',
+      },
+      {
+        id: 'api',
+        name: 'API',
+        icon: FaKey,
+        description: 'Manage API keys and access tokens',
+      },
+    ];
+
+    // Add organization and team tabs based on permissions
+    if (
+      userPermissions &&
+      hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS')
+    ) {
+      baseTabs.push({
+        id: 'organization',
+        name: 'Organization',
+        icon: FaBuilding,
+        description: 'Manage organization settings',
+      });
+
+      if (userGroup) {
+        baseTabs.push({
+          id: 'team',
+          name: 'Team',
+          icon: FaUsers,
+          description: 'Manage team members and invitations',
+        });
+      }
+    }
+
+    return baseTabs;
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -75,7 +125,32 @@ const Settings = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [session, preferences, dispatch]);
+  }, [session, preferences]);
+
+  // Function to render active tab content
+  const renderActiveTabContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return <Profile />;
+      case 'password':
+        return <Password />;
+      case 'api':
+        return <API userPermissions={userPermissions} />;
+      case 'organization':
+        return userPermissions &&
+          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') ? (
+          <OrganizationProfile />
+        ) : null;
+      case 'team':
+        return userGroup &&
+          userPermissions &&
+          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') ? (
+          <Team users={teamMembers} loading={loading} />
+        ) : null;
+      default:
+        return <Profile />;
+    }
+  };
   // Show loading state while checking permissions
   if (permissionsLoading) {
     return (
@@ -105,30 +180,29 @@ const Settings = () => {
 
   return (
     <ErrorBoundary name="Settings" feature="User Account Settings">
-      <Tabs>
-        <div label="My profile">
-          <Profile />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+              Account Settings
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Manage your account settings and preferences
+            </p>
+          </div>
         </div>
-        <div label="Password">
-          <Password />
-        </div>
-        <div label="API">
-          <API userPermissions={userPermissions} />
-        </div>
-        {userPermissions &&
-          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') && (
-            <div label="Organisation">
-              <OrganizationProfile />
-            </div>
-          )}
-        {userGroup &&
-          userPermissions &&
-          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') && (
-            <div label="Team">
-              <Team users={teamMembers} loading={loading} />
-            </div>
-          )}
-      </Tabs>
+
+        {/* Tab Navigation */}
+        <SettingsTabNavigation
+          tabs={getUserTabs()}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {/* Main Content */}
+        <div className="min-h-96">{renderActiveTabContent()}</div>
+      </div>
     </ErrorBoundary>
   );
 };

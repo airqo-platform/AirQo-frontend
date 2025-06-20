@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import SettingsTabNavigation from './SettingsTabNavigation';
+import { SettingsTabNavigation } from '@/common/components/Tabs';
+import { FaGlobe, FaPalette } from 'react-icons/fa';
 import OrganizationInformationForm from './OrganizationInformationForm';
 import AppearanceSettingsForm from './AppearanceSettingsForm';
 import SettingsSidebar from './SettingsSidebar';
@@ -20,6 +21,22 @@ const OrganizationSettingsContainer = ({
     theme: 'system',
     primaryColor: '#3B82F6',
   });
+
+  // Define organization settings tabs
+  const organizationTabs = [
+    {
+      id: 'organization',
+      name: 'Organization',
+      icon: FaGlobe,
+      description: 'Basic organization information and settings',
+    },
+    {
+      id: 'appearance',
+      name: 'Appearance',
+      icon: FaPalette,
+      description: 'Customize the look and feel',
+    },
+  ];
 
   // Handle toast notifications based on saveStatus
   useEffect(() => {
@@ -107,16 +124,19 @@ const OrganizationSettingsContainer = ({
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Organization Settings
-          </h1>
+          </h1>{' '}
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Manage your organization settings and preferences
-          </p>{' '}
+          </p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <SettingsTabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
+      <SettingsTabNavigation
+        tabs={organizationTabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Section */}
