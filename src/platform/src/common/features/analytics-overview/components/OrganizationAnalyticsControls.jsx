@@ -64,7 +64,8 @@ const OrganizationAnalyticsControls = ({
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p className="text-gray-600 dark:text-gray-300">
-            Monitor and analyze air quality data for {displayName}
+            Monitor and analyze air quality data for{' '}
+            <span className="uppercase"> {displayName}</span>
           </p>
           {hasSites && (
             <div className="text-sm text-gray-500 dark:text-gray-400">

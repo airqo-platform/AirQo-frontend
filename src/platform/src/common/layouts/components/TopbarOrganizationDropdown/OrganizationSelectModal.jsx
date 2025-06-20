@@ -107,15 +107,16 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
 
   // Render the organization selection modal
   return (
-    <>
+    <div className="fixed inset-0 z-[10000]">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
         onClick={onClose}
-      />{' '}
+        aria-label="Close organization selection modal"
+      />
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl h-[650px] bg-white rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col overflow-hidden">
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-2xl h-[650px] bg-white rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col overflow-hidden z-[10001]">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
             <div>
@@ -239,7 +240,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
