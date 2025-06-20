@@ -10,7 +10,7 @@ import {
   inviteUserToGroupTeam,
   removeUserFromGroup,
 } from '@/core/apis/Account';
-import { MembersPageSkeleton } from '@/common/components/Skeletons';
+import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
 import { FaUserPlus, FaSearch } from 'react-icons/fa';
 

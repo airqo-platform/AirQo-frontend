@@ -6,7 +6,7 @@ import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/PlayIcon';
-import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
+import { HomeSkeleton } from '@/common/components/Skeleton';
 import VideoModal from '@/features/video-players/Intro-video-modal';
 import Card from '@/components/CardWrapper';
 import { Checklist } from '@/features/Checklist';
