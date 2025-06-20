@@ -10,7 +10,6 @@ import {
   FaTachometerAlt as DashboardIcon,
   FaChartBar as AnalyticsIcon,
 } from 'react-icons/fa';
-import { withOrgAuth } from '@/core/HOC';
 
 const OrganizationDashboardPage = () => {
   const { organization } = useOrganization();
@@ -129,4 +128,4 @@ const OrganizationDashboardPage = () => {
   );
 };
 
-export default withOrgAuth(OrganizationDashboardPage);
+export default OrganizationDashboardPage;

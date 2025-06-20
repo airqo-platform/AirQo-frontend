@@ -13,7 +13,6 @@ import OrganizationProfile from './tabs/OrganizationProfile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './tabs/API';
-import { withUserAuth } from '@/core/HOC';
 import { useSessionAwarePermissions } from '@/core/HOC';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
@@ -134,4 +133,4 @@ const Settings = () => {
   );
 };
 
-export default withUserAuth(Settings);
+export default Settings;

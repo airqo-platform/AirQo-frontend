@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
-import { withUserAuthRoute } from '@/core/HOC';
 
 const IndividualAccountVerification = () => {
   const userData = useSelector((state) => state.creation.userData);
@@ -79,4 +78,4 @@ const IndividualAccountVerification = () => {
   );
 };
 
-export default withUserAuthRoute(IndividualAccountVerification);
+export default IndividualAccountVerification;

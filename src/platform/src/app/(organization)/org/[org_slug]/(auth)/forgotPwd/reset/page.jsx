@@ -13,7 +13,6 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
-import { withOrgAuthRoute } from '@/core/HOC';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 
 const ResetPasswordSchema = Yup.object().shape({
@@ -225,4 +224,4 @@ const OrganizationResetPassword = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationResetPassword);
+export default OrganizationResetPassword;

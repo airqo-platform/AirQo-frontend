@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
-import { withOrgAuth } from '@/core/HOC';
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 import AQNumberCard from '@/features/airQuality-cards';
 import Modal from '@/features/download-insights-locations';
@@ -115,4 +114,4 @@ const OrganizationInsightsPage = ({ params: _params }) => {
   );
 };
 
-export default withOrgAuth(OrganizationInsightsPage);
+export default OrganizationInsightsPage;

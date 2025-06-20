@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,7 +12,6 @@ import InputField from '@/common/components/InputField';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withOrgAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -31,23 +30,6 @@ const OrganizationLogin = () => {
   const params = useParams();
   const router = useRouter();
   const orgSlug = params.org_slug;
-
-  useEffect(() => {
-    // Check if user is already authenticated and redirect immediately
-    const checkInitialAuth = async () => {
-      try {
-        const session = await getSession();
-        if (session?.user?.organization) {
-          // User is already authenticated with organization context
-          router.replace(`/org/${orgSlug}/dashboard`);
-        }
-      } catch {
-        // Ignore errors during initial auth check silently
-      }
-    };
-
-    checkInitialAuth();
-  }, [router, orgSlug]);
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -225,4 +207,4 @@ const OrganizationLogin = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationLogin);
+export default OrganizationLogin;

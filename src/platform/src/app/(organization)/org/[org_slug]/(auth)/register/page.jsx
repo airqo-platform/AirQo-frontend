@@ -13,7 +13,6 @@ import { registerUserToOrgApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
-import { withOrgAuthRoute } from '@/core/HOC';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 import logger from '@/lib/logger';
 
@@ -466,4 +465,4 @@ const OrganizationRegister = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationRegister);
+export default OrganizationRegister;
