@@ -75,6 +75,13 @@ export const inviteUserToGroupTeam = (groupID, userEmails) =>
     )
     .then((response) => response.data);
 
+export const removeUserFromGroup = (groupID, userID) =>
+  secureApiProxy
+    .delete(`${GROUPS_URL}/${groupID}/users/${userID}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
 export const acceptGroupTeamInvite = (body) =>
   secureApiProxy
     .post(`${USERS_URL}/requests/emails/accept`, body, {
