@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SettingsTabNavigation } from '@/common/components/Tabs';
 import { FaGlobe, FaPalette } from 'react-icons/fa';
 import OrganizationInformationForm from './OrganizationInformationForm';
@@ -21,6 +21,9 @@ const OrganizationSettingsContainer = ({
     theme: 'system',
     primaryColor: '#3B82F6',
   });
+
+  // Ref for appearance form to access its save function
+  const appearanceFormRef = useRef();
 
   // Define organization settings tabs
   const organizationTabs = [
@@ -83,14 +86,14 @@ const OrganizationSettingsContainer = ({
       [field]: value,
     }));
   };
-
   const handleSave = () => {
-    if (activeTab === 'appearance') {
-      // Handle appearance settings save
-      console.log('Saving appearance settings:', appearanceData);
-      // You can add API call for appearance settings here
+    if (activeTab === 'appearance' && appearanceFormRef.current) {
+      // Call the appearance form's save method
+      appearanceFormRef.current.handleSave();
+    } else {
+      // Handle organization settings save
+      onSave();
     }
-    onSave();
   };
 
   const renderActiveTabContent = () => {
@@ -108,6 +111,7 @@ const OrganizationSettingsContainer = ({
       case 'appearance':
         return (
           <AppearanceSettingsForm
+            ref={appearanceFormRef}
             appearanceData={appearanceData}
             onAppearanceChange={handleAppearanceChange}
           />

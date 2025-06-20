@@ -4,6 +4,10 @@ import { normalizeUrl } from '../utils/urlHelpers';
 // Base URLs
 export const USERS_BASE_URL = `${normalizeUrl(NEXT_PUBLIC_API_BASE_URL)}/users`;
 
+// Theme preferences endpoint
+export const ORGANIZATION_THEME_PREFERENCES_URL = (groupId) =>
+  `users/preferences/theme/organization/${groupId}`;
+
 // Organization theme and branding endpoints
 export const ORGANIZATION_THEME_URL = (orgSlug) =>
   `${USERS_BASE_URL}/organizations/${orgSlug}`;
