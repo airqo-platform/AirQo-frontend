@@ -7,6 +7,7 @@ import Link from 'next/link';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import InputField from '@/common/components/InputField';
 import Spinner from '@/components/Spinner';
@@ -30,6 +31,7 @@ const OrganizationLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
+  const { getDisplayName, primaryColor } = useOrganization();
   const orgSlug = params.org_slug;
 
   const handleSubmit = useCallback(
@@ -123,7 +125,7 @@ const OrganizationLogin = () => {
       feature="Organization Authentication"
     >
       <AuthLayout
-        title={`Sign in to ${formatOrgSlug(orgSlug)}`}
+        title={`Sign in to ${getDisplayName() || formatOrgSlug(orgSlug)}`}
         subtitle="Access your organization's air quality analytics dashboard"
       >
         <div className="w-full">
@@ -169,7 +171,13 @@ const OrganizationLogin = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn border-none rounded-lg text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
+                style={{
+                  backgroundColor: primaryColor,
+                  boxShadow: isLoading
+                    ? 'none'
+                    : `0 4px 14px 0 ${primaryColor}25`,
+                }}
               >
                 {isLoading ? <Spinner width={25} height={25} /> : 'Sign In'}
               </button>
@@ -180,14 +188,16 @@ const OrganizationLogin = () => {
               Don&apos;t have an account?
               <Link
                 href={`/org/${orgSlug}/register`}
-                className="font-medium text-blue-600 ml-2 dark:text-blue-400"
+                className="font-medium ml-2 hover:underline transition-colors duration-200"
+                style={{ color: primaryColor }}
               >
                 Register
               </Link>
             </span>
             <Link
               href={`/org/${orgSlug}/forgotPwd`}
-              className="font-medium text-blue-600 dark:text-blue-400"
+              className="font-medium hover:underline transition-colors duration-200"
+              style={{ color: primaryColor }}
             >
               Forgot Password
             </Link>

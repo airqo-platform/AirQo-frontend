@@ -27,6 +27,7 @@ const AuthLayout = ({
     isLoading,
     isInitialized,
     error,
+    primaryColor,
   } = useOrganization();
 
   // Check if current organization is AirQo
@@ -281,7 +282,9 @@ const AuthLayout = ({
             <div className="text-center space-y-2">
               <p
                 className="text-xs font-medium transition-colors duration-200"
-                style={{ color: 'var(--color-primary, #145fff)' }}
+                style={{
+                  color: primaryColor || '#6B7280',
+                }}
               >
                 {organizationInfo}
               </p>
@@ -297,7 +300,10 @@ const AuthLayout = ({
               <div className="mt-4 text-center">
                 <a
                   href={backToAirqoPath}
-                  className="inline-flex items-center text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
+                  className="inline-flex items-center text-xs hover:underline transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
+                  style={{
+                    color: primaryColor || '#6B7280',
+                  }}
                   aria-label="Go back to AirQo Platform"
                 >
                   <span className="mr-1">←</span>
