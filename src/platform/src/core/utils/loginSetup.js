@@ -1,8 +1,4 @@
-import {
-  getUserDetails,
-  recentUserPreferencesAPI,
-  getUserThemeApi,
-} from '@/core/apis/Account';
+import { getUserDetails, getUserThemeApi } from '@/core/apis/Account';
 import {
   setUserInfo,
   setSuccess,
@@ -15,6 +11,7 @@ import {
   clearAllGroupData,
 } from '@/lib/store/services/groups';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
+import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
 
 /**
@@ -85,17 +82,9 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       throw new Error(
         'Server error. Contact support to add you to an organization',
       );
-    }
-
-    // Step 2: Fetch user preferences (for future use)
-    logger.info('Fetching user preferences...');
-    let _userPreferences = null;
-    try {
-      const preferencesRes = await recentUserPreferencesAPI(session.user.id);
-      _userPreferences = preferencesRes.preferences;
-    } catch (error) {
-      logger.warn('Failed to fetch user preferences, using defaults:', error);
-    }
+    } // Step 2: Skip fetching user preferences for group selection
+    // We no longer use previous group preferences to avoid conflicts
+    // Group selection is now purely based on login context (individual vs organization)
 
     // Step 3: Determine route context and appropriate active group
     const routeType = getRouteType(pathname);
@@ -116,27 +105,6 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       sessionOrgSlug,
     });
 
-    // Use smart redirect logic that considers active group and AirQo rules
-    // First, determine active group based on user preferences or defaults
-    let selectedActiveGroup = null;
-
-    // Try to get user's preferred group from recent preferences
-    try {
-      const prefRes = await recentUserPreferencesAPI(user._id);
-      if (prefRes.success && prefRes.preference?.group_id) {
-        selectedActiveGroup = user.groups.find(
-          (g) => g._id === prefRes.preference.group_id,
-        );
-      }
-    } catch (error) {
-      logger.debug('Could not fetch user preferences:', error);
-    }
-
-    // Fallback to first available group if no preference found
-    if (!selectedActiveGroup && user.groups.length > 0) {
-      selectedActiveGroup = user.groups[0];
-    }
-
     // Step 3b: Determine active group and redirect path based on login context
     if (pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
@@ -153,20 +121,72 @@ export const setupUserSession = async (session, dispatch, pathname) => {
           activeGroup = matchingGroup;
           // Always redirect to organization dashboard for org login
           redirectPath = `/org/${currentOrgSlug}/dashboard`;
+          logger.info('Organization login: Setting matching group', {
+            groupId: matchingGroup._id,
+            groupName: matchingGroup.grp_title || matchingGroup.grp_name,
+            orgSlug: currentOrgSlug,
+            loginContext: 'organization',
+            pathname,
+          });
         } else {
           // No matching group - use first available group but keep org context
-          activeGroup = selectedActiveGroup || user.groups[0];
+          activeGroup = user.groups[0];
           redirectPath = `/org/${currentOrgSlug}/dashboard`;
+          logger.info(
+            'Organization login: No matching group found, using first available',
+            {
+              groupId: activeGroup._id,
+              groupName: activeGroup.grp_title || activeGroup.grp_name,
+              orgSlug: currentOrgSlug,
+              loginContext: 'organization',
+              pathname,
+            },
+          );
         }
       } else {
-        // Fallback if no slug found
-        activeGroup = selectedActiveGroup || user.groups[0];
+        // Fallback if no slug found - use first available group
+        activeGroup = user.groups[0];
         const orgSlug = titleToSlug(activeGroup.grp_title);
         redirectPath = `/org/${orgSlug}/dashboard`;
+        logger.info('Organization login: No slug found, using first group', {
+          groupId: activeGroup._id,
+          groupName: activeGroup.grp_title || activeGroup.grp_name,
+          generatedSlug: orgSlug,
+          loginContext: 'organization',
+          pathname,
+        });
       }
     } else {
-      // USER LOGIN: Always redirect to user dashboard
-      activeGroup = selectedActiveGroup || user.groups[0];
+      // USER LOGIN: For individual login page, always default to AirQo group regardless of previous preferences
+      // This ensures users logging in from /user/login always get AirQo as default
+      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
+      if (airqoGroup) {
+        // Always use AirQo group for individual login
+        activeGroup = airqoGroup;
+        logger.info('Individual login: Setting AirQo as default group', {
+          groupId: airqoGroup._id,
+          groupName: airqoGroup.grp_title || airqoGroup.grp_name,
+          loginContext: 'individual',
+          pathname,
+        });
+      } else {
+        // Fallback if AirQo group not found - use first available group
+        activeGroup = user.groups[0];
+        logger.warn(
+          'AirQo group not found for individual login, using first available group',
+          {
+            fallbackGroupId: activeGroup._id,
+            fallbackGroupName: activeGroup.grp_title || activeGroup.grp_name,
+            userGroups: user.groups.map((g) => ({
+              id: g._id,
+              name: g.grp_title || g.grp_name,
+            })),
+            loginContext: 'individual',
+            pathname,
+          },
+        );
+      }
+
       redirectPath = '/user/Home';
     }
 
