@@ -15,6 +15,8 @@ import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 
+import { formatOrgSlug } from '@/core/utils/strings';
+
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
     .min(8, 'Password must be at least 8 characters')
@@ -129,8 +131,9 @@ const OrganizationResetPassword = () => {
             Password Reset Successfully
           </h2>
           <p className="text-gray-600 mb-6">
-            Your password has been reset successfully for {getDisplayName()}.
-            You will be redirected to the login page shortly.
+            Your password has been reset successfully for{' '}
+            {formatOrgSlug(getDisplayName())}. You will be redirected to the
+            login page shortly.
           </p>
           <Link
             href={`/org/${orgSlug}/login`}
@@ -151,7 +154,7 @@ const OrganizationResetPassword = () => {
           Reset your password
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          for {getDisplayName()}
+          for {formatOrgSlug(getDisplayName())}
         </p>
       </div>
 

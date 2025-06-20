@@ -16,6 +16,8 @@ import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 
+import { formatOrgSlug } from '@/core/utils/strings';
+
 const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
     .email('Invalid email address')
@@ -120,7 +122,7 @@ const OrganizationForgotPassword = () => {
   return (
     <AuthLayout
       title="Reset Your Password"
-      subtitle={`Enter your email to reset your password for ${getDisplayName()}`}
+      subtitle={`Enter your email to reset your password for ${formatOrgSlug(getDisplayName())}`}
       backToAirqoPath="/user/login"
     >
       {' '}

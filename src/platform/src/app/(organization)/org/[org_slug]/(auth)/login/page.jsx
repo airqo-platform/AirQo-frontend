@@ -125,7 +125,7 @@ const OrganizationLogin = () => {
       feature="Organization Authentication"
     >
       <AuthLayout
-        title={`Sign in to ${getDisplayName() || formatOrgSlug(orgSlug)}`}
+        title={`Sign in to ${formatOrgSlug(getDisplayName())}`}
         subtitle="Access your organization's air quality analytics dashboard"
       >
         <div className="w-full">
