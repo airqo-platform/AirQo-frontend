@@ -8,6 +8,7 @@ import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer, UnifiedSidebarContent } from '../SideBar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
+import Footer from '@/common/layouts/components/Footer';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -134,11 +135,11 @@ export default function UnifiedPagesLayout({ children }) {
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background
+        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background w-full flex flex-col
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
-        <div className={`h-full bg-background ${containerClasses}`}>
+        <div className={`flex-1 w-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
           {/* Content */}
@@ -146,6 +147,8 @@ export default function UnifiedPagesLayout({ children }) {
             {children}
           </div>
         </div>
+        {/* Footer - only show on non-map pages */}
+        {!isMapPage && <Footer />}
       </main>
       {/* SideBar Drawer */}
       {isOrganizationContext ? (
