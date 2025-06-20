@@ -16,7 +16,7 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Unified Layout Component

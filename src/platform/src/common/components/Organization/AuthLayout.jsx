@@ -2,7 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
 

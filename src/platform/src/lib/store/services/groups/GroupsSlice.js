@@ -75,12 +75,20 @@ const groupsSlice = createSlice({
     // Active Group Management (from ActiveGroupSlice)
     setActiveGroup: (state, action) => {
       const newGroup = action.payload;
+
+      // Validate the group object
+      if (!newGroup || !newGroup._id) {
+        logger.warn('Redux: Attempted to set invalid active group:', newGroup);
+        return;
+      }
+
       logger.info('Redux: Setting active group:', {
-        groupId: newGroup?._id,
-        groupName: newGroup?.grp_title,
+        groupId: newGroup._id,
+        groupName: newGroup.grp_title,
         previousGroup: state.activeGroup?.grp_title,
       });
-      state.activeGroup = action.payload;
+
+      state.activeGroup = newGroup;
       state.activeGroupError = null;
     },
     setActiveGroupLoading: (state, action) => {

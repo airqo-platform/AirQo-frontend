@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 import { FaEye, FaEyeSlash, FaCheckCircle } from 'react-icons/fa';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { registerUserToOrgApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';

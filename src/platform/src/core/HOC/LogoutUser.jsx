@@ -1,7 +1,6 @@
 import { signOut } from 'next-auth/react';
 import { resetStore } from '@/lib/store/services/account/LoginSlice';
 import { clearAllGroupData } from '@/lib/store/services/groups';
-import { setGlobalLogoutState } from '@/app/providers/OrganizationLoadingProvider';
 import logger from '@/lib/logger';
 
 // Global logout state to manage overlay
@@ -193,7 +192,8 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
     logger.info('Starting aggressive logout process');
 
     // Set global logout state immediately
-    setGlobalLogoutState(true);
+    // Set global logout state for organization loading providers
+    // (removed since OrganizationLoadingProvider was consolidated)
     triggerLogoutOverlay('Logging you out...');
 
     // Step 1: Immediately clear all authentication data
@@ -267,7 +267,8 @@ const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
   } finally {
     // Cleanup
     hideLogoutOverlay();
-    setGlobalLogoutState(false);
+    // Reset global logout state
+    // (removed since OrganizationLoadingProvider was consolidated)
   }
 };
 

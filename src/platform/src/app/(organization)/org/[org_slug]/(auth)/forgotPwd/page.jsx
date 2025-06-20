@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { FaCheckCircle } from 'react-icons/fa';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { forgotPasswordApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';

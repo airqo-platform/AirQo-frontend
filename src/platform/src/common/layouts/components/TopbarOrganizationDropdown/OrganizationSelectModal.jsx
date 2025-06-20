@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { HiPlus, HiMagnifyingGlass } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
@@ -8,42 +6,11 @@ import PropTypes from 'prop-types';
 // Components
 import Button from '@/common/components/Button';
 
-// Redux
-import {
-  selectActiveGroup,
-  selectUserGroups,
-  setActiveGroup,
-} from '@/lib/store/services/groups';
-import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+// Hooks
+import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 
 // Utils
-import {
-  isAirQoGroup,
-  shouldUseUserFlow,
-} from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
-
-/**
- * Utility function to determine the target route based on group selection
- */
-const determineTargetRoute = (group) => {
-  if (shouldUseUserFlow(group)) {
-    return '/user/Home';
-  }
-
-  if (!group?.organization_slug?.trim()) {
-    logger.warn('Invalid organization slug, falling back to AirQo user flow');
-    return '/user/Home';
-  }
-
-  const groupSlug = group.organization_slug;
-  if (!groupSlug || groupSlug === 'default') {
-    logger.warn('Invalid group slug, falling back to AirQo user flow');
-    return '/user/Home';
-  }
-
-  return `/org/${groupSlug}/dashboard`;
-};
 
 /**
  * Utility function to format group names for display
@@ -59,20 +26,14 @@ const formatGroupName = (groupName) => {
 };
 
 const OrganizationSelectModal = ({ isOpen, onClose }) => {
-  const dispatch = useDispatch();
-  const { data: session } = useSession();
   const router = useRouter();
 
-  // Redux state
-  const activeGroup = useSelector(selectActiveGroup);
-  const userGroups = useSelector(selectUserGroups);
+  // Use unified group provider
+  const { activeGroup, userGroups, switchToGroup, isSwitching } =
+    useUnifiedGroup();
+
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSwitching, setIsSwitching] = useState(false);
-
-  // Note: Removed automatic group setting on route changes to prevent
-  // overriding user's explicit group selection. The useGetActiveGroup hook
-  // will handle initial group setting when no group is selected.
 
   // Filter groups based on search term
   const filteredGroups =
@@ -81,6 +42,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
         group.grp_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.grp_website?.toLowerCase().includes(searchTerm.toLowerCase()),
     ) || [];
+
   // Handle organization switching
   const handleGroupSelect = async (group) => {
     if (!group || group._id === activeGroup?._id) {
@@ -88,65 +50,25 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       return;
     }
 
+    if (isSwitching) return; // Prevent multiple rapid switches
+
     logger.info('OrganizationSelectModal: User selected group:', {
       groupId: group._id,
       groupName: group.grp_title,
       previousActiveGroup: activeGroup?.grp_title,
     });
 
-    setIsSwitching(true);
-
     try {
-      const isTargetAirQo = isAirQoGroup(group);
-      const targetRoute = determineTargetRoute(group);
+      // Use the unified group provider to switch groups
+      const result = await switchToGroup(group, { navigate: true });
 
-      // Set the active group immediately for UI feedback
-      dispatch(setActiveGroup(group));
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Clear relevant Redux states to prevent stale data
-      const { setChartSites, resetChartStore } = await import(
-        '@/lib/store/services/charts/ChartSlice'
-      );
-
-      dispatch(setChartSites([]));
-      if (!isTargetAirQo) {
-        dispatch(resetChartStore());
+      if (result.success) {
+        onClose();
+      } else {
+        logger.error('Group switch failed:', result.error);
       }
-
-      // Navigate and wait for route completion
-      await router.push(targetRoute);
-
-      // Update user preferences
-      setTimeout(async () => {
-        try {
-          await dispatch(
-            replaceUserPreferences({
-              user_id: session?.user?.id,
-              group_id: group._id,
-            }),
-          );
-        } catch (error) {
-          logger.warn('Failed to update preferences:', error);
-        }
-      }, 300);
-
-      onClose();
     } catch (error) {
       logger.error('Organization switching failed:', error);
-
-      try {
-        const airqoGroup = userGroups.find(isAirQoGroup);
-        if (airqoGroup) {
-          dispatch(setActiveGroup(airqoGroup));
-          await router.push('/user/Home');
-        }
-      } catch (fallbackError) {
-        logger.error('Fallback failed:', fallbackError);
-      }
-    } finally {
-      setIsSwitching(false);
     }
   };
   // Handle navigation to create organization page

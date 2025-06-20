@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import { isEmpty } from 'underscore';
 import { HiSquares2X2 } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
@@ -7,12 +6,8 @@ import PropTypes from 'prop-types';
 // Components
 import OrganizationSelectModal from './OrganizationSelectModal';
 
-// Redux
-import {
-  selectActiveGroup,
-  selectUserGroups,
-  selectUserGroupsLoading,
-} from '@/lib/store/services/groups';
+// Hooks
+import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 
 // Utils
 import { ORGANIZATION_LABEL } from '@/lib/constants';
@@ -25,10 +20,12 @@ import { ORGANIZATION_LABEL } from '@/lib/constants';
  * The GroupLogo component is used elsewhere for actual logo display
  */
 const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
-  // Redux state
-  const activeGroup = useSelector(selectActiveGroup);
-  const userGroups = useSelector(selectUserGroups);
-  const isLoadingGroups = useSelector(selectUserGroupsLoading);
+  // Use unified group provider
+  const {
+    activeGroup,
+    userGroups,
+    isLoading: isLoadingGroups,
+  } = useUnifiedGroup();
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
 import Button from '@/common/components/Button';
 import {
