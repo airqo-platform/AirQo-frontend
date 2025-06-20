@@ -22,3 +22,14 @@ export const removeSpacesAndLowerCase = (text) => {
   }
   return text.replace(/\s+/g, '').toLowerCase();
 };
+
+/**
+ *  Formats an organization slug by replacing hyphens with spaces and converting to uppercase
+ *  @param {string} slug - The organization slug to format
+ *  @returns {string} - Formatted organization slug
+ *  formatOrgSlug('my-organization') // returns 'MY ORGANIZATION'
+ */
+export const formatOrgSlug = (slug) => {
+  if (!slug) return '';
+  return slug.split('-').join(' ').toUpperCase();
+};

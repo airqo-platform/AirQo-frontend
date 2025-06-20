@@ -13,6 +13,7 @@ import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logger from '@/lib/logger';
+import { formatOrgSlug } from '@/core/utils/strings';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -30,6 +31,7 @@ const OrganizationLogin = () => {
   const params = useParams();
   const router = useRouter();
   const orgSlug = params.org_slug;
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -51,8 +53,6 @@ const OrganizationLogin = () => {
       }
 
       try {
-        logger.info('Attempting organization login with NextAuth...');
-
         // Use NextAuth signIn - orgSlug is captured for validation but not sent to backend
         const result = await signIn('credentials', {
           userName: userName, // NextAuth provider expects userName
@@ -61,24 +61,15 @@ const OrganizationLogin = () => {
           redirect: false,
         });
 
-        logger.info('NextAuth signIn result:', result);
-
         if (result?.error) {
           throw new Error(result.error);
         }
 
         if (result?.ok) {
-          logger.info('Organization login successful, waiting for session...');
-
           // Force session refresh after successful login
           const session = await getSession();
-          logger.info('Session after login:', session);
 
           if (session?.user && session?.accessToken) {
-            logger.info(
-              'Session validated, HOC will handle setup and redirect',
-            );
-
             // Force NextAuth to update the session context immediately
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new window.Event('focus'));
@@ -132,7 +123,7 @@ const OrganizationLogin = () => {
       feature="Organization Authentication"
     >
       <AuthLayout
-        title={`Sign in to ${orgSlug}`}
+        title={`Sign in to ${formatOrgSlug(orgSlug)}`}
         subtitle="Access your organization's air quality analytics dashboard"
       >
         <div className="w-full">

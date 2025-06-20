@@ -43,8 +43,8 @@ const OrganizationForgotPassword = () => {
         // Validate email
         await forgotPasswordSchema.validate({ email }, { abortEarly: false });
 
-        // Validate reCAPTCHA
-        if (!recaptchaToken) {
+        // Validate reCAPTCHA only if it's configured
+        if (NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !recaptchaToken) {
           setErrorState('Please complete the reCAPTCHA verification');
           setLoading(false);
           return;
@@ -54,7 +54,9 @@ const OrganizationForgotPassword = () => {
         const result = await forgotPasswordApi({
           email,
           organizationSlug: orgSlug,
-          recaptchaToken,
+          recaptchaToken: NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+            ? recaptchaToken
+            : null,
         });
 
         if (result.success) {
@@ -69,8 +71,8 @@ const OrganizationForgotPassword = () => {
         );
       } finally {
         setLoading(false);
-        // Reset reCAPTCHA
-        if (recaptchaRef.current) {
+        // Reset reCAPTCHA only if it's configured
+        if (NEXT_PUBLIC_RECAPTCHA_SITE_KEY && recaptchaRef.current) {
           recaptchaRef.current.reset();
           setRecaptchaToken(null);
         }
@@ -147,15 +149,23 @@ const OrganizationForgotPassword = () => {
           />
         )}
 
-        <div>
-          <ReCAPTCHA
-            ref={recaptchaRef}
-            sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-            onChange={setRecaptchaToken}
-            onExpired={() => setRecaptchaToken(null)}
-            onError={() => setRecaptchaToken(null)}
-          />
-        </div>
+        {NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+          <div>
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+              onChange={setRecaptchaToken}
+              onExpired={() => setRecaptchaToken(null)}
+              onError={() => setRecaptchaToken(null)}
+            />
+          </div>
+        ) : (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-700">
+              reCAPTCHA is not configured. Please contact your administrator.
+            </p>
+          </div>
+        )}
 
         <div>
           <button

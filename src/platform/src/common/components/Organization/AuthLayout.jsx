@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
 import PropTypes from 'prop-types';
+import Image from 'next/image';
+import { useState } from 'react';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { formatOrgSlug } from '@/core/utils/strings';
 
 const AuthLayout = ({
   children,
@@ -13,6 +15,7 @@ const AuthLayout = ({
   showBackToAirqo = true,
   backToAirqoPath = '/user/login',
 }) => {
+  const [imageError, setImageError] = useState(false);
   const {
     organization,
     getDisplayName,
@@ -38,82 +41,81 @@ const AuthLayout = ({
   }
 
   const organizationName = getDisplayName?.() || 'AirQo';
-  const logoSrc = logo || '/icons/airqo_logo.svg';
+  const logoSrc = imageError || !logo ? '/icons/airqo_logo.svg' : logo;
+
+  // Memoized organization info to prevent unnecessary re-renders
+  const organizationInfo = organization
+    ? `${formatOrgSlug(organizationName)}'s Private Dashboard`
+    : 'AirQo Platform';
 
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 flex justify-center items-center">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md space-y-6">
           {/* Organization Logo */}
           <div className="mb-8">
-            {logoSrc ? (
-              <img
-                className="h-12 w-auto"
+            <div className="relative">
+              <Image
                 src={logoSrc}
                 alt={`${organizationName} logo`}
-                onError={(e) => {
-                  // Fallback to AirQo logo if organization logo fails to load
-                  e.target.src = '/icons/airqo_logo.svg';
-                }}
+                width={120}
+                height={48}
+                className="h-12 w-auto object-contain"
+                priority
+                onError={() => setImageError(true)}
+                sizes="(max-width: 768px) 100vw, 120px"
+                unoptimized={logoSrc.includes('http')}
               />
-            ) : (
-              // Loading state for logo
-              <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 animate-pulse rounded flex items-center justify-center">
-                <LoadingSpinner size="sm" />
-              </div>
-            )}
+            </div>
           </div>
           {/* Title and Subtitle */}
           {(title || subtitle) && (
-            <div className="mb-8">
+            <header className="mb-8">
               {title && (
-                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 leading-tight">
                   {title}
                 </h1>
               )}
               {subtitle && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   {subtitle}
                 </p>
               )}
-            </div>
+            </header>
           )}
-          {/* Form Content */}{' '}
-          <div className="space-y-6">
-            {children}
+          {/* Form Content */}
+          <main className="space-y-6">{children}</main>
 
-            {/* Organization Info */}
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-center">
-                {' '}
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--color-primary, #145fff)' }}
-                >
-                  {organization
-                    ? `${organizationName}'s Private Dashboard`
-                    : 'AirQo Platform'}
+          {/* Organization Info */}
+          <footer className="pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center space-y-2">
+              <p
+                className="text-xs font-medium transition-colors duration-200"
+                style={{ color: 'var(--color-primary, #145fff)' }}
+              >
+                {organizationInfo}
+              </p>
+              {organization?.description && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm mx-auto">
+                  {organization.description}
                 </p>
-                {organization?.description && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {organization.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Back to AirQo link */}
-              {showBackToAirqo && (
-                <div className="mt-4 text-center">
-                  <a
-                    href={backToAirqoPath}
-                    className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors underline"
-                  >
-                    ← Back to AirQo Platform
-                  </a>
-                </div>
               )}
             </div>
-          </div>
+
+            {/* Back to AirQo link */}
+            {showBackToAirqo && (
+              <div className="mt-4 text-center">
+                <a
+                  href={backToAirqoPath}
+                  className="inline-flex items-center text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
+                  aria-label="Go back to AirQo Platform"
+                >
+                  <span className="mr-1">←</span>
+                  Back to AirQo Platform
+                </a>
+              </div>
+            )}
+          </footer>
         </div>
       </div>
     </ErrorBoundary>
