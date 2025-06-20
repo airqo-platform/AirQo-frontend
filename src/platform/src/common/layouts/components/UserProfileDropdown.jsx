@@ -21,6 +21,7 @@ const UserProfileDropdown = ({
   onLogout,
   isOrganization = false,
   isCreateOrganizationRoute = false,
+  isAdminRoute = false,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -150,8 +151,8 @@ const UserProfileDropdown = ({
         <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
       )}
 
-      {/* Show menu items only if not on create-organization route */}
-      {!isCreateOrganizationRoute && (
+      {/* Show menu items only if not on create-organization route and not in admin route */}
+      {!isCreateOrganizationRoute && !isAdminRoute && (
         <ul className="dropdown-list p-2">
           {/* My Profile - only show in organization context */}
           {isOrganizationContext && (
@@ -201,8 +202,8 @@ const UserProfileDropdown = ({
         </ul>
       )}
 
-      {/* Show divider only if we have content above and it's not create-organization route */}
-      {!isCreateOrganizationRoute && (
+      {/* Show divider only if we have content above and it's not create-organization route and not admin route */}
+      {!isCreateOrganizationRoute && !isAdminRoute && (
         <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
       )}
 
@@ -276,6 +277,7 @@ UserProfileDropdown.propTypes = {
   onLogout: PropTypes.func,
   isOrganization: PropTypes.bool,
   isCreateOrganizationRoute: PropTypes.bool,
+  isAdminRoute: PropTypes.bool,
 };
 
 export default React.memo(UserProfileDropdown);

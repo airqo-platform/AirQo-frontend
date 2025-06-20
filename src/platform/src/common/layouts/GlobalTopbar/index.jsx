@@ -98,6 +98,9 @@ const GlobalTopbar = ({
   // Check if we're on the create-organization route
   const isCreateOrganizationRoute = pathname === '/create-organization';
 
+  // Check if we're in admin routes
+  const isAdminRoute = pathname.startsWith('/admin');
+
   // Only render after component has mounted on client
   useEffect(() => {
     setMounted(true);
@@ -295,8 +298,8 @@ const GlobalTopbar = ({
             {/* Desktop Right Section - Organization Dropdown + Custom Actions + Profile Dropdown */}
             <div className="hidden lg:flex gap-2 items-center justify-center h-full">
               {' '}
-              {/* Organization Dropdown - Show for users with multiple groups but hide for create-organization route */}
-              {!isCreateOrganizationRoute && (
+              {/* Organization Dropdown - Show for users with multiple groups but hide for create-organization route and admin routes */}
+              {!isCreateOrganizationRoute && !isAdminRoute && (
                 <TopbarOrganizationDropdown className="mr-2" />
               )}
               {customActions && (
@@ -309,6 +312,7 @@ const GlobalTopbar = ({
                 showUserInfo={true}
                 isOrganization={isOrganization}
                 isCreateOrganizationRoute={isCreateOrganizationRoute}
+                isAdminRoute={isAdminRoute}
               />
             </div>{' '}
             {/* Mobile Profile Dropdown - Moved to main topbar */}
@@ -319,6 +323,7 @@ const GlobalTopbar = ({
                 showUserInfo={false}
                 isOrganization={isOrganization}
                 isCreateOrganizationRoute={isCreateOrganizationRoute}
+                isAdminRoute={isAdminRoute}
               />
             </div>
           </div>
@@ -343,8 +348,8 @@ const GlobalTopbar = ({
                 {topbarTitle}
               </div>
             )}{' '}
-            {/* Organization Dropdown for mobile - hide for create-organization route */}
-            {!isCreateOrganizationRoute && (
+            {/* Organization Dropdown for mobile - hide for create-organization route and admin routes */}
+            {!isCreateOrganizationRoute && !isAdminRoute && (
               <div className="flex items-center justify-center h-full">
                 <TopbarOrganizationDropdown
                   showTitle={false}
