@@ -134,15 +134,10 @@ const UserProfileDropdown = ({
             {userInfo?.firstName && userInfo?.lastName
               ? `${userInfo.firstName} ${userInfo.lastName}`
               : userInfo?.name || 'User'}
-          </div>
+          </div>{' '}
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
             {userInfo?.email || 'No email'}
           </div>
-          {isOrganizationContext && !isCreateOrganizationRoute && (
-            <div className="text-xs text-[var(--org-primary,var(--color-primary,#145fff))] truncate max-w-[21ch]">
-              {userInfo?.organization || 'Organization User'}
-            </div>
-          )}
         </div>
       </div>
     );
