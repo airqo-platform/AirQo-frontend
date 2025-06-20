@@ -150,11 +150,19 @@ const Table = ({
   };
   return (
     <CardWrapper
-      title={title}
       padding="p-0"
       className={`overflow-hidden ${className}`}
       {...containerProps}
     >
+      {/* Title section with proper padding */}
+      {title && (
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            {title}
+          </h3>
+        </div>
+      )}
+
       {/* Actions section (if provided) */}
       {actions && (
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
