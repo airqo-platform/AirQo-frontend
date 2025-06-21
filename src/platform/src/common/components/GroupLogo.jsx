@@ -43,12 +43,7 @@ const GroupLogo = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [imageFitMode, setImageFitMode] = useState('cover');
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [containerDimensions, setContainerDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
 
   // Refs
   const containerRef = useRef(null);
@@ -150,24 +145,6 @@ const GroupLogo = ({
       window.removeEventListener('load', handlePageLoad);
     };
   }, [handleRefresh, debounce, isCustomMode]);
-
-  // Container resize observer for better responsiveness
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setContainerDimensions({ width, height });
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
 
   // Get current organization data (only for non-custom mode)
   const currentOrg = useMemo(() => {
@@ -323,9 +300,8 @@ const GroupLogo = ({
     };
   }, [currentOrg, isCustomMode, fallbackText, fallbackColor]);
 
-  // Enhanced image event handlers with better fit detection
-  const handleImageLoad = useCallback((e) => {
-    const img = e.target;
+  // Enhanced image event handlers
+  const handleImageLoad = useCallback(() => {
     setImageLoading(false);
     setImageError(false);
     setImageLoaded(true);
@@ -336,10 +312,6 @@ const GroupLogo = ({
       clearTimeout(loadTimeoutRef.current);
       loadTimeoutRef.current = null;
     }
-
-    // Always use cover for better container fill and appearance
-    // This ensures images always fill the container properly
-    setImageFitMode('cover');
   }, []);
 
   const handleImageError = useCallback(() => {
@@ -379,7 +351,6 @@ const GroupLogo = ({
     if (imageUrl && !imageError && !disabled) {
       setImageLoading(true);
       setImageLoaded(false);
-      setImageFitMode('cover'); // Always start with cover for better appearance
 
       // Set loading timeout
       loadTimeoutRef.current = setTimeout(() => {
@@ -392,7 +363,6 @@ const GroupLogo = ({
     } else {
       setImageLoading(false);
       setImageLoaded(false);
-      setImageFitMode('cover'); // Use cover even for fallback states
     }
 
     return () => {
@@ -549,18 +519,6 @@ GroupLogo.propTypes = {
   containerClassName: PropTypes.string,
   imageClassName: PropTypes.string,
   disabled: PropTypes.bool,
-};
-
-GroupLogo.defaultProps = {
-  className: '',
-  size: 'md',
-  imageUrl: null,
-  fallbackText: null,
-  fallbackColor: null,
-  showAirqoLogo: true,
-  containerClassName: '',
-  imageClassName: '',
-  disabled: false,
 };
 
 export default React.memo(GroupLogo);
