@@ -87,14 +87,14 @@ export default withAuth(
           pathname === '/favicon.ico'
         ) {
           return true;
-        }
-
-        // Require authentication for protected routes
+        } // Require authentication for protected routes
         if (
           pathname.includes('/org/') ||
           pathname.includes('/user/') ||
           pathname.includes('(individual)') ||
           pathname.includes('(organization)') ||
+          pathname.startsWith('/admin') ||
+          pathname.startsWith('/create-organization') ||
           pathname.startsWith('/Home') ||
           pathname.startsWith('/analytics') ||
           pathname.startsWith('/collocation') ||

@@ -7,15 +7,16 @@ import * as Yup from 'yup';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { FaCheckCircle } from 'react-icons/fa';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { forgotPasswordApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
-import { withOrgAuthRoute } from '@/core/HOC';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
+
+import { formatOrgSlug } from '@/core/utils/strings';
 
 const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -44,8 +45,8 @@ const OrganizationForgotPassword = () => {
         // Validate email
         await forgotPasswordSchema.validate({ email }, { abortEarly: false });
 
-        // Validate reCAPTCHA
-        if (!recaptchaToken) {
+        // Validate reCAPTCHA only if it's configured
+        if (NEXT_PUBLIC_RECAPTCHA_SITE_KEY && !recaptchaToken) {
           setErrorState('Please complete the reCAPTCHA verification');
           setLoading(false);
           return;
@@ -55,7 +56,9 @@ const OrganizationForgotPassword = () => {
         const result = await forgotPasswordApi({
           email,
           organizationSlug: orgSlug,
-          recaptchaToken,
+          recaptchaToken: NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+            ? recaptchaToken
+            : null,
         });
 
         if (result.success) {
@@ -70,8 +73,8 @@ const OrganizationForgotPassword = () => {
         );
       } finally {
         setLoading(false);
-        // Reset reCAPTCHA
-        if (recaptchaRef.current) {
+        // Reset reCAPTCHA only if it's configured
+        if (NEXT_PUBLIC_RECAPTCHA_SITE_KEY && recaptchaRef.current) {
           recaptchaRef.current.reset();
           setRecaptchaToken(null);
         }
@@ -119,7 +122,7 @@ const OrganizationForgotPassword = () => {
   return (
     <AuthLayout
       title="Reset Your Password"
-      subtitle={`Enter your email to reset your password for ${getDisplayName()}`}
+      subtitle={`Enter your email to reset your password for ${formatOrgSlug(getDisplayName())}`}
       backToAirqoPath="/user/login"
     >
       {' '}
@@ -148,15 +151,23 @@ const OrganizationForgotPassword = () => {
           />
         )}
 
-        <div>
-          <ReCAPTCHA
-            ref={recaptchaRef}
-            sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-            onChange={setRecaptchaToken}
-            onExpired={() => setRecaptchaToken(null)}
-            onError={() => setRecaptchaToken(null)}
-          />
-        </div>
+        {NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+          <div>
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+              onChange={setRecaptchaToken}
+              onExpired={() => setRecaptchaToken(null)}
+              onError={() => setRecaptchaToken(null)}
+            />
+          </div>
+        ) : (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-700">
+              reCAPTCHA is not configured. Please contact your administrator.
+            </p>
+          </div>
+        )}
 
         <div>
           <button
@@ -194,4 +205,4 @@ const OrganizationForgotPassword = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationForgotPassword);
+export default OrganizationForgotPassword;

@@ -10,7 +10,6 @@ import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Toast from '@/components/Toast';
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 
 /**
  * Validates MongoDB ObjectId format
@@ -28,7 +27,7 @@ const AQNumberCard = () => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
   const [error, setError] = useState(null);
-  const { isOrganizationLoading } = useOrganizationLoading();
+  // Remove organization loading hook as it's no longer needed
 
   // Fetch group and pollutant data from Redux state
   const { loading: isFetchingActiveGroup } = useGetActiveGroup();
@@ -58,7 +57,6 @@ const AQNumberCard = () => {
 
     return [];
   }, [preferences, chartSites]);
-
   // Improved fetch logic to handle view transitions
   const shouldFetch = useMemo(() => {
     // Don't fetch if no site IDs
@@ -67,11 +65,11 @@ const AQNumberCard = () => {
     // For user view with preferences - always fetch
     if (preferences?.selected_sites?.length) return true;
 
-    // For organization view - only fetch if not switching organizations and we have chart sites
-    if (chartSites?.length && !isOrganizationLoading) return true;
+    // For organization view - fetch if we have chart sites
+    if (chartSites?.length) return true;
 
     return false;
-  }, [selectedSiteIds, preferences, chartSites, isOrganizationLoading]);
+  }, [selectedSiteIds, preferences, chartSites]);
 
   const {
     data: measurements,
@@ -84,8 +82,8 @@ const AQNumberCard = () => {
       revalidateOnReconnect: false,
       revalidateOnVisibilityChange: false,
       revalidateOnMount: true,
-      // Force refetch when switching between views
-      dedupingInterval: isOrganizationLoading ? 0 : 30000,
+      // Standard deduplication interval
+      dedupingInterval: 30000,
       onError: (_err) => {
         setError('Failed to fetch air quality data. Please try again later.');
       },
@@ -187,12 +185,10 @@ const AQNumberCard = () => {
       return () => clearTimeout(timer);
     }
   }, [error, measurementsError]);
-
   // Force refresh when switching between organization and user contexts
   useEffect(() => {
-    // If we were loading organizations and now we're not, but we have no data
+    // If we have site IDs but no data
     if (
-      !isOrganizationLoading &&
       selectedSiteIds.length > 0 &&
       (!measurements || measurements.length === 0) &&
       shouldFetch
@@ -206,13 +202,7 @@ const AQNumberCard = () => {
       }, 100);
       return () => clearTimeout(refreshTimeout);
     }
-  }, [
-    isOrganizationLoading,
-    selectedSiteIds.length,
-    measurements,
-    shouldFetch,
-    selectedSites.length,
-  ]);
+  }, [selectedSiteIds.length, measurements, shouldFetch, selectedSites.length]);
 
   // Handler to open modals for card actions
   const handleOpenModal = useCallback(
@@ -225,9 +215,6 @@ const AQNumberCard = () => {
   const isLoadingData = useMemo(() => {
     // Show loading only when actively fetching or transitioning
     if (isFetchingActiveGroup) return true;
-
-    // During organization loading, show loading state
-    if (isOrganizationLoading) return true;
 
     // Show loading when we expect data but don't have it yet
     if (isLoading && shouldFetch) return true;
@@ -245,7 +232,6 @@ const AQNumberCard = () => {
   }, [
     isLoading,
     isFetchingActiveGroup,
-    isOrganizationLoading,
     shouldFetch,
     selectedSiteIds.length,
     selectedSites.length,

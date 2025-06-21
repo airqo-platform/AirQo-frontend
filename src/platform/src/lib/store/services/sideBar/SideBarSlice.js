@@ -4,6 +4,9 @@ const initialState = {
   isCollapsed: false,
   toggleDrawer: false,
   toggleGlobalDrawer: false,
+  // New separate state for global topbar sidebar
+  isGlobalSidebarOpen: false,
+  isGlobalDrawerOpen: false, // For mobile global drawer
 };
 
 const sidebarSlice = createSlice({
@@ -28,6 +31,19 @@ const sidebarSlice = createSlice({
     toggleGlobalDrawer: (state) => {
       state.toggleGlobalDrawer = !state.toggleGlobalDrawer;
     },
+    // New actions for global topbar sidebar (completely separate)
+    setGlobalSidebarOpen: (state, action) => {
+      state.isGlobalSidebarOpen = action.payload;
+    },
+    toggleGlobalSidebar: (state) => {
+      state.isGlobalSidebarOpen = !state.isGlobalSidebarOpen;
+    },
+    setGlobalDrawerOpen: (state, action) => {
+      state.isGlobalDrawerOpen = action.payload;
+    },
+    toggleGlobalDrawerMobile: (state) => {
+      state.isGlobalDrawerOpen = !state.isGlobalDrawerOpen;
+    },
     resetSidebar: () => initialState,
   },
   extraReducers: (builder) => {
@@ -44,6 +60,11 @@ export const {
   toggleDrawer,
   setTogglingGlobalDrawer,
   toggleGlobalDrawer,
+  // New global sidebar actions
+  setGlobalSidebarOpen,
+  toggleGlobalSidebar,
+  setGlobalDrawerOpen,
+  toggleGlobalDrawerMobile,
   resetSidebar,
 } = sidebarSlice.actions;
 

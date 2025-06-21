@@ -42,6 +42,7 @@ export const ThemeSheet = memo(() => {
     isThemeSheetOpen,
     closeThemeSheet,
   } = useTheme();
+
   // User theme hook for API integration
   const {
     updatePrimaryColor,

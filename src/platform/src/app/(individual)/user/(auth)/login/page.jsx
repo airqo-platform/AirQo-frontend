@@ -14,7 +14,6 @@ import InputField from '@/common/components/InputField';
 
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -216,4 +215,4 @@ const UserLogin = () => {
   );
 };
 
-export default withAuthRoute(UserLogin);
+export default UserLogin;

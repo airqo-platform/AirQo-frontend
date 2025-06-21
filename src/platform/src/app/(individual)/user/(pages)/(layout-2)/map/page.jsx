@@ -11,7 +11,6 @@ import { getGridsDataSummary } from '@/lib/store/services/deviceRegistry/GridsSl
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { IconButton, LoadingOverlay } from '@/features/airQuality-map/hooks';
-import { withUserAuth } from '@/core/HOC';
 
 // Icons
 import LayerIcon from '@/icons/map/layerIcon';
@@ -103,9 +102,8 @@ const MapPage = () => {
             }),
           );
         },
-        (error) => {
-          // eslint-disable-next-line no-console
-          console.error('Geolocation error:', error);
+        () => {
+          // User denied geolocation permission - this is expected behavior
         },
       );
     }
@@ -282,4 +280,4 @@ const MapPage = () => {
   );
 };
 
-export default withUserAuth(MapPage);
+export default MapPage;

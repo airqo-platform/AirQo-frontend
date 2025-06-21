@@ -1,65 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { HiPlus, HiMagnifyingGlass } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
 
 // Components
 import Button from '@/common/components/Button';
 
-// Organization Loading Context
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
-
-// Redux
-import {
-  selectActiveGroup,
-  selectUserGroups,
-  setActiveGroup,
-} from '@/lib/store/services/groups';
-import { replaceUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+// Hooks
+import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 
 // Utils
-import {
-  isAirQoGroup,
-  shouldUseUserFlow,
-} from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
-
-/**
- * Utility function to convert organization title to URL slug
- */
-const titleToSlug = (title) => {
-  if (!title) return '';
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-};
-
-/**
- * Utility function to determine the target route based on group selection
- */
-const determineTargetRoute = (group) => {
-  if (shouldUseUserFlow(group)) {
-    return '/user/Home';
-  }
-
-  if (!group?.grp_title?.trim()) {
-    logger.warn('Invalid group title, falling back to AirQo user flow');
-    return '/user/Home';
-  }
-
-  const groupSlug = titleToSlug(group.grp_title);
-  if (!groupSlug || groupSlug === 'default') {
-    logger.warn(
-      'Invalid group slug generated, falling back to AirQo user flow',
-    );
-    return '/user/Home';
-  }
-
-  return `/org/${groupSlug}/dashboard`;
-};
+import { isAirQoGroup } from '@/core/utils/organizationUtils';
 
 /**
  * Utility function to format group names for display
@@ -75,31 +27,13 @@ const formatGroupName = (groupName) => {
 };
 
 const OrganizationSelectModal = ({ isOpen, onClose }) => {
-  const dispatch = useDispatch();
-  const { data: session } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
-  const { setIsSwitchingOrganization } = useOrganizationLoading();
+  // Use unified group provider
+  const { activeGroup, userGroups, switchToGroup, isSwitching } =
+    useUnifiedGroup();
 
-  // Redux state
-  const activeGroup = useSelector(selectActiveGroup);
-  const userGroups = useSelector(selectUserGroups);
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSwitching, setIsSwitching] = useState(false);
-
-  // Monitor pathname changes for user flow routes
-  useEffect(() => {
-    if (!userGroups || userGroups.length === 0) return;
-
-    // If route goes back to /user/*, set active group to AirQo
-    if (pathname.startsWith('/user/')) {
-      const airqoGroup = userGroups.find(isAirQoGroup);
-      if (airqoGroup && (!activeGroup || activeGroup._id !== airqoGroup._id)) {
-        dispatch(setActiveGroup(airqoGroup));
-      }
-    }
-  }, [pathname, userGroups, activeGroup, dispatch]);
 
   // Filter groups based on search term
   const filteredGroups =
@@ -116,82 +50,73 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    setIsSwitching(true);
-    setIsSwitchingOrganization(true);
+    if (isSwitching) return; // Prevent multiple rapid switches
+
+    logger.info('OrganizationSelectModal: User selected group:', {
+      groupId: group._id,
+      groupName: group.grp_title,
+      previousActiveGroup: activeGroup?.grp_title,
+    });
 
     try {
-      const isTargetAirQo = isAirQoGroup(group);
-      const targetRoute = determineTargetRoute(group);
+      // Use the unified group provider to switch groups
+      const result = await switchToGroup(group, { navigate: true });
 
-      // Set the active group immediately for UI feedback
-      dispatch(setActiveGroup(group));
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Clear relevant Redux states to prevent stale data
-      const { setChartSites, resetChartStore } = await import(
-        '@/lib/store/services/charts/ChartSlice'
-      );
-
-      dispatch(setChartSites([]));
-      if (!isTargetAirQo) {
-        dispatch(resetChartStore());
+      if (result.success) {
+        onClose();
+      } else {
+        logger.error('Group switch failed:', result.error);
       }
-
-      // Navigate and wait for route completion
-      await router.push(targetRoute);
-
-      // Update user preferences
-      setTimeout(async () => {
-        try {
-          await dispatch(
-            replaceUserPreferences({
-              user_id: session?.user?.id,
-              group_id: group._id,
-            }),
-          );
-        } catch (error) {
-          logger.warn('Failed to update preferences:', error);
-        }
-      }, 300);
-
-      onClose();
     } catch (error) {
       logger.error('Organization switching failed:', error);
-
-      try {
-        const airqoGroup = userGroups.find(isAirQoGroup);
-        if (airqoGroup) {
-          dispatch(setActiveGroup(airqoGroup));
-          await router.push('/user/Home');
-        }
-      } catch (fallbackError) {
-        logger.error('Fallback failed:', fallbackError);
-      }
-    } finally {
-      setIsSwitching(false);
-      setIsSwitchingOrganization(false);
     }
-  };
-  // Handle navigation to create organization page
-  const handleCreateOrganization = () => {
-    onClose(); // Close the current modal
-    router.push('/create-organization'); // Navigate to the create organization page
+  }; // Handle navigation to create organization page
+  const handleCreateOrganization = async () => {
+    try {
+      // Find AirQo group in user's groups
+      const airqoGroup = userGroups?.find(isAirQoGroup);
+
+      if (airqoGroup && activeGroup?._id !== airqoGroup._id) {
+        logger.info(
+          'OrganizationSelectModal: Switching to AirQo group before navigation',
+          {
+            airqoGroupId: airqoGroup._id,
+            airqoGroupName: airqoGroup.grp_title,
+            currentActiveGroup: activeGroup?.grp_title,
+          },
+        );
+
+        // Switch to AirQo group without navigation (we'll navigate manually)
+        await switchToGroup(airqoGroup, { navigate: false });
+      }
+
+      onClose(); // Close the current modal
+      router.push('/create-organization'); // Navigate to the create organization page
+    } catch (error) {
+      logger.error(
+        'Failed to switch to AirQo group before create organization:',
+        error,
+      );
+      // Still navigate even if group switch fails
+      onClose();
+      router.push('/create-organization');
+    }
   };
 
   if (!isOpen) return null;
 
   // Render the organization selection modal
   return (
-    <>
+    <div className="fixed inset-0 z-[10000]">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
         onClick={onClose}
-      />{' '}
+        aria-label="Close organization selection modal"
+      />
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl h-[650px] bg-white rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col overflow-hidden">
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-2xl h-[650px] bg-white rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col overflow-hidden z-[10001]">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
             <div>
@@ -315,7 +240,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

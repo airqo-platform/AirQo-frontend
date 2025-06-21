@@ -1,8 +1,5 @@
-import {
-  getUserDetails,
-  recentUserPreferencesAPI,
-  getUserThemeApi,
-} from '@/core/apis/Account';
+import { getUserDetails, getUserThemeApi } from '@/core/apis/Account';
+import { getOrganizationThemePreferencesApi } from '@/core/apis/Organizations';
 import {
   setUserInfo,
   setSuccess,
@@ -14,12 +11,14 @@ import {
   setUserGroups,
   clearAllGroupData,
 } from '@/lib/store/services/groups';
-import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
 import {
-  createSmartRedirect,
-  isAirQoGroup,
-  shouldUseUserFlow,
-} from '@/core/utils/organizationUtils';
+  setOrganizationTheme,
+  setOrganizationThemeLoading,
+  setOrganizationThemeError,
+  clearOrganizationTheme,
+} from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
+import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
+import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
 
 /**
@@ -90,17 +89,9 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       throw new Error(
         'Server error. Contact support to add you to an organization',
       );
-    }
-
-    // Step 2: Fetch user preferences (for future use)
-    logger.info('Fetching user preferences...');
-    let _userPreferences = null;
-    try {
-      const preferencesRes = await recentUserPreferencesAPI(session.user.id);
-      _userPreferences = preferencesRes.preferences;
-    } catch (error) {
-      logger.warn('Failed to fetch user preferences, using defaults:', error);
-    }
+    } // Step 2: Skip fetching user preferences for group selection
+    // We no longer use previous group preferences to avoid conflicts
+    // Group selection is now purely based on login context (individual vs organization)
 
     // Step 3: Determine route context and appropriate active group
     const routeType = getRouteType(pathname);
@@ -121,38 +112,9 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       sessionOrgSlug,
     });
 
-    // Use smart redirect logic that considers active group and AirQo rules
-    // First, determine active group based on user preferences or defaults
-    let selectedActiveGroup = null;
-
-    // Try to get user's preferred group from recent preferences
-    try {
-      const prefRes = await recentUserPreferencesAPI(user._id);
-      if (prefRes.success && prefRes.preference?.group_id) {
-        selectedActiveGroup = user.groups.find(
-          (g) => g._id === prefRes.preference.group_id,
-        );
-      }
-    } catch (error) {
-      logger.debug('Could not fetch user preferences:', error);
-    }
-
-    // Fallback to first available group if no preference found
-    if (!selectedActiveGroup && user.groups.length > 0) {
-      selectedActiveGroup = user.groups[0];
-    }
-
-    // Use smart redirect logic that considers active group and AirQo rules
-    redirectPath = createSmartRedirect(
-      session,
-      pathname,
-      user.groups,
-      selectedActiveGroup,
-    );
-
-    // Step 3b: Determine active group based on route type and context
+    // Step 3b: Determine active group and redirect path based on login context
     if (pathname.includes('/org/')) {
-      // ORGANIZATION ROUTE: Set active group based on slug
+      // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
 
       if (currentOrgSlug) {
@@ -163,57 +125,76 @@ export const setupUserSession = async (session, dispatch, pathname) => {
         });
 
         if (matchingGroup) {
-          // Check if it's AirQo - if so, redirect to user flow
-          if (isAirQoGroup(matchingGroup)) {
-            activeGroup = matchingGroup;
-            redirectPath = '/user/Home'; // AirQo MUST use user flow
-          } else {
-            // Valid organization group - ensure it has a proper name
-            if (!matchingGroup.grp_name?.trim()) {
-              logger.warn(
-                'Organization group has invalid name, falling back to AirQo',
-              );
-              // Find AirQo group as fallback
-              const airqoGroup = user.groups.find(isAirQoGroup);
-              activeGroup = airqoGroup || user.groups[0];
-              redirectPath = '/user/Home';
-            } else {
-              activeGroup = matchingGroup; // Keep organization route - but validate slug
-              const orgSlug = titleToSlug(activeGroup.grp_title);
-
-              if (!orgSlug || orgSlug === 'default') {
-                logger.warn('Invalid organization slug, falling back to AirQo');
-                const airqoGroup = user.groups.find(isAirQoGroup);
-                activeGroup = airqoGroup || user.groups[0];
-                redirectPath = '/user/Home';
-              }
-            }
-          }
+          activeGroup = matchingGroup;
+          // Always redirect to organization dashboard for org login
+          redirectPath = `/org/${currentOrgSlug}/dashboard`;
+          logger.info('Organization login: Setting matching group', {
+            groupId: matchingGroup._id,
+            groupName: matchingGroup.grp_title || matchingGroup.grp_name,
+            orgSlug: currentOrgSlug,
+            loginContext: 'organization',
+            pathname,
+          });
         } else {
-          // Invalid slug - fallback to user preference or first group
-          activeGroup = selectedActiveGroup || user.groups[0];
-          // Redirect based on group type
-          if (shouldUseUserFlow(activeGroup)) {
-            redirectPath = '/user/Home';
-          } else {
-            const orgSlug = titleToSlug(activeGroup.grp_title);
-            redirectPath = `/org/${orgSlug}/dashboard`;
-          }
+          // No matching group - use first available group but keep org context
+          activeGroup = user.groups[0];
+          redirectPath = `/org/${currentOrgSlug}/dashboard`;
+          logger.info(
+            'Organization login: No matching group found, using first available',
+            {
+              groupId: activeGroup._id,
+              groupName: activeGroup.grp_title || activeGroup.grp_name,
+              orgSlug: currentOrgSlug,
+              loginContext: 'organization',
+              pathname,
+            },
+          );
         }
-      }
-    } else {
-      // USER ROUTE or other: Use preference-based selection
-      activeGroup = selectedActiveGroup || user.groups[0];
-
-      // Ensure routing consistency
-      if (shouldUseUserFlow(activeGroup)) {
-        // AirQo group - ensure user route
-        redirectPath = '/user/Home';
       } else {
-        // Non-AirQo group on user route - redirect to organization
+        // Fallback if no slug found - use first available group
+        activeGroup = user.groups[0];
         const orgSlug = titleToSlug(activeGroup.grp_title);
         redirectPath = `/org/${orgSlug}/dashboard`;
+        logger.info('Organization login: No slug found, using first group', {
+          groupId: activeGroup._id,
+          groupName: activeGroup.grp_title || activeGroup.grp_name,
+          generatedSlug: orgSlug,
+          loginContext: 'organization',
+          pathname,
+        });
       }
+    } else {
+      // USER LOGIN: For individual login page, always default to AirQo group regardless of previous preferences
+      // This ensures users logging in from /user/login always get AirQo as default
+      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
+      if (airqoGroup) {
+        // Always use AirQo group for individual login
+        activeGroup = airqoGroup;
+        logger.info('Individual login: Setting AirQo as default group', {
+          groupId: airqoGroup._id,
+          groupName: airqoGroup.grp_title || airqoGroup.grp_name,
+          loginContext: 'individual',
+          pathname,
+        });
+      } else {
+        // Fallback if AirQo group not found - use first available group
+        activeGroup = user.groups[0];
+        logger.warn(
+          'AirQo group not found for individual login, using first available group',
+          {
+            fallbackGroupId: activeGroup._id,
+            fallbackGroupName: activeGroup.grp_title || activeGroup.grp_name,
+            userGroups: user.groups.map((g) => ({
+              id: g._id,
+              name: g.grp_title || g.grp_name,
+            })),
+            loginContext: 'individual',
+            pathname,
+          },
+        );
+      }
+
+      redirectPath = '/user/Home';
     }
 
     // Step 4: Update Redux store with complete data
@@ -249,11 +230,51 @@ export const setupUserSession = async (session, dispatch, pathname) => {
 
     dispatch(setSuccess(true));
 
+    // Step 6: Fetch organization theme preferences for the active group
+    if (activeGroup && activeGroup._id) {
+      try {
+        dispatch(setOrganizationThemeLoading(true));
+        logger.info('Fetching organization theme preferences...', {
+          activeGroupId: activeGroup._id,
+          activeGroupName: activeGroup.grp_title || activeGroup.grp_name,
+        });
+
+        const orgThemeRes = await getOrganizationThemePreferencesApi(
+          activeGroup._id,
+        );
+        if (orgThemeRes?.success && orgThemeRes?.data) {
+          const organizationTheme = orgThemeRes.data;
+          dispatch(setOrganizationTheme(organizationTheme));
+          logger.info(
+            'Organization theme loaded successfully:',
+            organizationTheme,
+          );
+        } else {
+          // No organization theme found, clear any existing data
+          dispatch(clearOrganizationTheme());
+          logger.info('No organization theme found for active group');
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch organization theme:', error);
+        dispatch(
+          setOrganizationThemeError(
+            error.message || 'Failed to fetch organization theme',
+          ),
+        );
+        // Continue without organization theme - non-critical
+      } finally {
+        dispatch(setOrganizationThemeLoading(false));
+      }
+    } else {
+      // No active group, clear organization theme
+      dispatch(clearOrganizationTheme());
+    }
+
     // Step Final: Fetch user theme preferences after successful authentication
     logger.info('Fetching user theme preferences...');
     let userTheme = null;
     try {
-      const themeRes = await getUserThemeApi(session.user.id, 'airqo');
+      const themeRes = await getUserThemeApi(session.user.id);
       if (themeRes?.success && themeRes?.data) {
         userTheme = themeRes.data;
         logger.info('User theme loaded successfully:', userTheme);
@@ -270,10 +291,13 @@ export const setupUserSession = async (session, dispatch, pathname) => {
       try {
         if (userTheme) {
           window.sessionStorage.setItem('userTheme', JSON.stringify(userTheme));
+          logger.info('User theme stored in sessionStorage:', userTheme);
+        } else {
+          logger.info('No user theme to store, will use defaults');
         }
         // Always set this flag to indicate theme loading is complete
         window.sessionStorage.setItem('userThemeLoaded', 'true');
-        logger.info('Theme data stored in sessionStorage');
+        logger.info('Theme loading flag set in sessionStorage');
       } catch (error) {
         logger.warn('Failed to store theme in session storage:', error);
       }
@@ -322,6 +346,7 @@ export const clearUserSession = (dispatch) => {
     // Clear Redux store
     dispatch(resetStore());
     dispatch(clearAllGroupData());
+    dispatch(clearOrganizationTheme());
     dispatch(setUserInfo(null));
     dispatch(setActiveGroup(null));
     dispatch(setUserGroups([]));

@@ -8,6 +8,7 @@ import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer, UnifiedSidebarContent } from '../SideBar';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
+import Footer from '@/common/layouts/components/Footer';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
@@ -16,8 +17,7 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
-import DarkModeToggle from '@/common/components/DarkModeToggle';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Unified Layout Component
@@ -38,14 +38,10 @@ export default function UnifiedPagesLayout({ children }) {
 
   // Get organization data if in org context - only call hook conditionally
   let organization = null;
-  let primaryColor = null;
-  let secondaryColor = null;
 
   if (isOrganizationContext) {
     const orgData = useOrganization();
     organization = orgData.organization;
-    primaryColor = orgData.primaryColor;
-    secondaryColor = orgData.secondaryColor;
   }
 
   // Get route configuration based on current pathname
@@ -105,24 +101,11 @@ export default function UnifiedPagesLayout({ children }) {
   const homeNavPath = isOrganizationContext
     ? `/org/${orgSlug}/dashboard`
     : '/user/Home';
-
-  const customActions = isOrganizationContext ? (
-    <div className="flex items-center gap-2">
-      <DarkModeToggle size="md" />
-    </div>
-  ) : null;
+  const customActions = null;
   return (
     <div
       className="flex overflow-hidden min-h-screen h-screen bg-background"
       data-testid={isOrganizationContext ? 'organization-layout' : 'layout'}
-      style={
-        isOrganizationContext
-          ? {
-              '--org-primary': primaryColor,
-              '--org-secondary': secondaryColor,
-            }
-          : {}
-      }
     >
       <Head>
         <title>{routeConfig.pageTitle}</title>
@@ -142,10 +125,6 @@ export default function UnifiedPagesLayout({ children }) {
             <UnifiedSidebarContent
               userType="organization"
               isCollapsed={isCollapsed}
-              style={{
-                '--org-primary': primaryColor,
-                '--org-secondary': secondaryColor,
-              }}
             />
           </AuthenticatedSideBar>
         ) : (
@@ -156,11 +135,11 @@ export default function UnifiedPagesLayout({ children }) {
       </aside>
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background
+        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background w-full flex flex-col
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'} 
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
-        <div className={`h-full bg-background ${containerClasses}`}>
+        <div className={`flex-1 w-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
           {/* Content */}
@@ -168,6 +147,8 @@ export default function UnifiedPagesLayout({ children }) {
             {children}
           </div>
         </div>
+        {/* Footer - only show on non-map pages */}
+        {!isMapPage && <Footer />}
       </main>
       {/* SideBar Drawer */}
       {isOrganizationContext ? (

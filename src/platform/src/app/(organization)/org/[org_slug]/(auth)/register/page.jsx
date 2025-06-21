@@ -7,15 +7,16 @@ import * as Yup from 'yup';
 import { FaEye, FaEyeSlash, FaCheckCircle } from 'react-icons/fa';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { registerUserToOrgApi } from '@/core/apis/Organizations';
 import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
-import { withOrgAuthRoute } from '@/core/HOC';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 import logger from '@/lib/logger';
+
+import { formatOrgSlug } from '@/core/utils/strings';
 
 const registrationSchema = Yup.object().shape({
   firstName: Yup.string()
@@ -90,7 +91,7 @@ const OrganizationRegister = () => {
     return (
       <AuthLayout
         title={`Registration Disabled`}
-        subtitle={`${getDisplayName()} has disabled public registration`}
+        subtitle={`${formatOrgSlug(getDisplayName())} has disabled public registration`}
         backToAirqoPath="/user/login"
       >
         <div className="text-center space-y-6">
@@ -114,8 +115,8 @@ const OrganizationRegister = () => {
               Registration Not Available
             </h3>
             <p className="text-sm text-yellow-700 mb-4">
-              {getDisplayName()} requires invitation-only access. Please contact
-              your organization administrator to request access.
+              {formatOrgSlug(getDisplayName())} requires invitation-only access.
+              Please contact your organization administrator to request access.
             </p>
             <div className="space-y-3">
               <Link
@@ -227,7 +228,7 @@ const OrganizationRegister = () => {
     return (
       <AuthLayout
         title="Registration Successful!"
-        subtitle={`Welcome to ${getDisplayName()}`}
+        subtitle={`Welcome to ${formatOrgSlug(getDisplayName())}`}
         backToAirqoPath="/user/login"
       >
         <div className="text-center">
@@ -269,7 +270,7 @@ const OrganizationRegister = () => {
 
   return (
     <AuthLayout
-      title={`Join ${getDisplayName()}`}
+      title={`Join ${formatOrgSlug(getDisplayName())}`}
       subtitle="Create your account to access the organization's air quality dashboard"
       backToAirqoPath="/user/login"
     >
@@ -466,4 +467,4 @@ const OrganizationRegister = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationRegister);
+export default OrganizationRegister;

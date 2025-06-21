@@ -17,11 +17,11 @@ import {
  * This replaces the separate AdminSidebarContent, OrganizationSidebarContent, and UserSidebarContent components
  */
 const UnifiedSidebarContent = ({
-  isCollapsed,
+  isCollapsed = false,
   userType,
   isDarkMode = false,
-  customNavigationItems,
-  onDropdownToggle,
+  customNavigationItems = null,
+  onDropdownToggle = null,
 }) => {
   const params = useParams();
   const pathname = usePathname();
@@ -120,13 +120,6 @@ UnifiedSidebarContent.propTypes = {
   isDarkMode: PropTypes.bool,
   customNavigationItems: PropTypes.array,
   onDropdownToggle: PropTypes.func,
-};
-
-UnifiedSidebarContent.defaultProps = {
-  isCollapsed: false,
-  isDarkMode: false,
-  customNavigationItems: null,
-  onDropdownToggle: null,
 };
 
 export default UnifiedSidebarContent;

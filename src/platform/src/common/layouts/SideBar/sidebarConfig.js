@@ -192,12 +192,22 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       icon: PersonIcon,
       path: `/org/${orgSlug}/profile`,
     },
-    // {
-    //   type: 'item',
-    //   label: 'Settings',
-    //   icon: SettingsIcon,
-    //   path: `/org/${orgSlug}/settings`,
-    // },
+    {
+      type: 'divider',
+      label: 'Management',
+    },
+    {
+      type: 'item',
+      label: 'Members',
+      icon: UsersIcon,
+      path: `/org/${orgSlug}/members`,
+    },
+    {
+      type: 'item',
+      label: 'Settings',
+      icon: SettingsIcon,
+      path: `/org/${orgSlug}/settings`,
+    },
   ];
 };
 

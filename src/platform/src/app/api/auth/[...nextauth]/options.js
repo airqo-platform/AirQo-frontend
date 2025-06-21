@@ -127,34 +127,6 @@ export const options = {
               throw new Error('Invalid token received from API');
             }
 
-            // For organization access, validate if user belongs to the organization
-            if (credentials.orgSlug) {
-              const tokenOrg = decodedToken.organization;
-              const requestedOrg = credentials.orgSlug;
-
-              // Check if user belongs to the requested organization
-              const isValidOrganization =
-                tokenOrg &&
-                requestedOrg &&
-                (tokenOrg === requestedOrg ||
-                  tokenOrg.toLowerCase() === requestedOrg.toLowerCase() ||
-                  tokenOrg.replace(/[\s-_]/g, '').toLowerCase() ===
-                    requestedOrg.replace(/[\s-_]/g, '').toLowerCase());
-
-              if (!isValidOrganization) {
-                if (process.env.NODE_ENV === 'development') {
-                  // eslint-disable-next-line no-console
-                  console.warn('Organization validation failed:', {
-                    tokenOrg,
-                    requestedOrg,
-                  });
-                }
-                throw new Error(
-                  'User does not belong to the requested organization',
-                );
-              }
-            }
-
             // Return unified user object - no session type distinction
             return {
               id: data._id,
@@ -177,7 +149,8 @@ export const options = {
               iat: decodedToken.iat,
               // Store organization slug if provided for context
               requestedOrgSlug: credentials.orgSlug || null,
-              // Add flag to indicate this is an organization login              isOrgLogin: !!credentials.orgSlug,
+              // Add flag to indicate this is an organization login
+              isOrgLogin: !!credentials.orgSlug,
             };
           } else {
             logger.error('[NextAuth] No token received from API');
