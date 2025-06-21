@@ -6,6 +6,7 @@ import TextField from '@/common/components/TextInputField';
 import SelectDropdown from '@/components/SelectDropdown';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/components/Toast/CustomToast';
+import GroupLogo from '@/common/components/GroupLogo';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
@@ -309,8 +310,40 @@ const OrganizationInformationForm = ({
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <FaGlobe className="mr-2 text-primary" />
             Organization Information
-          </h2>
-        </div>
+          </h2>{' '}
+        </div>{' '}
+        {/* Topbar Preview Section - Shows only when user uploads an image */}
+        {localImagePreview && (
+          <div className="bg-blue-50 dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="relative h-8 w-8 bg-white rounded shadow-sm border overflow-hidden">
+                  <Image
+                    src={localImagePreview}
+                    alt="Logo preview"
+                    fill
+                    sizes="32px"
+                    className="object-contain p-1"
+                    loading="lazy"
+                    onError={() => {}}
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {formData.grp_title || 'Your Organization'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Topbar preview
+                  </p>
+                </div>
+              </div>
+              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                {' '}
+                ✓ Logo uploaded
+              </div>
+            </div>
+          </div>
+        )}
         {/* Logo Upload Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -430,6 +463,32 @@ const OrganizationInformationForm = ({
             error={validationErrors.grp_timezone}
             required
           />
+        </div>
+        {/* Topbar Preview Section */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Topbar Logo Preview
+          </h3>
+          <div className="flex items-center space-x-4">
+            <div className="flex-shrink-0">
+              <GroupLogo
+                logoUrl={
+                  localImagePreview ||
+                  logoPreview ||
+                  formData.grp_profile_picture ||
+                  formData.grp_image
+                }
+                organizationName={formData.grp_title}
+                className="h-12 w-12"
+              />
+            </div>
+            <div className="flex-1">
+              {' '}
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                This is how your logo will appear in the platform&apos;s topbar.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </CardWrapper>
