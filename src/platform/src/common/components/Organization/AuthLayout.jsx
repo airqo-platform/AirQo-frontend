@@ -57,7 +57,7 @@ const AuthLayout = ({
                 size="xl"
                 imageUrl={organizationLogo}
                 fallbackText={organizationName}
-                containerClassName="border-2 border-white dark:border-gray-200 shadow-lg"
+                containerClassName="border-2 border-white p-0.5 dark:border-gray-200 shadow-lg"
                 className="bg-white dark:bg-gray-50 rounded-lg"
               />
             </div>
