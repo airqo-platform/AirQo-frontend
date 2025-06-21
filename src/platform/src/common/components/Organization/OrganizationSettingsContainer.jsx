@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SettingsTabNavigation } from '@/common/components/Tabs';
-import { FaGlobe, FaPalette } from 'react-icons/fa';
+import { FaGlobe, FaPalette, FaLink } from 'react-icons/fa';
 import OrganizationInformationForm from './OrganizationInformationForm';
 import AppearanceSettingsForm from './AppearanceSettingsForm';
+import DomainSettingsForm from './DomainSettingsForm';
 import SettingsSidebar from './SettingsSidebar';
 import CustomToast from '@/components/Toast/CustomToast';
 
@@ -25,10 +26,12 @@ const OrganizationSettingsContainer = ({
   const [isAppearanceUpdating, setIsAppearanceUpdating] = useState(false);
   const [appearanceHasUnsavedChanges, setAppearanceHasUnsavedChanges] =
     useState(false);
-
+  const [isDomainUpdating, setIsDomainUpdating] = useState(false);
+  const [domainHasUnsavedChanges, setDomainHasUnsavedChanges] = useState(false);
   // Ref for appearance form to access its save function
   const appearanceFormRef = useRef();
-
+  // Ref for domain form to access its update function
+  const domainFormRef = useRef();
   // Define organization settings tabs
   const organizationTabs = [
     {
@@ -36,6 +39,12 @@ const OrganizationSettingsContainer = ({
       name: 'Organization',
       icon: FaGlobe,
       description: 'Basic organization information and settings',
+    },
+    {
+      id: 'domain',
+      name: 'Domain',
+      icon: FaLink,
+      description: 'Customize your organization URL',
     },
     {
       id: 'appearance',
@@ -98,10 +107,10 @@ const OrganizationSettingsContainer = ({
       // Handle organization settings save
       onSave();
     }
-  };
-  // Track appearance form updating state
+  }; // Track appearance form updating state
   useEffect(() => {
-    const checkAppearanceUpdating = () => {
+    const checkFormUpdating = () => {
+      // Appearance form tracking
       if (appearanceFormRef.current?.isUpdating !== undefined) {
         setIsAppearanceUpdating(appearanceFormRef.current.isUpdating);
       }
@@ -110,15 +119,22 @@ const OrganizationSettingsContainer = ({
           appearanceFormRef.current.hasUnsavedChanges,
         );
       }
+
+      // Domain form tracking
+      if (domainFormRef.current?.isUpdating !== undefined) {
+        setIsDomainUpdating(domainFormRef.current.isUpdating);
+      }
+      if (domainFormRef.current?.hasChanges !== undefined) {
+        setDomainHasUnsavedChanges(domainFormRef.current.hasChanges);
+      }
     };
 
     // Check immediately and set up interval to track changes
-    checkAppearanceUpdating();
-    const interval = setInterval(checkAppearanceUpdating, 100);
+    checkFormUpdating();
+    const interval = setInterval(checkFormUpdating, 50); // More frequent updates
 
     return () => clearInterval(interval);
   }, [activeTab]);
-
   const renderActiveTabContent = () => {
     switch (activeTab) {
       case 'organization':
@@ -130,6 +146,8 @@ const OrganizationSettingsContainer = ({
             onInputChange={onInputChange}
           />
         );
+      case 'domain':
+        return <DomainSettingsForm ref={domainFormRef} />;
       case 'appearance':
         return (
           <AppearanceSettingsForm
@@ -171,12 +189,15 @@ const OrganizationSettingsContainer = ({
         <div className="lg:col-span-2">{renderActiveTabContent()}</div>{' '}
         {/* Side Panel */}
         <div className="lg:col-span-1">
+          {' '}
           <SettingsSidebar
             onSave={handleSave}
             saveStatus={
               activeTab === 'appearance' && isAppearanceUpdating
                 ? 'saving'
-                : saveStatus
+                : activeTab === 'domain' && isDomainUpdating
+                  ? 'saving'
+                  : saveStatus
             }
             organizationDetails={organizationDetails}
             activeTab={activeTab}
@@ -184,9 +205,12 @@ const OrganizationSettingsContainer = ({
             hasUnsavedChanges={
               activeTab === 'organization'
                 ? hasUnsavedChanges
-                : appearanceHasUnsavedChanges
+                : activeTab === 'domain'
+                  ? domainHasUnsavedChanges
+                  : appearanceHasUnsavedChanges
             }
             onReset={activeTab === 'organization' ? onReset : undefined}
+            domainFormRef={domainFormRef}
           />
         </div>
       </div>

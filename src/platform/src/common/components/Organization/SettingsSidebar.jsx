@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSave, FaSpinner, FaUndo } from 'react-icons/fa';
+import { FaSave, FaSpinner, FaUndo, FaGlobe, FaEdit } from 'react-icons/fa';
 import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -12,6 +12,8 @@ const SettingsSidebar = ({
   isAppearanceUpdating = false,
   hasUnsavedChanges = false,
   onReset,
+  // Domain-specific props
+  domainFormRef,
 }) => {
   // Determine if the save button should be disabled and what text to show
   const isSaving =
@@ -32,23 +34,67 @@ const SettingsSidebar = ({
           <FaSave className="mr-2 text-primary" />
           Actions
         </h3>{' '}
-        <Button
-          onClick={onSave}
-          disabled={isSaving}
-          variant={buttonVariant}
-          className={buttonClassName}
-        >
-          {isSaving ? (
-            <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <FaSave className="mr-2 h-4 w-4" />
-          )}
-          {saveButtonText}
-        </Button>
+        {/* Save button - hide for domain tab as it handles its own save operations */}
+        {activeTab !== 'domain' && (
+          <Button
+            onClick={onSave}
+            disabled={isSaving}
+            variant={buttonVariant}
+            className={buttonClassName}
+          >
+            {isSaving ? (
+              <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FaSave className="mr-2 h-4 w-4" />
+            )}
+            {saveButtonText}
+          </Button>
+        )}{' '}
+        {/* Domain tab info and update button */}
+        {activeTab === 'domain' && (
+          <div className="space-y-6">
+            <div className="p-6 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20 dark:border-primary/30">
+              <div className="flex items-start space-x-4">
+                <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
+                  <FaGlobe className="text-primary text-lg flex-shrink-0" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-base font-semibold text-primary mb-2">
+                    Domain Management
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Use the form to customize your organization&apos;s URL.
+                    Changes are validated in real-time and saved independently.
+                  </p>
+                </div>
+              </div>
+            </div>{' '}
+            {/* Update URL Button - Always Enabled */}
+            <Button
+              onClick={() => {
+                if (domainFormRef?.current?.handleUpdate) {
+                  domainFormRef.current.handleUpdate();
+                }
+              }}
+              disabled={false} // Always enabled - let form handle validation
+              variant="filled"
+              className="w-full flex items-center justify-center py-3 px-4 rounded-xl font-semibold transition-all duration-200 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25"
+            >
+              {domainFormRef?.current?.isUpdating ? (
+                <FaSpinner className="mr-3 h-5 w-5 animate-spin" />
+              ) : (
+                <FaEdit className="mr-3 h-5 w-5" />
+              )}
+              {domainFormRef?.current?.isUpdating
+                ? 'Updating URL...'
+                : 'Update URL'}
+            </Button>
+          </div>
+        )}
         {/* Discard changes button - only show for organization tab and when there are unsaved changes */}
         {hasUnsavedChanges &&
           onReset &&
-          activeTab === 'organization' &&
+          (activeTab === 'organization' || activeTab === 'domain') &&
           !isSaving && (
             <Button
               onClick={onReset}
@@ -138,31 +184,33 @@ const SettingsSidebar = ({
               </div>
             </div>
           </div>
+        )}{' '}
+        {/* Tips Section - Only for organization and appearance tabs */}
+        {activeTab !== 'domain' && (
+          <div className="p-4 bg-primary/10 rounded-lg">
+            <h4 className="text-sm font-medium text-primary mb-2">
+              💡{' '}
+              {activeTab === 'organization'
+                ? 'Organization Tips'
+                : 'Appearance Tips'}
+            </h4>
+            {activeTab === 'organization' ? (
+              <ul className="text-xs text-primary/80 space-y-1">
+                <li>• Keep your organization name clear and professional</li>
+                <li>• Use a high-quality logo for better branding</li>
+                <li>• Ensure your website URL is accessible</li>
+                <li>• Choose the correct timezone for your location</li>
+              </ul>
+            ) : (
+              <ul className="text-xs text-primary/80 space-y-1">
+                <li>• Choose themes that match your brand identity</li>
+                <li>• Consider accessibility when selecting colors</li>
+                <li>• Test appearance on different devices</li>
+                <li>• Settings apply organization-wide</li>
+              </ul>
+            )}
+          </div>
         )}
-        {/* Tips Section */}
-        <div className="p-4 bg-primary/10 rounded-lg">
-          <h4 className="text-sm font-medium text-primary mb-2">
-            💡{' '}
-            {activeTab === 'organization'
-              ? 'Organization Tips'
-              : 'Appearance Tips'}
-          </h4>
-          {activeTab === 'organization' ? (
-            <ul className="text-xs text-primary/80 space-y-1">
-              <li>• Keep your organization name clear and professional</li>
-              <li>• Use a high-quality logo for better branding</li>
-              <li>• Ensure your website URL is accessible</li>
-              <li>• Choose the correct timezone for your location</li>
-            </ul>
-          ) : (
-            <ul className="text-xs text-primary/80 space-y-1">
-              <li>• Choose themes that match your brand identity</li>
-              <li>• Consider accessibility when selecting colors</li>
-              <li>• Test appearance on different devices</li>
-              <li>• Settings apply organization-wide</li>
-            </ul>
-          )}
-        </div>
       </div>
     </CardWrapper>
   );

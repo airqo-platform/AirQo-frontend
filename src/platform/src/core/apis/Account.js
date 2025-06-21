@@ -15,6 +15,7 @@ import {
   MAINTENANCE_STATUS_URL,
   getUserThemeUrl,
   updateUserThemeUrl,
+  getGroupSlugUrl,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 
@@ -148,6 +149,14 @@ export const rejectOrganisationRequestApi = (requestId, feedback) =>
 export const getOrganisationSlugAvailabilityApi = (slug) =>
   secureApiProxy
     .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+// Group Slug Management
+export const updateGroupSlugApi = (groupId, data) =>
+  secureApiProxy
+    .put(getGroupSlugUrl(groupId), data, {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
