@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaTimes,
@@ -12,12 +12,9 @@ import {
   FaPalette,
   FaGripHorizontal,
   FaColumns,
-  FaUndo,
 } from 'react-icons/fa';
 import { useTheme } from '../hooks/useTheme';
 import useUserTheme from '@/core/hooks/useUserTheme';
-import useOrganizationThemeData from '@/core/hooks/useOrganizationThemeData';
-import ThemeResetButton from '@/common/components/ThemeResetButton';
 import {
   THEME_MODES,
   THEME_SKINS,
@@ -52,19 +49,7 @@ export const ThemeSheet = memo(() => {
     updateThemeMode,
     updateInterfaceStyle,
     updateContentLayout,
-    updateUserTheme,
   } = useUserTheme();
-
-  // Organization theme data hook
-  const {
-    organizationTheme,
-    hasData,
-    getOrganizationThemeWithDefaults,
-    getOrganizationPrimaryColor,
-  } = useOrganizationThemeData();
-
-  // Use the boolean value for hasOrganizationTheme
-  const hasOrganizationTheme = hasData;
 
   const themeOptions = [
     { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
@@ -86,27 +71,6 @@ export const ThemeSheet = memo(() => {
       icon: FaBorderAll,
     },
   ];
-
-  // Check if current theme differs from organization theme (for info panel)
-  const hasChangesFromOrgTheme = useMemo(() => {
-    if (!hasOrganizationTheme) return false;
-
-    const orgTheme = getOrganizationThemeWithDefaults();
-    const hasChanges =
-      primaryColor !== orgTheme.primaryColor ||
-      theme !== orgTheme.mode ||
-      skin !== orgTheme.interfaceStyle ||
-      layout !== orgTheme.contentLayout;
-
-    return hasChanges;
-  }, [
-    hasOrganizationTheme,
-    primaryColor,
-    theme,
-    skin,
-    layout,
-    getOrganizationThemeWithDefaults,
-  ]);
 
   // Enhanced handlers that sync with API
   const handleColorChange = useCallback(
@@ -179,58 +143,24 @@ export const ThemeSheet = memo(() => {
           aria-labelledby="theme-sheet-title"
         >
           {/* Header */}
-          <header className="flex items-center justify-between p-4 border-b dark:border-neutral-800 min-h-[60px]">
+          <header className="flex items-center justify-between p-4 border-b dark:border-neutral-800">
             <h2
               id="theme-sheet-title"
-              className="text-lg font-bold dark:text-white flex-1"
+              className="text-lg font-bold dark:text-white"
             >
               Theme Settings
             </h2>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Reset to Organization Theme Button */}
-              <ThemeResetButton
-                variant="icon"
-                size="small"
-                showTooltip={true}
-                className="!p-1"
-                iconSize={18}
+            <button
+              onClick={closeThemeSheet}
+              className="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Close theme settings"
+            >
+              <FaTimes
+                className="text-neutral-600 dark:text-neutral-300"
+                size={18}
               />
-              <button
-                onClick={closeThemeSheet}
-                className="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                aria-label="Close theme settings"
-              >
-                <FaTimes
-                  className="text-neutral-600 dark:text-neutral-300"
-                  size={18}
-                />
-              </button>
-            </div>
+            </button>
           </header>
-
-          {/* Organization Theme Information */}
-          {hasOrganizationTheme && (
-            <div className="mx-4 mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: getOrganizationPrimaryColor() }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                    Organization Theme Available
-                  </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                    {hasChangesFromOrgTheme
-                      ? 'Your current settings differ from organization defaults. Click the reset button to restore organization theme.'
-                      : "You are using your organization's default theme settings."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="flex-1 p-4 space-y-6">
             {/* Primary Color */}
