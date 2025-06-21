@@ -139,6 +139,7 @@ export const useGroupSlugManager = () => {
         // Update the slug directly - availability has already been checked in the form
         const response = await updateGroupSlugApi(activeGroup._id, {
           slug: newSlug,
+          regenerate: true,
         });
 
         if (!response.success) {

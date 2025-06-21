@@ -98,15 +98,15 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         showToastMessage(result.message, 'success');
 
         // Redirect to new URL after successful update
-        // setTimeout(() => {
-        //   const newUrl = window.location.href.replace(
-        //     `/org/${formData.originalSlug}/`,
-        //     `/org/${formData.slug}/`,
-        //   );
-        //   if (window.location.href !== newUrl) {
-        //     window.location.href = newUrl;
-        //   }
-        // }, 2000);
+        setTimeout(() => {
+          const newUrl = window.location.href.replace(
+            `/org/${formData.originalSlug}/`,
+            `/org/${formData.slug}/`,
+          );
+          if (window.location.href !== newUrl) {
+            window.location.href = newUrl;
+          }
+        }, 2000);
       } catch (error) {
         showToastMessage(error.message, 'error');
       }
