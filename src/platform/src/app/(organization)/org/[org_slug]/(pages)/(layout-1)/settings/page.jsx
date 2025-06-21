@@ -60,6 +60,7 @@ const OrganizationSettingsPage = () => {
     grp_timezone: '',
     grp_profile_picture: '',
     grp_image: '',
+    grp_status: '',
   });
   // Fetch organization details using getGroupDetailsApi
   useEffect(() => {
@@ -71,7 +72,8 @@ const OrganizationSettingsPage = () => {
 
           if (response.success && response.group) {
             const orgData = response.group;
-            setOrganizationDetails(orgData); // Update form data with fetched organization details
+            setOrganizationDetails(orgData);
+            // Update form data with fetched organization details
             setFormData({
               grp_title: orgData.grp_title || '',
               grp_description: orgData.grp_description || '',
@@ -81,6 +83,7 @@ const OrganizationSettingsPage = () => {
               grp_timezone: orgData.grp_timezone || '',
               grp_profile_picture: orgData.grp_profile_picture || '',
               grp_image: orgData.grp_image || '',
+              grp_status: orgData.grp_status || '',
             });
             setLogoPreview(orgData.grp_profile_picture || '');
           } else {
@@ -139,9 +142,7 @@ const OrganizationSettingsPage = () => {
       setValidationErrors({});
 
       // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
-
-      // Prepare the data for API call
+      await validationSchema.validate(formData, { abortEarly: false }); // Add grp_status to the update data
       const updateData = {
         grp_title: formData.grp_title,
         grp_description: formData.grp_description,
@@ -149,6 +150,7 @@ const OrganizationSettingsPage = () => {
         grp_industry: formData.grp_industry,
         grp_country: formData.grp_country,
         grp_timezone: formData.grp_timezone,
+        grp_status: formData.grp_status,
       };
 
       // Add Cloudinary URLs if available (prioritize over file upload)
@@ -170,10 +172,28 @@ const OrganizationSettingsPage = () => {
       // If logo was updated via Cloudinary, update preview
       if (updateData.grp_profile_picture) {
         setLogoPreview(updateData.grp_profile_picture);
-      }
-
-      // Refresh user and group data in Redux to update all components
+      } // Refresh user and group data in Redux to update all components
       await refreshUserAndGroupData();
+
+      // Refetch the latest organization details to ensure UI reflects all changes
+      const latestResponse = await getGroupDetailsApi(activeGroup._id);
+      if (latestResponse.success && latestResponse.group) {
+        const latestOrgData = latestResponse.group;
+        setOrganizationDetails(latestOrgData);
+
+        // Update formData with the latest data to ensure consistency
+        setFormData({
+          grp_title: latestOrgData.grp_title || '',
+          grp_description: latestOrgData.grp_description || '',
+          grp_website: latestOrgData.grp_website || '',
+          grp_industry: latestOrgData.grp_industry || '',
+          grp_country: latestOrgData.grp_country || '',
+          grp_timezone: latestOrgData.grp_timezone || '',
+          grp_profile_picture: latestOrgData.grp_profile_picture || '',
+          grp_image: latestOrgData.grp_image || '',
+          grp_status: latestOrgData.grp_status || '',
+        });
+      }
 
       // Small delay to ensure Redux state has propagated and then force final refresh
       setTimeout(() => {
@@ -265,6 +285,7 @@ const OrganizationSettingsPage = () => {
         grp_timezone: organizationDetails.grp_timezone || '',
         grp_profile_picture: organizationDetails.grp_profile_picture || '',
         grp_image: organizationDetails.grp_image || '',
+        grp_status: organizationDetails.grp_status || '',
       });
       setLogoPreview(organizationDetails.grp_profile_picture || '');
       setHasUnsavedChanges(false);

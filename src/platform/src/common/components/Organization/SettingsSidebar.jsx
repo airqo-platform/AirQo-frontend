@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaSave, FaSpinner, FaUndo } from 'react-icons/fa';
+import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
 
@@ -91,14 +92,15 @@ const SettingsSidebar = ({
               <div className="flex justify-between">
                 <span>Members:</span>
                 <span>{organizationDetails.numberOfGroupUsers || 0}</span>
-              </div>
+              </div>{' '}
               <div className="flex justify-between">
                 <span>Created:</span>
                 <span>
                   {organizationDetails.createdAt
-                    ? new Date(
-                        organizationDetails.createdAt,
-                      ).toLocaleDateString()
+                    ? format(
+                        new Date(organizationDetails.createdAt),
+                        'MMM dd, yyyy',
+                      )
                     : 'N/A'}
                 </span>
               </div>

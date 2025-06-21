@@ -216,7 +216,9 @@ const OrganizationInformationForm = ({
         .map((word) => word.charAt(0))
         .join('')
         .toUpperCase();
-    }
+    } // Debug: Check if grp_status is in formData
+    // console.log('formData:', formData);
+    // console.log('grp_status:', formData.grp_status);
 
     // Generate consistent color based on organization name
     const generateColor = (str) => {
@@ -246,7 +248,7 @@ const OrganizationInformationForm = ({
       color: generateColor(title),
       title,
     };
-  }, [formData.grp_title]);
+  }, [formData]);
 
   const handleImageError = useCallback(() => {
     setImageError(true);
@@ -374,18 +376,68 @@ const OrganizationInformationForm = ({
               </div>
             </div>
           </div>
+        </div>{' '}
+        {/* Status Toggle */}
+        <div className="flex flex-col">
+          <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
+            Organization Status
+            <span className="ml-1 text-primary">*</span>
+          </label>
+          <div className="flex items-center space-x-4">
+            {' '}
+            <button
+              type="button"
+              onClick={() => onInputChange('grp_status', 'ACTIVE')}
+              className={`flex items-center px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                formData.grp_status === 'ACTIVE'
+                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-green-400'
+              }`}
+            >
+              <div
+                className={`w-3 h-3 rounded-full mr-2 ${
+                  formData.grp_status === 'ACTIVE'
+                    ? 'bg-green-500'
+                    : 'bg-gray-400'
+                }`}
+              />
+              Active
+            </button>
+            <button
+              type="button"
+              onClick={() => onInputChange('grp_status', 'INACTIVE')}
+              className={`flex items-center px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
+                formData.grp_status === 'INACTIVE'
+                  ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-red-400'
+              }`}
+            >
+              <div
+                className={`w-3 h-3 rounded-full mr-2 ${
+                  formData.grp_status === 'INACTIVE'
+                    ? 'bg-red-500'
+                    : 'bg-gray-400'
+                }`}
+              />
+              Inactive
+            </button>
+          </div>{' '}
+          {(formData.grp_status || formData.hasOwnProperty('grp_status')) && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Current status:{' '}
+              <span className="font-medium">
+                {formData.grp_status || 'Not Set'}
+              </span>
+            </p>
+          )}
+          {validationErrors.grp_status && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {validationErrors.grp_status}
+            </p>
+          )}
         </div>
-        {/* Form Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Organization Name"
-            value={formData.grp_title}
-            onChange={(value) => onInputChange('grp_title', value)}
-            placeholder="Enter organization name"
-            error={validationErrors.grp_title}
-            required
-          />
-
+        {/* Website Field */}
+        <div className="flex flex-col">
           <InputField
             label="Website"
             value={formData.grp_website}
@@ -395,6 +447,7 @@ const OrganizationInformationForm = ({
             required
           />
         </div>{' '}
+        {/* Description Field */}
         <TextField
           label="Description"
           value={formData.grp_description}
@@ -404,6 +457,7 @@ const OrganizationInformationForm = ({
           error={validationErrors.grp_description}
           required
         />
+        {/* Industry and Country Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Industry Field */}
           <div className="flex flex-col">
