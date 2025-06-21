@@ -179,7 +179,7 @@ const GlobalTopbar = ({
         className={`inline-flex items-center justify-center ${className}`}
         {...buttonProps}
       >
-        <GroupLogo className="flex-shrink-0" />
+        <GroupLogo size="lg" />
       </Button>
     ),
     [handleLogoClick],

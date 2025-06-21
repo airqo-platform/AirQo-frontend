@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { FaGlobe, FaUpload } from 'react-icons/fa';
+import { FaGlobe, FaSpinner } from 'react-icons/fa';
 import Image from 'next/image';
 import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
 import SelectDropdown from '@/components/SelectDropdown';
 import CardWrapper from '@/common/components/CardWrapper';
+import CustomToast from '@/components/Toast/CustomToast';
+import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import timeZones from 'timezones.json';
@@ -36,7 +38,7 @@ const industryOptions = [
 
 // Convert country object to array format for SelectDropdown
 // Support both country names and country codes for backward compatibility
-const countryOptions = Object.entries(countryObj).map(([code, name]) => ({
+const countryOptions = Object.values(countryObj).map((name) => ({
   label: name,
   value: name, // Use country name as value to match existing data format
 }));
@@ -93,10 +95,96 @@ const OrganizationInformationForm = ({
   validationErrors,
   logoPreview,
   onInputChange,
-  onLogoUpload,
 }) => {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [localImagePreview, setLocalImagePreview] = useState(null);
+
+  // Handle logo file upload and Cloudinary upload
+  const handleLogoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/svg+xml',
+      'image/webp',
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      CustomToast({
+        message: 'Please upload a valid image file (PNG, JPG, SVG, WEBP)',
+        type: 'error',
+      });
+      return;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      CustomToast({
+        message: 'File size must be less than 5MB',
+        type: 'error',
+      });
+      return;
+    } // Create local preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLocalImagePreview(e.target.result);
+      setImageError(false); // Reset any previous image errors
+    };
+    reader.readAsDataURL(file);
+
+    setUploadingLogo(true);
+
+    try {
+      // Upload to Cloudinary
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append(
+        'upload_preset',
+        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET || 'ml_default',
+      );
+      uploadFormData.append('folder', 'organization_profiles');
+      const responseData = await cloudinaryImageUpload(uploadFormData);
+
+      // Extract the secure_url from the Cloudinary response
+      const cloudinaryUrl = responseData?.secure_url;
+      if (cloudinaryUrl) {
+        // Update the organization data with the Cloudinary URL (for API body)
+        onInputChange('grp_profile_picture', cloudinaryUrl);
+        onInputChange('grp_image', cloudinaryUrl);
+
+        // Replace local preview with Cloudinary URL after successful upload
+        setLocalImagePreview(cloudinaryUrl);
+
+        // Show success message
+        CustomToast({
+          message: 'Logo uploaded successfully! Click Save to apply changes.',
+          type: 'success',
+        });
+      } else {
+        // Handle case where Cloudinary response doesn't contain secure_url
+        CustomToast({
+          message:
+            'Upload completed but failed to get image URL. Please try again.',
+          type: 'error',
+        });
+        throw new Error('Failed to get secure URL from Cloudinary response');
+      }
+    } catch {
+      // Handle upload error - keep local preview but show error
+      CustomToast({
+        message:
+          'Failed to upload logo to cloud storage. The preview is shown locally, but please try uploading again.',
+        type: 'error',
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   // Handlers for SelectDropdown fields (matching user settings pattern)
   const handleIndustryChange = (option) => {
@@ -161,21 +249,34 @@ const OrganizationInformationForm = ({
 
   const handleImageError = useCallback(() => {
     setImageError(true);
-    setImageLoading(false);
   }, []);
 
   const handleImageLoad = useCallback(() => {
     setImageError(false);
-    setImageLoading(false);
   }, []);
 
-  // Professional logo display component
+  // Professional logo display component with improved preview logic
   const LogoDisplay = () => {
-    if (logoPreview && !imageError) {
+    // Priority order for image source:
+    // 1. Local preview (when user just selected a file)
+    // 2. External logoPreview prop (for backward compatibility)
+    // 3. Cloudinary URL from formData (grp_profile_picture or grp_image)
+    // 4. Fallback to initials
+    const getImageSource = () => {
+      if (localImagePreview) return localImagePreview;
+      if (logoPreview) return logoPreview;
+      if (formData.grp_profile_picture) return formData.grp_profile_picture;
+      if (formData.grp_image) return formData.grp_image;
+      return null;
+    };
+
+    const imageUrl = getImageSource();
+
+    if (imageUrl && !imageError) {
       return (
         <div className="relative h-16 w-16 bg-white dark:bg-gray-50 rounded-lg shadow-sm ring-1 ring-gray-200 dark:ring-gray-300 overflow-hidden">
           <Image
-            src={logoPreview}
+            src={imageUrl}
             alt="Organization logo"
             fill
             sizes="64px"
@@ -204,13 +305,12 @@ const OrganizationInformationForm = ({
   return (
     <CardWrapper>
       <div className="space-y-6">
-        {' '}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <FaGlobe className="mr-2 text-primary" />
             Organization Information
           </h2>
-        </div>{' '}
+        </div>
         {/* Logo Upload Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -223,16 +323,25 @@ const OrganizationInformationForm = ({
             <div className="flex-1">
               <input
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/svg+xml"
-                onChange={onLogoUpload}
-                className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                accept="image/jpeg,image/jpg,image/png,image/svg+xml,image/webp"
+                onChange={handleLogoUpload}
+                disabled={uploadingLogo}
+                className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                PNG, JPG, SVG, WEBP formats supported. Max size: 5MB.
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  PNG, JPG, SVG, WEBP formats supported. Max size: 5MB.
+                </p>
+                {uploadingLogo && (
+                  <div className="flex items-center text-xs text-primary">
+                    <FaSpinner className="animate-spin mr-1" />
+                    Uploading...
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>{' '}
+        </div>
         {/* Form Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
@@ -252,20 +361,19 @@ const OrganizationInformationForm = ({
             error={validationErrors.grp_website}
             required
           />
-        </div>
+        </div>{' '}
         <TextField
           label="Description"
           value={formData.grp_description}
-          onChange={(value) => onInputChange('grp_description', value)}
+          onChange={(e) => onInputChange('grp_description', e.target.value)}
           placeholder="Describe your organization"
           rows={4}
           error={validationErrors.grp_description}
           required
-        />{' '}
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Industry Field */}
           <div className="flex flex-col">
-            {' '}
             <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
               Industry
               <span className="ml-1 text-primary">*</span>
@@ -286,7 +394,6 @@ const OrganizationInformationForm = ({
 
           {/* Country Field */}
           <div className="flex flex-col">
-            {' '}
             <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
               Country
               <span className="ml-1 text-primary">*</span>
@@ -307,7 +414,6 @@ const OrganizationInformationForm = ({
         </div>
         {/* Timezone Field */}
         <div className="flex flex-col">
-          {' '}
           <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
             Timezone
             <span className="ml-1 text-primary">*</span>

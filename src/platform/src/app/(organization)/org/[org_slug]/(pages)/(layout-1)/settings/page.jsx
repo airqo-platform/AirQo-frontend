@@ -13,10 +13,21 @@
 
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { getGroupDetailsApi, updateGroupDetailsApi } from '@/core/apis/Account';
+import {
+  getGroupDetailsApi,
+  updateGroupDetailsApi,
+  getUserDetails,
+} from '@/core/apis/Account';
 import { OrganizationSettingsContainer } from '@/common/components/Organization';
 import { OrganizationSettingsSkeleton } from '@/common/components/Skeleton';
+import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
+import {
+  fetchUserGroups,
+  updateGroupDetails,
+  setActiveGroup,
+} from '@/lib/store/services/groups';
 
 // Validation schema
 const validationSchema = Yup.object().shape({
@@ -32,14 +43,14 @@ const validationSchema = Yup.object().shape({
 
 const OrganizationSettingsPage = () => {
   const { activeGroup, isLoading: groupLoading } = useUnifiedGroup();
+  const dispatch = useDispatch();
+  const userInfo = useSelector((state) => state.login?.userInfo);
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState('');
-  const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
   const [organizationDetails, setOrganizationDetails] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
   const [formData, setFormData] = useState({
     grp_title: '',
     grp_description: '',
@@ -47,6 +58,8 @@ const OrganizationSettingsPage = () => {
     grp_industry: '',
     grp_country: '',
     grp_timezone: '',
+    grp_profile_picture: '',
+    grp_image: '',
   });
   // Fetch organization details using getGroupDetailsApi
   useEffect(() => {
@@ -58,9 +71,7 @@ const OrganizationSettingsPage = () => {
 
           if (response.success && response.group) {
             const orgData = response.group;
-            setOrganizationDetails(orgData);
-
-            // Update form data with fetched organization details
+            setOrganizationDetails(orgData); // Update form data with fetched organization details
             setFormData({
               grp_title: orgData.grp_title || '',
               grp_description: orgData.grp_description || '',
@@ -68,19 +79,15 @@ const OrganizationSettingsPage = () => {
               grp_industry: orgData.grp_industry || '',
               grp_country: orgData.grp_country || '',
               grp_timezone: orgData.grp_timezone || '',
+              grp_profile_picture: orgData.grp_profile_picture || '',
+              grp_image: orgData.grp_image || '',
             });
-
             setLogoPreview(orgData.grp_profile_picture || '');
           } else {
             setSaveStatus('error');
-            console.error(
-              'Failed to fetch organization details:',
-              response.message,
-            );
           }
-        } catch (error) {
+        } catch {
           setSaveStatus('error');
-          console.error('Failed to fetch organization details:', error);
         } finally {
           setIsLoading(false);
         }
@@ -125,8 +132,7 @@ const OrganizationSettingsPage = () => {
         [field]: '',
       }));
     }
-  };
-  // Handle save button click - ONLY way to save changes to server
+  }; // Handle save button click - ONLY way to save changes to server
   const handleSave = async () => {
     try {
       setSaveStatus('saving');
@@ -145,65 +151,41 @@ const OrganizationSettingsPage = () => {
         grp_timezone: formData.grp_timezone,
       };
 
-      // Handle logo upload if there's a new file
-      if (logoFile) {
-        const formDataWithFile = new FormData();
-        formDataWithFile.append('grp_image', logoFile);
-
-        // Add other fields to form data
-        Object.keys(updateData).forEach((key) => {
-          formDataWithFile.append(key, updateData[key]);
-        });
-        // Update with FormData (includes logo)
-        const response = await updateGroupDetailsApi(
-          activeGroup._id,
-          formDataWithFile,
-        );
-
-        if (response.success) {
-          // Update the logo preview to the new uploaded image
-          if (response.group?.grp_profile_picture) {
-            setLogoPreview(response.group.grp_profile_picture);
-          }
-
-          // Dispatch custom event to notify all GroupLogo components
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new window.Event('logoRefresh'));
-          }
-        } else {
-          throw new Error(response.message || 'Failed to update organization');
-        }
-      } else {
-        // Update without logo
-        const response = await updateGroupDetailsApi(
-          activeGroup._id,
-          updateData,
-        );
-
-        if (!response.success) {
-          throw new Error(response.message || 'Failed to update organization');
-        }
+      // Add Cloudinary URLs if available (prioritize over file upload)
+      if (formData.grp_profile_picture) {
+        updateData.grp_profile_picture = formData.grp_profile_picture;
+      }
+      if (formData.grp_image) {
+        updateData.grp_image = formData.grp_image;
       }
 
-      // Refresh organization details after successful update
-      const refreshResponse = await getGroupDetailsApi(activeGroup._id);
-      if (refreshResponse.success && refreshResponse.group) {
-        setOrganizationDetails(refreshResponse.group);
+      // Always send as JSON (never as FormData with file)
+      // The OrganizationInformationForm handles Cloudinary upload and sets URLs in formData
+      const response = await updateGroupDetailsApi(activeGroup._id, updateData);
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to update organization');
       }
+
+      // If logo was updated via Cloudinary, update preview
+      if (updateData.grp_profile_picture) {
+        setLogoPreview(updateData.grp_profile_picture);
+      }
+
+      // Refresh user and group data in Redux to update all components
+      await refreshUserAndGroupData();
+
+      // Small delay to ensure Redux state has propagated and then force final refresh
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new window.Event('logoRefresh'));
+        }
+      }, 100);
 
       // Mark as saved successfully
       setHasUnsavedChanges(false);
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(''), 3000);
-
-      // If logo was updated, trigger refresh event
-      if (logoFile) {
-        setTimeout(() => {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new window.Event('logoRefresh'));
-          }
-        }, 500);
-      }
     } catch (error) {
       if (error.name === 'ValidationError') {
         const errors = {};
@@ -214,49 +196,63 @@ const OrganizationSettingsPage = () => {
         setSaveStatus('validation-error');
       } else {
         setSaveStatus('error');
-        console.error('Failed to save organization details:', error);
       }
       setTimeout(() => setSaveStatus(''), 3000);
     }
-  };
-  // Handle logo upload - only updates local state, does NOT save to server
-  const handleLogoUpload = (event) => {
-    const file = event.target.files[0];
-
-    if (file) {
-      // Validate file type and size
-      const validTypes = [
-        'image/jpeg',
-        'image/jpg',
-        'image/webp',
-        'image/png',
-        'image/svg+xml',
-      ];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!validTypes.includes(file.type)) {
-        setSaveStatus('invalid-file-type');
-        setTimeout(() => setSaveStatus(''), 3000);
-        return;
+  }; // Function to refresh user and group data in Redux
+  const refreshUserAndGroupData = async () => {
+    try {
+      // First, refresh user information in Redux
+      if (userInfo?._id) {
+        const userResponse = await getUserDetails(userInfo._id);
+        if (
+          userResponse.success &&
+          userResponse.users &&
+          userResponse.users.length > 0
+        ) {
+          const updatedUser = userResponse.users[0];
+          dispatch(setUserInfo(updatedUser));
+        }
       }
 
-      if (file.size > maxSize) {
-        setSaveStatus('file-too-large');
-        setTimeout(() => setSaveStatus(''), 3000);
-        return;
+      // Then, refresh the specific group details
+      if (activeGroup?._id) {
+        const refreshResponse = await getGroupDetailsApi(activeGroup._id);
+        if (refreshResponse.success && refreshResponse.group) {
+          const updatedGroup = refreshResponse.group;
+          setOrganizationDetails(updatedGroup);
+
+          // Update the group details in Redux
+          dispatch(updateGroupDetails(updatedGroup));
+
+          // Also update the active group if it's the same group
+          if (activeGroup._id === updatedGroup._id) {
+            dispatch(setActiveGroup(updatedGroup));
+          }
+        }
       }
 
-      setLogoFile(file);
-      setHasUnsavedChanges(true); // Mark as having unsaved changes
+      // Finally, refresh all groups data in Redux
+      if (userInfo?._id) {
+        await dispatch(fetchUserGroups(userInfo._id));
+      }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const newLogoUrl = e.target.result;
-        setLogoPreview(newLogoUrl);
-      };
-      reader.readAsDataURL(file);
+      // Force refresh of all GroupLogo components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new window.Event('logoRefresh'));
+        // Also dispatch a more specific event
+        window.dispatchEvent(
+          new window.CustomEvent('groupDataUpdated', {
+            detail: { timestamp: Date.now() },
+          }),
+        );
+      }
+    } catch {
+      // Silently handle errors in refresh since the main save was successful
+      // The save operation was successful, refresh errors are not critical
     }
   };
+
   // Reset form to original values (discard unsaved changes)
   const handleReset = () => {
     if (organizationDetails) {
@@ -267,9 +263,10 @@ const OrganizationSettingsPage = () => {
         grp_industry: organizationDetails.grp_industry || '',
         grp_country: organizationDetails.grp_country || '',
         grp_timezone: organizationDetails.grp_timezone || '',
+        grp_profile_picture: organizationDetails.grp_profile_picture || '',
+        grp_image: organizationDetails.grp_image || '',
       });
       setLogoPreview(organizationDetails.grp_profile_picture || '');
-      setLogoFile(null);
       setHasUnsavedChanges(false);
       setValidationErrors({});
     }
@@ -307,7 +304,6 @@ const OrganizationSettingsPage = () => {
       organizationDetails={organizationDetails}
       hasUnsavedChanges={hasUnsavedChanges}
       onInputChange={handleInputChange}
-      onLogoUpload={handleLogoUpload}
       onSave={handleSave}
       onReset={handleReset}
     />

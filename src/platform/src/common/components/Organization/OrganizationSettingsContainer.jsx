@@ -14,7 +14,6 @@ const OrganizationSettingsContainer = ({
   organizationDetails,
   hasUnsavedChanges = false,
   onInputChange,
-  onLogoUpload,
   onSave,
   onReset,
 }) => {
@@ -45,14 +44,11 @@ const OrganizationSettingsContainer = ({
       description: 'Customize the look and feel',
     },
   ];
-
   // Handle toast notifications based on saveStatus
   useEffect(() => {
-    if (saveStatus) {
+    if (saveStatus && saveStatus !== 'saving') {
       const getToastConfig = (status) => {
         switch (status) {
-          case 'saving':
-            return { message: 'Saving changes...', type: 'info' };
           case 'success':
             return { message: 'Changes saved successfully!', type: 'success' };
           case 'invalid-file-type':
@@ -132,7 +128,6 @@ const OrganizationSettingsContainer = ({
             validationErrors={validationErrors}
             logoPreview={logoPreview}
             onInputChange={onInputChange}
-            onLogoUpload={onLogoUpload}
           />
         );
       case 'appearance':
