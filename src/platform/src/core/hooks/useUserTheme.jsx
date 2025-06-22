@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useSession } from 'next-auth/react';
 import CustomToast from '@/components/Toast/CustomToast';
@@ -68,8 +68,7 @@ const useUserTheme = () => {
 
     // Debug logging in development
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('Mapping theme context to API format:', {
+      logger.debug('Mapping theme context to API format:', {
         context: {
           currentThemeMode,
           currentPrimaryColor,
@@ -202,8 +201,7 @@ const useUserTheme = () => {
 
         // Debug logging to help troubleshoot theme update issues
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('Theme update payload:', {
+          logger.debug('Theme update payload:', {
             currentThemeData,
             themeSettings,
             updatedTheme,

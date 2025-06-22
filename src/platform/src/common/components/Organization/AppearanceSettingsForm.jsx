@@ -9,7 +9,6 @@ import {
   FaSun,
   FaMoon,
   FaDesktop,
-  FaLayerGroup,
   FaExpandArrowsAlt,
   FaCompress,
 } from 'react-icons/fa';
@@ -20,6 +19,7 @@ import ThemeResetButton from '@/common/components/ThemeResetButton';
 import { useOrganizationTheme } from '@/core/hooks/useOrganizationTheme';
 import { setOrganizationTheme } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
 import AppearanceSettingsFormSkeleton from './AppearanceSettingsFormSkeleton';
+import logger from '@/lib/logger';
 
 const themeOptions = [
   {
@@ -135,10 +135,12 @@ const AppearanceSettingsForm = forwardRef(
           interfaceStyle: themeData.interfaceStyle || 'bordered',
           contentLayout: themeData.contentLayout || 'compact',
         };
-        console.log(
-          'Setting theme data in AppearanceSettingsForm:',
-          formattedData,
-        );
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug(
+            'Setting theme data in AppearanceSettingsForm:',
+            formattedData,
+          );
+        }
         setFormData(formattedData);
 
         // Reset unsaved changes when loading fresh data
@@ -148,7 +150,7 @@ const AppearanceSettingsForm = forwardRef(
         // Store organization theme in Redux for use in other parts of the app
         dispatch(setOrganizationTheme(formattedData));
       }
-    }, [themeData, dispatch]);
+    }, [themeData, dispatch, onUnsavedChanges]);
 
     // Also update Redux when hasActiveGroup changes to ensure proper state management
     useEffect(() => {
@@ -159,10 +161,15 @@ const AppearanceSettingsForm = forwardRef(
           interfaceStyle: themeData.interfaceStyle || 'bordered',
           contentLayout: themeData.contentLayout || 'compact',
         };
-        console.log('Updating Redux on hasActiveGroup change:', formattedData);
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug(
+            'Updating Redux on hasActiveGroup change:',
+            formattedData,
+          );
+        }
         dispatch(setOrganizationTheme(formattedData));
       }
-    }, [hasActiveGroup, themeData, dispatch]);
+    }, [hasActiveGroup, themeData, dispatch, onUnsavedChanges]);
 
     // Show loading skeleton while fetching data
     if (isLoading) {
@@ -248,7 +255,7 @@ const AppearanceSettingsForm = forwardRef(
                   Appearance Settings
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  Customize your organization's visual identity
+                  Customize your organization&apos;s visual identity
                 </p>
               </div>{' '}
               <ThemeResetButton
@@ -738,6 +745,41 @@ const AppearanceSettingsForm = forwardRef(
               </div>
             </div>
           </div>
+          {/* Save Button Section */}
+          {hasUnsavedChanges && (
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => {
+                  // Reset to original theme data
+                  if (themeData) {
+                    const formattedData = {
+                      primaryColor: themeData.primaryColor || '#3B82F6',
+                      mode: themeData.mode || 'light',
+                      interfaceStyle: themeData.interfaceStyle || 'bordered',
+                      contentLayout: themeData.contentLayout || 'compact',
+                    };
+                    setFormData(formattedData);
+                    setHasUnsavedChanges(false);
+                    onUnsavedChanges(false);
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isUpdating}
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: formData.primaryColor,
+                  filter: isUpdating ? 'brightness(0.8)' : 'none',
+                }}
+              >
+                {isUpdating ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </div>
       </CardWrapper>
     );

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useRecentMeasurements } from '@/core/hooks/analyticHooks';
 import { MAX_CARDS } from './constants';
 import { SiteCard, AddLocationCard } from './components';

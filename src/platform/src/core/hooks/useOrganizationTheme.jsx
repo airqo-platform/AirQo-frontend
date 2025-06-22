@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import useSWR, { mutate } from 'swr';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useSelector } from 'react-redux';
+import useSWR from 'swr';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import {
   getOrganizationThemePreferencesApi,
   updateOrganizationThemePreferencesApi,
@@ -9,11 +10,15 @@ import logger from '@/lib/logger';
 
 /**
  * Custom hook for managing organization theme preferences
+ * Combines SWR-based theme management with Redux store access
  * @returns {Object} Hook state and methods
  */
 export const useOrganizationTheme = () => {
   const { id: activeGroupId } = useGetActiveGroup();
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Access organization theme from Redux store (default theme from login)
+  const organizationTheme = useSelector((state) => state.organizationTheme);
 
   // Create SWR key
   const swrKey = activeGroupId ? `org-theme-${activeGroupId}` : null; // Fetcher function
@@ -89,7 +94,41 @@ export const useOrganizationTheme = () => {
     return mutateSWR();
   }, [mutateSWR]);
 
+  // Helper functions for organization theme data from Redux
+  const hasOrganizationTheme = () => !!organizationTheme.organizationTheme;
+
+  const getOrganizationPrimaryColor = () => {
+    return organizationTheme.organizationTheme?.primaryColor || '#3B82F6';
+  };
+
+  const getOrganizationThemeMode = () => {
+    return organizationTheme.organizationTheme?.mode || 'light';
+  };
+
+  const getOrganizationInterfaceStyle = () => {
+    return organizationTheme.organizationTheme?.interfaceStyle || 'bordered';
+  };
+
+  const getOrganizationContentLayout = () => {
+    return organizationTheme.organizationTheme?.contentLayout || 'compact';
+  };
+
+  // Get full organization theme with defaults
+  const getOrganizationThemeWithDefaults = () => {
+    const defaultTheme = {
+      primaryColor: '#3B82F6',
+      mode: 'light',
+      interfaceStyle: 'bordered',
+      contentLayout: 'compact',
+    };
+
+    return organizationTheme.organizationTheme
+      ? { ...defaultTheme, ...organizationTheme.organizationTheme }
+      : defaultTheme;
+  };
+
   return {
+    // SWR-based theme data (for updates)
     themeData,
     error,
     isLoading,
@@ -97,6 +136,20 @@ export const useOrganizationTheme = () => {
     updateTheme,
     refresh,
     hasActiveGroup: !!activeGroupId,
+
+    // Redux-based organization theme data (default from login)
+    organizationTheme: organizationTheme.organizationTheme,
+    organizationThemeLoading: organizationTheme.isLoading,
+    organizationThemeError: organizationTheme.error,
+    organizationThemeHasData: organizationTheme.hasData,
+
+    // Helper functions
+    hasOrganizationTheme,
+    getOrganizationPrimaryColor,
+    getOrganizationThemeMode,
+    getOrganizationInterfaceStyle,
+    getOrganizationContentLayout,
+    getOrganizationThemeWithDefaults,
   };
 };
 

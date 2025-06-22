@@ -12,7 +12,7 @@ import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * OrganizationAnalyticsControls component handles control elements for organization analytics

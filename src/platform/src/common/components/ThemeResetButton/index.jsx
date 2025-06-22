@@ -3,9 +3,10 @@
 import React, { useCallback } from 'react';
 import { FaUndo } from 'react-icons/fa';
 import { Tooltip } from 'flowbite-react';
-import useOrganizationThemeData from '@/core/hooks/useOrganizationThemeData';
+import { useOrganizationTheme } from '@/core/hooks/useOrganizationTheme';
 import useUserTheme from '@/core/hooks/useUserTheme';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import logger from '@/lib/logger';
 
 /**
  * Reusable Theme Reset Button Component
@@ -20,8 +21,10 @@ const ThemeResetButton = ({
   children,
   iconSize, // Custom icon size
 }) => {
-  const { hasData: hasOrganizationTheme, getOrganizationThemeWithDefaults } =
-    useOrganizationThemeData();
+  const {
+    organizationThemeHasData: hasOrganizationTheme,
+    getOrganizationThemeWithDefaults,
+  } = useOrganizationTheme();
 
   const { updateUserTheme } = useUserTheme();
 
@@ -78,7 +81,7 @@ const ThemeResetButton = ({
       // Call completion callback
       onResetComplete(orgTheme);
     } catch (error) {
-      console.error('Failed to reset to organization theme:', error);
+      logger.error('Failed to reset to organization theme:', error);
     }
   }, [
     hasOrganizationTheme,

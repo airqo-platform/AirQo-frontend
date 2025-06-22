@@ -13,8 +13,9 @@ import {
 import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
 import { FaUserPlus, FaSearch } from 'react-icons/fa';
+import logger from '@/lib/logger';
 
-const OrganizationMembersPage = ({ params: _params }) => {
+const OrganizationMembersPage = () => {
   const { organization, primaryColor } = useOrganization();
   const activeGroup = useSelector((state) => state.groups?.activeGroup);
   const [members, setMembers] = useState([]);
@@ -37,34 +38,34 @@ const OrganizationMembersPage = ({ params: _params }) => {
     const groupId = organization?._id || organization?.id || activeGroup?._id;
 
     if (!groupId) {
-      console.log('No group ID available:', { organization, activeGroup });
+      logger.warn('No group ID available:', { organization, activeGroup });
       setError('No organization ID found');
       setLoading(false);
       return;
     }
 
-    console.log('Fetching members for group:', groupId);
+    logger.debug('Fetching members for group:', groupId);
     setLoading(true);
     setError(null);
     try {
       const response = await getGroupDetailsApi(groupId);
-      console.log('API Response:', response);
+      logger.debug('API Response:', response);
       if (response.success && response.group) {
         setGroupDetails(response.group);
         const groupMembers = response.group.grp_users || [];
-        console.log('Group members found:', groupMembers.length);
+        logger.debug('Group members found:', groupMembers.length);
         setMembers(groupMembers);
         setFilteredMembers(groupMembers);
       } else {
         const errorMsg = 'Failed to fetch group details: No valid response';
-        console.error(errorMsg, response);
+        logger.error(errorMsg, response);
         setError(errorMsg);
         setMembers([]);
         setFilteredMembers([]);
       }
     } catch (error) {
       const errorMsg = `Failed to fetch group details: ${error.message}`;
-      console.error(errorMsg, error);
+      logger.error(errorMsg, error);
       setError(errorMsg);
       setMembers([]);
       setFilteredMembers([]);
@@ -93,7 +94,7 @@ const OrganizationMembersPage = ({ params: _params }) => {
         throw new Error(response.message || 'Failed to remove user');
       }
     } catch (error) {
-      console.error('Failed to remove user:', error);
+      logger.error('Failed to remove user:', error);
       alert(`Failed to remove user: ${error.message}`);
     } finally {
       setRemoveLoading(false);
@@ -156,7 +157,7 @@ const OrganizationMembersPage = ({ params: _params }) => {
         alert('Invitations sent successfully!');
       }
     } catch (error) {
-      console.error('Failed to invite members:', error);
+      logger.error('Failed to invite members:', error);
       alert('Failed to send invitations. Please try again.');
     } finally {
       setInviteLoading(false);

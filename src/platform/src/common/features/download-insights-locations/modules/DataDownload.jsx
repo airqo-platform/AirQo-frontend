@@ -37,7 +37,7 @@ import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import CustomToast from '@/components/Toast/CustomToast';
 import { format } from 'date-fns';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 import SettingsSidebar from '../components/datadownload/SettingsSidebar';
 import DataContent, {
