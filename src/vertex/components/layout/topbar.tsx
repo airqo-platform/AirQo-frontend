@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import OrganizationPicker from "../features/org-picker/organization-picker";
+import Image from "next/image";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -103,6 +104,13 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
           <Button variant="ghost" size="icon" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
+          <Image
+            src="/images/airqo_logo.svg"
+            alt="Logo"
+            width={32}
+            height={32}
+          />
+          <span className="font-bold text-lg">Vertex</span>
         </div>
 
         <div className="flex-grow" />
