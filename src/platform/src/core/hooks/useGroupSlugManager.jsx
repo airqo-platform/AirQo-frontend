@@ -5,11 +5,6 @@ import {
 } from '@/core/apis/Account';
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { titleToSlug } from '@/core/utils/organizationUtils';
-import { useDispatch } from 'react-redux';
-import {
-  updateGroupDetails,
-  setActiveGroup,
-} from '@/lib/store/services/groups';
 import logger from '@/lib/logger';
 
 /**
@@ -18,7 +13,6 @@ import logger from '@/lib/logger';
  */
 export const useGroupSlugManager = () => {
   const { activeGroup, refreshGroups } = useUnifiedGroup();
-  const dispatch = useDispatch();
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
@@ -141,23 +135,14 @@ export const useGroupSlugManager = () => {
           slug: newSlug,
           regenerate: true,
         });
-
         if (!response.success) {
           throw new Error(response.message || 'Failed to update slug');
         }
 
-        // Update local state with new slug
-        const updatedGroup = {
-          ...activeGroup,
-          organization_slug: newSlug,
-          grp_slug: newSlug, // Support both naming conventions
-        };
+        // Note: We don't update Redux store here since setupUserSession will handle
+        // fetching and setting all user/group data globally after the update
 
-        // Update Redux store
-        dispatch(updateGroupDetails(updatedGroup));
-        dispatch(setActiveGroup(updatedGroup));
-
-        // Refresh groups data
+        // Refresh groups data to get the updated slug
         await refreshGroups();
 
         setSlugStatus('success');
@@ -176,7 +161,7 @@ export const useGroupSlugManager = () => {
         setIsUpdating(false);
       }
     },
-    [activeGroup, validateSlugFormat, dispatch, refreshGroups],
+    [activeGroup, validateSlugFormat, refreshGroups],
   );
 
   /**

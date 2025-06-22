@@ -5,23 +5,32 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
+import { useDispatch } from 'react-redux';
 import { FaGlobe, FaCheck, FaTimes, FaSpinner, FaInfo } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/components/Toast/CustomToast';
+import { setupUserSession } from '@/core/utils/loginSetup';
+import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import useGroupSlugManager from '@/core/hooks/useGroupSlugManager';
+import logger from '@/lib/logger';
 
 const DomainSettingsForm = forwardRef((_props, ref) => {
+  const dispatch = useDispatch();
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  // Use the group slug manager hook for all slug-related operations
   const {
+    currentSlug,
     isUpdating,
     isCheckingAvailability,
-    currentSlug,
-    activeGroup,
     validateSlugFormat,
-    generateSlugFromName,
     checkSlugAvailability,
-    updateGroupSlug,
+    updateGroupSlug: updateSlugHook,
+    resetStates,
   } = useGroupSlugManager();
 
+  // State for form management
   const [formData, setFormData] = useState({
     slug: '',
     originalSlug: '',
@@ -33,25 +42,21 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
   const [toastConfig, setToastConfig] = useState({
     message: '',
     type: 'success',
-  }); // Initialize form data when activeGroup changes
+  });
+
+  // Initialize form data when currentSlug is available from the hook
   useEffect(() => {
-    if (activeGroup) {
-      // Use organization_slug as the primary source, fallback to generated slug
-      const slug =
-        activeGroup.organization_slug ||
-        currentSlug ||
-        generateSlugFromName(activeGroup.grp_title);
+    if (currentSlug) {
       setFormData({
-        slug,
-        originalSlug: slug,
+        slug: currentSlug,
+        originalSlug: currentSlug,
       });
       setHasChanges(false);
+      resetStates();
     }
-  }, [activeGroup, currentSlug, generateSlugFromName]);
-
+  }, [currentSlug, resetStates]);
   // Calculate format error for use throughout the component
   const formatError = formData.slug ? validateSlugFormat(formData.slug) : null;
-
   // Handle form submission - Always allow, validate inside
   const handleSubmit = useCallback(
     async (e) => {
@@ -83,9 +88,8 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         showToastMessage('Update already in progress', 'info');
         return;
       }
-
       try {
-        const result = await updateGroupSlug(formData.slug);
+        const result = await updateSlugHook(formData.slug);
 
         setFormData((prev) => ({
           ...prev,
@@ -97,30 +101,73 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
 
         showToastMessage(result.message, 'success');
 
-        // Redirect to new URL after successful update
-        setTimeout(() => {
-          const newUrl = window.location.href.replace(
-            `/org/${formData.originalSlug}/`,
-            `/org/${formData.slug}/`,
+        // Call setupUserSession to refresh user data and redirect properly
+        logger.info('Domain updated successfully, refreshing user session...');
+
+        try {
+          const setupResult = await setupUserSession(
+            session,
+            dispatch,
+            pathname,
           );
-          if (window.location.href !== newUrl) {
-            window.location.href = newUrl;
+
+          if (setupResult.success) {
+            logger.info('User session refreshed successfully, redirecting...');
+
+            // Redirect to new URL with updated domain
+            setTimeout(() => {
+              const newUrl = window.location.href.replace(
+                `/org/${formData.originalSlug}/`,
+                `/org/${formData.slug}/`,
+              );
+              if (window.location.href !== newUrl) {
+                window.location.href = newUrl;
+              }
+            }, 1000);
+          } else {
+            logger.error('Failed to refresh user session:', setupResult.error);
+            // Still redirect even if setup fails
+            setTimeout(() => {
+              const newUrl = window.location.href.replace(
+                `/org/${formData.originalSlug}/`,
+                `/org/${formData.slug}/`,
+              );
+              if (window.location.href !== newUrl) {
+                window.location.href = newUrl;
+              }
+            }, 2000);
           }
-        }, 2000);
+        } catch (setupError) {
+          logger.error('Error refreshing user session:', setupError);
+          // Still redirect even if setup fails
+          setTimeout(() => {
+            const newUrl = window.location.href.replace(
+              `/org/${formData.originalSlug}/`,
+              `/org/${formData.slug}/`,
+            );
+            if (window.location.href !== newUrl) {
+              window.location.href = newUrl;
+            }
+          }, 2000);
+        }
       } catch (error) {
         showToastMessage(error.message, 'error');
       }
     },
     [
       hasChanges,
-      updateGroupSlug,
+      updateSlugHook,
       formData.slug,
       formData.originalSlug,
       availabilityStatus,
       isUpdating,
       formatError,
+      session,
+      dispatch,
+      pathname,
     ],
   );
+
   // Expose functions to parent component via ref
   useImperativeHandle(
     ref,
