@@ -12,9 +12,15 @@ import { CustomDialogContent } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Check } from "lucide-react";
+import { Search, Check, MoreVertical } from "lucide-react";
 import type { Group } from "@/app/types/users";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface OrganizationModalProps {
   isOpen: boolean;
@@ -44,12 +50,21 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
 
   useEffect(() => {
     const storedRecents = localStorage.getItem("recentOrganizations");
-    if (storedRecents) {
-      const recentIds = JSON.parse(storedRecents);
-      const recent = userGroups.filter((g) => recentIds.includes(g._id));
-      setRecentGroups(recent);
+    let recentIds: string[] = storedRecents ? JSON.parse(storedRecents) : [];
+
+    if (activeGroup) {
+      recentIds = recentIds.filter(id => id !== activeGroup._id);
+      recentIds.unshift(activeGroup._id);
     }
-  }, [userGroups, isOpen]);
+
+    const groupMap = new Map(userGroups.map(g => [g._id, g]));
+    
+    const recents = recentIds
+      .map(id => groupMap.get(id))
+      .filter((g): g is Group => g !== undefined);
+
+    setRecentGroups(recents);
+  }, [userGroups, isOpen, activeGroup]);
 
   const updateRecents = (group: Group) => {
     const updatedRecents = [group._id, ...recentGroups.map(g => g._id).filter(id => id !== group._id)].slice(0, 5);
@@ -92,14 +107,34 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <CustomDialogContent className="max-w-3xl h-[80vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-2">
+      <CustomDialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-0 flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
-            <span>Select an organization</span>
-            <Button onClick={handleCreateNew}>New Organization</Button>
+            <span>Organizations</span>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleCreateNew}>New Organization</Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => router.push('/organizations')}>
+                    Manage Organizations
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/access-control')}>
+                    Roles/Permissions
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </DialogTitle>
         </DialogHeader>
-        <div className="px-6 pb-4 border-b">
+        <div className="px-6 pb-2 border-b flex-shrink-0">
             <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -110,14 +145,14 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
                 />
             </div>
         </div>
-        <Tabs defaultValue="all" className="flex-grow flex flex-col">
-            <TabsList className="mx-6 mt-4 justify-start">
+        <Tabs defaultValue="recent" className="flex-grow flex flex-col min-h-0">
+            <TabsList className="mx-6 justify-start flex-shrink-0">
                 <TabsTrigger value="recent">Recent</TabsTrigger>
                 <TabsTrigger value="all">All</TabsTrigger>
             </TabsList>
-            <div className="flex-grow overflow-y-auto mt-2 p-2">
-                <TabsContent value="recent" className="px-4">
-                    <div className="space-y-1">
+            <div className="flex-grow overflow-hidden">
+                <TabsContent value="recent" className="h-full overflow-y-auto px-6">
+                    <div className="space-y-1 py-2">
                         {recentGroups.length > 0 ? (
                             recentGroups.map((group) => <OrganizationItem key={group._id} group={group} />)
                         ) : (
@@ -125,8 +160,8 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
                         )}
                     </div>
                 </TabsContent>
-                <TabsContent value="all" className="px-4">
-                    <div className="space-y-1">
+                <TabsContent value="all" className="h-full overflow-y-auto px-6">
+                    <div className="space-y-1 py-2">
                         {filteredGroups.length > 0 ? (
                             filteredGroups.map((group) => <OrganizationItem key={group._id} group={group} />)
                         ) : (
@@ -136,7 +171,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
                 </TabsContent>
             </div>
         </Tabs>
-        <DialogFooter className="p-4 border-t mt-auto">
+        <DialogFooter className="p-4 border-t flex-shrink-0">
             <DialogClose asChild>
                 <Button variant="outline">Close</Button>
             </DialogClose>
