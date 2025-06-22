@@ -14,7 +14,7 @@ import {
 import {
   ActivateClientDialog,
   DeactivateClientDialog,
-} from "@/components/clients/dialogs";
+} from "@/components/features/clients/dialogs";
 import { settings } from "@/core/apis/settings";
 import { useToast } from "@/components/ui/use-toast";
 import type { Client } from "@/app/types/clients";

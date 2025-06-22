@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
-import OrganizationPicker from "../organization-picker";
+import OrganizationPicker from "../features/org-picker/organization-picker";
 
 interface TopbarProps {
   isMobileView: boolean

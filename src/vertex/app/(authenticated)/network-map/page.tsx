@@ -1,7 +1,7 @@
 "use client";
 
-import { NetworkMap } from "@/components/network-map/network-map";
-import { StatusSummary } from "@/components/network-map/status-summary";
+import { NetworkMap } from "@/components/features/network-map/network-map";
+import { StatusSummary } from "@/components/features/network-map/status-summary";
 
 export default function NetworkMapPage() {
   return (
