@@ -88,17 +88,18 @@ export const useGroupSlugManager = () => {
           return {
             available: response.available,
             message: response.available
-              ? 'Slug is available'
-              : 'This slug is already taken',
+              ? 'Domain name is available'
+              : 'This domain name is already taken',
           };
         } else {
           return {
             available: false,
-            message: response?.message || 'Unable to check slug availability',
+            message:
+              response?.message || 'Unable to check domain name availability',
           };
         }
       } catch (error) {
-        logger.error('Slug availability check failed', {
+        logger.error('Domain name availability check failed', {
           slug,
           error: error.message,
         });
