@@ -193,13 +193,11 @@ export const useGroupSlugManager = () => {
             refreshError,
           );
           // Don't fail the entire process if group refresh fails
-        }
-
-        // Delay to allow backend to process the slug update and propagate changes
+        } // Extended delay to allow backend processing, DNS propagation, and user notification
         logger.info(
-          'Waiting for backend processing and propagation before redirect...',
+          'Domain update successful. Allowing time for system propagation and user notification...',
         );
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 8000)); // Increased to 8 seconds
 
         // Construct the new URL more robustly
         const currentUrl = window.location.href;
