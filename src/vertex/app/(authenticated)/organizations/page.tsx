@@ -1,7 +1,7 @@
 "use client";
 
 import { GroupList } from "@/components/Organization/List";
-import { RouteGuard } from "@/components/route-guard";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 
 const OrganizationSettingsPage = () => {
   return (

@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
+import OrganizationPicker from "../organization-picker";
 
 interface TopbarProps {
   isMobileView: boolean
@@ -106,10 +107,12 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
           </Button>
         )}
 
-        <div className="flex items-center gap-2">
-        </div>
+        <div className="flex-grow" />
 
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-2 md:gap-4">
+          <OrganizationPicker />
+
+          <Separator orientation="vertical" className="mx-1 h-6" />
 
           <DropdownMenu>
             <TooltipProvider>

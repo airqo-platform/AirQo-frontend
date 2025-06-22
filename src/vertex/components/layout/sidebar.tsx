@@ -7,8 +7,8 @@ import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/core/hooks/users"
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks"
-import { setActiveNetwork, setActiveGroup } from "@/core/redux/slices/userSlice"
-import type { Group, Network } from "@/app/types/users"
+import { setActiveNetwork } from "@/core/redux/slices/userSlice"
+import type { Network } from "@/app/types/users"
 import DesktopSidebar from "./desktop-sidebar"
 import MobileSidebar from "./mobile-sidebar"
 
@@ -27,8 +27,6 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
 
   const availableNetworks = useAppSelector((state) => state.user.availableNetworks)
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork)
-  const activeGroup = useAppSelector((state) => state.user.activeGroup)
-  const userGroups = useAppSelector((state) => state.user.userGroups)
 
   const isActive = (path: string) => pathname?.startsWith(path)
   const isDevicesActive = isActive("/devices")
@@ -53,11 +51,6 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
     localStorage.setItem("activeNetwork", JSON.stringify(network))
   }
 
-  const handleOrganizationChange = (group: Group) => {
-    dispatch(setActiveGroup(group))
-    localStorage.setItem("activeGroup", JSON.stringify(group))
-  }
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
@@ -79,9 +72,6 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
         toggleSidebar={toggleSidebar}
         isDevicesOpen={isDevicesOpen}
         handleDevicesToggle={handleDevicesToggle}
-        activeGroup={activeGroup}
-        userGroups={userGroups}
-        handleOrganizationChange={handleOrganizationChange}
         activeNetwork={activeNetwork}
         availableNetworks={availableNetworks}
         handleNetworkChange={handleNetworkChange}
@@ -98,9 +88,6 @@ const Sidebar: React.FC<AppSidebarProps> = ({ isSidebarCollapsed, toggleSidebar 
         toggleMobileMenu={toggleMobileMenu}
         isDevicesOpen={isDevicesOpen}
         handleDevicesToggle={handleDevicesToggle}
-        activeGroup={activeGroup}
-        userGroups={userGroups}
-        handleOrganizationChange={handleOrganizationChange}
         activeNetwork={activeNetwork}
         availableNetworks={availableNetworks}
         handleNetworkChange={handleNetworkChange}

@@ -10,14 +10,11 @@ import {
   Layers,
   Grid,
   Building2,
-  Activity,
   UserCircle,
-  Download,
   MapIcon,
   ChevronRight,
   Check,
   PlusCircle,
-  MonitorSmartphone,
   LogOut,
   NetworkIcon,
   ChevronLeft,
@@ -33,24 +30,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import type { Group, Network } from "@/app/types/users"
-import { PermissionGuard } from "@/components/permission-guard"
-import { Card, CardContent } from "@/components/ui/card"
+import type { Network } from "@/app/types/users"
+import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Image from "next/image"
-
-const formatTitle = (title: string) => {
-  return title.replace(/[_-]/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-}
 
 interface DesktopSidebarProps {
   isSidebarCollapsed: boolean
   toggleSidebar: () => void
   isDevicesOpen: boolean
   handleDevicesToggle: (open: boolean) => void
-  activeGroup: Group | null
-  userGroups: Group[]
-  handleOrganizationChange: (group: Group) => void
   activeNetwork: Network | null
   availableNetworks: Network[]
   handleNetworkChange: (network: Network) => void
@@ -64,9 +53,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   toggleSidebar,
   isDevicesOpen,
   handleDevicesToggle,
-  activeGroup,
-  userGroups,
-  handleOrganizationChange,
   activeNetwork,
   availableNetworks,
   handleNetworkChange,
@@ -153,39 +139,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
       {/* Sidebar Content */}
       <div className="flex-grow overflow-y-auto">
-        {/* Organization Switcher */}
-        <Card className={`m-4 bg-primary text-primary-foreground ${isSidebarCollapsed ? "hidden" : "block"}`}>
-          <CardContent className="p-3">
-            <h2 className="text-sm font-semibold mb-2">Organization</h2>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" className="w-full justify-between uppercase">
-                  {activeGroup?.grp_title
-                    ? `${formatTitle(activeGroup.grp_title).slice(0, 16)}${
-                        activeGroup.grp_title.length > 16 ? "..." : ""
-                      }`
-                    : "Select Organization"}
-                  <ChevronRight size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Switch Organization</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {userGroups.map((group) => (
-                  <DropdownMenuItem
-                    key={group._id}
-                    onClick={() => handleOrganizationChange(group)}
-                    className="flex items-center justify-between uppercase"
-                  >
-                    {formatTitle(group.grp_title || "")}
-                    {activeGroup?._id === group._id && <Check size={16} />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardContent>
-        </Card>
-
         {/* Main Navigation */}
         <nav className="space-y-6 p-4">
           {/* Overview */}

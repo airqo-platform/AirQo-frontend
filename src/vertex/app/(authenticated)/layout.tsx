@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Layout from "@/components/layout";
+import Layout from "@/components/layout/layout";
 
 export default function AuthenticatedLayout({
   children,
