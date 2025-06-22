@@ -35,16 +35,37 @@ const titleToSlug = (title) => {
 
 /**
  * Unified login setup utility for both user and organization contexts
+ * @param {Object} session - Next.js session object
+ * @param {Function} dispatch - Redux dispatch function
+ * @param {string} pathname - Current pathname
+ * @param {Object} options - Additional options
+ * @param {string} options.preferredGroupId - Group ID to prefer when multiple matches exist
+ * @param {boolean} options.maintainActiveGroup - Whether to maintain the current active group if possible
+ * @param {boolean} options.isDomainUpdate - Whether this is called after a domain update (helps prioritize preferred group)
  */
-export const setupUserSession = async (session, dispatch, pathname) => {
+export const setupUserSession = async (
+  session,
+  dispatch,
+  pathname,
+  options = {},
+) => {
   try {
     if (!session?.user?.id) {
       throw new Error('Invalid session: missing user ID');
     }
 
+    const {
+      preferredGroupId,
+      maintainActiveGroup = false,
+      isDomainUpdate = false,
+    } = options;
+
     logger.info('Starting unified login setup...', {
       userId: session.user.id,
       pathname,
+      preferredGroupId,
+      maintainActiveGroup,
+      isDomainUpdate,
     });
 
     // Clear any existing data first
@@ -74,10 +95,16 @@ export const setupUserSession = async (session, dispatch, pathname) => {
     };
 
     // Update Redux immediately with session data
-    dispatch(setUserInfo(basicUserData));
-
-    // Step 1: Fetch complete user details with groups
+    dispatch(setUserInfo(basicUserData)); // Step 1: Fetch complete user details with groups
     logger.info('Fetching user details...');
+
+    // If we have a preferred group ID and are maintaining active group,
+    // add a small delay to allow API to propagate domain changes
+    if (preferredGroupId && (maintainActiveGroup || isDomainUpdate)) {
+      logger.info('Waiting for API propagation after domain update...');
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Increased to 2 seconds for domain updates
+    }
+
     const userRes = await getUserDetails(session.user.id);
     const user = userRes.users[0];
 
@@ -101,67 +128,256 @@ export const setupUserSession = async (session, dispatch, pathname) => {
     // Check if this is an organization login from session data
     const isOrgLogin = session.isOrgLogin || session.user.isOrgLogin;
     const sessionOrgSlug = session.orgSlug || session.user.requestedOrgSlug;
-
     logger.info('Determining redirect path', {
       routeType,
       pathname,
       userGroupsCount: user.groups.length,
-      userGroups: user.groups.map((g) => g.grp_name),
+      userGroups: user.groups.map((g) => ({
+        id: g._id,
+        name: g.grp_name || g.grp_title,
+        organizationSlug: g.organization_slug,
+        grpSlug: g.grp_slug,
+        titleSlug: titleToSlug(g.grp_title || g.grp_name),
+      })),
       isOrgRoute: routeType === ROUTE_TYPES.ORGANIZATION,
       isOrgLogin,
       sessionOrgSlug,
-    });
-
-    // Step 3b: Determine active group and redirect path based on login context
+      isDomainUpdate,
+      preferredGroupId,
+    }); // Step 3b: Determine active group and redirect path based on login context
     if (pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
-
       if (currentOrgSlug) {
-        // Find group that matches the slug
-        const matchingGroup = user.groups.find((group) => {
-          const groupSlug = titleToSlug(group.grp_title);
-          return groupSlug === currentOrgSlug;
+        logger.info('Searching for group matching slug:', {
+          currentOrgSlug,
+          availableGroups: user.groups.map((g) => ({
+            id: g._id,
+            name: g.grp_name || g.grp_title,
+            organizationSlug: g.organization_slug,
+            grpSlug: g.grp_slug,
+            titleSlug: titleToSlug(g.grp_title || g.grp_name),
+            isAirQo: isAirQoGroup(g),
+          })),
+          isDomainUpdate,
+          preferredGroupId,
         });
 
-        if (matchingGroup) {
-          activeGroup = matchingGroup;
-          // Always redirect to organization dashboard for org login
-          redirectPath = `/org/${currentOrgSlug}/dashboard`;
-          logger.info('Organization login: Setting matching group', {
-            groupId: matchingGroup._id,
-            groupName: matchingGroup.grp_title || matchingGroup.grp_name,
-            orgSlug: currentOrgSlug,
-            loginContext: 'organization',
-            pathname,
-          });
-        } else {
-          // No matching group - use first available group but keep org context
-          activeGroup = user.groups[0];
-          redirectPath = `/org/${currentOrgSlug}/dashboard`;
+        // PRIORITY 1: If this is a domain update and we have a preferred group ID, use it FIRST
+        // This ensures the user stays in the same group after domain updates
+        if (isDomainUpdate && preferredGroupId) {
           logger.info(
-            'Organization login: No matching group found, using first available',
+            'Domain update detected, prioritizing preferred group...',
+          );
+          const preferredGroup = user.groups.find(
+            (group) => group._id === preferredGroupId,
+          );
+
+          if (preferredGroup && !isAirQoGroup(preferredGroup)) {
+            activeGroup = preferredGroup;
+            redirectPath = `/org/${currentOrgSlug}/dashboard`;
+            logger.info(
+              'Domain update: Using preferred group to maintain context',
+              {
+                groupId: preferredGroup._id,
+                groupName: preferredGroup.grp_title || preferredGroup.grp_name,
+                preferredGroupId,
+                orgSlug: currentOrgSlug,
+                reason: 'domain_update_preferred_group',
+                loginContext: 'organization',
+                pathname,
+              },
+            );
+          } else if (preferredGroup && isAirQoGroup(preferredGroup)) {
+            logger.warn(
+              'Domain update: Preferred group is AirQo, falling back to slug matching',
+              {
+                preferredGroupId,
+                groupName: preferredGroup.grp_title || preferredGroup.grp_name,
+              },
+            );
+          } else {
+            logger.warn(
+              'Domain update: Preferred group not found in user groups',
+              {
+                preferredGroupId,
+                availableGroupIds: user.groups.map((g) => g._id),
+              },
+            );
+          }
+        }
+
+        // PRIORITY 2: Find group that matches the slug - check multiple slug sources (only if no preferred group was used)
+        if (!activeGroup) {
+          const matchingGroup = user.groups.find((group) => {
+            // Skip AirQo groups immediately for organization context
+            if (isAirQoGroup(group)) {
+              logger.debug('Skipping AirQo group in organization context:', {
+                groupId: group._id,
+                groupName: group.grp_title || group.grp_name,
+              });
+              return false;
+            }
+
+            // First check if group has an explicit organization_slug or grp_slug
+            const explicitSlug = group.organization_slug || group.grp_slug;
+            if (explicitSlug === currentOrgSlug) {
+              logger.info('Found exact slug match:', {
+                groupId: group._id,
+                groupName: group.grp_title || group.grp_name,
+                matchedSlug: explicitSlug,
+                currentOrgSlug,
+              });
+              return true;
+            }
+
+            // Fallback to generated slug from title
+            const generatedSlug = titleToSlug(
+              group.grp_title || group.grp_name,
+            );
+            if (generatedSlug === currentOrgSlug) {
+              logger.info('Found generated slug match:', {
+                groupId: group._id,
+                groupName: group.grp_title || group.grp_name,
+                generatedSlug,
+                currentOrgSlug,
+              });
+              return true;
+            }
+
+            return false;
+          });
+
+          if (matchingGroup) {
+            activeGroup = matchingGroup;
+            // Always redirect to organization dashboard for org login
+            redirectPath = `/org/${currentOrgSlug}/dashboard`;
+            logger.info('Organization login: Setting matching group', {
+              groupId: matchingGroup._id,
+              groupName: matchingGroup.grp_title || matchingGroup.grp_name,
+              orgSlug: currentOrgSlug,
+              organizationSlug: matchingGroup.organization_slug,
+              grpSlug: matchingGroup.grp_slug,
+              loginContext: 'organization',
+              pathname,
+            });
+          }
+        }
+
+        // PRIORITY 3: Fallback handling when no match found
+        if (!activeGroup) {
+          // Try preferred group as final fallback (for cases where domain update caused slug mismatch)
+          if (preferredGroupId && !isDomainUpdate) {
+            logger.info(
+              'No slug match found, checking preferred group as fallback...',
+            );
+            const preferredGroup = user.groups.find(
+              (group) => group._id === preferredGroupId,
+            );
+
+            if (preferredGroup && !isAirQoGroup(preferredGroup)) {
+              activeGroup = preferredGroup;
+              redirectPath = `/org/${currentOrgSlug}/dashboard`;
+              logger.info(
+                'Organization login: Using preferred group (slug mismatch likely due to API delay)',
+                {
+                  groupId: preferredGroup._id,
+                  groupName:
+                    preferredGroup.grp_title || preferredGroup.grp_name,
+                  preferredGroupId,
+                  orgSlug: currentOrgSlug,
+                  groupSlugInData:
+                    preferredGroup.organization_slug || preferredGroup.grp_slug,
+                  reason: 'preferred_group_fallback',
+                  loginContext: 'organization',
+                  pathname,
+                },
+              );
+            }
+          }
+
+          // Final fallback: Find any non-AirQo group
+          if (!activeGroup) {
+            logger.warn('No matching group found for organization slug', {
+              currentOrgSlug,
+              preferredGroupId,
+              isDomainUpdate,
+              availableNonAirQoGroups: user.groups
+                .filter((g) => !isAirQoGroup(g))
+                .map((g) => ({
+                  id: g._id,
+                  name: g.grp_name || g.grp_title,
+                  organizationSlug: g.organization_slug,
+                  grpSlug: g.grp_slug,
+                  titleSlug: titleToSlug(g.grp_title || g.grp_name),
+                })),
+            });
+
+            // No matching group - find a non-AirQo group for org context
+            const nonAirQoGroup = user.groups.find(
+              (group) => !isAirQoGroup(group),
+            );
+            if (nonAirQoGroup) {
+              activeGroup = nonAirQoGroup;
+              redirectPath = `/org/${currentOrgSlug}/dashboard`;
+              logger.info(
+                'Organization login: No matching group found, using first non-AirQo group',
+                {
+                  groupId: activeGroup._id,
+                  groupName: activeGroup.grp_title || activeGroup.grp_name,
+                  orgSlug: currentOrgSlug,
+                  loginContext: 'organization',
+                  pathname,
+                },
+              );
+            } else {
+              // Only AirQo groups available - redirect to user flow
+              activeGroup = user.groups[0];
+              redirectPath = '/user/Home';
+              logger.info(
+                'Organization login: Only AirQo groups available, redirecting to user flow',
+                {
+                  groupId: activeGroup._id,
+                  groupName: activeGroup.grp_title || activeGroup.grp_name,
+                  loginContext: 'organization -> user',
+                  pathname,
+                },
+              );
+            }
+          }
+        }
+      } else {
+        // Fallback if no slug found - use first non-AirQo group
+        const nonAirQoGroup = user.groups.find((group) => !isAirQoGroup(group));
+        if (nonAirQoGroup) {
+          activeGroup = nonAirQoGroup;
+          const orgSlug =
+            nonAirQoGroup.organization_slug ||
+            nonAirQoGroup.grp_slug ||
+            titleToSlug(nonAirQoGroup.grp_title);
+          redirectPath = `/org/${orgSlug}/dashboard`;
+          logger.info(
+            'Organization login: No slug found, using first non-AirQo group',
             {
               groupId: activeGroup._id,
               groupName: activeGroup.grp_title || activeGroup.grp_name,
-              orgSlug: currentOrgSlug,
+              generatedSlug: orgSlug,
               loginContext: 'organization',
               pathname,
             },
           );
+        } else {
+          // Only AirQo groups - redirect to user flow
+          activeGroup = user.groups[0];
+          redirectPath = '/user/Home';
+          logger.info(
+            'Organization login: Only AirQo groups found, redirecting to user flow',
+            {
+              loginContext: 'organization -> user',
+              pathname,
+            },
+          );
         }
-      } else {
-        // Fallback if no slug found - use first available group
-        activeGroup = user.groups[0];
-        const orgSlug = titleToSlug(activeGroup.grp_title);
-        redirectPath = `/org/${orgSlug}/dashboard`;
-        logger.info('Organization login: No slug found, using first group', {
-          groupId: activeGroup._id,
-          groupName: activeGroup.grp_title || activeGroup.grp_name,
-          generatedSlug: orgSlug,
-          loginContext: 'organization',
-          pathname,
-        });
       }
     } else {
       // USER LOGIN: For individual login page, always default to AirQo group regardless of previous preferences

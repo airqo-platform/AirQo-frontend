@@ -31,8 +31,6 @@ import {
 
 // Utils
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
-// API imports
-import { getOrganizationBySlugApi } from '@/core/apis/Organizations';
 // Components
 import LoadingSpinner from '@/components/LoadingSpinner';
 import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
@@ -91,14 +89,26 @@ const extractOrgSlug = (pathname) => {
 };
 
 /**
- * Find group by organization slug
+ * Find group by organization slug - enhanced to check multiple slug sources
  */
 const findGroupBySlug = (groups, slug) => {
   if (!groups || !slug) return null;
 
   return groups.find((group) => {
-    const groupSlug = titleToSlug(group.grp_title);
-    return groupSlug === slug;
+    // Skip AirQo groups for organization context
+    if (isAirQoGroup(group)) {
+      return false;
+    }
+
+    // Check explicit organization_slug or grp_slug first
+    const explicitSlug = group.organization_slug || group.grp_slug;
+    if (explicitSlug === slug) {
+      return true;
+    }
+
+    // Fallback to generated slug from title
+    const generatedSlug = titleToSlug(group.grp_title || group.grp_name);
+    return generatedSlug === slug;
   });
 };
 
@@ -225,7 +235,6 @@ export function UnifiedGroupProvider({ children }) {
       refreshGroups();
     }
   }, [session?.user?.id, userGroups.length, refreshGroups]);
-
   // Atomic active group setting to prevent conflicts
   const setActiveGroupAtomic = useCallback(
     (targetGroup, reason = 'manual') => {
@@ -254,7 +263,9 @@ export function UnifiedGroupProvider({ children }) {
     },
     [dispatch, activeGroup?.grp_title],
   );
+
   // Smart active group initialization - only runs once per session
+  // This is the ONLY place where active group should be set automatically
   useEffect(() => {
     if (
       !session?.user?.id ||
@@ -276,8 +287,9 @@ export function UnifiedGroupProvider({ children }) {
       }
     }
 
-    // Priority 2: Session active group (if valid)
-    if (session.user.activeGroup) {
+    // Priority 2: Session active group (if valid and not from loginSetup)
+    // Only use session active group if we're not in a specific organization context
+    if (!isOrganizationContext && session.user.activeGroup) {
       targetGroup = userGroups.find(
         (g) => g._id === session.user.activeGroup._id,
       );
@@ -305,6 +317,7 @@ export function UnifiedGroupProvider({ children }) {
   ]);
 
   // Simplified URL synchronization - avoid conflicts during switching
+  // This should NOT set active groups, only detect when they're out of sync
   useEffect(() => {
     if (
       !isOrganizationContext ||
@@ -319,14 +332,31 @@ export function UnifiedGroupProvider({ children }) {
 
     const urlGroup = findGroupBySlug(userGroups, organizationSlug);
 
-    // Only sync if URL group exists and is different from active group
+    // Only log when URL group exists and is different from active group
+    // But DO NOT automatically switch - let user control this
     if (
       urlGroup &&
       activeGroup &&
       urlGroup._id !== activeGroup._id &&
       !isAirQoGroup(activeGroup) // Don't override AirQo group navigation
     ) {
-      setActiveGroupAtomic(urlGroup, 'url-sync');
+      logger.info('URL group mismatch detected (not auto-switching):', {
+        urlGroup: urlGroup.grp_title,
+        activeGroup: activeGroup.grp_title,
+        organizationSlug,
+      });
+
+      // Only auto-sync if the active group doesn't have any organization slug
+      // This handles cases where user manually switched to a group that doesn't match the URL
+      const activeGroupHasOrgSlug =
+        activeGroup.organization_slug ||
+        activeGroup.grp_slug ||
+        titleToSlug(activeGroup.grp_title);
+
+      if (!activeGroupHasOrgSlug || activeGroupHasOrgSlug === 'default') {
+        logger.info('Active group has no valid org slug, syncing with URL');
+        setActiveGroupAtomic(urlGroup, 'url-sync');
+      }
     }
   }, [
     isOrganizationContext,
@@ -505,107 +535,75 @@ export function UnifiedGroupProvider({ children }) {
       return userGroups.some((g) => g._id === group._id);
     },
     [userGroups],
-  ); // Organization data loading effect - optimized with debounced error handling
+  ); // Organization data loading effect - now uses group data instead of separate organization API
   useEffect(() => {
-    if (isOrganizationContext && organizationSlug) {
-      // Reset state when slug changes or when we need to load new organization
-      if (
-        !organization ||
-        organization.slug !== organizationSlug ||
-        organization.organization_slug !== organizationSlug
-      ) {
-        // Prevent overlapping requests for the same slug
-        if (loadingOrgSlugRef.current === organizationSlug) {
-          return;
-        }
+    if (isOrganizationContext && organizationSlug && userGroups.length > 0) {
+      // Find the matching group from user's available groups
+      const matchingGroup = findGroupBySlug(userGroups, organizationSlug);
 
-        logger.info('Loading organization data for slug:', organizationSlug);
-        setOrganizationLoading(true);
+      if (matchingGroup) {
+        // Use group data to create organization data
+        const orgData = {
+          _id: matchingGroup._id,
+          slug:
+            matchingGroup.organization_slug ||
+            matchingGroup.grp_slug ||
+            titleToSlug(matchingGroup.grp_title),
+          name: matchingGroup.grp_title || matchingGroup.grp_name,
+          logo: matchingGroup.grp_image || null,
+          primaryColor: matchingGroup.theme?.primaryColor || '#135DFF',
+          secondaryColor: matchingGroup.theme?.secondaryColor || '#1B2559',
+          font: matchingGroup.theme?.font || 'Inter',
+          status: matchingGroup.grp_status || 'ACTIVE',
+        };
+
+        logger.info('Organization data created from group data:', {
+          groupName: matchingGroup.grp_title,
+          orgSlug: organizationSlug,
+          orgData,
+        });
+
+        setOrganization(orgData);
+        setOrganizationTheme({
+          name: orgData.name,
+          logo: orgData.logo,
+          primaryColor: orgData.primaryColor,
+          secondaryColor: orgData.secondaryColor,
+          font: orgData.font,
+        });
         setOrganizationError(null);
-        setOrganizationInitialized(false);
-        loadingOrgSlugRef.current = organizationSlug;
+        setOrganizationLoading(false);
+        setOrganizationInitialized(true);
+      } else {
+        // No matching group found - this means user doesn't have access to this org
+        logger.warn('No matching group found for organization slug:', {
+          organizationSlug,
+          availableGroups: userGroups.map((g) => ({
+            id: g._id,
+            title: g.grp_title,
+            orgSlug: g.organization_slug || g.grp_slug,
+            titleSlug: titleToSlug(g.grp_title),
+          })),
+        });
 
-        // Minimum loading time to prevent UI flashing (400ms for more stable experience)
-        const startTime = Date.now();
-        const minLoadingTime = 400;
-
-        getOrganizationBySlugApi(organizationSlug)
-          .then((response) => {
-            if (
-              !mountedRef.current ||
-              loadingOrgSlugRef.current !== organizationSlug
-            ) {
-              return; // Ignore if component unmounted or slug changed
-            }
-
-            if (response.success && response.data) {
-              const orgData = response.data;
-              logger.info('Organization data loaded successfully:', {
-                name: orgData.name,
-                slug: orgData.slug,
-              });
-
-              // Calculate remaining time to maintain minimum loading duration
-              const elapsedTime = Date.now() - startTime;
-              const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-
-              setTimeout(() => {
-                if (
-                  !mountedRef.current ||
-                  loadingOrgSlugRef.current !== organizationSlug
-                ) {
-                  return; // Double-check before setting state
-                }
-
-                setOrganization(orgData);
-                setOrganizationTheme({
-                  name: orgData.name,
-                  logo: orgData.logo,
-                  primaryColor: orgData.primaryColor,
-                  secondaryColor: orgData.secondaryColor,
-                  font: orgData.font,
-                });
-                setOrganizationError(null);
-                setOrganizationLoading(false);
-                setOrganizationInitialized(true);
-                loadingOrgSlugRef.current = null; // Clear loading state
-              }, remainingTime);
-            } else {
-              throw new Error(response.message || 'Organization not found');
-            }
-          })
-          .catch((err) => {
-            if (
-              !mountedRef.current ||
-              loadingOrgSlugRef.current !== organizationSlug
-            ) {
-              return; // Ignore if component unmounted or slug changed
-            }
-
-            logger.error('Error loading organization:', err);
-
-            // Calculate remaining time to maintain minimum loading duration
-            const elapsedTime = Date.now() - startTime;
-            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-
-            // Delay error display to prevent flashing
-            setTimeout(() => {
-              if (
-                !mountedRef.current ||
-                loadingOrgSlugRef.current !== organizationSlug
-              ) {
-                return; // Double-check before setting state
-              }
-
-              setOrganizationError(err);
-              setOrganization(null);
-              setOrganizationTheme(null);
-              setOrganizationLoading(false);
-              setOrganizationInitialized(true);
-              loadingOrgSlugRef.current = null; // Clear loading state
-            }, remainingTime);
-          });
+        setOrganizationError(
+          new Error(
+            `Organization "${organizationSlug}" not found or not accessible`,
+          ),
+        );
+        setOrganization(null);
+        setOrganizationTheme(null);
+        setOrganizationLoading(false);
+        setOrganizationInitialized(true);
       }
+    } else if (
+      isOrganizationContext &&
+      organizationSlug &&
+      userGroups.length === 0
+    ) {
+      // Still loading user groups, show loading state
+      setOrganizationLoading(true);
+      setOrganizationInitialized(false);
     } else if (!isOrganizationContext) {
       // Clear organization data when not in organization context
       setOrganization(null);
@@ -615,7 +613,7 @@ export function UnifiedGroupProvider({ children }) {
       setOrganizationInitialized(false);
       loadingOrgSlugRef.current = null;
     }
-  }, [isOrganizationContext, organizationSlug]); // Removed 'organization' from deps to avoid unnecessary re-runs
+  }, [isOrganizationContext, organizationSlug, userGroups]);
 
   // Cleanup on unmount
   useEffect(() => {

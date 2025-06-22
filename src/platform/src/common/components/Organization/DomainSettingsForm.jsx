@@ -30,6 +30,12 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
     resetStates,
   } = useGroupSlugManager();
 
+  // Check if this is AirQo group - they should not be able to update domain
+  const isAirQoGroup =
+    currentSlug === 'airqo' ||
+    session?.user?.activeGroup?.grp_title?.toLowerCase() === 'airqo' ||
+    session?.user?.activeGroup?.grp_name?.toLowerCase() === 'airqo';
+
   // State for form management
   const [formData, setFormData] = useState({
     slug: '',
@@ -55,6 +61,17 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
       resetStates();
     }
   }, [currentSlug, resetStates]);
+
+  // Redirect AirQo group users away from organization domain settings
+  useEffect(() => {
+    if (isAirQoGroup && typeof window !== 'undefined') {
+      logger.warn(
+        'AirQo group detected in domain settings, redirecting to user flow',
+      );
+      window.location.href = '/user/Home';
+    }
+  }, [isAirQoGroup]);
+
   // Calculate format error for use throughout the component
   const formatError = formData.slug ? validateSlugFormat(formData.slug) : null;
   // Handle form submission - Always allow, validate inside
@@ -99,16 +116,29 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         setAvailabilityStatus('');
         setAvailabilityMessage('');
 
-        showToastMessage(result.message, 'success');
-
-        // Call setupUserSession to refresh user data and redirect properly
+        showToastMessage(result.message, 'success'); // Call setupUserSession to refresh user data and redirect properly
         logger.info('Domain updated successfully, refreshing user session...');
 
         try {
+          // Use the new pathname with updated slug for setupUserSession
+          // This ensures the session setup logic correctly identifies the updated group
+          const newPathname = pathname.replace(
+            `/org/${formData.originalSlug}/`,
+            `/org/${formData.slug}/`,
+          );
+
+          // Pass the current active group ID to help maintain context after domain update
+          // This is crucial because the API might not immediately return updated group data
+          const currentActiveGroupId = session?.user?.activeGroup?._id;
           const setupResult = await setupUserSession(
             session,
             dispatch,
-            pathname,
+            newPathname, // Use updated pathname to maintain group context
+            {
+              preferredGroupId: currentActiveGroupId, // Help maintain the correct active group
+              maintainActiveGroup: true,
+              isDomainUpdate: true, // Critical flag to prioritize preferred group
+            },
           );
 
           if (setupResult.success) {

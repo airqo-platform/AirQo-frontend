@@ -177,13 +177,11 @@ export const useGroupSlugManager = () => {
     isUpdating,
     isCheckingAvailability,
     validationErrors,
-    slugStatus,
-
-    // Current group info
+    slugStatus, // Current group info
     currentSlug:
       activeGroup?.organization_slug ||
       activeGroup?.grp_slug ||
-      generateSlugFromName(activeGroup?.grp_title),
+      generateSlugFromName(activeGroup?.grp_title || activeGroup?.grp_name),
     activeGroup,
 
     // Actions

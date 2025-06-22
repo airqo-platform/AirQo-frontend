@@ -23,11 +23,8 @@ import {
 import { OrganizationSettingsContainer } from '@/common/components/Organization';
 import { OrganizationSettingsSkeleton } from '@/common/components/Skeleton';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
-import {
-  fetchUserGroups,
-  updateGroupDetails,
-  setActiveGroup,
-} from '@/lib/store/services/groups';
+import { fetchUserGroups } from '@/lib/store/services/groups';
+import { useActiveGroupManager } from '@/core/hooks/useActiveGroupManager';
 
 // Validation schema
 const validationSchema = Yup.object().shape({
@@ -45,6 +42,8 @@ const OrganizationSettingsPage = () => {
   const { activeGroup, isLoading: groupLoading } = useUnifiedGroup();
   const dispatch = useDispatch();
   const userInfo = useSelector((state) => state.login?.userInfo);
+  const { updateActiveGroupDetails, triggerGroupRefresh } =
+    useActiveGroupManager();
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
@@ -240,15 +239,11 @@ const OrganizationSettingsPage = () => {
         const refreshResponse = await getGroupDetailsApi(activeGroup._id);
         if (refreshResponse.success && refreshResponse.group) {
           const updatedGroup = refreshResponse.group;
-          setOrganizationDetails(updatedGroup);
+          setOrganizationDetails(updatedGroup); // Update the group details in Redux using the centralized manager
+          await updateActiveGroupDetails(updatedGroup);
 
-          // Update the group details in Redux
-          dispatch(updateGroupDetails(updatedGroup));
-
-          // Also update the active group if it's the same group
-          if (activeGroup._id === updatedGroup._id) {
-            dispatch(setActiveGroup(updatedGroup));
-          }
+          // Trigger a global refresh to update all components
+          triggerGroupRefresh();
         }
       }
 
