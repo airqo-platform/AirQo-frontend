@@ -166,7 +166,6 @@ export function UnifiedGroupProvider({ children }) {
   const [error, setError] = useState(null);
   const [isSwitching, setIsSwitching] = useState(false);
   const [initialGroupSet, setInitialGroupSet] = useState(false);
-
   // Organization state
   const [organization, setOrganization] = useState(null);
   const [organizationTheme, setOrganizationTheme] = useState(null);
@@ -174,12 +173,17 @@ export function UnifiedGroupProvider({ children }) {
   const [organizationError, setOrganizationError] = useState(null);
   const [organizationInitialized, setOrganizationInitialized] = useState(false);
 
+  // Retry mechanism for organization loading after domain updates
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const maxRetries = 6; // Allow up to 6 retries (roughly 6 seconds total)
   // Refs for cleanup and state coordination
   const switchTimeoutRef = useRef(null);
   const lastGroupSwitchRef = useRef(null);
   const mountedRef = useRef(true);
   const groupUpdateLockRef = useRef(false); // Prevents concurrent group updates
-  const loadingOrgSlugRef = useRef(null); // Tracks currently loading organization slug  // Context detection
+  const loadingOrgSlugRef = useRef(null); // Tracks currently loading organization slug
+  const retryTimeoutRef = useRef(null); // Tracks retry timeout for organization loading// Context detection
   const { isOrganizationContext, organizationSlug, isAdminContext } =
     useMemo(() => {
       const isOrgContext =
@@ -203,27 +207,34 @@ export function UnifiedGroupProvider({ children }) {
         isAdminContext: isAdmin,
       };
     }, [pathname]);
-
   // Optimized groups refresh with proper error handling
-  const refreshGroups = useCallback(async () => {
-    if (!session?.user?.id || isLoading || groupUpdateLockRef.current) return;
+  const refreshGroups = useCallback(
+    async (force = false) => {
+      if (
+        !session?.user?.id ||
+        (!force && isLoading) ||
+        groupUpdateLockRef.current
+      )
+        return;
 
-    groupUpdateLockRef.current = true;
-    setIsLoading(true);
-    setError(null);
+      groupUpdateLockRef.current = true;
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      if (userGroups.length === 0) {
-        await dispatch(fetchUserGroups(session.user.id)).unwrap();
+      try {
+        if (userGroups.length === 0 || force) {
+          await dispatch(fetchUserGroups(session.user.id)).unwrap();
+        }
+      } catch (err) {
+        logger.error('Failed to fetch user groups:', err);
+        setError(err.message || 'Failed to fetch groups');
+      } finally {
+        setIsLoading(false);
+        groupUpdateLockRef.current = false;
       }
-    } catch (err) {
-      logger.error('Failed to fetch user groups:', err);
-      setError(err.message || 'Failed to fetch groups');
-    } finally {
-      setIsLoading(false);
-      groupUpdateLockRef.current = false;
-    }
-  }, [session?.user?.id, dispatch, userGroups.length, isLoading]);
+    },
+    [session?.user?.id, dispatch, userGroups.length, isLoading],
+  );
 
   // Initial groups fetch - only once per session
   useEffect(() => {
@@ -535,20 +546,102 @@ export function UnifiedGroupProvider({ children }) {
       return userGroups.some((g) => g._id === group._id);
     },
     [userGroups],
-  ); // Organization data loading effect - now uses group data instead of separate organization API
+  ); // Retry function for organization loading after domain updates
+  const retryOrganizationLoad = useCallback(
+    (slug, currentRetryCount) => {
+      if (!slug || currentRetryCount >= maxRetries) {
+        logger.warn('Organization retry limit reached or no slug provided:', {
+          slug,
+          currentRetryCount,
+          maxRetries,
+        });
+
+        // Final attempt failed - set error state
+        setOrganizationError(
+          new Error(`Organization "${slug}" not found or not accessible`),
+        );
+        setOrganization(null);
+        setOrganizationTheme(null);
+        setOrganizationLoading(false);
+        setOrganizationInitialized(true);
+        setIsRetrying(false);
+        setRetryCount(0);
+        return;
+      }
+
+      const retryDelay = Math.min(
+        1000 * Math.pow(1.5, currentRetryCount),
+        3000,
+      ); // Exponential backoff, max 3s
+
+      logger.info('Retrying organization load:', {
+        slug,
+        attempt: currentRetryCount + 1,
+        maxRetries,
+        delayMs: retryDelay,
+      });
+      setIsRetrying(true);
+      setRetryCount(currentRetryCount + 1);
+      retryTimeoutRef.current = setTimeout(async () => {
+        if (!mountedRef.current) return; // After the 3rd retry, try to refresh user groups from the backend
+        // This helps in case the domain update has propagated but we have stale data
+        if (currentRetryCount >= 2) {
+          logger.info(
+            'Refreshing user groups after multiple retries to get updated domain data',
+          );
+          try {
+            await dispatch(fetchUserGroups(session?.user?.id));
+          } catch (error) {
+            logger.warn('Failed to refresh user groups during retry:', error);
+          }
+        }
+
+        // Just trigger a re-evaluation by clearing the retry state
+        // This allows the organization loading effect to run again
+        setIsRetrying(false); // Allow the effect to re-evaluate
+      }, retryDelay);
+    },
+    [maxRetries, mountedRef, dispatch, session?.user?.id],
+  );
+
+  // Clear retry timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  // Organization data loading effect - now uses group data instead of separate organization API
   useEffect(() => {
     if (isOrganizationContext && organizationSlug && userGroups.length > 0) {
       // Find the matching group from user's available groups
-      const matchingGroup = findGroupBySlug(userGroups, organizationSlug);
+      let matchingGroup = findGroupBySlug(userGroups, organizationSlug);
+
+      // CRITICAL FIX: If no matching group found by slug, but we have an active group,
+      // this might be a post-domain-update scenario where the backend hasn't updated
+      // the group data yet. Use the active group as fallback.
+      if (!matchingGroup && activeGroup && !isAirQoGroup(activeGroup)) {
+        logger.info(
+          'No slug match found, using active group as fallback (likely post-domain-update):',
+          {
+            organizationSlug,
+            activeGroupId: activeGroup._id,
+            activeGroupTitle: activeGroup.grp_title,
+            activeGroupOrgSlug:
+              activeGroup.organization_slug || activeGroup.grp_slug,
+          },
+        );
+        matchingGroup = activeGroup;
+      }
 
       if (matchingGroup) {
         // Use group data to create organization data
         const orgData = {
           _id: matchingGroup._id,
-          slug:
-            matchingGroup.organization_slug ||
-            matchingGroup.grp_slug ||
-            titleToSlug(matchingGroup.grp_title),
+          slug: organizationSlug, // Use the URL slug as the canonical slug
           name: matchingGroup.grp_title || matchingGroup.grp_name,
           logo: matchingGroup.grp_image || null,
           primaryColor: matchingGroup.theme?.primaryColor || '#135DFF',
@@ -560,9 +653,9 @@ export function UnifiedGroupProvider({ children }) {
         logger.info('Organization data created from group data:', {
           groupName: matchingGroup.grp_title,
           orgSlug: organizationSlug,
+          isActiveGroupFallback: matchingGroup === activeGroup,
           orgData,
         });
-
         setOrganization(orgData);
         setOrganizationTheme({
           name: orgData.name,
@@ -574,27 +667,83 @@ export function UnifiedGroupProvider({ children }) {
         setOrganizationError(null);
         setOrganizationLoading(false);
         setOrganizationInitialized(true);
-      } else {
-        // No matching group found - this means user doesn't have access to this org
-        logger.warn('No matching group found for organization slug:', {
-          organizationSlug,
-          availableGroups: userGroups.map((g) => ({
-            id: g._id,
-            title: g.grp_title,
-            orgSlug: g.organization_slug || g.grp_slug,
-            titleSlug: titleToSlug(g.grp_title),
-          })),
-        });
 
-        setOrganizationError(
-          new Error(
-            `Organization "${organizationSlug}" not found or not accessible`,
-          ),
-        );
-        setOrganization(null);
-        setOrganizationTheme(null);
-        setOrganizationLoading(false);
-        setOrganizationInitialized(true);
+        // Ensure the active group matches the organization
+        if (activeGroup?._id !== matchingGroup._id) {
+          logger.info('Setting active group to match organization:', {
+            organizationSlug,
+            currentActiveGroup: activeGroup?.grp_title,
+            newActiveGroup: matchingGroup.grp_title,
+          });
+          setActiveGroupAtomic(matchingGroup, 'organization-match');
+        }
+
+        // Reset retry state on success
+        setRetryCount(0);
+        setIsRetrying(false);
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+          retryTimeoutRef.current = null;
+        }
+      } else {
+        // No matching group found - check if we should retry (might be a domain update delay)
+        const shouldRetry =
+          retryCount < maxRetries &&
+          organizationSlug &&
+          !isRetrying &&
+          userGroups.length > 0;
+
+        if (shouldRetry) {
+          logger.info('Organization not found, initiating retry:', {
+            organizationSlug,
+            retryCount,
+            maxRetries,
+            hasActiveGroup: !!activeGroup,
+            availableGroups: userGroups.map((g) => ({
+              id: g._id,
+              title: g.grp_title,
+              orgSlug: g.organization_slug || g.grp_slug,
+              titleSlug: titleToSlug(g.grp_title),
+            })),
+          });
+
+          // Keep loading state during retry
+          setOrganizationLoading(true);
+          setOrganizationInitialized(false);
+
+          // Start retry process
+          retryOrganizationLoad(organizationSlug, retryCount);
+        } else {
+          // Final failure - no more retries or retry not applicable
+          logger.warn(
+            'No matching group found for organization slug (final):',
+            {
+              organizationSlug,
+              retryCount,
+              maxRetries,
+              isRetrying,
+              hasActiveGroup: !!activeGroup,
+              availableGroups: userGroups.map((g) => ({
+                id: g._id,
+                title: g.grp_title,
+                orgSlug: g.organization_slug || g.grp_slug,
+                titleSlug: titleToSlug(g.grp_title),
+              })),
+            },
+          );
+
+          setOrganizationError(
+            new Error(
+              `Organization "${organizationSlug}" not found or not accessible`,
+            ),
+          );
+          setOrganization(null);
+          setOrganizationTheme(null);
+          setOrganizationLoading(false);
+          setOrganizationInitialized(true);
+          setRetryCount(0);
+          setIsRetrying(false);
+        }
       }
     } else if (
       isOrganizationContext &&
@@ -613,12 +762,31 @@ export function UnifiedGroupProvider({ children }) {
       setOrganizationInitialized(false);
       loadingOrgSlugRef.current = null;
     }
-  }, [isOrganizationContext, organizationSlug, userGroups]);
+  }, [
+    isOrganizationContext,
+    organizationSlug,
+    userGroups,
+    activeGroup,
+    retryCount,
+    isRetrying,
+    retryOrganizationLoad,
+    maxRetries,
+    setActiveGroupAtomic,
+  ]);
+
+  // Reset retry state when organization slug changes
+  useEffect(() => {
+    setRetryCount(0);
+    setIsRetrying(false);
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+  }, [organizationSlug]);
 
   // Cleanup on unmount
   useEffect(() => {
     mountedRef.current = true;
-
     return () => {
       mountedRef.current = false;
       groupUpdateLockRef.current = false;
@@ -626,6 +794,10 @@ export function UnifiedGroupProvider({ children }) {
       if (switchTimeoutRef.current) {
         clearTimeout(switchTimeoutRef.current);
         switchTimeoutRef.current = null;
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
       }
     };
   }, []);
@@ -698,12 +870,15 @@ export function UnifiedGroupProvider({ children }) {
       isSwitching,
     ],
   );
-
   // Handle organization loading and errors with improved logic
   if (isOrganizationContext && organizationLoading) {
+    const loadingText = isRetrying
+      ? `Loading organization... (attempt ${retryCount}/${maxRetries})`
+      : 'Loading organization...';
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <LoadingSpinner size="lg" text="Loading organization..." />
+        <LoadingSpinner size="lg" text={loadingText} />
       </div>
     );
   }

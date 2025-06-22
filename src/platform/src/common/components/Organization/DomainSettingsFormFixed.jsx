@@ -75,7 +75,8 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
     setToastConfig({ message, type });
     setShowToast(true);
   }, []);
-  // Handle form submission - with proper redirect and login setup reload
+
+  // Handle form submission - simplified version that uses the improved hook
   const handleSubmit = useCallback(
     async (e) => {
       if (e && e.preventDefault) {
@@ -106,26 +107,10 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         showToastMessage('Update already in progress', 'info');
         return;
       }
+
       try {
-        logger.info('Starting domain update process:', {
-          newSlug: formData.slug,
-          originalSlug: formData.originalSlug,
-        });
-
-        // Use the hook that handles the backend update and automatic redirect
-        // This will throw an error if the update fails
+        // Use the simplified hook that handles redirect automatically
         await updateSlugHook(formData.slug);
-
-        // If we reach here, the API call was successful
-        logger.info(
-          'Domain update API call successful, preparing for redirect',
-        );
-
-        // Show success message only after API confirms success
-        showToastMessage(
-          'Domain updated successfully! Redirecting to your new domain...',
-          'success',
-        );
 
         // Update local state for consistency
         setFormData((prev) => ({
@@ -136,13 +121,12 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         setAvailabilityStatus('');
         setAvailabilityMessage('');
 
-        // Note: The redirect will happen automatically from the hook
+        showToastMessage(
+          'Domain updated successfully! Redirecting...',
+          'success',
+        );
       } catch (error) {
-        logger.error('Domain update failed:', {
-          error: error.message,
-          newSlug: formData.slug,
-        });
-        showToastMessage(`Failed to update domain: ${error.message}`, 'error');
+        showToastMessage(error.message, 'error');
       }
     },
     [
@@ -295,27 +279,26 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                 integrations.
               </p>
             </div>
-          </div>{' '}
+          </div>
+
           {/* Domain Update Progress Banner */}
-          {(slugStatus === 'success' || isUpdating) && (
+          {slugStatus === 'success' && (
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fadeIn">
               <div className="flex items-center space-x-3">
                 <FaSpinner className="text-blue-600 dark:text-blue-400 animate-spin" />
                 <div>
                   <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                    {isUpdating
-                      ? 'Updating your domain...'
-                      : 'Setting up your new domain...'}
+                    Setting up your new domain...
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    {isUpdating
-                      ? 'Please wait while we update your organization URL in our system.'
-                      : 'Please wait while we configure your new URL. The page will reload automatically and redirect you to your new domain.'}
+                    Please wait while we configure your new URL. The page will
+                    reload automatically in a few seconds.
                   </p>
                 </div>
               </div>
             </div>
           )}
+
           <form className="space-y-8">
             {/* URL Customization */}
             <div className="space-y-6">
@@ -502,6 +485,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
             </div>
             {/* Form Actions - Removed, handled by sidebar */}
           </form>
+
           {/* Toast Notifications */}
           {showToast && (
             <CustomToast
