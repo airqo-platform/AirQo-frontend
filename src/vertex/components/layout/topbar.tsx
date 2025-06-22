@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, ChevronDown } from "lucide-react"
+import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

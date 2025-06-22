@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import {
-  BarChart2,
   Users,
   Radio,
   MapPin,
@@ -13,15 +12,14 @@ import {
   UserCircle,
   MapIcon,
   ChevronRight,
-  PlusCircle,
   ChevronLeft,
   Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
+import SubMenu from "./sub-menu";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -55,10 +53,22 @@ const NavItem = ({ href, icon: Icon, label, isCollapsed }: { href: string; icon:
     )
 };
 
+const SubMenuItem = ({ href, label }: { href: string; label: string }) => {
+    const pathname = usePathname();
+    const isActive = pathname.startsWith(href);
+    return (
+        <Link
+            href={href}
+            className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200 ${
+                isActive ? "bg-accent text-accent-foreground" : ""
+            }`}
+        >
+            <span>{label}</span>
+        </Link>
+    );
+};
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, activeModule, toggleSidebar }) => {
-    const [isDevicesOpen, setIsDevicesOpen] = React.useState(true); 
-
     return (
         <div
             className={`relative h-full bg-card transition-all duration-300 ease-in-out z-30 shadow-md flex flex-col
@@ -90,38 +100,19 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                                 isCollapsed={isCollapsed}
                             />
                             <PermissionGuard permission={["CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES", "DEPLOY_AIRQO_DEVICES"]} requireAll={false}>
-                                <Collapsible open={isDevicesOpen} onOpenChange={setIsDevicesOpen}>
-                                    {isCollapsed ? (
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className="flex items-center justify-center w-full cursor-pointer text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200">
-                                            <Radio size={18} className="shrink-0" />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right">Devices</TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                    ) : (
-                                    <CollapsibleTrigger asChild>
-                                        <div className="flex items-center w-full cursor-pointer text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200">
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <Radio size={18} className="shrink-0" />
-                                            <span>Devices</span>
-                                        </div>
-                                        <ChevronRight size={16} className={`transition-transform shrink-0 ${isDevicesOpen ? "rotate-90" : ""}`} />
-                                        </div>
-                                    </CollapsibleTrigger>
-                                    )}
-                                    <CollapsibleContent className={`ml-6 space-y-1 py-1 ${isCollapsed ? "hidden" : "block"}`}>
+                                <SubMenu
+                                    label="Devices"
+                                    icon={Radio}
+                                    isCollapsed={isCollapsed}
+                                    href="/devices/overview"
+                                >
                                     <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
-                                        <NavItem href="/devices/overview" icon={BarChart2} label="Overview" isCollapsed={isCollapsed} />
+                                        <SubMenuItem href="/devices/overview" label="Overview" />
                                     </PermissionGuard>
                                     <PermissionGuard permission="DEPLOY_AIRQO_DEVICES">
-                                        <NavItem href="/devices/deploy" icon={PlusCircle} label="Deploy Device" isCollapsed={isCollapsed} />
+                                        <SubMenuItem href="/devices/deploy" label="Deploy Device" />
                                     </PermissionGuard>
-                                    </CollapsibleContent>
-                                </Collapsible>
+                                </SubMenu>
                             </PermissionGuard>
                             <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_SITES">
                                 <NavItem href="/sites" icon={MapPin} label="Sites" isCollapsed={isCollapsed} />

@@ -38,7 +38,6 @@ const OrganizationPicker: React.FC = () => {
         <span className="truncate">
           {formatTitle(activeGroup?.grp_title || "") || "Select Organization"}
         </span>
-        <ChevronDown size={16} className="text-muted-foreground" />
       </Button>
 
       <OrganizationModal
