@@ -9,14 +9,11 @@ import {
   Layers,
   Grid,
   Building2,
-  Activity,
   UserCircle,
-  Download,
   MapIcon,
   ChevronRight,
   Check,
   PlusCircle,
-  MonitorSmartphone,
   LogOut,
   NetworkIcon,
   ChevronLeft,
@@ -183,23 +180,9 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
               <ul className="space-y-2">
                 <li>
                   <NavItem
-                    href="/analytics"
-                    icon={BarChart2}
-                    label="Analytics"
-                  />
-                </li>
-                <li>
-                  <NavItem
                     href="/network-map"
                     icon={MapIcon}
                     label="Network Map"
-                  />
-                </li>
-                <li>
-                  <NavItem
-                    href="/data-export"
-                    icon={Download}
-                    label="Data Export"
                   />
                 </li>
               </ul>
@@ -299,13 +282,6 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                             label="Deploy Device"
                           />
                         </PermissionGuard>
-                        <PermissionGuard permission="VIEW_NETWORK_UPTIME">
-                          <NavItem
-                            href="/devices/monitoring"
-                            icon={MonitorSmartphone}
-                            label="Monitoring"
-                          />
-                        </PermissionGuard>
                       </CollapsibleContent>
                     </Collapsible>
                   </li>
@@ -329,13 +305,6 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
                   </li>
                 </PermissionGuard>
 
-                <li>
-                  <NavItem
-                    href="/activity-logs"
-                    icon={Activity}
-                    label="Activity Logs"
-                  />
-                </li>
               </ul>
             </div>
 
