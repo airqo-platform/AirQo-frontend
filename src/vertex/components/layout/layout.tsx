@@ -1,60 +1,70 @@
 "use client"; // Ensures this runs on the client
 
 import { useState, useEffect } from "react";
-import Sidebar from "./sidebar";
+import { usePathname, useRouter } from 'next/navigation';
 import Topbar from "./topbar";
+import PrimarySidebar from "./primary-sidebar";
+import SecondarySidebar from "./secondary-sidebar";
 
 interface LayoutProps {
     children: React.ReactNode;
     hideTopbar?: boolean;
-    defaultCollapsed?: boolean;
 }
 
 export default function Layout({ 
     children, 
     hideTopbar = false,
-    defaultCollapsed = false 
 }: LayoutProps) {
-    const [darkMode, setDarkMode] = useState(false);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(defaultCollapsed);
-    const [isMobileView, setIsMobileView] = useState(false);
+    const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
+    const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(false);
+    const [activeModule, setActiveModule] = useState("network");
+    const pathname = usePathname();
+    const router = useRouter();
 
     useEffect(() => {
-        const isDarkMode = localStorage.getItem("darkMode") === "true";
-        setDarkMode(isDarkMode);
-        document.documentElement.classList.toggle("dark", isDarkMode);
+        if (pathname.startsWith('/user-management') || pathname.startsWith('/organizations') || pathname.startsWith('/access-control')) {
+            setActiveModule('admin');
+        } else {
+            setActiveModule('network');
+        }
+    }, [pathname]);
 
-        const handleResize = () => {
-            setIsMobileView(window.innerWidth < 768);
-        };
-
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    useEffect(() => {
-        setIsSidebarCollapsed(defaultCollapsed);
-    }, [defaultCollapsed]);
-
-    const toggleSidebar = () => {
-        setIsSidebarCollapsed(!isSidebarCollapsed);
+    const handleModuleChange = (module: string) => {
+        setActiveModule(module);
+        setIsPrimarySidebarOpen(false);
+        if (module === 'admin') {
+            router.push('/user-management'); 
+        } else {
+            router.push('/network-map');
+        }
     };
 
+    const toggleSecondarySidebar = () => {
+        setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
+    }
+
     return (
-        <div className={`flex h-screen overflow-hidden bg-background ${darkMode ? "dark" : ""}`}>
-            <Sidebar
-                isSidebarCollapsed={isSidebarCollapsed}
-                toggleSidebar={toggleSidebar}
+        <div className="flex h-screen bg-muted/40">
+            <PrimarySidebar
+                isOpen={isPrimarySidebarOpen}
+                onClose={() => setIsPrimarySidebarOpen(false)}
+                activeModule={activeModule}
+                onModuleChange={handleModuleChange}
             />
-            <main className={`flex-1 flex flex-col bg-background transition-all duration-300 overflow-hidden ${
-                isSidebarCollapsed ? "md:pl-16" : "md:pl-64"
-            }`}>
-                {!hideTopbar && <Topbar isMobileView={isMobileView} toggleSidebar={toggleSidebar} />}
-                <div className="flex-1 overflow-y-auto">
-                    {children}
+
+            <div className="flex flex-col flex-1">
+                {!hideTopbar && <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />}
+                <div className="flex flex-1 overflow-hidden">
+                    <SecondarySidebar
+                        isCollapsed={isSecondarySidebarCollapsed}
+                        toggleSidebar={toggleSecondarySidebar}
+                        activeModule={activeModule}
+                    />
+                    <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+                        {children}
+                    </main>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }
