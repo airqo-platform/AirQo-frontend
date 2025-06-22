@@ -15,7 +15,6 @@ import {
 import { useDispatch } from 'react-redux';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/common/components/Toast/CustomToast';
-import ThemeResetButton from '@/common/components/ThemeResetButton';
 import { useOrganizationTheme } from '@/core/hooks/useOrganizationTheme';
 import { setOrganizationTheme } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
 import AppearanceSettingsFormSkeleton from './AppearanceSettingsFormSkeleton';
@@ -87,6 +86,7 @@ const AppearanceSettingsForm = forwardRef(
 
     // Track if there are unsaved changes
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     const handleSave = async () => {
       try {
         const updatedTheme = await updateTheme(formData);
@@ -126,50 +126,51 @@ const AppearanceSettingsForm = forwardRef(
       handleSave,
       isUpdating,
       hasUnsavedChanges,
-    })); // Update form data when theme data is loaded
+    })); // Update form data when theme data is loaded (only once)
     useEffect(() => {
-      if (themeData) {
+      if (themeData && !isInitialized) {
         const formattedData = {
           primaryColor: themeData.primaryColor || '#3B82F6',
           mode: themeData.mode || 'light',
           interfaceStyle: themeData.interfaceStyle || 'bordered',
           contentLayout: themeData.contentLayout || 'compact',
         };
+
         if (process.env.NODE_ENV === 'development') {
           logger.debug(
-            'Setting theme data in AppearanceSettingsForm:',
+            'Loading theme data in AppearanceSettingsForm:',
             formattedData,
           );
         }
-        setFormData(formattedData);
 
-        // Reset unsaved changes when loading fresh data
-        setHasUnsavedChanges(false);
-        onUnsavedChanges(false);
+        setFormData(formattedData);
+        setIsInitialized(true);
 
         // Store organization theme in Redux for use in other parts of the app
         dispatch(setOrganizationTheme(formattedData));
       }
-    }, [themeData, dispatch, onUnsavedChanges]);
+    }, [themeData, dispatch, isInitialized]);
 
-    // Also update Redux when hasActiveGroup changes to ensure proper state management
+    // Update Redux when hasActiveGroup changes (only if not initialized yet)
     useEffect(() => {
-      if (hasActiveGroup && themeData) {
+      if (hasActiveGroup && themeData && !isInitialized) {
         const formattedData = {
           primaryColor: themeData.primaryColor || '#3B82F6',
           mode: themeData.mode || 'light',
           interfaceStyle: themeData.interfaceStyle || 'bordered',
           contentLayout: themeData.contentLayout || 'compact',
         };
+
         if (process.env.NODE_ENV === 'development') {
           logger.debug(
             'Updating Redux on hasActiveGroup change:',
             formattedData,
           );
         }
+
         dispatch(setOrganizationTheme(formattedData));
       }
-    }, [hasActiveGroup, themeData, dispatch, onUnsavedChanges]);
+    }, [hasActiveGroup, themeData, dispatch, isInitialized]);
 
     // Show loading skeleton while fetching data
     if (isLoading) {
@@ -210,10 +211,22 @@ const AppearanceSettingsForm = forwardRef(
       );
     }
     const handleFieldChange = (field, value) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug(`Changing ${field} to:`, value);
+      }
+
+      setFormData((prev) => {
+        const newData = {
+          ...prev,
+          [field]: value,
+        };
+
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('New formData:', newData);
+        }
+
+        return newData;
+      });
 
       // Mark as having unsaved changes
       setHasUnsavedChanges(true);
@@ -221,9 +234,6 @@ const AppearanceSettingsForm = forwardRef(
 
       // Call the parent callback for backward compatibility
       onAppearanceChange(field, value);
-
-      // Remove automatic theme update - only update when save is clicked
-      // No longer calling updateTheme here
     };
 
     const handleColorChange = (color) => {
@@ -257,26 +267,7 @@ const AppearanceSettingsForm = forwardRef(
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
                   Customize your organization&apos;s visual identity
                 </p>
-              </div>{' '}
-              <ThemeResetButton
-                variant="button"
-                size="small"
-                className="!bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 !text-white shadow-md hover:shadow-lg transition-all duration-200"
-                onResetComplete={(orgTheme) => {
-                  const formattedData = {
-                    primaryColor: orgTheme.primaryColor || '#3B82F6',
-                    mode: orgTheme.mode || 'light',
-                    interfaceStyle: orgTheme.interfaceStyle || 'bordered',
-                    contentLayout: orgTheme.contentLayout || 'compact',
-                  };
-
-                  setFormData(formattedData);
-                  // Update Redux with the reset theme
-                  dispatch(setOrganizationTheme(formattedData));
-                }}
-              >
-                Reset to Defaults
-              </ThemeResetButton>
+              </div>
             </div>
           </div>
           {/* Main Content Grid */}
@@ -747,37 +738,57 @@ const AppearanceSettingsForm = forwardRef(
           </div>
           {/* Save Button Section */}
           {hasUnsavedChanges && (
-            <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => {
-                  // Reset to original theme data
-                  if (themeData) {
-                    const formattedData = {
-                      primaryColor: themeData.primaryColor || '#3B82F6',
-                      mode: themeData.mode || 'light',
-                      interfaceStyle: themeData.interfaceStyle || 'bordered',
-                      contentLayout: themeData.contentLayout || 'compact',
-                    };
-                    setFormData(formattedData);
-                    setHasUnsavedChanges(false);
-                    onUnsavedChanges(false);
-                  }
+                  // Reset to default theme values
+                  const defaultData = {
+                    primaryColor: '#3B82F6',
+                    mode: 'light',
+                    interfaceStyle: 'bordered',
+                    contentLayout: 'compact',
+                  };
+                  setFormData(defaultData);
+                  setHasUnsavedChanges(true);
+                  onUnsavedChanges(true);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
               >
-                Cancel
+                Reset to Defaults
               </button>
-              <button
-                onClick={handleSave}
-                disabled={isUpdating}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: formData.primaryColor,
-                  filter: isUpdating ? 'brightness(0.8)' : 'none',
-                }}
-              >
-                {isUpdating ? 'Saving...' : 'Save Changes'}
-              </button>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    // Reset to original theme data
+                    if (themeData) {
+                      const formattedData = {
+                        primaryColor: themeData.primaryColor || '#3B82F6',
+                        mode: themeData.mode || 'light',
+                        interfaceStyle: themeData.interfaceStyle || 'bordered',
+                        contentLayout: themeData.contentLayout || 'compact',
+                      };
+                      setFormData(formattedData);
+                      setHasUnsavedChanges(false);
+                      onUnsavedChanges(false);
+                    }
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isUpdating}
+                  className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: formData.primaryColor,
+                    filter: isUpdating ? 'brightness(0.8)' : 'none',
+                  }}
+                >
+                  {isUpdating ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
             </div>
           )}
         </div>
