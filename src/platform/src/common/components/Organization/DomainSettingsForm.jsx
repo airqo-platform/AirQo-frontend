@@ -43,36 +43,17 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
   const [toastConfig, setToastConfig] = useState({
     message: '',
     type: 'success',
-  });
-  // Domain setup progress tracking
-  const [setupStage, setSetupStage] = useState(null);
-  const [setupProgress, setSetupProgress] = useState(0);
-  const [progressStarted, setProgressStarted] = useState(false);
+  }); // Domain setup progress tracking - simplified
+  const [showSetupMessage, setShowSetupMessage] = useState(false);
 
-  // Effect to start progress simulation when slug update succeeds
+  // Effect to show setup message when slug update succeeds
   useEffect(() => {
-    if (slugStatus === 'success' && !progressStarted) {
-      setProgressStarted(true);
-      setSetupStage('propagating');
-      setSetupProgress(50);
-
-      const timer1 = setTimeout(() => {
-        setSetupStage('configuring');
-        setSetupProgress(75);
-      }, 3000);
-
-      const timer2 = setTimeout(() => {
-        setSetupStage('redirecting');
-        setSetupProgress(100);
-      }, 6000);
-
-      // Cleanup function to clear timeouts if component unmounts
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
+    if (slugStatus === 'success' && !showSetupMessage) {
+      setShowSetupMessage(true);
     }
-  }, [slugStatus, progressStarted]); // Initialize form data when currentSlug is available from the hook
+  }, [slugStatus, showSetupMessage]);
+
+  // Initialize form data when currentSlug is available from the hook
   useEffect(() => {
     if (currentSlug) {
       setFormData({
@@ -80,9 +61,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         originalSlug: currentSlug,
       });
       setHasChanges(false);
-      setSetupStage(null);
-      setSetupProgress(0);
-      setProgressStarted(false);
+      setShowSetupMessage(false);
       resetStates();
     }
   }, [currentSlug, resetStates]);
@@ -141,10 +120,6 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
           newSlug: formData.slug,
           originalSlug: formData.originalSlug,
         });
-
-        // Initialize setup progress
-        setSetupStage('updating');
-        setSetupProgress(25);
 
         // Use the hook that handles the backend update and automatic redirect
         // This will throw an error if the update fails
@@ -331,7 +306,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
             </div>
           </div>{' '}
           {/* Domain Update Progress Banner */}
-          {(slugStatus === 'success' || isUpdating) && (
+          {(showSetupMessage || isUpdating) && (
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fadeIn">
               <div className="flex items-center space-x-3">
                 <FaSpinner className="text-blue-600 dark:text-blue-400 animate-spin" />
@@ -339,42 +314,13 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                   <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
                     {isUpdating
                       ? 'Updating your domain...'
-                      : setupStage === 'propagating'
-                        ? 'Propagating changes across systems...'
-                        : setupStage === 'configuring'
-                          ? 'Configuring your new domain...'
-                          : setupStage === 'redirecting'
-                            ? 'Preparing to redirect to your new domain...'
-                            : 'Setting up your new domain...'}
+                      : 'Please wait as we setup your new domain'}
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                     {isUpdating
                       ? 'Please wait while we update your organization URL in our system.'
-                      : setupStage === 'propagating'
-                        ? 'Changes are being synchronized across all systems and services.'
-                        : setupStage === 'configuring'
-                          ? 'Your new domain is being configured and secured. Almost ready!'
-                          : setupStage === 'redirecting'
-                            ? 'Setup complete! You will be automatically redirected to your new domain shortly.'
-                            : 'Your domain is being configured. This process ensures all systems are properly updated.'}
+                      : 'Your new domain is being configured. You will be redirected shortly.'}
                   </p>
-                  {/* Progress bar */}
-                  {(setupProgress > 0 || isUpdating) && (
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-blue-600 dark:text-blue-400 mb-1">
-                        <span>Setup Progress</span>
-                        <span>{isUpdating ? '25%' : `${setupProgress}%`}</span>
-                      </div>
-                      <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-1000 ease-out"
-                          style={{
-                            width: `${isUpdating ? 25 : setupProgress}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

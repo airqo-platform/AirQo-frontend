@@ -80,20 +80,9 @@ export const useGroupSlugManager = () => {
       if (formatError) {
         return { available: false, message: formatError };
       }
-
       setIsCheckingAvailability(true);
       try {
-        logger.info('Checking slug availability:', { slug });
-
-        // Don't pass groupId for availability checks - we want to know if slug is truly available
         const response = await getOrganisationSlugAvailabilityApi(slug);
-
-        logger.info('Slug availability response:', {
-          slug,
-          response,
-          success: response?.success,
-          available: response?.available,
-        });
 
         if (response && response.success !== undefined) {
           return {
@@ -109,10 +98,9 @@ export const useGroupSlugManager = () => {
           };
         }
       } catch (error) {
-        logger.error('Error checking slug availability:', {
-          error: error.message,
+        logger.error('Slug availability check failed', {
           slug,
-          stack: error.stack,
+          error: error.message,
         });
         return {
           available: false,
@@ -174,32 +162,29 @@ export const useGroupSlugManager = () => {
             'Failed to update domain. Please try again.';
           throw new Error(errorMessage);
         }
-        logger.info('Domain update successful, API confirmed:', {
+        logger.info('Domain update successful', {
           oldSlug: activeGroup?.organization_slug || activeGroup?.grp_slug,
           newSlug,
           groupId: activeGroup._id,
-          apiResponse: response,
         });
 
         setSlugStatus('success');
 
-        // Force refresh user groups to get updated slug data
-        logger.info('Refreshing user groups to get updated slug data...');
-        try {
-          await refreshGroups(true); // Force refresh
-        } catch (refreshError) {
+        // Show "setting up domain" message for 3 seconds before background refresh
+        // This gives user time to see the setup message and feel confident about the process
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // Start background group refresh (invisible to user)
+        const refreshPromise = refreshGroups(true).catch((refreshError) => {
           logger.warn(
-            'Failed to refresh user groups after slug update:',
+            'Background group refresh failed (non-critical):',
             refreshError,
           );
-          // Don't fail the entire process if group refresh fails
-        } // Extended delay to allow backend processing, DNS propagation, and user notification
-        logger.info(
-          'Domain update successful. Allowing time for system propagation and user notification...',
-        );
-        await new Promise((resolve) => setTimeout(resolve, 8000)); // Increased to 8 seconds
+        });
 
-        // Construct the new URL more robustly
+        // Give refresh a moment to complete, then redirect
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await refreshPromise; // Construct the new URL and redirect
         const currentUrl = window.location.href;
         const oldSlug =
           activeGroup?.organization_slug ||
@@ -207,41 +192,30 @@ export const useGroupSlugManager = () => {
           generateSlugFromName(activeGroup?.grp_title || activeGroup?.grp_name);
 
         let newUrl;
-
         if (oldSlug && currentUrl.includes(`/org/${oldSlug}`)) {
-          // Replace the old slug with the new one in the current URL
           newUrl = currentUrl.replace(`/org/${oldSlug}`, `/org/${newSlug}`);
-          logger.info('Redirecting to new domain:', {
-            from: currentUrl,
-            to: newUrl,
-          });
         } else {
-          // Fallback: construct new URL from scratch
           const baseUrl = window.location.origin;
-          const pathAfterSlug = pathname.split('/').slice(3).join('/'); // Remove /org/[slug]
+          const pathAfterSlug = pathname.split('/').slice(3).join('/');
           newUrl = `${baseUrl}/org/${newSlug}/${pathAfterSlug}`;
-          logger.info('Constructing new URL from scratch:', {
-            newUrl,
-            pathAfterSlug,
-          });
         }
-
-        // Perform the redirect - this will trigger a full page reload and loginSetup
-        logger.info('Performing redirect to new domain...');
+        logger.info('Redirecting to new domain', {
+          from: currentUrl,
+          to: newUrl,
+        });
         window.location.href = newUrl;
 
         // Note: Code after this point won't execute due to page navigation
       } catch (error) {
-        logger.error('Error updating group slug:', {
+        logger.error('Domain update failed', {
           error: error.message,
-          stack: error.stack,
           groupId: activeGroup._id,
           newSlug,
         });
 
         setSlugStatus('error');
         setValidationErrors({ slug: error.message });
-        setIsUpdating(false); // Explicitly stop loading on error
+        setIsUpdating(false);
         throw error;
       }
       // Note: setIsUpdating(false) is intentionally NOT called on success
