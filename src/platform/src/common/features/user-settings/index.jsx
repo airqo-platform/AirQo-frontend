@@ -15,6 +15,8 @@ import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
 import API from './tabs/API';
 import { withUserAuth } from '@/core/HOC';
 import { useSessionAwarePermissions } from '@/core/HOC';
+import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
+import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions =
@@ -29,6 +31,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [userPermissions, setUserPermissions] = useState([]);
   const [userGroup, setUserGroup] = useState({});
+  const { theme, primaryColor, systemTheme } = useThemeSafe();
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences,
   );
@@ -36,6 +39,11 @@ const Settings = () => {
   const { data: session } = useSession();
   const { hasPermission, isLoading: permissionsLoading } =
     useSessionAwarePermissions();
+
+  // Determine if we're in dark mode
+  const isDarkMode =
+    theme === THEME_MODES.DARK ||
+    (theme === THEME_MODES.SYSTEM && systemTheme === 'dark');
 
   useEffect(() => {
     setLoading(true);
@@ -69,12 +77,29 @@ const Settings = () => {
         setLoading(false);
       });
   }, [session, preferences, dispatch]);
-
   // Show loading state while checking permissions
   if (permissionsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="SecondaryMainloader" aria-label="Loading..."></div>
+      <div
+        className="flex flex-col items-center justify-center min-h-screen space-y-4"
+        style={{
+          backgroundColor: isDarkMode ? '#1d1f20f0' : '#ffffff',
+        }}
+      >
+        <div
+          className="SecondaryMainloader"
+          aria-label="Loading"
+          style={{
+            '--color-primary': primaryColor,
+          }}
+        ></div>
+        <p
+          className={`text-sm animate-pulse transition-colors duration-300 ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-600'
+          }`}
+        >
+          Loading settings...
+        </p>
       </div>
     );
   }

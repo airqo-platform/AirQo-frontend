@@ -2,9 +2,11 @@
 
 import { withAdminAccess } from '@/core/HOC';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
-import AdminSidebarContent from '@/common/layouts/SideBar/AdminSidebarContent';
+import {
+  UnifiedSidebarContent,
+  UnifiedSideBarDrawer,
+} from '@/common/layouts/SideBar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
-import AdminSideBarDrawer from '@/common/layouts/SideBar/AdminSideBarDrawer';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -63,7 +65,7 @@ function AdminLayout({ children }) {
       {/* Sidebar - Fixed position below topbar with admin content */}
       <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar>
-          <AdminSidebarContent isCollapsed={isCollapsed} />
+          <UnifiedSidebarContent userType="admin" isCollapsed={isCollapsed} />
         </AuthenticatedSideBar>
       </aside>
 
@@ -87,7 +89,7 @@ function AdminLayout({ children }) {
       <ThemeCustomizer />
 
       {/* Admin SideBar Drawer */}
-      <AdminSideBarDrawer />
+      <UnifiedSideBarDrawer userType="admin" />
       <GlobalSideBarDrawer />
     </div>
   );
