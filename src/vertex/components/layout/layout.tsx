@@ -8,12 +8,10 @@ import SecondarySidebar from "./secondary-sidebar";
 
 interface LayoutProps {
     children: React.ReactNode;
-    hideTopbar?: boolean;
 }
 
 export default function Layout({ 
     children, 
-    hideTopbar = false,
 }: LayoutProps) {
     const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
     const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(false);
@@ -26,6 +24,13 @@ export default function Layout({
             setActiveModule('admin');
         } else {
             setActiveModule('network');
+        }
+    }, [pathname]);
+
+    // Auto-collapse secondary sidebar when on network map page
+    useEffect(() => {
+        if (pathname === '/network-map') {
+            setIsSecondarySidebarCollapsed(true);
         }
     }, [pathname]);
 
@@ -53,14 +58,14 @@ export default function Layout({
             />
 
             <div className="flex flex-col flex-1">
-                {!hideTopbar && <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />}
+                <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
                 <div className="flex flex-1 overflow-hidden">
                     <SecondarySidebar
                         isCollapsed={isSecondarySidebarCollapsed}
                         toggleSidebar={toggleSecondarySidebar}
                         activeModule={activeModule}
                     />
-                    <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+                    <main className="flex-1 overflow-y-auto">
                         {children}
                     </main>
                 </div>
