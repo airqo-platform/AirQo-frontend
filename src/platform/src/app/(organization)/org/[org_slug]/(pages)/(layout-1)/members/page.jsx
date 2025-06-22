@@ -2,7 +2,7 @@
 
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
 import {
@@ -33,7 +33,7 @@ const OrganizationMembersPage = () => {
   const [groupDetails, setGroupDetails] = useState(null);
 
   // Fetch group details and members from API
-  const fetchMemberData = async () => {
+  const fetchMemberData = useCallback(async () => {
     // Try to get group ID from organization first, then fallback to activeGroup
     const groupId = organization?._id || organization?.id || activeGroup?._id;
 
@@ -72,7 +72,7 @@ const OrganizationMembersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organization, activeGroup]);
 
   // Handle remove user from group
   const handleRemoveUser = async (user) => {
@@ -104,7 +104,7 @@ const OrganizationMembersPage = () => {
   // Fetch group details and members from API on mount
   useEffect(() => {
     fetchMemberData();
-  }, [organization?._id, activeGroup?._id]);
+  }, [fetchMemberData]);
 
   // Filter members based on search and filters
   useEffect(() => {
