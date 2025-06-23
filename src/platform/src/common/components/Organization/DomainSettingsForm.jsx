@@ -287,8 +287,8 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
           animation: fadeIn 0.3s ease-out;
         }
       `}</style>
-      <CardWrapper className="max-w-4xl mx-auto shadow-lg border-0">
-        <div className="p-8">
+      <CardWrapper>
+        <div>
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>

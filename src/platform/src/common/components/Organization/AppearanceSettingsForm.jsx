@@ -11,6 +11,8 @@ import {
   FaDesktop,
   FaExpandArrowsAlt,
   FaCompress,
+  FaSave,
+  FaSpinner,
 } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -19,6 +21,7 @@ import { useOrganizationTheme } from '@/core/hooks/useOrganizationTheme';
 import { setOrganizationTheme } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
 import AppearanceSettingsFormSkeleton from './AppearanceSettingsFormSkeleton';
 import logger from '@/lib/logger';
+import Button from '@/common/components/Button';
 
 const themeOptions = [
   {
@@ -777,17 +780,15 @@ const AppearanceSettingsForm = forwardRef(
                 >
                   Cancel
                 </button>
-                <button
+                <Button
                   onClick={handleSave}
                   disabled={isUpdating}
-                  className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: formData.primaryColor,
-                    filter: isUpdating ? 'brightness(0.8)' : 'none',
-                  }}
+                  variant="filled"
+                  Icon={isUpdating ? FaSpinner : FaSave}
+                  className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90"
                 >
                   {isUpdating ? 'Saving...' : 'Save Changes'}
-                </button>
+                </Button>
               </div>
             </div>
           )}

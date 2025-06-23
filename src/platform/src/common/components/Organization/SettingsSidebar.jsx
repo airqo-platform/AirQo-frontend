@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaSave, FaSpinner, FaUndo, FaGlobe, FaEdit } from 'react-icons/fa';
+import { FaSave, FaSpinner, FaEdit, FaUndo } from 'react-icons/fa';
 import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -19,92 +19,60 @@ const SettingsSidebar = ({
   const isSaving =
     saveStatus === 'saving' ||
     (activeTab === 'appearance' && isAppearanceUpdating);
-  const saveButtonText = isSaving ? 'Saving...' : 'Save Changes';
+  const isDomainUpdating = domainFormRef?.current?.isUpdating;
 
-  // Button variant based on unsaved changes
-  const buttonVariant = hasUnsavedChanges ? 'filled' : 'outlined';
-  const buttonClassName = hasUnsavedChanges
-    ? 'w-full flex items-center justify-center bg-primary hover:bg-primary/90'
-    : 'w-full flex items-center justify-center';
   return (
     <CardWrapper>
       <div className="space-y-6">
-        {' '}
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
           <FaSave className="mr-2 text-primary" />
           Actions
-        </h3>{' '}
-        {/* Save button - hide for domain tab as it handles its own save operations */}
-        {activeTab !== 'domain' && (
-          <Button
-            onClick={onSave}
-            disabled={isSaving}
-            variant={buttonVariant}
-            className={buttonClassName}
-          >
-            {isSaving ? (
-              <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <FaSave className="mr-2 h-4 w-4" />
-            )}
-            {saveButtonText}
-          </Button>
-        )}{' '}
-        {/* Domain tab info and update button */}
-        {activeTab === 'domain' && (
-          <div className="space-y-6">
-            <div className="p-6 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20 dark:border-primary/30">
-              <div className="flex items-start space-x-4">
-                <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                  <FaGlobe className="text-primary text-lg flex-shrink-0" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-base font-semibold text-primary mb-2">
-                    Domain Management
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Use the form to customize your organization&apos;s URL.
-                    Changes are validated in real-time and saved independently.
-                  </p>
-                </div>
-              </div>
-            </div>{' '}
-            {/* Update URL Button - Always Enabled */}
+        </h3>
+        {/* Action Buttons Section */}
+        <div className="flex flex-col gap-3 w-full">
+          {/* Save button - hide for domain tab as it handles its own save operations */}
+          {activeTab !== 'domain' && (
+            <Button
+              onClick={onSave}
+              disabled={isSaving || !hasUnsavedChanges}
+              variant="filled"
+              Icon={isSaving ? FaSpinner : FaSave}
+              className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isSaving ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
+          {/* Domain tab info and update button */}
+          {activeTab === 'domain' && (
             <Button
               onClick={() => {
                 if (domainFormRef?.current?.handleUpdate) {
                   domainFormRef.current.handleUpdate();
                 }
               }}
-              disabled={false} // Always enabled - let form handle validation
+              disabled={isDomainUpdating || !hasUnsavedChanges}
               variant="filled"
-              className="w-full flex items-center justify-center py-3 px-4 rounded-xl font-semibold transition-all duration-200 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25"
+              Icon={isDomainUpdating ? FaSpinner : FaEdit}
+              className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isDomainUpdating ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
             >
-              {domainFormRef?.current?.isUpdating ? (
-                <FaSpinner className="mr-3 h-5 w-5 animate-spin" />
-              ) : (
-                <FaEdit className="mr-3 h-5 w-5" />
-              )}
-              {domainFormRef?.current?.isUpdating
-                ? 'Updating URL...'
-                : 'Update URL'}
-            </Button>
-          </div>
-        )}
-        {/* Discard changes button - only show for organization tab and when there are unsaved changes */}
-        {hasUnsavedChanges &&
-          onReset &&
-          (activeTab === 'organization' || activeTab === 'domain') &&
-          !isSaving && (
-            <Button
-              onClick={onReset}
-              variant="outlined"
-              className="w-full flex items-center justify-center mt-2"
-            >
-              <FaUndo className="mr-2 h-4 w-4" />
-              Discard Changes
+              {isDomainUpdating ? 'Updating URL...' : 'Update URL'}
             </Button>
           )}
+          {/* Discard changes button - only show for organization tab and when there are unsaved changes */}
+          {hasUnsavedChanges &&
+            onReset &&
+            (activeTab === 'organization' || activeTab === 'domain') &&
+            !isSaving && (
+              <Button
+                onClick={onReset}
+                variant="outlined"
+                className="w-full py-3 px-4 flex items-center justify-center rounded-lg font-semibold transition-all duration-200 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <FaUndo className="mr-2 h-4 w-4" />
+                Discard Changes
+              </Button>
+            )}
+        </div>
         {/* Unsaved changes indicator */}
         {hasUnsavedChanges && !isSaving && (
           <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
@@ -171,7 +139,6 @@ const SettingsSidebar = ({
                 </svg>
               </div>
               <div>
-                {' '}
                 <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
                   Theme Priority Notice
                 </h4>
