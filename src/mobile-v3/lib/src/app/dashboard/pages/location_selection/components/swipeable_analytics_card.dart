@@ -5,6 +5,7 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
+import 'dart:async';
 
 class SwipeableAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
@@ -25,6 +26,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
   double _dragOffset = 0;
   bool _isDeleteVisible = false;
   final double _deleteWidth = 80.0;
+
+  Timer? _autoHideTimer;
 
   bool _showTooltip = false;
   AnimationController? _tooltipController;
@@ -69,6 +72,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
 
   @override
   void dispose() {
+    _autoHideTimer?.cancel();
     _tooltipController?.dispose();
     _shakeController?.dispose();
     super.dispose();
@@ -83,13 +87,16 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
     _tooltipController!.forward();
     _shakeController!.forward();
 
-    Future.delayed(const Duration(seconds: 5), () {
+    _autoHideTimer?.cancel();
+    _autoHideTimer = Timer(const Duration(seconds: 5), () {
       _hideTooltip();
     });
   }
 
   void _hideTooltip() {
     if (_tooltipController == null || _shakeController == null) return;
+
+    _autoHideTimer?.cancel();
 
     _tooltipController!.reverse().then((_) {
       if (mounted) {
@@ -294,9 +301,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
         AnimatedBuilder(
           animation: _shakeAnimation ?? AlwaysStoppedAnimation(0.0),
           builder: (context, child) {
-            final shakeOffset = (_shakeAnimation?.value ?? 0.0) *
-                3.0 *
-                (1.0 - (_shakeAnimation?.value ?? 0.0));
+            final shakeOffset = (_shakeAnimation?.value ?? 0.0) * 15.0;
 
             return GestureDetector(
               onTap: _showAnalyticsDetails,
