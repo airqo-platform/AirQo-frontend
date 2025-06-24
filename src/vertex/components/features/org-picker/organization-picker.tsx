@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Building2, ChevronDown } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
 import { setActiveGroup } from "@/core/redux/slices/userSlice";
 import type { Group } from "@/app/types/users";
