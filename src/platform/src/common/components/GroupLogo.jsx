@@ -486,7 +486,7 @@ const GroupLogo = ({
       ref={containerRef}
       className={`
         ${containerClasses}
-        rounded-full
+        rounded-lg
         text-white font-semibold
         shadow-sm ring-2 ring-white dark:ring-gray-800
         transition-all duration-300 ease-in-out

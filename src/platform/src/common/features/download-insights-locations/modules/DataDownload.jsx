@@ -622,16 +622,23 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     ],
   );
 
-  // Define filter tabs
-  const filters = useMemo(
-    () => [
+  // Define filter tabs, hiding Countries and Cities unless AirQo group is active
+  const filters = useMemo(() => {
+    const baseFilters = [
       { key: FILTER_TYPES.COUNTRIES, label: 'Countries' },
       { key: FILTER_TYPES.CITIES, label: 'Cities' },
       { key: FILTER_TYPES.SITES, label: 'Sites' },
       { key: FILTER_TYPES.DEVICES, label: 'Devices' },
-    ],
-    [],
-  );
+    ];
+    if (activeGroup?.name?.toLowerCase() !== 'airqo') {
+      // Hide Countries and Cities unless AirQo group is active
+      return baseFilters.filter(
+        (f) =>
+          f.key !== FILTER_TYPES.COUNTRIES && f.key !== FILTER_TYPES.CITIES,
+      );
+    }
+    return baseFilters;
+  }, [activeGroup]);
 
   // Get data for current filter tab with proper null handling
   const currentFilterData = useMemo(() => {
