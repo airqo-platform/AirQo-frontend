@@ -145,9 +145,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(activeGroup?.name?.toLowerCase(), {
-    enabled: !!activeGroup?.name,
-  });
+  } = useSitesSummary(groupTitle, {});
 
   const {
     data: devicesData,
@@ -155,9 +153,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: devicesError,
     error: devicesErrorMsg,
     refresh: refreshDevices,
-  } = useDeviceSummary(activeGroup?.name?.toLowerCase(), {
-    enabled: !!activeGroup?.name,
-  });
+  } = useDeviceSummary(groupTitle, {});
 
   const {
     data: countriesData,

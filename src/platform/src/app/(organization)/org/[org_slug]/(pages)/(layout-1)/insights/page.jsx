@@ -13,11 +13,27 @@ import {
 } from '@/features/analytics-overview';
 import AlertBox from '@/components/AlertBox';
 
-const OrganizationInsightsPage = ({ params: _params }) => {
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
+import { useDeviceSummary } from '@/core/hooks/analyticHooks';
+import { AiOutlinePlusCircle } from 'react-icons/ai';
+import AirQualityLoadingSkeleton from '@/components/Skeleton/AirQualityLoadingSkeleton';
+import Button from '@/components/Button';
+
+const OrganizationInsightsPage = () => {
   const dispatch = useDispatch();
   const { organization } = useOrganization();
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const isModalOpen = useSelector((state) => state.modal.openModal);
+
+  // Get active group info
+  const { title: groupTitle } = useGetActiveGroup();
+
+  // Fetch device summary for the active group
+  const {
+    data: deviceSummaryData,
+    isLoading: isDeviceSummaryLoading,
+    isError: isDeviceSummaryError,
+  } = useDeviceSummary(groupTitle, {});
 
   // Use our custom hook for organization data management
   const {
@@ -68,6 +84,51 @@ const OrganizationInsightsPage = ({ params: _params }) => {
           Please try refreshing the page or contact support if the issue
           persists.
         </p>
+      </div>
+    );
+  }
+
+  // Show loading text while fetching device summary
+  if (isDeviceSummaryLoading) {
+    return <AirQualityLoadingSkeleton />;
+  }
+
+  // Check if there are no devices and display a message
+  if (
+    !isDeviceSummaryLoading &&
+    !isDeviceSummaryError &&
+    deviceSummaryData.length === 0
+  ) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] bg-primary bg-opacity-10 rounded-lg p-8">
+        <div className="flex flex-col items-center text-center space-y-4 max-w-sm">
+          {/* Icon */}
+          <AiOutlinePlusCircle className="text-primary text-5xl" />
+
+          {/* Headline */}
+          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Let’s get things started!
+          </h3>
+
+          {/* Subcopy */}
+          <p className="text-gray-600 dark:text-gray-400">
+            Deploy your first device to begin collecting air quality data and
+            unlock real‑time insights for your organization.
+          </p>
+
+          {/* CTA Button */}
+          <Button
+            onClick={() => {
+              const baseUrl =
+                process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
+                  ? 'https://staging-vertex.airqo.net/login'
+                  : 'https://vertex.airqo.net/login';
+              window.open(baseUrl, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Deploy a device
+          </Button>
+        </div>
       </div>
     );
   }
