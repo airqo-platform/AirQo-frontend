@@ -165,8 +165,42 @@ const GlobalTopbar = ({
   if (!mounted) {
     // loading skeleton...
     return (
-      /* ... same as before ... */
-      <></>
+      <>
+        {/* Main Topbar Loading State */}
+        <div className="fixed top-0 left-0 right-0 z-[99] p-1">
+          <CardWrapper className="w-full shadow-sm animate-pulse" padding="p-2">
+            {' '}
+            <div className="flex justify-between items-center">
+              <div className="block lg:hidden relative z-10 w-full">
+                <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
+                <div className="flex items-center gap-[10px]">
+                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="hidden lg:flex gap-2 items-center">
+                <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div className="lg:hidden w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </CardWrapper>
+        </div>{' '}
+        {/* Mobile Bar Loading State */}
+        <div className="fixed top-20 left-0 right-0 z-[998] lg:hidden p-1">
+          <CardWrapper
+            className="w-full shadow-sm animate-pulse border-t"
+            padding="py-1 px-2"
+          >
+            <div className="flex justify-between items-center h-8">
+              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-24 h-3 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </CardWrapper>
+        </div>
+      </>
     );
   }
 
