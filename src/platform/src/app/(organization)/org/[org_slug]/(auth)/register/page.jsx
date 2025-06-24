@@ -10,7 +10,6 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { registerUserToOrgApi } from '@/core/apis/Organizations';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
@@ -86,61 +85,7 @@ const OrganizationRegister = () => {
 
   const orgSlug = params?.org_slug || 'airqo';
 
-  // Show registration disabled message if not allowed
-  if (!canUserRegister()) {
-    return (
-      <AuthLayout
-        title={`Registration Disabled`}
-        subtitle={`${formatOrgSlug(getDisplayName())} has disabled public registration`}
-        backToAirqoPath="/user/login"
-      >
-        <div className="text-center space-y-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <div className="flex items-center justify-center mb-4">
-              <svg
-                className="h-12 w-12 text-yellow-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-yellow-800 mb-2">
-              Registration Not Available
-            </h3>
-            <p className="text-sm text-yellow-700 mb-4">
-              {formatOrgSlug(getDisplayName())} requires invitation-only access.
-              Please contact your organization administrator to request access.
-            </p>
-            <div className="space-y-3">
-              <Link
-                href={`/org/${orgSlug}/login`}
-                className="inline-flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white transition-colors duration-200"
-                style={{ backgroundColor: primaryColor }}
-              >
-                Go to Sign In
-              </Link>
-              <div>
-                {' '}
-                <Link
-                  href="/user/login"
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Use main AirQo login instead
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </AuthLayout>
-    );
-  }
+  // Move hooks to the top level, before any conditional returns
   const handleInputChange = useCallback((field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -261,6 +206,62 @@ const OrganizationRegister = () => {
               >
                 Go to Sign In
               </Link>
+            </div>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  // Show registration disabled message if not allowed
+  if (!canUserRegister()) {
+    return (
+      <AuthLayout
+        title={`Registration Disabled`}
+        subtitle={`${formatOrgSlug(getDisplayName())} has disabled public registration`}
+        backToAirqoPath="/user/login"
+      >
+        <div className="text-center space-y-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="flex items-center justify-center mb-4">
+              <svg
+                className="h-12 w-12 text-yellow-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-yellow-800 mb-2">
+              Registration Not Available
+            </h3>
+            <p className="text-sm text-yellow-700 mb-4">
+              {formatOrgSlug(getDisplayName())} requires invitation-only access.
+              Please contact your organization administrator to request access.
+            </p>
+            <div className="space-y-3">
+              <Link
+                href={`/org/${orgSlug}/login`}
+                className="inline-flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white transition-colors duration-200"
+                style={{ backgroundColor: primaryColor }}
+              >
+                Go to Sign In
+              </Link>
+              <div>
+                {' '}
+                <Link
+                  href="/user/login"
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Use main AirQo login instead
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -447,7 +448,7 @@ const OrganizationRegister = () => {
               '--tw-ring-color': primaryColor,
             }}
           >
-            {loading ? <Spinner size="sm" color="white" /> : 'Create Account'}
+            {loading ? 'Registering...' : 'Create Account'}
           </button>
         </div>{' '}
         <div className="text-center">

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { signIn, getSession } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -10,7 +10,6 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import InputField from '@/common/components/InputField';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logger from '@/lib/logger';
@@ -30,7 +29,6 @@ const OrganizationLogin = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
-  const router = useRouter();
   const { getDisplayName, primaryColor } = useOrganization();
   const orgSlug = params.org_slug;
 
@@ -179,7 +177,7 @@ const OrganizationLogin = () => {
                     : `0 4px 14px 0 ${primaryColor}25`,
                 }}
               >
-                {isLoading ? <Spinner width={25} height={25} /> : 'Sign In'}
+                {isLoading ? 'Logging in...' : 'Sign In'}
               </button>
             </div>
           </form>

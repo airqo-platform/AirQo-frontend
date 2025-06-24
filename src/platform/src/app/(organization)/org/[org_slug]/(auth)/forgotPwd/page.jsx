@@ -10,7 +10,6 @@ import { FaCheckCircle } from 'react-icons/fa';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { forgotPasswordApi } from '@/core/apis/Organizations';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
@@ -180,11 +179,7 @@ const OrganizationForgotPassword = () => {
               boxShadow: loading ? 'none' : `0 4px 14px 0 ${primaryColor}25`,
             }}
           >
-            {loading ? (
-              <Spinner size="sm" color="white" />
-            ) : (
-              'Send Reset Instructions'
-            )}
+            {loading ? 'Sending...' : 'Send Reset Instructions'}
           </button>
         </div>
 

@@ -9,7 +9,6 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { resetPasswordApi } from '@/core/apis/Organizations';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
@@ -205,7 +204,7 @@ const OrganizationResetPassword = () => {
                   focusRingColor: primaryColor || '#135DFF',
                 }}
               >
-                {loading ? <Spinner size="sm" /> : 'Reset Password'}
+                {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </div>
           </form>

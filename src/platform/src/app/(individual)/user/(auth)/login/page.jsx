@@ -8,7 +8,6 @@ import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 import AccountPageLayout from '@/components/Account/Layout';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 
@@ -188,7 +187,7 @@ const UserLogin = () => {
                 disabled={loading}
                 type="submit"
               >
-                {loading ? <Spinner width={25} height={25} /> : 'Login'}
+                {loading ? 'Logging in...' : 'Login'}
               </button>
             </div>
           </form>
