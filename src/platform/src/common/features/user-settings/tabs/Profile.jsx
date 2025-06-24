@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import { FaSpinner } from 'react-icons/fa';
 import * as Yup from 'yup';
-import Modal from '@/components/Modal/Modal';
 import AlertBox from '@/components/AlertBox';
 import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
 import SelectDropdown from '@/components/SelectDropdown';
 import TextField from '@/common/components/TextInputField';
+import CustomToast from '@/components/Toast/CustomToast';
 import ProfileSkeleton from '../components/ProfileSkeleton';
 import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
@@ -55,10 +56,11 @@ const Profile = () => {
     description: '',
     profilePicture: '',
   });
-  const [updatedProfilePicture, setUpdatedProfilePicture] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
-  const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
+  const [localImagePreview, setLocalImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(false);
   const { completeStep } = useChecklistSteps();
 
   // Helper function to parse API error responses
@@ -88,11 +90,12 @@ const Profile = () => {
 
     return parsedErrors;
   };
+
   // Function to fetch user details from API
   const fetchUserDetails = async () => {
     if (!session?.user?.id) return;
 
-    setIsLoading(true);
+    setIsDataLoading(true);
     try {
       const res = await getUserDetails(session.user.id);
       if (res.success && res.users && res.users.length > 0) {
@@ -108,6 +111,10 @@ const Profile = () => {
           description: user.description || '',
           profilePicture: user.profilePicture || '',
         });
+
+        // Clear local preview when fetching fresh data
+        setLocalImagePreview(null);
+        setImageError(false);
       } else {
         setErrorState({
           isError: true,
@@ -122,13 +129,16 @@ const Profile = () => {
         type: 'error',
       });
     } finally {
-      setIsLoading(false);
+      setIsDataLoading(false);
     }
   };
 
+  // Fixed useEffect with proper dependency array to prevent infinite loop
   useEffect(() => {
-    fetchUserDetails();
-  }, [session?.user?.id]);
+    if (session?.user?.id) {
+      fetchUserDetails();
+    }
+  }, [session?.user?.id]); // Only depend on the user ID
 
   // Handler for input changes from InputField/TextField components.
   const handleChange = (e) => {
@@ -139,6 +149,7 @@ const Profile = () => {
       setValidationErrors({ ...validationErrors, [id]: '' });
     }
   };
+
   // Handlers for SelectDropdown fields
   const handleCountryChange = (option) => {
     setUserData({ ...userData, country: option.value });
@@ -149,7 +160,7 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
 
     // Validate the userData using Yup schema
     try {
@@ -162,7 +173,7 @@ const Profile = () => {
         errors[err.path] = err.message;
       });
       setValidationErrors(errors);
-      setIsLoading(false);
+      setIsSaving(false);
       return;
     }
 
@@ -172,33 +183,44 @@ const Profile = () => {
         message: 'No valid user session found',
         type: 'error',
       });
-      setIsLoading(false);
+      setIsSaving(false);
       return;
     }
 
     const userID = session.user.id;
 
-    // Create a cleaned version of userData without empty profilePicture
-    const dataToUpdate = { ...userData };
+    // Create a cleaned version of userData, prioritizing local preview URL if available
+    const dataToUpdate = {
+      ...userData,
+      // Use local preview URL if available (from recent upload), otherwise use existing profilePicture
+      profilePicture: localImagePreview || userData.profilePicture || '',
+    };
+
+    // Remove empty profilePicture
     if (!dataToUpdate.profilePicture) {
       delete dataToUpdate.profilePicture;
     }
+
     try {
       await updateUserCreationDetails(dataToUpdate, userID);
-      const res = await getUserDetails(userID);
-      const updatedUser = res?.users?.[0];
-      if (!updatedUser) throw new Error('User details not updated');
-      const updatedData = { _id: userID, ...updatedUser };
+
+      // Refresh user data after successful update
+      await fetchUserDetails();
 
       // Update the session with new user data
-      await updateSession({
-        user: {
-          ...session.user,
-          ...updatedData,
-        },
-      });
+      const res = await getUserDetails(userID);
+      const updatedUser = res?.users?.[0];
+      if (updatedUser) {
+        const updatedData = { _id: userID, ...updatedUser };
+        await updateSession({
+          user: {
+            ...session.user,
+            ...updatedData,
+          },
+        });
+        dispatch(setUserInfo(updatedData));
+      }
 
-      dispatch(setUserInfo(updatedData));
       if (
         userData.firstName &&
         userData.lastName &&
@@ -207,6 +229,9 @@ const Profile = () => {
       ) {
         completeStep(2);
       }
+
+      // Clear local preview after successful save
+      setLocalImagePreview(null);
 
       setErrorState({
         isError: true,
@@ -239,171 +264,234 @@ const Profile = () => {
         });
       }
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
+
   // Handler for cancel button
   const handleCancel = () => {
     // Reset form to initial state
     fetchUserDetails();
-    setUpdatedProfilePicture('');
     setValidationErrors({});
     setErrorState({ isError: false, message: '', type: '' });
+    setLocalImagePreview(null);
+    setImageError(false);
   };
 
-  const cropImage = () =>
-    new Promise((resolve, reject) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = (event) => {
-        const file = event.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new window.Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            const maxSize = 200;
-            let width = img.width,
-              height = img.height;
-            const aspectRatio = width / height;
-            if (width > height && width > maxSize) {
-              height = Math.round(maxSize / aspectRatio);
-              width = maxSize;
-            } else if (height > maxSize) {
-              width = Math.round(maxSize * aspectRatio);
-              height = maxSize;
-            }
-            canvas.width = width;
-            canvas.height = height;
-            context.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL(file.type));
-          };
-          img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    });
+  // Enhanced image upload with consistent pattern
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  const handleAvatarClick = () => {
-    cropImage()
-      .then((croppedUrl) => {
-        setUpdatedProfilePicture(croppedUrl);
-        setUserData({ ...userData, profilePicture: croppedUrl });
-      })
-      .catch(() =>
-        setErrorState({
-          isError: true,
-          message: 'Something went wrong',
-          type: 'error',
-        }),
-      );
-  };
-
-  const handleProfileImageUpdate = async () => {
-    if (!updatedProfilePicture) return;
-
-    const formData = new FormData();
-    formData.append('file', updatedProfilePicture);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
-    formData.append('folder', 'profiles');
-    setProfileUploading(true);
-
-    try {
-      const responseData = await cloudinaryImageUpload(formData);
-      const secureUrl = responseData.secure_url;
-
-      // Only update if we have a valid URL
-      if (secureUrl) {
-        setUserData((prev) => ({
-          ...prev,
-          profilePicture: secureUrl,
-        }));
-
-        const userID = session?.user?.id;
-        if (!userID) throw new Error('No valid user ID found');
-
-        // Only send profile picture to API if it's not empty
-        await updateUserCreationDetails({ profilePicture: secureUrl }, userID);
-
-        const updatedData = {
-          _id: userID,
-          ...userData,
-          profilePicture: secureUrl,
-        };
-        // Update session with the new profile picture
-        await updateSession({
-          user: {
-            ...session.user,
-            profilePicture: secureUrl,
-          },
-        });
-
-        dispatch(setUserInfo(updatedData));
-
-        setErrorState({
-          isError: true,
-          message: 'Profile image successfully added',
-          type: 'success',
-        });
-      }
-
-      setUpdatedProfilePicture('');
-      setProfileUploading(false);
-    } catch (err) {
-      setUpdatedProfilePicture('');
-      setProfileUploading(false);
-      setErrorState({ isError: true, message: err.message, type: 'error' });
-    }
-  };
-
-  const deleteProfileImage = async () => {
-    setUpdatedProfilePicture('');
-    setUserData((prev) => ({ ...prev, profilePicture: '' }));
-
-    const userID = session?.user?.id;
-    if (!userID) {
-      setErrorState({
-        isError: true,
-        message: 'No valid user ID found',
+    // Validate file type
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/svg+xml',
+      'image/webp',
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      CustomToast({
+        message: 'Please upload a valid image file (PNG, JPG, SVG, WEBP)',
         type: 'error',
       });
       return;
     }
 
-    try {
-      await updateUserCreationDetails({ profilePicture: '' }, userID);
-
-      // Update local user data
-      const updatedUserData = { ...userData };
-      delete updatedUserData.profilePicture; // Remove profile picture before storing
-
-      const updatedUser = {
-        _id: userID,
-        ...updatedUserData,
-        profilePicture: '', // Explicitly set to empty
-      }; // Update session with the profile picture removed
-      await updateSession({
-        user: {
-          ...session.user,
-          profilePicture: '',
-        },
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      CustomToast({
+        message: 'File size must be less than 5MB',
+        type: 'error',
       });
-
-      dispatch(setUserInfo(updatedUser));
-
-      setShowDeleteProfileModal(false);
-      setErrorState({
-        isError: true,
-        message: 'Profile image successfully deleted',
-        type: 'success',
-      });
-    } catch (error) {
-      setErrorState({ isError: true, message: error.message, type: 'error' });
+      return;
     }
+
+    // Create local preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLocalImagePreview(e.target.result);
+      setImageError(false);
+    };
+    reader.readAsDataURL(file);
+
+    setProfileUploading(true);
+
+    try {
+      // Create cropped image
+      const croppedImage = await cropImage(file);
+
+      // Upload to Cloudinary
+      const formData = new FormData();
+
+      // Convert base64 to blob
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+
+      formData.append('file', blob);
+      formData.append(
+        'upload_preset',
+        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET || 'ml_default',
+      );
+      formData.append('folder', 'profiles');
+
+      const responseData = await cloudinaryImageUpload(formData);
+      const cloudinaryUrl = responseData?.secure_url;
+
+      if (cloudinaryUrl) {
+        // Replace local preview with Cloudinary URL after successful upload
+        setLocalImagePreview(cloudinaryUrl);
+
+        // Show success toast - user needs to click Save to persist
+        CustomToast({
+          message:
+            'Profile image uploaded successfully! Click Save to apply changes.',
+          type: 'success',
+        });
+      } else {
+        CustomToast({
+          message:
+            'Upload completed but failed to get image URL. Please try again.',
+          type: 'error',
+        });
+        throw new Error('Failed to get secure URL from Cloudinary response');
+      }
+    } catch {
+      // Handle upload error - keep local preview but show error
+      CustomToast({
+        message:
+          'Failed to upload profile image to cloud storage. The preview is shown locally, but please try uploading again.',
+        type: 'error',
+      });
+    } finally {
+      setProfileUploading(false);
+    }
+  };
+
+  const cropImage = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const maxSize = 200;
+          let width = img.width,
+            height = img.height;
+          const aspectRatio = width / height;
+          if (width > height && width > maxSize) {
+            height = Math.round(maxSize / aspectRatio);
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = Math.round(maxSize * aspectRatio);
+            height = maxSize;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          context.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL(file.type));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  // Generate user initials and color for fallback display
+  const userDisplay = useMemo(() => {
+    const firstName = userData.firstName || '';
+    const lastName = userData.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // Generate initials (max 2 characters)
+    let initials;
+    if (firstName && lastName) {
+      initials = (firstName[0] + lastName[0]).toUpperCase();
+    } else if (firstName) {
+      initials = firstName.substring(0, 2).toUpperCase();
+    } else if (lastName) {
+      initials = lastName.substring(0, 2).toUpperCase();
+    } else {
+      initials = 'U'; // Default for "User"
+    }
+
+    // Generate consistent color based on user name
+    const generateColor = (str) => {
+      const colors = [
+        '#3B82F6',
+        '#10B981',
+        '#8B5CF6',
+        '#F59E0B',
+        '#EF4444',
+        '#06B6D4',
+        '#84CC16',
+        '#EC4899',
+        '#6366F1',
+        '#14B8A6',
+      ];
+
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      return colors[Math.abs(hash) % colors.length];
+    };
+
+    return {
+      initials,
+      color: generateColor(fullName || 'User'),
+      fullName: fullName || 'User',
+    };
+  }, [userData.firstName, userData.lastName]);
+
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+  }, []);
+
+  const handleImageLoad = useCallback(() => {
+    setImageError(false);
+  }, []);
+
+  // Get the appropriate image source with priority logic
+  const getProfileImageSource = () => {
+    // Priority: local preview > database profilePicture
+    if (localImagePreview) return localImagePreview;
+    if (userData.profilePicture) return userData.profilePicture;
+    return null;
+  };
+
+  // Professional profile image display component
+  const ProfileImageDisplay = () => {
+    const imageUrl = getProfileImageSource();
+
+    if (imageUrl && !imageError) {
+      return (
+        <div className="relative h-16 w-16 bg-white dark:bg-gray-50 rounded-full shadow-sm ring-1 ring-gray-200 dark:ring-gray-300 overflow-hidden">
+          <img
+            src={imageUrl}
+            alt={`${userDisplay.fullName} profile image`}
+            className="w-full h-full object-cover"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+          />
+        </div>
+      );
+    }
+
+    // Professional fallback - User initials badge
+    return (
+      <div
+        className="h-16 w-16 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ring-2 ring-white dark:ring-gray-800 text-lg"
+        style={{ backgroundColor: userDisplay.color }}
+        title={userDisplay.fullName}
+      >
+        {userDisplay.initials}
+      </div>
+    );
   };
 
   return (
@@ -425,52 +513,69 @@ const Profile = () => {
         </div>
         <div className="md:col-span-2">
           <Card>
-            {isLoading ? (
+            {isDataLoading ? (
               <ProfileSkeleton />
             ) : (
-              <>
-                <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                  <div
-                    className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
-                    onClick={handleAvatarClick}
-                    title="Tap to change profile image"
-                  >
-                    {userData.profilePicture ? (
-                      <img
-                        src={userData.profilePicture}
-                        alt={`${userData.firstName} ${userData.lastName} profile image`}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <h3 className="text-2xl font-medium text-blue-600">
-                        {userData.firstName && userData.lastName
-                          ? userData.firstName[0] + userData.lastName[0]
-                          : ''}
-                      </h3>
-                    )}
+              <div className="space-y-6">
+                {/* Upload Preview Section - Shows when user uploads an image */}
+                {localImagePreview && (
+                  <div className="bg-blue-50 dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="relative h-8 w-8 bg-white rounded-full shadow-sm border overflow-hidden">
+                          <img
+                            src={localImagePreview}
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                            onError={() => {}}
+                          />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {userDisplay.fullName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Profile preview
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        ✓ Image uploaded
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      onClick={() => setShowDeleteProfileModal(true)}
-                      disabled={!userData.profilePicture}
-                      className="text-sm font-medium text-gray-600"
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}
-                      variant={updatedProfilePicture ? 'outlined' : 'disabled'}
-                      className="text-sm font-medium"
-                    >
-                      {updatedProfilePicture && !profileUploading
-                        ? 'Save photo'
-                        : profileUploading
-                          ? 'Uploading...'
-                          : 'Update'}
-                    </Button>
+                )}
+
+                {/* Profile Image Upload Section */}
+                <div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <ProfileImageDisplay />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/svg+xml,image/webp"
+                        onChange={handleImageUpload}
+                        disabled={profileUploading}
+                        className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        id="profile-upload"
+                      />
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          PNG, JPG, SVG, WEBP formats supported. Max size: 5MB.
+                        </p>
+                        {profileUploading && (
+                          <div className="flex items-center text-xs text-primary">
+                            <FaSpinner className="animate-spin mr-1" />
+                            Uploading...
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
+
                 <form
                   className="grid grid-cols-1 md:grid-cols-2 gap-6"
                   onSubmit={handleSubmit}
@@ -545,37 +650,32 @@ const Profile = () => {
                     />
                   </div>
                 </form>
+
                 <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
                   <Button
                     onClick={handleCancel}
                     type="button"
                     variant="outlined"
                     className="py-3 px-4 text-sm dark:bg-transparent"
+                    disabled={isSaving}
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSubmit}
                     type="button"
-                    disabled={isLoading}
-                    variant={isLoading ? 'disabled' : 'filled'}
+                    disabled={isSaving}
+                    variant={isSaving ? 'disabled' : 'filled'}
                     className="py-3 px-4 text-sm rounded"
                   >
-                    {isLoading ? 'Saving...' : 'Save'}
+                    {isSaving ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
-              </>
+              </div>
             )}
           </Card>
         </div>
       </div>
-      <Modal
-        display={showDeleteProfileModal}
-        handleConfirm={deleteProfileImage}
-        closeModal={() => setShowDeleteProfileModal(false)}
-        description="Are you sure you want to delete your profile image?"
-        confirmButton="Delete"
-      />
     </div>
   );
 };
