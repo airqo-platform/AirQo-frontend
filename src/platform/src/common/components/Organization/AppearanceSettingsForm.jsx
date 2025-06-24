@@ -11,8 +11,6 @@ import {
   FaDesktop,
   FaExpandArrowsAlt,
   FaCompress,
-  FaSave,
-  FaSpinner,
 } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -21,7 +19,6 @@ import { useOrganizationTheme } from '@/core/hooks/useOrganizationTheme';
 import { setOrganizationTheme } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
 import AppearanceSettingsFormSkeleton from './AppearanceSettingsFormSkeleton';
 import logger from '@/lib/logger';
-import Button from '@/common/components/Button';
 
 const themeOptions = [
   {
@@ -739,59 +736,6 @@ const AppearanceSettingsForm = forwardRef(
               </div>
             </div>
           </div>
-          {/* Save Button Section */}
-          {hasUnsavedChanges && (
-            <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => {
-                  // Reset to default theme values
-                  const defaultData = {
-                    primaryColor: '#3B82F6',
-                    mode: 'light',
-                    interfaceStyle: 'bordered',
-                    contentLayout: 'compact',
-                  };
-                  setFormData(defaultData);
-                  setHasUnsavedChanges(true);
-                  onUnsavedChanges(true);
-                }}
-                className="px-4 py-2 text-sm font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-              >
-                Reset to Defaults
-              </button>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    // Reset to original theme data
-                    if (themeData) {
-                      const formattedData = {
-                        primaryColor: themeData.primaryColor || '#3B82F6',
-                        mode: themeData.mode || 'light',
-                        interfaceStyle: themeData.interfaceStyle || 'bordered',
-                        contentLayout: themeData.contentLayout || 'compact',
-                      };
-                      setFormData(formattedData);
-                      setHasUnsavedChanges(false);
-                      onUnsavedChanges(false);
-                    }
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Cancel
-                </button>
-                <Button
-                  onClick={handleSave}
-                  disabled={isUpdating}
-                  variant="filled"
-                  Icon={isUpdating ? FaSpinner : FaSave}
-                  className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90"
-                >
-                  {isUpdating ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </CardWrapper>
     );

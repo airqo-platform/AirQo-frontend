@@ -7,11 +7,109 @@ import {
   getNextAuthSecret,
 } from '@/lib/envConstants';
 
+// Centralized login redirect logic
+export const getLoginRedirectPath = (pathname, orgSlug = null) => {
+  if (pathname?.includes('/org/')) {
+    const extractedSlug =
+      orgSlug || pathname.match(/^\/org\/([^/]+)/)?.[1] || 'airqo';
+    // Special case: if orgSlug is 'airqo', redirect to user login
+    return extractedSlug === 'airqo'
+      ? '/user/login'
+      : `/org/${extractedSlug}/login`;
+  }
+  return '/user/login';
+};
+
+// Centralized error handling for API calls
+const handleApiError = async (response) => {
+  let errorMessage = 'Authentication failed';
+
+  try {
+    const errorBody = await response.text();
+    logger.info('[NextAuth] Error response body:', errorBody);
+
+    try {
+      const errorData = JSON.parse(errorBody);
+      errorMessage =
+        errorData?.message || `HTTP ${response.status}: ${errorBody}`;
+    } catch {
+      errorMessage = `HTTP ${response.status}: ${errorBody}`;
+    }
+  } catch {
+    errorMessage = `HTTP ${response.status}: Failed to read error response`;
+  }
+
+  logger.error('[NextAuth] API Error:', errorMessage);
+  return errorMessage;
+};
+
+// Centralized user object creation
+const createUserObject = (data, decodedToken, credentials) => ({
+  id: data._id,
+  userName: data.userName,
+  email: data.email,
+  token: data.token,
+  firstName: decodedToken.firstName,
+  lastName: decodedToken.lastName,
+  organization: decodedToken.organization,
+  long_organization: decodedToken.long_organization,
+  privilege: decodedToken.privilege,
+  country: decodedToken.country,
+  profilePicture: decodedToken.profilePicture,
+  phoneNumber: decodedToken.phoneNumber,
+  createdAt: decodedToken.createdAt,
+  updatedAt: decodedToken.updatedAt,
+  rateLimit: decodedToken.rateLimit,
+  lastLogin: decodedToken.lastLogin,
+  iat: decodedToken.iat,
+  requestedOrgSlug: credentials.orgSlug || null,
+  isOrgLogin: !!credentials.orgSlug,
+});
+
+// Centralized token transfer logic
+const transferTokenDataToSession = (target, token) => {
+  const tokenFields = [
+    'id',
+    'userName',
+    'email',
+    'firstName',
+    'lastName',
+    'organization',
+    'long_organization',
+    'privilege',
+    'country',
+    'profilePicture',
+    'phoneNumber',
+    'createdAt',
+    'updatedAt',
+    'rateLimit',
+    'lastLogin',
+    'iat',
+    'requestedOrgSlug',
+    'isOrgLogin',
+  ];
+
+  tokenFields.forEach((field) => {
+    if (token[field] !== undefined) {
+      target[field] = token[field];
+    }
+  });
+
+  // Handle special fields for session
+  if (target !== token) {
+    target.accessToken = token.accessToken;
+    if (target.user) {
+      target.orgSlug = token.requestedOrgSlug;
+      target.isOrgLogin = token.isOrgLogin;
+    }
+  }
+
+  return target;
+};
+
 export const options = {
-  // Add the secret configuration with validation
   secret: getNextAuthSecret() || 'fallback-secret-for-development',
   providers: [
-    // Unified credentials provider for both user and organization access
     CredentialsProvider({
       id: 'credentials',
       name: 'Credentials',
@@ -26,42 +124,35 @@ export const options = {
         }
 
         try {
-          // Use centralized API base URL getter
           const baseUrl = getApiBaseUrl();
-
           if (!baseUrl) {
-            const error =
-              'Authentication service is temporarily unavailable. Please try again later.';
             logger.error(
               '[NextAuth] Environment Error: API base URL not configured',
             );
-            throw new Error(error);
+            throw new Error(
+              'Authentication service is temporarily unavailable. Please try again later.',
+            );
           }
 
           let url;
-
           try {
             url = new URL(`${baseUrl}/users/loginUser`);
           } catch (urlError) {
-            const error =
-              'Authentication service configuration error. Please try again later.';
             logger.error(
               '[NextAuth] URL Error:',
               `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`,
             );
-            throw new Error(error);
+            throw new Error(
+              'Authentication service configuration error. Please try again later.',
+            );
           }
 
-          // Add API token if available
           const apiToken = getApiToken();
           if (apiToken) {
             url.searchParams.append('token', apiToken);
           }
 
-          // Prepare headers
-          const headers = {
-            'Content-Type': 'application/json',
-          };
+          const headers = { 'Content-Type': 'application/json' };
 
           logger.info('[NextAuth] Making API request to:', url.toString());
           logger.info('[NextAuth] Request payload:', {
@@ -69,7 +160,6 @@ export const options = {
             password: '***HIDDEN***',
           });
 
-          // Call your existing API endpoint
           const response = await fetch(url.toString(), {
             method: 'POST',
             headers,
@@ -82,30 +172,7 @@ export const options = {
           logger.info('[NextAuth] API Response status:', response.status);
 
           if (!response.ok) {
-            let errorMessage = 'Authentication failed';
-
-            try {
-              const errorBody = await response.text();
-              logger.info('[NextAuth] Error response body:', errorBody);
-
-              // Try to parse as JSON to extract the message
-              try {
-                const errorData = JSON.parse(errorBody);
-                if (errorData && errorData.message) {
-                  errorMessage = errorData.message;
-                } else {
-                  errorMessage = `HTTP ${response.status}: ${errorBody}`;
-                }
-              } catch {
-                // If JSON parsing fails, use the raw error body
-                errorMessage = `HTTP ${response.status}: ${errorBody}`;
-              }
-            } catch {
-              // If we can't even read the response body
-              errorMessage = `HTTP ${response.status}: Failed to read error response`;
-            }
-
-            logger.error('[NextAuth] API Error:', errorMessage);
+            const errorMessage = await handleApiError(response);
             throw new Error(errorMessage);
           }
 
@@ -117,47 +184,21 @@ export const options = {
             email: data.email,
           });
 
-          if (data && data.token) {
-            // Decode the JWT to get user information
-            let decodedToken;
-            try {
-              decodedToken = jwtDecode(data.token);
-            } catch (jwtError) {
-              logger.error('[NextAuth] JWT decode error:', jwtError.message);
-              throw new Error('Invalid token received from API');
-            }
-
-            // Return unified user object - no session type distinction
-            return {
-              id: data._id,
-              userName: data.userName,
-              email: data.email,
-              token: data.token,
-              // Add decoded token data
-              firstName: decodedToken.firstName,
-              lastName: decodedToken.lastName,
-              organization: decodedToken.organization,
-              long_organization: decodedToken.long_organization,
-              privilege: decodedToken.privilege,
-              country: decodedToken.country,
-              profilePicture: decodedToken.profilePicture,
-              phoneNumber: decodedToken.phoneNumber,
-              createdAt: decodedToken.createdAt,
-              updatedAt: decodedToken.updatedAt,
-              rateLimit: decodedToken.rateLimit,
-              lastLogin: decodedToken.lastLogin,
-              iat: decodedToken.iat,
-              // Store organization slug if provided for context
-              requestedOrgSlug: credentials.orgSlug || null,
-              // Add flag to indicate this is an organization login
-              isOrgLogin: !!credentials.orgSlug,
-            };
-          } else {
+          if (!data?.token) {
             logger.error('[NextAuth] No token received from API');
             throw new Error('No authentication token received from server');
           }
+
+          let decodedToken;
+          try {
+            decodedToken = jwtDecode(data.token);
+          } catch (jwtError) {
+            logger.error('[NextAuth] JWT decode error:', jwtError.message);
+            throw new Error('Invalid token received from API');
+          }
+
+          return createUserObject(data, decodedToken, credentials);
         } catch (error) {
-          // Authentication failed - throw the actual error for better debugging
           throw new Error(error.message || 'Authentication failed');
         }
       },
@@ -165,71 +206,28 @@ export const options = {
   ],
 
   pages: {
-    signIn: '/user/login', // Default to user login - dynamic routing handled in components
-    signOut: '/user/login', // Default to user login - will be overridden by custom logout logic
-    error: '/user/login', // Error code passed in query string as ?error=
+    signIn: '/user/login',
+    signOut: '/user/login',
+    error: '/user/login',
   },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // Store user data in JWT token
+        transferTokenDataToSession(token, user);
         token.accessToken = user.token;
-        token.id = user.id;
-        token.userName = user.userName;
-        token.email = user.email;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.organization = user.organization;
-        token.long_organization = user.long_organization;
-        token.privilege = user.privilege;
-        token.country = user.country;
-        token.profilePicture = user.profilePicture;
-        token.phoneNumber = user.phoneNumber;
-        token.createdAt = user.createdAt;
-        token.updatedAt = user.updatedAt;
-        token.rateLimit = user.rateLimit;
-        token.lastLogin = user.lastLogin;
-        token.iat = user.iat;
-
-        // Store the organization slug if provided during login
-        token.requestedOrgSlug = user.requestedOrgSlug;
-        token.isOrgLogin = user.isOrgLogin;
       }
       return token;
     },
 
     async session({ session, token }) {
       if (token) {
-        // Transfer token data to session
-        session.user.id = token.id;
-        session.user.userName = token.userName;
-        session.user.email = token.email;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
-        session.user.organization = token.organization;
-        session.user.long_organization = token.long_organization;
-        session.user.privilege = token.privilege;
-        session.user.country = token.country;
-        session.user.profilePicture = token.profilePicture;
-        session.user.phoneNumber = token.phoneNumber;
-        session.user.createdAt = token.createdAt;
-        session.user.updatedAt = token.updatedAt;
-        session.user.rateLimit = token.rateLimit;
-        session.user.lastLogin = token.lastLogin;
-        session.user.accessToken = token.accessToken; // Add accessToken to root level for compatibility
-        session.accessToken = token.accessToken;
-        session.iat = token.iat;
-
-        // Store organization information for context switching
-        session.user.requestedOrgSlug = token.requestedOrgSlug;
-        session.user.isOrgLogin = token.isOrgLogin;
-        session.orgSlug = token.requestedOrgSlug; // Add orgSlug to session root for easier access
-        session.isOrgLogin = token.isOrgLogin; // Add isOrgLogin to session root
+        transferTokenDataToSession(session.user, token);
+        transferTokenDataToSession(session, token);
       }
       return session;
     },
   },
 };
 
-// Export authOptions for middleware compatibility
 export const authOptions = options;
