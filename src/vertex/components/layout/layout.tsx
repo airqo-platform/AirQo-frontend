@@ -40,7 +40,7 @@ export default function Layout({
         if (module === 'admin') {
             router.push('/user-management'); 
         } else {
-            router.push('/network-map');
+            router.push('/dashboard');
         }
     };
 

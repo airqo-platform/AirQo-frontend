@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Shield,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard";
@@ -93,6 +94,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                 <nav className="space-y-1">
                     {activeModule === 'network' && (
                         <>
+                            <NavItem 
+                                href="/dashboard" 
+                                icon={LayoutDashboard} 
+                                label="Dashboard"
+                                isCollapsed={isCollapsed}
+                            />
                             <NavItem 
                                 href="/network-map" 
                                 icon={MapIcon} 
