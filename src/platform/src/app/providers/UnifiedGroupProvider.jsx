@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
-
+import { getOrganizationBySlugApi } from '@/core/apis/Organizations';
 // Redux imports
 import {
   setActiveGroup,
@@ -546,62 +546,6 @@ export function UnifiedGroupProvider({ children }) {
       return userGroups.some((g) => g._id === group._id);
     },
     [userGroups],
-  ); // Retry function for organization loading after domain updates
-  const retryOrganizationLoad = useCallback(
-    (slug, currentRetryCount) => {
-      if (!slug || currentRetryCount >= maxRetries) {
-        logger.warn('Organization retry limit reached or no slug provided:', {
-          slug,
-          currentRetryCount,
-          maxRetries,
-        });
-
-        // Final attempt failed - set error state
-        setOrganizationError(
-          new Error(`Organization "${slug}" not found or not accessible`),
-        );
-        setOrganization(null);
-        setOrganizationTheme(null);
-        setOrganizationLoading(false);
-        setOrganizationInitialized(true);
-        setIsRetrying(false);
-        setRetryCount(0);
-        return;
-      }
-
-      const retryDelay = Math.min(
-        1000 * Math.pow(1.5, currentRetryCount),
-        3000,
-      ); // Exponential backoff, max 3s
-
-      logger.info('Retrying organization load:', {
-        slug,
-        attempt: currentRetryCount + 1,
-        maxRetries,
-        delayMs: retryDelay,
-      });
-      setIsRetrying(true);
-      setRetryCount(currentRetryCount + 1);
-      retryTimeoutRef.current = setTimeout(async () => {
-        if (!mountedRef.current) return; // After the 3rd retry, try to refresh user groups from the backend
-        // This helps in case the domain update has propagated but we have stale data
-        if (currentRetryCount >= 2) {
-          logger.info(
-            'Refreshing user groups after multiple retries to get updated domain data',
-          );
-          try {
-            await dispatch(fetchUserGroups(session?.user?.id));
-          } catch (error) {
-            logger.warn('Failed to refresh user groups during retry:', error);
-          }
-        }
-
-        // Just trigger a re-evaluation by clearing the retry state
-        // This allows the organization loading effect to run again
-        setIsRetrying(false); // Allow the effect to re-evaluate
-      }, retryDelay);
-    },
-    [maxRetries, mountedRef, dispatch, session?.user?.id],
   );
 
   // Clear retry timeout on unmount
@@ -616,143 +560,105 @@ export function UnifiedGroupProvider({ children }) {
 
   // Organization data loading effect - now uses group data instead of separate organization API
   useEffect(() => {
-    if (isOrganizationContext && organizationSlug && userGroups.length > 0) {
-      // Find the matching group from user's available groups
-      let matchingGroup = findGroupBySlug(userGroups, organizationSlug);
+    if (isOrganizationContext && organizationSlug) {
+      // Reset state when slug changes or when we need to load new organization
+      if (
+        !organization ||
+        organization.slug !== organizationSlug ||
+        organization.organization_slug !== organizationSlug
+      ) {
+        // Prevent overlapping requests for the same slug
+        if (loadingOrgSlugRef.current === organizationSlug) {
+          return;
+        }
 
-      // CRITICAL FIX: If no matching group found by slug, but we have an active group,
-      // this might be a post-domain-update scenario where the backend hasn't updated
-      // the group data yet. Use the active group as fallback.
-      if (!matchingGroup && activeGroup && !isAirQoGroup(activeGroup)) {
-        logger.info(
-          'No slug match found, using active group as fallback (likely post-domain-update):',
-          {
-            organizationSlug,
-            activeGroupId: activeGroup._id,
-            activeGroupTitle: activeGroup.grp_title,
-            activeGroupOrgSlug:
-              activeGroup.organization_slug || activeGroup.grp_slug,
-          },
-        );
-        matchingGroup = activeGroup;
-      }
-
-      if (matchingGroup) {
-        // Use group data to create organization data
-        const orgData = {
-          _id: matchingGroup._id,
-          slug: organizationSlug, // Use the URL slug as the canonical slug
-          name: matchingGroup.grp_title || matchingGroup.grp_name,
-          logo: matchingGroup.grp_image || null,
-          primaryColor: matchingGroup.theme?.primaryColor || '#135DFF',
-          secondaryColor: matchingGroup.theme?.secondaryColor || '#1B2559',
-          font: matchingGroup.theme?.font || 'Inter',
-          status: matchingGroup.grp_status || 'ACTIVE',
-        };
-
-        logger.info('Organization data created from group data:', {
-          groupName: matchingGroup.grp_title,
-          orgSlug: organizationSlug,
-          isActiveGroupFallback: matchingGroup === activeGroup,
-          orgData,
-        });
-        setOrganization(orgData);
-        setOrganizationTheme({
-          name: orgData.name,
-          logo: orgData.logo,
-          primaryColor: orgData.primaryColor,
-          secondaryColor: orgData.secondaryColor,
-          font: orgData.font,
-        });
+        logger.info('Loading organization data for slug:', organizationSlug);
+        setOrganizationLoading(true);
         setOrganizationError(null);
-        setOrganizationLoading(false);
-        setOrganizationInitialized(true);
+        setOrganizationInitialized(false);
+        loadingOrgSlugRef.current = organizationSlug;
 
-        // Ensure the active group matches the organization
-        if (activeGroup?._id !== matchingGroup._id) {
-          logger.info('Setting active group to match organization:', {
-            organizationSlug,
-            currentActiveGroup: activeGroup?.grp_title,
-            newActiveGroup: matchingGroup.grp_title,
+        // Minimum loading time to prevent UI flashing (400ms for more stable experience)
+        const startTime = Date.now();
+        const minLoadingTime = 400;
+
+        getOrganizationBySlugApi(organizationSlug)
+          .then((response) => {
+            if (
+              !mountedRef.current ||
+              loadingOrgSlugRef.current !== organizationSlug
+            ) {
+              return; // Ignore if component unmounted or slug changed
+            }
+
+            if (response.success && response.data) {
+              const orgData = response.data;
+              logger.info('Organization data loaded successfully:', {
+                name: orgData.name,
+                slug: orgData.slug,
+              });
+
+              // Calculate remaining time to maintain minimum loading duration
+              const elapsedTime = Date.now() - startTime;
+              const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+              setTimeout(() => {
+                if (
+                  !mountedRef.current ||
+                  loadingOrgSlugRef.current !== organizationSlug
+                ) {
+                  return; // Double-check before setting state
+                }
+
+                setOrganization(orgData);
+                setOrganizationTheme({
+                  name: orgData.name,
+                  logo: orgData.logo,
+                  primaryColor: orgData.primaryColor,
+                  secondaryColor: orgData.secondaryColor,
+                  font: orgData.font,
+                });
+                setOrganizationError(null);
+                setOrganizationLoading(false);
+                setOrganizationInitialized(true);
+                loadingOrgSlugRef.current = null; // Clear loading state
+              }, remainingTime);
+            } else {
+              throw new Error(response.message || 'Organization not found');
+            }
+          })
+          .catch((err) => {
+            if (
+              !mountedRef.current ||
+              loadingOrgSlugRef.current !== organizationSlug
+            ) {
+              return; // Ignore if component unmounted or slug changed
+            }
+
+            logger.error('Error loading organization:', err);
+
+            // Calculate remaining time to maintain minimum loading duration
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+            // Delay error display to prevent flashing
+            setTimeout(() => {
+              if (
+                !mountedRef.current ||
+                loadingOrgSlugRef.current !== organizationSlug
+              ) {
+                return; // Double-check before setting state
+              }
+
+              setOrganizationError(err);
+              setOrganization(null);
+              setOrganizationTheme(null);
+              setOrganizationLoading(false);
+              setOrganizationInitialized(true);
+              loadingOrgSlugRef.current = null; // Clear loading state
+            }, remainingTime);
           });
-          setActiveGroupAtomic(matchingGroup, 'organization-match');
-        }
-
-        // Reset retry state on success
-        setRetryCount(0);
-        setIsRetrying(false);
-        if (retryTimeoutRef.current) {
-          clearTimeout(retryTimeoutRef.current);
-          retryTimeoutRef.current = null;
-        }
-      } else {
-        // No matching group found - check if we should retry (might be a domain update delay)
-        const shouldRetry =
-          retryCount < maxRetries &&
-          organizationSlug &&
-          !isRetrying &&
-          userGroups.length > 0;
-
-        if (shouldRetry) {
-          logger.info('Organization not found, initiating retry:', {
-            organizationSlug,
-            retryCount,
-            maxRetries,
-            hasActiveGroup: !!activeGroup,
-            availableGroups: userGroups.map((g) => ({
-              id: g._id,
-              title: g.grp_title,
-              orgSlug: g.organization_slug || g.grp_slug,
-              titleSlug: titleToSlug(g.grp_title),
-            })),
-          });
-
-          // Keep loading state during retry
-          setOrganizationLoading(true);
-          setOrganizationInitialized(false);
-
-          // Start retry process
-          retryOrganizationLoad(organizationSlug, retryCount);
-        } else {
-          // Final failure - no more retries or retry not applicable
-          logger.warn(
-            'No matching group found for organization slug (final):',
-            {
-              organizationSlug,
-              retryCount,
-              maxRetries,
-              isRetrying,
-              hasActiveGroup: !!activeGroup,
-              availableGroups: userGroups.map((g) => ({
-                id: g._id,
-                title: g.grp_title,
-                orgSlug: g.organization_slug || g.grp_slug,
-                titleSlug: titleToSlug(g.grp_title),
-              })),
-            },
-          );
-
-          setOrganizationError(
-            new Error(
-              `Organization "${organizationSlug}" not found or not accessible`,
-            ),
-          );
-          setOrganization(null);
-          setOrganizationTheme(null);
-          setOrganizationLoading(false);
-          setOrganizationInitialized(true);
-          setRetryCount(0);
-          setIsRetrying(false);
-        }
       }
-    } else if (
-      isOrganizationContext &&
-      organizationSlug &&
-      userGroups.length === 0
-    ) {
-      // Still loading user groups, show loading state
-      setOrganizationLoading(true);
-      setOrganizationInitialized(false);
     } else if (!isOrganizationContext) {
       // Clear organization data when not in organization context
       setOrganization(null);
@@ -762,17 +668,7 @@ export function UnifiedGroupProvider({ children }) {
       setOrganizationInitialized(false);
       loadingOrgSlugRef.current = null;
     }
-  }, [
-    isOrganizationContext,
-    organizationSlug,
-    userGroups,
-    activeGroup,
-    retryCount,
-    isRetrying,
-    retryOrganizationLoad,
-    maxRetries,
-    setActiveGroupAtomic,
-  ]);
+  }, [isOrganizationContext, organizationSlug]);
 
   // Reset retry state when organization slug changes
   useEffect(() => {
