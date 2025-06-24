@@ -103,7 +103,7 @@ const OrganizationInsightsPage = () => {
       <div className="flex items-center justify-center min-h-[60vh] bg-primary bg-opacity-10 rounded-lg p-8">
         <div className="flex flex-col items-center text-center space-y-4 max-w-sm">
           {/* Icon */}
-          <AiOutlinePlusCircle className="text-primary text-5xl" />
+          <AiOutlinePlusCircle className="text-primary text-4xl" />
 
           {/* Headline */}
           <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
