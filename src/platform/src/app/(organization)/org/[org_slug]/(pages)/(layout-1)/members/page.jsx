@@ -1,8 +1,7 @@
 'use client';
-
+import React, { useEffect, useState, useCallback } from 'react';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
-import { useEffect, useState, useCallback } from 'react';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
 import {
@@ -14,10 +13,12 @@ import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
 import { FaUserPlus, FaSearch } from 'react-icons/fa';
 import logger from '@/lib/logger';
+import CustomToast from '@/components/Toast/CustomToast';
 
 const OrganizationMembersPage = () => {
   const { organization, primaryColor } = useOrganization();
   const activeGroup = useSelector((state) => state.groups?.activeGroup);
+
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,268 +29,192 @@ const OrganizationMembersPage = () => {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [removeLoading, setRemoveLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Get the current active group details
   const [groupDetails, setGroupDetails] = useState(null);
 
-  // Fetch group details and members from API
-  const fetchMemberData = useCallback(async () => {
-    // Try to get group ID from organization first, then fallback to activeGroup
-    const groupId = organization?._id || organization?.id || activeGroup?._id;
+  const getGroupId = () =>
+    organization?._id || organization?.id || activeGroup?._id;
 
+  const fetchMemberData = useCallback(async () => {
+    const groupId = getGroupId();
     if (!groupId) {
-      logger.warn('No group ID available:', { organization, activeGroup });
+      logger.warn('No group ID available', { organization, activeGroup });
       setError('No organization ID found');
       setLoading(false);
       return;
     }
-
-    logger.debug('Fetching members for group:', groupId);
     setLoading(true);
     setError(null);
     try {
-      const response = await getGroupDetailsApi(groupId);
-      logger.debug('API Response:', response);
-      if (response.success && response.group) {
-        setGroupDetails(response.group);
-        const groupMembers = response.group.grp_users || [];
-        logger.debug('Group members found:', groupMembers.length);
-        setMembers(groupMembers);
-        setFilteredMembers(groupMembers);
+      const res = await getGroupDetailsApi(groupId);
+      if (res.success && res.group) {
+        setGroupDetails(res.group);
+        const users = res.group.grp_users || [];
+        setMembers(users);
+        setFilteredMembers(users);
       } else {
-        const errorMsg = 'Failed to fetch group details: No valid response';
-        logger.error(errorMsg, response);
-        setError(errorMsg);
-        setMembers([]);
-        setFilteredMembers([]);
+        throw new Error(res.message || 'Invalid API response');
       }
-    } catch (error) {
-      const errorMsg = `Failed to fetch group details: ${error.message}`;
-      logger.error(errorMsg, error);
-      setError(errorMsg);
-      setMembers([]);
-      setFilteredMembers([]);
+    } catch (e) {
+      logger.error('Fetch members error', e);
+      CustomToast({ message: e.message, type: 'error' });
+      setError(e.message);
     } finally {
       setLoading(false);
     }
   }, [organization, activeGroup]);
 
-  // Handle remove user from group
-  const handleRemoveUser = async (user) => {
-    const groupId = organization?._id || organization?.id || activeGroup?._id;
+  useEffect(() => {
+    fetchMemberData();
+  }, [fetchMemberData]);
 
+  const handleRemoveUser = async (user) => {
+    const groupId = getGroupId();
     if (!groupId || !user?._id) {
-      alert('Invalid organization or user data');
+      CustomToast({ message: 'Invalid organization or user', type: 'warning' });
       return;
     }
-
     setRemoveLoading(true);
     try {
-      const response = await removeUserFromGroup(groupId, user._id);
-      if (response.success) {
-        // Refresh the members list
+      const res = await removeUserFromGroup(groupId, user._id);
+      if (res.success) {
+        CustomToast({ message: 'User removed successfully', type: 'success' });
         await fetchMemberData();
-        alert('User successfully removed from the organization');
       } else {
-        throw new Error(response.message || 'Failed to remove user');
+        throw new Error(res.message || 'Remove failed');
       }
-    } catch (error) {
-      logger.error('Failed to remove user:', error);
-      alert(`Failed to remove user: ${error.message}`);
+    } catch (e) {
+      logger.error('Remove user error', e);
+      CustomToast({ message: e.message, type: 'error' });
     } finally {
       setRemoveLoading(false);
     }
   };
 
-  // Fetch group details and members from API on mount
-  useEffect(() => {
-    fetchMemberData();
-  }, [fetchMemberData]);
-
-  // Filter members based on search and filters
-  useEffect(() => {
-    let filtered = members.filter((member) => {
-      const matchesSearch =
-        member.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.email?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Map status based on user activity
-      const userStatus = member.isActive ? 'active' : 'inactive';
-      const matchesStatus =
-        statusFilter === 'all' || userStatus === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    setFilteredMembers(filtered);
-  }, [members, searchTerm, statusFilter]);
-
   const handleInviteMembers = async () => {
-    const groupId = organization?._id || organization?.id || activeGroup?._id;
-
-    if (!groupId) return;
-
-    // Filter out empty emails
-    const validEmails = inviteEmails.filter((email) => email.trim() !== '');
-
-    if (validEmails.length === 0) {
-      alert('Please enter at least one email address');
+    const groupId = getGroupId();
+    if (!groupId) {
+      CustomToast({ message: 'No group selected', type: 'warning' });
       return;
     }
-
-    // Validate each email
-    const invalidEmails = validEmails.filter((email) => !isValidEmail(email));
-    if (invalidEmails.length > 0) {
-      alert('Please enter valid email addresses: ' + invalidEmails.join(', '));
+    const validEmails = inviteEmails.filter((e) => e.trim());
+    if (!validEmails.length) {
+      CustomToast({ message: 'Enter at least one email', type: 'warning' });
+      return;
+    }
+    const invalid = validEmails.filter(
+      (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e),
+    );
+    if (invalid.length) {
+      CustomToast({
+        message: `Invalid emails: ${invalid.join(', ')}`,
+        type: 'error',
+      });
       return;
     }
 
     setInviteLoading(true);
-
     try {
-      const response = await inviteUserToGroupTeam(groupId, validEmails);
-      if (response.success) {
+      // API expects { emails: [...] }
+      const res = await inviteUserToGroupTeam(groupId, validEmails);
+      if (res.success) {
+        CustomToast({ message: 'Invitations sent!', type: 'success' });
         setShowInviteModal(false);
         setInviteEmails(['']);
-        // Refresh the members list
         await fetchMemberData();
-        alert('Invitations sent successfully!');
+      } else {
+        throw new Error(res.message || 'Invite failed');
       }
-    } catch (error) {
-      logger.error('Failed to invite members:', error);
-      alert('Failed to send invitations. Please try again.');
+    } catch (e) {
+      logger.error('Invite error', e);
+      // Extract API errors
+      const apiData = e.response?.data;
+      let msg = e.message;
+      if (apiData) {
+        if (Array.isArray(apiData.errors) && apiData.errors.length) {
+          msg = apiData.errors
+            .map((err) =>
+              Array.isArray(err.message) ? err.message.join(', ') : err.message,
+            )
+            .join('; ');
+        } else if (apiData.message) {
+          msg = apiData.message;
+        }
+      }
+      CustomToast({ message: msg, type: 'error' });
     } finally {
       setInviteLoading(false);
     }
   };
 
-  // Helper function to validate email
-  const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  useEffect(() => {
+    const filtered = members.filter((m) => {
+      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
+      const matchSearch =
+        name.includes(searchTerm.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const status = m.isActive ? 'active' : 'inactive';
+      const matchStatus = statusFilter === 'all' || status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+    setFilteredMembers(filtered);
+  }, [members, searchTerm, statusFilter]);
+
+  const formatLastActive = (m) => {
+    if (!m.lastLogin) return 'Never';
+    const diff = Date.now() - new Date(m.lastLogin);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    const mins = Math.floor(diff / (1000 * 60));
+    return mins <= 1 ? 'Just now' : `${mins} minutes ago`;
   };
 
-  // Helper function to format last active time
-  const formatLastActive = (member) => {
-    if (member.lastLogin) {
-      const lastLoginDate = new Date(member.lastLogin);
-      const now = new Date();
-      const diffInMs = now - lastLoginDate;
-      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-      if (diffInDays === 0) {
-        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-        if (diffInHours === 0) {
-          const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-          return diffInMinutes <= 1
-            ? 'Just now'
-            : `${diffInMinutes} minutes ago`;
-        }
-        return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-      }
-      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    }
-    return 'Never';
-  };
-
-  if (!organization || loading) {
-    return <MembersPageSkeleton />;
-  }
-
-  // Show error state if data failed to load
-  if (error) {
+  if (!organization || loading) return <MembersPageSkeleton />;
+  if (error)
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              Team Members
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Manage your organization&apos;s team members and their roles
-            </p>
-          </div>
-        </div>
-
-        <CardWrapper>
-          <div className="text-center py-12">
-            <div className="mx-auto h-12 w-12 text-red-400 mb-4">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-              Failed to load members
-            </h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {error}
-            </p>
-            <div className="mt-6">
-              <Button onClick={fetchMemberData} variant="filled">
-                Try Again
-              </Button>
-            </div>
-          </div>
-        </CardWrapper>
-      </div>
+      <CardWrapper>
+        <p className="text-center text-red-600">{error}</p>
+        <Button onClick={fetchMemberData}>Retry</Button>
+      </CardWrapper>
     );
-  }
 
   return (
     <div className="space-y-6">
-      {/* Header with Invite Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Team Members
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Manage your organization&apos;s team members and their roles
-          </p>
+          <h1 className="text-2xl">Team Members</h1>
+          <p className="text-sm text-gray-500">Manage your team</p>
         </div>
         <Button onClick={() => setShowInviteModal(true)} variant="filled">
-          <FaUserPlus className="w-4 h-4 mr-2" />
-          Invite Member
+          <FaUserPlus className="mr-2" /> Invite Member
         </Button>
       </div>
 
-      {/* Search and Filters */}
       <CardWrapper>
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search members..."
+              placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              className="w-full pl-10 py-2 border rounded"
             />
           </div>
-
-          {/* Status Filter */}
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border rounded"
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
       </CardWrapper>
 
-      {/* Members Table */}
       <MembersTable
         members={filteredMembers}
         isLoading={loading}
@@ -299,7 +224,6 @@ const OrganizationMembersPage = () => {
         formatLastActive={formatLastActive}
       />
 
-      {/* Invite Modal */}
       <InviteModal
         showInviteModal={showInviteModal}
         setShowInviteModal={setShowInviteModal}
