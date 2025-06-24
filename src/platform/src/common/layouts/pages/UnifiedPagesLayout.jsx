@@ -97,7 +97,7 @@ export default function UnifiedPagesLayout({ children }) {
         homeNavPath={homeNavPath}
       />
 
-      <aside className="fixed left-0 top-36 lg:top-[63px] z-50 text-sidebar-text transition-all duration-300 ease-in-out">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out">
         <AuthenticatedSideBar>
           <UnifiedSidebarContent
             userType={isOrganizationContext ? 'organization' : 'user'}

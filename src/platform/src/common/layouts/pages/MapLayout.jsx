@@ -66,7 +66,7 @@ export default function MapLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[63px] z-40 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-40 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar forceCollapse={true}>
           <UnifiedSidebarContent
             userType="user"
