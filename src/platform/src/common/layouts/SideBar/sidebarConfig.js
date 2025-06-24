@@ -4,6 +4,7 @@ import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import UsersIcon from '@/icons/SideBar/UsersIcon';
+import UserIcon from '@/icons/Topbar/userIcon';
 import {
   MdBusiness,
   MdSecurity,
@@ -88,6 +89,18 @@ export const getUserNavigationItems = () => {
     label: 'Map',
     icon: WorldIcon,
     path: '/user/map',
+  });
+
+  // divider for Account section
+  items.push({
+    type: 'divider',
+    label: 'Account',
+  });
+  items.push({
+    type: 'item',
+    label: 'Profile',
+    icon: UserIcon,
+    path: '/user/profile',
   });
 
   return items;
@@ -189,6 +202,17 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       label: 'Settings',
       icon: SettingsIcon,
       path: `/org/${orgSlug}/settings`,
+    },
+    // Account section
+    {
+      type: 'divider',
+      label: 'Account',
+    },
+    {
+      type: 'item',
+      label: 'Profile',
+      icon: UserIcon,
+      path: `/org/${orgSlug}/profile`,
     },
   ];
 };

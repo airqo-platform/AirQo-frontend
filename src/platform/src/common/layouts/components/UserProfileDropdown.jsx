@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import LogoutUser from '@/core/HOC/LogoutUser';
+import UserIcon from '@/icons/Topbar/userIcon';
 
 /**
  * My Profile Dropdown Component
@@ -152,14 +153,10 @@ const MyProfileDropdown = ({
             className="flex items-center cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             <span className="mr-3">
-              <svg
-                width="17"
-                height="17"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
+              <UserIcon
+                size={16}
+                className="text-gray-500 dark:text-gray-400"
+              />
             </span>
             My Profile
           </li>
