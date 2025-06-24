@@ -4,7 +4,6 @@ import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import UsersIcon from '@/icons/SideBar/UsersIcon';
-import PersonIcon from '@/icons/Settings/PersonIcon';
 import {
   MdBusiness,
   MdSecurity,
@@ -84,20 +83,12 @@ export const getUserNavigationItems = () => {
   }
 
   // Add remaining navigation items
-  items.push(
-    {
-      type: 'item',
-      label: 'Map',
-      icon: WorldIcon,
-      path: '/user/map',
-    },
-    {
-      type: 'item',
-      label: 'Settings',
-      icon: SettingsIcon,
-      path: '/user/settings',
-    },
-  );
+  items.push({
+    type: 'item',
+    label: 'Map',
+    icon: WorldIcon,
+    path: '/user/map',
+  });
 
   return items;
 };
@@ -182,16 +173,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       icon: BarChartIcon,
       path: `/org/${orgSlug}/insights`,
     },
-    {
-      type: 'divider',
-      label: 'Account',
-    },
-    {
-      type: 'item',
-      label: 'My Profile',
-      icon: PersonIcon,
-      path: `/org/${orgSlug}/profile`,
-    },
+
     {
       type: 'divider',
       label: 'Management',
