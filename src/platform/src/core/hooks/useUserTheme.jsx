@@ -66,19 +66,6 @@ const useUserTheme = () => {
       contentLayout: currentLayout || DEFAULT_THEME.contentLayout,
     };
 
-    // Debug logging in development
-    if (process.env.NODE_ENV === 'development') {
-      logger.debug('Mapping theme context to API format:', {
-        context: {
-          currentThemeMode,
-          currentPrimaryColor,
-          currentSkin,
-          currentLayout,
-        },
-        apiFormat,
-      });
-    }
-
     return apiFormat;
   }, [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout]);
 
@@ -198,15 +185,6 @@ const useUserTheme = () => {
           ...currentThemeData,
           ...themeSettings,
         };
-
-        // Debug logging to help troubleshoot theme update issues
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug('Theme update payload:', {
-            currentThemeData,
-            themeSettings,
-            updatedTheme,
-          });
-        }
 
         const response = await updateUserThemeApi(userID, theme, updatedTheme);
 

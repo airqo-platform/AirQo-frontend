@@ -122,8 +122,9 @@ export const ThemeSheet = memo(() => {
 
   return (
     <div className="fixed inset-0 z-[10000]">
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         <motion.div
+          key="theme-sheet-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.4 }}
           exit={{ opacity: 0 }}
@@ -133,6 +134,7 @@ export const ThemeSheet = memo(() => {
         />
 
         <motion.div
+          key="theme-sheet-content"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
@@ -171,7 +173,7 @@ export const ThemeSheet = memo(() => {
               <div className="flex items-center gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
-                    key={color}
+                    key={`preset-${color}`}
                     onClick={() => handlePresetColorClick(color)}
                     className={`
                       w-8 h-8 rounded-md flex items-center justify-center                      ${
@@ -216,6 +218,23 @@ export const ThemeSheet = memo(() => {
                     aria-label="Pick a custom primary color"
                   />
                 </div>
+                {/* Render a button for the custom color if it's not in presets */}
+                {!PRESET_COLORS.includes(primaryColor) && primaryColor && (
+                  <button
+                    key={`custom-${primaryColor}`}
+                    className={`
+                      w-8 h-8 rounded-md flex items-center justify-center
+                      ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-[var(--org-primary,var(--color-primary,#145fff))]
+                    `}
+                    aria-label={`Custom color ${primaryColor}`}
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <span
+                      className="w-5 h-5 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                  </button>
+                )}
               </div>
             </section>
 
