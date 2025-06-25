@@ -337,7 +337,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Icon(Icons.share_outlined, size: 16),
+                      : const Icon(Icons.share_outlined, size: 16, color: Colors.white),
                   label: const Text('Share All'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,

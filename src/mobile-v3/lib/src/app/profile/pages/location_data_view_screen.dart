@@ -1,9 +1,6 @@
-// File: src/mobile-v3/lib/src/app/profile/pages/location_data_view_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:airqo/src/app/profile/pages/widgets/privacy_dialogs.dart';
 
 class LocationDataViewScreen extends StatefulWidget {
   final List<LocationDataPoint> locationHistory;
