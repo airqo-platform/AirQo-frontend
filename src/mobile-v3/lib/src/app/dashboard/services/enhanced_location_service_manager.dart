@@ -73,7 +73,7 @@ class LocationDataPoint {
         longitude: json['longitude'],
         timestamp: DateTime.parse(json['timestamp']),
         accuracy: json['accuracy'],
-        isSharedWithResearchers: json['isSharedWithResearchers'] ?? true,
+        isSharedWithResearchers: json['isSharedWithResearchers'] ?? false,
       );
 }
 

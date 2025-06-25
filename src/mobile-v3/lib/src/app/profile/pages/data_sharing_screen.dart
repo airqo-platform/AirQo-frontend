@@ -696,7 +696,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                         ),
                       ),
                       Text(
-                        DateFormatters.formatDateTime(point.timestamp),
+                        DateFormatters.formatTimeAgo(point.timestamp),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDarkMode

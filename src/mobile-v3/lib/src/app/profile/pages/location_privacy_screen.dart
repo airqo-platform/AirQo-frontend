@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:airqo/src/app/profile/pages/widgets/privacy_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -18,6 +20,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   bool _isTrackingActive = false;
   bool _isTrackingPaused = false;
   bool _locationEnabled = false;
+  StreamSubscription? _trackingSubscription;
 
   @override
   void initState() {
@@ -35,8 +38,10 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     });
   }
 
+
+
   void _setupTrackingListener() {
-    _locationManager.trackingStatusStream.listen((isActive) {
+    _trackingSubscription = _locationManager.trackingStatusStream.listen((isActive) {
       if (mounted) {
         setState(() {
           _isTrackingActive = isActive;
@@ -753,7 +758,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   }
 
   void _showAddPrivacyZoneDialog() {
-    final locationManager = EnhancedLocationServiceManager(); 
+    final locationManager = _locationManager;
 
     showDialog(
       context: context,
@@ -867,6 +872,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
 
   @override
   void dispose() {
+    _trackingSubscription?.cancel();
     super.dispose();
   }
 }
