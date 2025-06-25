@@ -4,11 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
-// Add Privacy Zone Dialog
 class AddPrivacyZoneDialog extends StatefulWidget {
   final Function(String name, double lat, double lng, double radius) onAddZone;
+  final EnhancedLocationServiceManager locationManager;
 
-  const AddPrivacyZoneDialog({super.key, required this.onAddZone});
+  const AddPrivacyZoneDialog({
+    super.key,
+    required this.onAddZone,
+    required this.locationManager,
+  });
 
   @override
   State<AddPrivacyZoneDialog> createState() => _AddPrivacyZoneDialogState();
@@ -450,8 +454,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
       double lat = 0, lng = 0;
 
       if (_useCurrentLocation) {
-        final locationManager = EnhancedLocationServiceManager();
-        final result = await locationManager.getCurrentPosition();
+        final result = await widget.locationManager.getCurrentPosition();
+        
         if (result.isSuccess && result.position != null) {
           lat = result.position!.latitude;
           lng = result.position!.longitude;

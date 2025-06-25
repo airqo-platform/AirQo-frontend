@@ -753,9 +753,12 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   }
 
   void _showAddPrivacyZoneDialog() {
+    final locationManager = EnhancedLocationServiceManager(); 
+
     showDialog(
       context: context,
       builder: (context) => AddPrivacyZoneDialog(
+        locationManager: locationManager,
         onAddZone: (name, lat, lng, radius) async {
           await _locationManager.addPrivacyZone(name, lat, lng, radius);
           setState(() {});
