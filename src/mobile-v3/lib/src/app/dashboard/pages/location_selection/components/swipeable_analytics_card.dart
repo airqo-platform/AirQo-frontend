@@ -194,7 +194,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).highlightColor,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -273,8 +273,8 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                   Divider(
                       thickness: .5,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black
-                          : Colors.white),
+                          ? AppColors.dividerColordark
+                          : AppColors.dividerColorlight),
                   Padding(
                     padding: const EdgeInsets.only(
                         left: 16, right: 16, bottom: 16, top: 4),

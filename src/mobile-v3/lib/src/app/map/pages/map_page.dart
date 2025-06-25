@@ -8,6 +8,7 @@ import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/other/places/models/auto_complete_response.dart';
 import 'package:airqo/src/app/shared/widgets/analytics_card_loader.dart';
+import 'package:airqo/src/app/shared/widgets/country_button';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/modal_wrapper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -28,7 +29,8 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixin, UiLoggy {
+class _MapScreenState extends State<MapScreen>
+    with AutomaticKeepAliveClientMixin, UiLoggy {
   late GoogleMapController mapController;
 
   String? currentDetailsName;
@@ -57,7 +59,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     setState(() {
       mapControllerInitialized = true;
     });
-    
+
     if (markers.isNotEmpty) {
       _fitMarkersInView();
     }
@@ -65,14 +67,14 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
   Future<void> _fitMarkersInView() async {
     if (!mapControllerInitialized || markers.isEmpty) return;
-    
+
     try {
       // Calculate bounds
       double minLat = 90.0;
       double maxLat = -90.0;
       double minLng = 180.0;
       double maxLng = -180.0;
-      
+
       for (final marker in markers) {
         final position = marker.position;
         minLat = position.latitude < minLat ? position.latitude : minLat;
@@ -80,16 +82,16 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         minLng = position.longitude < minLng ? position.longitude : minLng;
         maxLng = position.longitude > maxLng ? position.longitude : maxLng;
       }
-      
+
       // Add padding
       final latPadding = (maxLat - minLat) * 0.1;
       final lngPadding = (maxLng - minLng) * 0.1;
-      
+
       final bounds = LatLngBounds(
         southwest: LatLng(minLat - latPadding, minLng - lngPadding),
         northeast: LatLng(maxLat + latPadding, maxLng + lngPadding),
       );
-      
+
       final cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 50.0);
       await mapController.animateCamera(cameraUpdate);
     } catch (e) {
@@ -101,7 +103,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
   Future<void> reduceZoom() async {
     if (!mapControllerInitialized) return;
-    
+
     var currentZoomLevel = await mapController.getZoomLevel();
     currentZoomLevel = currentZoomLevel - 2;
     mapController.animateCamera(CameraUpdate.zoomTo(currentZoomLevel));
@@ -109,7 +111,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
   Future<void> increaseZoom() async {
     if (!mapControllerInitialized) return;
-    
+
     var currentZoomLevel = await mapController.getZoomLevel();
     currentZoomLevel = currentZoomLevel + 2;
     mapController.animateCamera(CameraUpdate.zoomTo(currentZoomLevel));
@@ -122,8 +124,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         currentDetails = measurement;
       });
 
-      if (mapControllerInitialized && 
-          measurement.siteDetails?.approximateLatitude != null && 
+      if (mapControllerInitialized &&
+          measurement.siteDetails?.approximateLatitude != null &&
           measurement.siteDetails?.approximateLongitude != null) {
         mapController.animateCamera(
           CameraUpdate.newLatLngZoom(
@@ -151,7 +153,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         ),
       );
     }
-    
+
     setState(() {
       showDetails = false;
       currentDetails = null;
@@ -168,17 +170,31 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     });
   }
 
-  List<Measurement> searchAirQualityLocations(String query, List<Measurement> measurements) {
+  List<Measurement> searchAirQualityLocations(
+      String query, List<Measurement> measurements) {
     query = query.toLowerCase();
     return measurements.where((measurement) {
       if (measurement.siteDetails != null) {
-        return (measurement.siteDetails!.city?.toLowerCase().contains(query) ?? false) ||
-            (measurement.siteDetails!.locationName?.toLowerCase().contains(query) ?? false) ||
-            (measurement.siteDetails!.name?.toLowerCase().contains(query) ?? false) ||
-            (measurement.siteDetails!.searchName?.toLowerCase().contains(query) ?? false) ||
-            (measurement.siteDetails!.formattedName?.toLowerCase().contains(query) ?? false) ||
-            (measurement.siteDetails!.town?.toLowerCase().contains(query) ?? false) ||
-            (measurement.siteDetails!.district?.toLowerCase().contains(query) ?? false);
+        return (measurement.siteDetails!.city?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.locationName
+                    ?.toLowerCase()
+                    .contains(query) ??
+                false) ||
+            (measurement.siteDetails!.name?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.searchName
+                    ?.toLowerCase()
+                    .contains(query) ??
+                false) ||
+            (measurement.siteDetails!.formattedName
+                    ?.toLowerCase()
+                    .contains(query) ??
+                false) ||
+            (measurement.siteDetails!.town?.toLowerCase().contains(query) ??
+                false) ||
+            (measurement.siteDetails!.district?.toLowerCase().contains(query) ??
+                false);
       }
       return false;
     }).toList();
@@ -203,7 +219,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     });
   }
 
-
   GooglePlacesBloc? googlePlacesBloc;
 
   Future<void> addMarkers(AirQualityResponse response) async {
@@ -211,9 +226,9 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       loggy.warning('No measurements to create markers from');
       return;
     }
-    
+
     final newMarkers = <Marker>[];
-    
+
     for (var measurement in response.measurements!) {
       if (measurement.siteDetails != null &&
           measurement.siteDetails!.approximateLatitude != null &&
@@ -232,7 +247,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
             ));
           }
         } catch (e) {
-          loggy.warning('Error creating marker for measurement ${measurement.id}: $e');
+          loggy.warning(
+              'Error creating marker for measurement ${measurement.id}: $e');
         }
       }
     }
@@ -241,7 +257,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       markers = newMarkers;
       isInitializing = false;
     });
-    
+
     if (mapControllerInitialized && markers.isNotEmpty) {
       _fitMarkersInView();
     }
@@ -249,17 +265,17 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
   Future<void> _retryLoading() async {
     if (isRetrying) return;
-    
+
     setState(() {
       isRetrying = true;
     });
-    
+
     // Load from map bloc
     context.read<MapBloc>().add(LoadMap(forceRefresh: true));
-    
+
     // Wait a short time to show loading state
     await Future.delayed(Duration(seconds: 2));
-    
+
     if (mounted) {
       setState(() {
         isRetrying = false;
@@ -275,7 +291,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         finalMeasurements.add(meas);
       }
     }
-    
+
     if (finalMeasurements.isNotEmpty) {
       setState(() {
         allMeasurements = finalMeasurements;
@@ -302,30 +318,31 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
   @override
   void initState() {
-    googlePlacesBloc = context.read<GooglePlacesBloc>()..add(ResetGooglePlaces());
-    
+    googlePlacesBloc = context.read<GooglePlacesBloc>()
+      ..add(ResetGooglePlaces());
+
     _loadDataFromAvailableSources();
-    
+
     super.initState();
   }
-  
+
   void _loadDataFromAvailableSources() {
     final dashboardState = context.read<DashboardBloc>().state;
-    if (dashboardState is DashboardLoaded && 
+    if (dashboardState is DashboardLoaded &&
         dashboardState.response.measurements != null &&
         dashboardState.response.measurements!.isNotEmpty) {
       _initializeWithData(dashboardState.response);
     }
-    
+
     context.read<MapBloc>().add(LoadMap());
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
+
     final List<CountryModel> countries = CountryRepository.countries;
-    
+
     final List<Map<String, String>> airQualityData = [
       {
         "name": "Good",
@@ -359,12 +376,12 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         "image": "assets/images/shared/airquality_indicators/hazardous.svg"
       },
     ];
-    
+
     return MultiBlocListener(
       listeners: [
         BlocListener<DashboardBloc, DashboardState>(
           listener: (context, state) {
-            if (state is DashboardLoaded && 
+            if (state is DashboardLoaded &&
                 state.response.measurements != null &&
                 state.response.measurements!.isNotEmpty) {
               if (markers.isEmpty || allMeasurements.isEmpty) {
@@ -376,11 +393,12 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         BlocListener<MapBloc, MapState>(
           listener: (context, state) {
             if (state is MapLoaded || state is MapLoadedFromCache) {
-              final response = state is MapLoaded 
-                  ? state.response 
+              final response = state is MapLoaded
+                  ? state.response
                   : (state as MapLoadedFromCache).response;
-                  
-              if (response.measurements != null && response.measurements!.isNotEmpty) {
+
+              if (response.measurements != null &&
+                  response.measurements!.isNotEmpty) {
                 _initializeWithData(response);
               }
             }
@@ -388,18 +406,16 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         ),
         BlocListener<GooglePlacesBloc, GooglePlacesState>(
           listener: (context, state) {
-            if (state is PlaceDetailsLoaded && 
-                state.response.measurements.isNotEmpty && 
+            if (state is PlaceDetailsLoaded &&
+                state.response.measurements.isNotEmpty &&
                 mapControllerInitialized) {
               final measurement = state.response.measurements[0];
               if (measurement.siteDetails?.approximateLatitude != null &&
                   measurement.siteDetails?.approximateLongitude != null) {
                 mapController.animateCamera(
                   CameraUpdate.newLatLngZoom(
-                    LatLng(
-                      measurement.siteDetails!.approximateLatitude!,
-                      measurement.siteDetails!.approximateLongitude!
-                    ),
+                    LatLng(measurement.siteDetails!.approximateLatitude!,
+                        measurement.siteDetails!.approximateLongitude!),
                     16,
                   ),
                 );
@@ -418,9 +434,12 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
               color: Colors.grey[200],
             ),
 
-            if (isInitializing && markers.isEmpty && allMeasurements.isEmpty) 
+            if (isInitializing && markers.isEmpty && allMeasurements.isEmpty)
               _buildLoadingView()
-            else if (!isInitializing && markers.isEmpty && allMeasurements.isEmpty && !isRetrying)
+            else if (!isInitializing &&
+                markers.isEmpty &&
+                allMeasurements.isEmpty &&
+                !isRetrying)
               _buildErrorView()
             else
               _buildMapView(airQualityData, countries),
@@ -429,7 +448,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       ),
     );
   }
-  
+
   Widget _buildLoadingView() {
     return Center(
       child: Column(
@@ -448,7 +467,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       ),
     );
   }
-  
+
   Widget _buildErrorView() {
     return Center(
       child: Column(
@@ -490,8 +509,9 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       ),
     );
   }
-  
-  Widget _buildMapView(List<Map<String, String>> airQualityData, List<CountryModel> countries) {
+
+  Widget _buildMapView(
+      List<Map<String, String>> airQualityData, List<CountryModel> countries) {
     return Stack(
       children: [
         // Google Map
@@ -507,7 +527,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
           ),
           markers: markers.toSet(),
         ),
-        
+
         // UI Overlay
         SizedBox(
           height: MediaQuery.of(context).size.height,
@@ -528,9 +548,10 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                         Container(
                           padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Color(0xff3E4147)
-                                : Colors.white,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Color(0xff3E4147)
+                                    : Colors.white,
                             borderRadius: BorderRadius.circular(44),
                             boxShadow: [
                               BoxShadow(
@@ -541,32 +562,29 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                             ],
                           ),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            mainAxisSize: MainAxisSize.min,
-                            children: airQualityData.map((e) {
-                              return Tooltip(
-                                preferBelow: false,
-                                textStyle: TextStyle(color: Colors.white),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                  color: Color(0xff3E4147)
-                                ),
-                                triggerMode: TooltipTriggerMode.tap,
-                                message: "Air Quality is ${e['name']}",
-                                verticalOffset: -18,
-                                margin: EdgeInsets.only(left: 65),
-                                child: Container(
-                                  margin: const EdgeInsets.only(top: 4),
-                                  height: 40,
-                                  width: 40,
-                                  child: SvgPicture.asset(
-                                    e['image']!,
-                                    fit: BoxFit.cover,
-                                  )
-                                ),
-                              );
-                            }).toList()
-                          ),
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              mainAxisSize: MainAxisSize.min,
+                              children: airQualityData.map((e) {
+                                return Tooltip(
+                                  preferBelow: false,
+                                  textStyle: TextStyle(color: Colors.white),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(4),
+                                      color: Color(0xff3E4147)),
+                                  triggerMode: TooltipTriggerMode.tap,
+                                  message: "Air Quality is ${e['name']}",
+                                  verticalOffset: -18,
+                                  margin: EdgeInsets.only(left: 65),
+                                  child: Container(
+                                      margin: const EdgeInsets.only(top: 4),
+                                      height: 40,
+                                      width: 40,
+                                      child: SvgPicture.asset(
+                                        e['image']!,
+                                        fit: BoxFit.cover,
+                                      )),
+                                );
+                              }).toList()),
                         ),
                         Spacer(),
                         // Zoom controls
@@ -575,9 +593,10 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                           height: 90,
                           width: 44,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Color(0xff3E4147)
-                                : Colors.white,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Color(0xff3E4147)
+                                    : Colors.white,
                             borderRadius: BorderRadius.circular(44),
                             boxShadow: [
                               BoxShadow(
@@ -590,18 +609,14 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                           child: Column(
                             children: [
                               Expanded(
-                                child: GestureDetector(
-                                  onTap: () async => await increaseZoom(),
-                                  child: Icon(Icons.add)
-                                )
-                              ),
+                                  child: GestureDetector(
+                                      onTap: () async => await increaseZoom(),
+                                      child: Icon(Icons.add))),
                               Divider(),
                               Expanded(
-                                child: GestureDetector(
-                                  onTap: () async => await reduceZoom(),
-                                  child: Icon(Icons.remove)
-                                )
-                              )
+                                  child: GestureDetector(
+                                      onTap: () async => await reduceZoom(),
+                                      child: Icon(Icons.remove)))
                             ],
                           ),
                         )
@@ -609,7 +624,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                     ),
                   ),
                 ),
-              
+
               // Bottom panel with details or list
               Expanded(
                 child: Builder(
@@ -630,72 +645,63 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       ],
     );
   }
-  
+
   Widget _buildMeasurementDetailsPanel() {
     if (currentDetails == null) return SizedBox.shrink();
-    
+
     return SizedBox(
-      width: double.infinity,
-      child: ModalWrapper(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(),
-                    Text(
-                      currentDetails!.siteDetails!.searchName!,
-                      style: TextStyle(
-                        color: Color(0xff9EA3AA),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => resetDetails(),
-                      child: Icon(Icons.close)
-                    )
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Today",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: AppColors.boldHeadlineColor
-                      )
-                    ),
-                    Row(
+        width: double.infinity,
+        child: ModalWrapper(
+          child: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SizedBox(width: 8),
-                      ]
-                    )
-                  ],
-                ),
-              ),
-              Expanded(
-                child: AnalyticsCard(currentDetails!),
-              ),
-            ],
-          )
-        ),
-      )
-    );
+                        SizedBox(),
+                        Text(
+                          currentDetails!.siteDetails!.searchName!,
+                          style: TextStyle(
+                              color: Color(0xff9EA3AA),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700),
+                        ),
+                        GestureDetector(
+                            onTap: () => resetDetails(),
+                            child: Icon(Icons.close))
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text("Today",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 20,
+                                color: AppColors.boldHeadlineColor)),
+                        Row(children: [
+                          SizedBox(width: 8),
+                        ])
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: AnalyticsCard(currentDetails!),
+                  ),
+                ],
+              )),
+        ));
   }
-  
+
   Widget _buildPlaceDetailsPanel() {
     return BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
       builder: (context, state) {
@@ -705,53 +711,46 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
             width: double.infinity,
             child: ModalWrapper(
               child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(),
-                          Text(
-                            measurement.siteDetails!.searchName!,
-                            style: TextStyle(
-                              color: Color(0xff9EA3AA),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(),
+                            Text(
+                              measurement.siteDetails!.searchName!,
+                              style: TextStyle(
+                                  color: Color(0xff9EA3AA),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700),
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: () => resetDetails(),
-                            child: Icon(Icons.close)
-                          )
-                        ],
+                            GestureDetector(
+                                onTap: () => resetDetails(),
+                                child: Icon(Icons.close))
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 16),
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Today",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: AppColors.boldHeadlineColor
-                            )
-                          ),
-                          Row(
-                            children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text("Today",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 20,
+                                    color: AppColors.boldHeadlineColor)),
+                            Row(children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.highlightColor,
-                                  borderRadius: BorderRadius.circular(100)
-                                ),
+                                    color: AppColors.highlightColor,
+                                    borderRadius: BorderRadius.circular(100)),
                                 height: 40,
                                 width: 52,
                                 child: Center(
@@ -768,9 +767,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                               SizedBox(width: 8),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.highlightColor,
-                                  borderRadius: BorderRadius.circular(100)
-                                ),
+                                    color: AppColors.highlightColor,
+                                    borderRadius: BorderRadius.circular(100)),
                                 height: 40,
                                 width: 52,
                                 child: Center(
@@ -781,17 +779,15 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                                   ),
                                 ),
                               )
-                            ]
-                          )
-                        ],
+                            ])
+                          ],
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: AnalyticsCard(measurement),
-                    ),
-                  ],
-                )
-              ),
+                      Expanded(
+                        child: AnalyticsCard(measurement),
+                      ),
+                    ],
+                  )),
             ),
           );
         } else if (state is PlaceDetailsLoading) {
@@ -799,49 +795,43 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
             width: double.infinity,
             child: ModalWrapper(
               child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(),
-                          ShimmerText(
-                            height: 15,
-                            width: 150,
-                          ),
-                          GestureDetector(
-                            onTap: () => resetDetails(),
-                            child: Icon(Icons.close)
-                          )
-                        ],
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(),
+                            ShimmerText(
+                              height: 15,
+                              width: 150,
+                            ),
+                            GestureDetector(
+                                onTap: () => resetDetails(),
+                                child: Icon(Icons.close))
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 16),
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Today",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: AppColors.boldHeadlineColor
-                            )
-                          ),
-                          Row(
-                            children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text("Today",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 20,
+                                    color: AppColors.boldHeadlineColor)),
+                            Row(children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.highlightColor,
-                                  borderRadius: BorderRadius.circular(100)
-                                ),
+                                    color: AppColors.highlightColor,
+                                    borderRadius: BorderRadius.circular(100)),
                                 height: 40,
                                 width: 52,
                                 child: Center(
@@ -858,9 +848,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                               SizedBox(width: 8),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.highlightColor,
-                                  borderRadius: BorderRadius.circular(100)
-                                ),
+                                    color: AppColors.highlightColor,
+                                    borderRadius: BorderRadius.circular(100)),
                                 height: 40,
                                 width: 52,
                                 child: Center(
@@ -871,17 +860,15 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                                   ),
                                 ),
                               )
-                            ]
-                          )
-                        ],
+                            ])
+                          ],
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: AnalyticsCardLoader(),
-                    ),
-                  ],
-                )
-              ),
+                      Expanded(
+                        child: AnalyticsCardLoader(),
+                      ),
+                    ],
+                  )),
             ),
           );
         }
@@ -890,7 +877,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       },
     );
   }
-  
+
   Widget _buildSearchAndListPanel(List<CountryModel> countries) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
@@ -933,8 +920,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                       } else {
                         googlePlacesBloc!.add(SearchPlace(value));
                         setState(() {
-                          localSearchResults = searchAirQualityLocations(
-                              value, allMeasurements);
+                          localSearchResults =
+                              searchAirQualityLocations(value, allMeasurements);
                         });
                       }
                     },
@@ -948,13 +935,12 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                         child: SvgPicture.asset(
                           "assets/icons/search_icon.svg",
                           height: 15,
-                          color: Theme.of(context)
-                              .textTheme
-                              .headlineLarge!
-                              .color,
+                          color:
+                              Theme.of(context).textTheme.headlineLarge!.color,
                         ),
                       ),
-                      suffixIcon: BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
+                      suffixIcon:
+                          BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
                         builder: (context, state) {
                           if (state is SearchLoaded || state is SearchLoading) {
                             return GestureDetector(
@@ -971,7 +957,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                         },
                       ),
                       focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.primaryColor)),
+                          borderSide:
+                              BorderSide(color: AppColors.primaryColor)),
                       enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                               color: Theme.of(context).highlightColor)),
@@ -1003,8 +990,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                         // Show local AirQuality matches first
                         if (localSearchResults.isNotEmpty) ...[
                           Text("Air Quality Monitoring Locations",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold)),
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           ListView.separated(
                               shrinkWrap: true,
                               itemCount: localSearchResults.length,
@@ -1014,16 +1000,20 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                                 Measurement measurement =
                                     localSearchResults[index];
                                 return GestureDetector(
-                                  onTap: () => viewDetails(measurement: measurement),
+                                  onTap: () =>
+                                      viewDetails(measurement: measurement),
                                   child: LocationDisplayWidget(
-                                    title: measurement.siteDetails!.locationName ?? "",
-                                    subTitle: measurement.siteDetails!.searchName ?? "",
+                                    title:
+                                        measurement.siteDetails!.locationName ??
+                                            "",
+                                    subTitle:
+                                        measurement.siteDetails!.searchName ??
+                                            "",
                                   ),
                                 );
                               }),
                           Divider(),
                         ],
-
 
                         Text("Other Locations",
                             style: TextStyle(fontWeight: FontWeight.bold)),
@@ -1033,13 +1023,15 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                             separatorBuilder: (context, index) =>
                                 Divider(indent: 50),
                             itemBuilder: (context, index) {
-                              Prediction prediction = placesState.response.predictions[index];
+                              Prediction prediction =
+                                  placesState.response.predictions[index];
                               return GestureDetector(
                                 onTap: () => viewDetails(
                                     placeName: prediction.description),
                                 child: LocationDisplayWidget(
                                     title: prediction.description,
-                                    subTitle: prediction.structuredFormatting.mainText),
+                                    subTitle: prediction
+                                        .structuredFormatting.mainText),
                               );
                             }),
                       ],
@@ -1059,51 +1051,62 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
-                                  GestureDetector(
-                                    onTap: () => resetFilter(),
-                                    child: Container(
-                                      height: 48,
-                                      width: 51,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(40),
-                                          color: currentFilter == "All"
-                                              ? AppColors.primaryColor
-                                              : AppColors.highlightColor),
-                                      child: Center(
-                                        child: Text(
-                                          "All",
-                                          style: TextStyle(
-                                              color: currentFilter == "All"
-                                                  ? Colors.white
-                                                  : Colors.black),
+                                  // Add consistent padding to the "All" button
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: GestureDetector(
+                                      onTap: () => resetFilter(),
+                                      child: Container(
+                                        height: 48,
+                                        width: 51,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(40),
+                                            color: currentFilter == "All"
+                                                ? AppColors.primaryColor
+                                                : AppColors.highlightColor),
+                                        child: Center(
+                                          child: Text(
+                                            "All",
+                                            style: TextStyle(
+                                                color: currentFilter == "All"
+                                                    ? Colors.white
+                                                    : Colors.black),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                   ListView.builder(
                                       shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
                                       scrollDirection: Axis.horizontal,
                                       itemCount: countries.length,
                                       itemBuilder: (context, index) {
-                                        return CountriesChip(
-                                            fontSize: 14.5,
-                                            current: currentFilter ==
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8),
+                                          child: CountryButton(
+                                            flag: countries[index].flag,
+                                            name: countries[index].countryName,
+                                            isSelected: currentFilter ==
                                                 countries[index].countryName,
                                             onTap: () => filterByCountry(
                                                 countries[index].countryName,
                                                 allMeasurements),
-                                            countryModel: countries[index]);
+                                            // You can add user country logic here if needed
+                                            // isUserCountry: widget.userCountry?.toLowerCase() ==
+                                            //     countries[index].countryName.toLowerCase(),
+                                          ),
+                                        );
                                       })
                                 ],
                               ),
                             ),
                           ),
                         ),
-
                         SizedBox(height: 8),
-
                         Text(
                           "Suggestions",
                           style: TextStyle(
@@ -1111,17 +1114,15 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                               color: Color(0xff7A7F87),
                               fontWeight: FontWeight.w500),
                         ),
-
                         SizedBox(height: 3),
-
                         Divider(),
-
                         Expanded(
                           child: Builder(
                             builder: (context) {
-                              List<Measurement> measurements = currentFilter == "All"
-                                  ? allMeasurements
-                                  : filteredMeasurements;
+                              List<Measurement> measurements =
+                                  currentFilter == "All"
+                                      ? allMeasurements
+                                      : filteredMeasurements;
 
                               if (measurements.isEmpty) {
                                 return Center(
@@ -1138,12 +1139,14 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                                 itemBuilder: (context, index) {
                                   Measurement measurement = measurements[index];
                                   return GestureDetector(
-                                    onTap: () => viewDetails(measurement: measurement),
+                                    onTap: () =>
+                                        viewDetails(measurement: measurement),
                                     child: LocationDisplayWidget(
                                       title: measurement.siteDetails?.city ??
                                           "Unknown City",
-                                      subTitle: measurement.siteDetails?.searchName ??
-                                          "Unknown Location",
+                                      subTitle:
+                                          measurement.siteDetails?.searchName ??
+                                              "Unknown Location",
                                     ),
                                   );
                                 },
