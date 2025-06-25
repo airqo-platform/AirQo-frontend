@@ -16,10 +16,12 @@ class LocationPrivacyScreen extends StatefulWidget {
 }
 
 class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
-  final EnhancedLocationServiceManager _locationManager = EnhancedLocationServiceManager();
+  final EnhancedLocationServiceManager _locationManager =
+      EnhancedLocationServiceManager();
   bool _isTrackingActive = false;
   bool _isTrackingPaused = false;
   bool _locationEnabled = false;
+  bool _isProcessing = false;
   StreamSubscription? _trackingSubscription;
 
   @override
@@ -38,10 +40,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     });
   }
 
-
-
   void _setupTrackingListener() {
-    _trackingSubscription = _locationManager.trackingStatusStream.listen((isActive) {
+    _trackingSubscription =
+        _locationManager.trackingStatusStream.listen((isActive) {
       if (mounted) {
         setState(() {
           _isTrackingActive = isActive;
@@ -62,17 +63,22 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   }
 
   Future<void> _toggleLocation(bool value) async {
+    setState(() => _isProcessing = true);
     if (value) {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         bool openedSettings = await Geolocator.openLocationSettings();
         if (!openedSettings) {
           _showSnackBar('Please enable location services in settings.');
+          setState(() => _isProcessing = false);
           return;
         }
 
+        await Future.delayed(Duration(seconds: 1));
         serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
         if (!serviceEnabled) {
+          setState(() => _isProcessing = false);
           return;
         }
       }
@@ -95,6 +101,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
 
     setState(() {
       _locationEnabled = value;
+      _isProcessing = false;
     });
   }
 
@@ -109,12 +116,16 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor,
+      backgroundColor: isDarkMode
+          ? AppColors.darkThemeBackground
+          : AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text('Location Privacy'),
-        backgroundColor: isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor,
+        backgroundColor: isDarkMode
+            ? AppColors.darkThemeBackground
+            : AppColors.backgroundColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(
@@ -153,7 +164,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   Widget _buildLocationServicesSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -161,7 +172,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         color: Theme.of(context).highlightColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          color: isDarkMode
+              ? AppColors.dividerColordark
+              : AppColors.dividerColorlight,
           width: 0.5,
         ),
       ),
@@ -192,7 +205,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                        color: isDarkMode
+                            ? Colors.white
+                            : AppColors.boldHeadlineColor4,
                       ),
                     ),
                   ],
@@ -202,8 +217,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 activeColor: Colors.white,
                 activeTrackColor: AppColors.primaryColor,
                 inactiveThumbColor: Colors.white,
-                inactiveTrackColor: isDarkMode 
-                    ? Colors.grey[700] 
+                inactiveTrackColor: isDarkMode
+                    ? Colors.grey[700]
                     : Theme.of(context).highlightColor,
                 value: _locationEnabled,
                 onChanged: _toggleLocation,
@@ -215,8 +230,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             'AirQo to use your precise location to locate the Air Quality of your nearest location',
             style: TextStyle(
               fontSize: 13,
-              color: isDarkMode 
-                  ? AppColors.secondaryHeadlineColor2 
+              color: isDarkMode
+                  ? AppColors.secondaryHeadlineColor2
                   : AppColors.secondaryHeadlineColor,
               height: 1.4,
             ),
@@ -229,7 +244,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   Widget _buildTrackingControlSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -237,7 +252,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         color: Theme.of(context).highlightColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          color: isDarkMode
+              ? AppColors.dividerColordark
+              : AppColors.dividerColorlight,
           width: 0.5,
         ),
       ),
@@ -268,17 +285,19 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                        color: isDarkMode
+                            ? Colors.white
+                            : AppColors.boldHeadlineColor4,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _isTrackingActive 
+                      _isTrackingActive
                           ? (_isTrackingPaused ? 'Paused' : 'Active')
                           : 'Stopped',
                       style: TextStyle(
                         fontSize: 14,
-                        color: _isTrackingActive 
+                        color: _isTrackingActive
                             ? (_isTrackingPaused ? Colors.orange : Colors.green)
                             : Colors.red,
                         fontWeight: FontWeight.w500,
@@ -291,8 +310,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 activeColor: Colors.white,
                 activeTrackColor: AppColors.primaryColor,
                 inactiveThumbColor: Colors.white,
-                inactiveTrackColor: isDarkMode 
-                    ? Colors.grey[700] 
+                inactiveTrackColor: isDarkMode
+                    ? Colors.grey[700]
                     : Theme.of(context).highlightColor,
                 value: _isTrackingActive,
                 onChanged: (value) async {
@@ -313,8 +332,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             'Controls whether your location is tracked for air quality insights',
             style: TextStyle(
               fontSize: 13,
-              color: isDarkMode 
-                  ? AppColors.secondaryHeadlineColor2 
+              color: isDarkMode
+                  ? AppColors.secondaryHeadlineColor2
                   : AppColors.secondaryHeadlineColor,
               height: 1.4,
             ),
@@ -327,7 +346,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   Widget _buildPrivacyZonesSection() {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -370,14 +389,13 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           'Locations where tracking is automatically disabled',
           style: TextStyle(
             fontSize: 14,
-            color: isDarkMode 
-                ? AppColors.secondaryHeadlineColor2 
+            color: isDarkMode
+                ? AppColors.secondaryHeadlineColor2
                 : AppColors.secondaryHeadlineColor,
             height: 1.4,
           ),
         ),
         const SizedBox(height: 16),
-        
         if (_locationManager.privacyZones.isEmpty)
           Container(
             width: double.infinity,
@@ -386,7 +404,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
               color: Theme.of(context).highlightColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+                color: isDarkMode
+                    ? AppColors.dividerColordark
+                    : AppColors.dividerColorlight,
                 width: 0.5,
               ),
             ),
@@ -395,8 +415,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 Icon(
                   Icons.shield_outlined,
                   size: 48,
-                  color: isDarkMode 
-                      ? AppColors.secondaryHeadlineColor2 
+                  color: isDarkMode
+                      ? AppColors.secondaryHeadlineColor2
                       : AppColors.secondaryHeadlineColor,
                 ),
                 const SizedBox(height: 12),
@@ -405,7 +425,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                    color: isDarkMode
+                        ? Colors.white
+                        : AppColors.boldHeadlineColor4,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -414,8 +436,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode 
-                        ? AppColors.secondaryHeadlineColor2 
+                    color: isDarkMode
+                        ? AppColors.secondaryHeadlineColor2
                         : AppColors.secondaryHeadlineColor,
                     height: 1.4,
                   ),
@@ -436,7 +458,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   Widget _buildPrivacyZoneCard(PrivacyZone zone) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -473,7 +495,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                    color: isDarkMode
+                        ? Colors.white
+                        : AppColors.boldHeadlineColor4,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -481,8 +505,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   '${zone.radius.toInt()}m radius',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode 
-                        ? AppColors.secondaryHeadlineColor2 
+                    color: isDarkMode
+                        ? AppColors.secondaryHeadlineColor2
                         : AppColors.secondaryHeadlineColor,
                   ),
                 ),
@@ -507,7 +531,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final totalCount = _locationManager.locationHistory.length;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -520,7 +544,6 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        
         Container(
           width: double.infinity,
           padding: EdgeInsets.all(screenWidth * 0.04),
@@ -528,7 +551,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             color: Theme.of(context).highlightColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+              color: isDarkMode
+                  ? AppColors.dividerColordark
+                  : AppColors.dividerColorlight,
               width: 0.5,
             ),
           ),
@@ -559,7 +584,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                            color: isDarkMode
+                                ? Colors.white
+                                : AppColors.boldHeadlineColor4,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -567,8 +594,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                           '$totalCount location points stored',
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDarkMode 
-                                ? AppColors.secondaryHeadlineColor2 
+                            color: isDarkMode
+                                ? AppColors.secondaryHeadlineColor2
                                 : AppColors.secondaryHeadlineColor,
                           ),
                         ),
@@ -583,7 +610,11 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => _showLocationDataView(),
-                      icon: const Icon(Icons.visibility, size: 18, color: Colors.white,),
+                      icon: const Icon(
+                        Icons.visibility,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                       label: const Text('View Data'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
@@ -636,7 +667,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     final sharedCount = _locationManager.locationHistory
         .where((point) => point.isSharedWithResearchers)
         .length;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -649,7 +680,6 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        
         Container(
           width: double.infinity,
           padding: EdgeInsets.all(screenWidth * 0.04),
@@ -657,7 +687,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             color: Theme.of(context).highlightColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+              color: isDarkMode
+                  ? AppColors.dividerColordark
+                  : AppColors.dividerColorlight,
               width: 0.5,
             ),
           ),
@@ -688,7 +720,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                            color: isDarkMode
+                                ? Colors.white
+                                : AppColors.boldHeadlineColor4,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -696,8 +730,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                           text: TextSpan(
                             style: TextStyle(
                               fontSize: 14,
-                              color: isDarkMode 
-                                  ? AppColors.secondaryHeadlineColor2 
+                              color: isDarkMode
+                                  ? AppColors.secondaryHeadlineColor2
                                   : AppColors.secondaryHeadlineColor,
                             ),
                             children: [
@@ -722,8 +756,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 'Help improve air quality research by sharing anonymous location data with researchers',
                 style: TextStyle(
                   fontSize: 13,
-                  color: isDarkMode 
-                      ? AppColors.secondaryHeadlineColor2 
+                  color: isDarkMode
+                      ? AppColors.secondaryHeadlineColor2
                       : AppColors.secondaryHeadlineColor,
                   height: 1.4,
                 ),
@@ -733,7 +767,11 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () => _showDataSharingDetails(),
-                  icon: const Icon(Icons.settings, size: 18, color: Colors.white,),
+                  icon: const Icon(
+                    Icons.settings,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                   label: const Text('Manage Sharing Preferences'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
@@ -783,8 +821,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         title: Text(
           'Remove Privacy Zone',
           style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white 
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
                 : AppColors.boldHeadlineColor4,
             fontWeight: FontWeight.w600,
           ),
@@ -792,8 +830,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         content: Text(
           'Are you sure you want to remove this privacy zone?',
           style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.secondaryHeadlineColor2 
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.secondaryHeadlineColor2
                 : AppColors.secondaryHeadlineColor,
           ),
         ),
@@ -801,8 +839,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.grey[400] 
+              foregroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]
                   : Colors.grey[700],
             ),
             child: const Text('Cancel'),
