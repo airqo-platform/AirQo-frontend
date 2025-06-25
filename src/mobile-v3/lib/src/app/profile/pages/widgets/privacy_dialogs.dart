@@ -1,4 +1,4 @@
-
+import 'package:airqo/src/meta/utils/date_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
@@ -14,9 +14,11 @@ class AddPrivacyZoneDialog extends StatefulWidget {
   State<AddPrivacyZoneDialog> createState() => _AddPrivacyZoneDialogState();
 }
 
-class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with SingleTickerProviderStateMixin {
+class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _radiusController = TextEditingController(text: '100');
+  final TextEditingController _radiusController =
+      TextEditingController(text: '100');
   final TextEditingController _latController = TextEditingController();
   final TextEditingController _lngController = TextEditingController();
   bool _useCurrentLocation = true;
@@ -52,7 +54,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: AlertDialog(
@@ -97,17 +99,15 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                   'Create a zone where location tracking will be automatically disabled to protect your privacy.',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode 
-                        ? AppColors.secondaryHeadlineColor2 
+                    color: isDarkMode
+                        ? AppColors.secondaryHeadlineColor2
                         : AppColors.secondaryHeadlineColor,
                     height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 20),
-                
                 _buildSectionHeader('Zone Information'),
                 const SizedBox(height: 12),
-                
                 _buildTextField(
                   controller: _nameController,
                   label: 'Zone Name',
@@ -116,7 +116,6 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 16),
-                
                 _buildTextField(
                   controller: _radiusController,
                   label: 'Radius (meters)',
@@ -127,12 +126,9 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                   suffix: 'm',
                 ),
                 const SizedBox(height: 20),
-                
                 _buildSectionHeader('Location'),
                 const SizedBox(height: 12),
-                
                 _buildLocationToggle(),
-                
                 if (!_useCurrentLocation) ...[
                   const SizedBox(height: 16),
                   _buildCoordinatesSection(),
@@ -158,7 +154,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
           ),
           ElevatedButton.icon(
             onPressed: _isLoading ? null : _handleAddZone,
-            icon: _isLoading 
+            icon: _isLoading
                 ? const SizedBox(
                     width: 18,
                     height: 18,
@@ -193,7 +189,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
 
   Widget _buildSectionHeader(String title) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Text(
       title,
       style: TextStyle(
@@ -215,7 +211,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
     String? suffix,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
@@ -230,20 +226,20 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
         hintText: hint,
         suffixText: suffix,
         labelStyle: TextStyle(
-          color: isDarkMode 
-              ? AppColors.secondaryHeadlineColor2 
+          color: isDarkMode
+              ? AppColors.secondaryHeadlineColor2
               : AppColors.secondaryHeadlineColor,
           fontSize: 14,
         ),
         hintStyle: TextStyle(
-          color: isDarkMode 
+          color: isDarkMode
               ? AppColors.secondaryHeadlineColor2.withOpacity(0.7)
               : AppColors.secondaryHeadlineColor.withOpacity(0.7),
           fontSize: 16,
         ),
         suffixStyle: TextStyle(
-          color: isDarkMode 
-              ? AppColors.secondaryHeadlineColor2 
+          color: isDarkMode
+              ? AppColors.secondaryHeadlineColor2
               : AppColors.secondaryHeadlineColor,
           fontSize: 14,
         ),
@@ -263,8 +259,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: isDarkMode 
-                ? AppColors.dividerColordark 
+            color: isDarkMode
+                ? AppColors.dividerColordark
                 : AppColors.dividerColorlight,
             width: 1,
           ),
@@ -272,8 +268,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: isDarkMode 
-                ? AppColors.dividerColordark 
+            color: isDarkMode
+                ? AppColors.dividerColordark
                 : AppColors.dividerColorlight,
             width: 1,
           ),
@@ -292,20 +288,21 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
             width: 1,
           ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
 
   Widget _buildLocationToggle() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode 
-              ? AppColors.dividerColordark 
+          color: isDarkMode
+              ? AppColors.dividerColordark
               : AppColors.dividerColorlight,
           width: 1,
         ),
@@ -326,14 +323,16 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _useCurrentLocation 
+                    color: _useCurrentLocation
                         ? AppColors.primaryColor.withOpacity(0.1)
                         : Colors.grey.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Icon(
                     _useCurrentLocation ? Icons.my_location : Icons.location_on,
-                    color: _useCurrentLocation ? AppColors.primaryColor : Colors.grey,
+                    color: _useCurrentLocation
+                        ? AppColors.primaryColor
+                        : Colors.grey,
                     size: 20,
                   ),
                 ),
@@ -345,7 +344,9 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                       Text(
                         'Use current location',
                         style: TextStyle(
-                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          color: isDarkMode
+                              ? Colors.white
+                              : AppColors.boldHeadlineColor4,
                           fontWeight: FontWeight.w500,
                           fontSize: 16,
                         ),
@@ -354,8 +355,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                       Text(
                         'Zone will be created at your current position',
                         style: TextStyle(
-                          color: isDarkMode 
-                              ? AppColors.secondaryHeadlineColor2 
+                          color: isDarkMode
+                              ? AppColors.secondaryHeadlineColor2
                               : AppColors.secondaryHeadlineColor,
                           fontSize: 13,
                           height: 1.3,
@@ -374,9 +375,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                   activeColor: Colors.white,
                   activeTrackColor: AppColors.primaryColor,
                   inactiveThumbColor: Colors.white,
-                  inactiveTrackColor: isDarkMode 
-                      ? Colors.grey[700] 
-                      : Colors.grey[300],
+                  inactiveTrackColor:
+                      isDarkMode ? Colors.grey[700] : Colors.grey[300],
                 ),
               ],
             ),
@@ -395,8 +395,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.secondaryHeadlineColor2 
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.secondaryHeadlineColor2
                 : AppColors.secondaryHeadlineColor,
           ),
         ),
@@ -409,7 +409,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                 label: 'Latitude',
                 hint: '0.0000',
                 icon: Icons.north,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
             const SizedBox(width: 12),
@@ -419,7 +420,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
                 label: 'Longitude',
                 hint: '0.0000',
                 icon: Icons.east,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
           ],
@@ -446,7 +448,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
 
     try {
       double lat = 0, lng = 0;
-      
+
       if (_useCurrentLocation) {
         final locationManager = EnhancedLocationServiceManager();
         final result = await locationManager.getCurrentPosition();
@@ -458,24 +460,29 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with Single
           return;
         }
       } else {
-        lat = double.tryParse(_latController.text) ?? 0;
-        lng = double.tryParse(_lngController.text) ?? 0;
-        
-        if (lat == 0 || lng == 0) {
+        final latParsed = double.tryParse(_latController.text);
+        final lngParsed = double.tryParse(_lngController.text);
+
+        if (latParsed == null || lngParsed == null) {
           _showSnackBar('Please enter valid coordinates');
           return;
         }
-        
+
+        lat = latParsed;
+        lng = lngParsed;
+
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          _showSnackBar('Please enter valid latitude (-90 to 90) and longitude (-180 to 180)');
+          _showSnackBar(
+              'Please enter valid latitude (-90 to 90) and longitude (-180 to 180)');
           return;
         }
       }
-      
+
       await widget.onAddZone(_nameController.text.trim(), lat, lng, radius);
       if (mounted) {
         Navigator.pop(context);
-        _showSuccessSnackBar('Privacy zone "${_nameController.text.trim()}" created successfully');
+        _showSuccessSnackBar(
+            'Privacy zone "${_nameController.text.trim()}" created successfully');
       }
     } catch (e) {
       _showSnackBar('Failed to create privacy zone: $e');
@@ -537,7 +544,8 @@ class DeleteDataRangeDialog extends StatefulWidget {
   State<DeleteDataRangeDialog> createState() => _DeleteDataRangeDialogState();
 }
 
-class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with SingleTickerProviderStateMixin {
+class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog>
+    with SingleTickerProviderStateMixin {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isLoading = false;
@@ -567,7 +575,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: AlertDialog(
@@ -639,29 +647,25 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
                 ),
               ),
               const SizedBox(height: 24),
-              
               _buildDateSelector(
                 label: 'Start Date',
                 date: _startDate,
                 icon: Icons.calendar_today,
                 onTap: _selectStartDate,
               ),
-              
               const SizedBox(height: 16),
-              
               _buildDateSelector(
                 label: 'End Date',
                 date: _endDate,
                 icon: Icons.event,
                 onTap: _selectEndDate,
               ),
-              
               if (_startDate != null && _endDate != null) ...[
                 const SizedBox(height: 20),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isDarkMode 
+                    color: isDarkMode
                         ? AppColors.darkHighlight.withOpacity(0.5)
                         : AppColors.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -674,7 +678,9 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          color: isDarkMode
+                              ? Colors.white
+                              : AppColors.boldHeadlineColor4,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -682,8 +688,8 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
                         'Delete data from ${_formatDate(_startDate!)} to ${_formatDate(_endDate!)}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDarkMode 
-                              ? AppColors.secondaryHeadlineColor2 
+                          color: isDarkMode
+                              ? AppColors.secondaryHeadlineColor2
                               : AppColors.secondaryHeadlineColor,
                         ),
                       ),
@@ -691,8 +697,8 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
                         'Duration: ${_endDate!.difference(_startDate!).inDays + 1} days',
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDarkMode 
-                              ? AppColors.secondaryHeadlineColor2 
+                          color: isDarkMode
+                              ? AppColors.secondaryHeadlineColor2
                               : AppColors.secondaryHeadlineColor,
                         ),
                       ),
@@ -719,10 +725,10 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
             ),
           ),
           ElevatedButton.icon(
-            onPressed: _isLoading || _startDate == null || _endDate == null 
-                ? null 
+            onPressed: _isLoading || _startDate == null || _endDate == null
+                ? null
                 : _handleDeleteRange,
-            icon: _isLoading 
+            icon: _isLoading
                 ? const SizedBox(
                     width: 18,
                     height: 18,
@@ -762,13 +768,13 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
     required VoidCallback onTap,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode 
-              ? AppColors.dividerColordark 
+          color: isDarkMode
+              ? AppColors.dividerColordark
               : AppColors.dividerColorlight,
           width: 1,
         ),
@@ -802,18 +808,22 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
                       Text(
                         label,
                         style: TextStyle(
-                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          color: isDarkMode
+                              ? Colors.white
+                              : AppColors.boldHeadlineColor4,
                           fontWeight: FontWeight.w500,
                           fontSize: 16,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        date != null ? _formatDate(date) : 'Select $label'.toLowerCase(),
+                        date != null
+                            ? _formatDate(date)
+                            : 'Select $label'.toLowerCase(),
                         style: TextStyle(
-                          color: date != null 
-                              ? (isDarkMode 
-                                  ? AppColors.secondaryHeadlineColor2 
+                          color: date != null
+                              ? (isDarkMode
+                                  ? AppColors.secondaryHeadlineColor2
                                   : AppColors.secondaryHeadlineColor)
                               : Colors.grey,
                           fontSize: 14,
@@ -825,8 +835,8 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: isDarkMode 
-                      ? AppColors.secondaryHeadlineColor2 
+                  color: isDarkMode
+                      ? AppColors.secondaryHeadlineColor2
                       : AppColors.secondaryHeadlineColor,
                 ),
               ],
@@ -840,26 +850,27 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
   Future<void> _selectStartDate() async {
     final date = await showDatePicker(
       context: context,
-      initialDate: _startDate ?? DateTime.now().subtract(const Duration(days: 30)),
+      initialDate:
+          _startDate ?? DateTime.now().subtract(const Duration(days: 30)),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.primaryColor,
-              onPrimary: Colors.white,
-              surface: Theme.of(context).highlightColor,
-              onSurface: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : AppColors.boldHeadlineColor4,
-            ),
+                  primary: AppColors.primaryColor,
+                  onPrimary: Colors.white,
+                  surface: Theme.of(context).highlightColor,
+                  onSurface: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.boldHeadlineColor4,
+                ),
           ),
           child: child!,
         );
       },
     );
-    
+
     if (date != null) {
       setState(() {
         _startDate = date;
@@ -875,25 +886,26 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
     final date = await showDatePicker(
       context: context,
       initialDate: _endDate ?? DateTime.now(),
-      firstDate: _startDate ?? DateTime.now().subtract(const Duration(days: 365)),
+      firstDate:
+          _startDate ?? DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppColors.primaryColor,
-              onPrimary: Colors.white,
-              surface: Theme.of(context).highlightColor,
-              onSurface: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : AppColors.boldHeadlineColor4,
-            ),
+                  primary: AppColors.primaryColor,
+                  onPrimary: Colors.white,
+                  surface: Theme.of(context).highlightColor,
+                  onSurface: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.boldHeadlineColor4,
+                ),
           ),
           child: child!,
         );
       },
     );
-    
+
     if (date != null) {
       setState(() {
         _endDate = date;
@@ -903,7 +915,7 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with Sing
 
   Future<void> _handleDeleteRange() async {
     if (_startDate == null || _endDate == null) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -968,7 +980,8 @@ class LocationDetailDialog extends StatefulWidget {
   State<LocationDetailDialog> createState() => _LocationDetailDialogState();
 }
 
-class _LocationDetailDialogState extends State<LocationDetailDialog> with SingleTickerProviderStateMixin {
+class _LocationDetailDialogState extends State<LocationDetailDialog>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -999,7 +1012,7 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ScaleTransition(
@@ -1014,14 +1027,18 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: widget.point.isSharedWithResearchers 
+                  color: widget.point.isSharedWithResearchers
                       ? Colors.green.withOpacity(0.1)
                       : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  widget.point.isSharedWithResearchers ? Icons.share : Icons.location_on,
-                  color: widget.point.isSharedWithResearchers ? Colors.green : AppColors.primaryColor,
+                  widget.point.isSharedWithResearchers
+                      ? Icons.share
+                      : Icons.location_on,
+                  color: widget.point.isSharedWithResearchers
+                      ? Colors.green
+                      : AppColors.primaryColor,
                   size: 20,
                 ),
               ),
@@ -1029,7 +1046,8 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
               Text(
                 'Location Details',
                 style: TextStyle(
-                  color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                  color:
+                      isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
                   fontWeight: FontWeight.w600,
                   fontSize: 18,
                 ),
@@ -1054,7 +1072,8 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
               label: const Text('Close'),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primaryColor,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1075,16 +1094,18 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
 
   Widget _buildDetailSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode 
+        color: isDarkMode
             ? AppColors.darkHighlight.withOpacity(0.5)
             : Colors.grey.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          color: isDarkMode
+              ? AppColors.dividerColordark
+              : AppColors.dividerColorlight,
           width: 0.5,
         ),
       ),
@@ -1092,7 +1113,7 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
         children: [
           _buildDetailRow(
             'Timestamp',
-            _formatDateTime(widget.point.timestamp),
+            DateFormatters.formatDateTime(widget.point.timestamp),
             Icons.schedule,
           ),
           const SizedBox(height: 12),
@@ -1111,7 +1132,7 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
           const SizedBox(height: 12),
           _buildDetailRow(
             'Recorded',
-            _formatTimeAgo(widget.point.timestamp),
+            DateFormatters.formatTimeAgo(widget.point.timestamp),
             Icons.history,
           ),
         ],
@@ -1122,16 +1143,16 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
   Widget _buildSharingStatusCard() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final isShared = widget.point.isSharedWithResearchers;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isShared 
+        color: isShared
             ? Colors.green.withOpacity(0.1)
             : Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isShared 
+          color: isShared
               ? Colors.green.withOpacity(0.3)
               : Colors.grey.withOpacity(0.3),
           width: 1,
@@ -1153,20 +1174,21 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                  color:
+                      isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            isShared 
+            isShared
                 ? 'This location point is shared with researchers for air quality research.'
                 : 'This location point is kept private and not shared with researchers.',
             style: TextStyle(
               fontSize: 14,
-              color: isDarkMode 
-                  ? AppColors.secondaryHeadlineColor2 
+              color: isDarkMode
+                  ? AppColors.secondaryHeadlineColor2
                   : AppColors.secondaryHeadlineColor,
               height: 1.4,
             ),
@@ -1192,9 +1214,10 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
     );
   }
 
-  Widget _buildDetailRow(String label, String value, IconData icon, {bool isMonospace = false}) {
+  Widget _buildDetailRow(String label, String value, IconData icon,
+      {bool isMonospace = false}) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1219,7 +1242,8 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
-                  color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                  color:
+                      isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
                   fontSize: 14,
                 ),
               ),
@@ -1228,8 +1252,8 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
                 value,
                 style: TextStyle(
                   fontFamily: isMonospace ? 'monospace' : null,
-                  color: isDarkMode 
-                      ? AppColors.secondaryHeadlineColor2 
+                  color: isDarkMode
+                      ? AppColors.secondaryHeadlineColor2
                       : AppColors.secondaryHeadlineColor,
                   fontSize: 14,
                   height: 1.2,
@@ -1240,26 +1264,6 @@ class _LocationDetailDialogState extends State<LocationDetailDialog> with Single
         ),
       ],
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} '
-           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'Just now';
-    }
   }
 }
 
@@ -1277,10 +1281,12 @@ class LocationPermissionDialog extends StatefulWidget {
   });
 
   @override
-  State<LocationPermissionDialog> createState() => _LocationPermissionDialogState();
+  State<LocationPermissionDialog> createState() =>
+      _LocationPermissionDialogState();
 }
 
-class _LocationPermissionDialogState extends State<LocationPermissionDialog> with SingleTickerProviderStateMixin {
+class _LocationPermissionDialogState extends State<LocationPermissionDialog>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -1311,7 +1317,7 @@ class _LocationPermissionDialogState extends State<LocationPermissionDialog> wit
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ScaleTransition(
@@ -1351,8 +1357,8 @@ class _LocationPermissionDialogState extends State<LocationPermissionDialog> wit
                   widget.message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isDarkMode 
-                        ? AppColors.secondaryHeadlineColor2 
+                    color: isDarkMode
+                        ? AppColors.secondaryHeadlineColor2
                         : AppColors.secondaryHeadlineColor,
                     height: 1.5,
                     fontSize: 16,
@@ -1365,8 +1371,10 @@ class _LocationPermissionDialogState extends State<LocationPermissionDialog> wit
             TextButton(
               onPressed: () => Navigator.pop(context),
               style: TextButton.styleFrom(
-                foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                foregroundColor:
+                    isDarkMode ? Colors.grey[400] : Colors.grey[700],
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1387,7 +1395,8 @@ class _LocationPermissionDialogState extends State<LocationPermissionDialog> wit
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

@@ -1,4 +1,4 @@
-
+import 'package:airqo/src/meta/utils/date_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -49,7 +49,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
       }
       // Sort by newest first
       _filteredHistory.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      
+
       // Clear selection when filter changes
       _selectedPoints.clear();
     });
@@ -58,13 +58,20 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final sharedCount = widget.locationHistory.where((p) => p.isSharedWithResearchers).length;
-    
+    final sharedCount =
+        widget.locationHistory.where((p) => p.isSharedWithResearchers).length;
+
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor,
+      backgroundColor: isDarkMode
+          ? AppColors.darkThemeBackground
+          : AppColors.backgroundColor,
       appBar: AppBar(
-        title: Text(_selectMode ? '${_selectedPoints.length} selected' : 'Data Sharing'),
-        backgroundColor: isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor,
+        title: Text(_selectMode
+            ? '${_selectedPoints.length} selected'
+            : 'Data Sharing'),
+        backgroundColor: isDarkMode
+            ? AppColors.darkThemeBackground
+            : AppColors.backgroundColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(
@@ -76,7 +83,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
           fontWeight: FontWeight.w600,
           fontFamily: 'Inter',
         ),
-        leading: _selectMode 
+        leading: _selectMode
             ? IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
@@ -90,38 +97,42 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               ),
-        actions: _selectMode ? [
-          if (_selectedPoints.isNotEmpty) ...[
-            TextButton.icon(
-              onPressed: _isProcessing ? null : () => _bulkUpdateSelected(true),
-              icon: const Icon(Icons.share, size: 16),
-              label: const Text('Share'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: _isProcessing ? null : () => _bulkUpdateSelected(false),
-              icon: const Icon(Icons.lock, size: 16),
-              label: const Text('Private'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-            ),
-          ],
-        ] : [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _selectMode = true;
-              });
-            },
-            icon: const Icon(Icons.checklist),
-            tooltip: 'Select multiple',
-          ),
-        ],
+        actions: _selectMode
+            ? [
+                if (_selectedPoints.isNotEmpty) ...[
+                  TextButton.icon(
+                    onPressed:
+                        _isProcessing ? null : () => _bulkUpdateSelected(true),
+                    icon: const Icon(Icons.share, size: 16),
+                    label: const Text('Share'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed:
+                        _isProcessing ? null : () => _bulkUpdateSelected(false),
+                    icon: const Icon(Icons.lock, size: 16),
+                    label: const Text('Private'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                  ),
+                ],
+              ]
+            : [
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectMode = true;
+                    });
+                  },
+                  icon: const Icon(Icons.checklist),
+                  tooltip: 'Select multiple',
+                ),
+              ],
       ),
       body: Column(
         children: [
@@ -129,7 +140,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
           _buildQuickActionsSection(),
           _buildFilterSection(),
           Expanded(
-            child: _filteredHistory.isEmpty 
+            child: _filteredHistory.isEmpty
                 ? _buildEmptyState()
                 : _buildDataList(),
           ),
@@ -143,7 +154,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final totalCount = widget.locationHistory.length;
     final privateCount = totalCount - sharedCount;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -151,7 +162,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
         color: Theme.of(context).highlightColor,
         border: Border(
           bottom: BorderSide(
-            color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+            color: isDarkMode
+                ? AppColors.dividerColordark
+                : AppColors.dividerColorlight,
             width: 0.5,
           ),
         ),
@@ -183,7 +196,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                        color: isDarkMode
+                            ? Colors.white
+                            : AppColors.boldHeadlineColor4,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -191,8 +206,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                       text: TextSpan(
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDarkMode 
-                              ? AppColors.secondaryHeadlineColor2 
+                          color: isDarkMode
+                              ? AppColors.secondaryHeadlineColor2
                               : AppColors.secondaryHeadlineColor,
                         ),
                         children: [
@@ -217,8 +232,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
             'Help improve air quality research by sharing anonymous location data with researchers. You have full control over what data is shared.',
             style: TextStyle(
               fontSize: 13,
-              color: isDarkMode 
-                  ? AppColors.secondaryHeadlineColor2 
+              color: isDarkMode
+                  ? AppColors.secondaryHeadlineColor2
                   : AppColors.secondaryHeadlineColor,
               height: 1.4,
             ),
@@ -259,16 +274,19 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, Color color, IconData icon) {
+  Widget _buildStatCard(
+      String label, String value, Color color, IconData icon) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDarkMode ? AppColors.darkHighlight : Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          color: isDarkMode
+              ? AppColors.dividerColordark
+              : AppColors.dividerColorlight,
           width: 0.5,
         ),
       ),
@@ -288,8 +306,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
             label,
             style: TextStyle(
               fontSize: 11,
-              color: isDarkMode 
-                  ? AppColors.secondaryHeadlineColor2 
+              color: isDarkMode
+                  ? AppColors.secondaryHeadlineColor2
                   : AppColors.secondaryHeadlineColor,
             ),
           ),
@@ -301,7 +319,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
   Widget _buildQuickActionsSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -309,7 +327,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
         color: Theme.of(context).highlightColor,
         border: Border(
           bottom: BorderSide(
-            color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+            color: isDarkMode
+                ? AppColors.dividerColordark
+                : AppColors.dividerColorlight,
             width: 0.5,
           ),
         ),
@@ -330,14 +350,17 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _isProcessing ? null : () => _shareAllPrivateData(),
-                  icon: _isProcessing 
+                  onPressed:
+                      _isProcessing ? null : () => _shareAllPrivateData(),
+                  icon: _isProcessing
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
                         )
-                      : const Icon(Icons.share_outlined, size: 16, color: Colors.white),
+                      : const Icon(Icons.share_outlined,
+                          size: 16, color: Colors.white),
                   label: const Text('Share All'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -358,11 +381,12 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _isProcessing ? null : () => _makeAllDataPrivate(),
-                  icon: _isProcessing 
+                  icon: _isProcessing
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.red),
                         )
                       : const Icon(Icons.lock_outline, size: 16),
                   label: const Text('Make All Private'),
@@ -390,14 +414,16 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
   Widget _buildFilterSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.04),
       decoration: BoxDecoration(
         color: Theme.of(context).highlightColor,
         border: Border(
           bottom: BorderSide(
-            color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+            color: isDarkMode
+                ? AppColors.dividerColordark
+                : AppColors.dividerColorlight,
             width: 0.5,
           ),
         ),
@@ -423,7 +449,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
   Widget _buildFilterChip(String label, String value) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _filterType == value;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -434,14 +460,16 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.primaryColor 
+          color: isSelected
+              ? AppColors.primaryColor
               : (isDarkMode ? AppColors.darkHighlight : Colors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected 
-                ? AppColors.primaryColor 
-                : (isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight),
+            color: isSelected
+                ? AppColors.primaryColor
+                : (isDarkMode
+                    ? AppColors.dividerColordark
+                    : AppColors.dividerColorlight),
             width: 1,
           ),
         ),
@@ -451,8 +479,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: isSelected 
-                ? Colors.white 
+            color: isSelected
+                ? Colors.white
                 : (isDarkMode ? Colors.white : AppColors.boldHeadlineColor4),
           ),
         ),
@@ -463,7 +491,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
   Widget _buildEmptyState() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Center(
       child: Padding(
         padding: EdgeInsets.all(screenWidth * 0.08),
@@ -473,7 +501,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: isDarkMode 
+                color: isDarkMode
                     ? Colors.green.withOpacity(0.1)
                     : Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(50),
@@ -495,14 +523,14 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
             ),
             SizedBox(height: screenWidth * 0.04),
             Text(
-              _filterType == 'all' 
+              _filterType == 'all'
                   ? 'No location data available for sharing'
                   : 'No ${_filterType} data points found',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: isDarkMode 
-                    ? AppColors.secondaryHeadlineColor2 
+                color: isDarkMode
+                    ? AppColors.secondaryHeadlineColor2
                     : AppColors.secondaryHeadlineColor,
                 height: 1.4,
               ),
@@ -519,7 +547,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -535,7 +564,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
 
   Widget _buildDataList() {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Column(
       children: [
         if (_selectMode)
@@ -555,14 +584,15 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                 GestureDetector(
                   onTap: _toggleSelectAll,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.primaryColor,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      _selectedPoints.length == _filteredHistory.length 
-                          ? 'Deselect All' 
+                      _selectedPoints.length == _filteredHistory.length
+                          ? 'Deselect All'
                           : 'Select All',
                       style: const TextStyle(
                         color: Colors.white,
@@ -602,11 +632,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSelected = _selectedPoints.contains(point.id);
-    
+
     return GestureDetector(
-      onTap: _selectMode 
-          ? () => _togglePointSelection(point.id)
-          : null,
+      onTap: _selectMode ? () => _togglePointSelection(point.id) : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: EdgeInsets.all(screenWidth * 0.04),
@@ -614,9 +642,11 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
           color: Theme.of(context).highlightColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _selectMode && isSelected 
+            color: _selectMode && isSelected
                 ? AppColors.primaryColor
-                : (isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight),
+                : (isDarkMode
+                    ? AppColors.dividerColordark
+                    : AppColors.dividerColorlight),
             width: _selectMode && isSelected ? 2 : 0.5,
           ),
         ),
@@ -637,7 +667,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: point.isSharedWithResearchers 
+                    color: point.isSharedWithResearchers
                         ? Colors.green.withOpacity(0.1)
                         : Colors.grey.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
@@ -645,7 +675,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                   child: Icon(
                     point.isSharedWithResearchers ? Icons.share : Icons.lock,
                     size: 16,
-                    color: point.isSharedWithResearchers ? Colors.green : Colors.grey,
+                    color: point.isSharedWithResearchers
+                        ? Colors.green
+                        : Colors.grey,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -654,19 +686,21 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _formatDateTime(point.timestamp),
+                        DateFormatters.formatDateTime(point.timestamp),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          color: isDarkMode
+                              ? Colors.white
+                              : AppColors.boldHeadlineColor4,
                         ),
                       ),
                       Text(
-                        _formatTimeAgo(point.timestamp),
+                        DateFormatters.formatDateTime(point.timestamp),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDarkMode 
-                              ? AppColors.secondaryHeadlineColor2 
+                          color: isDarkMode
+                              ? AppColors.secondaryHeadlineColor2
                               : AppColors.secondaryHeadlineColor,
                         ),
                       ),
@@ -678,7 +712,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+                        color: isDarkMode
+                            ? AppColors.dividerColordark
+                            : AppColors.dividerColorlight,
                         width: 0.5,
                       ),
                     ),
@@ -686,9 +722,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                       activeColor: Colors.white,
                       activeTrackColor: Colors.green,
                       inactiveThumbColor: Colors.white,
-                      inactiveTrackColor: isDarkMode 
-                          ? Colors.grey[700] 
-                          : Colors.grey[300],
+                      inactiveTrackColor:
+                          isDarkMode ? Colors.grey[700] : Colors.grey[300],
                       value: point.isSharedWithResearchers,
                       onChanged: (value) {
                         widget.onUpdateSharing(point.id, value);
@@ -702,7 +737,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDarkMode 
+                color: isDarkMode
                     ? AppColors.darkHighlight.withOpacity(0.5)
                     : Colors.grey.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
@@ -723,8 +758,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontFamily: 'monospace',
-                            color: isDarkMode 
-                                ? AppColors.secondaryHeadlineColor2 
+                            color: isDarkMode
+                                ? AppColors.secondaryHeadlineColor2
                                 : AppColors.secondaryHeadlineColor,
                           ),
                         ),
@@ -737,8 +772,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                       Icon(
                         Icons.my_location,
                         size: 16,
-                        color: isDarkMode 
-                            ? AppColors.secondaryHeadlineColor2 
+                        color: isDarkMode
+                            ? AppColors.secondaryHeadlineColor2
                             : AppColors.secondaryHeadlineColor,
                       ),
                       const SizedBox(width: 4),
@@ -746,16 +781,17 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                         'Accuracy: ${point.accuracy != null ? point.accuracy!.toStringAsFixed(1) : 'N/A'}m',
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDarkMode 
-                              ? AppColors.secondaryHeadlineColor2 
+                          color: isDarkMode
+                              ? AppColors.secondaryHeadlineColor2
                               : AppColors.secondaryHeadlineColor,
                         ),
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: point.isSharedWithResearchers 
+                          color: point.isSharedWithResearchers
                               ? Colors.green.withOpacity(0.1)
                               : Colors.grey.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -765,7 +801,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: point.isSharedWithResearchers ? Colors.green : Colors.grey,
+                            color: point.isSharedWithResearchers
+                                ? Colors.green
+                                : Colors.grey,
                           ),
                         ),
                       ),
@@ -810,9 +848,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
       for (final pointId in _selectedPoints) {
         widget.onUpdateSharing(pointId, share);
       }
-      
+
       _showSnackBar(
-        share 
+        share
             ? '${_selectedPoints.length} points shared with researchers'
             : '${_selectedPoints.length} points made private',
         isSuccess: true,
@@ -832,7 +870,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     final privatePoints = widget.locationHistory
         .where((point) => !point.isSharedWithResearchers)
         .toList();
-    
+
     if (privatePoints.isEmpty) {
       _showSnackBar('All data points are already shared');
       return;
@@ -854,7 +892,9 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
         for (final point in privatePoints) {
           widget.onUpdateSharing(point.id, true);
         }
-        _showSnackBar('${privatePoints.length} data points shared with researchers', isSuccess: true);
+        _showSnackBar(
+            '${privatePoints.length} data points shared with researchers',
+            isSuccess: true);
       } catch (e) {
         _showSnackBar('Failed to share data points: $e');
       } finally {
@@ -869,7 +909,7 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     final sharedPoints = widget.locationHistory
         .where((point) => point.isSharedWithResearchers)
         .toList();
-    
+
     if (sharedPoints.isEmpty) {
       _showSnackBar('All data points are already private');
       return;
@@ -891,7 +931,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
         for (final point in sharedPoints) {
           widget.onUpdateSharing(point.id, false);
         }
-        _showSnackBar('${sharedPoints.length} data points made private', isSuccess: true);
+        _showSnackBar('${sharedPoints.length} data points made private',
+            isSuccess: true);
       } catch (e) {
         _showSnackBar('Failed to update data points: $e');
       } finally {
@@ -902,7 +943,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     }
   }
 
-  Future<bool> _showConfirmationDialog(String title, String message, String actionText, Color actionColor) async {
+  Future<bool> _showConfirmationDialog(String title, String message,
+      String actionText, Color actionColor) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -913,8 +955,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
         title: Text(
           title,
           style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white 
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
                 : AppColors.boldHeadlineColor4,
             fontWeight: FontWeight.w600,
           ),
@@ -922,8 +964,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
         content: Text(
           message,
           style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.secondaryHeadlineColor2 
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.secondaryHeadlineColor2
                 : AppColors.secondaryHeadlineColor,
           ),
         ),
@@ -931,8 +973,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.grey[400] 
+              foregroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]
                   : Colors.grey[700],
             ),
             child: const Text('Cancel'),
@@ -960,8 +1002,8 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: isSuccess 
-              ? Colors.green 
+          backgroundColor: isSuccess
+              ? Colors.green
               : (Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkHighlight
                   : AppColors.boldHeadlineColor4),
@@ -972,26 +1014,6 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
           margin: const EdgeInsets.all(16),
         ),
       );
-    }
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} '
-           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'Just now';
     }
   }
 }

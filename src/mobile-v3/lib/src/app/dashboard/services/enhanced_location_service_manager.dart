@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
@@ -10,7 +9,7 @@ class PrivacyZone {
   final String name;
   final double latitude;
   final double longitude;
-  final double radius; 
+  final double radius;
   final DateTime createdAt;
 
   PrivacyZone({
@@ -23,22 +22,22 @@ class PrivacyZone {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'latitude': latitude,
-    'longitude': longitude,
-    'radius': radius,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'latitude': latitude,
+        'longitude': longitude,
+        'radius': radius,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
   factory PrivacyZone.fromJson(Map<String, dynamic> json) => PrivacyZone(
-    id: json['id'],
-    name: json['name'],
-    latitude: json['latitude'],
-    longitude: json['longitude'],
-    radius: json['radius'],
-    createdAt: DateTime.parse(json['createdAt']),
-  );
+        id: json['id'],
+        name: json['name'],
+        latitude: json['latitude'],
+        longitude: json['longitude'],
+        radius: json['radius'],
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }
 
 class LocationDataPoint {
@@ -55,30 +54,32 @@ class LocationDataPoint {
     required this.longitude,
     required this.timestamp,
     this.accuracy,
-    this.isSharedWithResearchers = true,
+    this.isSharedWithResearchers = false,
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'latitude': latitude,
-    'longitude': longitude,
-    'timestamp': timestamp.toIso8601String(),
-    'accuracy': accuracy,
-    'isSharedWithResearchers': isSharedWithResearchers,
-  };
+        'id': id,
+        'latitude': latitude,
+        'longitude': longitude,
+        'timestamp': timestamp.toIso8601String(),
+        'accuracy': accuracy,
+        'isSharedWithResearchers': isSharedWithResearchers,
+      };
 
-  factory LocationDataPoint.fromJson(Map<String, dynamic> json) => LocationDataPoint(
-    id: json['id'],
-    latitude: json['latitude'],
-    longitude: json['longitude'],
-    timestamp: DateTime.parse(json['timestamp']),
-    accuracy: json['accuracy'],
-    isSharedWithResearchers: json['isSharedWithResearchers'] ?? true,
-  );
+  factory LocationDataPoint.fromJson(Map<String, dynamic> json) =>
+      LocationDataPoint(
+        id: json['id'],
+        latitude: json['latitude'],
+        longitude: json['longitude'],
+        timestamp: DateTime.parse(json['timestamp']),
+        accuracy: json['accuracy'],
+        isSharedWithResearchers: json['isSharedWithResearchers'] ?? true,
+      );
 }
 
 class EnhancedLocationServiceManager with UiLoggy {
-  static final EnhancedLocationServiceManager _instance = EnhancedLocationServiceManager._internal();
+  static final EnhancedLocationServiceManager _instance =
+      EnhancedLocationServiceManager._internal();
   factory EnhancedLocationServiceManager() => _instance;
   EnhancedLocationServiceManager._internal();
 
@@ -87,8 +88,10 @@ class EnhancedLocationServiceManager with UiLoggy {
   bool _isTrackingPaused = false;
   List<PrivacyZone> _privacyZones = [];
   List<LocationDataPoint> _locationHistory = [];
-  final StreamController<bool> _trackingStatusController = StreamController<bool>.broadcast();
-  final StreamController<Position?> _locationController = StreamController<Position?>.broadcast();
+  final StreamController<bool> _trackingStatusController =
+      StreamController<bool>.broadcast();
+  final StreamController<Position?> _locationController =
+      StreamController<Position?>.broadcast();
   Timer? _trackingTimer;
 
   // Getters
@@ -96,7 +99,8 @@ class EnhancedLocationServiceManager with UiLoggy {
   bool get isTrackingActive => _isTrackingActive;
   bool get isTrackingPaused => _isTrackingPaused;
   List<PrivacyZone> get privacyZones => List.unmodifiable(_privacyZones);
-  List<LocationDataPoint> get locationHistory => List.unmodifiable(_locationHistory);
+  List<LocationDataPoint> get locationHistory =>
+      List.unmodifiable(_locationHistory);
   Stream<bool> get trackingStatusStream => _trackingStatusController.stream;
   Stream<Position?> get locationStream => _locationController.stream;
 
@@ -108,7 +112,8 @@ class EnhancedLocationServiceManager with UiLoggy {
   }
 
   // Privacy Zone Management
-  Future<void> addPrivacyZone(String name, double lat, double lng, double radius) async {
+  Future<void> addPrivacyZone(
+      String name, double lat, double lng, double radius) async {
     final zone = PrivacyZone(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
@@ -117,7 +122,7 @@ class EnhancedLocationServiceManager with UiLoggy {
       radius: radius,
       createdAt: DateTime.now(),
     );
-    
+
     _privacyZones.add(zone);
     await _savePrivacyZones();
     loggy.info('Added privacy zone: $name');
@@ -140,14 +145,16 @@ class EnhancedLocationServiceManager with UiLoggy {
     final zonesString = prefs.getString('privacy_zones');
     if (zonesString != null) {
       final zonesList = jsonDecode(zonesString) as List;
-      _privacyZones = zonesList.map((json) => PrivacyZone.fromJson(json)).toList();
+      _privacyZones =
+          zonesList.map((json) => PrivacyZone.fromJson(json)).toList();
     }
   }
 
   // Location Data Management
   Future<void> _saveLocationHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final historyJson = _locationHistory.map((point) => point.toJson()).toList();
+    final historyJson =
+        _locationHistory.map((point) => point.toJson()).toList();
     await prefs.setString('location_history', jsonEncode(historyJson));
   }
 
@@ -156,7 +163,8 @@ class EnhancedLocationServiceManager with UiLoggy {
     final historyString = prefs.getString('location_history');
     if (historyString != null) {
       final historyList = jsonDecode(historyString) as List;
-      _locationHistory = historyList.map((json) => LocationDataPoint.fromJson(json)).toList();
+      _locationHistory =
+          historyList.map((json) => LocationDataPoint.fromJson(json)).toList();
     }
   }
 
@@ -167,8 +175,9 @@ class EnhancedLocationServiceManager with UiLoggy {
   }
 
   Future<void> deleteLocationPointsInRange(DateTime start, DateTime end) async {
-    _locationHistory.removeWhere((point) => 
-      point.timestamp.isAfter(start) && point.timestamp.isBefore(end));
+    _locationHistory.removeWhere((point) =>
+        point.timestamp.isAfter(start.subtract(Duration(milliseconds: 1))) &&
+        point.timestamp.isBefore(end.add(Duration(milliseconds: 1))));
     await _saveLocationHistory();
     loggy.info('Deleted location points between $start and $end');
   }
@@ -176,7 +185,7 @@ class EnhancedLocationServiceManager with UiLoggy {
   // Tracking Control
   Future<void> startLocationTracking() async {
     if (_isTrackingActive) return;
-    
+
     final permissionResult = await checkLocationPermission();
     if (!permissionResult.isSuccess) {
       throw Exception('Location permission required');
@@ -184,13 +193,13 @@ class EnhancedLocationServiceManager with UiLoggy {
 
     _isTrackingActive = true;
     _trackingStatusController.add(true);
-    
+
     _trackingTimer = Timer.periodic(Duration(minutes: 5), (timer) async {
       if (!_isTrackingPaused) {
         await _captureLocationPoint();
       }
     });
-    
+
     await _saveTrackingSettings();
     loggy.info('Location tracking started');
   }
@@ -241,10 +250,11 @@ class EnhancedLocationServiceManager with UiLoggy {
       _locationHistory.add(dataPoint);
       _lastKnownPosition = position;
       _locationController.add(position);
-      
+
       await _saveLocationHistory();
-      
-      loggy.info('Location point captured: ${position.latitude}, ${position.longitude}');
+
+      loggy.info(
+          'Location point captured: ${position.latitude}, ${position.longitude}');
     } catch (e) {
       loggy.error('Error capturing location: $e');
     }
@@ -253,7 +263,7 @@ class EnhancedLocationServiceManager with UiLoggy {
   bool _isInPrivacyZone(double latitude, double longitude) {
     for (final zone in _privacyZones) {
       final distance = Geolocator.distanceBetween(
-        latitude, longitude, zone.latitude, zone.longitude);
+          latitude, longitude, zone.latitude, zone.longitude);
       if (distance <= zone.radius) {
         return true;
       }
@@ -271,7 +281,7 @@ class EnhancedLocationServiceManager with UiLoggy {
     final prefs = await SharedPreferences.getInstance();
     _isTrackingActive = prefs.getBool('is_tracking_active') ?? false;
     _isTrackingPaused = prefs.getBool('is_tracking_paused') ?? false;
-    
+
     if (_isTrackingActive && !_isTrackingPaused) {
       await startLocationTracking();
     }
@@ -279,10 +289,13 @@ class EnhancedLocationServiceManager with UiLoggy {
 
   // Data Sharing Control
   List<LocationDataPoint> getDataForResearchers() {
-    return _locationHistory.where((point) => point.isSharedWithResearchers).toList();
+    return _locationHistory
+        .where((point) => point.isSharedWithResearchers)
+        .toList();
   }
 
-  Future<void> updateDataSharingConsent(String pointId, bool shareWithResearchers) async {
+  Future<void> updateDataSharingConsent(
+      String pointId, bool shareWithResearchers) async {
     final index = _locationHistory.indexWhere((point) => point.id == pointId);
     if (index != -1) {
       _locationHistory[index] = LocationDataPoint(
@@ -309,7 +322,7 @@ class EnhancedLocationServiceManager with UiLoggy {
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
-      
+
       if (permission == LocationPermission.denied) {
         return LocationResult(
           status: LocationStatus.permissionDenied,
@@ -344,7 +357,7 @@ class EnhancedLocationServiceManager with UiLoggy {
       }
 
       LocationPermission permission = await Geolocator.requestPermission();
-      
+
       if (permission == LocationPermission.denied) {
         return LocationResult(
           status: LocationStatus.permissionDenied,
@@ -382,9 +395,9 @@ class EnhancedLocationServiceManager with UiLoggy {
         desiredAccuracy: accuracy,
         timeLimit: timeout,
       );
-      
+
       _lastKnownPosition = position;
-      
+
       return LocationResult(
         position: position,
         status: LocationStatus.success,
