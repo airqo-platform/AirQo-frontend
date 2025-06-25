@@ -134,12 +134,25 @@ class ErrorBoundary extends React.Component {
               {this.props.errorMessage ||
                 'We encountered an unexpected error. Our team has been notified.'}
             </p>
-            <button
-              onClick={this.resetErrorBoundary}
-              className="mt-6 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-all"
-            >
-              {this.props.resetButtonText || 'Reload the page'}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <button
+                onClick={this.resetErrorBoundary}
+                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-all"
+              >
+                {this.props.resetButtonText || 'Try again'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/user/Home';
+                  }
+                }}
+                className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-all"
+              >
+                Go to home
+              </button>
+            </div>
 
             {/* Only show error details in development */}
             {process.env.NODE_ENV !== 'production' && this.state.error && (

@@ -75,8 +75,7 @@ const generateSampleData = (days = 7) => {
     date.setDate(date.getDate() - i)
     const dateStr = date.toISOString().split('T')[0]
     
-    // Generate some random data with occasional missing points
-    const isMissing = Math.random() > 0.8
+    const isMissing = (i % 5) === 0;
     
     data.push({
       date: dateStr,
@@ -180,6 +179,7 @@ export default function DeviceDetailPage() {
     
     return () => clearTimeout(timer)
   }, [params.id])
+  
 
   useEffect(() => {
     if (device?.readings_history && device.readings_history.length > 0) {

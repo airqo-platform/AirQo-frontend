@@ -14,6 +14,7 @@ import {
   FaColumns,
 } from 'react-icons/fa';
 import { useTheme } from '../hooks/useTheme';
+import useUserTheme from '@/core/hooks/useUserTheme';
 import {
   THEME_MODES,
   THEME_SKINS,
@@ -41,6 +42,13 @@ export const ThemeSheet = memo(() => {
     isThemeSheetOpen,
     closeThemeSheet,
   } = useTheme();
+  // User theme hook for API integration
+  const {
+    updatePrimaryColor,
+    updateThemeMode,
+    updateInterfaceStyle,
+    updateContentLayout,
+  } = useUserTheme();
 
   const themeOptions = [
     { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
@@ -63,9 +71,50 @@ export const ThemeSheet = memo(() => {
     },
   ];
 
+  // Enhanced handlers that sync with API
   const handleColorChange = useCallback(
-    (e) => setPrimaryColor(e.target.value),
-    [setPrimaryColor],
+    (e) => {
+      const newColor = e.target.value;
+      setPrimaryColor(newColor);
+      // Update via API in the background
+      updatePrimaryColor(newColor);
+    },
+    [setPrimaryColor, updatePrimaryColor],
+  );
+
+  const handlePresetColorClick = useCallback(
+    (color) => {
+      setPrimaryColor(color);
+      // Update via API in the background
+      updatePrimaryColor(color);
+    },
+    [setPrimaryColor, updatePrimaryColor],
+  );
+
+  const handleThemeToggle = useCallback(
+    (newTheme) => {
+      toggleTheme(newTheme);
+      // Update via API in the background
+      updateThemeMode(newTheme);
+    },
+    [toggleTheme, updateThemeMode],
+  );
+
+  const handleSkinToggle = useCallback(
+    (newSkin) => {
+      toggleSkin(newSkin);
+      // Update via API in the background
+      updateInterfaceStyle(newSkin);
+    },
+    [toggleSkin, updateInterfaceStyle],
+  );
+  const handleLayoutChange = useCallback(
+    (newLayout) => {
+      setLayout(newLayout);
+      // Update via API in the background
+      updateContentLayout(newLayout);
+    },
+    [setLayout, updateContentLayout],
   );
 
   if (!isThemeSheetOpen) return null;
@@ -122,12 +171,11 @@ export const ThemeSheet = memo(() => {
                 {PRESET_COLORS.map((color) => (
                   <button
                     key={color}
-                    onClick={() => setPrimaryColor(color)}
+                    onClick={() => handlePresetColorClick(color)}
                     className={`
-                      w-8 h-8 rounded-md flex items-center justify-center
-                      ${
+                      w-8 h-8 rounded-md flex items-center justify-center                      ${
                         primaryColor === color
-                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-primary'
+                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-[var(--org-primary,var(--color-primary,#145fff))]'
                           : 'hover:ring-1 hover:ring-neutral-300 dark:hover:ring-neutral-700'
                       }
                     `}
@@ -148,7 +196,7 @@ export const ThemeSheet = memo(() => {
                       w-8 h-8 rounded-md flex items-center justify-center bg-white dark:bg-neutral-800
                       ${
                         !PRESET_COLORS.includes(primaryColor)
-                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-primary'
+                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-[var(--org-primary,var(--color-primary,#145fff))]'
                           : 'hover:ring-1 hover:ring-neutral-300 dark:hover:ring-neutral-700'
                       }
                     `}
@@ -177,12 +225,11 @@ export const ThemeSheet = memo(() => {
                 {themeOptions.map(({ value, icon: Icon, label }) => (
                   <button
                     key={value}
-                    onClick={() => toggleTheme(value)}
+                    onClick={() => handleThemeToggle(value)}
                     className={`
-                      flex flex-col items-center p-2 rounded-md transition-all
-                      ${
+                      flex flex-col items-center p-2 rounded-md transition-all                      ${
                         theme === value
-                          ? 'bg-primary text-white'
+                          ? 'bg-[var(--org-primary,var(--color-primary,#145fff))] text-white'
                           : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                       }
                     `}
@@ -206,7 +253,7 @@ export const ThemeSheet = memo(() => {
                   ({ value, label, description, icon: Icon }) => (
                     <button
                       key={value}
-                      onClick={() => toggleSkin(value)}
+                      onClick={() => handleSkinToggle(value)}
                       className={`
                       w-full text-left p-3 rounded-md transition-all
                       ${
@@ -240,7 +287,7 @@ export const ThemeSheet = memo(() => {
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setLayout(THEME_LAYOUT.COMPACT)}
+                  onClick={() => handleLayoutChange(THEME_LAYOUT.COMPACT)}
                   className={`
                     flex flex-col items-center p-2 rounded-md transition-all
                     ${
@@ -256,7 +303,7 @@ export const ThemeSheet = memo(() => {
                 </button>
 
                 <button
-                  onClick={() => setLayout(THEME_LAYOUT.WIDE)}
+                  onClick={() => handleLayoutChange(THEME_LAYOUT.WIDE)}
                   className={`
                     flex flex-col items-center p-2 rounded-md transition-all
                     ${

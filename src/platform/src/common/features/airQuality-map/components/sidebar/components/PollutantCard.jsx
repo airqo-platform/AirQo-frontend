@@ -63,7 +63,7 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
       padding="p-4"
       shadow="shadow"
       contentClassName="flex items-center justify-between w-full"
-      className="flex items-center justify-between gap-4 hover:shadow-xl transition-shadow duration-300"
+      className="flex items-center justify-between gap-4 hover:shadow-xl transition-shadow duration-300 dark:bg-gray-800 border dark:border-gray-600 rounded-xl"
     >
       {/* Left Content: Label and PM2.5 Value */}
       <div className="flex flex-col">

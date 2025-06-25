@@ -13,16 +13,50 @@ import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
-import AuthSync from './AuthSync';
-import { ThemeProvider } from '@/features/theme-customizer/context/ThemeContext';
+import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
+import { OrganizationLoadingProvider } from './OrganizationLoadingProvider';
+import LogoutProvider from './LogoutProvider';
+import { useThemeInitialization } from '@/core/hooks';
+// Import environment validation
+import { validateEnvironment } from '@/lib/envConstants';
+
+/**
+ * Component that initializes theme settings for authenticated users
+ * This runs globally and handles theme loading during login setup
+ */
+function ThemeInitializer() {
+  useThemeInitialization();
+  return null; // This component doesn't render anything
+}
 
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);
   const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
     // Mark as client-side
     setIsClient(true);
+
+    // Initialize environment validation
+    try {
+      // Validate environment variables (for development debugging only)
+      const envValidation = validateEnvironment();
+      if (
+        envValidation.errors.length > 0 &&
+        process.env.NODE_ENV === 'development'
+      ) {
+        logger.error('Environment validation errors:', envValidation.errors);
+      }
+      if (
+        envValidation.warnings.length > 0 &&
+        process.env.NODE_ENV === 'development'
+      ) {
+        logger.warn('Environment validation warnings:', envValidation.warnings);
+      }
+
+      logger.info('Environment validation completed');
+    } catch (error) {
+      logger.error('Failed to initialize validation systems:', error);
+    }
 
     // Create store only on client side
     const storeInstance = makeStore();
@@ -133,8 +167,12 @@ export default function ClientProviders({ children }) {
     <NextAuthProvider>
       <ReduxProviders>
         <ThemeProvider>
-          <AuthSync />
-          {children}
+          <ThemeInitializer />
+          <LogoutProvider>
+            <OrganizationLoadingProvider>
+              {children}
+            </OrganizationLoadingProvider>
+          </LogoutProvider>
         </ThemeProvider>
       </ReduxProviders>
     </NextAuthProvider>

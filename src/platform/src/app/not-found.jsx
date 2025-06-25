@@ -1,9 +1,16 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import OopsIcon from '@/icons/Errors/OopsIcon';
-import Button from '@/components/Button';
+import Button from '@/common/components/Button';
 
 const NotFound = () => {
+  const router = useRouter();
+
+  const handleGoBack = () => {
+    router.back();
+  };
+
   return (
     <div className="relative w-screen h-screen dark:bg-transparent overflow-x-hidden">
       {/* Content */}
@@ -13,15 +20,15 @@ const NotFound = () => {
 
         <div className="flex flex-col justify-center items-center w-full mt-6">
           <h1 className="text-4xl md:text-[40px] font-normal w-full max-w-xl text-center text-black-900 md:leading-[56px]">
-            <span className="text-primary font-bold">Oops!</span> We can't seem
-            to find the page you're looking for
+            <span className="text-primary font-bold">Oops!</span> We can&apos;t
+            seem to find the page you&apos;re looking for
           </h1>
 
           <Button
-            path="/"
+            onClick={handleGoBack}
             className="mt-6 w-64 rounded-none text-white bg-primary border border-primary hover:bg-primary/90 hover:border-primary/90 font-medium"
           >
-            Return back home
+            Go back
           </Button>
 
           <p className="text-center text-grey-400 py-6">

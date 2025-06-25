@@ -31,7 +31,7 @@ const LocationCard = ({
   if (isLoading) {
     return (
       <motion.div
-        className="flex flex-col gap-3 p-3 items-start bg-gray-100 dark:bg-gray-800 rounded-xl w-full h-[68px]"
+        className="flex flex-col gap-3 p-3 items-start bg-gray-100 dark:bg-gray-800 rounded-lg w-full h-[68px]"
         variants={cardVariants}
         initial="initial"
         animate="animate"

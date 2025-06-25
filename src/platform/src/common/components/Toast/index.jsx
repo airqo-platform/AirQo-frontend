@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import WarningCircleIcon from '@/icons/Common/warning_circle';
 import InfoCircleIcon from '@/icons/Common/info_circle.svg';
-import Button from '@/components/Button';
+import Button from '@/common/components/Button';
 
 const Toast = ({
   message,
@@ -14,13 +14,12 @@ const Toast = ({
   position = 'center', // Default to center positioning
 }) => {
   const [visible, setVisible] = useState(true);
-
   // Memoize the colors object to prevent unnecessary re-renders
   const colors = useCallback(() => {
     return {
       success: bgColor || 'bg-green-500',
       error: bgColor || 'bg-red-500',
-      info: bgColor || 'bg-blue-500',
+      info: bgColor || 'bg-[var(--org-primary,var(--color-primary,#145fff))]',
     };
   }, [bgColor]);
 

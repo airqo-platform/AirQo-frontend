@@ -1,1 +1,1 @@
-export const INQUIRY_URL = '/users/inquiries';
+export const INQUIRY_URL = '/inquiries';
