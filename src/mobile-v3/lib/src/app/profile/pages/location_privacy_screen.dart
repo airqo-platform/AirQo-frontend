@@ -1,8 +1,6 @@
-
 import 'package:airqo/src/app/profile/pages/widgets/privacy_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/profile/pages/location_data_view_screen.dart';
 import 'package:airqo/src/app/profile/pages/data_sharing_screen.dart';
@@ -47,40 +45,40 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text('Location Privacy'),
-        backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+        backgroundColor: isDarkMode ? AppColors.darkThemeBackground : AppColors.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(
+          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+        ),
+        titleTextStyle: TextStyle(
+          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Inter',
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.04,
+          vertical: 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Real-time tracking status
-            _buildTrackingStatusCard(),
-            const SizedBox(height: 20),
-            
-            // Tracking controls
-            _buildTrackingControlsSection(),
-            const SizedBox(height: 20),
-            
-            // Privacy zones
+            _buildTrackingControlSection(),
+            SizedBox(height: screenHeight * 0.03),
             _buildPrivacyZonesSection(),
-            const SizedBox(height: 20),
-            
-            // Location data management
-            _buildLocationDataSection(),
-            const SizedBox(height: 20),
-            
-            // Data sharing controls
+            SizedBox(height: screenHeight * 0.03),
+            _buildDataManagementSection(),
+            SizedBox(height: screenHeight * 0.03),
             _buildDataSharingSection(),
           ],
         ),
@@ -88,122 +86,108 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     );
   }
 
-  Widget _buildTrackingStatusCard() {
+  Widget _buildTrackingControlSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final isActive = _isTrackingActive && !_isTrackingPaused;
+    final screenWidth = MediaQuery.of(context).size.width;
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: EdgeInsets.all(screenWidth * 0.04),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.primaryColor.withOpacity(0.1) : AppColors.primaryColor.withOpacity(0.05),
+        color: Theme.of(context).highlightColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isActive ? Colors.green : Colors.orange,
-          width: 2,
+          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          width: 0.5,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: isActive ? Colors.green : Colors.orange,
-              shape: BoxShape.circle,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.location_on,
+                  color: AppColors.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Location Tracking',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _isTrackingActive 
+                          ? (_isTrackingPaused ? 'Paused' : 'Active')
+                          : 'Stopped',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _isTrackingActive 
+                            ? (_isTrackingPaused ? Colors.orange : Colors.green)
+                            : Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                activeColor: Colors.white,
+                activeTrackColor: AppColors.primaryColor,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: isDarkMode 
+                    ? Colors.grey[700] 
+                    : Theme.of(context).highlightColor,
+                value: _isTrackingActive,
+                onChanged: (value) async {
+                  if (value) {
+                    await _locationManager.startLocationTracking();
+                  } else {
+                    await _locationManager.stopLocationTracking();
+                  }
+                  setState(() {
+                    _isTrackingActive = value;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Controls whether your location is tracked for air quality insights',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+              height: 1.4,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Location Tracking Status',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isDarkMode ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isActive ? 'Currently tracking your location' : 
-                  _isTrackingPaused ? 'Tracking paused' : 'Tracking stopped',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDarkMode ? Colors.white70 : Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isActive)
-            const Icon(
-              Icons.radio_button_checked,
-              color: Colors.green,
-              size: 20,
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildTrackingControlsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Tracking Controls',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).textTheme.headlineSmall?.color,
-          ),
-        ),
-        const SizedBox(height: 12),
-        
-        SettingsTile(
-          switchValue: _isTrackingActive,
-          iconPath: "assets/images/shared/location_icon.svg",
-          title: "Location Tracking",
-          description: "Enable location tracking for pollution exposure research",
-          onChanged: (value) async {
-            if (value) {
-              try {
-                await _locationManager.startLocationTracking();
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to start tracking: $e')),
-                );
-              }
-            } else {
-              await _locationManager.stopLocationTracking();
-            }
-          },
-        ),
-        
-        if (_isTrackingActive)
-          SettingsTile(
-            switchValue: _isTrackingPaused,
-            iconPath: "assets/icons/pause.svg",
-            title: "Pause Tracking",
-            description: "Temporarily pause location tracking",
-            onChanged: (value) async {
-              if (value) {
-                await _locationManager.pauseLocationTracking();
-              } else {
-                await _locationManager.resumeLocationTracking();
-              }
-              setState(() {
-                _isTrackingPaused = value;
-              });
-            },
-          ),
-      ],
-    );
-  }
-
   Widget _buildPrivacyZonesSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -215,13 +199,29 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).textTheme.headlineSmall?.color,
+                color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
               ),
             ),
-            TextButton.icon(
+            ElevatedButton.icon(
               onPressed: () => _showAddPrivacyZoneDialog(),
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, size: 18, color: Colors.white),
               label: const Text('Add Zone'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.04,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
@@ -230,33 +230,80 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           'Locations where tracking is automatically disabled',
           style: TextStyle(
             fontSize: 14,
-            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+            color: isDarkMode 
+                ? AppColors.secondaryHeadlineColor2 
+                : AppColors.secondaryHeadlineColor,
+            height: 1.4,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         
         if (_locationManager.privacyZones.isEmpty)
           Container(
-            padding: const EdgeInsets.all(16),
+            width: double.infinity,
+            padding: EdgeInsets.all(screenWidth * 0.04),
             decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(8),
+              color: Theme.of(context).highlightColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+                width: 0.5,
+              ),
             ),
-            child: const Text('No privacy zones configured'),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.shield_outlined,
+                  size: 48,
+                  color: isDarkMode 
+                      ? AppColors.secondaryHeadlineColor2 
+                      : AppColors.secondaryHeadlineColor,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No privacy zones configured',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add privacy zones to automatically disable tracking in sensitive areas',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDarkMode 
+                        ? AppColors.secondaryHeadlineColor2 
+                        : AppColors.secondaryHeadlineColor,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
           )
         else
-          ..._locationManager.privacyZones.map((zone) => _buildPrivacyZoneCard(zone)),
+          Column(
+            children: _locationManager.privacyZones
+                .map((zone) => _buildPrivacyZoneCard(zone))
+                .toList(),
+          ),
       ],
     );
   }
 
   Widget _buildPrivacyZoneCard(PrivacyZone zone) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(screenWidth * 0.04),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
+        color: Theme.of(context).highlightColor,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Colors.red.withOpacity(0.3),
           width: 1,
@@ -265,10 +312,10 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.shield,
@@ -283,16 +330,20 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
               children: [
                 Text(
                   zone.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   '${zone.radius.toInt()}m radius',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    fontSize: 14,
+                    color: isDarkMode 
+                        ? AppColors.secondaryHeadlineColor2 
+                        : AppColors.secondaryHeadlineColor,
                   ),
                 ),
               ],
@@ -300,50 +351,151 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           ),
           IconButton(
             onPressed: () => _removePrivacyZone(zone.id),
-            icon: const Icon(Icons.delete_outline),
-            color: Colors.red,
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Colors.red,
+              size: 20,
+            ),
+            tooltip: 'Remove zone',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLocationDataSection() {
+  Widget _buildDataManagementSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final totalCount = _locationManager.locationHistory.length;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Location Data',
+          'Data Management',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).textTheme.headlineSmall?.color,
+            color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         
-        ListTile(
-          leading: const Icon(Icons.visibility),
-          title: const Text('View My Data'),
-          subtitle: Text('${_locationManager.locationHistory.length} location points recorded'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showLocationDataView(),
-        ),
-        
-        ListTile(
-          leading: const Icon(Icons.delete_sweep),
-          title: const Text('Delete Data Range'),
-          subtitle: const Text('Remove specific time periods'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showDeleteDataRangeDialog(),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(screenWidth * 0.04),
+          decoration: BoxDecoration(
+            color: Theme.of(context).highlightColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+              width: 0.5,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.storage,
+                      color: AppColors.primaryColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Location History',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$totalCount location points stored',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDarkMode 
+                                ? AppColors.secondaryHeadlineColor2 
+                                : AppColors.secondaryHeadlineColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showLocationDataView(),
+                      icon: const Icon(Icons.visibility, size: 18, color: Colors.white,),
+                      label: const Text('View Data'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showDeleteDataRangeDialog(),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('Delete Range'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        side: const BorderSide(color: Colors.red, width: 1),
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
   Widget _buildDataSharingSection() {
-    final sharedCount = _locationManager.getDataForResearchers().length;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final totalCount = _locationManager.locationHistory.length;
+    final sharedCount = _locationManager.locationHistory
+        .where((point) => point.isSharedWithResearchers)
+        .length;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,40 +505,110 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).textTheme.headlineSmall?.color,
+            color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         
         Container(
-          padding: const EdgeInsets.all(16),
+          width: double.infinity,
+          padding: EdgeInsets.all(screenWidth * 0.04),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(8),
+            color: Theme.of(context).highlightColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+              width: 0.5,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.science,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Research Contribution',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDarkMode 
+                                  ? AppColors.secondaryHeadlineColor2 
+                                  : AppColors.secondaryHeadlineColor,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: '$sharedCount',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              TextSpan(text: ' of $totalCount points shared'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Text(
-                'Research Contribution',
+                'Help improve air quality research by sharing anonymous location data with researchers',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).textTheme.headlineSmall?.color,
+                  fontSize: 13,
+                  color: isDarkMode 
+                      ? AppColors.secondaryHeadlineColor2 
+                      : AppColors.secondaryHeadlineColor,
+                  height: 1.4,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                '$sharedCount of $totalCount location points will be shared with researchers',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showDataSharingDetails(),
+                  icon: const Icon(Icons.settings, size: 18, color: Colors.white,),
+                  label: const Text('Manage Sharing Preferences'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => _showDataSharingDetails(),
-                child: const Text('Manage Sharing Preferences'),
               ),
             ],
           ),
@@ -411,16 +633,47 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Privacy Zone'),
-        content: const Text('Are you sure you want to remove this privacy zone?'),
+        backgroundColor: Theme.of(context).highlightColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: Text(
+          'Remove Privacy Zone',
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white 
+                : AppColors.boldHeadlineColor4,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to remove this privacy zone?',
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? AppColors.secondaryHeadlineColor2 
+                : AppColors.secondaryHeadlineColor,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.grey[400] 
+                  : Colors.grey[700],
+            ),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -476,7 +729,6 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
 
   @override
   void dispose() {
-    // Note: Don't dispose the singleton location manager here
     super.dispose();
   }
 }

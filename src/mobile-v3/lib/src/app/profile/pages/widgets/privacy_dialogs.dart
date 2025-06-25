@@ -1,8 +1,8 @@
-// File: src/mobile-v3/lib/src/app/profile/widgets/privacy_dialogs.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 
 // Add Privacy Zone Dialog
 class AddPrivacyZoneDialog extends StatefulWidget {
@@ -14,13 +14,28 @@ class AddPrivacyZoneDialog extends StatefulWidget {
   State<AddPrivacyZoneDialog> createState() => _AddPrivacyZoneDialogState();
 }
 
-class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> {
+class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> with SingleTickerProviderStateMixin {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _radiusController = TextEditingController(text: '100');
   final TextEditingController _latController = TextEditingController();
   final TextEditingController _lngController = TextEditingController();
   bool _useCurrentLocation = true;
   bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
@@ -28,121 +43,386 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> {
     _radiusController.dispose();
     _latController.dispose();
     _lngController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Privacy Zone'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: AlertDialog(
+        backgroundColor: Theme.of(context).highlightColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
           children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Zone Name',
-                hintText: 'e.g., Home, Office, School',
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: 16),
-            
-            TextField(
-              controller: _radiusController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Radius (meters)',
-                hintText: '100',
-                border: OutlineInputBorder(),
-                suffixText: 'm',
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            CheckboxListTile(
-              title: const Text('Use current location'),
-              subtitle: const Text('Zone will be created at your current position'),
-              value: _useCurrentLocation,
-              onChanged: (value) {
-                setState(() {
-                  _useCurrentLocation = value ?? true;
-                  if (!_useCurrentLocation) {
-                    // Clear controllers when switching to manual entry
-                    _latController.clear();
-                    _lngController.clear();
-                  }
-                });
-              },
-              contentPadding: EdgeInsets.zero,
-            ),
-            
-            if (!_useCurrentLocation) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _latController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Latitude',
-                  hintText: '0.3476',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _lngController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Longitude',
-                  hintText: '32.5825',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-            
-            const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Location tracking will be automatically disabled when you enter this zone.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                  ),
-                ],
+              child: const Icon(
+                Icons.shield_outlined,
+                color: Colors.red,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Add Privacy Zone',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
               ),
             ),
           ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+        content: SizedBox(
+          width: screenWidth * 0.85,
+          height: screenHeight * 0.6,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Create a zone where location tracking will be automatically disabled to protect your privacy.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDarkMode 
+                        ? AppColors.secondaryHeadlineColor2 
+                        : AppColors.secondaryHeadlineColor,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                _buildSectionHeader('Zone Information'),
+                const SizedBox(height: 12),
+                
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'Zone Name',
+                  hint: 'e.g., Home, Office, School',
+                  icon: Icons.location_city,
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 16),
+                
+                _buildTextField(
+                  controller: _radiusController,
+                  label: 'Radius (meters)',
+                  hint: '100',
+                  icon: Icons.radio_button_unchecked,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  suffix: 'm',
+                ),
+                const SizedBox(height: 20),
+                
+                _buildSectionHeader('Location'),
+                const SizedBox(height: 12),
+                
+                _buildLocationToggle(),
+                
+                if (!_useCurrentLocation) ...[
+                  const SizedBox(height: 16),
+                  _buildCoordinatesSection(),
+                ],
+              ],
+            ),
+          ),
         ),
-        TextButton(
-          onPressed: _isLoading ? null : _handleAddZone,
-          child: _isLoading 
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Add Zone'),
+        actions: [
+          TextButton(
+            onPressed: _isLoading ? null : () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: _isLoading ? null : _handleAddZone,
+            icon: _isLoading 
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.add_location, size: 18, color: Colors.white),
+            label: const Text('Add Zone'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    TextCapitalization? textCapitalization,
+    String? suffix,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      textCapitalization: textCapitalization ?? TextCapitalization.none,
+      style: TextStyle(
+        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+        fontSize: 16,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        suffixText: suffix,
+        labelStyle: TextStyle(
+          color: isDarkMode 
+              ? AppColors.secondaryHeadlineColor2 
+              : AppColors.secondaryHeadlineColor,
+          fontSize: 14,
+        ),
+        hintStyle: TextStyle(
+          color: isDarkMode 
+              ? AppColors.secondaryHeadlineColor2.withOpacity(0.7)
+              : AppColors.secondaryHeadlineColor.withOpacity(0.7),
+          fontSize: 16,
+        ),
+        suffixStyle: TextStyle(
+          color: isDarkMode 
+              ? AppColors.secondaryHeadlineColor2 
+              : AppColors.secondaryHeadlineColor,
+          fontSize: 14,
+        ),
+        prefixIcon: Container(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.primaryColor,
+            size: 20,
+          ),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDarkMode 
+                ? AppColors.dividerColordark 
+                : AppColors.dividerColorlight,
+            width: 1,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDarkMode 
+                ? AppColors.dividerColordark 
+                : AppColors.dividerColorlight,
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.primaryColor,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 1,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
+  Widget _buildLocationToggle() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode 
+              ? AppColors.dividerColordark 
+              : AppColors.dividerColorlight,
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _useCurrentLocation = !_useCurrentLocation;
+            });
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _useCurrentLocation 
+                        ? AppColors.primaryColor.withOpacity(0.1)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    _useCurrentLocation ? Icons.my_location : Icons.location_on,
+                    color: _useCurrentLocation ? AppColors.primaryColor : Colors.grey,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Use current location',
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Zone will be created at your current position',
+                        style: TextStyle(
+                          color: isDarkMode 
+                              ? AppColors.secondaryHeadlineColor2 
+                              : AppColors.secondaryHeadlineColor,
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _useCurrentLocation,
+                  onChanged: (value) {
+                    setState(() {
+                      _useCurrentLocation = value;
+                    });
+                  },
+                  activeColor: Colors.white,
+                  activeTrackColor: AppColors.primaryColor,
+                  inactiveThumbColor: Colors.white,
+                  inactiveTrackColor: isDarkMode 
+                      ? Colors.grey[700] 
+                      : Colors.grey[300],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCoordinatesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Manual Coordinates',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? AppColors.secondaryHeadlineColor2 
+                : AppColors.secondaryHeadlineColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField(
+                controller: _latController,
+                label: 'Latitude',
+                hint: '0.0000',
+                icon: Icons.north,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTextField(
+                controller: _lngController,
+                label: 'Longitude',
+                hint: '0.0000',
+                icon: Icons.east,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -150,17 +430,13 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> {
 
   Future<void> _handleAddZone() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a zone name')),
-      );
+      _showSnackBar('Please enter a zone name');
       return;
     }
 
     final radius = double.tryParse(_radiusController.text) ?? 100;
     if (radius <= 0 || radius > 10000) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Radius must be between 1 and 10,000 meters')),
-      );
+      _showSnackBar('Radius must be between 1 and 10,000 meters');
       return;
     }
 
@@ -178,9 +454,7 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> {
           lat = result.position!.latitude;
           lng = result.position!.longitude;
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not get current location: ${result.error}')),
-          );
+          _showSnackBar('Could not get current location: ${result.error}');
           return;
         }
       } else {
@@ -188,36 +462,67 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog> {
         lng = double.tryParse(_lngController.text) ?? 0;
         
         if (lat == 0 || lng == 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter valid coordinates')),
-          );
+          _showSnackBar('Please enter valid coordinates');
           return;
         }
         
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter valid latitude (-90 to 90) and longitude (-180 to 180)')),
-          );
+          _showSnackBar('Please enter valid latitude (-90 to 90) and longitude (-180 to 180)');
           return;
         }
       }
       
       await widget.onAddZone(_nameController.text.trim(), lat, lng, radius);
-      Navigator.pop(context);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Privacy zone "${_nameController.text.trim()}" created')),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+        _showSuccessSnackBar('Privacy zone "${_nameController.text.trim()}" created successfully');
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create privacy zone: $e')),
-      );
+      _showSnackBar('Failed to create privacy zone: $e');
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
     }
   }
 }
@@ -232,163 +537,336 @@ class DeleteDataRangeDialog extends StatefulWidget {
   State<DeleteDataRangeDialog> createState() => _DeleteDataRangeDialogState();
 }
 
-class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> {
+class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> with SingleTickerProviderStateMixin {
   DateTime? _startDate;
   DateTime? _endDate;
-  TimeOfDay _startTime = const TimeOfDay(hour: 0, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 23, minute: 59);
+  bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final canDelete = _startDate != null && _endDate != null;
-    final startDateTime = _startDate != null 
-        ? DateTime(_startDate!.year, _startDate!.month, _startDate!.day, _startTime.hour, _startTime.minute)
-        : null;
-    final endDateTime = _endDate != null 
-        ? DateTime(_endDate!.year, _endDate!.month, _endDate!.day, _endTime.hour, _endTime.minute)
-        : null;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
     
-    return AlertDialog(
-      title: const Text('Delete Data Range'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: AlertDialog(
+        backgroundColor: Theme.of(context).highlightColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
           children: [
-            const Text(
-              'Select the time range for data deletion:',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            
-            // Start Date
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('Start Date'),
-              subtitle: Text(_startDate?.toString().split(' ')[0] ?? 'Not selected'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _selectStartDate(),
-              contentPadding: EdgeInsets.zero,
-            ),
-            
-            // Start Time
-            if (_startDate != null)
-              ListTile(
-                leading: const Icon(Icons.access_time),
-                title: const Text('Start Time'),
-                subtitle: Text(_startTime.format(context)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _selectStartTime(),
-                contentPadding: EdgeInsets.zero,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-            
-            const Divider(),
-            
-            // End Date
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('End Date'),
-              subtitle: Text(_endDate?.toString().split(' ')[0] ?? 'Not selected'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _selectEndDate(),
-              contentPadding: EdgeInsets.zero,
-            ),
-            
-            // End Time
-            if (_endDate != null)
-              ListTile(
-                leading: const Icon(Icons.access_time),
-                title: const Text('End Time'),
-                subtitle: Text(_endTime.format(context)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _selectEndTime(),
-                contentPadding: EdgeInsets.zero,
+              child: const Icon(
+                Icons.delete_sweep,
+                color: Colors.red,
+                size: 20,
               ),
-            
-            if (canDelete) ...[
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Delete Data Range',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: screenWidth * 0.85,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.red.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.warning, color: Colors.red, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Deletion Summary',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                        ),
-                      ],
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                      size: 24,
                     ),
-                    const SizedBox(height: 8),
-                    Text('From: ${_formatDateTime(startDateTime!)}'),
-                    Text('To: ${_formatDateTime(endDateTime!)}'),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'This action cannot be undone. All location data in this time range will be permanently deleted.',
-                      style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'This action cannot be undone. Select the date range for location data you want to permanently delete.',
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontSize: 14,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-            
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                TextButton.icon(
-                  onPressed: () => _setQuickRange('today'),
-                  icon: const Icon(Icons.today, size: 16),
-                  label: const Text('Today', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 24),
+              
+              _buildDateSelector(
+                label: 'Start Date',
+                date: _startDate,
+                icon: Icons.calendar_today,
+                onTap: _selectStartDate,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              _buildDateSelector(
+                label: 'End Date',
+                date: _endDate,
+                icon: Icons.event,
+                onTap: _selectEndDate,
+              ),
+              
+              if (_startDate != null && _endDate != null) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDarkMode 
+                        ? AppColors.darkHighlight.withOpacity(0.5)
+                        : AppColors.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Summary',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Delete data from ${_formatDate(_startDate!)} to ${_formatDate(_endDate!)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDarkMode 
+                              ? AppColors.secondaryHeadlineColor2 
+                              : AppColors.secondaryHeadlineColor,
+                        ),
+                      ),
+                      Text(
+                        'Duration: ${_endDate!.difference(_startDate!).inDays + 1} days',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDarkMode 
+                              ? AppColors.secondaryHeadlineColor2 
+                              : AppColors.secondaryHeadlineColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                TextButton.icon(
-                  onPressed: () => _setQuickRange('week'),
-                  icon: const Icon(Icons.date_range, size: 16),
-                  label: const Text('This Week', style: TextStyle(fontSize: 12)),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _isLoading ? null : () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: _isLoading || _startDate == null || _endDate == null 
+                ? null 
+                : _handleDeleteRange,
+            icon: _isLoading 
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.delete_forever, size: 18),
+            label: const Text('Delete Range'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      ),
+    );
+  }
+
+  Widget _buildDateSelector({
+    required String label,
+    required DateTime? date,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode 
+              ? AppColors.dividerColordark 
+              : AppColors.dividerColorlight,
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: AppColors.primaryColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        date != null ? _formatDate(date) : 'Select $label'.toLowerCase(),
+                        style: TextStyle(
+                          color: date != null 
+                              ? (isDarkMode 
+                                  ? AppColors.secondaryHeadlineColor2 
+                                  : AppColors.secondaryHeadlineColor)
+                              : Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: isDarkMode 
+                      ? AppColors.secondaryHeadlineColor2 
+                      : AppColors.secondaryHeadlineColor,
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: canDelete
-              ? () {
-                  widget.onDeleteRange(startDateTime!, endDateTime!);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Location data deleted for selected range')),
-                  );
-                }
-              : null,
-          child: const Text('Delete', style: TextStyle(color: Colors.red)),
-        ),
-      ],
     );
   }
 
   Future<void> _selectStartDate() async {
     final date = await showDatePicker(
       context: context,
-      initialDate: _startDate ?? DateTime.now(),
+      initialDate: _startDate ?? DateTime.now().subtract(const Duration(days: 30)),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: _endDate ?? DateTime.now(),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColors.primaryColor,
+              onPrimary: Colors.white,
+              surface: Theme.of(context).highlightColor,
+              onSurface: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.white 
+                  : AppColors.boldHeadlineColor4,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
+    
     if (date != null) {
       setState(() {
         _startDate = date;
+        // If end date is before start date, clear it
+        if (_endDate != null && _endDate!.isBefore(date)) {
+          _endDate = null;
+        }
       });
     }
   }
@@ -399,7 +877,23 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> {
       initialDate: _endDate ?? DateTime.now(),
       firstDate: _startDate ?? DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColors.primaryColor,
+              onPrimary: Colors.white,
+              surface: Theme.of(context).highlightColor,
+              onSurface: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.white 
+                  : AppColors.boldHeadlineColor4,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
+    
     if (date != null) {
       setState(() {
         _endDate = date;
@@ -407,138 +901,370 @@ class _DeleteDataRangeDialogState extends State<DeleteDataRangeDialog> {
     }
   }
 
-  Future<void> _selectStartTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _startTime,
-    );
-    if (time != null) {
-      setState(() {
-        _startTime = time;
-      });
-    }
-  }
-
-  Future<void> _selectEndTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _endTime,
-    );
-    if (time != null) {
-      setState(() {
-        _endTime = time;
-      });
-    }
-  }
-
-  void _setQuickRange(String range) {
-    final now = DateTime.now();
+  Future<void> _handleDeleteRange() async {
+    if (_startDate == null || _endDate == null) return;
+    
     setState(() {
-      switch (range) {
-        case 'today':
-          _startDate = DateTime(now.year, now.month, now.day);
-          _endDate = DateTime(now.year, now.month, now.day);
-          _startTime = const TimeOfDay(hour: 0, minute: 0);
-          _endTime = const TimeOfDay(hour: 23, minute: 59);
-          break;
-        case 'week':
-          final weekStart = now.subtract(Duration(days: now.weekday - 1));
-          _startDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
-          _endDate = DateTime(now.year, now.month, now.day);
-          _startTime = const TimeOfDay(hour: 0, minute: 0);
-          _endTime = const TimeOfDay(hour: 23, minute: 59);
-          break;
-      }
+      _isLoading = true;
     });
+
+    try {
+      await widget.onDeleteRange(_startDate!, _endDate!);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(child: Text('Location data deleted successfully')),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete data: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} '
-           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 }
 
-// Privacy Zone Info Dialog
-class PrivacyZoneInfoDialog extends StatelessWidget {
-  final PrivacyZone zone;
+// Location Detail Dialog
+class LocationDetailDialog extends StatefulWidget {
+  final LocationDataPoint point;
 
-  const PrivacyZoneInfoDialog({super.key, required this.zone});
+  const LocationDetailDialog({super.key, required this.point});
+
+  @override
+  State<LocationDetailDialog> createState() => _LocationDetailDialogState();
+}
+
+class _LocationDetailDialogState extends State<LocationDetailDialog> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(zone.name),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: AlertDialog(
+          backgroundColor: Theme.of(context).highlightColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: widget.point.isSharedWithResearchers 
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  widget.point.isSharedWithResearchers ? Icons.share : Icons.location_on,
+                  color: widget.point.isSharedWithResearchers ? Colors.green : AppColors.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Location Details',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: screenWidth * 0.85,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDetailSection(),
+                const SizedBox(height: 20),
+                _buildSharingStatusCard(),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close, size: 18),
+              label: const Text('Close'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailSection() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDarkMode 
+            ? AppColors.darkHighlight.withOpacity(0.5)
+            : Colors.grey.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildDetailRow(
+            'Timestamp',
+            _formatDateTime(widget.point.timestamp),
+            Icons.schedule,
+          ),
+          const SizedBox(height: 12),
+          _buildDetailRow(
+            'Coordinates',
+            '${widget.point.latitude.toStringAsFixed(6)}, ${widget.point.longitude.toStringAsFixed(6)}',
+            Icons.location_on,
+            isMonospace: true,
+          ),
+          const SizedBox(height: 12),
+          _buildDetailRow(
+            'Accuracy',
+            '${widget.point.accuracy != null ? widget.point.accuracy!.toStringAsFixed(1) : 'N/A'} meters',
+            Icons.my_location,
+          ),
+          const SizedBox(height: 12),
+          _buildDetailRow(
+            'Recorded',
+            _formatTimeAgo(widget.point.timestamp),
+            Icons.history,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSharingStatusCard() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isShared = widget.point.isSharedWithResearchers;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isShared 
+            ? Colors.green.withOpacity(0.1)
+            : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isShared 
+              ? Colors.green.withOpacity(0.3)
+              : Colors.grey.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow('Latitude', zone.latitude.toStringAsFixed(6)),
-          _buildInfoRow('Longitude', zone.longitude.toStringAsFixed(6)),
-          _buildInfoRow('Radius', '${zone.radius.toInt()} meters'),
-          _buildInfoRow('Created', _formatDateTime(zone.createdAt)),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.shield, color: Colors.red, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Location tracking is automatically disabled when you enter this zone.',
-                    style: TextStyle(fontSize: 12),
-                  ),
+          Row(
+            children: [
+              Icon(
+                isShared ? Icons.share : Icons.lock,
+                color: isShared ? Colors.green : Colors.grey,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Sharing Status',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isShared 
+                ? 'This location point is shared with researchers for air quality research.'
+                : 'This location point is kept private and not shared with researchers.',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isShared ? Colors.green : Colors.grey,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              isShared ? 'Shared with Researchers' : 'Private',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, IconData icon, {bool isMonospace = false}) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: AppColors.primaryColor,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontFamily: isMonospace ? 'monospace' : null,
+                  color: isDarkMode 
+                      ? AppColors.secondaryHeadlineColor2 
+                      : AppColors.secondaryHeadlineColor,
+                  fontSize: 14,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontFamily: 'monospace'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} '
            '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
+
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+    } else {
+      return 'Just now';
+    }
+  }
 }
 
 // Location Permission Dialog
-class LocationPermissionDialog extends StatelessWidget {
+class LocationPermissionDialog extends StatefulWidget {
   final String title;
   final String message;
   final VoidCallback? onOpenSettings;
@@ -551,35 +1277,133 @@ class LocationPermissionDialog extends StatelessWidget {
   });
 
   @override
+  State<LocationPermissionDialog> createState() => _LocationPermissionDialogState();
+}
+
+class _LocationPermissionDialogState extends State<LocationPermissionDialog> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.location_off,
-            size: 48,
-            color: Colors.orange,
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: AlertDialog(
+          backgroundColor: Theme.of(context).highlightColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 16),
-          Text(message),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          title: Text(
+            widget.title,
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          content: SizedBox(
+            width: screenWidth * 0.8,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Icon(
+                    Icons.location_off,
+                    size: 48,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  widget.message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isDarkMode 
+                        ? AppColors.secondaryHeadlineColor2 
+                        : AppColors.secondaryHeadlineColor,
+                    height: 1.5,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+            if (widget.onOpenSettings != null)
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onOpenSettings!();
+                },
+                icon: const Icon(Icons.settings, size: 18),
+                label: const Text('Open Settings'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
         ),
-        if (onOpenSettings != null)
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onOpenSettings!();
-            },
-            child: const Text('Open Settings'),
-          ),
-      ],
+      ),
     );
   }
 }

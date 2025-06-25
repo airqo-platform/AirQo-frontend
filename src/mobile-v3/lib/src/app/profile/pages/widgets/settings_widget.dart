@@ -236,7 +236,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
             // ),
 
             SettingsTile(
-              iconPath: "assets/images/shared/privacy_icon.svg",
+              iconPath: "assets/images/shared/location_icon.svg",
               title: "Location Privacy",
               description:
                   "Control how your location data is tracked and shared",
