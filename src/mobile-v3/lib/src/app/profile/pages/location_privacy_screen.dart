@@ -4,6 +4,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/profile/pages/location_data_view_screen.dart';
 import 'package:airqo/src/app/profile/pages/data_sharing_screen.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LocationPrivacyScreen extends StatefulWidget {
   const LocationPrivacyScreen({super.key});
@@ -16,12 +17,14 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   final EnhancedLocationServiceManager _locationManager = EnhancedLocationServiceManager();
   bool _isTrackingActive = false;
   bool _isTrackingPaused = false;
+  bool _locationEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _initializeLocationManager();
     _setupTrackingListener();
+    _checkLocationStatus();
   }
 
   Future<void> _initializeLocationManager() async {
@@ -40,6 +43,60 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         });
       }
     });
+  }
+
+  Future<void> _checkLocationStatus() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    setState(() {
+      _locationEnabled = serviceEnabled &&
+          permission != LocationPermission.denied &&
+          permission != LocationPermission.deniedForever;
+    });
+  }
+
+  Future<void> _toggleLocation(bool value) async {
+    if (value) {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        bool openedSettings = await Geolocator.openLocationSettings();
+        if (!openedSettings) {
+          _showSnackBar('Please enable location services in settings.');
+          return;
+        }
+
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          return;
+        }
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showSnackBar('Location permission denied.');
+          return;
+        } else if (permission == LocationPermission.deniedForever) {
+          _showSnackBar(
+              'Location permission permanently denied. Please enable it in settings.');
+          await Geolocator.openAppSettings();
+          return;
+        }
+      }
+    }
+
+    setState(() {
+      _locationEnabled = value;
+    });
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -73,6 +130,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildLocationServicesSection(),
+            SizedBox(height: screenHeight * 0.03),
             _buildTrackingControlSection(),
             SizedBox(height: screenHeight * 0.03),
             _buildPrivacyZonesSection(),
@@ -82,6 +141,82 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             _buildDataSharingSection(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLocationServicesSection() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: Theme.of(context).highlightColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode ? AppColors.dividerColordark : AppColors.dividerColorlight,
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.location_on,
+                  color: AppColors.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Location',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                activeColor: Colors.white,
+                activeTrackColor: AppColors.primaryColor,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: isDarkMode 
+                    ? Colors.grey[700] 
+                    : Theme.of(context).highlightColor,
+                value: _locationEnabled,
+                onChanged: _toggleLocation,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'AirQo to use your precise location to locate the Air Quality of your nearest location',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+              height: 1.4,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -113,7 +248,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  Icons.location_on,
+                  Icons.my_location,
                   color: AppColors.primaryColor,
                   size: 20,
                 ),
