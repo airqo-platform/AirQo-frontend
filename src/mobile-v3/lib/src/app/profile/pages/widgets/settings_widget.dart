@@ -1,5 +1,5 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
-import 'package:airqo/src/app/debug/slack_logger_test_screen.dart';
+import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -51,7 +51,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     if (value) {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-
         bool openedSettings = await Geolocator.openLocationSettings();
         if (!openedSettings) {
           _showSnackBar('Please enable location services in settings.');
@@ -91,80 +90,79 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     );
   }
 
-void _showLogoutConfirmation() {
-  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-  
-  showDialog(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      title: Text(
-        'Confirm Logout',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: isDarkMode 
-              ? AppColors.boldHeadlineColor2 
-              : AppColors.boldHeadlineColor5,
+  void _showLogoutConfirmation() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor:
+            isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-      content: Text(
-        'Are you sure you want to log out?',
-        style: TextStyle(
-          fontSize: 16,
-          color: isDarkMode 
-              ? AppColors.secondaryHeadlineColor2 
-              : AppColors.secondaryHeadlineColor,
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          style: TextButton.styleFrom(
-            foregroundColor: isDarkMode 
-                ? Colors.grey[400] 
-                : Colors.grey[700],
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        title: Text(
+          'Confirm Logout',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: isDarkMode
+                ? AppColors.boldHeadlineColor2
+                : AppColors.boldHeadlineColor5,
           ),
-          child: Text(
-            'Cancel',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+        ),
+        content: Text(
+          'Are you sure you want to log out?',
+          style: TextStyle(
+            fontSize: 16,
+            color: isDarkMode
+                ? AppColors.secondaryHeadlineColor2
+                : AppColors.secondaryHeadlineColor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red.shade600,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              elevation: 0,
             ),
-            elevation: 0,
-          ),
-          onPressed: () => _handleLogout(dialogContext),
-          child: Text(
-            'Log Out',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+            onPressed: () => _handleLogout(dialogContext),
+            child: Text(
+              'Log Out',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
             ),
           ),
-        ),
-      ],
-      actionsAlignment: MainAxisAlignment.spaceBetween, 
-      actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      titlePadding: EdgeInsets.fromLTRB(24, 24, 24, 12),
-      contentPadding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-    ),
-  );
-}
+        ],
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        titlePadding: EdgeInsets.fromLTRB(24, 24, 24, 12),
+        contentPadding: EdgeInsets.fromLTRB(24, 0, 24, 24),
+      ),
+    );
+  }
 
   Future<void> _handleLogout(BuildContext dialogContext) async {
     Navigator.pop(dialogContext);
@@ -237,16 +235,16 @@ void _showLogoutConfirmation() {
             //       "Change the language of the app to your preferred language",
             // ),
 
-                     // Add the developer option here, before the logout button
-          if (kDebugMode)
             SettingsTile(
-              iconPath: "assets/images/shared/feedback_icon.svg",
-              title: "Test Slack Logger",
-              description: "Developer option to test Slack integration",
+              iconPath: "assets/images/shared/privacy_icon.svg",
+              title: "Location Privacy",
+              description:
+                  "Control how your location data is tracked and shared",
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SlackLoggerTestScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => LocationPrivacyScreen()),
                 );
               },
             ),
