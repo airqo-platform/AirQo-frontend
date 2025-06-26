@@ -56,6 +56,7 @@ export default function Profile() {
     description: '',
     profilePicture: '',
   });
+  const [initialUserData, setInitialUserData] = useState({}); // To store initial data for comparison
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
@@ -85,7 +86,7 @@ export default function Profile() {
       const res = await getUserDetails(userId);
       const u = res.users?.[0];
       if (res.success && u) {
-        setUserData({
+        const fetchedData = {
           firstName: u.firstName || '',
           lastName: u.lastName || '',
           email: u.email || '',
@@ -93,7 +94,9 @@ export default function Profile() {
           country: u.country || '',
           description: u.description || '',
           profilePicture: u.profilePicture || '',
-        });
+        };
+        setUserData(fetchedData);
+        setInitialUserData(fetchedData); // Set initial data
         setLocalImagePreview(null);
         setImageError(false);
       } else {
@@ -116,14 +119,16 @@ export default function Profile() {
     setUserData((prev) => ({ ...prev, [id]: value }));
     setValidationErrors((prev) => ({ ...prev, [id]: '' }));
   };
-  const handleCountryChange = (option) => {
-    setUserData((prev) => ({ ...prev, country: option.value }));
+
+  const handleCountryChange = (e) => {
+    const { value } = e.target;
+    setUserData((prev) => ({ ...prev, country: value }));
     setValidationErrors((prev) => ({ ...prev, country: '' }));
   };
 
   // Cancel resets
   const handleCancel = () => {
-    fetchUserDetails();
+    setUserData(initialUserData); // Reset to initial data
     setValidationErrors({});
     setErrorState({ isError: false, message: '', type: '' });
     setLocalImagePreview(null);
@@ -162,17 +167,30 @@ export default function Profile() {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const allowed = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'];
-    if (!allowed.includes(file.type))
-      return CustomToast({ message: 'Invalid image type', type: 'error' });
-    if (file.size > 5 * 1024 * 1024)
-      return CustomToast({ message: 'Max size 5MB', type: 'error' });
+    if (!allowed.includes(file.type)) {
+      CustomToast({
+        message: 'Invalid image type. Please use JPEG, PNG, SVG, or WebP.',
+        type: 'error',
+      });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      CustomToast({
+        message: 'Image size exceeds 5MB. Please choose a smaller image.',
+        type: 'error',
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       setLocalImagePreview(reader.result);
       setImageError(false);
     };
     reader.readAsDataURL(file);
+
     setProfileUploading(true);
     try {
       const cropped = await cropImage(file);
@@ -182,15 +200,24 @@ export default function Profile() {
       form.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
       form.append('folder', 'profiles');
       const uploadRes = await cloudinaryImageUpload(form);
+
       if (uploadRes.secure_url) {
         setLocalImagePreview(uploadRes.secure_url);
         CustomToast({
-          message: 'Image uploaded! Click Save.',
+          message:
+            'Image uploaded successfully! Remember to click "Save" to apply changes.',
           type: 'success',
         });
-      } else throw new Error('No URL from Cloudinary');
-    } catch {
-      CustomToast({ message: 'Upload failed', type: 'error' });
+      } else {
+        throw new Error('No URL received from Cloudinary upload.');
+      }
+    } catch (err) {
+      CustomToast({
+        message: `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
+        type: 'error',
+      });
+      setLocalImagePreview(null); // Clear local preview on error
+      setImageError(true);
     } finally {
       setProfileUploading(false);
     }
@@ -198,8 +225,9 @@ export default function Profile() {
 
   // Handle submit
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Crucial: Prevent default form submission to avoid full page reload
     setIsSaving(true);
+
     try {
       await validationSchema.validate(userData, { abortEarly: false });
       setValidationErrors({});
@@ -208,42 +236,97 @@ export default function Profile() {
       err.inner.forEach((z) => (errs[z.path] = z.message));
       setValidationErrors(errs);
       setIsSaving(false);
+      CustomToast({
+        message: 'Please correct the validation errors.',
+        type: 'error',
+      });
       return;
     }
+
     const userID = session.user.id;
-    const payload = {
-      ...userData,
-      profilePicture: localImagePreview || userData.profilePicture,
-    };
-    if (!payload.profilePicture) delete payload.profilePicture;
-    try {
-      await updateUserCreationDetails(payload, userID);
-      await fetchUserDetails();
-      const fresh = (await getUserDetails(userID)).users?.[0];
-      if (fresh) {
-        await updateSession({
-          ...session,
-          user: {
-            ...session.user,
-            firstName: fresh.firstName,
-            lastName: fresh.lastName,
-            email: fresh.email,
-            profilePicture: localImagePreview || fresh.profilePicture,
-          },
-        });
-        dispatch(setUserInfo({ _id: userID, ...fresh }));
+    const fieldsToUpdate = {};
+
+    // Only include fields that have changed
+    for (const key in userData) {
+      if (userData[key] !== initialUserData[key]) {
+        fieldsToUpdate[key] = userData[key];
       }
+    }
+
+    // Handle profile picture specially if it's new or changed
+    // If a local preview exists AND it's different from the initial profile picture OR
+    // If there's no local preview and no current userData.profilePicture, but there WAS an initial one (meaning it was cleared)
+    if (
+      localImagePreview &&
+      localImagePreview !== initialUserData.profilePicture
+    ) {
+      fieldsToUpdate.profilePicture = localImagePreview;
+    } else if (
+      !localImagePreview &&
+      !userData.profilePicture &&
+      initialUserData.profilePicture
+    ) {
+      // This condition handles removing a profile picture if it was previously set
+      fieldsToUpdate.profilePicture = ''; // Set to empty string or null to indicate removal
+    }
+
+    // If no changes, prevent API call and inform user
+    if (Object.keys(fieldsToUpdate).length === 0) {
+      setIsSaving(false);
+      setErrorState({
+        isError: true,
+        message: 'No changes to save.',
+        type: 'info',
+      });
+      return;
+    }
+
+    try {
+      await updateUserCreationDetails(fieldsToUpdate, userID);
+
+      // Successfully updated on the backend. Now, update client-side state directly
+      // and refresh session and Redux store with the *newly saved* data.
+      // Do NOT refetch user details unless absolutely necessary, as it can be redundant
+      // and sometimes cause a re-render glitch.
+      // Instead, create the `updatedSessionUser` object from `userData` and `localImagePreview`
+      // and update the session and Redux store.
+
+      const updatedProfilePicture =
+        localImagePreview || userData.profilePicture;
+
+      // Prepare the updated user object for session and Redux
+      const updatedUserForClient = {
+        ...session.user, // Keep existing session user properties
+        ...userData, // Apply all current userData (since we've successfully saved them)
+        profilePicture: updatedProfilePicture, // Use the new or existing profile picture
+      };
+
+      // Update NextAuth session
+      await updateSession({
+        ...session,
+        user: updatedUserForClient,
+      });
+
+      // Update Redux store
+      dispatch(setUserInfo({ _id: userID, ...updatedUserForClient }));
+
+      // Reset initialUserData to the newly saved state
+      setInitialUserData(userData);
+      setLocalImagePreview(null); // Clear local image preview after successful save
+
+      // Complete checklist step if all required fields are present based on the updated data
       if (
         userData.firstName &&
         userData.lastName &&
         userData.email &&
         userData.country
-      )
+      ) {
         completeStep(2);
-      setLocalImagePreview(null);
+      }
+
       setErrorState({
         isError: true,
-        message: 'Saved successfully',
+        message: 'Your profile has been updated successfully!',
         type: 'success',
       });
     } catch (err) {
@@ -252,15 +335,16 @@ export default function Profile() {
         setValidationErrors((prev) => ({ ...prev, ...apiErrs }));
         setErrorState({
           isError: true,
-          message: 'Fix errors and retry',
+          message: 'Please fix the errors and try again.',
           type: 'error',
         });
-      } else
+      } else {
         setErrorState({
           isError: true,
-          message: apiErrs.general || err.message,
+          message: apiErrs.general || `Failed to save profile: ${err.message}`,
           type: 'error',
         });
+      }
     } finally {
       setIsSaving(false);
     }
@@ -268,8 +352,8 @@ export default function Profile() {
 
   // Initials fallback
   const userDisplay = useMemo(() => {
-    const fn = userData.firstName || '',
-      ln = userData.lastName || '';
+    const fn = userData.firstName || '';
+    const ln = userData.lastName || '';
     const full = (fn + ' ' + ln).trim() || 'User';
     let initials =
       fn && ln
@@ -310,6 +394,15 @@ export default function Profile() {
     );
   };
 
+  const hasChanges = useMemo(() => {
+    const dataChanged =
+      JSON.stringify(userData) !== JSON.stringify(initialUserData);
+    const imageChanged =
+      localImagePreview !== null &&
+      localImagePreview !== initialUserData.profilePicture;
+    return dataChanged || imageChanged;
+  }, [userData, initialUserData, localImagePreview]);
+
   return (
     <div data-testid="tab-content">
       <AlertBox
@@ -340,7 +433,7 @@ export default function Profile() {
                       className="file:mr-4 file:py-2 file:px-4 file:border file:rounded file:text-sm file:bg-gray-100"
                     />
                     {profileUploading && (
-                      <div className="flex items-center mt-1 text-sm">
+                      <div className="flex items-center mt-1 text-sm text-gray-600">
                         <FaSpinner className="animate-spin mr-1" />
                         Uploading…
                       </div>
@@ -371,6 +464,7 @@ export default function Profile() {
                     label="Email"
                     error={validationErrors.email}
                     required
+                    disabled // Email is usually not editable via profile settings
                   />
                   <InputField
                     id="jobTitle"
@@ -383,9 +477,7 @@ export default function Profile() {
                     label="Country"
                     required
                     value={userData.country}
-                    onChange={(e) =>
-                      handleCountryChange({ value: e.target.value })
-                    }
+                    onChange={handleCountryChange}
                     error={validationErrors.country}
                   >
                     <option value="">Select a country</option>
@@ -402,6 +494,7 @@ export default function Profile() {
                       onChange={handleChange}
                       label="Bio"
                       error={validationErrors.description}
+                      rows={4} // Give more space for bio
                     />
                   </div>
                 </div>
@@ -410,12 +503,18 @@ export default function Profile() {
                     type="button"
                     variant="outlined"
                     onClick={handleCancel}
-                    disabled={isSaving}
+                    disabled={isSaving || !hasChanges}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving ? 'Saving…' : 'Save'}
+                  <Button type="submit" disabled={isSaving || !hasChanges}>
+                    {isSaving ? (
+                      <>
+                        <FaSpinner className="animate-spin mr-2" /> Saving…
+                      </>
+                    ) : (
+                      'Save'
+                    )}
                   </Button>
                 </div>
               </form>
