@@ -17,12 +17,15 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
     currentSlug,
     isUpdating,
     isCheckingAvailability,
-    slugStatus,
+    slugStatus, // This likely indicates the overall update status (success, error, idle)
     validateSlugFormat,
     checkSlugAvailability,
     updateGroupSlug: updateSlugHook,
     resetStates,
     activeGroup,
+    // Assuming useGroupSlugManager might eventually expose these:
+    // slugSuggestions: hookSlugSuggestions, // If hook provides suggestions
+    // errors: hookErrors, // If hook provides specific input errors
   } = useGroupSlugManager();
 
   // Check if this is AirQo group - they should not be able to update domain
@@ -36,22 +39,18 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
     slug: '',
     originalSlug: '',
   });
-  const [availabilityStatus, setAvailabilityStatus] = useState('');
+
+  // Consolidated availability state
+  const [slugAvailability, setSlugAvailability] = useState(null); // null: no check, true: available, false: unavailable
   const [availabilityMessage, setAvailabilityMessage] = useState('');
+  const [slugSuggestions, setSlugSuggestions] = useState([]); // For suggested alternatives
+
   const [hasChanges, setHasChanges] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastConfig, setToastConfig] = useState({
     message: '',
     type: 'success',
-  }); // Domain setup progress tracking - simplified
-  const [showSetupMessage, setShowSetupMessage] = useState(false);
-
-  // Effect to show setup message when slug update succeeds
-  useEffect(() => {
-    if (slugStatus === 'success' && !showSetupMessage) {
-      setShowSetupMessage(true);
-    }
-  }, [slugStatus, showSetupMessage]);
+  });
 
   // Initialize form data when currentSlug is available from the hook
   useEffect(() => {
@@ -61,7 +60,9 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         originalSlug: currentSlug,
       });
       setHasChanges(false);
-      setShowSetupMessage(false);
+      setSlugAvailability(null); // Reset availability status on initial load
+      setAvailabilityMessage('');
+      setSlugSuggestions([]);
       resetStates();
     }
   }, [currentSlug, resetStates]);
@@ -84,7 +85,8 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
     setToastConfig({ message, type });
     setShowToast(true);
   }, []);
-  // Handle form submission - with proper redirect and login setup reload
+
+  // Handle form submission - simplified version that uses the improved hook
   const handleSubmit = useCallback(
     async (e) => {
       if (e && e.preventDefault) {
@@ -100,12 +102,13 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         return;
       }
 
+      // Check for availability only if the slug is actually different and not currently available
       if (
-        availabilityStatus !== 'available' &&
-        formData.slug !== formData.originalSlug
+        formData.slug !== formData.originalSlug &&
+        slugAvailability !== true
       ) {
         showToastMessage(
-          'Please wait for availability check or choose a different URL',
+          'Please ensure the new URL is checked and available before saving.',
           'warning',
         );
         return;
@@ -115,26 +118,10 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         showToastMessage('Update already in progress', 'info');
         return;
       }
+
       try {
-        logger.info('Starting domain update process:', {
-          newSlug: formData.slug,
-          originalSlug: formData.originalSlug,
-        });
-
-        // Use the hook that handles the backend update and automatic redirect
-        // This will throw an error if the update fails
+        // Use the simplified hook that handles redirect automatically
         await updateSlugHook(formData.slug);
-
-        // If we reach here, the API call was successful
-        logger.info(
-          'Domain update API call successful, preparing for redirect',
-        );
-
-        // Show success message only after API confirms success
-        showToastMessage(
-          'Domain updated successfully! Redirecting to your new domain...',
-          'success',
-        );
 
         // Update local state for consistency
         setFormData((prev) => ({
@@ -142,16 +129,19 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
           originalSlug: formData.slug,
         }));
         setHasChanges(false);
-        setAvailabilityStatus('');
+        setSlugAvailability(null); // Reset after successful update
         setAvailabilityMessage('');
+        setSlugSuggestions([]); // Clear suggestions
 
-        // Note: The redirect will happen automatically from the hook
+        showToastMessage(
+          'Domain updated successfully! Redirecting...',
+          'success',
+        );
+        // Prevent further state updates or error toasts after success
+        return;
       } catch (error) {
-        logger.error('Domain update failed:', {
-          error: error.message,
-          newSlug: formData.slug,
-        });
-        showToastMessage(`Failed to update domain: ${error.message}`, 'error');
+        // Only show error toast if updateSlugHook actually throws
+        showToastMessage(error.message, 'error');
       }
     },
     [
@@ -159,7 +149,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
       updateSlugHook,
       formData.slug,
       formData.originalSlug,
-      availabilityStatus,
+      slugAvailability, // Use the local slugAvailability state
       isUpdating,
       formatError,
       showToastMessage,
@@ -177,94 +167,87 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
     [handleSubmit, hasChanges, isUpdating],
   );
 
-  // Effect to ensure ref values are updated when critical state changes
-  useEffect(() => {
-    // This effect will run whenever the dependencies change, ensuring the ref is up to date
-  }, [hasChanges, isUpdating, availabilityStatus]);
-
   // Debounced availability check
   const debouncedAvailabilityCheck = useCallback(
     (slug) => {
+      // Clear previous timeout
       const timeoutId = setTimeout(async () => {
-        if (slug && slug !== formData.originalSlug) {
+        if (slug && slug !== formData.originalSlug && !formatError) {
+          // Only check if there's no format error and it's a new slug
           const result = await checkSlugAvailability(slug);
-          setAvailabilityStatus(result.available ? 'available' : 'unavailable');
+          setSlugAvailability(result.available);
           setAvailabilityMessage(result.message);
+          setSlugSuggestions(result.suggestions || []); // Assume suggestions from hook
         } else if (slug === formData.originalSlug) {
-          // User typed back to original slug
-          setAvailabilityStatus('');
+          // User typed back to original slug, or cleared it
+          setSlugAvailability(null);
           setAvailabilityMessage('');
+          setSlugSuggestions([]);
         } else {
-          setAvailabilityStatus('');
+          setSlugAvailability(null);
           setAvailabilityMessage('');
+          setSlugSuggestions([]);
         }
-      }, 500);
+      }, 500); // 500ms debounce
 
-      // Cleanup function for useEffect
-      return () => clearTimeout(timeoutId);
+      return () => clearTimeout(timeoutId); // Cleanup function
     },
-    [checkSlugAvailability, formData.originalSlug],
+    [checkSlugAvailability, formData.originalSlug, formatError], // Add formatError to dependencies
   );
 
-  // Effect to handle debounced slug checking
+  // Effect to trigger debounced slug checking
   useEffect(() => {
+    // Only trigger debounce if slug is not empty and has changes from original, AND no format error
     if (
       formData.slug &&
       formData.slug !== formData.originalSlug &&
-      !validateSlugFormat(formData.slug)
+      !formatError
     ) {
       const cleanup = debouncedAvailabilityCheck(formData.slug);
       return cleanup;
+    } else {
+      // If slug is empty, same as original, or has format error, reset status
+      setSlugAvailability(null);
+      setAvailabilityMessage('');
+      setSlugSuggestions([]);
     }
   }, [
     formData.slug,
     formData.originalSlug,
     debouncedAvailabilityCheck,
-    validateSlugFormat,
+    formatError,
   ]);
 
   // Handle input changes
   const handleSlugChange = (e) => {
+    // Sanitize input: convert to lowercase, remove non-alphanumeric except hyphen
     const newSlug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
     setFormData((prev) => ({
       ...prev,
       slug: newSlug,
     }));
     setHasChanges(newSlug !== formData.originalSlug);
-    // Reset availability status
-    setAvailabilityStatus('');
-    setAvailabilityMessage('');
-
-    // Note: Availability check is handled by useEffect
   };
 
-  // Get current full URL
+  const handleSuggestionClick = (suggestion) => {
+    setFormData((prev) => ({
+      ...prev,
+      slug: suggestion,
+    }));
+    setHasChanges(suggestion !== formData.originalSlug);
+    setSlugAvailability(true);
+    setAvailabilityMessage(`${suggestion} is available.`);
+    setSlugSuggestions([]);
+  };
+
+  // Get current full URL for preview
   const getFullUrl = (slug) => {
     const baseUrl =
       typeof window !== 'undefined'
-        ? window.location.origin
-        : 'https://analytics.airqo.net';
+        ? window.location.origin // Dynamic base URL
+        : 'https://analytics.airqo.net'; // Fallback for SSR
     return `${baseUrl}/org/${slug}`;
   };
-
-  // Get status icon and color
-  const getStatusDisplay = () => {
-    if (isCheckingAvailability) {
-      return { icon: FaSpinner, color: 'text-primary', spin: true };
-    }
-
-    if (availabilityStatus === 'available') {
-      return { icon: FaCheck, color: 'text-green-500', spin: false };
-    }
-
-    if (availabilityStatus === 'unavailable') {
-      return { icon: FaTimes, color: 'text-red-500', spin: false };
-    }
-
-    return null;
-  };
-
-  const statusDisplay = getStatusDisplay();
 
   if (isAirQoGroup) {
     return null;
@@ -287,7 +270,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
           animation: fadeIn 0.3s ease-out;
         }
       `}</style>
-      <CardWrapper>
+      <CardWrapper className="max-w-4xl mx-auto shadow-lg border-0">
         <div>
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
@@ -304,32 +287,34 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                 integrations.
               </p>
             </div>
-          </div>{' '}
+          </div>
+
           {/* Domain Update Progress Banner */}
-          {(showSetupMessage || isUpdating) && (
+          {slugStatus === 'success' && (
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fadeIn">
               <div className="flex items-center space-x-3">
                 <FaSpinner className="text-blue-600 dark:text-blue-400 animate-spin" />
-                <div className="flex-1">
+                <div>
                   <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                    {isUpdating
-                      ? 'Updating your domain...'
-                      : 'Please wait as we setup your new domain'}
+                    Setting up your new domain...
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    {isUpdating
-                      ? 'Please wait while we update your organization URL in our system.'
-                      : 'Your new domain is being configured. You will be redirected shortly.'}
+                    Please wait while we configure your new URL. The page will
+                    reload automatically in a few seconds.
                   </p>
                 </div>
               </div>
             </div>
           )}
+
           <form className="space-y-8">
             {/* URL Customization */}
             <div className="space-y-6">
               <div>
-                <label className="block text-base font-semibold text-gray-900 dark:text-white mb-2">
+                <label
+                  htmlFor="organizationSlug"
+                  className="block text-base font-semibold text-gray-900 dark:text-white mb-2"
+                >
                   Organization URL
                   <span className="text-red-500 ml-1">*</span>
                 </label>
@@ -339,99 +324,98 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                 </p>
               </div>
 
-              {/* URL Input Field */}
-              <div className="relative">
-                <div
-                  className={`flex items-center border-2 rounded-xl overflow-hidden bg-white dark:bg-gray-800 transition-all duration-200 ${
-                    formData.slug && hasChanges
-                      ? 'border-primary ring-2 ring-primary/20 shadow-lg shadow-primary/10'
-                      : 'border-gray-200 dark:border-gray-600 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'
+              {/* URL Input Field - Refactored */}
+              <div className="flex items-center">
+                <span className="flex-shrink-0 bg-gray-100 dark:bg-gray-600 px-4 py-2.5 rounded-l-xl text-gray-500 dark:text-gray-300 border border-r-0 border-gray-400 dark:border-gray-500 text-sm whitespace-nowrap">
+                  analytics.airqo.net/org/
+                </span>
+                <input
+                  type="text"
+                  id="organizationSlug"
+                  name="organizationSlug"
+                  placeholder="your-organization-name"
+                  value={formData.slug}
+                  onChange={handleSlugChange}
+                  className={`flex-grow px-4 py-2.5 rounded-r-xl border text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 ${
+                    formatError
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-400 dark:focus:ring-red-400'
+                      : 'border-gray-400 dark:border-gray-500 focus:border-primary focus:ring-primary/50 dark:focus:ring-primary/40' // Primary color for focus
                   }`}
-                >
-                  <span className="bg-gray-100 dark:bg-gray-700 px-6 py-4 text-gray-600 dark:text-gray-300 text-sm font-mono border-r border-gray-200 dark:border-gray-600">
-                    analytics.airqo.net/org/
-                  </span>
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={handleSlugChange}
-                      placeholder="your-organization-name"
-                      className="w-full px-6 py-4 text-base font-mono bg-transparent text-gray-900 dark:text-white ring-transparent border-none focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200"
-                      disabled={isUpdating}
-                    />
-                    {statusDisplay && (
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                        <statusDisplay.icon
-                          className={`text-lg ${statusDisplay.color} ${statusDisplay.spin ? 'animate-spin' : ''} transition-all duration-200`}
-                        />
-                      </div>
-                    )}
-
-                    {/* Typing indicator */}
-                    {hasChanges && !isCheckingAvailability && (
-                      <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
-                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  disabled={isUpdating}
+                  required
+                />
               </div>
 
-              {/* Status Messages */}
-              <div className="space-y-3">
-                {formatError && (
-                  <div className="flex items-start space-x-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg animate-fadeIn">
-                    <FaTimes className="text-red-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                        Invalid Format
-                      </p>
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                        {formatError}
-                      </p>
-                    </div>
-                  </div>
+              {/* Loader and Availability Messages Below the Input */}
+              {isCheckingAvailability &&
+                formData.slug &&
+                formData.slug !== formData.originalSlug && (
+                  <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400 animate-fadeIn">
+                    <FaSpinner className="animate-spin h-4 w-4 mr-2 text-primary dark:text-primary-light" />
+                    Checking availability...
+                  </p>
                 )}
 
-                {availabilityMessage && !formatError && (
+              {formatError && (
+                <p className="mt-1 flex items-center text-sm text-red-600 dark:text-red-400 animate-fadeIn">
+                  <FaTimes className="h-4 w-4 mr-1" />
+                  {formatError}
+                </p>
+              )}
+
+              {/* Display availability message only if not checking and no format error */}
+              {!isCheckingAvailability &&
+                availabilityMessage &&
+                !formatError && (
                   <div
-                    className={`flex items-start space-x-3 p-4 border rounded-lg animate-fadeIn transition-all duration-300 ${
-                      availabilityStatus === 'available'
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    className={`mt-1 text-sm flex items-center animate-fadeIn ${
+                      slugAvailability
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
                     }`}
                   >
-                    {availabilityStatus === 'available' ? (
-                      <FaCheck className="text-green-500 mt-0.5 flex-shrink-0" />
+                    {slugAvailability ? (
+                      <>
+                        <FaCheck className="h-4 w-4 mr-1 text-green-500" />
+                        <span>{formData.slug} is available.</span>
+                      </>
                     ) : (
-                      <FaTimes className="text-red-500 mt-0.5 flex-shrink-0" />
+                      <>
+                        <FaTimes className="h-4 w-4 mr-1 text-red-500" />
+                        <span>{availabilityMessage}</span>
+                      </>
                     )}
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm font-medium ${
-                          availabilityStatus === 'available'
-                            ? 'text-green-800 dark:text-green-200'
-                            : 'text-red-800 dark:text-red-200'
-                        }`}
-                      >
-                        {availabilityStatus === 'available'
-                          ? 'Available'
-                          : 'Unavailable'}
-                      </p>
-                      <p
-                        className={`text-xs mt-1 ${
-                          availabilityStatus === 'available'
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
-                      >
-                        {availabilityMessage}
-                      </p>
+                  </div>
+                )}
+
+              {/* Slug Suggestions */}
+              {slugSuggestions &&
+                slugSuggestions.length > 0 &&
+                slugAvailability === false &&
+                !formatError && (
+                  <div className="mt-2 animate-fadeIn">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Try one of these instead:
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {slugSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-sm rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
-              </div>
+
+              {/* General descriptive text */}
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                This will be your unique URL in the AirQo platform
+              </p>
 
               {/* Preview */}
               {formData.slug && !formatError && (
@@ -511,6 +495,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
             </div>
             {/* Form Actions - Removed, handled by sidebar */}
           </form>
+
           {/* Toast Notifications */}
           {showToast && (
             <CustomToast
