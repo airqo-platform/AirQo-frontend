@@ -10,20 +10,9 @@ import {
   validateStep2,
   validateFile,
 } from '../utils/validation';
-import {
-  generateSlugFromName,
-  handleInputChange as utilHandleInputChange,
-  getInitialFormData,
-  transformFormDataForAPI,
-} from '../utils/formUtils';
+import { generateSlugFromName, getInitialFormData } from '../utils/formUtils';
 import { useCreateOrganization } from '../hooks/useCreateOrganization';
 
-/**
- * CreateOrganizationForm Component
- *
- * A reusable form component for creating organizations.
- * Can be used in modals, pages, or any other container.
- */
 const CreateOrganizationForm = ({
   onSuccess,
   onCancel,
@@ -32,12 +21,12 @@ const CreateOrganizationForm = ({
 }) => {
   const router = useRouter();
   const fileInputRef = useRef(null);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [logoPreview, setLogoPreview] = useState('');
-  const [logoFile, setLogoFile] = useState(null);
 
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(getInitialFormData());
   const [errors, setErrors] = useState({});
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
 
   const {
     isSubmitting,
@@ -48,38 +37,49 @@ const CreateOrganizationForm = ({
     submitOrganizationRequest,
   } = useCreateOrganization();
 
-  // Auto-generate slug from organization name
+  // Auto‐generate slug from name
   useEffect(() => {
     if (
-      formData.organizationName &&
       currentStep === 1 &&
+      formData.organizationName &&
       !formData.organizationSlug
     ) {
-      const generatedSlug = generateSlugFromName(formData.organizationName);
       setFormData((prev) => ({
         ...prev,
-        organizationSlug: generatedSlug,
+        organizationSlug: generateSlugFromName(prev.organizationName),
       }));
     }
   }, [formData.organizationName, currentStep]);
 
-  // Check slug availability with debouncing
+  // Debounced slug‐availability check
   useEffect(() => {
-    if (
-      formData.organizationSlug &&
-      formData.organizationSlug.trim() !== '' &&
-      formData.organizationSlug.length >= 3
-    ) {
-      const timeoutId = setTimeout(() => {
-        checkSlugAvailability(formData.organizationSlug);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
+    if (formData.organizationSlug.length >= 3) {
+      const id = setTimeout(
+        () => checkSlugAvailability(formData.organizationSlug),
+        500,
+      );
+      return () => clearTimeout(id);
     }
   }, [formData.organizationSlug]);
 
+  // Generic input handler (supports nested branding_settings.*)
   const handleInputChange = (e) => {
-    utilHandleInputChange(e, setFormData, setErrors, errors);
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      if (name.includes('.')) {
+        const [parent, child] = name.split('.');
+        return {
+          ...prev,
+          [parent]: { ...prev[parent], [child]: value },
+        };
+      }
+      return { ...prev, [name]: value };
+    });
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[name];
+      return copy;
+    });
   };
 
   const handleSuggestionClick = (suggestion) => {
@@ -87,90 +87,90 @@ const CreateOrganizationForm = ({
       ...prev,
       organizationSlug: suggestion,
     }));
+    setErrors((prev) => {
+      const c = { ...prev };
+      delete c.organizationSlug;
+      return c;
+    });
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileValidation = validateFile(file);
-    if (!fileValidation.isValid) {
-      setErrors((prev) => ({
-        ...prev,
-        logoFile: fileValidation.error,
-      }));
+    const { isValid, error } = validateFile(file);
+    if (!isValid) {
+      setErrors((prev) => ({ ...prev, logoFile: error }));
       return;
     }
 
-    // Clear file errors
-    if (errors.logoFile) {
-      const newErrors = { ...errors };
-      delete newErrors.logoFile;
-      setErrors(newErrors);
-    }
-
+    setErrors((prev) => {
+      const c = { ...prev };
+      delete c.logoFile;
+      return c;
+    });
     setLogoFile(file);
 
-    // Create preview
     const reader = new FileReader();
-    reader.onload = (e) => {
-      setLogoPreview(e.target.result);
-    };
+    reader.onload = (ev) => setLogoPreview(ev.target.result);
     reader.readAsDataURL(file);
   };
+
   const handleNextStep = () => {
-    const validation = validateStep1(formData, slugAvailability);
-    if (validation.isValid) {
-      setCurrentStep(2);
-      setErrors({});
-    } else {
-      setErrors(validation.errors);
+    const { errors: stepErrors, isValid } = validateStep1(
+      formData,
+      slugAvailability,
+    );
+    if (!isValid) {
+      setErrors(stepErrors);
+      return;
     }
+    setErrors({});
+    setCurrentStep(2);
   };
 
   const handlePrevStep = () => {
-    setCurrentStep(1);
     setErrors({});
+    setCurrentStep(1);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // guard against double‐submit
+    if (isSubmitting) return;
+
+    // only on step 2 do we actually send data
     if (currentStep === 1) {
       handleNextStep();
       return;
     }
 
-    // Validate step 2
-    const validation = validateStep2(formData, logoFile);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
+    // step 2 validation
+    const { errors: step2Errors, isValid } = validateStep2(formData);
+    if (!isValid) {
+      setErrors(step2Errors);
       return;
     }
 
-    try {
-      const apiData = transformFormDataForAPI(formData);
-      const result = await submitOrganizationRequest(apiData, logoFile);
+    const { success, error } = await submitOrganizationRequest(
+      formData,
+      logoFile,
+    );
 
-      if (result.success) {
-        // Reset form
-        setFormData(getInitialFormData());
-        setCurrentStep(1);
-        setLogoFile(null);
-        setLogoPreview('');
-        setErrors({});
-
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          // Default behavior: navigate to user home
-          router.push('/user/Home');
-        }
-      }
-    } catch (error) {
+    if (success) {
+      // reset everything
+      setFormData(getInitialFormData());
+      setLogoFile(null);
+      setLogoPreview('');
+      setErrors({});
+      setCurrentStep(1);
+      if (onSuccess) return onSuccess();
+      router.push('/user/Home');
+    } else {
       CustomToast({
         message:
-          error.message ||
+          error?.message ||
           'Failed to submit organization request. Please try again.',
         type: 'error',
       });
@@ -178,19 +178,13 @@ const CreateOrganizationForm = ({
   };
 
   const handleCancel = () => {
-    // Reset form
     setFormData(getInitialFormData());
-    setCurrentStep(1);
+    setErrors({});
     setLogoFile(null);
     setLogoPreview('');
-    setErrors({});
-
-    if (onCancel) {
-      onCancel();
-    } else {
-      // Default behavior: navigate back
-      router.back();
-    }
+    setCurrentStep(1);
+    if (onCancel) return onCancel();
+    router.back();
   };
 
   return (

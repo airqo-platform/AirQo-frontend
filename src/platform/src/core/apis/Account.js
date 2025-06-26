@@ -115,7 +115,7 @@ export const updateGroupDetailsApi = (groupID, data) =>
 export const createOrganisationRequestApi = (data) =>
   secureApiProxy
     .post(`${USERS_URL}/org-requests`, data, {
-      authType: AUTH_TYPES.JWT,
+      authType: AUTH_TYPES.NONE,
     })
     .then((response) => response.data);
 
