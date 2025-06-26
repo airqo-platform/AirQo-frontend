@@ -15,6 +15,7 @@ import {
   MAINTENANCE_STATUS_URL,
   getUserThemeUrl,
   updateUserThemeUrl,
+  getGroupSlugUrl,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 
@@ -75,6 +76,13 @@ export const inviteUserToGroupTeam = (groupID, userEmails) =>
     )
     .then((response) => response.data);
 
+export const removeUserFromGroup = (groupID, userID) =>
+  secureApiProxy
+    .delete(`${GROUPS_URL}/${groupID}/users/${userID}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
 export const acceptGroupTeamInvite = (body) =>
   secureApiProxy
     .post(`${USERS_URL}/requests/emails/accept`, body, {
@@ -107,7 +115,7 @@ export const updateGroupDetailsApi = (groupID, data) =>
 export const createOrganisationRequestApi = (data) =>
   secureApiProxy
     .post(`${USERS_URL}/org-requests`, data, {
-      authType: AUTH_TYPES.JWT,
+      authType: AUTH_TYPES.NONE,
     })
     .then((response) => response.data);
 
@@ -141,6 +149,14 @@ export const rejectOrganisationRequestApi = (requestId, feedback) =>
 export const getOrganisationSlugAvailabilityApi = (slug) =>
   secureApiProxy
     .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+// Group Slug Management
+export const updateGroupSlugApi = (groupId, data) =>
+  secureApiProxy
+    .put(getGroupSlugUrl(groupId), data, {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
@@ -242,19 +258,16 @@ export const getMaintenanceStatus = () =>
 /**
  * Get user theme preferences
  * @param {string} userId - MongoDB ObjectId of the user
- * @param {string} tenant - Tenant identifier (defaults to 'airqo')
  * @returns {Promise} - Promise resolving to theme preferences
  */
-export const getUserThemeApi = (userId, tenant = 'airqo') => {
+export const getUserThemeApi = (userId) => {
   // Validate user ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
   }
-  const params = { tenant };
 
   return secureApiProxy
     .get(getUserThemeUrl(userId), {
-      params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
@@ -271,15 +284,9 @@ export const getUserThemeApi = (userId, tenant = 'airqo') => {
  * @param {string} userId - MongoDB ObjectId of the user
  * @param {Object} currentTheme - Current theme state
  * @param {Object} newTheme - New theme settings object
- * @param {string} tenant - Tenant identifier (defaults to 'airqo')
  * @returns {Promise} - Promise resolving to updated theme preferences
  */
-export const updateUserThemeApi = (
-  userId,
-  currentTheme,
-  newTheme,
-  tenant = 'airqo',
-) => {
+export const updateUserThemeApi = (userId, currentTheme, newTheme) => {
   // Validate user ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
@@ -363,11 +370,8 @@ export const updateUserThemeApi = (
     theme: completeTheme,
   };
 
-  const params = { tenant };
-
   return secureApiProxy
     .put(updateUserThemeUrl(userId), requestBody, {
-      params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)

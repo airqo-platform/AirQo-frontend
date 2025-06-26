@@ -83,7 +83,6 @@ function DataTable({
     setSelectAll(false);
     setIndeterminate(false);
   }, [clearSelectionTrigger, setSelectedRows]);
-
   /**
    * Apply filters if provided, then override with search results
    */
@@ -94,19 +93,9 @@ function DataTable({
         const filteredResult = onFilter(uniqueData, activeFilter);
         if (Array.isArray(filteredResult)) {
           result = filteredResult;
-          // Clear error for this filter if it was previously set
-          if (filterErrors[activeFilter.key]) {
-            setFilterErrors((prev) => ({
-              ...prev,
-              [activeFilter.key]: null,
-            }));
-          }
         }
-      } catch (err) {
-        setFilterErrors((prev) => ({
-          ...prev,
-          [activeFilter.key]: err.message || 'Error applying filter',
-        }));
+      } catch {
+        // Error will be handled in useEffect below
       }
     }
 
@@ -115,7 +104,30 @@ function DataTable({
       result = searchResults.map((r) => r.item);
     }
     return result;
-  }, [uniqueData, onFilter, activeFilter, searchResults, filterErrors]);
+  }, [uniqueData, onFilter, activeFilter, searchResults]);
+
+  /**
+   * Handle filter errors separately to avoid setState during render
+   */
+  useEffect(() => {
+    if (onFilter && activeFilter) {
+      try {
+        const filteredResult = onFilter(uniqueData, activeFilter);
+        if (Array.isArray(filteredResult)) {
+          // Clear error for this filter if it was previously set
+          setFilterErrors((prev) => ({
+            ...prev,
+            [activeFilter.key]: null,
+          }));
+        }
+      } catch (err) {
+        setFilterErrors((prev) => ({
+          ...prev,
+          [activeFilter.key]: err.message || 'Error applying filter',
+        }));
+      }
+    }
+  }, [uniqueData, onFilter, activeFilter]);
 
   /**
    * Determine effective columns:
@@ -432,11 +444,7 @@ function DataTable({
                       if (col.render && typeof col.render === 'function') {
                         try {
                           cellContent = col.render(item, idx);
-                        } catch (err) {
-                          console.error(
-                            `Error rendering column ${col.key}:`,
-                            err,
-                          );
+                        } catch {
                           cellContent = 'Error';
                         }
                       } else {

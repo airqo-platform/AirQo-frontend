@@ -96,3 +96,6 @@ Tabs.propTypes = {
 };
 
 export default React.memo(Tabs);
+
+// Export the SettingsTabNavigation component
+export { default as SettingsTabNavigation } from './SettingsTabNavigation';

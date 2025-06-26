@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Validates MongoDB ObjectId format

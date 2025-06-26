@@ -76,9 +76,12 @@ const Modal = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50">
-          <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div className="absolute inset-0 bg-gray-500 opacity-60"></div>{' '}
-          </div>{' '}
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
+            onClick={onClose}
+            aria-label="Close organization selection modal"
+          />
           <motion.div
             {...modalAnimationConfig}
             className="modal-container w-full max-w-6xl bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative 

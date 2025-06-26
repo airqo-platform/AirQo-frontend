@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Header component for the Add Location modal.
