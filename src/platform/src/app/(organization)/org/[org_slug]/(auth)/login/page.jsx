@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -181,25 +180,6 @@ const OrganizationLogin = () => {
               </button>
             </div>
           </form>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
-            <span>
-              Don&apos;t have an account?
-              <Link
-                href={`/org/${orgSlug}/register`}
-                className="font-medium ml-2 hover:underline transition-colors duration-200"
-                style={{ color: primaryColor }}
-              >
-                Register
-              </Link>
-            </span>
-            <Link
-              href={`/org/${orgSlug}/forgotPwd`}
-              className="font-medium hover:underline transition-colors duration-200"
-              style={{ color: primaryColor }}
-            >
-              Forgot Password
-            </Link>
-          </div>
         </div>
       </AuthLayout>
     </ErrorBoundary>

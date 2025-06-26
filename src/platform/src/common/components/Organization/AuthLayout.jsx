@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { formatOrgSlug } from '@/core/utils/strings';
 import GroupLogo from '@/common/components/GroupLogo';
 
 const AuthLayout = ({
@@ -41,11 +40,6 @@ const AuthLayout = ({
   const organizationName = organization?.name || getDisplayName?.() || 'AirQo';
   const organizationLogo = organization?.logo;
 
-  // Memoized organization info to prevent unnecessary re-renders
-  const organizationInfo = organization
-    ? `${formatOrgSlug(organizationName)}'s Private Dashboard`
-    : 'AirQo Platform';
-
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 flex justify-center items-center">
@@ -81,26 +75,10 @@ const AuthLayout = ({
           <main className="space-y-6">{children}</main>
 
           {/* Organization Info */}
-          <footer className="pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-center space-y-2">
-              <p
-                className="text-xs font-medium transition-colors duration-200"
-                style={{
-                  color: primaryColor || '#6B7280',
-                }}
-              >
-                {organizationInfo}
-              </p>
-              {organization?.description && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm mx-auto">
-                  {organization.description}
-                </p>
-              )}
-            </div>
-
+          <footer className="pt-2 border-gray-200 dark:border-gray-700">
             {/* Back to AirQo link */}
             {showBackToAirqo && (
-              <div className="mt-4 text-center">
+              <div className="text-center">
                 <a
                   href={backToAirqoPath}
                   className="inline-flex items-center text-xs hover:underline transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
