@@ -7,7 +7,6 @@ import AlertBox from '@/components/AlertBox';
 import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
-import SelectDropdown from '@/components/SelectDropdown';
 import TextField from '@/common/components/TextInputField';
 import CustomToast from '@/components/Toast/CustomToast';
 import ProfileSkeleton from '../components/ProfileSkeleton';
@@ -17,6 +16,7 @@ import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
+import SelectField from '@/common/components/SelectField';
 
 // Country setup
 countries.registerLocale(enLocale);
@@ -379,23 +379,22 @@ export default function Profile() {
                     label="Job title"
                     error={validationErrors.jobTitle}
                   />
-                  <div>
-                    <label className="block mb-1">Country *</label>
-                    <SelectDropdown
-                      items={countryOptions}
-                      selected={
-                        countryOptions.find(
-                          (o) => o.value === userData.country,
-                        ) || null
-                      }
-                      onChange={handleCountryChange}
-                    />
-                    {validationErrors.country && (
-                      <p className="text-red-600 text-sm">
-                        {validationErrors.country}
-                      </p>
-                    )}
-                  </div>
+                  <SelectField
+                    label="Country"
+                    required
+                    value={userData.country}
+                    onChange={(e) =>
+                      handleCountryChange({ value: e.target.value })
+                    }
+                    error={validationErrors.country}
+                  >
+                    <option value="">Select a country</option>
+                    {countryOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </SelectField>
                   <div className="md:col-span-2">
                     <TextField
                       id="description"
