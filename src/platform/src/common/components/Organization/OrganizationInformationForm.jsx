@@ -3,7 +3,7 @@ import { FaGlobe, FaSpinner } from 'react-icons/fa';
 import Image from 'next/image';
 import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
-import SelectDropdown from '@/components/SelectDropdown';
+import SelectField from '@/common/components/SelectField';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/components/Toast/CustomToast';
 import GroupLogo from '@/common/components/GroupLogo';
@@ -460,44 +460,36 @@ const OrganizationInformationForm = ({
         {/* Industry and Country Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Industry Field */}
-          <div className="flex flex-col">
-            <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-              Industry
-              <span className="ml-1 text-primary">*</span>
-            </label>
-            <SelectDropdown
-              items={industryOptions}
-              selected={
-                industryOptions.find(
-                  (option) => option.value === formData.grp_industry,
-                ) || null
-              }
-              onChange={handleIndustryChange}
-              placeholder="Select industry"
-              error={validationErrors.grp_industry}
-              required
-            />
-          </div>
+          <SelectField
+            label="Industry"
+            required
+            value={formData.grp_industry}
+            onChange={(e) => handleIndustryChange({ value: e.target.value })}
+            error={validationErrors.grp_industry}
+          >
+            <option value="">Select industry</option>
+            {industryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </SelectField>
 
           {/* Country Field */}
-          <div className="flex flex-col">
-            <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-              Country
-              <span className="ml-1 text-primary">*</span>
-            </label>
-            <SelectDropdown
-              items={countryOptions}
-              selected={
-                countryOptions.find(
-                  (option) => option.value === formData.grp_country,
-                ) || null
-              }
-              onChange={handleCountryChange}
-              placeholder="Select country"
-              error={validationErrors.grp_country}
-              required
-            />
-          </div>
+          <SelectField
+            label="Country"
+            required
+            value={formData.grp_country}
+            onChange={(e) => handleCountryChange({ value: e.target.value })}
+            error={validationErrors.grp_country}
+          >
+            <option value="">Select country</option>
+            {countryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </SelectField>
         </div>
         {/* Timezone Field */}
         <div className="flex flex-col">
@@ -505,18 +497,20 @@ const OrganizationInformationForm = ({
             Timezone
             <span className="ml-1 text-primary">*</span>
           </label>
-          <SelectDropdown
-            items={timezoneOptions}
-            selected={
-              timezoneOptions.find(
-                (option) => option.value === formData.grp_timezone,
-              ) || null
-            }
-            onChange={handleTimezoneChange}
-            placeholder="Select timezone"
-            error={validationErrors.grp_timezone}
+          <SelectField
+            label="Timezone"
             required
-          />
+            value={formData.grp_timezone}
+            onChange={(e) => handleTimezoneChange({ value: e.target.value })}
+            error={validationErrors.grp_timezone}
+          >
+            <option value="">Select timezone</option>
+            {timezoneOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </SelectField>
         </div>
         {/* Topbar Preview Section */}
         <div>

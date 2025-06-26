@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { FaUser, FaLock, FaKey, FaBuilding, FaUsers } from 'react-icons/fa';
 import { SettingsTabNavigation } from '@/common/components/Tabs';
@@ -15,8 +15,6 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Profile from './tabs/Profile';
 import Password from './tabs/Password';
 import API from './tabs/API';
-import OrganizationProfile from './tabs/OrganizationProfile';
-import Team from './tabs/Team';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions =
@@ -27,8 +25,6 @@ export const checkAccess = (requiredPermission, rolePermissions) => {
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [userPermissions, setUserPermissions] = useState([]);
   const [userGroup, setUserGroup] = useState({});
 
@@ -95,10 +91,7 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-
     if (!session?.user?.activeGroup) {
-      setLoading(false);
       return;
     }
 
@@ -118,13 +111,9 @@ const Settings = () => {
       dispatch(setChartTab(0));
     }
 
-    getAssignedGroupMembers(activeGroupId)
-      .then((response) => {
-        setTeamMembers(response.group_members);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    getAssignedGroupMembers(activeGroupId).then((response) => {
+      setTeamMembers(response.group_members);
+    });
   }, [session, preferences]);
 
   // Function to render active tab content
@@ -136,17 +125,6 @@ const Settings = () => {
         return <Password />;
       case 'api':
         return <API userPermissions={userPermissions} />;
-      case 'organization':
-        return userPermissions &&
-          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') ? (
-          <OrganizationProfile />
-        ) : null;
-      case 'team':
-        return userGroup &&
-          userPermissions &&
-          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') ? (
-          <Team users={teamMembers} loading={loading} />
-        ) : null;
       default:
         return <Profile />;
     }
