@@ -81,7 +81,7 @@ const AuthLayout = ({
               <div className="text-center">
                 <a
                   href={backToAirqoPath}
-                  className="inline-flex items-center text-xs hover:underline transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
+                  className="inline-flex text-primary items-center text-xs hover:underline transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
                   style={{
                     color: primaryColor || '#6B7280',
                   }}

@@ -10,6 +10,7 @@ const InputField = ({
   error,
   type = 'text',
   containerClassName = '',
+  primaryColor = '',
   className = '',
   required = false,
   disabled = false,
@@ -50,7 +51,14 @@ const InputField = ({
       {label && (
         <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
           {label}
-          {required && <span className="ml-1 text-primary">*</span>}
+          {required &&
+            (primaryColor ? (
+              <span style={{ color: primaryColor }} className="ml-1">
+                *
+              </span>
+            ) : (
+              <span className="ml-1 text-primary">*</span>
+            ))}
         </label>
       )}
       {/* The wrapping div is now gone, styles are on the input */}
@@ -69,7 +77,20 @@ const InputField = ({
           disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500
           dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400
           ${className}
+        ${primaryColor ? '' : ''}
         `}
+        style={
+          primaryColor
+            ? {
+                borderColor: error ? 'red' : primaryColor,
+                boxShadow: error
+                  ? '0 0 0 1px red'
+                  : `0 0 0 1px ${primaryColor}50`,
+              }
+            : error
+              ? { borderColor: 'red', boxShadow: '0 0 0 1px red' }
+              : undefined
+        }
         disabled={disabled}
         required={required}
         onChange={handleChange}
@@ -84,7 +105,7 @@ const InputField = ({
           >
             <path
               fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-4 4a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
               clipRule="evenodd"
             />
           </svg>

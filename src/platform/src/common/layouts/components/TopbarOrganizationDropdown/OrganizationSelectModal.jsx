@@ -104,7 +104,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
               className="text-xs"
               padding="px-3 py-2"
             >
-              Request New Org
+              Request New Organization
             </Button>
           </div>
 

@@ -136,6 +136,7 @@ const OrganizationLogin = () => {
                 value={userName}
                 onChange={setUserName}
                 required
+                primaryColor={primaryColor}
                 disabled={isLoading}
               />
             </div>
@@ -147,6 +148,7 @@ const OrganizationLogin = () => {
                   placeholder="******"
                   value={password}
                   onChange={setPassword}
+                  primaryColor={primaryColor}
                   required
                   disabled={isLoading}
                 />
