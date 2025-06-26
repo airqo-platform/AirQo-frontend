@@ -38,36 +38,31 @@ const SelectField = ({
           )}
         </label>
       )}
-      <div
+      <select
         className={`
-          flex items-center rounded-xl
-          transition-colors duration-150 ease-in-out
-          ${
-            disabled
-              ? 'bg-gray-100 dark:bg-gray-700'
-              : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-          }
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]
+          w-full px-4 py-2.5 rounded-xl border bg-white outline-none text-sm
+          text-gray-700 dark:text-gray-200
+          border-gray-300 transition-colors duration-150 ease-in-out
+          dark:border-gray-600 dark:bg-gray-800
+          
+          hover:border-[var(--org-primary,var(--color-primary,#145fff))]/50
+
+          focus:border-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-1 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:outline-none
+
+          disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500
+          dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400
+
+          [&>option]:bg-white [&>option]:dark:bg-gray-800 
+          [&>option]:text-gray-900 [&>option]:dark:text-gray-100
+          [&>option:disabled]:text-gray-400 [&>option:disabled]:dark:text-gray-500 ${className}
         `}
+        disabled={disabled}
+        required={required}
+        onChange={onChange}
+        {...selectProps}
       >
-        <select
-          className={`
-            w-full px-4 py-2.5 rounded-xl border-gray-400 bg-transparent outline-none text-sm
-            text-gray-700 dark:text-gray-200
-            disabled:text-gray-500 disabled:dark:text-gray-400
-            disabled:cursor-not-allowed
-            [&>option]:bg-white [&>option]:dark:bg-gray-800 
-            [&>option]:text-gray-900 [&>option]:dark:text-gray-100
-            [&>option:disabled]:text-gray-400 [&>option:disabled]:dark:text-gray-500 ${className}
-          `}
-          disabled={disabled}
-          required={required}
-          onChange={onChange}
-          {...selectProps}
-        >
-          {children}
-        </select>
-      </div>
+        {children}
+      </select>
       {error && (
         <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
           <svg
