@@ -511,13 +511,50 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
             }
           } else if (fileExtension === 'json') {
             // Process JSON data
-            let jsonData =
-              typeof response === 'string'
-                ? JSON.parse(response)
-                : typeof response === 'object' && response !== null
-                  ? response.data || response
-                  : { error: 'No data available' };
+            let jsonData;
+            try {
+              if (typeof response === 'string') {
+                // Check if the response is CSV (contains commas and newlines)
+                if (response.includes(',') && response.includes('\n')) {
+                  // Parse CSV to JSON
+                  const lines = response.trim().split('\n');
+                  const headers = lines[0].split(',');
+                  jsonData = lines.slice(1).map((line) => {
+                    const values = line.split(',');
+                    return headers.reduce((obj, header, index) => {
+                      // Clean up the values and handle empty fields
+                      let value = values[index] ? values[index].trim() : '';
+                      obj[header.trim()] = value || null;
+                      return obj;
+                    }, {});
+                  });
+                } else {
+                  // Try parsing as JSON if it's not CSV
+                  jsonData = JSON.parse(response);
+                }
+              } else if (typeof response === 'object' && response !== null) {
+                jsonData = response.data || response;
+              } else {
+                throw new Error('No data available');
+              }
 
+              if (
+                !jsonData ||
+                (Array.isArray(jsonData) && jsonData.length === 0)
+              ) {
+                throw new Error('No data available for the selected criteria');
+              }
+            } catch (error) {
+              if (
+                error.message === 'No data available' ||
+                error.message === 'No data available for the selected criteria'
+              ) {
+                throw error;
+              }
+              throw new Error(
+                'Error processing the data. Please try again or contact support.',
+              );
+            }
             // Save as JSON
             const jsonString = JSON.stringify(jsonData, null, 2);
             saveAs(new Blob([jsonString], { type: mimeType }), fileName);
