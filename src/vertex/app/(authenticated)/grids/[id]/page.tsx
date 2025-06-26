@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GridSitesTable } from "@/components/grids/grid-sites";
-import { DateRangePicker } from "@/components/grids/date-range-picker";
+import { GridSitesTable } from "@/components/features/grids/grid-sites";
+import { DateRangePicker } from "@/components/features/grids/date-range-picker";
 import { useGridDetails, useUpdateGridDetails } from "@/core/hooks/useGrids";
 import { Grid } from "@/app/types/grids";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

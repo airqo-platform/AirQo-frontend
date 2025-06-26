@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, ChevronDown } from "lucide-react"
+import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -20,13 +20,14 @@ import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
+import OrganizationPicker from "../features/org-picker/organization-picker";
+import Image from "next/image";
 
 interface TopbarProps {
-  isMobileView: boolean
-  toggleSidebar?: () => void
+  onMenuClick: () => void;
 }
 
-const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
+const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false)
   const currentUser = useAppSelector((state) => state.user.userDetails)
   const activeGroup = useAppSelector((state) => state.user.activeGroup)
@@ -99,17 +100,25 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
   return (
     <header className="flex h-16 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex w-full items-center justify-between px-4">
-        {isMobileView && toggleSidebar && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        )}
-
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={onMenuClick}>
+            <Menu className="h-5 w-5" />
+          </Button>
+          <Image
+            src="/images/airqo_logo.svg"
+            alt="Logo"
+            width={32}
+            height={32}
+          />
+          <span className="font-bold text-lg">Vertex</span>
         </div>
 
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex-grow" />
+
+        <div className="flex items-center gap-2 md:gap-4">
+          <OrganizationPicker />
+
+          <Separator orientation="vertical" className="mx-1 h-6" />
 
           <DropdownMenu>
             <TooltipProvider>
@@ -164,8 +173,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMobileView, toggleSidebar }) => {
                   <AvatarImage src={currentUser?.profilePicture || ""} alt={getUserName()} />
                   <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
                 </Avatar>
-                
-                <ChevronDown className="hidden h-4 w-4 opacity-50 md:inline-block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

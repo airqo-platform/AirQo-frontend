@@ -90,7 +90,7 @@ export function OrganizationRoles({ organizationId }: OrganizationRolesProps) {
     if (!permissionsFetched.current) {
       loadPermissions()
     }
-  }, [fetchNetworkPermissions])
+  }, [fetchNetworkPermissions, loadPermissions])
 
   const handleCreateRole = async (e: React.FormEvent) => {
     e.preventDefault()

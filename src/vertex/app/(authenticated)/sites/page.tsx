@@ -22,7 +22,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useRouter } from "next/navigation";
-import { RouteGuard } from "@/components/route-guard";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useSites } from "@/core/hooks/useSites";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";

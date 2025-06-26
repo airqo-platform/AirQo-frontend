@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AddDevicesDialog } from "@/components/cohorts/assign-cohort-devices";
+import { AddDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 
 // Sample cohort data
 const cohortData = {

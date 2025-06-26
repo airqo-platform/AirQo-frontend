@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CreateGridForm } from "@/components/grids/create-grid";
+import { CreateGridForm } from "@/components/features/grids/create-grid";
 import { useRouter } from "next/navigation";
 import { useGrids } from "@/core/hooks/useGrids";
 import { Grid } from "@/app/types/grids";

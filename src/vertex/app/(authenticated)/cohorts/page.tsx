@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { CreateCohortDialog } from "@/components/cohorts/create-cohort";
+import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 
 // Sample data
 const cohorts = [

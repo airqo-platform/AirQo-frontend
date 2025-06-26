@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDevices } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
-import { RouteGuard } from "@/components/route-guard";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { toast } from "sonner";
 import {
   Tooltip,
