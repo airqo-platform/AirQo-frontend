@@ -62,6 +62,7 @@ export default function Profile() {
   const [profileUploading, setProfileUploading] = useState(false);
   const [localImagePreview, setLocalImagePreview] = useState(null);
   const [imageError, setImageError] = useState(false);
+  const [selectedImageBlob, setSelectedImageBlob] = useState(null);
 
   // Parse API errors
   const parseApiErrors = (error) => {
@@ -195,28 +196,14 @@ export default function Profile() {
     try {
       const cropped = await cropImage(file);
       const blob = await (await fetch(cropped)).blob();
-      const form = new FormData();
-      form.append('file', blob);
-      form.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
-      form.append('folder', 'profiles');
-      const uploadRes = await cloudinaryImageUpload(form);
-
-      if (uploadRes.secure_url) {
-        setLocalImagePreview(uploadRes.secure_url);
-        CustomToast({
-          message:
-            'Image uploaded successfully! Remember to click "Save" to apply changes.',
-          type: 'success',
-        });
-      } else {
-        throw new Error('No URL received from Cloudinary upload.');
-      }
+      setSelectedImageBlob(blob);
+      setLocalImagePreview(cropped);
     } catch (err) {
       CustomToast({
-        message: `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
+        message: `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
         type: 'error',
       });
-      setLocalImagePreview(null); // Clear local preview on error
+      setLocalImagePreview(null);
       setImageError(true);
     } finally {
       setProfileUploading(false);
@@ -228,6 +215,37 @@ export default function Profile() {
     e.preventDefault(); // Crucial: Prevent default form submission to avoid full page reload
     setIsSaving(true);
 
+    // First, handle image upload if needed
+    let updatedProfilePicture = userData.profilePicture;
+    if (selectedImageBlob) {
+      setProfileUploading(true);
+      try {
+        const form = new FormData();
+        form.append('file', selectedImageBlob);
+        form.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+        form.append('folder', 'profiles');
+        const uploadRes = await cloudinaryImageUpload(form);
+        if (uploadRes.secure_url) {
+          updatedProfilePicture = uploadRes.secure_url;
+          setLocalImagePreview(uploadRes.secure_url);
+          setSelectedImageBlob(null);
+        } else {
+          throw new Error('No URL received from Cloudinary upload.');
+        }
+      } catch (err) {
+        CustomToast({
+          message: `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
+          type: 'error',
+        });
+        setIsSaving(false);
+        setProfileUploading(false);
+        return;
+      } finally {
+        setProfileUploading(false);
+      }
+    }
+
+    // Now validate the form data
     try {
       await validationSchema.validate(userData, { abortEarly: false });
       setValidationErrors({});
@@ -254,15 +272,13 @@ export default function Profile() {
     }
 
     // Handle profile picture specially if it's new or changed
-    // If a local preview exists AND it's different from the initial profile picture OR
-    // If there's no local preview and no current userData.profilePicture, but there WAS an initial one (meaning it was cleared)
     if (
-      localImagePreview &&
-      localImagePreview !== initialUserData.profilePicture
+      updatedProfilePicture &&
+      updatedProfilePicture !== initialUserData.profilePicture
     ) {
-      fieldsToUpdate.profilePicture = localImagePreview;
+      fieldsToUpdate.profilePicture = updatedProfilePicture;
     } else if (
-      !localImagePreview &&
+      !updatedProfilePicture &&
       !userData.profilePicture &&
       initialUserData.profilePicture
     ) {
@@ -291,14 +307,14 @@ export default function Profile() {
       // Instead, create the `updatedSessionUser` object from `userData` and `localImagePreview`
       // and update the session and Redux store.
 
-      const updatedProfilePicture =
+      const updatedProfilePictureFinal =
         localImagePreview || userData.profilePicture;
 
       // Prepare the updated user object for session and Redux
       const updatedUserForClient = {
         ...session.user, // Keep existing session user properties
         ...userData, // Apply all current userData (since we've successfully saved them)
-        profilePicture: updatedProfilePicture, // Use the new or existing profile picture
+        profilePicture: updatedProfilePictureFinal, // Use the new or existing profile picture
       };
 
       // Update NextAuth session
