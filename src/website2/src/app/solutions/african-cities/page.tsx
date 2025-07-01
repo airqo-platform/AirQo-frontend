@@ -3,19 +3,29 @@ import type { Metadata } from 'next';
 import AfricanCityPage from '@/views/solutions/AfricanCities/AfricanCityPage';
 
 export const metadata: Metadata = {
-  title: 'Urban Air Quality Solutions for African Cities',
+  title: 'Air Quality Solutions for African Cities | Clean Air Management',
   description:
-    'Comprehensive air quality monitoring and management solutions designed specifically for African cities. From data collection to policy implementation, we help cities combat air pollution effectively.',
+    'Comprehensive air quality monitoring and management solutions designed specifically for African cities. AirQo helps municipal governments understand and tackle air pollution through hyperlocal data and policy engagement.',
   keywords:
-    'urban air quality, city air monitoring, African cities pollution, urban environmental solutions, city air quality management, municipal air quality, urban pollution control',
+    'African cities air quality, urban air monitoring, city pollution solutions, municipal air quality management, urban environmental solutions, city air quality policy, African urban pollution control, smart city air monitoring',
   alternates: {
     canonical: 'https://airqo.net/solutions/african-cities',
   },
   openGraph: {
-    title: 'Urban Air Quality Solutions for African Cities | AirQo',
+    type: 'website',
+    title: 'Air Quality Solutions for African Cities | AirQo',
     description:
-      'Comprehensive air quality monitoring and management solutions for African cities.',
+      'Comprehensive air quality monitoring and management solutions designed specifically for African cities. Help your city understand and tackle air pollution.',
     url: 'https://airqo.net/solutions/african-cities',
+    images: [
+      {
+        url: 'https://airqo.net/icon.png',
+        width: 1200,
+        height: 630,
+        alt: 'AirQo Solutions for African Cities',
+      },
+    ],
+    siteName: 'AirQo',
   },
 };
 
