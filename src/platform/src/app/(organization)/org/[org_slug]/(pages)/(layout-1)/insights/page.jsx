@@ -12,12 +12,12 @@ import {
   AnalyticsChartsGrid,
 } from '@/features/analytics-overview';
 import AlertBox from '@/components/AlertBox';
+import EmptyState from '@/common/components/EmptyState';
+import ErrorState from '@/common/components/ErrorState';
 
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useDeviceSummary } from '@/core/hooks/analyticHooks';
-import { AiOutlinePlusCircle } from 'react-icons/ai';
 import AirQualityLoadingSkeleton from '@/components/Skeleton/AirQualityLoadingSkeleton';
-import Button from '@/components/Button';
 
 const OrganizationInsightsPage = () => {
   const dispatch = useDispatch();
@@ -61,75 +61,56 @@ const OrganizationInsightsPage = () => {
 
   if (!organization) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">
-          Organization not found
-        </h3>
-        <p className="mt-2 text-gray-600">
-          Please check your organization URL and try again.
-        </p>
-      </div>
+      <ErrorState
+        type="notFound"
+        title="Organization not found"
+        description="Please check your organization URL and try again."
+      />
     );
   }
 
-  // Handle sites loading error
   if (sitesError && sitesErrorMessage) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-red-600">
-          Unable to load organization sites
-        </h3>
-        <p className="mt-2 text-gray-600">{sitesErrorMessage}</p>
-        <p className="mt-1 text-sm text-gray-500">
-          Please try refreshing the page or contact support if the issue
-          persists.
-        </p>
-      </div>
+      <ErrorState
+        type="server"
+        title="Unable to load organization sites"
+        description={
+          <>
+            {sitesErrorMessage}
+            <br />
+            <span className="text-sm text-gray-500">
+              Please try refreshing the page or contact support if the issue
+              persists.
+            </span>
+          </>
+        }
+      />
     );
   }
 
-  // Show loading text while fetching device summary
   if (isDeviceSummaryLoading) {
     return <AirQualityLoadingSkeleton />;
   }
 
-  // Check if there are no devices and display a message
   if (
     !isDeviceSummaryLoading &&
     !isDeviceSummaryError &&
     deviceSummaryData.length === 0
   ) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-primary bg-opacity-10 rounded-lg p-8">
-        <div className="flex flex-col items-center text-center space-y-4 max-w-sm">
-          {/* Icon */}
-          <AiOutlinePlusCircle className="text-primary text-4xl" />
-
-          {/* Headline */}
-          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Let’s get things started!
-          </h3>
-
-          {/* Subcopy */}
-          <p className="text-gray-600 dark:text-gray-400">
-            Deploy your first device to begin collecting air quality data and
-            unlock real‑time insights for your organization.
-          </p>
-
-          {/* CTA Button */}
-          <Button
-            onClick={() => {
-              const baseUrl =
-                process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
-                  ? 'https://staging-vertex.airqo.net/login'
-                  : 'https://vertex.airqo.net/login';
-              window.open(baseUrl, '_blank', 'noopener,noreferrer');
-            }}
-          >
-            Deploy a device
-          </Button>
-        </div>
-      </div>
+      <EmptyState
+        preset="devices"
+        actionLabel="Deploy a device"
+        onAction={() => {
+          const baseUrl =
+            process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
+              ? 'https://staging-vertex.airqo.net/login'
+              : 'https://vertex.airqo.net/login';
+          window.open(baseUrl, '_blank', 'noopener,noreferrer');
+        }}
+        size="medium"
+        variant="card"
+      />
     );
   }
 
