@@ -6,7 +6,7 @@ import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 
-import { CustomButton } from '../ui';
+import { Button } from '../ui';
 
 const ActionButtons = () => {
   const router = useRouter();
@@ -16,7 +16,7 @@ const ActionButtons = () => {
       className={`flex flex-col md:flex-row gap-6 w-full ${mainConfig.containerClass}`}
     >
       {/* Card 1 */}
-      <CustomButton
+      <Button
         onClick={() => {
           router.push('/explore-data');
         }}
@@ -31,10 +31,10 @@ const ActionButtons = () => {
           </div>
           <p className="mt-4 text-lg hover:underline">Explore data →</p>
         </div>
-      </CustomButton>
+      </Button>
 
       {/* Card 2 */}
-      <CustomButton
+      <Button
         onClick={() => {
           dispatch(openModal());
         }}
@@ -48,7 +48,7 @@ const ActionButtons = () => {
           </div>
           <p className="mt-4 text-lg hover:underline">Get Involved →</p>
         </div>
-      </CustomButton>
+      </Button>
     </div>
   );
 };

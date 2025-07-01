@@ -3,7 +3,7 @@ import React from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
 
-import { CustomButton } from '../ui';
+import { Button } from '../ui';
 
 const ActionButtons2 = () => {
   return (
@@ -11,7 +11,7 @@ const ActionButtons2 = () => {
       className={`flex flex-col md:flex-row gap-6 w-full ${mainConfig.containerClass}`}
     >
       {/* Card 1 */}
-      <CustomButton
+      <Button
         onClick={() => {
           window.open(
             'https://docs.google.com/forms/d/e/1FAIpQLScIPz7VrhfO2ifMI0dPWIQRiGQ9y30LoKUCT-DDyorS7sAKUA/viewform',
@@ -28,10 +28,10 @@ const ActionButtons2 = () => {
           </div>
           <p className="mt-4 text-lg hover:underline">Join the Network →</p>
         </div>
-      </CustomButton>
+      </Button>
 
       {/* Card 2 */}
-      <CustomButton
+      <Button
         onClick={() => {
           window.open(
             'https://docs.google.com/forms/d/14jKDs2uCtMy2a_hzyCiJnu9i0GbxITX_DJxVB4GGP5c/edit',
@@ -48,7 +48,7 @@ const ActionButtons2 = () => {
           </div>
           <p className="mt-4 text-lg hover:underline">Register Here →</p>
         </div>
-      </CustomButton>
+      </Button>
     </div>
   );
 };
