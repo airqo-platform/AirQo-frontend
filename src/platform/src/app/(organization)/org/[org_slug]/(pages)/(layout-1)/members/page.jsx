@@ -4,6 +4,8 @@ import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
+import EmptyState from '@/common/components/EmptyState';
+import ErrorState from '@/common/components/ErrorState';
 import {
   getGroupDetailsApi,
   inviteUserToGroupTeam,
@@ -171,13 +173,42 @@ const OrganizationMembersPage = () => {
   };
 
   if (!organization || loading) return <MembersPageSkeleton />;
-  if (error)
+
+  if (error) {
+    // Use ErrorState for API/server errors
     return (
-      <CardWrapper>
-        <p className="text-center text-red-600">{error}</p>
-        <Button onClick={fetchMemberData}>Retry</Button>
-      </CardWrapper>
+      <ErrorState
+        type="server"
+        title="Unable to load team members"
+        description={
+          <>
+            {error}
+            <br />
+            <span className="text-sm text-gray-500">
+              Please try again or contact support if the issue persists.
+            </span>
+          </>
+        }
+        onPrimaryAction={fetchMemberData}
+        primaryAction="Retry"
+        size="medium"
+        variant="card"
+      />
     );
+  }
+
+  if (members.length === 0 && !loading) {
+    // Use EmptyState for no members
+    return (
+      <EmptyState
+        preset="users"
+        actionLabel="Invite member"
+        onAction={() => setShowInviteModal(true)}
+        size="medium"
+        variant="card"
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

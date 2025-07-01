@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   FiAlertTriangle as AlertTriangle,
   FiRefreshCw as RefreshCw,
@@ -170,6 +169,7 @@ const ErrorState = ({
   const containerClasses = `
     flex flex-col items-center justify-center text-center
     w-full h-auto min-h-0
+    leading-tight
     ${sizeConfig.container}
     ${variantClass}
     ${className}
@@ -204,13 +204,15 @@ const ErrorState = ({
         </div>
       )}
 
-      <div className={`space-y-3 ${sizeConfig.maxWidth}`}>
-        <h3 className={`text-gray-900 dark:text-gray-100 ${sizeConfig.title}`}>
+      <div className={`space-y-1 ${sizeConfig.maxWidth}`}>
+        <h3
+          className={`text-gray-900 dark:text-gray-100 ${sizeConfig.title} leading-tight`}
+        >
           {finalTitle}
         </h3>
 
         <p
-          className={`text-gray-600 dark:text-gray-300 leading-relaxed ${sizeConfig.description}`}
+          className={`text-gray-600 dark:text-gray-300 leading-tight ${sizeConfig.description}`}
         >
           {finalDescription}
         </p>
@@ -229,11 +231,11 @@ const ErrorState = ({
           </div>
         )}
 
-        {children && <div className="mt-4">{children}</div>}
+        {children && <div className="mt-2">{children}</div>}
       </div>
 
-      {(onPrimaryAction || onSecondaryAction || true) && (
-        <div className="mt-6 flex flex-col justify-center sm:flex-row gap-3 items-center">
+      {(onPrimaryAction || onSecondaryAction) && (
+        <div className="mt-4 flex flex-col justify-center sm:flex-row gap-2 items-center">
           {onPrimaryAction && (
             <Button onClick={onPrimaryAction} disabled={isMaxRetriesReached}>
               {isMaxRetriesReached ? 'Max retries reached' : finalPrimaryAction}
@@ -242,13 +244,6 @@ const ErrorState = ({
           {onSecondaryAction && secondaryAction && (
             <Button onClick={onSecondaryAction}>{secondaryAction}</Button>
           )}
-          {/* Always show retry button */}
-          <Button
-            onClick={onPrimaryAction || (() => window.location.reload())}
-            disabled={isMaxRetriesReached}
-          >
-            Retry
-          </Button>
         </div>
       )}
     </CardWrapper>

@@ -1,130 +1,188 @@
 'use client';
 
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
-import { useEffect, useState } from 'react';
+import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState, useCallback } from 'react';
 import CardWrapper from '@/common/components/CardWrapper';
+import DashboardPageSkeleton from '@/common/components/Skeleton/DashboardPageSkeleton';
+import ErrorState from '@/common/components/ErrorState';
+import { getGroupDetailsApi } from '@/core/apis/Account';
 
 // Import icons from react-icons
-import {
-  FaMapMarkerAlt as MapIcon,
-  FaTachometerAlt as DashboardIcon,
-  FaChartBar as AnalyticsIcon,
-} from 'react-icons/fa';
+import { FiUsers as UsersIcon, FiMapPin } from 'react-icons/fi';
 
 const OrganizationDashboardPage = () => {
-  const { organization } = useOrganization();
-  const [stats, setStats] = useState({
-    totalSites: 0,
-    activeSites: 0,
-    dataPoints: 0,
-    lastUpdated: new Date(),
-  });
+  const { activeGroup } = useUnifiedGroup();
+  const { data: session } = useSession();
+  const [groupDetails, setGroupDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Simulate loading organization stats
-  useEffect(() => {
-    if (organization) {
-      // In a real application, this would fetch actual data
-      const mockStats = {
-        totalSites: Math.floor(Math.random() * 50) + 10,
-        activeSites: Math.floor(Math.random() * 40) + 8,
-        dataPoints: Math.floor(Math.random() * 100000) + 50000,
-        lastUpdated: new Date(),
-      };
-      setStats(mockStats);
+  // For demo: isAdmin is always true. Replace with real logic as needed.
+  const isAdmin = true;
+
+  const fetchGroupDetails = useCallback(async () => {
+    const groupId = activeGroup?._id || activeGroup?.id;
+    if (!groupId) {
+      setError('No organization ID found');
+      setLoading(false);
+      return;
     }
-  }, [organization]);
-  const StatCard = ({ title, value, subtitle, icon }) => (
-    <CardWrapper
-      width="w-full"
-      height="h-full"
-      className=""
-      contentClassName="flex flex-col gap-4"
-      padding="p-4"
-    >
-      {/* Icon - Like user home page design but with icons */}
-      <div className="flex items-start">
-        <div className="w-12 h-12 flex justify-center items-center rounded-full bg-primary/10">
-          <div className="text-primary text-lg">{icon}</div>
-        </div>
-      </div>
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getGroupDetailsApi(groupId);
+      if (res.success && res.group) {
+        setGroupDetails(res.group);
+      } else {
+        throw new Error(res.message || 'Invalid API response');
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeGroup]);
 
-      {/* Step Content - Like user home page design */}
-      <div>
-        <p className="text-base font-medium">{title}</p>
-        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
-      </div>
+  useEffect(() => {
+    fetchGroupDetails();
+  }, [fetchGroupDetails]);
+  if (!activeGroup || loading) {
+    return <DashboardPageSkeleton isAdmin={isAdmin} />;
+  }
 
-      {/* Main Value Display */}
-      <div className="flex items-end justify-between mt-auto">
-        <div className="flex-1">
-          <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-bold text-gray-800 dark:text-white">
-              {value}
-            </span>
-          </div>
-        </div>
-      </div>
-    </CardWrapper>
-  );
-  if (!organization) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Loading organization dashboard...
-          </p>
-        </div>
-      </div>
+      <ErrorState
+        type="server"
+        title="Unable to load dashboard"
+        description={
+          <>
+            {error}
+            <br />
+            <span className="text-sm text-gray-500">
+              Please try again or contact support if the issue persists.
+            </span>
+          </>
+        }
+        onPrimaryAction={fetchGroupDetails}
+        primaryAction="Retry"
+        size="medium"
+        variant="card"
+      />
     );
   }
+
+  // Welcome message with user's first name if available
+  const firstName =
+    session?.user?.firstName || session?.user?.name?.split(' ')[0] || 'User';
+
+  const memberCount =
+    groupDetails?.numberOfGroupUsers ?? groupDetails?.grp_users?.length ?? 0;
+  // Dummy data for sites monitored
+  const sitesMonitored = 8;
+
   return (
-    <div className="space-y-8">
-      {/* Welcome Section with Simple Design */}
-      <CardWrapper className="relative overflow-hidden" padding="p-6">
-        <div className="flex items-center space-x-4 relative z-10">
-          {/* Organization Details */}
-          <div className="flex-1 min-w-0">
-            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">
-              {organization.description || 'Air Quality Monitoring Dashboard'}
-            </p>
-            {/* Status indicators */}
+    <>
+      {/* Welcome Card */}
+      <CardWrapper
+        className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-r from-primary to-primary/80 text-white"
+        padding="p-8 lg:p-12"
+      >
+        <div className="relative z-10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-6">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Last updated: {new Date().toLocaleTimeString()}
-              </span>
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-2xl">
+                  <span className="text-primary font-bold text-3xl">
+                    {firstName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
+                  Welcome back, {firstName}! 👋
+                </h1>
+                <p className="text-lg text-white/90 max-w-2xl">
+                  Monitor your organization&apos;s air quality data and team
+                  performance from your centralized dashboard
+                </p>
+              </div>
             </div>
           </div>
         </div>
+        {/* Subtle background decoration using primary color */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full -translate-y-48 translate-x-48" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full translate-y-32 -translate-x-32" />
       </CardWrapper>
-      {/* Statistics Grid - Only 4 Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Monitoring Sites"
-          value={stats.totalSites}
-          subtitle="Active monitoring locations"
-          icon={<MapIcon className="w-5 h-5" />}
-        />
-        <StatCard
-          title="Active Sites"
-          value={stats.activeSites}
-          subtitle="Currently reporting data"
-          icon={<DashboardIcon className="w-5 h-5" />}
-        />
-        <StatCard
-          title="Data Points Collected"
-          value={stats.dataPoints.toLocaleString()}
-          subtitle="Total measurements"
-          icon={<AnalyticsIcon className="w-5 h-5" />}
-        />
-        <StatCard
-          title="System Status"
-          value="Online"
-          subtitle={`Updated ${stats.lastUpdated.toLocaleTimeString()}`}
-          icon={<DashboardIcon className="w-5 h-5" />}
-        />
+
+      {/* Stats and Actions Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {/* Sites Monitored Card (public) */}
+        <div className="md:col-span-1 lg:col-span-1">
+          <CardWrapper
+            className="group border-0 shadow-lg bg-white dark:bg-gray-800 relative overflow-hidden rounded-2xl p-0"
+            padding=""
+          >
+            <div className="flex flex-col h-full justify-center p-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <FiMapPin className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Sites Monitored
+                    </span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      Active air quality monitoring sites
+                    </span>
+                  </div>
+                </div>
+                <span className="text-4xl font-extrabold text-gray-900 dark:text-white text-right">
+                  {sitesMonitored}
+                </span>
+              </div>
+            </div>
+          </CardWrapper>
+        </div>
+        {/* Total Members Card (admin only) */}
+        {isAdmin && (
+          <div className="md:col-span-1 lg:col-span-1">
+            <CardWrapper
+              className="group border-0 shadow-lg bg-white dark:bg-gray-800 relative overflow-hidden rounded-2xl p-0 cursor-pointer hover:shadow-primary/30 transition"
+              padding=""
+              as="a"
+              href="/organization/members"
+            >
+              <div className="flex flex-col h-full justify-center p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+                      <UsersIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Total Members
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        Team members in this group
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-4xl font-extrabold text-primary text-right">
+                    {memberCount}
+                  </span>
+                </div>
+              </div>
+            </CardWrapper>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 };
 
