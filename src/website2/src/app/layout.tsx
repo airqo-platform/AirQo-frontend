@@ -81,6 +81,19 @@ export default async function RootLayout({
 
   const maintenance = await checkMaintenance();
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    url: siteUrl,
+    name: title,
+    description: description,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}search?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang="en" className={interFont.variable}>
       <head>
@@ -110,22 +123,10 @@ export default async function RootLayout({
         <meta name="twitter:image" content={`${siteUrl}icon.png`} />
 
         {/* Structured data */}
-        <script type="application/ld+json">
-          {`
-            {
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              "url": "${siteUrl}",
-              "name": "${title}",
-              "description": "${description}",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "${siteUrl}search?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-              }
-            }
-          `}
-        </script>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
 
         {/* Canonical URL */}
         <link rel="canonical" href={siteUrl} />
