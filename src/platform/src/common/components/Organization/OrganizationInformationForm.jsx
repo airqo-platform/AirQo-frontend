@@ -151,6 +151,17 @@ const OrganizationInformationForm = ({
     });
   };
 
+  // Clear logo selection (local preview and pending file)
+  const handleClearLogo = () => {
+    setLocalImagePreview(null);
+    setPendingImageFile(null);
+    if (onFileSelect) onFileSelect(null); // Notify parent to clear pending file
+    CustomToast({
+      message: 'Logo selection cleared.',
+      type: 'info',
+    });
+  };
+
   // Handlers for SelectDropdown fields (matching user settings pattern)
   const handleIndustryChange = (option) => {
     onInputChange('grp_industry', option.value);
@@ -337,6 +348,16 @@ const OrganizationInformationForm = ({
                   </div>
                 )}
               </div>
+              {/* Clear/reset button */}
+              {(localImagePreview || pendingImageFile) && (
+                <button
+                  type="button"
+                  onClick={handleClearLogo}
+                  className="mt-2 text-xs text-red-600 dark:text-red-400 underline hover:text-red-800 dark:hover:text-red-300"
+                >
+                  Remove selected logo
+                </button>
+              )}
             </div>
           </div>
         </div>{' '}
