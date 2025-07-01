@@ -144,7 +144,7 @@ const HomePage = () => {
             </div>
           }
           buttonText="Join the Network"
-          buttonLink="/clean-air-network/about"
+          buttonLink="https://cleanairafrica.org/"
           imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp"
           backgroundColor="bg-transparent"
           reverse={true}
