@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { FaGlobe, FaSpinner } from 'react-icons/fa';
+import { FaGlobe } from 'react-icons/fa';
 import Image from 'next/image';
 import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
@@ -7,7 +7,6 @@ import SelectField from '@/common/components/SelectField';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/components/Toast/CustomToast';
 import GroupLogo from '@/common/components/GroupLogo';
-import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import timeZones from 'timezones.json';
@@ -96,13 +95,14 @@ const OrganizationInformationForm = ({
   validationErrors,
   logoPreview,
   onInputChange,
+  onFileSelect, // New prop to handle file selection
 }) => {
   const [imageError, setImageError] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [localImagePreview, setLocalImagePreview] = useState(null);
+  const [pendingImageFile, setPendingImageFile] = useState(null);
 
-  // Handle logo file upload and Cloudinary upload
-  const handleLogoUpload = async (event) => {
+  // Handle logo file selection (no immediate upload)
+  const handleLogoSelection = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -130,61 +130,25 @@ const OrganizationInformationForm = ({
         type: 'error',
       });
       return;
-    } // Create local preview immediately
+    }
+
+    // Create local preview immediately
     const reader = new FileReader();
     reader.onload = (e) => {
       setLocalImagePreview(e.target.result);
-      setImageError(false); // Reset any previous image errors
+      setImageError(false);
     };
     reader.readAsDataURL(file);
 
-    setUploadingLogo(true);
+    // Store the file for later upload and notify parent
+    setPendingImageFile(file);
+    onFileSelect(file);
 
-    try {
-      // Upload to Cloudinary
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append(
-        'upload_preset',
-        process.env.NEXT_PUBLIC_CLOUDINARY_PRESET || 'ml_default',
-      );
-      uploadFormData.append('folder', 'organization_profiles');
-      const responseData = await cloudinaryImageUpload(uploadFormData);
-
-      // Extract the secure_url from the Cloudinary response
-      const cloudinaryUrl = responseData?.secure_url;
-      if (cloudinaryUrl) {
-        // Update the organization data with the Cloudinary URL (for API body)
-        onInputChange('grp_profile_picture', cloudinaryUrl);
-        onInputChange('grp_image', cloudinaryUrl);
-
-        // Replace local preview with Cloudinary URL after successful upload
-        setLocalImagePreview(cloudinaryUrl);
-
-        // Show success message
-        CustomToast({
-          message: 'Logo uploaded successfully! Click Save to apply changes.',
-          type: 'success',
-        });
-      } else {
-        // Handle case where Cloudinary response doesn't contain secure_url
-        CustomToast({
-          message:
-            'Upload completed but failed to get image URL. Please try again.',
-          type: 'error',
-        });
-        throw new Error('Failed to get secure URL from Cloudinary response');
-      }
-    } catch {
-      // Handle upload error - keep local preview but show error
-      CustomToast({
-        message:
-          'Failed to upload logo to cloud storage. The preview is shown locally, but please try uploading again.',
-        type: 'error',
-      });
-    } finally {
-      setUploadingLogo(false);
-    }
+    // Show success message
+    CustomToast({
+      message: 'Logo selected! Click "Save Changes" to upload and apply.',
+      type: 'success',
+    });
   };
 
   // Handlers for SelectDropdown fields (matching user settings pattern)
@@ -341,7 +305,7 @@ const OrganizationInformationForm = ({
               </div>
               <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                 {' '}
-                ✓ Logo uploaded
+                ✓ Logo selected
               </div>
             </div>
           </div>
@@ -359,18 +323,17 @@ const OrganizationInformationForm = ({
               <input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/svg+xml,image/webp"
-                onChange={handleLogoUpload}
-                disabled={uploadingLogo}
-                className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                onChange={handleLogoSelection}
+                className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
               />
               <div className="flex items-center justify-between mt-1">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   PNG, JPG, SVG, WEBP formats supported. Max size: 5MB.
                 </p>
-                {uploadingLogo && (
-                  <div className="flex items-center text-xs text-primary">
-                    <FaSpinner className="animate-spin mr-1" />
-                    Uploading...
+                {pendingImageFile && (
+                  <div className="flex items-center text-xs text-green-600 dark:text-green-400">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                    File selected
                   </div>
                 )}
               </div>
@@ -493,10 +456,6 @@ const OrganizationInformationForm = ({
         </div>
         {/* Timezone Field */}
         <div className="flex flex-col">
-          <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-            Timezone
-            <span className="ml-1 text-primary">*</span>
-          </label>
           <SelectField
             label="Timezone"
             required

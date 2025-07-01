@@ -17,6 +17,7 @@ const OrganizationSettingsContainer = ({
   onInputChange,
   onSave,
   onReset,
+  onFileSelect, // New prop to handle file selection
 }) => {
   const [activeTab, setActiveTab] = useState('organization');
   const [appearanceData, setAppearanceData] = useState({
@@ -144,6 +145,7 @@ const OrganizationSettingsContainer = ({
             validationErrors={validationErrors}
             logoPreview={logoPreview}
             onInputChange={onInputChange}
+            onFileSelect={onFileSelect} // Pass down the onFileSelect prop
           />
         );
       case 'domain':

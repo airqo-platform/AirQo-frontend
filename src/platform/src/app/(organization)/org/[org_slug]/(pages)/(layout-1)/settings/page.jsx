@@ -20,6 +20,7 @@ import {
   updateGroupDetailsApi,
   getUserDetails,
 } from '@/core/apis/Account';
+import { cloudinaryImageUpload } from '@/core/apis/Cloudinary'; // Add Cloudinary import
 import { OrganizationSettingsContainer } from '@/common/components/Organization';
 import { OrganizationSettingsSkeleton } from '@/common/components/Skeleton';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
@@ -50,6 +51,7 @@ const OrganizationSettingsPage = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [organizationDetails, setOrganizationDetails] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState(null); // New state for pending file upload
   const [formData, setFormData] = useState({
     grp_title: '',
     grp_description: '',
@@ -134,6 +136,10 @@ const OrganizationSettingsPage = () => {
         [field]: '',
       }));
     }
+  }; // Handle file selection for logo upload
+  const handleFileSelect = (file) => {
+    setPendingImageFile(file);
+    setHasUnsavedChanges(true);
   }; // Handle save button click - ONLY way to save changes to server
   const handleSave = async () => {
     try {
@@ -141,7 +147,36 @@ const OrganizationSettingsPage = () => {
       setValidationErrors({});
 
       // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false }); // Add grp_status to the update data
+      await validationSchema.validate(formData, { abortEarly: false });
+
+      // Handle file upload to Cloudinary if there's a pending file
+      let cloudinaryUrl = null;
+      if (pendingImageFile) {
+        try {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', pendingImageFile);
+          uploadFormData.append(
+            'upload_preset',
+            process.env.NEXT_PUBLIC_CLOUDINARY_PRESET || 'ml_default',
+          );
+          uploadFormData.append('folder', 'organization_profiles');
+
+          const responseData = await cloudinaryImageUpload(uploadFormData);
+          cloudinaryUrl = responseData?.secure_url;
+
+          if (!cloudinaryUrl) {
+            throw new Error(
+              'Failed to get secure URL from Cloudinary response',
+            );
+          }
+        } catch {
+          setSaveStatus('error');
+          setTimeout(() => setSaveStatus(''), 3000);
+          throw new Error('Failed to upload image. Please try again.');
+        }
+      }
+
+      // Add grp_status to the update data
       const updateData = {
         grp_title: formData.grp_title,
         grp_description: formData.grp_description,
@@ -152,11 +187,14 @@ const OrganizationSettingsPage = () => {
         grp_status: formData.grp_status,
       };
 
-      // Add Cloudinary URLs if available (prioritize over file upload)
-      if (formData.grp_profile_picture) {
+      // Add Cloudinary URLs - prioritize new upload over existing URLs
+      if (cloudinaryUrl) {
+        updateData.grp_profile_picture = cloudinaryUrl;
+        updateData.grp_image = cloudinaryUrl;
+      } else if (formData.grp_profile_picture) {
         updateData.grp_profile_picture = formData.grp_profile_picture;
       }
-      if (formData.grp_image) {
+      if (formData.grp_image && !cloudinaryUrl) {
         updateData.grp_image = formData.grp_image;
       }
 
@@ -201,8 +239,9 @@ const OrganizationSettingsPage = () => {
         }
       }, 100);
 
-      // Mark as saved successfully
+      // Mark as saved successfully and clear pending file
       setHasUnsavedChanges(false);
+      setPendingImageFile(null); // Clear pending file after successful save
       setSaveStatus('success');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
@@ -283,6 +322,7 @@ const OrganizationSettingsPage = () => {
         grp_status: organizationDetails.grp_status || '',
       });
       setLogoPreview(organizationDetails.grp_profile_picture || '');
+      setPendingImageFile(null); // Clear any pending file selection
       setHasUnsavedChanges(false);
       setValidationErrors({});
     }
@@ -320,6 +360,7 @@ const OrganizationSettingsPage = () => {
       organizationDetails={organizationDetails}
       hasUnsavedChanges={hasUnsavedChanges}
       onInputChange={handleInputChange}
+      onFileSelect={handleFileSelect}
       onSave={handleSave}
       onReset={handleReset}
     />
