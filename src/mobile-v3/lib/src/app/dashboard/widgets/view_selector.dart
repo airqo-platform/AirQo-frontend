@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
-enum DashboardView { all, favorites, nearYou, country }
+enum DashboardView { all, favorites, nearYou, country, exposure }
 
 class ViewSelector extends StatefulWidget {
   final DashboardView currentView;
@@ -136,6 +136,27 @@ void _sortCountries() {
                 label: "Near You",
                 isSelected: widget.currentView == DashboardView.nearYou,
                 onTap: () => widget.onViewChanged(DashboardView.nearYou),
+              ),
+            ),
+            SizedBox(width: 8),
+            Tooltip(
+              message: "View your personal air quality exposure analytics",
+              preferBelow: true,
+              verticalOffset: 20,
+              showDuration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+              child: _buildViewButton(
+                context,
+                label: "Exposure",
+                isSelected: widget.currentView == DashboardView.exposure,
+                onTap: () => widget.onViewChanged(DashboardView.exposure),
               ),
             ),
             SizedBox(width: 8),
