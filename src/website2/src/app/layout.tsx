@@ -38,35 +38,36 @@ export default async function RootLayout({
   const siteUrl = 'https://airqo.net/';
   const title = 'AirQo | Bridging the Air Quality Data Gap in Africa';
   const description =
-    'AirQo is transforming air quality management in Africa by providing low-cost sensors, real-time data, and actionable insights to help communities and organizations improve air quality.';
+    'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.';
 
   const keywords = [
     'AirQo',
-    'air quality monitoring',
-    'air pollution',
-    'PM1',
-    'PM2.5',
-    'PM10',
-    'NO2',
-    'SO2',
-    'CO',
-    'O3',
-    'air quality index',
-    'AQI',
-    'real-time air quality data',
+    'air quality monitoring Africa',
+    'air pollution data',
+    'hyperlocal air quality',
+    'African cities air quality',
+    'real-time pollution data',
     'low-cost air sensors',
-    'urban air pollution',
-    'environmental monitoring',
-    'climate change',
-    'air quality management',
-    'clean air solutions',
-    'air quality in Africa',
-    'environmental health',
+    'clean air Africa',
+    'air quality analytics',
+    'pollution mitigation',
+    'environmental monitoring Africa',
+    'PM2.5 Africa',
+    'air quality index',
+    'CLEAN-Air Forum',
+    'CLEAN-Air Network',
+    'Binos Monitor',
+    'AirQalibrate',
+    'mobile air quality app',
+    'air quality API',
+    'African environmental health',
     'ambient air monitoring',
     'particulate matter',
     'air quality forecasting',
-    'air quality analytics',
-    'pollution mitigation',
+    'urban air pollution',
+    'climate change',
+    'air quality management',
+    'clean air solutions',
     'environmental data',
     'sustainable cities',
     'public health',
@@ -81,6 +82,41 @@ export default async function RootLayout({
 
   const maintenance = await checkMaintenance();
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    url: siteUrl,
+    name: 'AirQo',
+    alternateName: 'Air Quality and Pollution Monitoring Organization',
+    description: description,
+    logo: `${siteUrl}icon.png`,
+    sameAs: [
+      'https://www.facebook.com/AirQo',
+      'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ',
+      'https://www.linkedin.com/company/airqo/mycompany/',
+      'https://x.com/AirQoProject',
+    ],
+    founder: {
+      '@type': 'Person',
+      name: 'Engineer Bainomugisha',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'Uganda',
+      addressLocality: 'Kampala',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'Customer Service',
+      url: `${siteUrl}contact`,
+    },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}explore-data?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang="en" className={interFont.variable}>
       <head>
@@ -91,6 +127,7 @@ export default async function RootLayout({
         <meta name="author" content="AirQo" />
         <meta name="robots" content="index, follow" />
         <meta name="apple-mobile-web-app-title" content="AirQo" />
+        <meta name="theme-color" content="#145DFF" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
@@ -107,6 +144,15 @@ export default async function RootLayout({
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={`${siteUrl}icon.png`} />
+
+        {/* Structured data */}
+        <Script
+          id="ld-json"
+          type="application/ld+json"
+          strategy="afterInteractive"
+        >
+          {JSON.stringify(structuredData)}
+        </Script>
 
         {/* Canonical URL */}
         <link rel="canonical" href={siteUrl} />
