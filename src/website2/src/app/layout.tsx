@@ -123,10 +123,13 @@ export default async function RootLayout({
         <meta name="twitter:image" content={`${siteUrl}icon.png`} />
 
         {/* Structured data */}
-        <script
+        <Script
+          id="ld-json"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+          strategy="afterInteractive"
+        >
+          {JSON.stringify(structuredData)}
+        </Script>
 
         {/* Canonical URL */}
         <link rel="canonical" href={siteUrl} />
