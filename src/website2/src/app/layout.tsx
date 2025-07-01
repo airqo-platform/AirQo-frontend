@@ -91,6 +91,7 @@ export default async function RootLayout({
         <meta name="author" content="AirQo" />
         <meta name="robots" content="index, follow" />
         <meta name="apple-mobile-web-app-title" content="AirQo" />
+        <meta name="theme-color" content="#145DFF" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
@@ -107,6 +108,24 @@ export default async function RootLayout({
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={`${siteUrl}icon.png`} />
+
+        {/* Structured data */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "url": "${siteUrl}",
+              "name": "${title}",
+              "description": "${description}",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "${siteUrl}search?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            }
+          `}
+        </script>
 
         {/* Canonical URL */}
         <link rel="canonical" href={siteUrl} />
