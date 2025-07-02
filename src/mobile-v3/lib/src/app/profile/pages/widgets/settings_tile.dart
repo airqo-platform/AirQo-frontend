@@ -117,9 +117,10 @@ class SettingsTile extends StatelessWidget {
             ),
           ),
           Divider(
-            color: dividerColor,
-            indent: 80,
-            thickness: isDarkMode ? 0.5 : 1.0,
+            color: isDarkMode ? Colors.grey[700] : Colors.grey[300],
+            indent: 16,
+            thickness: 1.0,
+            height: 1.0,
           )
         ],
       ),
