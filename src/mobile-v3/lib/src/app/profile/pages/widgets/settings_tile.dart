@@ -41,21 +41,31 @@ class SettingsTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
       child: Column(
         children: [
-          ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            onTap: onTap,
-            trailing: switchValue != null
-                ? Switch(
-                    activeColor: Colors.white,
-                    activeTrackColor: AppColors.primaryColor,
-                    inactiveThumbColor: Colors.white,
-                    inactiveTrackColor: isDarkMode 
-                        ? Colors.grey[700] 
-                        : Theme.of(context).highlightColor,
-                    value: switchValue!,
-                    onChanged: onChanged)
-                : null,
-            subtitle: description != null
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onTap,
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                trailing: switchValue != null
+                    ? Switch(
+                        activeColor: Colors.white,
+                        activeTrackColor: AppColors.primaryColor,
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: isDarkMode 
+                            ? Colors.grey[700] 
+                            : Theme.of(context).highlightColor,
+                        value: switchValue!,
+                        onChanged: onChanged)
+                    : onTap != null
+                        ? Icon(
+                            Icons.chevron_right,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                            size: 24,
+                          )
+                        : null,
+                subtitle: description != null
                 ? Padding(
                     padding: const EdgeInsets.only(top: 6.0),
                     child: Text(
@@ -69,7 +79,7 @@ class SettingsTile extends StatelessWidget {
                     ),
                   )
                 : null,
-            leading: Container(
+                leading: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: isDarkMode
@@ -95,12 +105,14 @@ class SettingsTile extends StatelessWidget {
                 ),
               ),
             ),
-            title: Text(
+                title: Text(
               title,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: titleColor,
+              ),
+                ),
               ),
             ),
           ),
