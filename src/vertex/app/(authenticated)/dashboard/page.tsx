@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Layers, Grid, Radio } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const WelcomePage = () => {
     const activeGroup = useAppSelector((state) => state.user.activeGroup);
@@ -20,31 +21,31 @@ const WelcomePage = () => {
             href: "/devices/deploy",
             label: "Deploy a Device",
             icon: Radio,
-            permission: "DEPLOY_AIRQO_DEVICES",
+            permission: PERMISSIONS.DEVICE.DEPLOY,
         },
         {
             href: "/sites",
             label: "Create a Site",
             icon: MapPin,
-            permission: "CREATE_UPDATE_AND_DELETE_NETWORK_SITES",
+            permission: PERMISSIONS.SITE.CREATE,
         },
         {
             href: "/cohorts",
             label: "Create a Cohort",
             icon: Layers,
-            permission: "CREATE_UPDATE_AND_DELETE_COHORTS",
+            permission: PERMISSIONS.DEVICE.VIEW, // Cohorts fall under devices
         },
         {
             href: "/grids",
             label: "Create a Grid",
             icon: Grid,
-            permission: "CREATE_UPDATE_AND_DELETE_GRIDS",
+            permission: PERMISSIONS.SITE.CREATE, // Grids fall under sites
         },
         {
             href: "/devices/claim",
             label: "Claim a Device",
             icon: Radio,
-            permission: "DEPLOY_AIRQO_DEVICES",
+            permission: PERMISSIONS.DEVICE.UPDATE, // Device claiming requires update permission
         }
     ];
 

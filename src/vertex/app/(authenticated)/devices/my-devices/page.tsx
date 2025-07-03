@@ -25,6 +25,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { Device } from "@/app/types/devices";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 type DeviceFilter = "all" | "my-devices" | "shared-devices";
 type DeviceStatus = "all" | "claimed" | "deployed" | "maintenance";
@@ -141,7 +142,7 @@ const MyDevicesPage = () => {
   }
 
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">

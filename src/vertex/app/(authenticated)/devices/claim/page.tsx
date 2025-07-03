@@ -13,6 +13,7 @@ import { useDeviceAvailability, useClaimDevice } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { QRScanner } from "@/components/features/devices/qr-scanner";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const DeviceClaimingPage = () => {
   const router = useRouter();
@@ -50,7 +51,7 @@ const DeviceClaimingPage = () => {
   const deviceStatus = availabilityData?.data?.status;
 
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
+    <RouteGuard permission={PERMISSIONS.DEVICE.UPDATE}>
       <div className="container mx-auto p-6 max-w-2xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">

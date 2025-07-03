@@ -21,6 +21,7 @@ import { PermissionGuard } from "@/components/layout/accessConfig/permission-gua
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import SubMenu from "./sub-menu";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -106,47 +107,102 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                                 label="Network Map"
                                 isCollapsed={isCollapsed}
                             />
-                            <PermissionGuard permission={["CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES", "DEPLOY_AIRQO_DEVICES"]} requireAll={false}>
+                            <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
                                 <SubMenu
                                     label="Devices"
                                     icon={Radio}
                                     isCollapsed={isCollapsed}
                                     href="/devices/overview"
                                 >
-                                    <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
+                                    <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
                                         <SubMenuItem href="/devices/overview" label="Overview" />
                                     </PermissionGuard>
-                                    <PermissionGuard permission="DEPLOY_AIRQO_DEVICES">
+                                    <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
                                         <SubMenuItem href="/devices/my-devices" label="My Devices" />
-                                        <SubMenuItem href="/devices/claim" label="Claim Device" />
-                                        <SubMenuItem href="/devices/deploy" label="Deploy Device" />
                                     </PermissionGuard>
                                 </SubMenu>
                             </PermissionGuard>
-                            <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_SITES">
-                                <NavItem href="/sites" icon={MapPin} label="Sites" isCollapsed={isCollapsed} />
+                            <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
+                                <SubMenu
+                                    label="Sites"
+                                    icon={MapPin}
+                                    href="/sites"
+                                    isCollapsed={isCollapsed}
+                                >
+                                    <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
+                                        <SubMenuItem href="/sites" label="Overview" />
+                                    </PermissionGuard>
+                                    <PermissionGuard permission={PERMISSIONS.SITE.CREATE}>
+                                        <SubMenuItem href="/sites/create" label="Create Site" />
+                                    </PermissionGuard>
+                                </SubMenu>
                             </PermissionGuard>
-                            <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_COHORTS">
-                                <NavItem href="/cohorts" icon={Layers} label="Cohorts" isCollapsed={isCollapsed} />
+                            <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
+                                <SubMenu
+                                    label="Cohorts"
+                                    icon={Layers}
+                                    href="/cohorts"
+                                    isCollapsed={isCollapsed}
+                                >
+                                    <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
+                                        <SubMenuItem href="/cohorts" label="Overview" />
+                                    </PermissionGuard>
+                                    <PermissionGuard permission={PERMISSIONS.DEVICE.UPDATE}>
+                                        <SubMenuItem href="/cohorts/create" label="Create Cohort" />
+                                    </PermissionGuard>
+                                </SubMenu>
                             </PermissionGuard>
-                            <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_GRIDS">
-                                <NavItem href="/grids" icon={Grid} label="Grids" isCollapsed={isCollapsed} />
+                            <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
+                                <SubMenu
+                                    label="Grids"
+                                    icon={Grid}
+                                    href="/grids"
+                                    isCollapsed={isCollapsed}
+                                >
+                                    <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
+                                        <SubMenuItem href="/grids" label="Overview" />
+                                    </PermissionGuard>
+                                    <PermissionGuard permission={PERMISSIONS.SITE.CREATE}>
+                                        <SubMenuItem href="/grids/create" label="Create Grid" />
+                                    </PermissionGuard>
+                                </SubMenu>
                             </PermissionGuard>
                         </>
                     )}
                     {activeModule === 'admin' && (
                         <>
-                            <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+                            <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
                                 <NavItem href="/user-management" icon={Users} label="User Management" isCollapsed={isCollapsed} />
                             </PermissionGuard>
-                            <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_ROLES">
+                            <PermissionGuard permission={PERMISSIONS.ROLE.VIEW}>
                                 <NavItem href="/access-control" icon={Shield} label="Access Control" isCollapsed={isCollapsed} />
                             </PermissionGuard>
-                            <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+                            <PermissionGuard permission={PERMISSIONS.ORGANIZATION.VIEW}>
                                 <NavItem href="/organizations" icon={Building2} label="Organizations" isCollapsed={isCollapsed} />
                             </PermissionGuard>
                         </>
                     )}
+                    <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
+                        <SubMenu
+                            label="Team"
+                            icon={Users}
+                            href="/team"
+                            isCollapsed={isCollapsed}
+                        >
+                            <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
+                                <SubMenuItem href="/team" label="Overview" />
+                            </PermissionGuard>
+                            <PermissionGuard permission={PERMISSIONS.USER.CREATE}>
+                                <SubMenuItem href="/team/invite" label="Invite User" />
+                            </PermissionGuard>
+                            <PermissionGuard permission={PERMISSIONS.ROLE.VIEW}>
+                                <SubMenuItem href="/team/roles" label="Roles" />
+                            </PermissionGuard>
+                            <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
+                                <SubMenuItem href="/team/permissions" label="Permissions" />
+                            </PermissionGuard>
+                        </SubMenu>
+                    </PermissionGuard>
                 </nav>
             </div>
             
