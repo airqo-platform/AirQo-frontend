@@ -6,8 +6,6 @@ import {
   Users,
   Radio,
   MapPin,
-  Layers,
-  Grid,
   Building2,
   UserCircle,
   MapIcon,
@@ -20,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import SubMenu from "./sub-menu";
+import { usePermission } from "@/core/hooks/usePermissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -86,15 +86,12 @@ const SubMenuItem = ({ href, label, disabled = false, tooltip }: { href: string;
 };
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, activeModule, toggleSidebar }) => {
-    // Permission checks for disabling (not hiding)
-    // TODO: Replace with actual permission checks from API/user state
-    const canViewDevices = true;
-    const canViewSites = true;
-    const canViewCohorts = true;
-    const canViewGrids = true;
-    const canViewUserManagement = true;
-    const canViewAccessControl = true;
-    const canViewOrganizations = true;
+    // Permission checks using proper hooks
+    const canViewDevices = usePermission(PERMISSIONS.DEVICE.VIEW);
+    const canViewSites = usePermission(PERMISSIONS.SITE.VIEW);
+    const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
+    const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
+    const canViewOrganizations = usePermission(PERMISSIONS.ORGANIZATION.VIEW);
 
     return (
         <div
@@ -151,24 +148,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                               href="/sites" 
                               icon={MapPin} 
                               label="Sites"
-                              isCollapsed={isCollapsed}
-                              disabled={false}
-                          />
-                            ) : null}
-                            {canViewCohorts ? (
-                              <NavItem 
-                              href="/cohorts" 
-                              icon={Layers} 
-                              label="Cohorts"
-                              isCollapsed={isCollapsed}
-                              disabled={false}
-                          />
-                            ) : null}
-                            {canViewGrids ? (
-                              <NavItem 
-                              href="/grids" 
-                              icon={Grid} 
-                              label="Grids"
                               isCollapsed={isCollapsed}
                               disabled={false}
                           />

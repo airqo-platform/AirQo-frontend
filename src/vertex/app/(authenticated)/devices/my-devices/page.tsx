@@ -126,18 +126,72 @@ const MyDevicesPage = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-destructive">Error loading devices: {error.message}</p>
-              <Button onClick={() => window.location.reload()} className="mt-4">
-                Retry
-              </Button>
+      <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
+        <div className="container mx-auto p-6">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold">My Devices</h1>
+              <p className="text-muted-foreground">
+                Manage your personal and shared devices
+                {activeGroup && (
+                  <span className="ml-2 text-sm">
+                    • Viewing in {activeGroup.grp_title}
+                  </span>
+                )}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Button onClick={() => router.push("/devices/claim")}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Device
+            </Button>
+          </div>
+
+          {/* Error Banner */}
+          <Card className="mb-6 border-destructive">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 bg-destructive rounded-full"></div>
+                  <div>
+                    <p className="font-medium text-destructive">Error loading devices</p>
+                    <p className="text-sm text-muted-foreground">{error.message}</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Empty State */}
+          <Card>
+            <CardContent className="pt-12 pb-12">
+              <div className="text-center">
+                <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Unable to load devices</h3>
+                <p className="text-muted-foreground mb-4">
+                  There was an error loading your devices. Please try again or contact support if the problem persists.
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => window.location.reload()}>
+                    Retry
+                  </Button>
+                  <Button variant="outline" onClick={() => router.push("/devices/claim")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Claim Device
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </RouteGuard>
     );
   }
 

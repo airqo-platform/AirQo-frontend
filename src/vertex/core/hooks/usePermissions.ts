@@ -1,7 +1,23 @@
 import { useMemo } from "react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { permissionService, AccessContext } from "@/core/permissions/permissionService";
-import { Permission } from "@/core/permissions/constants";
+import { Permission, PERMISSIONS } from "@/core/permissions/constants";
+
+// DYNAMIC MOCK PERMISSIONS FOR DEVELOPMENT/TESTING
+// Control with NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED env variable (true/false)
+// Mock permissions are NEVER enabled in production, even if the env variable is set.
+export const MOCK_PERMISSIONS_ENABLED =
+  process.env.NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED === "true" &&
+  process.env.NODE_ENV !== "production";
+export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
+  // Example: Only allow device deploy and site create, deny device update
+  [PERMISSIONS.DEVICE.DEPLOY]: true,
+  [PERMISSIONS.DEVICE.UPDATE]: true,
+  [PERMISSIONS.SITE.CREATE]: false,
+  [PERMISSIONS.SITE.VIEW]: true,
+  [PERMISSIONS.DEVICE.VIEW]: true,
+  // Add more as needed for your test scenarios
+};
 
 /**
  * Hook to check if user has a specific permission
@@ -11,7 +27,12 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  return useMemo(() => {
+  const result = useMemo(() => {
+    if (MOCK_PERMISSIONS_ENABLED) {
+      // If permission is explicitly set in the mock map, use it; otherwise default to false
+      return MOCK_PERMISSIONS[permission] ?? false;
+    }
+
     if (!user) return false;
 
     return permissionService.hasPermission(user, permission, {
@@ -20,6 +41,8 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
       ...context,
     });
   }, [user, permission, activeGroup, activeNetwork, context]);
+
+  return result;
 };
 
 /**
@@ -98,7 +121,7 @@ export const useIsSuperAdmin = () => {
 /**
  * Hook to check if user can perform action on resource
  */
-export const useCanPerformAction = (action: string, resource: any) => {
+export const useCanPerformAction = (action: string, resource: unknown) => {
   const user = useAppSelector((state) => state.user.userDetails);
 
   return useMemo(() => {
@@ -148,7 +171,14 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  return useMemo(() => {
+  const result = useMemo(() => {
+    if (MOCK_PERMISSIONS_ENABLED) {
+      return permissions.reduce((acc, permission) => {
+        acc[permission] = MOCK_PERMISSIONS[permission] ?? false;
+        return acc;
+      }, {} as Record<Permission, boolean>);
+    }
+
     if (!user) {
       return permissions.reduce((acc, permission) => {
         acc[permission] = false;
@@ -165,6 +195,8 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
       return acc;
     }, {} as Record<Permission, boolean>);
   }, [user, permissions, activeGroup, activeNetwork, context]);
+
+  return result;
 };
 
 /**

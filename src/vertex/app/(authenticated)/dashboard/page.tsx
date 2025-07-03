@@ -31,18 +31,6 @@ const WelcomePage = () => {
             permission: PERMISSIONS.SITE.CREATE,
         },
         {
-            href: "/cohorts",
-            label: "Create a Cohort",
-            icon: Layers,
-            permission: PERMISSIONS.DEVICE.VIEW, // Cohorts fall under devices
-        },
-        {
-            href: "/grids",
-            label: "Create a Grid",
-            icon: Grid,
-            permission: PERMISSIONS.SITE.CREATE, // Grids fall under sites
-        },
-        {
             href: "/devices/claim",
             label: "Claim a Device",
             icon: Radio,
