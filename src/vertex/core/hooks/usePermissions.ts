@@ -138,7 +138,7 @@ export const usePermissionDescription = (permission: Permission) => {
   return useMemo(() => {
     return permissionService.getPermissionDescription(permission);
   }, [permission]);
-};
+  };
 
 /**
  * Hook to check multiple permissions at once

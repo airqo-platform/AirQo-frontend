@@ -17,11 +17,9 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import SubMenu from "./sub-menu";
-import { PERMISSIONS } from "@/core/permissions/constants";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -29,48 +27,75 @@ interface SecondarySidebarProps {
   toggleSidebar: () => void;
 }
 
-const NavItem = ({ href, icon: Icon, label, isCollapsed }: { href: string; icon: React.ElementType; label:string; isCollapsed: boolean; }) => {
+const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, tooltip }: { href: string; icon: React.ElementType; label:string; isCollapsed: boolean; disabled?: boolean; tooltip?: string; }) => {
     const pathname = usePathname();
     const isActive = pathname.startsWith(href);
-    
+    const content = (
+      <Link
+        href={disabled ? '#' : href}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        className={`flex items-center gap-2 text-sm p-2 rounded-md transition-all duration-200 ${
+          isActive ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-accent hover:text-accent-foreground"
+        } ${isCollapsed ? "justify-center" : ""} ${disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}`}
+      >
+        <Icon size={18} className="shrink-0" />
+        <span className={isCollapsed ? "hidden" : "block"}>{label}</span>
+      </Link>
+    );
     return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={href}
-            className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200 ${
-              isActive ? "bg-accent text-accent-foreground" : ""
-            } ${isCollapsed ? "justify-center" : ""}`}
-          >
-            <Icon size={18} className="shrink-0" />
-            <span className={isCollapsed ? "hidden" : "block"}>{label}</span>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent side="right" className={isCollapsed ? "block" : "hidden"}>
-          {label}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    )
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{content}</TooltipTrigger>
+          {disabled && tooltip && (
+            <TooltipContent side="right">{tooltip}</TooltipContent>
+          )}
+          {!disabled && isCollapsed && (
+            <TooltipContent side="right">{label}</TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    );
 };
 
-const SubMenuItem = ({ href, label }: { href: string; label: string }) => {
+const SubMenuItem = ({ href, label, disabled = false, tooltip }: { href: string; label: string; disabled?: boolean; tooltip?: string }) => {
     const pathname = usePathname();
     const isActive = pathname.startsWith(href);
+    const content = (
+      <Link
+        href={disabled ? '#' : href}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        className={`flex items-center gap-2 text-sm p-2 rounded-md transition-all duration-200 ${
+          isActive ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-accent hover:text-accent-foreground"
+        } ${disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}`}
+      >
+        <span>{label}</span>
+      </Link>
+    );
     return (
-        <Link
-            href={href}
-            className={`flex items-center gap-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-all duration-200 ${
-                isActive ? "bg-accent text-accent-foreground" : ""
-            }`}
-        >
-            <span>{label}</span>
-        </Link>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{content}</TooltipTrigger>
+          {disabled && tooltip && (
+            <TooltipContent side="right">{tooltip}</TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     );
 };
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, activeModule, toggleSidebar }) => {
+    // Permission checks for disabling (not hiding)
+    // TODO: Replace with actual permission checks from API/user state
+    const canViewDevices = true;
+    const canViewSites = true;
+    const canViewCohorts = true;
+    const canViewGrids = true;
+    const canViewUserManagement = true;
+    const canViewAccessControl = true;
+    const canViewOrganizations = true;
+
     return (
         <div
             className={`relative h-full bg-card transition-all duration-300 ease-in-out z-30 shadow-md flex flex-col
@@ -100,112 +125,78 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                                 icon={LayoutDashboard} 
                                 label="Dashboard"
                                 isCollapsed={isCollapsed}
+                                disabled={false}
                             />
                             <NavItem 
                                 href="/network-map" 
                                 icon={MapIcon} 
                                 label="Network Map"
                                 isCollapsed={isCollapsed}
+                                disabled={false}
                             />
-                            <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
-                                <SubMenu
-                                    label="Devices"
-                                    icon={Radio}
-                                    isCollapsed={isCollapsed}
-                                    href="/devices/overview"
-                                >
-                                    <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
-                                        <SubMenuItem href="/devices/overview" label="Overview" />
-                                    </PermissionGuard>
-                                    <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
-                                        <SubMenuItem href="/devices/my-devices" label="My Devices" />
-                                    </PermissionGuard>
-                                </SubMenu>
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
-                                <SubMenu
-                                    label="Sites"
-                                    icon={MapPin}
-                                    href="/sites"
-                                    isCollapsed={isCollapsed}
-                                >
-                                    <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
-                                        <SubMenuItem href="/sites" label="Overview" />
-                                    </PermissionGuard>
-                                    <PermissionGuard permission={PERMISSIONS.SITE.CREATE}>
-                                        <SubMenuItem href="/sites/create" label="Create Site" />
-                                    </PermissionGuard>
-                                </SubMenu>
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
-                                <SubMenu
-                                    label="Cohorts"
-                                    icon={Layers}
-                                    href="/cohorts"
-                                    isCollapsed={isCollapsed}
-                                >
-                                    <PermissionGuard permission={PERMISSIONS.DEVICE.VIEW}>
-                                        <SubMenuItem href="/cohorts" label="Overview" />
-                                    </PermissionGuard>
-                                    <PermissionGuard permission={PERMISSIONS.DEVICE.UPDATE}>
-                                        <SubMenuItem href="/cohorts/create" label="Create Cohort" />
-                                    </PermissionGuard>
-                                </SubMenu>
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
-                                <SubMenu
-                                    label="Grids"
-                                    icon={Grid}
-                                    href="/grids"
-                                    isCollapsed={isCollapsed}
-                                >
-                                    <PermissionGuard permission={PERMISSIONS.SITE.VIEW}>
-                                        <SubMenuItem href="/grids" label="Overview" />
-                                    </PermissionGuard>
-                                    <PermissionGuard permission={PERMISSIONS.SITE.CREATE}>
-                                        <SubMenuItem href="/grids/create" label="Create Grid" />
-                                    </PermissionGuard>
-                                </SubMenu>
-                            </PermissionGuard>
+                            {canViewDevices ? (
+                              <SubMenu
+                                  label="Devices"
+                                  icon={Radio}
+                                  isCollapsed={isCollapsed}
+                                  href="/devices/overview"
+                              >
+                                  <SubMenuItem href="/devices/overview" label="Overview" disabled={!canViewDevices} tooltip="You do not have permission to view devices." />
+                                  <SubMenuItem href="/devices/my-devices" label="My Devices" disabled={!canViewDevices} tooltip="You do not have permission to view devices." />
+                                  <SubMenuItem href="/devices/claim" label="Claim Device" />
+                              </SubMenu>
+                            ) : null}
+                            {canViewSites ? (
+                              <NavItem 
+                              href="/sites" 
+                              icon={MapPin} 
+                              label="Sites"
+                              isCollapsed={isCollapsed}
+                              disabled={false}
+                          />
+                            ) : null}
+                            {canViewCohorts ? (
+                              <NavItem 
+                              href="/cohorts" 
+                              icon={Layers} 
+                              label="Cohorts"
+                              isCollapsed={isCollapsed}
+                              disabled={false}
+                          />
+                            ) : null}
+                            {canViewGrids ? (
+                              <NavItem 
+                              href="/grids" 
+                              icon={Grid} 
+                              label="Grids"
+                              isCollapsed={isCollapsed}
+                              disabled={false}
+                          />
+                            ) : null}
                         </>
                     )}
                     {activeModule === 'admin' && (
                         <>
-                            <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
-                                <NavItem href="/user-management" icon={Users} label="User Management" isCollapsed={isCollapsed} />
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.ROLE.VIEW}>
-                                <NavItem href="/access-control" icon={Shield} label="Access Control" isCollapsed={isCollapsed} />
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.ORGANIZATION.VIEW}>
-                                <NavItem href="/organizations" icon={Building2} label="Organizations" isCollapsed={isCollapsed} />
-                            </PermissionGuard>
+                            <NavItem href="/user-management" icon={Users} label="User Management" isCollapsed={isCollapsed} disabled={!canViewUserManagement} tooltip="You do not have permission to view user management." />
+                            <NavItem href="/access-control" icon={Shield} label="Access Control" isCollapsed={isCollapsed} disabled={!canViewAccessControl} tooltip="You do not have permission to view access control." />
+                            <NavItem href="/organizations" icon={Building2} label="Organizations" isCollapsed={isCollapsed} disabled={!canViewOrganizations} tooltip="You do not have permission to view organizations." />
                         </>
                     )}
-                    <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
-                        <SubMenu
-                            label="Team"
-                            icon={Users}
-                            href="/team"
-                            isCollapsed={isCollapsed}
-                        >
-                            <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
-                                <SubMenuItem href="/team" label="Overview" />
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.USER.CREATE}>
-                                <SubMenuItem href="/team/invite" label="Invite User" />
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.ROLE.VIEW}>
-                                <SubMenuItem href="/team/roles" label="Roles" />
-                            </PermissionGuard>
-                            <PermissionGuard permission={PERMISSIONS.USER.VIEW}>
-                                <SubMenuItem href="/team/permissions" label="Permissions" />
-                            </PermissionGuard>
-                        </SubMenu>
-                    </PermissionGuard>
+                    {/* {canViewTeam ? (
+                      <SubMenu
+                          label="Team"
+                          icon={Users}
+                          href="/team"
+                          isCollapsed={isCollapsed}
+                      >
+                          <SubMenuItem href="/team" label="Overview" disabled={!canViewTeam} tooltip="You do not have permission to view team." />
+                          <SubMenuItem href="/team/invite" label="Invite User" disabled={!canInviteUser} tooltip="You do not have permission to invite users." />
+                          <SubMenuItem href="/team/roles" label="Roles" disabled={!canViewRoles} tooltip="You do not have permission to view roles." />
+                          <SubMenuItem href="/team/permissions" label="Permissions" disabled={!canViewTeam} tooltip="You do not have permission to view team permissions." />
+                      </SubMenu>
+                    ) : null} */}
                 </nav>
             </div>
-            
             <div className="p-2 border-t">
                  <NavItem href="/profile" icon={UserCircle} label="Profile Settings" isCollapsed={isCollapsed} />
             </div>

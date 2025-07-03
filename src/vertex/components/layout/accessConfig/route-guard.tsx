@@ -35,13 +35,12 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   useEffect(() => {
     if (!hasPermission) {
-      router.push(redirectTo);
     }
   }, [hasPermission, router, redirectTo]);
 
   if (!hasPermission) {
     if (showError) {
-      return (
+    return (
         <div className="container mx-auto p-6 max-w-2xl">
           <Card>
             <CardHeader>
@@ -56,7 +55,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
             <CardContent>
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
+          <AlertDescription>
                   <div className="space-y-2">
                     <div>
                       <strong>Required Permission:</strong> {permission}
@@ -75,8 +74,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                       </div>
                     )}
                   </div>
-                </AlertDescription>
-              </Alert>
+          </AlertDescription>
+        </Alert>
               
               <div className="mt-4 p-4 bg-muted rounded-lg">
                 <h4 className="font-medium mb-2">What you can do:</h4>
@@ -88,8 +87,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
               </div>
             </CardContent>
           </Card>
-        </div>
-      );
+      </div>
+    );
     }
 
     return null;

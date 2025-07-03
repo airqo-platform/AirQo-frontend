@@ -163,7 +163,7 @@ export default function SitesPage() {
   }
 
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_SITES">
+    <RouteGuard permission="SITE_VIEW">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Site Registry</h1>

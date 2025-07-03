@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AddDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 
 // Sample cohort data
 const cohortData = {
@@ -92,172 +93,174 @@ export default function CohortDetailsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
-          <ChevronLeft className="h-4 w-4" />
-          Cohort Details
-        </Button>
-        <AddDevicesDialog />
-      </div>
-
-      <div className="grid gap-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="cohortName">Cohort name *</Label>
-            <Input
-              id="cohortName"
-              value={cohortDetails.name}
-              onChange={(e) =>
-                setCohortDetails({ ...cohortDetails, name: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cohortId">Cohort ID *</Label>
-            <div className="flex gap-2">
-              <Input id="cohortId" value={cohortDetails.id} readOnly />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleCopyToClipboard(cohortDetails.id)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="visibility">Visibility *</Label>
-          <Select
-            value={cohortDetails.visibility}
-            onValueChange={(value) =>
-              setCohortDetails({ ...cohortDetails, visibility: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select visibility" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">True</SelectItem>
-              <SelectItem value="false">False</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Recent Measurements API</Label>
-            <div className="flex gap-2">
-              <Input
-                value="https://api.airqo.net/api/v2/devices/measurements"
-                readOnly
-                className="font-mono text-sm"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  handleCopyToClipboard(
-                    "https://api.airqo.net/api/v2/devices/measurements"
-                  )
-                }
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Historical Measurements API</Label>
-            <div className="flex gap-2">
-              <Input
-                value="https://api.airqo.net/api/v2/devices/measurements"
-                readOnly
-                className="font-mono text-sm"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  handleCopyToClipboard(
-                    "https://api.airqo.net/api/v2/devices/measurements"
-                  )
-                }
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleReset}>
-            Reset
+    <RouteGuard permission="DEVICE_VIEW">
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
+            <ChevronLeft className="h-4 w-4" />
+            Cohort Details
           </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <AddDevicesDialog />
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Cohort devices</h2>
-          <div className="flex items-center justify-between">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="cohortName">Cohort name *</Label>
               <Input
-                placeholder="Search devices..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                id="cohortName"
+                value={cohortDetails.name}
+                onChange={(e) =>
+                  setCohortDetails({ ...cohortDetails, name: e.target.value })
+                }
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cohortId">Cohort ID *</Label>
+              <div className="flex gap-2">
+                <Input id="cohortId" value={cohortDetails.id} readOnly />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopyToClipboard(cohortDetails.id)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Device Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Site</TableHead>
-                  <TableHead>Deployment status</TableHead>
-                  <TableHead>Date created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDevices.map((device) => (
-                  <TableRow key={device.name}>
-                    <TableCell className="font-medium">{device.name}</TableCell>
-                    <TableCell>{device.description}</TableCell>
-                    <TableCell>{device.site}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          device.deploymentStatus === "Deployed"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {device.deploymentStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(device.dateCreated)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+          <div className="space-y-2">
+            <Label htmlFor="visibility">Visibility *</Label>
+            <Select
+              value={cohortDetails.visibility}
+              onValueChange={(value) =>
+                setCohortDetails({ ...cohortDetails, visibility: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">True</SelectItem>
+                <SelectItem value="false">False</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Recent Measurements API</Label>
+              <div className="flex gap-2">
+                <Input
+                  value="https://api.airqo.net/api/v2/devices/measurements"
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    handleCopyToClipboard(
+                      "https://api.airqo.net/api/v2/devices/measurements"
+                    )
+                  }
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Historical Measurements API</Label>
+              <div className="flex gap-2">
+                <Input
+                  value="https://api.airqo.net/api/v2/devices/measurements"
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    handleCopyToClipboard(
+                      "https://api.airqo.net/api/v2/devices/measurements"
+                    )
+                  }
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleReset}>
+              Reset
+            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Cohort devices</h2>
+            <div className="flex items-center justify-between">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search devices..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Device Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Site</TableHead>
+                    <TableHead>Deployment status</TableHead>
+                    <TableHead>Date created</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredDevices.map((device) => (
+                    <TableRow key={device.name}>
+                      <TableCell className="font-medium">{device.name}</TableCell>
+                      <TableCell>{device.description}</TableCell>
+                      <TableCell>{device.site}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            device.deploymentStatus === "Deployed"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {device.deploymentStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(device.dateCreated)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </RouteGuard>
   );
 }

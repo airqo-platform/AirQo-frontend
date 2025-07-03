@@ -17,6 +17,7 @@ import { CreateGridForm } from "@/components/features/grids/create-grid";
 import { useRouter } from "next/navigation";
 import { useGrids } from "@/core/hooks/useGrids";
 import { Grid } from "@/app/types/grids";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 
 export default function GridsPage() {
   const router = useRouter();
@@ -125,99 +126,101 @@ export default function GridsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Grid Registry</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage and organize your monitoring grids
-          </p>
+    <RouteGuard permission="SITE_VIEW">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">Grid Registry</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage and organize your monitoring grids
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+            <CreateGridForm />
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search grids..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Grid Name</TableHead>
+                <TableHead className="text-right">Number of sites</TableHead>
+                <TableHead>Admin level</TableHead>
+                <TableHead>Visibility</TableHead>
+                <TableHead>Date created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredGrids
+                .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+                .map((grid: Grid) => (
+                  <TableRow
+                    key={grid._id}
+                    onClick={() => router.push(`/grids/${grid._id}`)}
+                  >
+                    <TableCell className="font-medium">{grid.name}</TableCell>
+                    <TableCell className="text-right">
+                      {grid.numberOfSites}
+                    </TableCell>
+                    <TableCell>{grid.admin_level}</TableCell>
+                    <TableCell>
+                      <Badge variant={grid.visibility ? "default" : "secondary"}>
+                        {grid.visibility ? "Visible" : "Hidden"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(grid.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex items-center justify-center space-x-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
           </Button>
-          <CreateGridForm />
+          <div className="flex items-center space-x-2">
+            {renderPaginationNumbers()}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+            }
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
         </div>
       </div>
-
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search grids..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Grid Name</TableHead>
-              <TableHead className="text-right">Number of sites</TableHead>
-              <TableHead>Admin level</TableHead>
-              <TableHead>Visibility</TableHead>
-              <TableHead>Date created</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredGrids
-              .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-              .map((grid: Grid) => (
-                <TableRow
-                  key={grid._id}
-                  onClick={() => router.push(`/grids/${grid._id}`)}
-                >
-                  <TableCell className="font-medium">{grid.name}</TableCell>
-                  <TableCell className="text-right">
-                    {grid.numberOfSites}
-                  </TableCell>
-                  <TableCell>{grid.admin_level}</TableCell>
-                  <TableCell>
-                    <Badge variant={grid.visibility ? "default" : "secondary"}>
-                      {grid.visibility ? "Visible" : "Hidden"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(grid.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-center space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </Button>
-        <div className="flex items-center space-x-2">
-          {renderPaginationNumbers()}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-          }
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
+    </RouteGuard>
   );
 }
