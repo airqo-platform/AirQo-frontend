@@ -207,7 +207,7 @@ POST /admin/super-admin
 Check the health status of the RBAC system.
 
 ```http
-GET /admin/rbac-health?tenant=airqo
+GET /admin/rbac-health
 ```
 
 **Response:**
@@ -235,7 +235,7 @@ GET /admin/rbac-health?tenant=airqo
 Get comprehensive RBAC system status and recommendations.
 
 ```http
-GET /admin/rbac-status?tenant=airqo
+GET /admin/rbac-status
 ```
 
 **Response:**
@@ -319,7 +319,7 @@ POST /admin/rbac-initialize
 Get all roles or filter by organization.
 
 ```http
-GET /roles?tenant=airqo&group_id=64a7b8c9d1e2f3a4b5c6d7ea
+GET /roles&group_id=64a7b8c9d1e2f3a4b5c6d7ea
 ```
 
 **Response:**
@@ -353,7 +353,7 @@ GET /roles?tenant=airqo&group_id=64a7b8c9d1e2f3a4b5c6d7ea
 Create a new role for an organization.
 
 ```http
-POST /roles?tenant=airqo
+POST /roles
 ```
 
 **Request Body:**
@@ -389,7 +389,7 @@ POST /roles?tenant=airqo
 Update an existing role.
 
 ```http
-PUT /roles/64a7b8c9d1e2f3a4b5c6d7ed?tenant=airqo
+PUT /roles/64a7b8c9d1e2f3a4b5c6d7ed
 ```
 
 **Request Body:**
@@ -406,7 +406,7 @@ PUT /roles/64a7b8c9d1e2f3a4b5c6d7ed?tenant=airqo
 Delete a role (removes from all users first).
 
 ```http
-DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed?tenant=airqo
+DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed
 ```
 
 ### Get Role Details
@@ -414,7 +414,7 @@ DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed?tenant=airqo
 Get detailed information about a specific role.
 
 ```http
-GET /roles/64a7b8c9d1e2f3a4b5c6d7ed?tenant=airqo
+GET /roles/64a7b8c9d1e2f3a4b5c6d7ed
 ```
 
 ---
@@ -426,7 +426,7 @@ GET /roles/64a7b8c9d1e2f3a4b5c6d7ed?tenant=airqo
 Get all available permissions.
 
 ```http
-GET /permissions?tenant=airqo
+GET /permissions
 ```
 
 **Response:**
@@ -451,7 +451,7 @@ GET /permissions?tenant=airqo
 Create a new permission.
 
 ```http
-POST /permissions?tenant=airqo
+POST /permissions
 ```
 
 **Request Body:**
@@ -468,19 +468,19 @@ POST /permissions?tenant=airqo
 #### List Permissions for Role
 
 ```http
-GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions?tenant=airqo
+GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions
 ```
 
 #### List Available Permissions for Role
 
 ```http
-GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/available_permissions?tenant=airqo
+GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/available_permissions
 ```
 
 #### Assign Permissions to Role
 
 ```http
-POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions?tenant=airqo
+POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions
 ```
 
 **Request Body:**
@@ -494,13 +494,13 @@ POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions?tenant=airqo
 #### Update Role Permissions (Replace All)
 
 ```http
-PUT /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions?tenant=airqo
+PUT /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions
 ```
 
 #### Remove Permission from Role
 
 ```http
-DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions/64a7b8c9d1e2f3a4b5c6d7eb?tenant=airqo
+DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions/64a7b8c9d1e2f3a4b5c6d7eb
 ```
 
 ---
@@ -512,7 +512,7 @@ DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed/permissions/64a7b8c9d1e2f3a4b5c6d7eb?tena
 Assign a role to a user within an organization.
 
 ```http
-POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/user?tenant=airqo
+POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/user/enhanced
 ```
 
 **Request Body:**
@@ -569,7 +569,7 @@ POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/user?tenant=airqo
 ### Assign Multiple Users to Role
 
 ```http
-POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/users?tenant=airqo
+POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/users
 ```
 
 **Request Body:**
@@ -583,19 +583,19 @@ POST /roles/64a7b8c9d1e2f3a4b5c6d7ed/users?tenant=airqo
 ### Unassign User from Role
 
 ```http
-DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed/user/64a7b8c9d1e2f3a4b5c6d7ee?tenant=airqo
+DELETE /roles/64a7b8c9d1e2f3a4b5c6d7ed/user/64a7b8c9d1e2f3a4b5c6d7ee
 ```
 
 ### List Users with Role
 
 ```http
-GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/users?tenant=airqo
+GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/users
 ```
 
 ### List Available Users for Role
 
 ```http
-GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/available_users?tenant=airqo
+GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/available_users
 ```
 
 ### Get User Role Summary
@@ -603,7 +603,7 @@ GET /roles/64a7b8c9d1e2f3a4b5c6d7ed/available_users?tenant=airqo
 Get comprehensive role information for a user.
 
 ```http
-GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/role-summary?tenant=airqo
+GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/role-summary
 ```
 
 **Response:**
@@ -642,13 +642,13 @@ GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/role-summary?tenant=airqo
 ### Get User Network Roles Only
 
 ```http
-GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/network-roles?tenant=airqo
+GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/network-roles
 ```
 
 ### Get User Group Roles Only
 
 ```http
-GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/group-roles?tenant=airqo
+GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/group-roles
 ```
 
 ---
@@ -658,13 +658,13 @@ GET /roles/users/64a7b8c9d1e2f3a4b5c6d7ee/group-roles?tenant=airqo
 ### List Groups
 
 ```http
-GET /groups?tenant=airqo
+GET /groups
 ```
 
 ### Create Group
 
 ```http
-POST /groups?tenant=airqo
+POST /groups
 ```
 
 **Request Body:**
@@ -680,13 +680,13 @@ POST /groups?tenant=airqo
 ### List Roles for Group
 
 ```http
-GET /groups/64a7b8c9d1e2f3a4b5c6d7ea/roles?tenant=airqo
+GET /groups/64a7b8c9d1e2f3a4b5c6d7ea/roles
 ```
 
 ### Assign User to Group
 
 ```http
-PUT /groups/64a7b8c9d1e2f3a4b5c6d7ea/assign-user/64a7b8c9d1e2f3a4b5c6d7ee?tenant=airqo
+PUT /groups/64a7b8c9d1e2f3a4b5c6d7ea/assign-user/64a7b8c9d1e2f3a4b5c6d7ee
 ```
 
 ---
