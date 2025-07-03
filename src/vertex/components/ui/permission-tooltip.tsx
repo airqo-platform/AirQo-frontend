@@ -1,6 +1,5 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
 
 interface PermissionTooltipProps {
   permission?: string;
@@ -29,7 +28,7 @@ export const PermissionTooltip: React.FC<PermissionTooltipProps> = ({
           {perms.length > 0 && (
             <div className="mb-2">
               Required permission{perms.length > 1 ? "s" : ""}: {" "}
-              {perms.map((perm, idx) => (
+              {perms.map((perm) => (
                 <code key={perm} className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono mr-1">
                   {perm}
                 </code>

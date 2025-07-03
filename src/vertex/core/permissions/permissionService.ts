@@ -62,7 +62,7 @@ class PermissionService {
     const effectivePermissions = this.getEffectivePermissions(user, context?.activeOrganization?._id);
 
     // 3. Check direct permission
-    if (effectivePermissions.includes(permission)) {
+    if (effectivePermissions.includes(permission as any)) {
       return {
         hasPermission: true,
         reason: "User has direct permission",
@@ -74,7 +74,7 @@ class PermissionService {
     // 4. Check organization context if applicable
     if (context?.activeOrganization && this.isOrganizationPermission(permission)) {
       const orgPermissions = this.getOrganizationPermissions(user, context.activeOrganization._id);
-      if (orgPermissions.includes(permission)) {
+      if (orgPermissions.includes(permission as any)) {
         return {
           hasPermission: true,
           reason: "User has permission in organization context",
@@ -227,7 +227,7 @@ class PermissionService {
       ...Object.values(PERMISSIONS.SETTINGS),
     ];
 
-    return orgPermissions.includes(permission);
+    return orgPermissions.includes(permission as any);
   }
 
   /**
@@ -268,7 +268,7 @@ class PermissionService {
    */
   hasPermissionInOrganization(user: UserDetails, permission: Permission, organizationId: string): boolean {
     const orgPermissions = this.getOrganizationPermissions(user, organizationId);
-    return orgPermissions.includes(permission);
+    return orgPermissions.includes(permission as any);
   }
 
   /**

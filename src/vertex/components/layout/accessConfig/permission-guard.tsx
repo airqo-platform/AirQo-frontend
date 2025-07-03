@@ -63,7 +63,7 @@ export const withPermission = (
       const hasPermission = usePermission(permission, { resourceContext });
 
       if (!hasPermission) {
-        return fallback ? <fallback {...props} /> : null;
+        return fallback ? React.createElement(fallback, { ...(props as Record<string, unknown>) }) : null;
       }
 
       return <Component {...props} />;

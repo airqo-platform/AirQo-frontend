@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose, active
                         isActive={activeModule === 'network'}
                         onClick={() => onModuleChange('network')}
                     />
-                    <PermissionGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+                    <PermissionGuard permission={PERMISSIONS.USER.MANAGEMENT}>
                         <NavItem
                             icon={ShieldCheck}
                             label="Platform Administration"

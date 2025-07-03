@@ -7,12 +7,12 @@ import PasswordEdit from "./PasswordEdit"
 import ApiTokens from "./ApiTokens"
 import ClientManagement from "./Clients"
 import { usePermissions } from "@/core/hooks/usePermissions"
+import { PERMISSIONS } from "@/core/permissions/constants"
 
 export default function ProfileTabs() {
   const [activeTab, setActiveTab] = useState("profile")
-  const { hasPermission } = usePermissions()
-
-  const canManageClients = hasPermission("CREATE_UPDATE_AND_DELETE_NETWORK_USERS")
+  const permissions: Record<string, boolean> = usePermissions([PERMISSIONS.USER.MANAGEMENT])
+  const canManageClients = permissions[PERMISSIONS.USER.MANAGEMENT]
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -15,8 +15,8 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
     if (!user) return false;
 
     return permissionService.hasPermission(user, permission, {
-      activeOrganization: activeGroup,
-      activeNetwork,
+      activeOrganization: activeGroup ?? undefined,
+      activeNetwork: activeNetwork ?? undefined,
       ...context,
     });
   }, [user, permission, activeGroup, activeNetwork, context]);
@@ -39,8 +39,8 @@ export const usePermissionCheck = (permission: Permission, context?: Partial<Acc
     }
 
     return permissionService.checkPermission(user, permission, {
-      activeOrganization: activeGroup,
-      activeNetwork,
+      activeOrganization: activeGroup ?? undefined,
+      activeNetwork: activeNetwork ?? undefined,
       ...context,
     });
   }, [user, permission, activeGroup, activeNetwork, context]);
@@ -67,7 +67,7 @@ export const useUserRole = (organizationId?: string) => {
 
   return useMemo(() => {
     if (!user) return undefined;
-    return permissionService.getUserRole(user, organizationId || activeGroup?._id);
+    return permissionService.getUserRole(user, organizationId || (activeGroup?._id ?? undefined));
   }, [user, organizationId, activeGroup]);
 };
 
@@ -138,7 +138,7 @@ export const usePermissionDescription = (permission: Permission) => {
   return useMemo(() => {
     return permissionService.getPermissionDescription(permission);
   }, [permission]);
-  };
+};
 
 /**
  * Hook to check multiple permissions at once
@@ -158,8 +158,8 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
 
     return permissions.reduce((acc, permission) => {
       acc[permission] = permissionService.hasPermission(user, permission, {
-        activeOrganization: activeGroup,
-        activeNetwork,
+        activeOrganization: activeGroup ?? undefined,
+        activeNetwork: activeNetwork ?? undefined,
         ...context,
       });
       return acc;
@@ -180,8 +180,8 @@ export const useHasAnyPermission = (permissions: Permission[], context?: Partial
 
     return permissions.some((permission) =>
       permissionService.hasPermission(user, permission, {
-        activeOrganization: activeGroup,
-        activeNetwork,
+        activeOrganization: activeGroup ?? undefined,
+        activeNetwork: activeNetwork ?? undefined,
         ...context,
       })
     );
@@ -201,8 +201,8 @@ export const useHasAllPermissions = (permissions: Permission[], context?: Partia
 
     return permissions.every((permission) =>
       permissionService.hasPermission(user, permission, {
-        activeOrganization: activeGroup,
-        activeNetwork,
+        activeOrganization: activeGroup ?? undefined,
+        activeNetwork: activeNetwork ?? undefined,
         ...context,
       })
     );

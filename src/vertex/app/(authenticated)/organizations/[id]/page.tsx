@@ -17,6 +17,7 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard"
 import { OrganizationProfile } from "@/components/features/organization/organization-profile"
 import { TeamMembers } from "@/components/features/organization/team-members"
 import { OrganizationRoles } from "@/components/features/organization/organization-roles"
+import { PERMISSIONS } from "@/core/permissions/constants"
 
 const LoadingFallback = () => (
   <div className="space-y-4">
@@ -65,7 +66,7 @@ export default function OrganizationDetailsPage() {
   }
 
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+    <RouteGuard permission={PERMISSIONS.USER.MANAGEMENT}>
       <div className="container mx-auto">
         {/* Back button */}
         <Button
