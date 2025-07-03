@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MapPin, Layers, Grid, Radio } from "lucide-react";
+import { MapPin, Radio } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
