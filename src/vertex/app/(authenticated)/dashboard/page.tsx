@@ -53,7 +53,7 @@ const WelcomePage = () => {
             <div className="mb-8">
                 <h1 className="text-4xl font-bold tracking-tight">Welcome</h1>
                 <p className="mt-2 text-lg text-muted-foreground">
-                    You're working in <span className="font-semibold text-primary">{getOrgName()}</span>
+                    You&apos;re working in <span className="font-semibold text-primary">{getOrgName()}</span>
                 </p>
             </div>
 

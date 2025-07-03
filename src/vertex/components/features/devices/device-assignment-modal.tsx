@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Building2, Users, Check, Share2 } from "lucide-react";
+import { Building2, Check, Share2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Device } from "@/app/types/devices";
 import { useAssignDeviceToOrganization } from "@/core/hooks/useDevices";
@@ -44,7 +43,7 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
         user_id: userDetails._id,
       });
       onSuccess();
-    } catch (error) {
+    } catch {
       // Error handling is done in the hook
     }
   };
@@ -105,7 +104,7 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
                 <li>• Organization members can view device data and status</li>
                 <li>• You retain full ownership and control</li>
                 <li>• You can unshare the device at any time</li>
-                <li>• Device will appear in organization's device list</li>
+                <li>• Device will appear in organization&apos;s device list</li>
               </ul>
             </div>
           )}

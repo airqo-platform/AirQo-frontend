@@ -172,8 +172,8 @@ const DeviceClaimingPage = () => {
                 <li>Locate the QR code or device ID on your AirQo device</li>
                 <li>Scan the QR code or manually enter the device ID</li>
                 <li>Verify the device is available for claiming</li>
-                <li>Click "Claim Device" to add it to your account</li>
-                <li>Your device will appear in "My Devices" once claimed</li>
+                <li>Click &quot;Claim Device&quot; to add it to your account</li>
+                <li>Your device will appear in &quot;My Devices&quot; once claimed</li>
               </ol>
             </div>
           </CardContent>

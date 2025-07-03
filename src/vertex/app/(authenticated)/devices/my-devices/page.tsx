@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { 
   Plus, 
   Search, 
-  Filter, 
   MapPin, 
   Calendar, 
   Wifi, 
@@ -21,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMyDevices, useAssignDeviceToOrganization, useUnassignDeviceFromOrganization } from "@/core/hooks/useDevices";
+import { useMyDevices, useUnassignDeviceFromOrganization } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { Device } from "@/app/types/devices";
@@ -44,7 +43,6 @@ const MyDevicesPage = () => {
     activeGroup?._id
   );
 
-  const assignDevice = useAssignDeviceToOrganization();
   const unassignDevice = useUnassignDeviceFromOrganization();
 
   const filteredDevices = useMemo(() => {
