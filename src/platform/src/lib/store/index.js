@@ -47,6 +47,7 @@ import sidebarReducer from './services/sideBar/SideBarSlice';
 import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
 import { organisationRequestsSlice } from './services/admin/OrgRequestsSlice';
+import organizationThemeReducer from './services/organizationTheme/OrganizationThemeSlice';
 
 // Combine all the reducers
 const rootReducer = combineReducers({
@@ -71,6 +72,7 @@ const rootReducer = combineReducers({
   apiClient: apiClientReducer,
   sites: sitesSummaryReducer,
   organisationRequests: organisationRequestsSlice.reducer,
+  organizationTheme: organizationThemeReducer,
 });
 
 // Root reducer wrapper to handle state reset on logout
@@ -86,7 +88,7 @@ const appReducer = (state, action) => {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'checklists', 'groups'],
+  whitelist: ['login', 'checklists', 'groups', 'organizationTheme'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);

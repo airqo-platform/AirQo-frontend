@@ -12,7 +12,7 @@ import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { useSelector } from 'react-redux';

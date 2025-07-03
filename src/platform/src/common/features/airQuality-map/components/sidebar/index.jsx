@@ -68,7 +68,7 @@ const LoadingSkeleton = () => (
   </Card>
 );
 
-const MapSidebar = ({ siteDetails, isAdmin, children }) => {
+const MapSidebar = ({ siteDetails, isAdmin = false, children }) => {
   const dispatch = useDispatch();
   const contentRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -98,9 +98,17 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
   const googleMapsLoaded = useGoogleMaps(
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
   );
+
   const autoCompleteSessionToken = useMemo(() => {
-    if (googleMapsLoaded && window.google)
+    if (
+      googleMapsLoaded &&
+      window.google &&
+      window.google.maps &&
+      window.google.maps.places &&
+      window.google.maps.places.AutocompleteSessionToken
+    ) {
       return new window.google.maps.places.AutocompleteSessionToken();
+    }
     return null;
   }, [googleMapsLoaded]);
 
@@ -112,6 +120,7 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
     const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(selectedLocation._id);
 
     if (!isValidObjectId) {
+      // eslint-disable-next-line no-console
       console.warn(
         `Invalid ObjectId format for site_id: ${selectedLocation._id}`,
       );
@@ -137,6 +146,7 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
         setWeeklyPredictions(response?.forecasts || []);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch weekly predictions:', err);
       setError({
         isError: true,
@@ -203,6 +213,7 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
         dispatch(setZoom(11));
         if (type !== 'suggested') dispatch(setSelectedLocation(updated));
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Location selection error:', err);
         setError({
           isError: true,
@@ -220,6 +231,7 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
       return;
     }
     if (!googleMapsLoaded || !autoCompleteSessionToken) {
+      // eslint-disable-next-line no-console
       console.error('Google Maps API is not loaded yet.');
       return;
     }
@@ -239,6 +251,7 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
           : [],
       );
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Search failed:', err);
       setSearchResults([]);
     } finally {
@@ -339,9 +352,7 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
           ) : error.isError ? (
             <Toast
               message={error.message}
-              clearData={() =>
-                setError({ isError: false, message: '', type: '' })
-              }
+              clearData={clearError}
               type={error.type}
               timeout={3000}
               size="lg"
@@ -395,6 +406,11 @@ const MapSidebar = ({ siteDetails, isAdmin, children }) => {
     handleSearch,
     handleLocationSelect,
   ]);
+
+  // Callback to clear error state
+  const clearError = useCallback(() => {
+    setError({ isError: false, message: '', type: '' });
+  }, []);
 
   return (
     <Card
@@ -453,7 +469,5 @@ MapSidebar.propTypes = {
   isAdmin: PropTypes.bool,
   children: PropTypes.node,
 };
-
-MapSidebar.defaultProps = { isAdmin: false };
 
 export default MapSidebar;

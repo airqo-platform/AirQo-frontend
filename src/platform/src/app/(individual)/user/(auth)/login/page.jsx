@@ -8,13 +8,11 @@ import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 import AccountPageLayout from '@/components/Account/Layout';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withAuthRoute } from '@/core/HOC';
 import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
@@ -189,7 +187,7 @@ const UserLogin = () => {
                 disabled={loading}
                 type="submit"
               >
-                {loading ? <Spinner width={25} height={25} /> : 'Login'}
+                {loading ? 'Logging in...' : 'Login'}
               </button>
             </div>
           </form>
@@ -216,4 +214,4 @@ const UserLogin = () => {
   );
 };
 
-export default withAuthRoute(UserLogin);
+export default UserLogin;

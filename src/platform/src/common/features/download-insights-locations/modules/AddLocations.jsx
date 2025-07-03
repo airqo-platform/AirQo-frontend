@@ -17,7 +17,7 @@ import {
   setChartSites,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useSitesSummary } from '@/core/hooks/analyticHooks';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import PropTypes from 'prop-types';
 import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';

@@ -1,17 +1,17 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { usePathname, useParams } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
 import CloseIcon from '@/icons/close_icon';
 import LineChartIcon from '@/icons/Charts/LineChartIcon';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  setTogglingGlobalDrawer,
-  setSidebar,
+  setGlobalSidebarOpen,
+  setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import Card from '@/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import { FiExternalLink } from 'react-icons/fi';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
 import {
   getNavigationItems,
   USER_TYPES,
@@ -31,22 +31,51 @@ import {
 
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
-  const togglingGlobalDrawer = useSelector(
-    (state) => state.sidebar.toggleGlobalDrawer,
-  );
+  const pathname = usePathname();
+  const params = useParams(); // Use the new separate global sidebar states
+  const isGlobalSidebarOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalSidebarOpen || false;
+    } catch {
+      return false;
+    }
+  });
+
+  const isGlobalDrawerOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalDrawerOpen || false;
+    } catch {
+      return false;
+    }
+  });
+  // Show global sidebar if either desktop or mobile state is open
+  const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
 
   // Optimized drawer width calculation
   const drawerWidth = useMemo(
-    () => (togglingGlobalDrawer ? 'w-64' : 'w-0'),
+    () => (togglingGlobalDrawer ? 'w-72' : 'w-0'),
     [togglingGlobalDrawer],
   );
-
   // Enhanced drawer close handler
   const closeDrawer = useCallback(() => {
-    // Batch state updates for better performance
-    dispatch(setTogglingGlobalDrawer(false));
-    dispatch(setSidebar(false));
+    // Close both global sidebar states
+    dispatch(setGlobalSidebarOpen(false));
+    dispatch(setGlobalDrawerOpen(false));
   }, [dispatch]);
+
+  // Route context detection and analytics path generation
+  const getAnalyticsPath = useMemo(() => {
+    const isOrganizationRoute = pathname?.startsWith('/org/');
+    const orgSlug = params?.org_slug;
+
+    if (isOrganizationRoute && orgSlug) {
+      // Organization flow - redirect to org-specific routes
+      return `/org/${orgSlug}/insights`;
+    } else {
+      // User flow - redirect to user-specific routes
+      return '/user/analytics';
+    }
+  }, [pathname, params]);
 
   // Enhanced subroute click handler with better UX
   const handleSubrouteClick = useCallback(
@@ -56,7 +85,6 @@ const GlobalSideBarDrawer = () => {
 
       // Validate subroute before navigation
       if (!subroute || !subroute.path) {
-        console.warn('Invalid subroute:', subroute);
         return;
       }
 
@@ -75,8 +103,7 @@ const GlobalSideBarDrawer = () => {
 
         // Close drawer immediately after starting navigation
         closeDrawer();
-      } catch (error) {
-        console.error('Navigation error:', error);
+      } catch {
         // Fallback: still close the drawer
         closeDrawer();
       }
@@ -90,7 +117,6 @@ const GlobalSideBarDrawer = () => {
       const adminItems = getNavigationItems(USER_TYPES.ADMIN);
 
       if (!Array.isArray(adminItems)) {
-        console.warn('Admin items not found or invalid');
         return [];
       }
 
@@ -115,17 +141,8 @@ const GlobalSideBarDrawer = () => {
         }))
         .slice(0, 10); // Increased limit for better functionality
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(
-          `✅ Loaded ${subroutes.length} admin subroutes:`,
-          subroutes.map((s) => s.label),
-        );
-      }
-
       return subroutes;
-    } catch (error) {
-      console.error('Error loading admin subroutes:', error);
+    } catch {
       // Return empty array as fallback
       return [];
     }
@@ -187,6 +204,7 @@ const GlobalSideBarDrawer = () => {
       <Card
         width={drawerWidth}
         padding="p-0 m-0"
+        radius="rounded-none"
         className="fixed left-0 top-0 h-full z-[10001] border-r-gray-200 dark:border-r-gray-700 border-r transition-all duration-200 ease-in-out"
         contentClassName="flex h-full flex-col overflow-y-auto border-t-0 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800"
         style={{
@@ -211,14 +229,6 @@ const GlobalSideBarDrawer = () => {
         {/* Enhanced navigation section with better dark mode */}
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
-            <SideBarItem
-              label="Home"
-              Icon={HomeIcon}
-              navPath="/user/Home"
-              onClick={closeDrawer}
-              key="home"
-            />
-
             {/* Enhanced Admin Panel with improved subroute functionality */}
             <SideBarItem
               label="Admin Panel"
@@ -234,7 +244,7 @@ const GlobalSideBarDrawer = () => {
             <SideBarItem
               label="Data Analytics"
               Icon={LineChartIcon}
-              navPath="/user/analytics"
+              navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"
             />

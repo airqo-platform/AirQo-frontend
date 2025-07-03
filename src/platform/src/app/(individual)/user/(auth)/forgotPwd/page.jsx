@@ -4,12 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import AccountPageLayout from '@/components/Account/Layout';
 import Toast from '@/components/Toast';
-import Spinner from '@/components/Spinner';
 import { forgotPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withUserAuthRoute } from '@/core/HOC';
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -97,7 +95,7 @@ const ForgotPassword = () => {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? <Spinner width={25} height={25} /> : 'Submit'}
+                {loading ? 'Sending... ' : 'Submit'}
               </button>
             </div>
           </form>
@@ -126,4 +124,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default withUserAuthRoute(ForgotPassword);
+export default ForgotPassword;

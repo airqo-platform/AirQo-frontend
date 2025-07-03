@@ -14,7 +14,7 @@ import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -66,7 +66,7 @@ export default function MapLayout({ children }) {
         showSearch={routeConfig.showSearch}
       />{' '}
       {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[63px] z-40 text-sidebar-text transition-all duration-300">
+      <aside className="fixed left-0 top-36 lg:top-[60px] z-40 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar forceCollapse={true}>
           <UnifiedSidebarContent
             userType="user"

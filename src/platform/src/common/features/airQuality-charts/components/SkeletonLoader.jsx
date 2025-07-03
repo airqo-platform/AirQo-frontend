@@ -1,6 +1,6 @@
 // This component has been consolidated into the unified Skeleton component
-// Please use: import Skeleton from '@/components/Skeleton'
-import Skeleton from '@/components/Skeleton';
+// Please use: import { Skeleton } from '@/common/components/Skeleton'
+import { Skeleton } from '@/common/components/Skeleton';
 import React from 'react';
 
 const SkeletonLoader = ({

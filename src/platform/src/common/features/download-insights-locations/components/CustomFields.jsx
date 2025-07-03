@@ -153,6 +153,7 @@ const CustomFields = ({
             handleSelect(dates);
           }}
           mobileCollapse={true}
+          calendarXPosition="relative right-[18px]"
           initialValue={selectedOption}
           required={required}
           aria-required={required}

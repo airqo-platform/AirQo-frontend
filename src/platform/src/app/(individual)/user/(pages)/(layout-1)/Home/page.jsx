@@ -6,7 +6,7 @@ import Button from '@/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/PlayIcon';
-import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
+import { HomeSkeleton } from '@/common/components/Skeleton';
 import VideoModal from '@/features/video-players/Intro-video-modal';
 import Card from '@/components/CardWrapper';
 import { Checklist } from '@/features/Checklist';
@@ -15,7 +15,6 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
-import { withUserAuth } from '@/core/HOC';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
@@ -256,4 +255,4 @@ const Home = () => {
   );
 };
 
-export default withUserAuth(Home);
+export default Home;

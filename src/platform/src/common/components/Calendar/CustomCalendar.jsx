@@ -26,8 +26,8 @@ const isValidDate = (date) => date instanceof Date && !isNaN(date);
 const CustomCalendar = ({
   initialStartDate,
   initialEndDate,
-  initial_label,
-  onChange,
+  initial_label = '',
+  onChange = null,
   className = '',
   isLoading = false,
   dropdownWidth,
@@ -49,10 +49,8 @@ const CustomCalendar = ({
   });
 
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
-
   const computeDateLabel = useCallback((startDate, endDate) => {
     if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      console.error('Invalid dates');
       return {
         startDate: new Date(),
         endDate: new Date(),
@@ -213,21 +211,6 @@ CustomCalendar.propTypes = {
   horizontalOffset: PropTypes.number,
   verticalOffset: PropTypes.number,
   dropdownStyle: PropTypes.object,
-};
-
-CustomCalendar.defaultProps = {
-  initial_label: '',
-  onChange: null,
-  className: '',
-  isLoading: false,
-  dropdownAlign: 'left',
-  calendarPosition: 'bottom',
-  dropdownClassName: '',
-  dropdownButtonClassName: '',
-  dropdownMenuClassName: '',
-  horizontalOffset: 0,
-  verticalOffset: 0,
-  dropdownStyle: {},
 };
 
 export default CustomCalendar;

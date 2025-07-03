@@ -1,3 +1,5 @@
+// src/hooks/useCreateOrganization.js
+
 import { useState } from 'react';
 import {
   createOrganisationRequestApi,
@@ -8,51 +10,38 @@ import CustomToast from '@/common/components/Toast/CustomToast';
 import logger from '@/lib/logger';
 
 /**
- * Custom hook for managing organization creation functionality
- * This hook provides the state and logic for creating new organizations
+ * Hook to manage org-creation: slug checks, logo upload, payload formatting,
+ * and submission in one place.
  */
 export const useCreateOrganization = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [slugAvailability, setSlugAvailability] = useState(null);
-  const [slugSuggestions, setSlugSuggestions] = useState([]);
+  const [slugAvailability, setSlugAvailability] = useState(null); // true | false | null
+  const [slugSuggestions, setSlugSuggestions] = useState([]); // [string]
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    // Reset state when closing modal
-    setSlugAvailability(null);
-    setSlugSuggestions([]);
-    setIsCheckingSlug(false);
-  };
-
   /**
-   * Check if organization slug is available
-   * @param {string} slug - The slug to check
-   * @returns {Promise<boolean>} - Whether the slug is available
+   * Checks if a slug is available, updates state accordingly.
+   * @returns {Promise<boolean>}
    */
   const checkSlugAvailability = async (slug) => {
-    if (!slug) return false;
+    const clean = slug.trim();
+    if (!clean) {
+      setSlugAvailability(null);
+      setSlugSuggestions([]);
+      return false;
+    }
 
+    setIsCheckingSlug(true);
     try {
-      setIsCheckingSlug(true);
-      const response = await getOrganisationSlugAvailabilityApi(slug);
-      setSlugAvailability(response.available);
-      setSlugSuggestions(response.alternativeSuggestions || []);
-      return response.available;
-    } catch (error) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error checking slug availability';
-      CustomToast({
-        message: errorMessage,
-        type: 'error',
-      });
+      const { available, alternativeSuggestions } =
+        await getOrganisationSlugAvailabilityApi(clean);
+      setSlugAvailability(available);
+      setSlugSuggestions(alternativeSuggestions || []);
+      return available;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || err.message || 'Error checking URL';
+      CustomToast({ message: msg, type: 'error' });
       setSlugAvailability(null);
       setSlugSuggestions([]);
       return false;
@@ -62,98 +51,84 @@ export const useCreateOrganization = () => {
   };
 
   /**
-   * Upload logo to Cloudinary
-   * @param {File} logoFile - The logo file to upload
-   * @returns {Promise<Object>} - Upload result
+   * Handles uploading to Cloudinary; returns the secure URL or empty string.
    */
-  const uploadToCloudinary = async (logoFile) => {
-    if (!logoFile) return { secure_url: '' };
-
-    const formData = new FormData();
-    formData.append('file', logoFile);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
-    formData.append('folder', 'organization_profiles');
+  const uploadLogo = async (file) => {
+    if (!file) return '';
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+    fd.append('folder', 'organization_profiles');
 
     try {
-      const responseData = await cloudinaryImageUpload(formData);
-      return { secure_url: responseData.secure_url };
-    } catch (error) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Unable to upload image to Cloudinary';
-      CustomToast({
-        message: errorMessage,
-        type: 'error',
-      });
-      logger.error('Uploading organization logo to cloudinary failed:', error);
-      return { secure_url: '' };
+      const { secure_url } = await cloudinaryImageUpload(fd);
+      return secure_url;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || err.message || 'Image upload failed';
+      CustomToast({ message: msg, type: 'error' });
+      logger.error('Cloudinary upload error:', err);
+      return '';
     }
   };
+
   /**
-   * Submit organization creation request
-   * @param {Object} formData - The organization creation form data
-   * @param {File} logoFile - Optional logo file to upload
-   * @returns {Promise<Object>} - Submission result
+   * Takes camelCase formData + optional File, builds snake_case payload,
+   * uploads logo if any, then POSTs to the API.
+   * @returns {Promise<{success: boolean, error?: any}>}
    */
-  const handleSubmit = async (formData, logoFile = null) => {
+  const submitOrganizationRequest = async (formData, logoFile) => {
     setIsSubmitting(true);
-
     try {
-      let finalFormData = { ...formData };
+      // 1) upload logo (if provided)
+      const logo_url = logoFile
+        ? await uploadLogo(logoFile)
+        : formData.branding_settings.logo_url || '';
 
-      // Upload logo if provided
-      if (logoFile) {
-        try {
-          const cloudinaryResponse = await uploadToCloudinary(logoFile);
-          finalFormData = {
-            ...finalFormData,
-            branding_settings: {
-              ...finalFormData.branding_settings,
-              logo_url: cloudinaryResponse.secure_url,
-            },
-          };
-        } catch (uploadError) {
-          CustomToast({
-            message: 'Failed to upload logo. Please try again.',
-            type: 'error',
-          });
-          return { success: false, error: uploadError };
-        }
-      }
+      // 2) build API payload
+      const payload = {
+        organization_name: formData.organizationName.trim(),
+        organization_slug: formData.organizationSlug.trim(),
+        contact_email: formData.contactEmail.trim(),
+        contact_name: formData.contactName.trim(),
+        contact_phone: formData.contactPhone.trim(),
+        use_case: formData.useCase.trim(),
+        organization_type: formData.organizationType,
+        country: formData.country.trim(),
+        branding_settings: {
+          logo_url,
+          primary_color: formData.branding_settings.primary_color,
+          secondary_color: formData.branding_settings.secondary_color,
+        },
+      };
 
-      await createOrganisationRequestApi(finalFormData);
+      // 3) send it
+      await createOrganisationRequestApi(payload);
 
       CustomToast({
         message: 'Organization request submitted successfully!',
         type: 'success',
       });
-
       return { success: true };
-    } catch (error) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Unable to send request. Please try again.';
-      CustomToast({
-        message: errorMessage,
-        type: 'error',
-      });
-      logger.error('Organization creation request failed:', error);
-      return { success: false, error };
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err.message ||
+        'Failed to submit request';
+      CustomToast({ message: msg, type: 'error' });
+      logger.error('Org creation error:', err);
+      return { success: false, error: err };
     } finally {
       setIsSubmitting(false);
     }
   };
+
   return {
-    isModalOpen,
     isSubmitting,
     slugAvailability,
     slugSuggestions,
     isCheckingSlug,
-    openModal,
-    closeModal,
-    submitOrganizationRequest: handleSubmit,
     checkSlugAvailability,
+    submitOrganizationRequest,
   };
 };

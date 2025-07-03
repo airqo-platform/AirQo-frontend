@@ -36,7 +36,6 @@ import {
   CustomReferenceLabel,
 } from './components';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 import Button from '@/components/Button';
 
 // Simplified responsive chart configuration
@@ -120,18 +119,18 @@ ImprovedAxisTick.propTypes = {
 const MoreInsightsChart = React.memo(function MoreInsightsChart({
   data,
   selectedSites,
-  visibleSiteIds,
-  chartType,
-  frequency,
-  id,
+  visibleSiteIds = [],
+  chartType = 'line',
+  frequency = 'daily',
+  id = undefined,
   pollutantType,
-  refreshChart,
-  isRefreshing,
+  refreshChart = null,
+  isRefreshing = false,
   _width = '100%', // Underscore prefix to indicate unused
   height = '100%',
 }) {
   const { theme, systemTheme } = useTheme();
-  const { isOrganizationLoading } = useOrganizationLoading();
+  // Remove organization loading hook as it's no longer needed
   const isDark =
     theme === 'dark' || (theme === 'system' && systemTheme === 'dark');
   const [activeIndex, setActiveIndex] = useState(null);
@@ -322,21 +321,9 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
       setActiveIndex(null);
     }
   }, [legendLocked]);
-
   // Render empty state with appropriate message
   const renderEmpty = () => {
     if (!normalizedSelectedIds.length) {
-      // Show loading state during organization switching instead of "No sites selected"
-      if (isOrganizationLoading) {
-        return (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 px-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-            <h4 className="mb-2 text-lg font-semibold">Loading...</h4>
-            <p className="text-center">Please wait while we load your data.</p>
-          </div>
-        );
-      }
-
       return (
         <InfoMessage
           title="No Sites Selected"
@@ -421,7 +408,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
         padding: CHART_CONFIG.padding,
         marginTop: CHART_CONFIG.marginTop,
         boxSizing: 'border-box',
-        // Let container height be controlled by parent
       }}
       data-chart-id={id}
     >
@@ -456,7 +442,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               interval={0}
               angle={containerWidth < 480 ? -45 : -25}
               textAnchor="end"
-              height={50} // Restored to reasonable size
+              height={50}
               className="chart-x-axis"
               padding={{ left: 10, right: 10 }}
             />
@@ -466,12 +452,12 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               tickLine={false}
               tick={{
                 fill: isDark ? '#D1D5DB' : '#1C1D20',
-                fontSize: 12, // Restored to readable size
+                fontSize: 12,
                 fontFamily: CHART_CONFIG.exportStyles.fontFamily,
               }}
               tickFormatter={formatYAxisTick}
               className="chart-y-axis"
-              width={50} // Restored to reasonable size
+              width={50}
             >
               <Label
                 value={
@@ -595,17 +581,6 @@ MoreInsightsChart.propTypes = {
   isRefreshing: PropTypes.bool,
   width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-MoreInsightsChart.defaultProps = {
-  visibleSiteIds: [],
-  chartType: 'line',
-  frequency: 'daily',
-  id: undefined,
-  refreshChart: null,
-  isRefreshing: false,
-  width: '100%',
-  height: '100%',
 };
 
 export default MoreInsightsChart;

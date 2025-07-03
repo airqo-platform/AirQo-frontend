@@ -13,9 +13,9 @@ const LocationCard = ({
   site,
   onToggle,
   isSelected,
-  isLoading,
-  disableToggle,
-  cardStyle,
+  isLoading = false,
+  disableToggle = false,
+  cardStyle = null,
 }) => {
   const cardVariants = {
     initial: { opacity: 0, y: 5 },
@@ -135,12 +135,6 @@ LocationCard.propTypes = {
   isLoading: PropTypes.bool,
   disableToggle: PropTypes.bool,
   cardStyle: PropTypes.object,
-};
-
-LocationCard.defaultProps = {
-  isLoading: false,
-  disableToggle: false,
-  cardStyle: null,
 };
 
 export default LocationCard;

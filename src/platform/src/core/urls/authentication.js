@@ -18,6 +18,9 @@ export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;
 export const ACTIVATION_REQUEST_URI = `${CLIENT_URI}/activate-request`;
 export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
 
+// Group slug management URL
+export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
+
 // Theme Management URLs
 export const USER_THEME_BASE_URL = `${USERS_URL}/preferences/theme/user`;
 export const getUserThemeUrl = (userId) => `${USER_THEME_BASE_URL}/${userId}`;

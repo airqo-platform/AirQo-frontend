@@ -192,8 +192,4 @@ LocationAlertCard.propTypes = {
   isCollapsed: PropTypes.bool,
 };
 
-LocationAlertCard.defaultProps = {
-  isCollapsed: true,
-};
-
 export default LocationAlertCard;

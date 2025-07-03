@@ -20,7 +20,6 @@ import StandardsMenu from './components/StandardsMenu';
 import Card from '@/components/CardWrapper';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Spinner from '@/components/Spinner';
-import { useOrganizationLoading } from '@/app/providers/OrganizationLoadingProvider';
 
 const EXPORT_FORMATS = ['png', 'jpg', 'pdf'];
 const SKELETON_DELAY = 500;
@@ -73,8 +72,7 @@ const ChartContainer = ({
   const userSelectedSites = useSelector(
     (state) => state.defaults.individual_preferences?.[0]?.selected_sites || [],
   );
-  // Organization loading context
-  const { isOrganizationLoading } = useOrganizationLoading();
+  // Remove the organization loading hook as it's no longer needed
 
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [downloadComplete, setDownloadComplete] = useState(null);
@@ -87,17 +85,16 @@ const ChartContainer = ({
     dropdownRef.current?.classList.remove('show');
     setDownloadComplete(null);
   });
-
-  // Handle skeleton visibility based on loading state (including organization switching)
+  // Handle skeleton visibility based on loading state
   useEffect(() => {
     let timer;
-    if (!chartLoading && !isOrganizationLoading) {
+    if (!chartLoading) {
       timer = setTimeout(() => setShowSkeleton(false), SKELETON_DELAY);
     } else {
       setShowSkeleton(true);
     }
     return () => timer && clearTimeout(timer);
-  }, [chartLoading, isOrganizationLoading]);
+  }, [chartLoading]);
 
   // Handle refresh indicator state
   useEffect(() => {
@@ -122,12 +119,12 @@ const ChartContainer = ({
   const chartDimensions = useMemo(() => {
     const containerWidth = width || '100%';
     // Set a responsive height that works well with headers - reduced further to 250
-    const calculatedHeight = height || 250; // Reduced default height from 300 to 250
+    const calculatedHeight = height || 250;
 
     // Ensure reasonable height range
     const finalHeight =
       typeof calculatedHeight === 'number'
-        ? Math.max(calculatedHeight, 190) // Reduced minimum height from 280 to 220
+        ? Math.max(calculatedHeight, 190)
         : calculatedHeight;
 
     return {
@@ -135,7 +132,7 @@ const ChartContainer = ({
       height: finalHeight,
       containerStyle: {
         width: containerWidth,
-        minHeight: 220, // Reduced minimum height from 280 to 220
+        minHeight: 220,
         height:
           typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight,
       },
@@ -165,7 +162,7 @@ const ChartContainer = ({
         // Calculate proper dimensions for high-quality export
         const actualWidth = chartElement.offsetWidth;
         const actualHeight = chartElement.offsetHeight;
-        const scale = 2; // Higher scale for better quality        // Configure export options for better quality and consistent styling
+        const scale = 2;
         const exportOptions = {
           width: actualWidth * scale,
           height: actualHeight * scale,

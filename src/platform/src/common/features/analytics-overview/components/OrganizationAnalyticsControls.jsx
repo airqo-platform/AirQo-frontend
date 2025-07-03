@@ -12,7 +12,7 @@ import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * OrganizationAnalyticsControls component handles control elements for organization analytics
@@ -58,15 +58,17 @@ const OrganizationAnalyticsControls = ({
     <div className="flex flex-col gap-6">
       {/* Organization Header */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {displayName} - Air Quality Insights
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <span className="uppercase"> {displayName}</span> - Air Quality
+          Insights
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p className="text-gray-600">
-            Monitor and analyze air quality data for {displayName}
+          <p className="text-gray-600 dark:text-gray-300">
+            Monitor and analyze air quality data for{' '}
+            <span className="uppercase"> {displayName}</span>
           </p>
           {hasSites && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Monitoring {totalSites} sites ({onlineSites} online)
             </div>
           )}

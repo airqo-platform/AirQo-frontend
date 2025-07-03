@@ -37,7 +37,7 @@ import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import CustomToast from '@/components/Toast/CustomToast';
 import { format } from 'date-fns';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 import SettingsSidebar from '../components/datadownload/SettingsSidebar';
 import DataContent, {
@@ -145,9 +145,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(activeGroup?.name?.toLowerCase(), {
-    enabled: !!activeGroup?.name,
-  });
+  } = useSitesSummary(groupTitle, {});
 
   const {
     data: devicesData,
@@ -155,9 +153,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: devicesError,
     error: devicesErrorMsg,
     refresh: refreshDevices,
-  } = useDeviceSummary(activeGroup?.name?.toLowerCase(), {
-    enabled: !!activeGroup?.name,
-  });
+  } = useDeviceSummary(groupTitle, {});
 
   const {
     data: countriesData,
@@ -515,13 +511,50 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
             }
           } else if (fileExtension === 'json') {
             // Process JSON data
-            let jsonData =
-              typeof response === 'string'
-                ? JSON.parse(response)
-                : typeof response === 'object' && response !== null
-                  ? response.data || response
-                  : { error: 'No data available' };
+            let jsonData;
+            try {
+              if (typeof response === 'string') {
+                // Check if the response is CSV (contains commas and newlines)
+                if (response.includes(',') && response.includes('\n')) {
+                  // Parse CSV to JSON
+                  const lines = response.trim().split('\n');
+                  const headers = lines[0].split(',');
+                  jsonData = lines.slice(1).map((line) => {
+                    const values = line.split(',');
+                    return headers.reduce((obj, header, index) => {
+                      // Clean up the values and handle empty fields
+                      let value = values[index] ? values[index].trim() : '';
+                      obj[header.trim()] = value || null;
+                      return obj;
+                    }, {});
+                  });
+                } else {
+                  // Try parsing as JSON if it's not CSV
+                  jsonData = JSON.parse(response);
+                }
+              } else if (typeof response === 'object' && response !== null) {
+                jsonData = response.data || response;
+              } else {
+                throw new Error('No data available');
+              }
 
+              if (
+                !jsonData ||
+                (Array.isArray(jsonData) && jsonData.length === 0)
+              ) {
+                throw new Error('No data available for the selected criteria');
+              }
+            } catch (error) {
+              if (
+                error.message === 'No data available' ||
+                error.message === 'No data available for the selected criteria'
+              ) {
+                throw error;
+              }
+              throw new Error(
+                'Error processing the data. Please try again or contact support.',
+              );
+            }
             // Save as JSON
             const jsonString = JSON.stringify(jsonData, null, 2);
             saveAs(new Blob([jsonString], { type: mimeType }), fileName);
@@ -622,16 +655,23 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     ],
   );
 
-  // Define filter tabs
-  const filters = useMemo(
-    () => [
+  // Define filter tabs, hiding Countries and Cities unless AirQo group is active
+  const filters = useMemo(() => {
+    const baseFilters = [
       { key: FILTER_TYPES.COUNTRIES, label: 'Countries' },
       { key: FILTER_TYPES.CITIES, label: 'Cities' },
       { key: FILTER_TYPES.SITES, label: 'Sites' },
       { key: FILTER_TYPES.DEVICES, label: 'Devices' },
-    ],
-    [],
-  );
+    ];
+    if (activeGroup?.name?.toLowerCase() !== 'airqo') {
+      // Hide Countries and Cities unless AirQo group is active
+      return baseFilters.filter(
+        (f) =>
+          f.key !== FILTER_TYPES.COUNTRIES && f.key !== FILTER_TYPES.CITIES,
+      );
+    }
+    return baseFilters;
+  }, [activeGroup]);
 
   // Get data for current filter tab with proper null handling
   const currentFilterData = useMemo(() => {
