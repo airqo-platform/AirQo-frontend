@@ -123,6 +123,8 @@ export default function MyProfile() {
           setUserDetails({
             ...currentUser,
             profilePicture: responseData.secure_url,
+            networks: currentUser.networks || [],
+            groups: currentUser.groups || [],
           }),
         )
         toast({
@@ -148,7 +150,12 @@ export default function MyProfile() {
       const updatedProfile = { ...profile, profilePicture: "" }
       setProfile(updatedProfile)
       await settings.updateUserDetailsApi({ profilePicture: "" }, currentUser._id)
-      dispatch(setUserDetails({ ...currentUser, profilePicture: "" }))
+      dispatch(setUserDetails({ 
+        ...currentUser, 
+        profilePicture: "",
+        networks: currentUser.networks || [],
+        groups: currentUser.groups || [],
+      }))
       toast({
         title: "Success",
         description: "Profile picture deleted successfully",
@@ -176,7 +183,12 @@ export default function MyProfile() {
         throw new Error("User details not updated")
       }
 
-      dispatch(setUserDetails({ ...currentUser, ...updatedUser }))
+      dispatch(setUserDetails({ 
+        ...currentUser, 
+        ...updatedUser,
+        networks: updatedUser.networks || currentUser.networks || [],
+        groups: updatedUser.groups || currentUser.groups || [],
+      }))
       toast({
         title: "Success",
         description: "Profile updated successfully",
