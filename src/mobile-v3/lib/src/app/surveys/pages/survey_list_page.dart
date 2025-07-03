@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
+import 'package:airqo/src/app/surveys/models/survey_model.dart';
+import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_card.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -60,7 +62,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
       ),
@@ -120,9 +122,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
                 return SurveyCard(
                   survey: survey,
                   showProgress: userResponse != null && userResponse.isInProgress,
-                  completionPercentage: userResponse != null 
-                      ? userResponse.getCompletionPercentage(survey.questions.length)
-                      : null,
+                  completionPercentage: userResponse?.getCompletionPercentage(survey.questions.length),
                   onTap: () => _navigateToSurveyDetail(survey, userResponse),
                 );
               },

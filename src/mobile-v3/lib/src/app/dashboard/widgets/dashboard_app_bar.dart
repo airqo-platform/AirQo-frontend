@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/profile/pages/profile_page.dart';
+import 'package:airqo/src/app/surveys/example/survey_test_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,6 +27,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             "assets/images/shared/logo.svg",
           ),
           Spacer(),
+          _buildSurveyTestButton(context),
+          SizedBox(width: 8),
           _buildThemeToggle(context),
           SizedBox(width: 8),
           _buildUserAvatar(context),
@@ -278,6 +281,28 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               )
             : fallbackWidget;
       },
+    );
+  }
+
+  // TODO: Remove this temporary test button before production
+  Widget _buildSurveyTestButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const SurveyTestPage(),
+          ),
+        );
+      },
+      child: CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.green.withOpacity(0.1),
+        child: const Icon(
+          Icons.quiz,
+          color: Colors.green,
+          size: 20,
+        ),
+      ),
     );
   }
 }

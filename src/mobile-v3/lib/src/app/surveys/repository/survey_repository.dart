@@ -3,6 +3,7 @@ import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
+import 'package:airqo/src/app/surveys/example/example_survey_data.dart';
 import 'package:loggy/loggy.dart';
 import 'package:http/http.dart' as http;
 
@@ -10,6 +11,9 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   static const String _surveysBoxName = 'surveys';
   static const String _surveyResponsesBoxName = 'survey_responses';
   static const String _surveyStatsBoxName = 'survey_stats';
+
+  // Development mode flag - set to false when APIs are ready
+  static const bool _useMockData = true;
 
   // API endpoints
   static const String _surveysEndpoint = '/api/v2/surveys';
@@ -19,6 +23,11 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   /// Get all available surveys
   Future<List<Survey>> getSurveys({bool forceRefresh = false}) async {
     try {
+      // Use mock data in development mode
+      if (_useMockData) {
+        return _getMockSurveys(forceRefresh: forceRefresh);
+      }
+
       // Try to get from cache first
       if (!forceRefresh) {
         final cachedSurveys = await _getCachedSurveys();
@@ -29,7 +38,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
 
       // Fetch from API
-      final response = await createAuthenticatedGetRequest(path: _surveysEndpoint);
+      final response = await createAuthenticatedGetRequest(_surveysEndpoint, {});
       final data = json.decode(response.body);
 
       if (data['success'] == true && data['surveys'] != null) {
@@ -70,7 +79,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
 
       // Fetch from API
-      final response = await createAuthenticatedGetRequest(path: '$_surveysEndpoint/$surveyId');
+      final response = await createAuthenticatedGetRequest('$_surveysEndpoint/$surveyId', {});
       final data = json.decode(response.body);
 
       if (data['success'] == true && data['survey'] != null) {
@@ -92,7 +101,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
       // Submit to API
       final responseData = response.toJson();
-      final apiResponse = await createAuthenticatedPostRequest(
+      final apiResponse = await createPostRequest(
         path: _surveyResponsesEndpoint,
         data: responseData,
       );
@@ -143,7 +152,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
             ? '$_surveyResponsesEndpoint?surveyId=$surveyId'
             : _surveyResponsesEndpoint;
             
-        final apiResponse = await createAuthenticatedGetRequest(path: endpoint);
+        final apiResponse = await createAuthenticatedGetRequest(endpoint, {});
         final data = json.decode(apiResponse.body);
 
         if (data['success'] == true && data['responses'] != null) {
@@ -179,7 +188,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       // Try to get fresh data from API
       try {
         final response = await createAuthenticatedGetRequest(
-          path: '$_surveyStatsEndpoint/$surveyId'
+          '$_surveyStatsEndpoint/$surveyId', {}
         );
         final data = json.decode(response.body);
 
@@ -220,12 +229,46 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   /// Clear all cached data
   Future<void> clearCache() async {
     try {
-      await HiveRepository.clearBox(_surveysBoxName);
-      await HiveRepository.clearBox(_surveyResponsesBoxName);
-      await HiveRepository.clearBox(_surveyStatsBoxName);
+      await HiveRepository.deleteData(_surveysBoxName, 'surveys');
+      await HiveRepository.deleteData(_surveyResponsesBoxName, 'responses');
+      // Clear individual survey stats
+      final responses = await _getCachedSurveyResponses();
+      for (final response in responses) {
+        await HiveRepository.deleteData(_surveyStatsBoxName, response.surveyId);
+      }
       loggy.info('Cleared all survey cache');
     } catch (e) {
       loggy.error('Error clearing cache: $e');
+    }
+  }
+
+  // Mock data methods for development
+
+  Future<List<Survey>> _getMockSurveys({bool forceRefresh = false}) async {
+    try {
+      // Simulate network delay
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Try to get from cache first
+      if (!forceRefresh) {
+        final cachedSurveys = await _getCachedSurveys();
+        if (cachedSurveys.isNotEmpty) {
+          loggy.info('Returning ${cachedSurveys.length} cached mock surveys');
+          return cachedSurveys;
+        }
+      }
+
+      // Get example surveys
+      final surveys = ExampleSurveyData.getAllExampleSurveys();
+      
+      // Cache the surveys
+      await _cacheSurveys(surveys);
+      
+      loggy.info('Returning ${surveys.length} mock surveys');
+      return surveys;
+    } catch (e) {
+      loggy.error('Error getting mock surveys: $e');
+      rethrow;
     }
   }
 
@@ -248,7 +291,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   Future<void> _cacheSurveys(List<Survey> surveys) async {
     try {
       final surveysJson = surveys.map((s) => s.toJson()).toList();
-      await HiveRepository.setData('surveys', json.encode(surveysJson), _surveysBoxName);
+      await HiveRepository.saveData(_surveysBoxName, 'surveys', json.encode(surveysJson));
     } catch (e) {
       loggy.error('Error caching surveys: $e');
     }
@@ -281,7 +324,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
 
       final responsesJson = responses.map((r) => r.toJson()).toList();
-      await HiveRepository.setData('responses', json.encode(responsesJson), _surveyResponsesBoxName);
+      await HiveRepository.saveData(_surveyResponsesBoxName, 'responses', json.encode(responsesJson));
     } catch (e) {
       loggy.error('Error caching survey response: $e');
     }
@@ -302,10 +345,10 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
   Future<void> _cacheSurveyStats(SurveyStats stats) async {
     try {
-      await HiveRepository.setData(
+      await HiveRepository.saveData(
+        _surveyStatsBoxName,
         stats.surveyId, 
-        json.encode(stats.toJson()), 
-        _surveyStatsBoxName
+        json.encode(stats.toJson())
       );
     } catch (e) {
       loggy.error('Error caching survey stats: $e');

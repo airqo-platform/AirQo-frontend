@@ -11,19 +11,31 @@ import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 class SurveyDetailPage extends StatelessWidget {
   final Survey survey;
   final SurveyResponse? existingResponse;
+  final SurveyRepository? repository;
 
   const SurveyDetailPage({
     super.key,
     required this.survey,
     this.existingResponse,
+    this.repository,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Use provided repository or try to get from provider, or create a new one
+    SurveyRepository repo;
+    if (repository != null) {
+      repo = repository!;
+    } else {
+      try {
+        repo = RepositoryProvider.of<SurveyRepository>(context);
+      } catch (e) {
+        repo = SurveyRepository();
+      }
+    }
+    
     return BlocProvider(
-      create: (context) => SurveyBloc(
-        RepositoryProvider.of<SurveyRepository>(context),
-      ),
+      create: (context) => SurveyBloc(repo),
       child: SurveyDetailView(
         survey: survey,
         existingResponse: existingResponse,

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
+import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
 import 'package:airqo/src/app/surveys/example/example_survey_data.dart';
 import 'package:airqo/src/app/surveys/pages/survey_list_page.dart';
+import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:loggy/loggy.dart';
 
 /// Test page for demonstrating survey system functionality
 /// This can be accessed during development to test survey features
@@ -15,8 +18,7 @@ class SurveyTestPage extends StatefulWidget {
   @override
   State<SurveyTestPage> createState() => _SurveyTestPageState();
 }
-
-class _SurveyTestPageState extends State<SurveyTestPage> {
+class _SurveyTestPageState extends State<SurveyTestPage> with UiLoggy {
   final SurveyTriggerService _triggerService = SurveyTriggerService();
   late SurveyRepository _repository;
 
@@ -29,6 +31,16 @@ class _SurveyTestPageState extends State<SurveyTestPage> {
 
   Future<void> _initializeTestData() async {
     try {
+      // Test bloc creation first
+      try {
+        final testBloc = SurveyBloc(_repository);
+        loggy.info('SurveyBloc created successfully');
+        testBloc.close(); // Clean up test bloc
+      } catch (e) {
+        loggy.error('Error creating SurveyBloc: $e');
+        throw Exception('SurveyBloc creation failed: $e');
+      }
+
       // Initialize trigger service
       await _triggerService.initialize();
       
@@ -48,6 +60,7 @@ class _SurveyTestPageState extends State<SurveyTestPage> {
         ),
       );
     } catch (e) {
+      loggy.error('Error initializing test data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error initializing test data: $e'),
@@ -271,14 +284,24 @@ class _SurveyTestPageState extends State<SurveyTestPage> {
   }
 
   void _openSurveyList() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => BlocProvider(
-          create: (context) => SurveyBloc(_repository),
-          child: const SurveyListPage(),
+    try {
+      final bloc = SurveyBloc(_repository);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => BlocProvider.value(
+            value: bloc,
+            child: const SurveyListPage(),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating survey bloc: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _loadExampleSurveys() async {
@@ -420,10 +443,7 @@ class _SurveyTestPageState extends State<SurveyTestPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Navigate to survey
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Survey navigation coming soon!')),
-              );
+              _navigateToSurvey(survey);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
@@ -432,6 +452,18 @@ class _SurveyTestPageState extends State<SurveyTestPage> {
             child: const Text('Take Survey'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _navigateToSurvey(Survey survey) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SurveyDetailPage(
+          survey: survey,
+          existingResponse: null, // New survey, no existing response
+          repository: _repository,
+        ),
       ),
     );
   }

@@ -65,8 +65,6 @@ class SurveyQuestionWidget extends StatelessWidget {
         return _buildYesNo(context);
       case QuestionType.text:
         return _buildTextInput(context);
-      default:
-        return _buildTextInput(context);
     }
   }
 
