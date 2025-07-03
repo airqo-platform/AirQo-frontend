@@ -7,6 +7,7 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
+import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -37,6 +38,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await EnhancedLocationServiceManager().initialize();
 
   await CacheManager().initialize();
 
