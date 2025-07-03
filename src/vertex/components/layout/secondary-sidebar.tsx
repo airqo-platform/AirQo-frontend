@@ -117,6 +117,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                                         <SubMenuItem href="/devices/overview" label="Overview" />
                                     </PermissionGuard>
                                     <PermissionGuard permission="DEPLOY_AIRQO_DEVICES">
+                                        <SubMenuItem href="/devices/my-devices" label="My Devices" />
+                                        <SubMenuItem href="/devices/claim" label="Claim Device" />
                                         <SubMenuItem href="/devices/deploy" label="Deploy Device" />
                                     </PermissionGuard>
                                 </SubMenu>

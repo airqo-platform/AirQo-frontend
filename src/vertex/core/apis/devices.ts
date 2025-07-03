@@ -1,7 +1,15 @@
 import createAxiosInstance from "./axiosConfig";
 import { DEVICES_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
-import type { DevicesSummaryResponse } from "@/app/types/devices";
+import type { 
+  DevicesSummaryResponse,
+  DeviceAvailabilityResponse,
+  DeviceClaimRequest,
+  DeviceClaimResponse,
+  MyDevicesResponse,
+  DeviceAssignmentRequest,
+  DeviceAssignmentResponse
+} from "@/app/types/devices";
 
 const axiosInstance = createAxiosInstance();
 const axiosInstanceWithTokenAccess = createAxiosInstance(false);
@@ -101,5 +109,84 @@ export const devices = {
       `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`
     );
     return response.data;
+  },
+
+  // New API methods for device claiming and management
+  checkDeviceAvailability: async (deviceName: string): Promise<DeviceAvailabilityResponse> => {
+    try {
+      const response = await axiosInstance.get<DeviceAvailabilityResponse>(
+        `${DEVICES_MGT_URL}/check-availability/${deviceName}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to check device availability"
+      );
+    }
+  },
+
+  claimDevice: async (claimData: DeviceClaimRequest): Promise<DeviceClaimResponse> => {
+    try {
+      const response = await axiosInstance.post<DeviceClaimResponse>(
+        `${DEVICES_MGT_URL}/claim`,
+        claimData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to claim device"
+      );
+    }
+  },
+
+  getMyDevices: async (userId: string, organizationId?: string): Promise<MyDevicesResponse> => {
+    try {
+      const params = new URLSearchParams({ user_id: userId });
+      if (organizationId) {
+        params.append('organization_id', organizationId);
+      }
+      
+      const response = await axiosInstance.get<MyDevicesResponse>(
+        `${DEVICES_MGT_URL}/my-devices?${params.toString()}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch user devices"
+      );
+    }
+  },
+
+  assignDeviceToOrganization: async (assignmentData: DeviceAssignmentRequest): Promise<DeviceAssignmentResponse> => {
+    try {
+      const response = await axiosInstance.post<DeviceAssignmentResponse>(
+        `${DEVICES_MGT_URL}/assign-organization`,
+        assignmentData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to assign device to organization"
+      );
+    }
+  },
+
+  unassignDeviceFromOrganization: async (deviceName: string, userId: string): Promise<DeviceAssignmentResponse> => {
+    try {
+      const response = await axiosInstance.post<DeviceAssignmentResponse>(
+        `${DEVICES_MGT_URL}/unassign-organization`,
+        { device_name: deviceName, user_id: userId }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to unassign device from organization"
+      );
+    }
   },
 };

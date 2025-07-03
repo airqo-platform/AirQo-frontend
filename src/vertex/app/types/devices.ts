@@ -55,6 +55,15 @@ export interface Device {
   cohorts: string[];
   grids: DeviceGrid[];
   site: DeviceSite;
+  claim_status?: "unclaimed" | "claimed" | "deployed";
+  owner_id?: string;
+  claimed_at?: string;
+  assigned_organization_id?: string;
+  deployment_date?: string;
+  mountType?: "pole" | "wall" | "faceboard" | "rooftop" | "suspended";
+  powerType?: "solar" | "mains" | "alternator";
+  height?: number;
+  isPrimaryInLocation?: boolean;
 }
 
 export interface DevicesSummaryResponse {
@@ -120,4 +129,51 @@ export interface ReadingsApiResponse {
   success: boolean;
   message: string;
   measurements: Measurement[];
+}
+
+export interface DeviceAvailabilityResponse {
+  success: boolean;
+  message: string;
+  data: {
+    available: boolean;
+    status: "unclaimed" | "claimed" | "deployed";
+  };
+}
+
+export interface DeviceClaimRequest {
+  device_name: string;
+  user_id: string;
+  claim_token?: string;
+}
+
+export interface DeviceClaimResponse {
+  success: boolean;
+  message: string;
+  device: {
+    name: string;
+    long_name: string;
+    status: string;
+    claim_status: "claimed";
+    claimed_at: string;
+  };
+}
+
+export interface MyDevicesResponse {
+  success: boolean;
+  message: string;
+  devices: Device[];
+  total_devices: number;
+  deployed_devices: number;
+}
+
+export interface DeviceAssignmentRequest {
+  device_name: string;
+  organization_id: string;
+  user_id: string;
+}
+
+export interface DeviceAssignmentResponse {
+  success: boolean;
+  message: string;
+  device: Device;
 }

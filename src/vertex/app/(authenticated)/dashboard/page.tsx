@@ -40,6 +40,12 @@ const WelcomePage = () => {
             icon: Grid,
             permission: "CREATE_UPDATE_AND_DELETE_GRIDS",
         },
+        {
+            href: "/devices/claim",
+            label: "Claim a Device",
+            icon: Radio,
+            permission: "DEPLOY_AIRQO_DEVICES",
+        }
     ];
 
     return (
