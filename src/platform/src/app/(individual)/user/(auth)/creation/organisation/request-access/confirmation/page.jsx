@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import CongratsImage from '@/images/EventHandling/congratulations.svg';
-// import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
 const OrgRequestSubmissionConfirmationPage = () => {
   return (

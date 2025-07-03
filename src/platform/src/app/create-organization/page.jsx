@@ -21,7 +21,7 @@ const CreateOrganizationPage = () => {
 
   const handleCancel = () => {
     // Navigate back to the previous page
-    router.back();
+    router.push('/user/Home');
   };
   return (
     <div className="py-8">

@@ -14,7 +14,7 @@ import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie'
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
-import { OrganizationLoadingProvider } from './OrganizationLoadingProvider';
+import UnifiedGroupProvider from './UnifiedGroupProvider';
 import LogoutProvider from './LogoutProvider';
 import { useThemeInitialization } from '@/core/hooks';
 // Import environment validation
@@ -169,9 +169,7 @@ export default function ClientProviders({ children }) {
         <ThemeProvider>
           <ThemeInitializer />
           <LogoutProvider>
-            <OrganizationLoadingProvider>
-              {children}
-            </OrganizationLoadingProvider>
+            <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
           </LogoutProvider>
         </ThemeProvider>
       </ReduxProviders>

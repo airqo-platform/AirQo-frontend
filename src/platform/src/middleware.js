@@ -4,18 +4,50 @@ import {
   validateServerSession,
   logSessionValidation,
 } from './core/utils/sessionUtils';
+import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options';
 import logger from './lib/logger';
+
+// Centralized route pattern matching
+const ROUTE_PATTERNS = {
+  AUTH: ['/login', '/register', '/forgotPwd', '/creation', '/verify-email'],
+  PUBLIC: ['/', '/public/', '/_next/', '/api/auth/', '/favicon.ico'],
+  PROTECTED: [
+    '/org/',
+    '/user/',
+    '(individual)',
+    '(organization)',
+    '/admin',
+    '/create-organization',
+    '/Home',
+    '/analytics',
+    '/collocation',
+    '/settings',
+  ],
+};
+
+// Check if pathname matches any pattern in array
+const matchesPatterns = (pathname, patterns) => {
+  return patterns.some(
+    (pattern) => pathname.includes(pattern) || pathname.startsWith(pattern),
+  );
+};
+
+// Determine fallback login path with centralized logic
+const getFallbackLoginPath = (pathname) => {
+  try {
+    return getLoginRedirectPath(pathname);
+  } catch (error) {
+    logger.error('Fallback login determination failed:', error);
+    return '/user/login';
+  }
+};
 
 export default withAuth(
   async function middleware(request) {
     try {
-      // Validate session using professional utilities
       const validation = await validateServerSession(request);
-
-      // Log validation for debugging in development
       logSessionValidation(validation, 'Middleware validation');
 
-      // If validation fails, redirect to appropriate login
       if (!validation.isValid && validation.redirectPath) {
         logger.info('Middleware redirecting:', {
           from: request.nextUrl.pathname,
@@ -30,35 +62,9 @@ export default withAuth(
 
       return NextResponse.next();
     } catch (error) {
-      // Log error and fallback to appropriate login based on route context
       logger.error('Middleware error:', error);
 
-      // Determine fallback redirect using enhanced routing logic
-      const pathname = request.nextUrl.pathname;
-      let fallbackLogin = '/user/login';
-
-      // Enhanced fallback logic that considers AirQo rules
-      try {
-        // Try to get active group from request headers or other context
-        // For now, use pathname-based fallback with AirQo considerations
-        if (pathname.includes('/org/')) {
-          const orgSlugMatch = pathname.match(/^\/org\/([^/]+)/);
-          const orgSlug = orgSlugMatch ? orgSlugMatch[1] : 'airqo';
-
-          // If the org slug is 'airqo', redirect to user login instead
-          if (orgSlug === 'airqo') {
-            fallbackLogin = '/user/login';
-          } else {
-            fallbackLogin = `/org/${orgSlug}/login`;
-          }
-        } else {
-          fallbackLogin = '/user/login';
-        }
-      } catch (fallbackError) {
-        logger.error('Fallback login determination failed:', fallbackError);
-        fallbackLogin = '/user/login';
-      }
-
+      const fallbackLogin = getFallbackLoginPath(request.nextUrl.pathname);
       return NextResponse.redirect(new URL(fallbackLogin, request.url));
     }
   },
@@ -68,38 +74,17 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // Always allow access to authentication pages
-        if (
-          pathname.includes('/login') ||
-          pathname.includes('/register') ||
-          pathname.includes('/forgotPwd') ||
-          pathname.includes('/creation') ||
-          pathname.includes('/verify-email')
-        ) {
+        if (matchesPatterns(pathname, ROUTE_PATTERNS.AUTH)) {
           return true;
         }
 
         // Allow access to public routes
-        if (
-          pathname === '/' ||
-          pathname.startsWith('/public/') ||
-          pathname.startsWith('/_next/') ||
-          pathname.startsWith('/api/auth/') ||
-          pathname === '/favicon.ico'
-        ) {
+        if (matchesPatterns(pathname, ROUTE_PATTERNS.PUBLIC)) {
           return true;
         }
 
         // Require authentication for protected routes
-        if (
-          pathname.includes('/org/') ||
-          pathname.includes('/user/') ||
-          pathname.includes('(individual)') ||
-          pathname.includes('(organization)') ||
-          pathname.startsWith('/Home') ||
-          pathname.startsWith('/analytics') ||
-          pathname.startsWith('/collocation') ||
-          pathname.startsWith('/settings')
-        ) {
+        if (matchesPatterns(pathname, ROUTE_PATTERNS.PROTECTED)) {
           return !!token;
         }
 
@@ -111,14 +96,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: [
-    /*
-     * Match all routes except:
-     * - API routes (/api/*)
-     * - Static files (/_next/*)
-     * - Public files
-     * - Favicon
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

@@ -12,7 +12,7 @@ import {
 } from '@/lib/store/services/charts/ChartSlice';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import { useOrgChartSites } from '@/core/hooks/useOrgChartSites';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 
 /**

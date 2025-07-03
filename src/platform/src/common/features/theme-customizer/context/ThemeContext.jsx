@@ -63,6 +63,15 @@ export const ThemeProvider = ({ children }) => {
       localStorage.setItem(STORAGE_KEYS.PRIMARY_COLOR, primaryColor);
       localStorage.setItem(STORAGE_KEYS.LAYOUT, layout);
       localStorage.setItem(STORAGE_KEYS.SEMI_DARK, String(semiDark));
+
+      // Clear login setup theme flags if they exist to avoid conflicts
+      if (
+        typeof window !== 'undefined' &&
+        window.sessionStorage.getItem('userThemeLoaded')
+      ) {
+        window.sessionStorage.removeItem('userTheme');
+        window.sessionStorage.removeItem('userThemeLoaded');
+      }
     } catch {
       // Silent fail for localStorage errors
     }

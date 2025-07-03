@@ -12,11 +12,9 @@ import {
   setUserPassword,
   setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
-import Spinner from '@/components/Spinner';
 import InputField from '@/common/components/InputField';
 import Toast from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withUserAuthRoute } from '@/core/HOC';
 
 const IndividualAccountRegistration = () => {
   const [firstName, setFirstName] = useState('');
@@ -254,7 +252,7 @@ const IndividualAccountRegistration = () => {
                   !checked
                 }
               >
-                {loading ? <Spinner width={25} height={25} /> : 'Continue'}
+                {loading ? 'Registering...' : 'Continue'}
               </button>
             </div>
             {/* Already have an account */}
@@ -276,4 +274,4 @@ const IndividualAccountRegistration = () => {
   );
 };
 
-export default withUserAuthRoute(IndividualAccountRegistration);
+export default IndividualAccountRegistration;

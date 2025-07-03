@@ -10,20 +10,9 @@ import {
   validateStep2,
   validateFile,
 } from '../utils/validation';
-import {
-  generateSlugFromName,
-  handleInputChange as utilHandleInputChange,
-  getInitialFormData,
-  transformFormDataForAPI,
-} from '../utils/formUtils';
+import { generateSlugFromName, getInitialFormData } from '../utils/formUtils';
 import { useCreateOrganization } from '../hooks/useCreateOrganization';
 
-/**
- * CreateOrganizationForm Component
- *
- * A reusable form component for creating organizations.
- * Can be used in modals, pages, or any other container.
- */
 const CreateOrganizationForm = ({
   onSuccess,
   onCancel,
@@ -32,12 +21,12 @@ const CreateOrganizationForm = ({
 }) => {
   const router = useRouter();
   const fileInputRef = useRef(null);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [logoPreview, setLogoPreview] = useState('');
-  const [logoFile, setLogoFile] = useState(null);
 
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState(getInitialFormData());
   const [errors, setErrors] = useState({});
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
 
   const {
     isSubmitting,
@@ -48,38 +37,49 @@ const CreateOrganizationForm = ({
     submitOrganizationRequest,
   } = useCreateOrganization();
 
-  // Auto-generate slug from organization name
+  // Auto‐generate slug from name
   useEffect(() => {
     if (
-      formData.organizationName &&
       currentStep === 1 &&
+      formData.organizationName &&
       !formData.organizationSlug
     ) {
-      const generatedSlug = generateSlugFromName(formData.organizationName);
       setFormData((prev) => ({
         ...prev,
-        organizationSlug: generatedSlug,
+        organizationSlug: generateSlugFromName(prev.organizationName),
       }));
     }
   }, [formData.organizationName, currentStep]);
 
-  // Check slug availability with debouncing
+  // Debounced slug‐availability check
   useEffect(() => {
-    if (
-      formData.organizationSlug &&
-      formData.organizationSlug.trim() !== '' &&
-      formData.organizationSlug.length >= 3
-    ) {
-      const timeoutId = setTimeout(() => {
-        checkSlugAvailability(formData.organizationSlug);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
+    if (formData.organizationSlug.length >= 3) {
+      const id = setTimeout(
+        () => checkSlugAvailability(formData.organizationSlug),
+        500,
+      );
+      return () => clearTimeout(id);
     }
   }, [formData.organizationSlug]);
 
+  // Generic input handler (supports nested branding_settings.*)
   const handleInputChange = (e) => {
-    utilHandleInputChange(e, setFormData, setErrors, errors);
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      if (name.includes('.')) {
+        const [parent, child] = name.split('.');
+        return {
+          ...prev,
+          [parent]: { ...prev[parent], [child]: value },
+        };
+      }
+      return { ...prev, [name]: value };
+    });
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[name];
+      return copy;
+    });
   };
 
   const handleSuggestionClick = (suggestion) => {
@@ -87,90 +87,90 @@ const CreateOrganizationForm = ({
       ...prev,
       organizationSlug: suggestion,
     }));
+    setErrors((prev) => {
+      const c = { ...prev };
+      delete c.organizationSlug;
+      return c;
+    });
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileValidation = validateFile(file);
-    if (!fileValidation.isValid) {
-      setErrors((prev) => ({
-        ...prev,
-        logoFile: fileValidation.error,
-      }));
+    const { isValid, error } = validateFile(file);
+    if (!isValid) {
+      setErrors((prev) => ({ ...prev, logoFile: error }));
       return;
     }
 
-    // Clear file errors
-    if (errors.logoFile) {
-      const newErrors = { ...errors };
-      delete newErrors.logoFile;
-      setErrors(newErrors);
-    }
-
+    setErrors((prev) => {
+      const c = { ...prev };
+      delete c.logoFile;
+      return c;
+    });
     setLogoFile(file);
 
-    // Create preview
     const reader = new FileReader();
-    reader.onload = (e) => {
-      setLogoPreview(e.target.result);
-    };
+    reader.onload = (ev) => setLogoPreview(ev.target.result);
     reader.readAsDataURL(file);
   };
+
   const handleNextStep = () => {
-    const validation = validateStep1(formData, slugAvailability);
-    if (validation.isValid) {
-      setCurrentStep(2);
-      setErrors({});
-    } else {
-      setErrors(validation.errors);
+    const { errors: stepErrors, isValid } = validateStep1(
+      formData,
+      slugAvailability,
+    );
+    if (!isValid) {
+      setErrors(stepErrors);
+      return;
     }
+    setErrors({});
+    setCurrentStep(2);
   };
 
   const handlePrevStep = () => {
-    setCurrentStep(1);
     setErrors({});
+    setCurrentStep(1);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // guard against double‐submit
+    if (isSubmitting) return;
+
+    // only on step 2 do we actually send data
     if (currentStep === 1) {
       handleNextStep();
       return;
     }
 
-    // Validate step 2
-    const validation = validateStep2(formData, logoFile);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
+    // step 2 validation
+    const { errors: step2Errors, isValid } = validateStep2(formData);
+    if (!isValid) {
+      setErrors(step2Errors);
       return;
     }
 
-    try {
-      const apiData = transformFormDataForAPI(formData);
-      const result = await submitOrganizationRequest(apiData, logoFile);
+    const { success, error } = await submitOrganizationRequest(
+      formData,
+      logoFile,
+    );
 
-      if (result.success) {
-        // Reset form
-        setFormData(getInitialFormData());
-        setCurrentStep(1);
-        setLogoFile(null);
-        setLogoPreview('');
-        setErrors({});
-
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          // Default behavior: navigate to user home
-          router.push('/user/Home');
-        }
-      }
-    } catch (error) {
+    if (success) {
+      // reset everything
+      setFormData(getInitialFormData());
+      setLogoFile(null);
+      setLogoPreview('');
+      setErrors({});
+      setCurrentStep(1);
+      if (onSuccess) return onSuccess();
+      router.push('/user/Home');
+    } else {
       CustomToast({
         message:
-          error.message ||
+          error?.message ||
           'Failed to submit organization request. Please try again.',
         type: 'error',
       });
@@ -178,19 +178,13 @@ const CreateOrganizationForm = ({
   };
 
   const handleCancel = () => {
-    // Reset form
     setFormData(getInitialFormData());
-    setCurrentStep(1);
+    setErrors({});
     setLogoFile(null);
     setLogoPreview('');
-    setErrors({});
-
-    if (onCancel) {
-      onCancel();
-    } else {
-      // Default behavior: navigate back
-      router.back();
-    }
+    setCurrentStep(1);
+    if (onCancel) return onCancel();
+    router.back();
   };
 
   return (
@@ -253,7 +247,7 @@ const CreateOrganizationForm = ({
               error={errors.organizationName}
             />
 
-            {/* Organization URL */}
+            {/* Organization URL - Enhanced Design */}
             <div>
               <label
                 htmlFor="organizationSlug"
@@ -263,8 +257,8 @@ const CreateOrganizationForm = ({
                 <span className="text-primary dark:text-primary/40">*</span>
               </label>
               <div className="flex items-center">
-                <span className="bg-gray-100 dark:bg-gray-600 px-4 py-2.5 rounded-l-xl text-gray-500 dark:text-gray-300 border border-r-0 border-gray-400 dark:border-gray-500 text-sm">
-                  analytics.airqo.net/
+                <span className="flex-shrink-0 bg-gray-100 dark:bg-gray-600 px-4 py-2.5 rounded-l-xl text-gray-500 dark:text-gray-300 border border-r-0 border-gray-400 dark:border-gray-500 text-sm whitespace-nowrap">
+                  analytics.airqo.net/org/
                 </span>
                 <input
                   type="text"
@@ -273,37 +267,43 @@ const CreateOrganizationForm = ({
                   placeholder="nairobi-air-lab"
                   value={formData.organizationSlug}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-r-xl border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-700 outline-none text-sm text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className={`flex-grow px-4 py-2.5 rounded-r-xl border text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 ${
+                    errors.organizationSlug
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-400 dark:focus:ring-red-400'
+                      : 'border-gray-400 dark:border-gray-500 focus:border-primary focus:ring-primary/50 dark:focus:border-primary-light dark:focus:ring-primary-light/50'
+                  }`}
                   required
                 />
-                {isCheckingSlug && (
-                  <div className="ml-2 flex items-center">
-                    <svg
-                      className="animate-spin h-4 w-4 text-blue-600"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                  </div>
-                )}
               </div>
-              {formData.organizationSlug && !isCheckingSlug && (
+              {/* Loader and availability messages moved below the input */}
+              {isCheckingSlug && (
+                <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <svg
+                    className="animate-spin h-4 w-4 mr-2 text-primary dark:text-primary-light"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Checking availability...
+                </p>
+              )}
+              {!isCheckingSlug && formData.organizationSlug && (
                 <div
-                  className={`mt-1 text-sm ${
+                  className={`mt-1 text-sm flex items-center ${
                     slugAvailability === true
                       ? 'text-green-600 dark:text-green-400'
                       : slugAvailability === false
@@ -312,73 +312,70 @@ const CreateOrganizationForm = ({
                   }`}
                 >
                   {slugAvailability === true && (
-                    <div className="flex items-center">
-                      <span className="inline-block w-4 h-4 mr-1 rounded-full bg-green-100 border border-green-500">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 text-green-500 mx-auto"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </span>
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1 text-green-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                       <span>{formData.organizationSlug} is available.</span>
-                    </div>
+                    </>
                   )}
                   {slugAvailability === false && (
-                    <div className="flex items-center">
-                      <span className="inline-block w-4 h-4 mr-1 rounded-full bg-red-100 border border-red-500">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 text-red-500 mx-auto"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </span>
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1 text-red-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                       <span>{formData.organizationSlug} is already taken.</span>
-                    </div>
+                    </>
                   )}
                 </div>
               )}
-              {slugSuggestions && slugSuggestions.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Try one of these instead:
-                  </p>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {slugSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-sm rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {errors.organizationSlug ? (
+              {errors.organizationSlug && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                   {errors.organizationSlug}
                 </p>
-              ) : (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  This will be your unique URL in the AirQo platform
-                </p>
               )}
+              {slugSuggestions &&
+                slugSuggestions.length > 0 &&
+                slugAvailability === false && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Try one of these instead:
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {slugSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-sm rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                This will be your unique URL in the AirQo platform
+              </p>
             </div>
 
             {/* Contact Information */}

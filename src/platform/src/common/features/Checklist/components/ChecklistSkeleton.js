@@ -1,6 +1,6 @@
 import React from 'react';
 import Card from '@/components/CardWrapper';
-import Skeleton from '@/common/components/Skeleton';
+import { Skeleton } from '@/common/components/Skeleton';
 
 const SkeletonCard = () => (
   <Card width="w-full" padding="py-8 px-3" contentClassName="space-y-4">
