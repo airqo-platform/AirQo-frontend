@@ -251,7 +251,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                     "Makerere University".toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 15,
                       color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
