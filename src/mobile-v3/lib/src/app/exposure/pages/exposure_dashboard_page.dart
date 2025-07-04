@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
@@ -15,7 +16,7 @@ class ExposureDashboardPage extends StatefulWidget {
 class _ExposureDashboardPageState extends State<ExposureDashboardPage>
     with AutomaticKeepAliveClientMixin {
   final ExposureCalculator _exposureCalculator = ExposureCalculator();
-  
+
   DailyExposureSummary? _todayExposure;
   WeeklyExposureTrend? _weeklyTrend;
   List<DailyExposureSummary> _recentSummaries = [];
@@ -265,7 +266,7 @@ class _ExposureDashboardPageState extends State<ExposureDashboardPage>
 
   Widget _buildInsightsSection(ThemeData theme) {
     final insights = _generateInsights();
-    
+
     if (insights.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -309,7 +310,6 @@ class _ExposureDashboardPageState extends State<ExposureDashboardPage>
                   ],
                 ),
                 const SizedBox(height: 16),
-                
                 ...insights.map((insight) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -401,25 +401,29 @@ class _ExposureDashboardPageState extends State<ExposureDashboardPage>
 
     if (_todayExposure != null) {
       final today = _todayExposure!;
-      
+
       if (today.totalOutdoorTime.inHours > 6) {
-        insights.add('You spent ${today.totalOutdoorTime.inHours}+ hours outdoors today. Consider checking air quality before long outdoor activities.');
+        insights.add(
+            'You spent ${today.totalOutdoorTime.inHours}+ hours outdoors today. Consider checking air quality before long outdoor activities.');
       }
 
       if (today.riskLevel == ExposureRiskLevel.high) {
-        insights.add('High exposure detected today. Consider using air quality alerts for better planning.');
+        insights.add(
+            'High exposure detected today. Consider using air quality alerts for better planning.');
       }
 
       if (today.averagePm25 > 50) {
-        insights.add('PM2.5 levels were elevated today. Indoor air purifiers can help reduce exposure at home.');
+        insights.add(
+            'PM2.5 levels were elevated today. Indoor air purifiers can help reduce exposure at home.');
       }
     }
 
     if (_weeklyTrend != null) {
       final trend = _weeklyTrend!;
-      
+
       if (trend.overallRiskLevel == ExposureRiskLevel.high) {
-        insights.add('Your weekly exposure shows a concerning trend. Consider reducing outdoor activities during high pollution periods.');
+        insights.add(
+            'Your weekly exposure shows a concerning trend. Consider reducing outdoor activities during high pollution periods.');
       }
 
       if (trend.recommendations.isNotEmpty) {
@@ -429,8 +433,10 @@ class _ExposureDashboardPageState extends State<ExposureDashboardPage>
 
     // General tips if no specific insights
     if (insights.isEmpty) {
-      insights.add('Check air quality forecasts to plan outdoor activities during cleaner air periods.');
-      insights.add('Morning and evening hours often have different air quality patterns in your area.');
+      insights.add(
+          'Check air quality forecasts to plan outdoor activities during cleaner air periods.');
+      insights.add(
+          'Morning and evening hours often have different air quality patterns in your area.');
     }
 
     return insights;
@@ -457,11 +463,9 @@ class _ExposureDashboardPageState extends State<ExposureDashboardPage>
   }
 
   void _openPrivacySettings() {
-    // TODO: Navigate to privacy settings or enhanced location service settings
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigate to Privacy Settings in Profile'),
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LocationPrivacyScreen()),
     );
   }
 }
