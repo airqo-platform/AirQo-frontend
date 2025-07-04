@@ -85,44 +85,41 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
       return _buildErrorState(theme);
     }
 
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Info header
-          _buildInfoHeader(theme),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Info header
+        _buildInfoHeader(theme),
 
-          // Today's exposure
-          if (_todayExposure != null)
-            ExposureAnalyticsCard(
-              exposureSummary: _todayExposure!,
-              showDetailedView: true, // Show as detailed since it's the main view
-            )
-          else
-            _buildNoDataCard(theme, 'Today\'s Exposure'),
+        // Today's exposure
+        if (_todayExposure != null)
+          ExposureAnalyticsCard(
+            exposureSummary: _todayExposure!,
+            showDetailedView: true, // Show as detailed since it's the main view
+          )
+        else
+          _buildNoDataCard(theme, 'Today\'s Exposure'),
 
-          // Weekly trend
-          if (_weeklyTrend != null)
-            WeeklyExposureTrendCard(weeklyTrend: _weeklyTrend!)
-          else
-            _buildNoDataCard(theme, 'Weekly Trend'),
+        // Weekly trend
+        if (_weeklyTrend != null)
+          WeeklyExposureTrendCard(weeklyTrend: _weeklyTrend!)
+        else
+          _buildNoDataCard(theme, 'Weekly Trend'),
 
-          // Timeline
-          if (_recentSummaries.isNotEmpty)
-            ExposureTimelineWidget(
-              dailySummaries: _recentSummaries,
-              daysToShow: 7,
-            )
-          else
-            _buildNoDataCard(theme, 'Timeline'),
+        // Timeline
+        if (_recentSummaries.isNotEmpty)
+          ExposureTimelineWidget(
+            dailySummaries: _recentSummaries,
+            daysToShow: 7,
+          )
+        else
+          _buildNoDataCard(theme, 'Timeline'),
 
-          // Insights and tips
-          _buildInsightsSection(theme),
+        // Insights and tips
+        _buildInsightsSection(theme),
 
-          const SizedBox(height: 32),
-        ],
-      ),
+        const SizedBox(height: 32),
+      ],
     );
   }
 
