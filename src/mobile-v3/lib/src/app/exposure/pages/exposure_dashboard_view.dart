@@ -4,6 +4,7 @@ import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_analytics_card.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_timeline_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
 
 /// Exposure dashboard view for embedding in the main dashboard
 /// This version doesn't have its own app bar since it's a dashboard view
@@ -404,11 +405,9 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
   }
 
   void _openPrivacySettings() {
-    // TODO: Navigate to privacy settings or enhanced location service settings
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigate to Privacy Settings in Profile'),
-      ),
+       Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LocationPrivacyScreen()),
     );
   }
 }
