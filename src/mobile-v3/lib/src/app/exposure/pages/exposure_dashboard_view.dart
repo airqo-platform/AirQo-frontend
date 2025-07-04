@@ -5,6 +5,7 @@ import 'package:airqo/src/app/exposure/widgets/exposure_analytics_card.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_timeline_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
+import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 
 /// Exposure dashboard view for embedding in the main dashboard
 /// This version doesn't have its own app bar since it's a dashboard view
@@ -18,6 +19,7 @@ class ExposureDashboardView extends StatefulWidget {
 class _ExposureDashboardViewState extends State<ExposureDashboardView>
     with AutomaticKeepAliveClientMixin {
   final ExposureCalculator _exposureCalculator = ExposureCalculator();
+  final EnhancedLocationServiceManager _locationManager = EnhancedLocationServiceManager();
   
   DailyExposureSummary? _todayExposure;
   WeeklyExposureTrend? _weeklyTrend;
@@ -171,6 +173,8 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
   }
 
   Widget _buildNoDataCard(ThemeData theme, String title) {
+    final isTrackingEnabled = _locationManager.isTrackingActive;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Material(
@@ -193,7 +197,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
             child: Column(
               children: [
                 Icon(
-                  Icons.location_off,
+                  isTrackingEnabled ? Icons.hourglass_empty : Icons.location_off,
                   size: 48,
                   color: theme.textTheme.bodySmall?.color?.withOpacity(0.3),
                 ),
@@ -206,17 +210,21 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enable location tracking to see your exposure analysis. You can control data sharing in privacy settings.',
+                  isTrackingEnabled
+                      ? 'Your exposure data is being collected. Check back later to see your analysis.'
+                      : 'Enable location tracking to see your exposure analysis. You can control data sharing in privacy settings.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-                OutlinedButton(
-                  onPressed: _openPrivacySettings,
-                  child: const Text('Privacy Settings'),
-                ),
+                if (!isTrackingEnabled) ...[
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: _openPrivacySettings,
+                    child: const Text('Privacy Settings'),
+                  ),
+                ],
               ],
             ),
           ),
