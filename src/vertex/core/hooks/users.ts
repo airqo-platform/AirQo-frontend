@@ -72,6 +72,9 @@ export const useAuth = () => {
       const userInfo = userDetailsResponse.users[0];
 
       // 7. Store networks and groups
+      if (!userInfo) {
+        throw new Error('User info not found in response');
+      }
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(userInfo.groups || []));
       localStorage.setItem(
@@ -151,7 +154,15 @@ export const useAuth = () => {
 
       if (token && storedUserDetails) {
         const userDetails = JSON.parse(storedUserDetails) as UserDetails;
-        dispatch(setUserDetails(userDetails));
+        
+        // Ensure userDetails has required properties for setUserDetails
+        const safeUserDetails: UserDetails = {
+          ...userDetails,
+          networks: userDetails.networks || [],
+          groups: userDetails.groups || [],
+        };
+        
+        dispatch(setUserDetails(safeUserDetails));
 
         if (storedActiveNetwork) {
           const activeNetwork = JSON.parse(storedActiveNetwork) as Network;

@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDevices } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
-import { RouteGuard } from "@/components/route-guard";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAppSelector } from "@/core/redux/hooks";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -174,7 +175,7 @@ export default function DevicesPage() {
   }
 
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES">
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Device Registry</h1>

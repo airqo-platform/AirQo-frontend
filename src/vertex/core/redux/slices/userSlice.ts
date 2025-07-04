@@ -34,6 +34,11 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     setUserDetails(state: UserState, action: PayloadAction<UserDetails>) {
+      // Ensure we have a valid payload
+      if (!action.payload) {
+        return;
+      }
+      
       state.userDetails = action.payload;
       state.isAuthenticated = true;
       state.availableNetworks = action.payload.networks || [];

@@ -1,4 +1,4 @@
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { devices } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
@@ -6,9 +6,16 @@ import { useAppSelector } from "../redux/hooks";
 import type {
   DevicesSummaryResponse,
   ReadingsApiResponse,
+  DeviceAvailabilityResponse,
+  DeviceClaimRequest,
+  DeviceClaimResponse,
+  MyDevicesResponse,
+  DeviceAssignmentRequest,
+  DeviceAssignmentResponse
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ErrorResponse {
   message: string;
@@ -123,4 +130,100 @@ export const useMapReadings = () => {
     isLoading: mapReadingsQuery.isLoading,
     error: mapReadingsQuery.error,
   };
+};
+
+// New hooks for device claiming and management
+export const useDeviceAvailability = (deviceName: string) => {
+  return useQuery<DeviceAvailabilityResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["deviceAvailability", deviceName],
+    queryFn: () => devices.checkDeviceAvailability(deviceName),
+    enabled: !!deviceName && deviceName.length > 0,
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+export const useClaimDevice = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation<DeviceClaimResponse, AxiosError<ErrorResponse>, DeviceClaimRequest>({
+    mutationFn: devices.claimDevice,
+    onSuccess: (data) => {
+      toast({
+        title: "Device Claimed Successfully!",
+        description: `${data.device.long_name} is now yours.`,
+      });
+      // Invalidate and refetch user devices
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Claim Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useMyDevices = (userId: string, organizationId?: string) => {
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  
+  return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
+    queryFn: () => devices.getMyDevices(userId, organizationId),
+    enabled: !!userId,
+    staleTime: 60000, // 1 minute
+  });
+};
+
+export const useAssignDeviceToOrganization = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation<DeviceAssignmentResponse, AxiosError<ErrorResponse>, DeviceAssignmentRequest>({
+    mutationFn: devices.assignDeviceToOrganization,
+    onSuccess: (data) => {
+      toast({
+        title: "Device Assigned Successfully!",
+        description: `${data.device.name} has been assigned to the organization.`,
+      });
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Assignment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUnassignDeviceFromOrganization = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation<DeviceAssignmentResponse, AxiosError<ErrorResponse>, { deviceName: string; userId: string }>({
+    mutationFn: ({ deviceName, userId }) => devices.unassignDeviceFromOrganization(deviceName, userId),
+    onSuccess: (data) => {
+      toast({
+        title: "Device Unassigned Successfully!",
+        description: `${data.device.name} is now personal only.`,
+      });
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Unassignment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 };

@@ -1,11 +1,12 @@
 "use client";
 
-import { GroupList } from "@/components/Organization/List";
-import { RouteGuard } from "@/components/route-guard";
+import { GroupList } from "@/components/features/organization/List";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const OrganizationSettingsPage = () => {
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+    <RouteGuard permission={PERMISSIONS.USER.MANAGEMENT}>
       <div className="mx-auto">
         <GroupList />
       </div>

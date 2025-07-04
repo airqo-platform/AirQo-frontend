@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Check, MapPin, QrCode } from "lucide-react";
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -287,9 +288,12 @@ const ConfirmationStep = () => {
 };
 
 const DeployDevicePage = () => {
+  const searchParams = useSearchParams();
+  const deviceIdFromUrl = searchParams.get('deviceId');
+
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
-    deviceName: "",
+    deviceName: deviceIdFromUrl || "",
     height: "",
     mountType: "",
     powerType: "",
@@ -300,6 +304,13 @@ const DeployDevicePage = () => {
     network: "Network A", // This comes from Redux state
   });
   const { toast } = useToast();
+
+  // If deviceIdFromUrl changes (e.g., on client navigation), update deviceName if not already set
+  React.useEffect(() => {
+    if (deviceIdFromUrl && !deviceData.deviceName) {
+      setDeviceData((prev) => ({ ...prev, deviceName: deviceIdFromUrl }));
+    }
+  }, [deviceIdFromUrl]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
