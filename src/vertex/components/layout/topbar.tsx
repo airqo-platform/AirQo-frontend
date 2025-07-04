@@ -3,20 +3,18 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu } from "lucide-react"
+import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, BarChart2, BookOpen, LayoutDashboard, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { logout as reduxLogout } from "@/core/redux/slices/userSlice";
 import { useAppSelector } from "@/core/redux/hooks"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
@@ -62,25 +60,25 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
       name: "Calibrate",
       url: "/calibrate",
       description: "Device Calibration Tool",
-      icon: "⚙️",
+      icon: <Settings className="w-7 h-7 text-blue-600" />,
     },
     {
       name: "Documentation",
       url: "/docs",
       description: "API & User Guides",
-      icon: "📚",
+      icon: <BookOpen className="w-7 h-7 text-green-600" />,
     },
     {
       name: "Analytics",
       url: "/analytics",
       description: "Advanced Analytics Platform",
-      icon: "📊",
+      icon: <BarChart2 className="w-7 h-7 text-purple-600" />,
     },
     {
       name: "Dashboard",
       url: "/dashboard",
       description: "Main Dashboard",
-      icon: "🔍",
+      icon: <LayoutDashboard className="w-7 h-7 text-yellow-600" />,
     },
   ]
   
@@ -98,8 +96,8 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   }
 
   return (
-    <header className="flex h-16 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex w-full items-center justify-between px-4">
+    <header className="flex h-16 w-full z-40">
+      <div className="flex w-full items-center justify-between px-4 bg-white rounded-2xl mx-1 mt-1 border border-gray-100">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
@@ -113,12 +111,8 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
           <span className="font-bold text-lg">Vertex</span>
         </div>
 
-        <div className="flex-grow" />
-
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-x-3 ml-auto">
           <OrganizationPicker />
-
-          <Separator orientation="vertical" className="mx-1 h-6" />
 
           <DropdownMenu>
             <TooltipProvider>
@@ -137,38 +131,27 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <TooltipContent>Applications</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>Applications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="grid grid-cols-2 gap-1 p-2">
-                {apps.map((app) => (
-                  <DropdownMenuItem
-                    key={app.name}
-                    asChild
-                    className="flex h-24 flex-col items-center justify-center gap-1 p-3 text-center"
-                  >
-                    <Link href={app.url}>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-lg">
-                        {app.icon}
-                      </div>
-                      <div className="mt-1 text-xs font-medium">{app.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{app.description}</div>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="justify-center text-center text-sm font-medium text-primary">
-                <Link href="/apps">View all apps</Link>
-              </DropdownMenuItem>
+            <DropdownMenuContent
+              align="end"
+              className="rounded-2xl shadow-xl p-4 bg-white w-[320px] grid grid-cols-3 gap-3"
+            >
+              {apps.map((app) => (
+                <a
+                  key={app.name}
+                  href={app.url}
+                  className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl hover:bg-blue-50 focus:bg-blue-100 transition"
+                  title={app.description}
+                >
+                  {app.icon}
+                  <span className="text-xs font-medium text-center">{app.name}</span>
+                </a>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Separator orientation="vertical" className="mx-1 h-6" />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2 md:pl-2 md:pr-3">
+              <Button variant="ghost" className="flex items-center gap-2 px-2 md:pl-2 md:pr-3 cursor-pointer">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={currentUser?.profilePicture || ""} alt={getUserName()} />
                   <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
