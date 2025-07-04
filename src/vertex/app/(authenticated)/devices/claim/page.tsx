@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { QrCode, Camera, Keyboard, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { QrCode, Camera, Keyboard, ArrowLeft, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +42,18 @@ const DeviceClaimingPage = () => {
   };
 
   const handleQRScan = (result: string) => {
-    handleDeviceIdChange(result);
+    try {
+      // Try to parse the result as JSON first, trimming whitespace
+      const parsedResult = JSON.parse(result.trim());
+      const deviceName = parsedResult?.name;
+      if (typeof deviceName === "string" && deviceName.length > 0) {
+        handleDeviceIdChange(deviceName);
+      } else {
+        handleDeviceIdChange(result);
+      }
+    } catch (error) {
+      handleDeviceIdChange(result);
+    }
     setShowQRScanner(false);
     setActiveTab("manual");
   };
@@ -102,6 +113,34 @@ const DeviceClaimingPage = () => {
                       className="font-mono"
                     />
                   </div>
+
+                  {/* Claim Error Message */}
+                  {claimDevice.error && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        {((): string => {
+                          const error = claimDevice.error;
+                          const response = error?.response;
+                          const status = response?.status;
+                          const data = response?.data;
+                          if (status === 500) {
+                            return "Something went wrong on our end. Please try again later.";
+                          }
+                          if (data && typeof data === 'object' && 'errors' in data && data.errors && typeof data.errors === 'object' && 'message' in data.errors && data.errors.message) {
+                            return String(data.errors.message);
+                          }
+                          if (data?.message) {
+                            return String(data.message);
+                          }
+                          if (error?.message) {
+                            return String(error.message);
+                          }
+                          return "An unknown error occurred.";
+                        })()}
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   {/* Device Availability Status */}
                   {deviceId && (

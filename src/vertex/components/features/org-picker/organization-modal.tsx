@@ -83,7 +83,9 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }, [userGroups, searchTerm]);
 
   const handleCreateNew = () => {
-    router.push('/organizations/create');
+    const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || 'https://analytics.airqo.net';
+    const url = `${baseUrl.replace(/\/$/, '')}/create-organization`;
+    window.open(url, '_blank', 'noopener,noreferrer');
     onClose();
   }
 
