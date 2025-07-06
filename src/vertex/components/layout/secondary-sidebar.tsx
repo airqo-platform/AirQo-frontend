@@ -21,6 +21,7 @@ import { usePathname } from "next/navigation";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useAppSelector } from "@/core/redux/hooks";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -48,7 +49,7 @@ const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, toolt
               tabIndex={disabled ? -1 : 0}
               aria-disabled={disabled}
               className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition text-base
-                ${isActive ? 'bg-blue-50 font-semibold text-blue-700' : 'hover:bg-muted text-foreground'}
+                ${isActive ? (isCollapsed ? 'bg-blue-50' : 'bg-blue-50 font-semibold text-blue-700') : 'hover:bg-muted text-foreground'}
                 ${isCollapsed ? 'justify-center px-2 py-2' : ''}
                 ${disabled ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
               style={{ position: 'relative' }}
@@ -116,6 +117,30 @@ const SidebarDropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
+  if (isCollapsed) {
+    // Collapsed: use popover for submenu access
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center justify-center w-full px-2 py-2 rounded-xl transition text-base cursor-pointer select-none hover:bg-muted text-foreground"
+            aria-label={label}
+          >
+            <Icon size={20} className="shrink-0" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="right" align="center" sideOffset={8} className="p-2 w-48">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-muted-foreground px-2 mb-1">{label}</span>
+            {children}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  // Expanded: show inline dropdown
   return (
     <div className="mb-1">
       <button
