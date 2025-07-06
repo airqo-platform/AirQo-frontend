@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Check, MapPin, QrCode } from "lucide-react";
-import { useSearchParams } from 'next/navigation';
+import { MapPin } from "lucide-react";
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,12 +25,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Stepper,
-  Step,
-  StepDescription,
-  StepTitle,
-} from "@/components/ui/stepper";
 import { useToast } from "@/components/ui/use-toast";
 
 interface MountTypeOption {
@@ -58,6 +54,10 @@ interface DeviceDetailsStepProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: string) => (value: string) => void;
   onCheckboxChange: (checked: boolean) => void;
+  claimedDevices: DeviceData[];
+  onDeviceSelect: (deviceName: string) => void;
+  onClaimDevice: () => void;
+  isLoadingDevices: boolean;
 }
 
 interface LocationStepProps {
@@ -83,30 +83,50 @@ const powerTypeOptions: PowerTypeOption[] = [
   { value: "alternator", label: "Alternator" },
 ];
 
+const fetchClaimedDevices = async () => {
+  const res = await fetch('/api/v2/devices/my-devices?claim_status=claimed');
+  if (!res.ok) throw new Error('Failed to fetch devices');
+  const data = await res.json();
+  return data.devices || [];
+};
+
 const DeviceDetailsStep = ({
   deviceData,
   onInputChange,
   onSelectChange,
   onCheckboxChange,
+  claimedDevices,
+  onDeviceSelect,
+  onClaimDevice,
+  isLoadingDevices
 }: DeviceDetailsStepProps) => {
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <Button className="w-full">
-          <QrCode className="mr-2 h-4 w-4" />
-          Scan QR Code
-        </Button>
-      </div>
       <div className="space-y-4">
         <div className="grid gap-2">
-          <Label htmlFor="deviceName">Device Name</Label>
-          <Input
-            id="deviceName"
-            name="deviceName"
-            placeholder="Enter device name"
+          <Label htmlFor="deviceName">Device to Deploy</Label>
+          <Select
+            onValueChange={val => {
+              if (val === '__claim__') onClaimDevice();
+              else onDeviceSelect(val);
+            }}
             value={deviceData.deviceName}
-            onChange={onInputChange}
-          />
+            disabled={isLoadingDevices}
+          >
+            <SelectTrigger id="deviceName">
+              <SelectValue placeholder={isLoadingDevices ? 'Loading devices...' : 'Select a device'} />
+            </SelectTrigger>
+            <SelectContent>
+              {claimedDevices.map((dev) => (
+                <SelectItem key={dev.deviceName} value={dev.deviceName}>
+                  {dev.deviceName}
+                </SelectItem>
+              ))}
+              <SelectItem value="__claim__" className="text-primary font-semibold border-t mt-2 pt-2">
+                Device not listed? Claim a new device
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="height">Height (meters)</Label>
@@ -206,88 +226,44 @@ const LocationStep = ({ deviceData, onInputChange }: LocationStepProps) => {
   );
 };
 
-const PreviewStep = ({ deviceData }: PreviewStepProps) => {
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="font-medium">Device Name</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.deviceName}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Power Type</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.powerType}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Mount Type</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.mountType}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Height</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.height} meters
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Latitude</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.latitude}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Longitude</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.longitude}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Site Name</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.siteName || "N/A"}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Primary Device</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.isPrimarySite ? "Yes" : "No"}
-            </p>
-          </div>
-          <div>
-            <Label className="font-medium">Network</Label>
-            <p className="text-sm text-muted-foreground">
-              {deviceData.network}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+// StepCard component for collapsible step cards
+interface StepCardProps {
+  title: string;
+  stepIndex: number;
+  currentStep: number;
+  onHeaderClick: (stepIndex: number) => void;
+  footer?: React.ReactNode;
+  children: React.ReactNode;
+}
+const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHeaderClick, children, footer }) => (
+  <Card className="mb-4 p-3 shadow-none">
+    <Collapsible open={currentStep === stepIndex}>
+      <CollapsibleTrigger asChild>
+        <CardHeader className="cursor-pointer select-none py-0 px-2" onClick={() => onHeaderClick(stepIndex)}>
+          <CardTitle className="text-lg font-semibold flex items-center justify-between">
+            {title}
+            <span className="ml-2 text-base">▼</span>
+          </CardTitle>
+        </CardHeader>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <CardContent className="py-2 px-2">{children}</CardContent>
+        {footer && <CardFooter className="py-2 px-2">{footer}</CardFooter>}
+      </CollapsibleContent>
+    </Collapsible>
+  </Card>
+);
 
-const ConfirmationStep = () => {
-  return (
-    <div className="text-center space-y-4">
-      <div className="flex justify-center">
-        <div className="rounded-full bg-green-100 p-3">
-          <Check className="h-8 w-8 text-green-600" />
-        </div>
-      </div>
-      <h3 className="text-lg font-semibold">Device Successfully Deployed</h3>
-      <p className="text-muted-foreground">
-        Your device has been successfully deployed and is now active.
-      </p>
-    </div>
-  );
-};
+// Add SummaryItem component
+const SummaryItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div>
+    <div className="text-primary font-semibold text-sm">{label}</div>
+    <div className="text-base">{value}</div>
+  </div>
+);
 
 const DeployDevicePage = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const deviceIdFromUrl = searchParams.get('deviceId');
 
@@ -305,12 +281,24 @@ const DeployDevicePage = () => {
   });
   const { toast } = useToast();
 
+  // Fetch claimed devices
+  const { data: claimedDevices = [], isLoading: isLoadingDevices, refetch: refetchDevices } = useQuery({
+    queryKey: ['claimedDevices'],
+    queryFn: fetchClaimedDevices,
+    refetchOnWindowFocus: true,
+  });
+
   // If deviceIdFromUrl changes (e.g., on client navigation), update deviceName if not already set
   React.useEffect(() => {
     if (deviceIdFromUrl && !deviceData.deviceName) {
       setDeviceData((prev) => ({ ...prev, deviceName: deviceIdFromUrl }));
     }
   }, [deviceIdFromUrl]);
+
+  // When returning from claim page, refresh device list
+  React.useEffect(() => {
+    refetchDevices();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -322,6 +310,14 @@ const DeployDevicePage = () => {
     (value: string): void => {
       setDeviceData((prev) => ({ ...prev, [name]: value }));
     };
+
+  const handleDeviceSelect = (deviceName: string) => {
+    setDeviceData((prev) => ({ ...prev, deviceName }));
+  };
+
+  const handleClaimDevice = () => {
+    router.push('/devices/claim');
+  };
 
   const handleCheckboxChange = (checked: boolean): void => {
     setDeviceData((prev) => ({ ...prev, isPrimarySite: checked }));
@@ -336,15 +332,7 @@ const DeployDevicePage = () => {
       });
       return;
     }
-    if (currentStep === 1 && !validateLocation()) {
-      toast({
-        title: "Invalid Location",
-        description: "Please enter valid latitude and longitude.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setCurrentStep((prev) => Math.min(prev + 1, 3));
+    setCurrentStep((prev) => Math.min(prev + 1, 1));
   };
 
   const handleBack = (): void => {
@@ -367,95 +355,122 @@ const DeployDevicePage = () => {
   const handleDeploy = (): void => {
     // Add API call to deploy the device
     console.log("Deploying device:", deviceData);
-    setCurrentStep(3); // Move to confirmation step
+    setCurrentStep(2); // Move to review step
     toast({
       title: "Device Deployed",
       description: "Your device has been successfully deployed.",
     });
   };
 
-  return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-semibold">Deploy Device</h1>
-      <div className="mb-20 pt-4">
-        <Stepper index={currentStep} className="mx-auto">
-          <Step>
-            <StepTitle>Scan QR Code</StepTitle>
-            <StepDescription>Or enter manually</StepDescription>
-          </Step>
-          <Step>
-            <StepTitle>Location</StepTitle>
-            <StepDescription>Set deployment location</StepDescription>
-          </Step>
-          <Step>
-            <StepTitle>Review</StepTitle>
-            <StepDescription>Preview details</StepDescription>
-          </Step>
-          <Step>
-            <StepTitle>Complete</StepTitle>
-            <StepDescription>Deployment done</StepDescription>
-          </Step>
-        </Stepper>
-      </div>
+  // Update handleSectionClick to toggle open/close
+  const handleSectionClick = (stepIndex: number) => {
+    setCurrentStep((prev) => (prev === stepIndex ? -1 : stepIndex));
+  };
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">
-            {currentStep === 0 && "Enter Device Details"}
-            {currentStep === 1 && "Set Deployment Location"}
-            {currentStep === 2 && "Review Deployment Details"}
-            {currentStep === 3 && "Deployment Confirmation"}
-          </CardTitle>
-          <CardDescription>
-            {currentStep === 0 &&
-              "Scan the QR code or manually enter device information"}
-            {currentStep === 1 && "Choose the location for device deployment"}
-            {currentStep === 2 && "Review and confirm the deployment details"}
-            {currentStep === 3 && "Your device has been successfully deployed"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {currentStep === 0 && (
-            <DeviceDetailsStep
-              deviceData={deviceData}
-              onInputChange={handleInputChange}
-              onSelectChange={handleSelectChange}
-              onCheckboxChange={handleCheckboxChange}
-            />
-          )}
-          {currentStep === 1 && (
-            <LocationStep
-              deviceData={deviceData}
-              onInputChange={handleInputChange}
-            />
-          )}
-          {currentStep === 2 && <PreviewStep deviceData={deviceData} />}
-          {currentStep === 3 && <ConfirmationStep />}
-        </CardContent>
-        <CardFooter className="flex justify-center gap-4">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className="w-32"
+  // In DeployDevicePage, define steps array and map over it
+  const steps = [
+    {
+      title: "Enter Device Details",
+      content: (
+        <DeviceDetailsStep
+          deviceData={deviceData}
+          onInputChange={handleInputChange}
+          onSelectChange={handleSelectChange}
+          onCheckboxChange={handleCheckboxChange}
+          claimedDevices={claimedDevices}
+          onDeviceSelect={handleDeviceSelect}
+          onClaimDevice={handleClaimDevice}
+          isLoadingDevices={isLoadingDevices}
+        />
+      ),
+      footer: (
+        <Button onClick={handleNext} className="w-32">Next</Button>
+      ),
+    },
+    {
+      title: "Set Deployment Location",
+      content: (
+        <LocationStep
+          deviceData={deviceData}
+          onInputChange={handleInputChange}
+        />
+      ),
+      footer: (
+        <>
+          <Button variant="outline" onClick={handleBack} className="w-32">Back</Button>
+          <Button onClick={handleDeploy} className="w-32" disabled={!(validateDeviceDetails() && validateLocation())}>Deploy</Button>
+        </>
+      ),
+    },
+  ];
+
+  // In the sidebar summary section:
+  const summaryFields = [
+    { label: "Device", value: deviceData.deviceName || "-" },
+    { label: "Height", value: `${deviceData.height || "-"} m` },
+    { label: "Mount", value: deviceData.mountType || "-" },
+    { label: "Power", value: deviceData.powerType || "-" },
+    { label: "Lat", value: deviceData.latitude || "-" },
+    { label: "Lng", value: deviceData.longitude || "-" },
+    { label: "Primary", value: deviceData.isPrimarySite ? "Yes" : "No" },
+    { label: "Network", value: deviceData.network || "-" },
+  ];
+
+  return (
+    <div className="container mx-auto p-6 flex flex-col md:flex-row gap-8">
+      {/* Main Steps Column */}
+      <div className="flex-1 min-w-0">
+        <h1 className="text-2xl font-semibold mb-4">Deploy Device</h1>
+        {steps.map((step, idx) => (
+          <StepCard
+            key={step.title}
+            title={step.title}
+            stepIndex={idx}
+            currentStep={currentStep}
+            onHeaderClick={handleSectionClick}
+            footer={step.footer}
           >
-            Back
-          </Button>
-          {currentStep === 2 ? (
-            <Button onClick={handleDeploy} className="w-32">
-              Deploy
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={currentStep === 3}
-              className="w-32"
-            >
-              Next
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
+            {step.content}
+          </StepCard>
+        ))}
+      </div>
+      {/* Sidebar */}
+      <div className="w-full md:w-80 flex-shrink-0">
+        <div className="sticky top-8">
+          <Card className="p-3 md:p-4">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer select-none py-0 px-2">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    Summary
+                    <span className="ml-2 text-base">▼</span>
+                  </CardTitle>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent
+                  className="space-y-4 px-2 pb-2 pt-2"
+                  style={{ maxHeight: '40vh', overflowY: 'auto' }}
+                >
+                  {summaryFields.map((item) => (
+                    <SummaryItem key={item.label} label={item.label} value={item.value} />
+                  ))}
+                </CardContent>
+              </CollapsibleContent>
+              <CardFooter className="flex flex-col gap-2 border-t py-2 px-2">
+                <Button
+                  type="submit"
+                  onClick={handleDeploy}
+                  className="w-full"
+                  disabled={!(validateDeviceDetails() && validateLocation())}
+                >
+                  Deploy
+                </Button>
+              </CardFooter>
+            </Collapsible>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
