@@ -148,7 +148,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
 
     return (
         <div
-            className={`relative h-full bg-white rounded-2xl shadow-md flex flex-col p-4 transition-all duration-300 ease-in-out z-30 mx-1 my-1 border border-gray-100
+            className={`relative h-full bg-white rounded-2xl flex flex-col p-4 transition-all duration-300 ease-in-out z-30 mx-1 my-1 border border-gray-100
                 ${isCollapsed ? "w-16" : "w-64"}
             `}
         >
@@ -175,6 +175,17 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                             isCollapsed={isCollapsed}
                             disabled={false}
                         />
+                        {isAirQoOrg && (
+                          <>
+                            <NavItem 
+                              href="/network-map" 
+                              icon={MapIcon} 
+                              label="Network Map"
+                              isCollapsed={isCollapsed}
+                              disabled={false}
+                            />
+                          </>
+                        )}
                         {/* Network Section Heading */}
                         <SidebarSectionHeading isCollapsed={isCollapsed}>Network</SidebarSectionHeading>
                         {canViewDevices ? (
@@ -190,15 +201,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                           </SidebarDropdown>
                         ) : null}
                         {isAirQoOrg && (
-                          <>
-                            <NavItem 
-                              href="/network-map" 
-                              icon={MapIcon} 
-                              label="Network Map"
-                              isCollapsed={isCollapsed}
-                              disabled={false}
-                            />
-                            {canViewSites ? (
+                          canViewSites ? (
                               <NavItem 
                                 href="/sites" 
                                 icon={MapPin} 
@@ -206,8 +209,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                                 isCollapsed={isCollapsed}
                                 disabled={false}
                               />
-                            ) : null}
-                          </>
+                          ) : null
                         )}
                     </>
                 )}

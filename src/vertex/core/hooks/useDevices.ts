@@ -68,7 +68,11 @@ export function useDeviceStatus() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["deviceStatus"],
     queryFn: devices.getDevicesStatus,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: false, // Disable automatic refetching
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: false, // Don't refetch when component mounts if data exists
   });
 
   const summary = useMemo(() => data?.data[0], [data]);

@@ -3,14 +3,18 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MapPin, Radio } from "lucide-react";
+import { PlusSquare } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
+import { DashboardStatsCards } from "@/components/features/dashboard/stats-cards";
+import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
+import { useRouter } from "next/navigation";
 
 const WelcomePage = () => {
     const activeGroup = useAppSelector((state) => state.user.activeGroup);
+    const router = useRouter();
 
     const getOrgName = () => {
         if (!activeGroup) return "your organization";
@@ -21,19 +25,16 @@ const WelcomePage = () => {
         {
             href: "/devices/deploy",
             label: "Deploy a Device",
-            icon: Radio,
             permission: PERMISSIONS.DEVICE.DEPLOY,
         },
         {
             href: "/sites",
             label: "Create a Site",
-            icon: MapPin,
             permission: PERMISSIONS.SITE.CREATE,
         },
         {
             href: "/devices/claim",
             label: "Claim a Device",
-            icon: Radio,
             permission: PERMISSIONS.DEVICE.UPDATE, // Device claiming requires update permission
         }
     ];
@@ -49,6 +50,7 @@ const WelcomePage = () => {
 
     return (
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <DashboardWelcomeBanner />
             <div className="mb-8">
                 <h1 className="text-4xl font-bold tracking-tight">Welcome</h1>
                 <p className="mt-2 text-lg text-muted-foreground">
@@ -56,29 +58,42 @@ const WelcomePage = () => {
                 </p>
             </div>
 
+            {/* Stats Cards */}
             <div className="mb-10">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <DashboardStatsCards />
+            </div>
+
+            {/* Quick Access Buttons */}
+            <div className="mb-10">
+                <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     {actions.map((action, idx) => {
                         const hasPermission = actionPermissions[idx];
                         const button = (
-                            <Link href={hasPermission ? action.href : "#"} tabIndex={hasPermission ? 0 : -1} aria-disabled={!hasPermission}>
-                                <Button 
-                                    variant="outline" 
-                                    className="h-20 w-full justify-start gap-4 p-4 text-left"
-                                    disabled={!hasPermission}
-                                >
-                                    <action.icon className="h-8 w-8 text-primary" />
-                                    <span className="text-md font-medium">{action.label}</span>
-                                </Button>
-                            </Link>
+                            <Button
+                                key={action.href}
+                                variant="outline"
+                                className="w-full gap-2 p-3 border-primary text-primary text-sm font-semibold hover:bg-primary/10 hover:text-primary focus:ring-primary"
+                                disabled={!hasPermission}
+                                onClick={() => {
+                                    if (hasPermission) router.push(action.href);
+                                }}
+                            >
+                                <PlusSquare className="h-7 w-7 text-primary" />
+                                <span>{action.label}</span>
+                            </Button>
                         );
-                        return hasPermission ? (
-                            <span key={action.href}>{button}</span>
-                        ) : (
-                            <PermissionTooltip key={action.href} permission={action.permission}>
-                                {button}
-                            </PermissionTooltip>
-                        );
+                        if (hasPermission) {
+                            return button;
+                        } else {
+                            return (
+                                <PermissionTooltip key={action.href} permission={action.permission}>
+                                    <span className="inline-block w-auto" tabIndex={0}>
+                                        {button}
+                                    </span>
+                                </PermissionTooltip>
+                            );
+                        }
                     })}
                 </div>
             </div>
