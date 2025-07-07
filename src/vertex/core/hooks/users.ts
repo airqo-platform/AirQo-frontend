@@ -10,6 +10,7 @@ import {
   setAvailableNetworks,
   setUserGroups,
   setInitialized,
+  setUserContext,
 } from "../redux/slices/userSlice";
 import type {
   LoginCredentials,
@@ -129,6 +130,7 @@ export const useAuth = () => {
       localStorage.removeItem("availableNetworks");
       localStorage.removeItem("activeGroup");
       localStorage.removeItem("userGroups");
+      localStorage.removeItem("userContext");
     },
   });
 
@@ -139,6 +141,7 @@ export const useAuth = () => {
     localStorage.removeItem("availableNetworks");
     localStorage.removeItem("activeGroup");
     localStorage.removeItem("userGroups");
+    localStorage.removeItem("userContext");
     dispatch(logout());
     router.push("/login");
   };
@@ -151,6 +154,7 @@ export const useAuth = () => {
       const storedAvailableNetworks = localStorage.getItem("availableNetworks");
       const storedActiveGroup = localStorage.getItem("activeGroup");
       const storedUserGroups = localStorage.getItem("userGroups");
+      const storedUserContext = localStorage.getItem("userContext");
 
       if (token && storedUserDetails) {
         const userDetails = JSON.parse(storedUserDetails) as UserDetails;
@@ -181,6 +185,10 @@ export const useAuth = () => {
         if (storedActiveGroup) {
           const activeGroup = JSON.parse(storedActiveGroup) as Group;
           dispatch(setActiveGroup(activeGroup));
+        }
+        if (storedUserContext) {
+          const userContext = storedUserContext as 'personal' | 'airqo-internal' | 'external-org';
+          dispatch(setUserContext(userContext));
         }
       } else {
         handleLogout();

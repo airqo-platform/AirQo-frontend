@@ -22,6 +22,8 @@ import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import ContextSwitcher from "./context-switcher";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -162,14 +164,9 @@ const SidebarDropdown = ({
 };
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, activeModule, toggleSidebar }) => {
-    // Permission checks using proper hooks
-    const canViewDevices = usePermission(PERMISSIONS.DEVICE.VIEW);
-    const canViewSites = usePermission(PERMISSIONS.SITE.VIEW);
-    const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
-    const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
-    const canViewOrganizations = usePermission(PERMISSIONS.ORGANIZATION.VIEW);
-    const activeGroup = useAppSelector((state) => state.user.activeGroup);
-    const isAirQoOrg = activeGroup?.grp_title?.toLowerCase() === 'airqo';
+    const { getSidebarConfig, getContextPermissions, isPersonalContext } = useUserContext();
+    const sidebarConfig = getSidebarConfig();
+    const contextPermissions = getContextPermissions();
 
     return (
         <div
@@ -190,6 +187,13 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                 )}
             </Button>
 
+            {/* Context Switcher for AirQo Staff */}
+            {!isCollapsed && sidebarConfig.showContextSwitcher && (
+              <div className="mb-4">
+                <ContextSwitcher />
+              </div>
+            )}
+
             <nav className="flex-1 space-y-2">
                 {activeModule === 'network' && (
                     <>
@@ -200,49 +204,101 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                             isCollapsed={isCollapsed}
                             disabled={false}
                         />
-                        {isAirQoOrg && (
-                          <>
-                            <NavItem 
-                              href="/network-map" 
-                              icon={MapIcon} 
-                              label="Network Map"
-                              isCollapsed={isCollapsed}
-                              disabled={false}
-                            />
-                          </>
+                        
+                        {/* Network Map - only for AirQo Internal */}
+                        {sidebarConfig.showNetworkMap && (
+                          <NavItem 
+                            href="/network-map" 
+                            icon={MapIcon} 
+                            label="Network Map"
+                            isCollapsed={isCollapsed}
+                            disabled={false}
+                          />
                         )}
+
                         {/* Network Section Heading */}
-                        <SidebarSectionHeading isCollapsed={isCollapsed}>Network</SidebarSectionHeading>
-                        {canViewDevices ? (
+                        <SidebarSectionHeading isCollapsed={isCollapsed}>
+                          {isPersonalContext ? 'My Network' : 'Network'}
+                        </SidebarSectionHeading>
+
+                        {/* Devices Section */}
+                        {contextPermissions.canViewDevices && (
                           <SidebarDropdown
                             label="Devices"
                             icon={Radio}
                             isCollapsed={isCollapsed}
                             defaultOpen={true}
                           >
-                            <SubMenuItem href="/devices/overview" label="Overview" disabled={!canViewDevices} tooltip="You do not have permission to view devices." />
-                            {isAirQoOrg && <SubMenuItem href="/devices/my-devices" label="My Devices" disabled={!canViewDevices} tooltip="You do not have permission to view devices." />}
-                            <SubMenuItem href="/devices/claim" label="Claim Device" />
-                          </SidebarDropdown>
-                        ) : null}
-                        {isAirQoOrg && (
-                          canViewSites ? (
-                              <NavItem 
-                                href="/sites" 
-                                icon={MapPin} 
-                                label="Sites"
-                                isCollapsed={isCollapsed}
-                                disabled={false}
+                            {sidebarConfig.showDeviceOverview && (
+                              <SubMenuItem 
+                                href="/devices/overview" 
+                                label="Overview" 
+                                disabled={!contextPermissions.canViewDevices} 
+                                tooltip="You do not have permission to view devices." 
                               />
-                          ) : null
+                            )}
+                            {sidebarConfig.showMyDevices && (
+                              <SubMenuItem 
+                                href="/devices/my-devices" 
+                                label="My Devices" 
+                                disabled={!contextPermissions.canViewDevices} 
+                                tooltip="You do not have permission to view devices." 
+                              />
+                            )}
+                            {sidebarConfig.showClaimDevice && (
+                              <SubMenuItem 
+                                href="/devices/claim" 
+                                label="Claim Device" 
+                              />
+                            )}
+                          </SidebarDropdown>
+                        )}
+
+                        {/* Sites - only for non-personal contexts */}
+                        {sidebarConfig.showSites && contextPermissions.canViewSites && (
+                          <NavItem 
+                            href="/sites" 
+                            icon={MapPin} 
+                            label="Sites"
+                            isCollapsed={isCollapsed}
+                            disabled={false}
+                          />
                         )}
                     </>
                 )}
+                
                 {activeModule === 'admin' && (
                     <>
-                        <NavItem href="/user-management" icon={Users} label="User Management" isCollapsed={isCollapsed} disabled={!canViewUserManagement} tooltip="You do not have permission to view user management." />
-                        <NavItem href="/access-control" icon={Shield} label="Access Control" isCollapsed={isCollapsed} disabled={!canViewAccessControl} tooltip="You do not have permission to view access control." />
-                        <NavItem href="/organizations" icon={Building2} label="Organizations" isCollapsed={isCollapsed} disabled={!canViewOrganizations} tooltip="You do not have permission to view organizations." />
+                        {sidebarConfig.showUserManagement && (
+                          <NavItem 
+                            href="/user-management" 
+                            icon={Users} 
+                            label="User Management" 
+                            isCollapsed={isCollapsed} 
+                            disabled={!contextPermissions.canViewUserManagement} 
+                            tooltip="You do not have permission to view user management." 
+                          />
+                        )}
+                        {sidebarConfig.showAccessControl && (
+                          <NavItem 
+                            href="/access-control" 
+                            icon={Shield} 
+                            label="Access Control" 
+                            isCollapsed={isCollapsed} 
+                            disabled={!contextPermissions.canViewAccessControl} 
+                            tooltip="You do not have permission to view access control." 
+                          />
+                        )}
+                        {sidebarConfig.showOrganizations && (
+                          <NavItem 
+                            href="/organizations" 
+                            icon={Building2} 
+                            label="Organizations" 
+                            isCollapsed={isCollapsed} 
+                            disabled={!contextPermissions.canViewOrganizations} 
+                            tooltip="You do not have permission to view organizations." 
+                          />
+                        )}
                     </>
                 )}
             </nav>

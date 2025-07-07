@@ -12,7 +12,7 @@ import { CustomDialogContent } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Check, MoreVertical } from "lucide-react";
+import { Search, Check, MoreVertical, User, Building2 } from "lucide-react";
 import type { Group } from "@/app/types/users";
 import { useRouter } from "next/navigation";
 import {
@@ -21,13 +21,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserContext } from "@/core/redux/slices/userSlice";
+import { useMyDevices } from "@/core/hooks/useDevices";
+import { useAppSelector } from "@/core/redux/hooks";
 
 interface OrganizationModalProps {
   isOpen: boolean;
   onClose: () => void;
   userGroups: Group[];
   activeGroup: Group | null;
-  onOrganizationChange: (group: Group) => void;
+  userContext: UserContext | null;
+  isAirQoStaff: boolean;
+  onOrganizationChange: (group: Group | 'private') => void;
 }
 
 const formatTitle = (title: string) => {
@@ -42,11 +47,24 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   onClose,
   userGroups,
   activeGroup,
+  userContext,
+  isAirQoStaff,
   onOrganizationChange,
 }) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
+  const userDetails = useAppSelector((state) => state.user.userDetails);
+
+  // Check if user has personal devices
+  const { data: myDevicesData } = useMyDevices(
+    userDetails?._id || "",
+    activeGroup?._id
+  );
+
+  const hasPersonalDevices = myDevicesData?.devices?.some(
+    device => device.owner_id === userDetails?._id
+  ) || false;
 
   useEffect(() => {
     const storedRecents = localStorage.getItem("recentOrganizations");
@@ -71,10 +89,18 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     localStorage.setItem("recentOrganizations", JSON.stringify(updatedRecents));
   }
 
-  const handleSelection = (group: Group) => {
-    updateRecents(group);
+  const handleSelection = (group: Group | 'private') => {
+    if (group !== 'private') {
+      updateRecents(group);
+    }
     onOrganizationChange(group);
   }
+
+  // Determine if we should show Private Mode
+  const shouldShowPrivateMode = () => {
+    // Show if user is AirQo staff OR if they have personal devices
+    return isAirQoStaff || hasPersonalDevices;
+  };
 
   const filteredGroups = useMemo(() => {
     return userGroups.filter((group) =>
@@ -89,23 +115,86 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     onClose();
   }
 
-  const OrganizationItem = ({ group }: { group: Group }) => (
-    <div
-      onClick={() => handleSelection(group)}
-      className="flex items-center justify-between p-3 hover:bg-accent rounded-md cursor-pointer"
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-            <span className="text-sm font-semibold">{formatTitle(group.grp_title).charAt(0)}</span>
+  const PrivateModeItem = () => {
+    const personalDeviceCount = myDevicesData?.devices?.filter(
+      device => device.owner_id === userDetails?._id
+    ).length || 0;
+
+    return (
+      <div
+        onClick={() => handleSelection('private')}
+        className="flex items-center justify-between p-3 hover:bg-blue-50 rounded-md cursor-pointer border border-blue-200 bg-blue-50/50"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+            <User size={16} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="font-medium text-blue-900">Private Mode</p>
+            <p className="text-sm text-blue-700">
+              {personalDeviceCount > 0 
+                ? `${personalDeviceCount} personal device${personalDeviceCount === 1 ? '' : 's'}`
+                : 'Manage personal devices'
+              }
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="font-medium">{formatTitle(group.grp_title)}</p>
-          <p className="text-sm text-muted-foreground">ID: {group._id}</p>
-        </div>
+        {userContext === 'personal' && <Check size={16} className="text-blue-600" />}
       </div>
-      {activeGroup?._id === group._id && <Check size={16} className="text-primary" />}
-    </div>
-  );
+    );
+  };
+
+  const OrganizationItem = ({ group }: { group: Group }) => {
+    const isAirQoOrg = group.grp_title.toLowerCase() === 'airqo';
+    const isActive = activeGroup?._id === group._id && userContext !== 'personal';
+    
+    return (
+      <div
+        onClick={() => handleSelection(group)}
+        className="flex items-center justify-between p-3 hover:bg-accent rounded-md cursor-pointer"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+            <Building2 size={16} className="text-muted-foreground" />
+          </div>
+          <div>
+            <p className="font-medium">{formatTitle(group.grp_title)}</p>
+            <p className="text-sm text-muted-foreground">
+              {isAirQoOrg ? 'AirQo Organization' : `ID: ${group._id}`}
+            </p>
+          </div>
+        </div>
+        {isActive && <Check size={16} className="text-primary" />}
+      </div>
+    );
+  };
+
+  const renderOrganizationList = (groups: Group[]) => {
+    const showPrivateMode = shouldShowPrivateMode();
+    
+    return (
+      <div className="space-y-1 py-2">
+        {showPrivateMode && <PrivateModeItem />}
+        {showPrivateMode && groups.length > 0 && (
+          <div className="my-2" />
+        )}
+        {groups.length > 0 && (
+          <div className="px-1 mb-2 mt-3">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              {showPrivateMode ? 'Organizations' : 'Available Organizations'}
+            </h3>
+          </div>
+        )}
+        {groups.length > 0 ? (
+          groups.map((group) => <OrganizationItem key={group._id} group={group} />)
+        ) : (
+          <p className="text-muted-foreground text-center py-8">
+            {showPrivateMode ? 'No other organizations found.' : 'No organizations found.'}
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -154,22 +243,10 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
             </TabsList>
             <div className="flex-grow overflow-hidden">
                 <TabsContent value="recent" className="h-full overflow-y-auto px-6">
-                    <div className="space-y-1 py-2">
-                        {recentGroups.length > 0 ? (
-                            recentGroups.map((group) => <OrganizationItem key={group._id} group={group} />)
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">No recent organizations.</p>
-                        )}
-                    </div>
+                    {renderOrganizationList(recentGroups)}
                 </TabsContent>
                 <TabsContent value="all" className="h-full overflow-y-auto px-6">
-                    <div className="space-y-1 py-2">
-                        {filteredGroups.length > 0 ? (
-                            filteredGroups.map((group) => <OrganizationItem key={group._id} group={group} />)
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">No organizations found.</p>
-                        )}
-                    </div>
+                    {renderOrganizationList(filteredGroups)}
                 </TabsContent>
             </div>
         </Tabs>
