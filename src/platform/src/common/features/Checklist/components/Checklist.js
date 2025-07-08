@@ -12,12 +12,8 @@ import {
 } from '@/lib/store/services/checklists/CheckList';
 
 import ErrorBoundary from '@/components/ErrorBoundary';
-import Button from '@/common/components/Button';
-import { FiDownload, FiBarChart2, FiUsers } from 'react-icons/fi';
-import { useRouter } from 'next/navigation';
 
 const Checklist = ({ openVideoModal }) => {
-  const router = useRouter();
   const dispatch = useDispatch();
   const [userId, setUserId] = useState(null);
   const [dataFetched, setDataFetched] = useState(false);
@@ -177,44 +173,6 @@ const Checklist = ({ openVideoModal }) => {
               totalSteps={totalSteps}
               completed={allCompleted}
             />
-          </div>
-        </div>
-
-        {/* Quick Access Section */}
-        <div className="mb-8">
-          <div className="flex items-center mb-3">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mr-2">
-              Quick Access
-            </h3>
-            <span className="text-xs text-gray-400">to</span>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Button
-              variant="outlined"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              Icon={FiDownload}
-              onClick={() => router.push('/user/analytics')}
-            >
-              Download Data
-            </Button>
-            <Button
-              variant="outlined"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              Icon={FiBarChart2}
-              onClick={() => router.push('/user/analytics')}
-            >
-              Data Analysis
-            </Button>
-            <Button
-              variant="outlined"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              Icon={FiUsers}
-              onClick={() => {
-                router.push('/create-organization');
-              }}
-            >
-              Request New Organization
-            </Button>
           </div>
         </div>
 

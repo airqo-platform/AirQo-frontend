@@ -16,10 +16,14 @@ import {
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
 
+import { useRouter } from 'next/navigation';
+import { FiDownload, FiBarChart2, FiUsers } from 'react-icons/fi';
+
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
 
 const Home = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -187,6 +191,43 @@ const Home = () => {
             Welcome, <span className="capitalize">{getUserDisplayName()}</span>{' '}
             👋
           </h1>
+        </div>
+
+        {/* Quick Access Section */}
+        <div className="mb-8">
+          <div className="flex items-center mb-3">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mr-2">
+              Quick Access
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={FiDownload}
+              onClick={() => router.push('/user/analytics')}
+            >
+              Download Data
+            </Button>
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={FiBarChart2}
+              onClick={() => router.push('/user/analytics')}
+            >
+              Data Analysis
+            </Button>
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={FiUsers}
+              onClick={() => {
+                router.push('/create-organization');
+              }}
+            >
+              Request New Organization
+            </Button>
+          </div>
         </div>
 
         {/* Render Checklist component with video modal function */}
