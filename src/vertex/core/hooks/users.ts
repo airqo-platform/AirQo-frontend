@@ -188,7 +188,17 @@ export const useAuth = () => {
         }
         if (storedUserContext) {
           const userContext = storedUserContext as 'personal' | 'airqo-internal' | 'external-org';
-          dispatch(setUserContext(userContext));
+          
+          // Validate stored context against user permissions
+          const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
+          if (userContext === 'airqo-internal' && !isAirQoStaff) {
+            // Reset to safe default if unauthorized context is stored
+            console.warn('Unauthorized context found in localStorage, resetting to personal');
+            dispatch(setUserContext('personal'));
+            localStorage.setItem("userContext", 'personal');
+          } else {
+            dispatch(setUserContext(userContext));
+          }
         }
       } else {
         handleLogout();

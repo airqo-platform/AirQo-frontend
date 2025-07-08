@@ -115,7 +115,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
           />
           <span className="font-bold text-lg">Vertex</span>
           
-          {/* Context Title */}
+          {/* Context Title
           {userContext && (
             <div className="ml-4 flex items-center gap-2">
               <span className="text-sm text-muted-foreground">•</span>
@@ -123,7 +123,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 {sidebarConfig.title}
               </span>
             </div>
-          )}
+          )} */}
         </div>
 
         <div className="flex items-center gap-x-3 ml-auto">

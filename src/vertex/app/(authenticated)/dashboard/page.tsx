@@ -3,9 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PlusSquare, User, Building2 } from "lucide-react";
+import { PlusSquare, User, Building2, Loader2, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
-import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DashboardStatsCards } from "@/components/features/dashboard/stats-cards";
@@ -13,12 +12,84 @@ import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWel
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { Permission } from "@/core/permissions/constants";
+import { usePermissions } from "@/core/hooks/usePermissions";
 
 const WelcomePage = () => {
+    // ALL HOOKS MUST BE CALLED FIRST, BEFORE ANY CONDITIONAL LOGIC
     const activeGroup = useAppSelector((state) => state.user.activeGroup);
     const router = useRouter();
-    const { userContext, getSidebarConfig, isPersonalContext, isAirQoInternal, isExternalOrg } = useUserContext();
+    const {
+        userContext,
+        getSidebarConfig,
+        isPersonalContext,
+        isAirQoInternal,
+        isExternalOrg,
+        isLoading,
+        hasError,
+        error,
+    } = useUserContext();
     const sidebarConfig = getSidebarConfig();
+
+    // Define all possible actions upfront
+    const allActions = [
+        {
+            href: "/devices/claim",
+            label: "Claim a Device",
+            permission: PERMISSIONS.DEVICE.UPDATE,
+            showInPersonal: true,
+            showInAirQoInternal: true,
+            showInExternalOrg: false,
+        },
+        {
+            href: "/devices/deploy",
+            label: "Deploy a Device",
+            permission: PERMISSIONS.DEVICE.DEPLOY,
+            showInPersonal: false,
+            showInAirQoInternal: true,
+            showInExternalOrg: false,
+        },
+        {
+            href: "/sites",
+            label: "Create a Site",
+            permission: PERMISSIONS.SITE.CREATE,
+            showInPersonal: false,
+            showInAirQoInternal: true,
+            showInExternalOrg: true,
+        },
+        {
+            href: "/sites",
+            label: "Manage Sites",
+            permission: PERMISSIONS.SITE.VIEW,
+            showInPersonal: false,
+            showInAirQoInternal: true,
+            showInExternalOrg: true,
+        }
+    ];
+
+    // Get all permissions at once - THIS HOOK MUST BE CALLED BEFORE CONDITIONAL RETURNS
+    const permissionsToCheck = allActions.map(action => action.permission);
+    const permissionsMap = usePermissions(permissionsToCheck);
+
+    // NOW WE CAN HAVE CONDITIONAL RETURNS
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="ml-3 text-lg text-primary">Loading dashboard...</span>
+            </div>
+        );
+    }
+
+    // Error state
+    if (hasError) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen">
+                <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
+                <span className="text-lg text-red-600 font-semibold">{error || "Failed to load dashboard context."}</span>
+            </div>
+        );
+    }
 
     const getContextTitle = () => {
         switch (userContext) {
@@ -59,66 +130,9 @@ const WelcomePage = () => {
         }
     };
 
+    // Filter actions based on context
     const getContextActions = () => {
-        const baseActions = [
-            {
-                href: "/devices/claim",
-                label: "Claim a Device",
-                permission: PERMISSIONS.DEVICE.UPDATE,
-                showInPersonal: true,
-                showInAirQoInternal: true,
-                showInExternalOrg: false,
-            }
-        ];
-
-        const airQoActions = [
-            {
-                href: "/devices/deploy",
-                label: "Deploy a Device",
-                permission: PERMISSIONS.DEVICE.DEPLOY,
-                showInPersonal: false,
-                showInAirQoInternal: true,
-                showInExternalOrg: false,
-            },
-            {
-                href: "/sites",
-                label: "Create a Site",
-                permission: PERMISSIONS.SITE.CREATE,
-                showInPersonal: false,
-                showInAirQoInternal: true,
-                showInExternalOrg: true,
-            }
-        ];
-
-        const externalOrgActions = [
-            {
-                href: "/sites",
-                label: "Manage Sites",
-                permission: PERMISSIONS.SITE.VIEW,
-                showInPersonal: false,
-                showInAirQoInternal: true,
-                showInExternalOrg: true,
-            }
-        ];
-
-        let actions: Array<{
-            href: string;
-            label: string;
-            permission: Permission;
-            showInPersonal: boolean;
-            showInAirQoInternal: boolean;
-            showInExternalOrg: boolean;
-        }> = [...baseActions];
-
-        if (isAirQoInternal) {
-            actions = [...actions, ...airQoActions];
-        }
-
-        if (isExternalOrg) {
-            actions = [...actions, ...externalOrgActions];
-        }
-
-        return actions.filter(action => {
+        return allActions.filter(action => {
             switch (userContext) {
                 case 'personal':
                     return action.showInPersonal;
@@ -133,11 +147,6 @@ const WelcomePage = () => {
     };
 
     const actions = getContextActions();
-
-    // Precompute permissions for all actions (must call hooks at top level)
-    const actionPermissions = actions.map(action => 
-        usePermission(action.permission)
-    );
 
     return (
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -164,8 +173,8 @@ const WelcomePage = () => {
                 <div className="mb-10">
                     <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                        {actions.map((action, idx) => {
-                            const hasPermission = actionPermissions[idx];
+                        {actions.map((action) => {
+                            const hasPermission = permissionsMap[action.permission];
                             const button = (
                                 <Button
                                     key={action.href}
@@ -193,37 +202,6 @@ const WelcomePage = () => {
                             }
                         })}
                     </div>
-                </div>
-            )}
-
-            {/* Context-specific information */}
-            {isPersonalContext && (
-                <div className="mb-10 p-6 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-2">Personal Context</h3>
-                    <p className="text-blue-800">
-                        You're viewing your personal monitors. Devices you claim will be visible here, 
-                        even though they're technically assigned to the AirQo organization on the backend.
-                    </p>
-                </div>
-            )}
-
-            {isAirQoInternal && (
-                <div className="mb-10 p-6 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="text-lg font-semibold text-green-900 mb-2">AirQo Internal Access</h3>
-                    <p className="text-green-800">
-                        You have full organizational access as AirQo staff. You can manage all devices, 
-                        sites, and team members within the AirQo organization.
-                    </p>
-                </div>
-            )}
-
-            {isExternalOrg && (
-                <div className="mb-10 p-6 bg-purple-50 rounded-lg border border-purple-200">
-                    <h3 className="text-lg font-semibold text-purple-900 mb-2">External Organization</h3>
-                    <p className="text-purple-800">
-                        You're working within {activeGroup?.grp_title}. Your access is limited to 
-                        features and resources available to your role in this organization.
-                    </p>
                 </div>
             )}
         </div>

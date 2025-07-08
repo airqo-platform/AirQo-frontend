@@ -8,12 +8,15 @@ import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Lock } from "lucide-react";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import { UserContext } from "@/core/redux/slices/userSlice";
 
 interface RouteGuardProps {
   permission: Permission;
   children: React.ReactNode;
   redirectTo?: string;
   showError?: boolean;
+  allowedContexts?: UserContext[];
   resourceContext?: {
     organizationId?: string;
     deviceId?: string;
@@ -27,18 +30,24 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   children,
   redirectTo = "/unauthorized",
   showError = true,
+  allowedContexts,
   resourceContext,
 }) => {
   const router = useRouter();
+  const { userContext } = useUserContext();
   const hasPermission = usePermission(permission, { resourceContext });
   const permissionCheck = usePermissionCheck(permission, { resourceContext });
 
-  useEffect(() => {
-    if (!hasPermission) {
-    }
-  }, [hasPermission, router, redirectTo]);
+  const hasValidContext = !allowedContexts || allowedContexts.includes(userContext);
+  
+  const hasAccess = hasPermission && hasValidContext;
 
-  if (!hasPermission) {
+  useEffect(() => {
+    if (!hasAccess) {
+    }
+  }, [hasAccess, router, redirectTo]);
+
+  if (!hasAccess) {
     if (showError) {
     return (
         <div className="container mx-auto p-6 max-w-2xl">
@@ -49,7 +58,10 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                 Access Denied
               </CardTitle>
               <CardDescription>
-                You don&apos;t have permission to access this page
+                {!hasValidContext 
+                  ? "This page is not available in your current context"
+                  : "You don't have permission to access this page"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -57,12 +69,23 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                 <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
                   <div className="space-y-2">
-                    <div>
-                      <strong>Required Permission:</strong> {permission}
-                    </div>
-                    <div>
-                      <strong>Reason:</strong> {permissionCheck.reason}
-                    </div>
+                    {!hasValidContext && (
+                      <div>
+                        <strong>Required Context:</strong> {allowedContexts?.join(', ')}
+                        <br />
+                        <strong>Current Context:</strong> {userContext}
+                      </div>
+                    )}
+                    {!hasPermission && (
+                      <>
+                        <div>
+                          <strong>Required Permission:</strong> {permission}
+                        </div>
+                        <div>
+                          <strong>Reason:</strong> {permissionCheck.reason}
+                        </div>
+                      </>
+                    )}
                     {permissionCheck.role && (
                       <div>
                         <strong>Current Role:</strong> {permissionCheck.role}
@@ -80,9 +103,19 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
               <div className="mt-4 p-4 bg-muted rounded-lg">
                 <h4 className="font-medium mb-2">What you can do:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Contact your organization administrator to request access</li>
-                  <li>• Switch to an organization where you have the required permissions</li>
-                  <li>• Return to the dashboard to access available features</li>
+                  {!hasValidContext ? (
+                    <>
+                      <li>• Switch to an appropriate context using the organization picker</li>
+                      <li>• Contact your administrator if you need access to this context</li>
+                      <li>• Return to the dashboard to access available features</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>• Contact your organization administrator to request access</li>
+                      <li>• Switch to an organization where you have the required permissions</li>
+                      <li>• Return to the dashboard to access available features</li>
+                    </>
+                  )}
                 </ul>
               </div>
             </CardContent>

@@ -163,7 +163,10 @@ export default function SitesPage() {
   }
 
   return (
-    <RouteGuard permission="SITE_VIEW">
+    <RouteGuard 
+      permission="SITE_VIEW"
+      allowedContexts={['airqo-internal', 'external-org']}
+    >
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Site Registry</h1>

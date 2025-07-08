@@ -141,6 +141,14 @@ const userSlice = createSlice({
     },
     // New action to manually set context (for context switching)
     setUserContext(state, action: PayloadAction<UserContext>) {
+      const { userDetails, isAirQoStaff } = state;
+      
+      // Validate context change
+      if (action.payload === 'airqo-internal' && !isAirQoStaff) {
+        console.error('Unauthorized context change attempt: non-staff user trying to access airqo-internal');
+        return; // Prevent the change
+      }
+      
       state.userContext = action.payload;
     },
   },

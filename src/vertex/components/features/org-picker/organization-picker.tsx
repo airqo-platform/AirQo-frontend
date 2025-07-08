@@ -8,6 +8,7 @@ import { setActiveGroup, setUserContext } from "@/core/redux/slices/userSlice";
 import type { Group } from "@/app/types/users";
 import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { UserContext } from "@/core/redux/slices/userSlice";
 
 const formatTitle = (title: string) => {
   if (!title) return "";
@@ -26,6 +27,21 @@ const OrganizationPicker: React.FC = () => {
   const { isPersonalContext } = useUserContext();
 
   const handleOrganizationChange = (group: Group | 'private') => {
+    // Validate context change before allowing it
+    let newContext: UserContext;
+    if (group === 'private') {
+      newContext = 'personal';
+    } else {
+      newContext = group.grp_title.toLowerCase() === 'airqo' ? 'airqo-internal' : 'external-org';
+    }
+    
+    // Validate context change
+    if (newContext === 'airqo-internal' && !isAirQoStaff) {
+      // Non-staff users cannot access AirQo internal context
+      console.error('Unauthorized context change attempt: non-staff user trying to access airqo-internal');
+      return;
+    }
+    
     if (group === 'private') {
       // Set to private mode - keep AirQo as active group but set context to personal
       const airqoGroup = userGroups.find(g => g.grp_title.toLowerCase() === 'airqo');
@@ -33,6 +49,10 @@ const OrganizationPicker: React.FC = () => {
         dispatch(setActiveGroup(airqoGroup));
         dispatch(setUserContext('personal'));
         localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
+        localStorage.setItem("userContext", 'personal');
+      } else {
+        // If no AirQo group found, still set context to personal
+        dispatch(setUserContext('personal'));
         localStorage.setItem("userContext", 'personal');
       }
     } else {

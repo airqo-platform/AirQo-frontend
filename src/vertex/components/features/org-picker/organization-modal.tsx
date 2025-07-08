@@ -81,8 +81,13 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
       .map(id => groupMap.get(id))
       .filter((g): g is Group => g !== undefined);
 
-    setRecentGroups(recents);
-  }, [userGroups, isOpen, activeGroup]);
+    // Filter out AirQo organization for non-staff users in recent groups
+    const filteredRecents = isAirQoStaff 
+      ? recents 
+      : recents.filter(group => group.grp_title.toLowerCase() !== 'airqo');
+
+    setRecentGroups(filteredRecents);
+  }, [userGroups, isOpen, activeGroup, isAirQoStaff]);
 
   const updateRecents = (group: Group) => {
     const updatedRecents = [group._id, ...recentGroups.map(g => g._id).filter(id => id !== group._id)].slice(0, 5);
@@ -98,15 +103,24 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
 
   // Determine if we should show Private Mode
   const shouldShowPrivateMode = () => {
-    // Show if user is AirQo staff OR if they have personal devices
-    return isAirQoStaff || hasPersonalDevices;
+    // Always show Private Mode - it's the default mode for all users
+    return true;
   };
 
   const filteredGroups = useMemo(() => {
-    return userGroups.filter((group) =>
+    let groups = userGroups.filter((group) =>
         group.grp_title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [userGroups, searchTerm]);
+
+    // Filter out AirQo organization for non-staff users
+    if (!isAirQoStaff) {
+      groups = groups.filter(group => 
+        group.grp_title.toLowerCase() !== 'airqo'
+      );
+    }
+
+    return groups;
+  }, [userGroups, searchTerm, isAirQoStaff]);
 
   const handleCreateNew = () => {
     const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || 'https://analytics.airqo.net';
@@ -134,7 +148,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
             <p className="text-sm text-blue-700">
               {personalDeviceCount > 0 
                 ? `${personalDeviceCount} personal device${personalDeviceCount === 1 ? '' : 's'}`
-                : 'Manage personal devices'
+                : 'Claim devices to get started'
               }
             </p>
           </div>
@@ -170,7 +184,8 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   };
 
   const renderOrganizationList = (groups: Group[]) => {
-    const showPrivateMode = shouldShowPrivateMode();
+    // Always show Private Mode - it's the default mode for all users
+    const showPrivateMode = true;
     
     return (
       <div className="space-y-1 py-2">

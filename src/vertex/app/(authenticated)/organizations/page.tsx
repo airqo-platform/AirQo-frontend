@@ -6,7 +6,10 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 
 const OrganizationSettingsPage = () => {
   return (
-    <RouteGuard permission={PERMISSIONS.USER.MANAGEMENT}>
+    <RouteGuard 
+      permission={PERMISSIONS.USER.MANAGEMENT}
+      allowedContexts={['airqo-internal']}
+    >
       <div className="mx-auto">
         <GroupList />
       </div>
