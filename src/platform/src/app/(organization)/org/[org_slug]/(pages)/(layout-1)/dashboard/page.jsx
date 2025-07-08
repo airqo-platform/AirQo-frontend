@@ -8,6 +8,7 @@ import DashboardPageSkeleton from '@/common/components/Skeleton/DashboardPageSke
 import ErrorState from '@/common/components/ErrorState';
 import { getGroupDetailsApi } from '@/core/apis/Account';
 import { useDeviceSummary } from '@/core/hooks/analyticHooks';
+import PermissionDenied from '@/common/components/PermissionDenied';
 
 // Import icons from react-icons
 import { FiUsers as UsersIcon, FiMapPin } from 'react-icons/fi';
@@ -18,6 +19,7 @@ const OrganizationDashboardPage = () => {
   const [groupDetails, setGroupDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   // For demo: isAdmin is always true. Replace with real logic as needed.
   const isAdmin = true;
@@ -39,14 +41,27 @@ const OrganizationDashboardPage = () => {
     }
     setLoading(true);
     setError(null);
+    setPermissionDenied(false);
     try {
       const res = await getGroupDetailsApi(groupId);
+      // If the API returns a status property, check for 403
+      if (res.status === 403 || res.statusCode === 403) {
+        setPermissionDenied(true);
+        setLoading(false);
+        return;
+      }
       if (res.success && res.group) {
         setGroupDetails(res.group);
       } else {
         throw new Error(res.message || 'Invalid API response');
       }
     } catch (e) {
+      // If error object has a status or response status, check for 403
+      if (e?.status === 403 || e?.response?.status === 403) {
+        setPermissionDenied(true);
+        setLoading(false);
+        return;
+      }
       setError(e.message);
     } finally {
       setLoading(false);
@@ -59,6 +74,10 @@ const OrganizationDashboardPage = () => {
 
   if (!activeGroup || loading || isDeviceSummaryLoading) {
     return <DashboardPageSkeleton isAdmin={isAdmin} />;
+  }
+
+  if (permissionDenied) {
+    return <PermissionDenied />;
   }
 
   if (isDeviceSummaryError) {
