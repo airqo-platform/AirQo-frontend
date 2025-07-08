@@ -13,6 +13,7 @@
 
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
+import PermissionDenied from '@/common/components/PermissionDenied';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import {
@@ -63,13 +64,24 @@ const OrganizationSettingsPage = () => {
     grp_image: '',
     grp_status: '',
   });
+  const [fetchError, setFetchError] = useState('');
+  const [permissionDenied, setPermissionDenied] = useState(false);
   // Fetch organization details using getGroupDetailsApi
   useEffect(() => {
     const fetchOrganizationDetails = async () => {
       if (activeGroup?._id) {
         try {
           setIsLoading(true);
+          setFetchError('');
+          setPermissionDenied(false);
           const response = await getGroupDetailsApi(activeGroup._id);
+
+          // If API returns a status property (non-standard), check for 403
+          if (response.status === 403) {
+            setPermissionDenied(true);
+            setIsLoading(false);
+            return;
+          }
 
           if (response.success && response.group) {
             const orgData = response.group;
@@ -88,10 +100,15 @@ const OrganizationSettingsPage = () => {
             });
             setLogoPreview(orgData.grp_profile_picture || '');
           } else {
-            setSaveStatus('error');
+            setFetchError('Failed to load organization details.');
           }
-        } catch {
-          setSaveStatus('error');
+        } catch (err) {
+          // Check for 403 in error response
+          if (err?.response?.status === 403) {
+            setPermissionDenied(true);
+          } else {
+            setFetchError('Failed to load organization details.');
+          }
         } finally {
           setIsLoading(false);
         }
@@ -169,7 +186,13 @@ const OrganizationSettingsPage = () => {
               'Failed to get secure URL from Cloudinary response',
             );
           }
-        } catch {
+        } catch (err) {
+          // Check for 403 in error response
+          if (err?.response?.status === 403) {
+            setPermissionDenied(true);
+            setSaveStatus('');
+            return;
+          }
           setSaveStatus('error');
           setTimeout(() => setSaveStatus(''), 3000);
           throw new Error('Failed to upload image. Please try again.');
@@ -200,10 +223,24 @@ const OrganizationSettingsPage = () => {
 
       // Always send as JSON (never as FormData with file)
       // The OrganizationInformationForm handles Cloudinary upload and sets URLs in formData
-      const response = await updateGroupDetailsApi(activeGroup._id, updateData);
+      let response;
+      try {
+        response = await updateGroupDetailsApi(activeGroup._id, updateData);
+      } catch (err) {
+        if (err?.response?.status === 403) {
+          setPermissionDenied(true);
+          setSaveStatus('');
+          return;
+        }
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus(''), 3000);
+        return;
+      }
 
       if (!response.success) {
-        throw new Error(response.message || 'Failed to update organization');
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus(''), 3000);
+        return;
       }
 
       // If logo was updated via Cloudinary, update preview
@@ -252,12 +289,15 @@ const OrganizationSettingsPage = () => {
         });
         setValidationErrors(errors);
         setSaveStatus('validation-error');
+      } else if (error?.response?.status === 403) {
+        setPermissionDenied(true);
+        setSaveStatus('');
       } else {
         setSaveStatus('error');
       }
       setTimeout(() => setSaveStatus(''), 3000);
     }
-  }; // Function to refresh user and group data in Redux
+  };
   const refreshUserAndGroupData = async () => {
     try {
       // First, refresh user information in Redux
@@ -328,6 +368,10 @@ const OrganizationSettingsPage = () => {
     }
   };
 
+  if (permissionDenied) {
+    return <PermissionDenied />;
+  }
+
   if (isLoading || groupLoading) {
     return <OrganizationSettingsSkeleton />;
   }
@@ -351,6 +395,24 @@ const OrganizationSettingsPage = () => {
       </div>
     );
   }
+
+  if (fetchError) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          Error Loading Organization
+        </h2>
+        <p className="text-gray-500 mb-4">{fetchError}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
+
   return (
     <OrganizationSettingsContainer
       formData={formData}
