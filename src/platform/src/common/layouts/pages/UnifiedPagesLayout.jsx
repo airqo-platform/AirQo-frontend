@@ -65,8 +65,8 @@ export default function UnifiedPagesLayout({ children }) {
   const containerClasses = isMapPage
     ? ''
     : layout === THEME_LAYOUT.COMPACT
-      ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
-      : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
+      ? 'max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-6 lg:py-8 lg:px-8'
+      : 'w-full flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-6 lg:py-8 lg:px-8';
 
   const logoComponent =
     isOrganizationContext && organization?.logo ? (
@@ -89,6 +89,10 @@ export default function UnifiedPagesLayout({ children }) {
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
       </Head>
 
       <GlobalTopbar
@@ -97,7 +101,8 @@ export default function UnifiedPagesLayout({ children }) {
         homeNavPath={homeNavPath}
       />
 
-      <aside className="fixed left-0 top-36 lg:top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out">
+      {/* Sidebar - Hidden on mobile, shown on desktop */}
+      <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out">
         <AuthenticatedSideBar>
           <UnifiedSidebarContent
             userType={isOrganizationContext ? 'organization' : 'user'}
@@ -107,9 +112,12 @@ export default function UnifiedPagesLayout({ children }) {
       </aside>
 
       <main
-        className={`flex-1 transition-all duration-300 ease-in-out pt-36 lg:pt-16 bg-background w-full flex flex-col
+        className={`flex-1 transition-all duration-300 ease-in-out bg-background w-full flex flex-col
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'}
-          ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
+          ${/* Mobile: account for topbar */ ''}
+          pt-[120px] sm:pt-[130px] md:pt-[140px] lg:pt-16
+          ${/* Desktop: account for sidebar */ ''}
+          lg:${isCollapsed ? 'ml-[88px]' : 'ml-[256px]'}`}
       >
         <div className={`flex-1 w-full bg-background ${containerClasses}`}>
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
@@ -128,6 +136,7 @@ export default function UnifiedPagesLayout({ children }) {
         {!isMapPage && <Footer />}
       </main>
 
+      {/* Mobile Drawer - Only show on mobile */}
       <UnifiedSideBarDrawer
         userType={isOrganizationContext ? 'organization' : 'user'}
       />
