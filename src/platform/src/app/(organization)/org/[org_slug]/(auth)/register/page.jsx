@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import Button from '@/common/components/Button';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
@@ -439,7 +440,7 @@ const OrganizationRegister = () => {
           />
         )}
         <div>
-          <button
+          <Button
             type="submit"
             disabled={loading}
             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
@@ -449,8 +450,8 @@ const OrganizationRegister = () => {
             }}
           >
             {loading ? 'Registering...' : 'Create Account'}
-          </button>
-        </div>{' '}
+          </Button>
+        </div>
         <div className="text-center">
           <span className="text-sm text-gray-600">
             Already have an account?{' '}

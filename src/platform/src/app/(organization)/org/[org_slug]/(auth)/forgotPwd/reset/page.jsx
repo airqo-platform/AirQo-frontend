@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Button from '@/common/components/Button';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import * as Yup from 'yup';
 import Link from 'next/link';
@@ -195,7 +196,7 @@ const OrganizationResetPassword = () => {
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
                 disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -205,7 +206,7 @@ const OrganizationResetPassword = () => {
                 }}
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
-              </button>
+              </Button>
             </div>
           </form>
 

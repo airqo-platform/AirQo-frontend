@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Button from '@/common/components/Button';
 import { signIn, getSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import * as Yup from 'yup';
@@ -167,10 +168,10 @@ const OrganizationLogin = () => {
               </div>
             </div>
             <div className="mt-10">
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn border-none rounded-lg text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
+                className="w-full text-sm border-none rounded-lg btn disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
                 style={{
                   backgroundColor: primaryColor,
                   boxShadow: isLoading
@@ -179,7 +180,7 @@ const OrganizationLogin = () => {
                 }}
               >
                 {isLoading ? 'Logging in...' : 'Sign In'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

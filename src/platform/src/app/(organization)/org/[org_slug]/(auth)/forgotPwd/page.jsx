@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
+import Button from '@/common/components/Button';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
@@ -169,7 +170,7 @@ const OrganizationForgotPassword = () => {
         )}
 
         <div>
-          <button
+          <Button
             type="submit"
             disabled={loading}
             className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
@@ -180,7 +181,7 @@ const OrganizationForgotPassword = () => {
             }}
           >
             {loading ? 'Sending...' : 'Send Reset Instructions'}
-          </button>
+          </Button>
         </div>
 
         <div className="text-center">
