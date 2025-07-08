@@ -177,8 +177,11 @@ const clearAxiosAuthHeaders = () => {
  * Enhanced logout utility with aggressive session termination
  * Forces complete logout by clearing everything and doing a hard redirect
  */
-const LogoutUser = async (dispatch, router, _showImmediateRedirect = true) => {
-  // Set global logout state immediately to prevent setup modals
+const LogoutUser = async (dispatch) => {
+  // Set global logout state immediately to prevent setup modals and double dialogs
+  if (isGlobalLogoutInProgress) {
+    return;
+  }
   isGlobalLogoutInProgress = true;
 
   // Determine redirect URL based on current route and Redux state
