@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import StepProgress from './CircularStepper';
@@ -10,9 +10,14 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
+
 import ErrorBoundary from '@/components/ErrorBoundary';
+import Button from '@/common/components/Button';
+import { FiDownload, FiBarChart2, FiUsers } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 
 const Checklist = ({ openVideoModal }) => {
+  const router = useRouter();
   const dispatch = useDispatch();
   const [userId, setUserId] = useState(null);
   const [dataFetched, setDataFetched] = useState(false);
@@ -155,7 +160,7 @@ const Checklist = ({ openVideoModal }) => {
     <ErrorBoundary name="Checklist" feature="Onboarding">
       <div className={reduxStatus === 'loading' ? 'opacity-70' : ''}>
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <div className="w-full md:w-1/2 flex flex-col">
             <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
               Onboarding Checklist
@@ -172,6 +177,44 @@ const Checklist = ({ openVideoModal }) => {
               totalSteps={totalSteps}
               completed={allCompleted}
             />
+          </div>
+        </div>
+
+        {/* Quick Access Section */}
+        <div className="mb-8">
+          <div className="flex items-center mb-3">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mr-2">
+              Quick Access
+            </h3>
+            <span className="text-xs text-gray-400">to</span>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={FiDownload}
+              onClick={() => router.push('/user/analytics')}
+            >
+              Download Data
+            </Button>
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={FiBarChart2}
+              onClick={() => router.push('/user/analytics')}
+            >
+              Data Analysis
+            </Button>
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={FiUsers}
+              onClick={() => {
+                /* TODO: Implement request new organization action */
+              }}
+            >
+              Request New Organization
+            </Button>
           </div>
         </div>
 
