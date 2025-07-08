@@ -64,23 +64,14 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
 
   const handleCreateOrganization = async () => {
     try {
-      // Find AirQo group
+      // ensure AirQo group is active before nav
       const airqo = userGroups.find(isAirQoGroup);
       if (airqo && airqo._id !== activeGroup?._id) {
-        // Switch to AirQo group and wait for completion
-        const result = await switchToGroup(airqo, { navigate: false });
-        if (!result.success) {
-          logger.error('Switch to AirQo failed:', result.error);
-        }
+        await switchToGroup(airqo, { navigate: false });
       }
-      // Close modal first for instant UI feedback
-      onClose();
-      // Small delay to ensure state is updated before navigation
-      setTimeout(() => {
-        router.push('/create-organization');
-      }, 100);
     } catch (err) {
       logger.error('Could not switch to AirQo first:', err);
+    } finally {
       onClose();
       router.push('/create-organization');
     }
