@@ -508,14 +508,14 @@ const ChartContainer = ({
               background: 'transparent',
               color: isDark ? '#F9FAFB' : '#1F2937',
             }}
-            loading={!!chartLoading}
+            loading={showSkeleton}
           >
             {renderDropdownContent}
           </CustomDropdown>
         </div>
       </div>
     );
-  }, [showTitle, chartTitle, renderDropdownContent, isDark, isValidating]);
+  }, [showTitle, chartTitle, renderDropdownContent, isDark, showSkeleton]);
   // Main chart content with overlay for skeleton or error
   const chartContent = useMemo(
     () => (
