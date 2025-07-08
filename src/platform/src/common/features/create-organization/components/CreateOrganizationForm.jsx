@@ -37,7 +37,7 @@ const CreateOrganizationForm = ({
     submitOrganizationRequest,
   } = useCreateOrganization();
 
-  // Auto‐generate slug from name
+  // Auto‑generate slug from org name
   useEffect(() => {
     if (
       currentStep === 1 &&
@@ -51,7 +51,7 @@ const CreateOrganizationForm = ({
     }
   }, [formData.organizationName, currentStep]);
 
-  // Debounced slug‐availability check
+  // Debounced slug‑availability check
   useEffect(() => {
     if (formData.organizationSlug.length >= 3) {
       const id = setTimeout(
@@ -62,7 +62,7 @@ const CreateOrganizationForm = ({
     }
   }, [formData.organizationSlug]);
 
-  // Generic input handler (supports nested branding_settings.*)
+  // Generic (flat / nested) change handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => {
@@ -83,14 +83,11 @@ const CreateOrganizationForm = ({
   };
 
   const handleSuggestionClick = (suggestion) => {
-    setFormData((prev) => ({
-      ...prev,
-      organizationSlug: suggestion,
-    }));
+    setFormData((prev) => ({ ...prev, organizationSlug: suggestion }));
     setErrors((prev) => {
-      const c = { ...prev };
-      delete c.organizationSlug;
-      return c;
+      const copy = { ...prev };
+      delete copy.organizationSlug;
+      return copy;
     });
   };
 
@@ -105,10 +102,11 @@ const CreateOrganizationForm = ({
     }
 
     setErrors((prev) => {
-      const c = { ...prev };
-      delete c.logoFile;
-      return c;
+      const copy = { ...prev };
+      delete copy.logoFile;
+      return copy;
     });
+
     setLogoFile(file);
 
     const reader = new FileReader();
@@ -121,10 +119,8 @@ const CreateOrganizationForm = ({
       formData,
       slugAvailability,
     );
-    if (!isValid) {
-      setErrors(stepErrors);
-      return;
-    }
+    if (!isValid) return setErrors(stepErrors);
+
     setErrors({});
     setCurrentStep(2);
   };
@@ -136,22 +132,12 @@ const CreateOrganizationForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // Guard double‑submit
 
-    // guard against double‐submit
-    if (isSubmitting) return;
+    if (currentStep === 1) return handleNextStep();
 
-    // only on step 2 do we actually send data
-    if (currentStep === 1) {
-      handleNextStep();
-      return;
-    }
-
-    // step 2 validation
     const { errors: step2Errors, isValid } = validateStep2(formData);
-    if (!isValid) {
-      setErrors(step2Errors);
-      return;
-    }
+    if (!isValid) return setErrors(step2Errors);
 
     const { success, error } = await submitOrganizationRequest(
       formData,
@@ -159,7 +145,6 @@ const CreateOrganizationForm = ({
     );
 
     if (success) {
-      // reset everything
       setFormData(getInitialFormData());
       setLogoFile(null);
       setLogoPreview('');
@@ -167,14 +152,14 @@ const CreateOrganizationForm = ({
       setCurrentStep(1);
       if (onSuccess) return onSuccess();
       router.push('/user/Home');
-    } else {
-      CustomToast({
-        message:
-          error?.message ||
-          'Failed to submit organization request. Please try again.',
-        type: 'error',
-      });
+      return;
     }
+    CustomToast({
+      message:
+        error?.message ||
+        'Failed to submit organization request. Please try again.',
+      type: 'error',
+    });
   };
 
   const handleCancel = () => {
@@ -188,11 +173,12 @@ const CreateOrganizationForm = ({
   };
 
   return (
-    <div className={`w-full max-w-4xl mx-auto ${className}`}>
+    <div className={`w-full max-w-4xl mx-auto overflow-x-hidden ${className}`}>
       {/* Progress indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center mb-4">
-          <div className="flex items-center">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center justify-center mb-4 w-full overflow-x-auto">
+          <div className="flex items-center w-full max-w-xs mx-auto">
+            {/* step 1 */}
             <div
               className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
                 currentStep >= 1
@@ -202,11 +188,13 @@ const CreateOrganizationForm = ({
             >
               1
             </div>
+            {/* line */}
             <div
-              className={`w-16 h-1 mx-2 ${
+              className={`flex-1 h-1 mx-2 ${
                 currentStep >= 2 ? 'bg-primary' : 'bg-gray-300'
               }`}
             />
+            {/* step 2 */}
             <div
               className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
                 currentStep >= 2
@@ -218,11 +206,13 @@ const CreateOrganizationForm = ({
             </div>
           </div>
         </div>
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-primary dark:text-primary-light">
+
+        {/* title + subtitle */}
+        <div className="text-center px-2 sm:px-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary dark:text-primary-light">
             {currentStep === 1 ? 'Organization Details' : 'Branding & Preview'}
           </h2>
-          <p className="mt-2 text-text-secondary dark:text-text-secondary-dark">
+          <p className="mt-2 text-text-secondary dark:text-text-secondary-dark text-sm sm:text-base">
             {currentStep === 1
               ? 'Tell us about your organization to join the AirQo platform.'
               : 'Customize how your organization appears in the platform.'}
@@ -230,9 +220,9 @@ const CreateOrganizationForm = ({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {/* FORM */}
+      <form onSubmit={handleSubmit} className="space-y-6 px-0 sm:px-1.5">
         {currentStep === 1 ? (
-          // Step 1: Organization Details
           <div className="space-y-6">
             {/* Organization Name */}
             <InputField
@@ -247,7 +237,7 @@ const CreateOrganizationForm = ({
               error={errors.organizationName}
             />
 
-            {/* Organization URL - Enhanced Design */}
+            {/* Organization URL */}
             <div>
               <label
                 htmlFor="organizationSlug"
@@ -256,10 +246,13 @@ const CreateOrganizationForm = ({
                 Organization URL{' '}
                 <span className="text-primary dark:text-primary/40">*</span>
               </label>
-              <div className="flex items-center">
-                <span className="flex-shrink-0 bg-gray-100 dark:bg-gray-600 px-4 py-2.5 rounded-l-xl text-gray-500 dark:text-gray-300 border border-r-0 border-gray-400 dark:border-gray-500 text-sm whitespace-nowrap">
+
+              {/* Responsive container: stacks on mobile, row on ≥sm */}
+              <div className="flex flex-col sm:flex-row w-full">
+                <span className="flex items-center px-4 py-2.5 border sm:border-r-0 border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300 text-sm break-all rounded-t-xl  sm:rounded-l-xl sm:rounded-r-none">
                   analytics.airqo.net/org/
                 </span>
+
                 <input
                   type="text"
                   id="organizationSlug"
@@ -267,15 +260,16 @@ const CreateOrganizationForm = ({
                   placeholder="nairobi-air-lab"
                   value={formData.organizationSlug}
                   onChange={handleInputChange}
-                  className={`flex-grow px-4 py-2.5 rounded-r-xl border text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 ${
+                  className={`flex-1 min-w-0 px-4 py-2.5 border border-t-0 sm:border-t sm:border-l-0 border-gray-400 dark:border-gray-500 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 ${
                     errors.organizationSlug
                       ? 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-400 dark:focus:ring-red-400'
-                      : 'border-gray-400 dark:border-gray-500 focus:border-primary focus:ring-primary/50 dark:focus:border-primary-light dark:focus:ring-primary-light/50'
-                  }`}
+                      : 'focus:border-primary focus:ring-primary/50 dark:focus:border-primary-light dark:focus:ring-primary-light/50'
+                  } rounded-b-xl sm:rounded-b-xl sm:rounded-l-none sm:rounded-r-xl`}
                   required
                 />
               </div>
-              {/* Loader and availability messages moved below the input */}
+
+              {/* Loader + availability */}
               {isCheckingSlug && (
                 <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
                   <svg
@@ -352,27 +346,27 @@ const CreateOrganizationForm = ({
                   {errors.organizationSlug}
                 </p>
               )}
-              {slugSuggestions &&
-                slugSuggestions.length > 0 &&
-                slugAvailability === false && (
-                  <div className="mt-2">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Try one of these instead:
-                    </p>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {slugSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          className="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-sm rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
-                    </div>
+
+              {slugSuggestions.length > 0 && slugAvailability === false && (
+                <div className="mt-2">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Try one of these instead:
+                  </p>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {slugSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-sm rounded-full hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
+
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 This will be your unique URL in the AirQo platform
               </p>
@@ -463,98 +457,91 @@ const CreateOrganizationForm = ({
             />
           </div>
         ) : (
-          // Step 2: Branding
           <div className="space-y-6">
             {/* Logo Upload */}
             <div>
               <label className="block text-sm font-medium text-text dark:text-text-dark mb-1">
                 Organization Logo
               </label>
-
-              {/* File Upload Option */}
-              <div className="mb-4">
-                <div
-                  className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer ${
-                    errors.logoFile
-                      ? 'border-red-300 dark:border-red-500 bg-red-50 dark:bg-red-900/20'
-                      : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-400 dark:hover:border-blue-500'
-                  }`}
-                  onClick={() => fileInputRef.current?.click()}
+              <div
+                className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer ${
+                  errors.logoFile
+                    ? 'border-red-300 dark:border-red-500 bg-red-50 dark:bg-red-900/20'
+                    : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-400 dark:hover:border-blue-500'
+                }`}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
                 >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    {logoFile
-                      ? logoFile.name
-                      : 'Click to upload your organization logo'}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    PNG, JPG, SVG, or GIF (max. 2MB)
-                  </p>
-                </div>
-                {errors.logoFile && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.logoFile}
-                  </p>
-                )}
-
-                {logoFile && (
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLogoFile(null);
-                        setLogoPreview('');
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = '';
-                        }
-                      }}
-                      className="text-destructive hover:text-destructive/80 text-sm"
-                    >
-                      Remove file
-                    </button>
-                  </div>
-                )}
+                </svg>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  {logoFile
+                    ? logoFile.name
+                    : 'Click to upload your organization logo'}
+                </p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  PNG, JPG, SVG, or GIF (max. 2MB)
+                </p>
               </div>
-
-              {/* Logo Preview */}
-              {logoPreview && (
-                <div className="mt-4 p-4 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Logo Preview:
-                  </p>
-                  <div className="h-24 flex items-center justify-center">
-                    <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      className="max-h-full max-w-full object-contain"
-                      onError={() => setLogoPreview('')}
-                    />
-                  </div>
+              {errors.logoFile && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.logoFile}
+                </p>
+              )}
+              {logoFile && (
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLogoFile(null);
+                      setLogoPreview('');
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="text-destructive hover:text-destructive/80 text-sm"
+                  >
+                    Remove file
+                  </button>
                 </div>
               )}
             </div>
 
+            {/* Logo Preview */}
+            {logoPreview && (
+              <div className="mt-4 p-4 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                  Logo Preview:
+                </p>
+                <div className="h-24 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={logoPreview}
+                    alt="Logo preview"
+                    className="max-h-full max-w-full object-contain"
+                    onError={() => setLogoPreview('')}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Brand Colors */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Primary Color */}
               <div>
                 <label
                   htmlFor="primary_color"
@@ -562,14 +549,14 @@ const CreateOrganizationForm = ({
                 >
                   Primary Brand Color
                 </label>
-                <div className="flex">
+                <div className="flex flex-col sm:flex-row items-stretch">
                   <input
                     type="color"
                     id="primary_color"
                     name="branding_settings.primary_color"
                     value={formData.branding_settings.primary_color}
                     onChange={handleInputChange}
-                    className="w-12 h-10 rounded-l-xl border border-gray-400 dark:border-gray-600 cursor-pointer"
+                    className="w-full sm:w-12 h-10 rounded-t-xl sm:rounded-l-xl border border-gray-400 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
@@ -577,7 +564,7 @@ const CreateOrganizationForm = ({
                     value={formData.branding_settings.primary_color}
                     onChange={handleInputChange}
                     name="branding_settings.primary_color"
-                    className={`ml-2 flex-1 px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                    className={`sm:ml-2 flex-1 min-w-0 px-4 py-2.5 text-sm rounded-b-xl sm:rounded-b-xl sm:rounded-l-none border bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                       errors['branding_settings.primary_color']
                         ? 'border-red-500 dark:border-red-400'
                         : 'border-gray-400 dark:border-gray-600'
@@ -594,6 +581,7 @@ const CreateOrganizationForm = ({
                 </p>
               </div>
 
+              {/* Secondary Color */}
               <div>
                 <label
                   htmlFor="secondary_color"
@@ -601,14 +589,14 @@ const CreateOrganizationForm = ({
                 >
                   Secondary Brand Color
                 </label>
-                <div className="flex">
+                <div className="flex flex-col sm:flex-row items-stretch">
                   <input
                     type="color"
                     id="secondary_color"
                     name="branding_settings.secondary_color"
                     value={formData.branding_settings.secondary_color}
                     onChange={handleInputChange}
-                    className="w-12 h-10 rounded-l-xl border border-gray-400 dark:border-gray-600 cursor-pointer"
+                    className="w-full sm:w-12 h-10 rounded-t-xl sm:rounded-l-xl border border-gray-400 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
@@ -616,7 +604,7 @@ const CreateOrganizationForm = ({
                     value={formData.branding_settings.secondary_color}
                     onChange={handleInputChange}
                     name="branding_settings.secondary_color"
-                    className={`ml-2 flex-1 px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                    className={`sm:ml-2 flex-1 min-w-0 px-4 py-2.5 text-sm rounded-b-xl sm:rounded-b-xl sm:rounded-l-none border bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                       errors['branding_settings.secondary_color']
                         ? 'border-red-500 dark:border-red-400'
                         : 'border-gray-400 dark:border-gray-600'
@@ -640,7 +628,7 @@ const CreateOrganizationForm = ({
                 Brand Preview
               </h3>
               <div
-                className="flex items-center p-3 rounded-md"
+                className="flex items-center p-3 rounded-md overflow-x-auto"
                 style={{
                   backgroundColor: formData.branding_settings.primary_color,
                 }}
@@ -649,14 +637,12 @@ const CreateOrganizationForm = ({
                   <img
                     src={logoPreview}
                     alt="Organization logo"
-                    className="h-8 mr-3 bg-white p-1 rounded"
+                    className="h-8 mr-3 bg-white p-1 rounded flex-shrink-0"
                   />
                 ) : (
                   <div
-                    className="h-8 w-8 mr-3 bg-white rounded flex items-center justify-center text-xs font-bold"
-                    style={{
-                      color: formData.branding_settings.primary_color,
-                    }}
+                    className="h-8 w-8 mr-3 bg-white rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    style={{ color: formData.branding_settings.primary_color }}
                   >
                     {formData.organizationName
                       ? formData.organizationName.charAt(0).toUpperCase()
@@ -664,10 +650,8 @@ const CreateOrganizationForm = ({
                   </div>
                 )}
                 <span
-                  className="font-medium text-sm"
-                  style={{
-                    color: formData.branding_settings.secondary_color,
-                  }}
+                  className="font-medium text-sm truncate"
+                  style={{ color: formData.branding_settings.secondary_color }}
                 >
                   {formData.organizationName || 'Your Organization'}
                 </span>
@@ -679,8 +663,7 @@ const CreateOrganizationForm = ({
           </div>
         )}
 
-        {/* Form Actions */}
-        <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center gap-2 flex-wrap pt-6 border-t border-gray-200 dark:border-gray-700">
           {currentStep === 2 && (
             <Button
               type="button"
@@ -692,7 +675,7 @@ const CreateOrganizationForm = ({
             </Button>
           )}
 
-          <div className="flex gap-3 ml-auto">
+          <div className="flex gap-2 ml-auto">
             {showCancelButton && (
               <Button
                 type="button"
