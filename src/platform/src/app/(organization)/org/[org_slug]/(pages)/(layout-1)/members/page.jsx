@@ -1,5 +1,6 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import PermissionDenied from '@/common/components/PermissionDenied';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 import Button from '@/common/components/Button';
@@ -32,9 +33,12 @@ const OrganizationMembersPage = () => {
   const [removeLoading, setRemoveLoading] = useState(false);
   const [error, setError] = useState(null);
   const [groupDetails, setGroupDetails] = useState(null);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
-  const getGroupId = () =>
-    organization?._id || organization?.id || activeGroup?._id;
+  const getGroupId = useCallback(
+    () => organization?._id || organization?.id || activeGroup?._id,
+    [organization, activeGroup],
+  );
 
   const fetchMemberData = useCallback(async () => {
     const groupId = getGroupId();
@@ -46,8 +50,14 @@ const OrganizationMembersPage = () => {
     }
     setLoading(true);
     setError(null);
+    setPermissionDenied(false);
     try {
       const res = await getGroupDetailsApi(groupId);
+      if (res.status === 403) {
+        setPermissionDenied(true);
+        setLoading(false);
+        return;
+      }
       if (res.success && res.group) {
         setGroupDetails(res.group);
         const users = res.group.grp_users || [];
@@ -57,13 +67,19 @@ const OrganizationMembersPage = () => {
         throw new Error(res.message || 'Invalid API response');
       }
     } catch (e) {
+      // Check for 403 in error response
+      if (e?.response?.status === 403) {
+        setPermissionDenied(true);
+        setLoading(false);
+        return;
+      }
       logger.error('Fetch members error', e);
       CustomToast({ message: e.message, type: 'error' });
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [organization, activeGroup]);
+  }, [organization, activeGroup, getGroupId]);
 
   useEffect(() => {
     fetchMemberData();
@@ -171,6 +187,10 @@ const OrganizationMembersPage = () => {
     const mins = Math.floor(diff / (1000 * 60));
     return mins <= 1 ? 'Just now' : `${mins} minutes ago`;
   };
+
+  if (permissionDenied) {
+    return <PermissionDenied />;
+  }
 
   if (!organization || loading) return <MembersPageSkeleton />;
 
