@@ -21,7 +21,6 @@ import { useRouter } from "next/navigation"
 import OrganizationPicker from "../features/org-picker/organization-picker";
 import Image from "next/image";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import ContextSwitcher from "./context-switcher";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -114,24 +113,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
             height={32}
           />
           <span className="font-bold text-lg">Vertex</span>
-          
-          {/* Context Title
-          {userContext && (
-            <div className="ml-4 flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">•</span>
-              <span className="text-sm font-medium text-foreground">
-                {sidebarConfig.title}
-              </span>
-            </div>
-          )} */}
         </div>
 
         <div className="flex items-center gap-x-3 ml-auto">
-          {/* Context Switcher for AirQo Staff */}
-          {sidebarConfig.showContextSwitcher && (
-            <ContextSwitcher />
-          )}
-
           <OrganizationPicker />
 
           <DropdownMenu>

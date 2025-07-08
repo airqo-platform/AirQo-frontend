@@ -12,7 +12,7 @@ const routeToSidebarConfig: Record<string, keyof ReturnType<typeof useUserContex
   '/devices/my-devices': 'showMyDevices',
   '/devices/overview': 'showDeviceOverview',
   '/devices/claim': 'showClaimDevice',
-  '/devices/deploy': 'showDeviceOverview', // Deploy is part of device overview
+  '/devices/deploy': 'showDeployDevice', // Deploy is part of device overview
   '/grids': 'showSites',
   '/cohorts': 'showDeviceOverview',
 };

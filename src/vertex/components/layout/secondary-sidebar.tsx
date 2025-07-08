@@ -24,7 +24,6 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import ContextSwitcher from "./context-switcher";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -188,13 +187,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
         )}
       </Button>
 
-      {/* Context Switcher for AirQo Staff */}
-      {!isCollapsed && sidebarConfig.showContextSwitcher && (
-        <div className="mb-4">
-          <ContextSwitcher />
-        </div>
-      )}
-
       <nav className="flex-1 space-y-2">
         {activeModule === 'network' && (
           <>
@@ -250,6 +242,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                   <SubMenuItem
                     href="/devices/claim"
                     label="Claim Device"
+                  />
+                )}
+                {sidebarConfig.showDeployDevice && (
+                  <SubMenuItem
+                    href="/devices/deploy"
+                    label="Deploy Device"
                   />
                 )}
               </SidebarDropdown>
