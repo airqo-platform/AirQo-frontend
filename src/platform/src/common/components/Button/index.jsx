@@ -66,11 +66,17 @@ const Button = React.forwardRef(
     // Determine padding - paddingStyles takes precedence for backward compatibility
     const finalPadding = paddingStyles || padding;
 
+    // If loading, override background and text color for visibility
+    const loadingStyles = rest['loading']
+      ? 'bg-gray-400 !text-gray-900 !border-gray-400'
+      : '';
+
     const btnClass = clsx(
       base,
       finalPadding,
       variantStyles,
       disabledStyles,
+      loadingStyles,
       className,
     );
 
@@ -96,6 +102,9 @@ const Button = React.forwardRef(
       );
     }
 
+    // If loading prop is passed, set aria-busy for accessibility
+    const { loading, ...buttonRest } = rest;
+
     return (
       <button
         ref={ref}
@@ -104,7 +113,8 @@ const Button = React.forwardRef(
         className={btnClass}
         data-testid={dataTestId}
         disabled={disabled}
-        {...rest}
+        aria-busy={!!loading}
+        {...buttonRest}
       >
         {Content}
       </button>

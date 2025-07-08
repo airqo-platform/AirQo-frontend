@@ -172,10 +172,12 @@ const OrganizationForgotPassword = () => {
         <div>
           <Button
             type="submit"
+            loading={loading}
             disabled={loading}
             className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
             style={{
-              backgroundColor: primaryColor,
+              backgroundColor: loading ? '#e5e7eb' : primaryColor,
+              color: loading ? '#222' : undefined,
               '--tw-ring-color': primaryColor,
               boxShadow: loading ? 'none' : `0 4px 14px 0 ${primaryColor}25`,
             }}

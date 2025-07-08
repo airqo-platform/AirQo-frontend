@@ -171,13 +171,16 @@ const OrganizationLogin = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full text-sm border-none rounded-lg btn disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
+                loading={isLoading}
+                className="w-full text-sm transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
                 style={{
-                  backgroundColor: primaryColor,
+                  backgroundColor: isLoading ? '#d1d5db' : primaryColor,
+                  color: isLoading ? '#222' : undefined,
                   boxShadow: isLoading
                     ? 'none'
                     : `0 4px 14px 0 ${primaryColor}25`,
                 }}
+                aria-busy={isLoading}
               >
                 {isLoading ? 'Logging in...' : 'Sign In'}
               </Button>

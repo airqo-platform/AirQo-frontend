@@ -198,10 +198,14 @@ const OrganizationResetPassword = () => {
             <div>
               <Button
                 type="submit"
+                loading={loading}
                 disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: primaryColor || '#135DFF',
+                  backgroundColor: loading
+                    ? '#e5e7eb'
+                    : primaryColor || '#135DFF',
+                  color: loading ? '#222' : undefined,
                   focusRingColor: primaryColor || '#135DFF',
                 }}
               >
