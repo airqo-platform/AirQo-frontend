@@ -7,6 +7,7 @@ import CardWrapper from '@/common/components/CardWrapper';
 import DashboardPageSkeleton from '@/common/components/Skeleton/DashboardPageSkeleton';
 import ErrorState from '@/common/components/ErrorState';
 import { getGroupDetailsApi } from '@/core/apis/Account';
+import { useDeviceSummary } from '@/core/hooks/analyticHooks';
 
 // Import icons from react-icons
 import { FiUsers as UsersIcon, FiMapPin } from 'react-icons/fi';
@@ -20,6 +21,14 @@ const OrganizationDashboardPage = () => {
 
   // For demo: isAdmin is always true. Replace with real logic as needed.
   const isAdmin = true;
+
+  // Get group title for device summary
+  const groupTitle = activeGroup?.grp_title || activeGroup?.name || '';
+  const {
+    data: deviceSummaryData = [],
+    isLoading: isDeviceSummaryLoading,
+    isError: isDeviceSummaryError,
+  } = useDeviceSummary(groupTitle, {});
 
   const fetchGroupDetails = useCallback(async () => {
     const groupId = activeGroup?._id || activeGroup?.id;
@@ -47,8 +56,31 @@ const OrganizationDashboardPage = () => {
   useEffect(() => {
     fetchGroupDetails();
   }, [fetchGroupDetails]);
-  if (!activeGroup || loading) {
+
+  if (!activeGroup || loading || isDeviceSummaryLoading) {
     return <DashboardPageSkeleton isAdmin={isAdmin} />;
+  }
+
+  if (isDeviceSummaryError) {
+    return (
+      <ErrorState
+        type="server"
+        title="Unable to load device summary"
+        description={
+          <>
+            {'There was a problem retrieving the device summary.'}
+            <br />
+            <span className="text-sm text-gray-500">
+              Please try again or contact support if the issue persists.
+            </span>
+          </>
+        }
+        onPrimaryAction={fetchGroupDetails}
+        primaryAction="Retry"
+        size="medium"
+        variant="card"
+      />
+    );
   }
 
   if (error) {
@@ -79,14 +111,17 @@ const OrganizationDashboardPage = () => {
 
   const memberCount =
     groupDetails?.numberOfGroupUsers ?? groupDetails?.grp_users?.length ?? 0;
-  // Dummy data for sites monitored
-  const sitesMonitored = 8;
+
+  // Get number of sites monitored from device summary data
+  const sitesMonitored = Array.isArray(deviceSummaryData)
+    ? deviceSummaryData.length
+    : 0;
 
   return (
     <>
       {/* Welcome Card */}
       <CardWrapper
-        className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-r from-primary to-primary/80 text-white"
+        className="relative overflow-hidden border-0 bg-gradient-to-r from-primary to-primary/80 text-white"
         padding="p-8 lg:p-12"
       >
         <div className="relative z-10">
@@ -124,7 +159,7 @@ const OrganizationDashboardPage = () => {
         {/* Sites Monitored Card (public) */}
         <div className="md:col-span-1 lg:col-span-1">
           <CardWrapper
-            className="group border-0 shadow-lg bg-white dark:bg-gray-800 relative overflow-hidden rounded-2xl p-0"
+            className="group border-0 bg-white dark:bg-gray-800 relative overflow-hidden rounded-2xl p-0"
             padding=""
           >
             <div className="flex flex-col h-full justify-center p-6">
