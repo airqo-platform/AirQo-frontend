@@ -246,7 +246,7 @@ const Home = () => {
               </p>
               <div className="flex items-center space-x-4 mt-4">
                 <Button
-                  path="/analytics"
+                  path="/user/analytics"
                   className="w-32 h-12"
                   dataTestId="get-started-button"
                 >
