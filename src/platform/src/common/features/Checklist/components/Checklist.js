@@ -210,7 +210,7 @@ const Checklist = ({ openVideoModal }) => {
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
               Icon={FiUsers}
               onClick={() => {
-                /* TODO: Implement request new organization action */
+                router.push('/create-organization');
               }}
             >
               Request New Organization
