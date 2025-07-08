@@ -14,6 +14,7 @@ import {
   Shield,
   LayoutDashboard,
   ChevronDown,
+  Grid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -39,69 +40,69 @@ const SidebarSectionHeading = ({ children, isCollapsed }: { children: React.Reac
   ) : null
 );
 
-const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, tooltip, activeOverride }: { href: string; icon: React.ElementType; label:string; isCollapsed: boolean; disabled?: boolean; tooltip?: string; activeOverride?: boolean }) => {
-    const pathname = usePathname();
-    const isActive = typeof activeOverride === 'boolean' ? activeOverride : pathname.startsWith(href);
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={disabled ? '#' : href}
-              tabIndex={disabled ? -1 : 0}
-              aria-disabled={disabled}
-              className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition text-base
+const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, tooltip, activeOverride }: { href: string; icon: React.ElementType; label: string; isCollapsed: boolean; disabled?: boolean; tooltip?: string; activeOverride?: boolean }) => {
+  const pathname = usePathname();
+  const isActive = typeof activeOverride === 'boolean' ? activeOverride : pathname.startsWith(href);
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={disabled ? '#' : href}
+            tabIndex={disabled ? -1 : 0}
+            aria-disabled={disabled}
+            className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition text-base
                 ${isActive ? (isCollapsed ? 'bg-blue-50' : 'bg-blue-50 font-semibold text-blue-700') : 'hover:bg-muted text-foreground'}
                 ${isCollapsed ? 'justify-center px-2 py-2' : ''}
                 ${disabled ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
-              style={{ position: 'relative' }}
-            >
-              {isActive && !isCollapsed && (
-                <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-blue-600" />
-              )}
-              <Icon size={20} className="shrink-0" />
-              <span className={isCollapsed ? "hidden" : "block"}>{label}</span>
-            </Link>
-          </TooltipTrigger>
-          {disabled && tooltip && (
-            <TooltipContent side="right">{tooltip}</TooltipContent>
-          )}
-          {!disabled && isCollapsed && (
-            <TooltipContent side="right">{label}</TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
-    );
+            style={{ position: 'relative' }}
+          >
+            {isActive && !isCollapsed && (
+              <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-blue-600" />
+            )}
+            <Icon size={20} className="shrink-0" />
+            <span className={isCollapsed ? "hidden" : "block"}>{label}</span>
+          </Link>
+        </TooltipTrigger>
+        {disabled && tooltip && (
+          <TooltipContent side="right">{tooltip}</TooltipContent>
+        )}
+        {!disabled && isCollapsed && (
+          <TooltipContent side="right">{label}</TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
 
 const SubMenuItem = ({ href, label, disabled = false, tooltip, activeOverride }: { href: string; label: string; disabled?: boolean; tooltip?: string; activeOverride?: boolean }) => {
-    const pathname = usePathname();
-    const isActive = typeof activeOverride === 'boolean' ? activeOverride : pathname.startsWith(href);
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={disabled ? '#' : href}
-              tabIndex={disabled ? -1 : 0}
-              aria-disabled={disabled}
-              className={`relative flex items-center gap-3 px-4 py-2 rounded-lg transition text-sm
+  const pathname = usePathname();
+  const isActive = typeof activeOverride === 'boolean' ? activeOverride : pathname.startsWith(href);
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={disabled ? '#' : href}
+            tabIndex={disabled ? -1 : 0}
+            aria-disabled={disabled}
+            className={`relative flex items-center gap-3 px-4 py-2 rounded-lg transition text-sm
                 ${isActive ? 'bg-blue-50 font-semibold text-blue-700' : 'hover:bg-muted text-foreground'}
                 ${disabled ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
-              style={{ position: 'relative' }}
-            >
-              {isActive && (
-                <span className="absolute left-0 top-1 bottom-1 w-1 rounded-full bg-blue-600" />
-              )}
-              <span>{label}</span>
-            </Link>
-          </TooltipTrigger>
-          {disabled && tooltip && (
-            <TooltipContent side="right">{tooltip}</TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
-    );
+            style={{ position: 'relative' }}
+          >
+            {isActive && (
+              <span className="absolute left-0 top-1 bottom-1 w-1 rounded-full bg-blue-600" />
+            )}
+            <span>{label}</span>
+          </Link>
+        </TooltipTrigger>
+        {disabled && tooltip && (
+          <TooltipContent side="right">{tooltip}</TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
 
 const SidebarDropdown = ({
@@ -164,152 +165,172 @@ const SidebarDropdown = ({
 };
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, activeModule, toggleSidebar }) => {
-    const { getSidebarConfig, getContextPermissions, isPersonalContext } = useUserContext();
-    const sidebarConfig = getSidebarConfig();
-    const contextPermissions = getContextPermissions();
+  const { getSidebarConfig, getContextPermissions, isPersonalContext } = useUserContext();
+  const sidebarConfig = getSidebarConfig();
+  const contextPermissions = getContextPermissions();
 
-    return (
-        <div
-            className={`relative h-full bg-white rounded-2xl flex flex-col p-4 transition-all duration-300 ease-in-out z-30 mx-1 my-1 border border-gray-100
+  return (
+    <div
+      className={`relative h-full bg-white rounded-2xl flex flex-col p-4 transition-all duration-300 ease-in-out z-30 mx-1 my-1 border border-gray-100
                 ${isCollapsed ? "w-16" : "w-64"}
             `}
-        >
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className={`absolute top-4 right-[-18px] h-6 w-6 rounded-full bg-white shadow-sm border z-50`}
-            >
-                {isCollapsed ? (
-                    <ChevronRight className="h-4 w-4 text-gray-700" />
-                ) : (
-                    <ChevronLeft className="h-4 w-4 text-gray-700" />
-                )}
-            </Button>
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleSidebar}
+        className={`absolute top-4 right-[-18px] h-6 w-6 rounded-full bg-white shadow-sm border z-50`}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-4 w-4 text-gray-700" />
+        ) : (
+          <ChevronLeft className="h-4 w-4 text-gray-700" />
+        )}
+      </Button>
 
-            {/* Context Switcher for AirQo Staff */}
-            {!isCollapsed && sidebarConfig.showContextSwitcher && (
-              <div className="mb-4">
-                <ContextSwitcher />
-              </div>
+      {/* Context Switcher for AirQo Staff */}
+      {!isCollapsed && sidebarConfig.showContextSwitcher && (
+        <div className="mb-4">
+          <ContextSwitcher />
+        </div>
+      )}
+
+      <nav className="flex-1 space-y-2">
+        {activeModule === 'network' && (
+          <>
+            <NavItem
+              href="/dashboard"
+              icon={LayoutDashboard}
+              label="Dashboard"
+              isCollapsed={isCollapsed}
+              disabled={false}
+            />
+
+            {/* Network Map - only for AirQo Internal */}
+            {sidebarConfig.showNetworkMap && (
+              <NavItem
+                href="/network-map"
+                icon={MapIcon}
+                label="Network Map"
+                isCollapsed={isCollapsed}
+                disabled={false}
+              />
             )}
 
-            <nav className="flex-1 space-y-2">
-                {activeModule === 'network' && (
-                    <>
-                        <NavItem 
-                            href="/dashboard" 
-                            icon={LayoutDashboard} 
-                            label="Dashboard"
-                            isCollapsed={isCollapsed}
-                            disabled={false}
-                        />
-                        
-                        {/* Network Map - only for AirQo Internal */}
-                        {sidebarConfig.showNetworkMap && (
-                          <NavItem 
-                            href="/network-map" 
-                            icon={MapIcon} 
-                            label="Network Map"
-                            isCollapsed={isCollapsed}
-                            disabled={false}
-                          />
-                        )}
+            {/* Network Section Heading */}
+            <SidebarSectionHeading isCollapsed={isCollapsed}>
+              {isPersonalContext ? 'My Network' : 'Network'}
+            </SidebarSectionHeading>
 
-                        {/* Network Section Heading */}
-                        <SidebarSectionHeading isCollapsed={isCollapsed}>
-                          {isPersonalContext ? 'My Network' : 'Network'}
-                        </SidebarSectionHeading>
-
-                        {/* Devices Section */}
-                        {contextPermissions.canViewDevices && (
-                          <SidebarDropdown
-                            label="Devices"
-                            icon={Radio}
-                            isCollapsed={isCollapsed}
-                            defaultOpen={true}
-                          >
-                            {sidebarConfig.showDeviceOverview && (
-                              <SubMenuItem 
-                                href="/devices/overview" 
-                                label="Overview" 
-                                disabled={!contextPermissions.canViewDevices} 
-                                tooltip="You do not have permission to view devices." 
-                              />
-                            )}
-                            {sidebarConfig.showMyDevices && (
-                              <SubMenuItem 
-                                href="/devices/my-devices" 
-                                label="My Devices" 
-                                disabled={!contextPermissions.canViewDevices} 
-                                tooltip="You do not have permission to view devices." 
-                              />
-                            )}
-                            {sidebarConfig.showClaimDevice && (
-                              <SubMenuItem 
-                                href="/devices/claim" 
-                                label="Claim Device" 
-                              />
-                            )}
-                          </SidebarDropdown>
-                        )}
-
-                        {/* Sites - only for non-personal contexts */}
-                        {sidebarConfig.showSites && contextPermissions.canViewSites && (
-                          <NavItem 
-                            href="/sites" 
-                            icon={MapPin} 
-                            label="Sites"
-                            isCollapsed={isCollapsed}
-                            disabled={false}
-                          />
-                        )}
-                    </>
+            {/* Devices Section */}
+            {contextPermissions.canViewDevices && (
+              <SidebarDropdown
+                label="Devices"
+                icon={Radio}
+                isCollapsed={isCollapsed}
+                defaultOpen={true}
+              >
+                {sidebarConfig.showDeviceOverview && (
+                  <SubMenuItem
+                    href="/devices/overview"
+                    label="Overview"
+                    disabled={!contextPermissions.canViewDevices}
+                    tooltip="You do not have permission to view devices."
+                  />
                 )}
-                
-                {activeModule === 'admin' && (
-                    <>
-                        {sidebarConfig.showUserManagement && (
-                          <NavItem 
-                            href="/user-management" 
-                            icon={Users} 
-                            label="User Management" 
-                            isCollapsed={isCollapsed} 
-                            disabled={!contextPermissions.canViewUserManagement} 
-                            tooltip="You do not have permission to view user management." 
-                          />
-                        )}
-                        {sidebarConfig.showAccessControl && (
-                          <NavItem 
-                            href="/access-control" 
-                            icon={Shield} 
-                            label="Access Control" 
-                            isCollapsed={isCollapsed} 
-                            disabled={!contextPermissions.canViewAccessControl} 
-                            tooltip="You do not have permission to view access control." 
-                          />
-                        )}
-                        {sidebarConfig.showOrganizations && (
-                          <NavItem 
-                            href="/organizations" 
-                            icon={Building2} 
-                            label="Organizations" 
-                            isCollapsed={isCollapsed} 
-                            disabled={!contextPermissions.canViewOrganizations} 
-                            tooltip="You do not have permission to view organizations." 
-                          />
-                        )}
-                    </>
+                {sidebarConfig.showMyDevices && (
+                  <SubMenuItem
+                    href="/devices/my-devices"
+                    label="My Devices"
+                    disabled={!contextPermissions.canViewDevices}
+                    tooltip="You do not have permission to view devices."
+                  />
                 )}
-            </nav>
+                {sidebarConfig.showClaimDevice && (
+                  <SubMenuItem
+                    href="/devices/claim"
+                    label="Claim Device"
+                  />
+                )}
+              </SidebarDropdown>
+            )}
 
-            {/* Account Section at the bottom */}
-            <div className="mt-auto">
-              <SidebarSectionHeading isCollapsed={isCollapsed}>Account</SidebarSectionHeading>
-              <NavItem href="/profile" icon={UserCircle} label="Profile" isCollapsed={isCollapsed} />
-            </div>
-        </div>
-    );
+            {/* Sites - only for non-personal contexts */}
+            {sidebarConfig.showSites && contextPermissions.canViewSites && (
+              <NavItem
+                href="/sites"
+                icon={MapPin}
+                label="Sites"
+                isCollapsed={isCollapsed}
+                disabled={false}
+              />
+            )}
+
+            {sidebarConfig.showSites && contextPermissions.canViewSites && (
+              <NavItem
+                href="/grids"
+                icon={Grid}
+                label="Grids"
+                isCollapsed={isCollapsed}
+                disabled={false}
+              />
+            )}
+
+            {sidebarConfig.showDeviceOverview && contextPermissions.canViewDevices && (
+              <NavItem
+                href="/cohorts"
+                icon={Users}
+                label="Cohorts"
+                isCollapsed={isCollapsed}
+                disabled={false}
+              />
+            )}
+          </>
+        )}
+
+        {activeModule === 'admin' && (
+          <>
+            {sidebarConfig.showUserManagement && (
+              <NavItem
+                href="/user-management"
+                icon={Users}
+                label="User Management"
+                isCollapsed={isCollapsed}
+                disabled={!contextPermissions.canViewUserManagement}
+                tooltip="You do not have permission to view user management."
+              />
+            )}
+            {sidebarConfig.showAccessControl && (
+              <NavItem
+                href="/access-control"
+                icon={Shield}
+                label="Access Control"
+                isCollapsed={isCollapsed}
+                disabled={!contextPermissions.canViewAccessControl}
+                tooltip="You do not have permission to view access control."
+              />
+            )}
+            {sidebarConfig.showOrganizations && (
+              <NavItem
+                href="/organizations"
+                icon={Building2}
+                label="Organizations"
+                isCollapsed={isCollapsed}
+                disabled={!contextPermissions.canViewOrganizations}
+                tooltip="You do not have permission to view organizations."
+              />
+            )}
+          </>
+        )}
+      </nav>
+
+      {/* Account Section at the bottom */}
+      <div className="mt-auto">
+        <SidebarSectionHeading isCollapsed={isCollapsed}>Account</SidebarSectionHeading>
+        <NavItem href="/profile" icon={UserCircle} label="Profile" isCollapsed={isCollapsed} />
+      </div>
+    </div>
+  );
 };
 
 export default SecondarySidebar; 

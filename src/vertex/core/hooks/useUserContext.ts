@@ -127,13 +127,13 @@ export const useUserContext = (): UserContextState => {
       return {
         title: 'Loading...',
         showContextSwitcher: false,
-        showNetworkMap: false,
+        showNetworkMap: true,
         showSites: false,
         showUserManagement: false,
         showAccessControl: false,
         showOrganizations: false,
         showMyDevices: true,
-        showDeviceOverview: true,
+        showDeviceOverview: false,
         showClaimDevice: true,
       };
     }
@@ -143,13 +143,13 @@ export const useUserContext = (): UserContextState => {
         return {
           title: 'My Monitors',
           showContextSwitcher: false,
-          showNetworkMap: false,
+          showNetworkMap: true,
           showSites: false,
           showUserManagement: false,
           showAccessControl: false,
           showOrganizations: false,
           showMyDevices: true,
-          showDeviceOverview: true,
+          showDeviceOverview: false,
           showClaimDevice: true,
         };
 
@@ -162,9 +162,9 @@ export const useUserContext = (): UserContextState => {
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
           showOrganizations: canViewOrganizations,
-          showMyDevices: true,
+          showMyDevices: false,
           showDeviceOverview: canViewDevices,
-          showClaimDevice: true,
+          showClaimDevice: false,
         };
 
       case 'external-org':
@@ -185,13 +185,13 @@ export const useUserContext = (): UserContextState => {
         return {
           title: 'My Monitors',
           showContextSwitcher: false,
-          showNetworkMap: false,
+          showNetworkMap: true,
           showSites: false,
           showUserManagement: false,
           showAccessControl: false,
           showOrganizations: false,
           showMyDevices: true,
-          showDeviceOverview: true,
+          showDeviceOverview: false,
           showClaimDevice: true,
         };
     }
