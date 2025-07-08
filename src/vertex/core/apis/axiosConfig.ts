@@ -36,6 +36,28 @@ const createAxiosInstance = (isJWT = true) => {
     }
   );
 
+  // Add a response interceptor to handle 403 errors globally
+  axiosInstance.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      if (error.response?.status === 403) {
+        // Dispatch forbidden state to Redux store
+        // We'll need to access the store here, so we'll use a custom event
+        const forbiddenEvent = new CustomEvent('forbidden-access', {
+          detail: {
+            message: "You don't have permission to access this resource",
+            timestamp: Date.now(),
+            url: error.config?.url || 'unknown'
+          }
+        });
+        window.dispatchEvent(forbiddenEvent);
+      }
+      return Promise.reject(error);
+    }
+  );
+
   return axiosInstance;
 };
 

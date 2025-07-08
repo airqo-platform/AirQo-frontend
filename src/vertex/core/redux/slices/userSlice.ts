@@ -9,6 +9,13 @@ import type {
 
 export type UserContext = 'personal' | 'airqo-internal' | 'external-org';
 
+interface ForbiddenState {
+  isForbidden: boolean;
+  message: string;
+  timestamp: number | null;
+  url: string | null;
+}
+
 interface UserState {
   isAuthenticated: boolean;
   userDetails: UserDetails | null;
@@ -21,6 +28,7 @@ interface UserState {
   userContext: UserContext | null;
   isAirQoStaff: boolean;
   canSwitchContext: boolean;
+  forbidden: ForbiddenState;
 }
 
 const initialState: UserState = {
@@ -35,6 +43,12 @@ const initialState: UserState = {
   userContext: null,
   isAirQoStaff: false,
   canSwitchContext: false,
+  forbidden: {
+    isForbidden: false,
+    message: "",
+    timestamp: null,
+    url: null,
+  },
 };
 
 // Helper function to determine user context
@@ -151,6 +165,23 @@ const userSlice = createSlice({
       
       state.userContext = action.payload;
     },
+    // Forbidden state actions
+    setForbiddenState(state, action: PayloadAction<{ message: string; timestamp: number; url: string }>) {
+      state.forbidden = {
+        isForbidden: true,
+        message: action.payload.message,
+        timestamp: action.payload.timestamp,
+        url: action.payload.url,
+      };
+    },
+    clearForbiddenState(state) {
+      state.forbidden = {
+        isForbidden: false,
+        message: "",
+        timestamp: null,
+        url: null,
+      };
+    },
   },
 });
 
@@ -163,5 +194,7 @@ export const {
   setActiveGroup,
   setUserGroups,
   setUserContext,
+  setForbiddenState,
+  clearForbiddenState,
 } = userSlice.actions;
 export default userSlice.reducer;
