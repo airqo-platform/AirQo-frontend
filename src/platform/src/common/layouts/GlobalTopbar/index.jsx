@@ -12,7 +12,7 @@ import MyProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
 import {
   toggleGlobalSidebar,
-  toggleGlobalDrawerMobile,
+  setToggleDrawer,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '@/common/components/GroupLogo';
@@ -100,7 +100,7 @@ const GlobalTopbar = ({
     (e) => {
       e.preventDefault();
       if (width < 1024) {
-        dispatch(toggleGlobalDrawerMobile());
+        dispatch(setToggleDrawer(true)); // Open normal sidebar drawer on mobile
       } else {
         dispatch(toggleGlobalSidebar());
       }
