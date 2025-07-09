@@ -17,6 +17,7 @@ abstract class AuthRepository with UiLoggy {
     required String confirmPassword,
   });
   Future<void> verifyEmailCode(String token, String email);
+  Future<String> verifyResetPin(String pin, String email);
 }
 
 class AuthImpl extends AuthRepository {
@@ -206,6 +207,88 @@ loggy.error("Exception during email verification: $e");
       final error =
           jsonDecode(response.body)['message'] ?? 'Failed to reset password.';
       throw Exception(error);
+    }
+  }
+
+  @override
+  Future<String> verifyResetPin(String pin, String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.airqo.net/api/v2/users/verify-reset-pin'),
+        headers: {
+          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+          "Accept": "*/*",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode({
+          'pin': pin,
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return data['token'] ?? pin; // Return the token for password reset
+        } else {
+          throw Exception(data['message'] ?? 'Invalid PIN. Please try again.');
+        }
+      } else {
+        try {
+          final errorData = jsonDecode(response.body);
+          String errorMessage = errorData['message'] ?? 'PIN verification failed.';
+          
+          // Handle specific HTTP status codes
+          switch (response.statusCode) {
+            case 400:
+              errorMessage = errorData['message'] ?? 'Invalid PIN format.';
+              break;
+            case 401:
+              errorMessage = 'PIN verification failed. Please try again.';
+              break;
+            case 403:
+              errorMessage = 'PIN has expired. Please request a new code.';
+              break;
+            case 404:
+              errorMessage = 'Invalid PIN. Please check and try again.';
+              break;
+            case 429:
+              errorMessage = 'Too many attempts. Please wait before trying again.';
+              break;
+            case 500:
+            case 502:
+            case 503:
+              errorMessage = 'Server error. Please try again later.';
+              break;
+            default:
+              errorMessage = errorData['message'] ?? 'PIN verification failed.';
+          }
+          
+          throw Exception(errorMessage);
+        } catch (e) {
+          // If JSON parsing fails, handle based on status code
+          switch (response.statusCode) {
+            case 400:
+            case 404:
+              throw Exception('Invalid PIN. Please check and try again.');
+            case 403:
+              throw Exception('PIN has expired. Please request a new code.');
+            case 429:
+              throw Exception('Too many attempts. Please wait before trying again.');
+            case 500:
+            case 502:
+            case 503:
+              throw Exception('Server error. Please try again later.');
+            default:
+              throw Exception('PIN verification failed. Please try again.');
+          }
+        }
+      }
+    } catch (e) {
+      if (e.toString().contains('Exception:')) {
+        rethrow;
+      }
+      throw Exception('Network error. Please check your connection and try again.');
     }
   }
 }

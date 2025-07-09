@@ -37,9 +37,10 @@ class PasswordResetError extends PasswordResetState {
 
 class PasswordResetVerified extends PasswordResetState {
   final String message;
+  final String? token;
 
-  const PasswordResetVerified({String? email, required this.message}) : super(email: email);
+  const PasswordResetVerified({String? email, required this.message, this.token}) : super(email: email);
 
   @override
-  List<Object?> get props => [email, message];
+  List<Object?> get props => [email, message, token];
 }

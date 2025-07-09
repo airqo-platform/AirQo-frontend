@@ -37,20 +37,30 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
       emit(const PasswordResetLoading());
 
       try {
-
-        if (RegExp(r'^\d{5}$').hasMatch(event.pin)) { // Replace with actual logic
-          emit(const PasswordResetVerified(
-            message: "PIN successfully verified. Proceed to reset password.",
-          ));
-        } else {
-          emit(const PasswordResetError(
-            message: "Invalid PIN. Please try again.",
-          ));
+        // Get the current email from state
+        final currentState = state;
+        String? email;
+        if (currentState is PasswordResetState && currentState.email != null) {
+          email = currentState.email;
         }
-      } catch (e) {
-        emit(const PasswordResetError(
-          message: "Failed to verify PIN.",
+
+        if (email == null || email.isEmpty) {
+          emit(const PasswordResetError(
+            message: "Session expired. Please start the password reset process again.",
+          ));
+          return;
+        }
+
+        // Call the actual PIN verification API
+        final token = await authRepository.verifyResetPin(event.pin, email!);
+        
+        emit(PasswordResetVerified(
+          message: "PIN successfully verified. Proceed to reset password.",
+          token: token,
         ));
+      } catch (e) {
+        String errorMessage = _getErrorMessage(e.toString());
+        emit(PasswordResetError(message: errorMessage));
       }
     });
 

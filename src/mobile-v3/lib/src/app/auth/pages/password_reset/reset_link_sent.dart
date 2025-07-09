@@ -50,7 +50,7 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
         if (state is PasswordResetVerified) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => PasswordResetPage(token: _pinController.text.trim()),
+              builder: (context) => PasswordResetPage(token: state.token ?? _pinController.text.trim()),
             ),
           );
         } else if (state is PasswordResetError) {
