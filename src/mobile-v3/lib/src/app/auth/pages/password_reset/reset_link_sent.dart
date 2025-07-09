@@ -133,11 +133,11 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
                       builder: (context, constraints) {
                         final totalWidth = constraints.maxWidth;
                         final horizontalPadding =
-                            32.0; // 16px left + 16px right
+                            32.0;
                         final numberOfFields = 5;
                         final totalAvailableWidth = totalWidth -
                             horizontalPadding -
-                            4; // subtract 4 extra to prevent tight fit
+                            4; 
                         final spacing = 4.0 * (numberOfFields - 1);
                         final fieldWidth =
                             (totalAvailableWidth - spacing) / numberOfFields;

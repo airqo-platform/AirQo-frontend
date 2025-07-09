@@ -34,15 +34,16 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
     });
 
     on<VerifyResetCodeEvent>((event, emit) async {
-      emit(const PasswordResetLoading());
+      // Get the current email from state before emitting loading
+      final currentState = state;
+      String? email;
+      if (currentState.email != null) {
+        email = currentState.email;
+      }
+
+      emit(PasswordResetLoading(email: email));
 
       try {
-        // Get the current email from state
-        final currentState = state;
-        String? email;
-        if (currentState is PasswordResetState && currentState.email != null) {
-          email = currentState.email;
-        }
 
         if (email == null || email.isEmpty) {
           emit(const PasswordResetError(
@@ -52,7 +53,7 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
         }
 
         // Call the actual PIN verification API
-        final token = await authRepository.verifyResetPin(event.pin, email!);
+        final token = await authRepository.verifyResetPin(event.pin, email);
         
         emit(PasswordResetVerified(
           message: "PIN successfully verified. Proceed to reset password.",
@@ -67,10 +68,8 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
   }
 
   String _getErrorMessage(String error) {
-    // Remove "Exception: " prefix if present
     String cleanError = error.replaceAll('Exception: ', '');
     
-    // Convert technical errors to user-friendly messages
     if (cleanError.toLowerCase().contains('user not found') || 
         cleanError.toLowerCase().contains('email not found') ||
         cleanError.toLowerCase().contains('no user found')) {
@@ -114,12 +113,10 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
       return 'Invalid request. Please check your email and try again.';
     }
     
-    // If no specific error pattern matches, return a generic user-friendly message
     if (cleanError.isEmpty || cleanError.toLowerCase().contains('something went wrong')) {
       return 'Unable to send reset code. Please try again.';
     }
     
-    // Return the cleaned error if it's already user-friendly
     return cleanError;
   }
 }
