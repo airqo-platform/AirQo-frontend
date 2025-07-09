@@ -62,7 +62,6 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
         emit(PasswordResetError(message: errorMessage));
       }
     });
-
   }
 
   String _getErrorMessage(String error) {
