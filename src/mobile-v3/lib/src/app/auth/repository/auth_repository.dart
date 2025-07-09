@@ -211,11 +211,10 @@ loggy.error("Exception during email verification: $e");
 
   @override
   Future<String> verifyResetPin(String pin, String email) async {
-    // Simple regex validation for 5-digit PIN (original implementation)
     if (RegExp(r'^\d{5}$').hasMatch(pin)) {
-      return pin; // Return the PIN as token for password reset
+      return pin; 
     } else {
-      throw Exception('Invalid PIN. Please try again.');
+      throw Exception('Invalid PIN. Please enter a 5-digit numeric PIN.');
     }
   }
 }
