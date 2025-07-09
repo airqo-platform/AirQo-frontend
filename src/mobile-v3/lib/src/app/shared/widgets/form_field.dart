@@ -16,22 +16,24 @@ class FormFieldWidget extends StatelessWidget {
   final double? height;
   final bool? enabled;
   final void Function()? onEditingComplete;
+  final void Function(String)? onChanged;
 
   const FormFieldWidget(
-      {this.validator,
+      {super.key, this.validator,
       this.isPassword,
       this.enabled,
       this.prefixIcon,
       this.isAuthFormField,
       this.label,
       this.onEditingComplete,
+      this.onChanged,
       this.suffixIcon,
       this.textInputType,
       this.hintText,
       this.hasBottomPadding = false,
       this.maxLines,
       this.height,
-      required this.controller, required Null Function(dynamic value) onChanged});
+      required this.controller});
   @override
   Widget build(BuildContext context) {
     return isAuthFormField == null || !isAuthFormField!
@@ -56,6 +58,7 @@ class FormFieldWidget extends StatelessWidget {
                     autocorrect: false,
                     validator: validator,
                     onEditingComplete: onEditingComplete,
+                    onChanged: onChanged,
                     maxLines: maxLines ?? 1,
                     keyboardType: textInputType,
                     obscureText: isPassword ?? false,
@@ -86,6 +89,7 @@ class FormFieldWidget extends StatelessWidget {
               cursorColor: AppColors.primaryColor,
               controller: controller,
               validator: validator,
+              onChanged: onChanged,
               obscureText: isPassword ?? false,
               decoration: InputDecoration(
                   hintText: hintText,
