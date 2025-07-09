@@ -39,6 +39,12 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final isSmallScreen = screenWidth < 360;
+    final isLargeScreen = screenWidth > 400;
+    
     return BlocListener<PasswordResetBloc, PasswordResetState>(
       listener: (context, state) {
         if (state is PasswordResetVerified) {
@@ -78,149 +84,161 @@ class _ResetLinkSentPageState extends State<ResetLinkSentPage> {
           ),
           centerTitle: true,
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.only(left: 32, right: 32, top: 8),
-              child: Column(
-                children: [
-                  const Text(
-                    "We just sent you a Password Reset Code to your email",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.only(
+                  left: isSmallScreen ? 16 : 32,
+                  right: isSmallScreen ? 16 : 32,
+                  top: 8,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      "We just sent you a Password Reset Code to your email",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 18 : isLargeScreen ? 22 : 20,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  BlocBuilder<PasswordResetBloc, PasswordResetState>(
-                    builder: (context, state) {
-                      String email = state.email ?? "your email";
-                      String maskedEmail = _maskEmail(email);
-                      return Text(
-                        "Enter the verification code sent to $maskedEmail",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).textTheme.titleMedium?.color,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  PinCodeTextField(
-                    appContext: context,
-                    length: 5,
-                    controller: _pinController,
-                    keyboardType: TextInputType.number,
-                    animationType: AnimationType.fade,
-                    hintCharacter: "0",
-                    textStyle: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.boldHeadlineColor3,
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    BlocBuilder<PasswordResetBloc, PasswordResetState>(
+                      builder: (context, state) {
+                        String email = state.email ?? "your email";
+                        String maskedEmail = _maskEmail(email);
+                        return Text(
+                          "Enter the verification code sent to $maskedEmail",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14 : isLargeScreen ? 18 : 16,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).textTheme.titleMedium?.color,
+                          ),
+                        );
+                      },
                     ),
-                    pinTheme: PinTheme(
-                      shape: PinCodeFieldShape.box,
-                      borderRadius: BorderRadius.circular(4),
-                      fieldHeight: 64,
-                      fieldWidth: 60,
-                      activeFillColor: Theme.of(context).highlightColor,
-                      inactiveFillColor: Theme.of(context).highlightColor,
-                      selectedFillColor: Theme.of(context).appBarTheme.backgroundColor,
-                      activeColor: Theme.of(context).highlightColor,
-                      inactiveColor: Theme.of(context).highlightColor,
-                      selectedColor: AppColors.primaryColor,
-                      fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 4),
-                    ),
-                    enableActiveFill: true,
-                    onChanged: (value) {},
-                  ),
-                  const SizedBox(height: 18),
-                  InkWell(
-                    onTap: isLoading
-                        ? null
-                        : () {
-                            final pin = _pinController.text.trim();
-                            if (pin.length == 5) {
-                              setState(() => isLoading = true);
-                              context.read<PasswordResetBloc>().add(VerifyResetCodeEvent(pin));
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('Please enter a valid 5-digit code.'),
-                                  backgroundColor: AppColors.primaryColor,
-                                ),
-                              );
-                            }
-                          },
-                    child: Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: isLoading ? Colors.grey : AppColors.primaryColor,
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    PinCodeTextField(
+                      appContext: context,
+                      length: 5,
+                      controller: _pinController,
+                      keyboardType: TextInputType.number,
+                      animationType: AnimationType.fade,
+                      hintCharacter: "0",
+                      textStyle: TextStyle(
+                        fontSize: isSmallScreen ? 24 : isLargeScreen ? 32 : 28,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.boldHeadlineColor3,
+                      ),
+                      pinTheme: PinTheme(
+                        shape: PinCodeFieldShape.box,
                         borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Center(
-                        child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                                "Continue",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Didn't receive the code?",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).textTheme.headlineLarge?.color,
+                        fieldHeight: isSmallScreen ? 48 : isLargeScreen ? 72 : 64,
+                        fieldWidth: isSmallScreen ? 45 : isLargeScreen ? 70 : 60,
+                        activeFillColor: Theme.of(context).highlightColor,
+                        inactiveFillColor: Theme.of(context).highlightColor,
+                        selectedFillColor: Theme.of(context).appBarTheme.backgroundColor,
+                        activeColor: Theme.of(context).highlightColor,
+                        inactiveColor: Theme.of(context).highlightColor,
+                        selectedColor: AppColors.primaryColor,
+                        fieldOuterPadding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 2 : isLargeScreen ? 6 : 4,
                         ),
                       ),
-                      InkWell(
-                        onTap: isLoading
-                            ? null
-                            : () {
-                                final email = context.read<PasswordResetBloc>().state.email;
-                                if (email != null && email.isNotEmpty) {
-                                  context.read<PasswordResetBloc>().add(RequestPasswordReset(email));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Code resent.")),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("No email found to resend code.")),
-                                  );
-                                }
-                              },
+                      enableActiveFill: true,
+                      onChanged: (value) {},
+                    ),
+                    SizedBox(height: isSmallScreen ? 14 : 18),
+                    InkWell(
+                      onTap: isLoading
+                          ? null
+                          : () {
+                              final pin = _pinController.text.trim();
+                              if (pin.length == 5) {
+                                setState(() => isLoading = true);
+                                context.read<PasswordResetBloc>().add(VerifyResetCodeEvent(pin));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Please enter a valid 5-digit code.'),
+                                    backgroundColor: AppColors.primaryColor,
+                                  ),
+                                );
+                              }
+                            },
+                      child: Container(
+                        height: isSmallScreen ? 48 : isLargeScreen ? 60 : 56,
+                        decoration: BoxDecoration(
+                          color: isLoading ? Colors.grey : AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                         child: Center(
+                          child: isLoading
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : Text(
+                                  "Continue",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                    fontSize: isSmallScreen ? 14 : isLargeScreen ? 18 : 16,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
                           child: Text(
-                            " Resend",
+                            "Didn't receive the code?",
                             style: TextStyle(
+                              fontSize: isSmallScreen ? 12 : isLargeScreen ? 16 : 14,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.primaryColor,
+                              color: Theme.of(context).textTheme.headlineLarge?.color,
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                        InkWell(
+                          onTap: isLoading
+                              ? null
+                              : () {
+                                  final email = context.read<PasswordResetBloc>().state.email;
+                                  if (email != null && email.isNotEmpty) {
+                                    context.read<PasswordResetBloc>().add(RequestPasswordReset(email));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Code resent.")),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("No email found to resend code.")),
+                                    );
+                                  }
+                                },
+                          child: Center(
+                            child: Text(
+                              " Resend",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.primaryColor,
+                                fontSize: isSmallScreen ? 12 : isLargeScreen ? 16 : 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-          ],
+              SizedBox(height: isSmallScreen ? 16 : 24),
+            ],
+          ),
         ),
       ),
     );

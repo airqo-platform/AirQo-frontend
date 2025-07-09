@@ -31,7 +31,7 @@ class FormFieldWidget extends StatelessWidget {
       this.hasBottomPadding = false,
       this.maxLines,
       this.height,
-      required this.controller});
+      required this.controller, required Null Function(dynamic value) onChanged});
   @override
   Widget build(BuildContext context) {
     return isAuthFormField == null || !isAuthFormField!

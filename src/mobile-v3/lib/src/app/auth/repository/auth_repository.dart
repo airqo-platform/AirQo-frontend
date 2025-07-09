@@ -66,7 +66,9 @@ class AuthImpl extends AuthRepository {
     final response = await http.post(
       Uri.parse('https://api.airqo.net/api/v2/users/reset-password-request'),
       headers: {
-        'Content-Type': 'application/json',
+        "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+        "Accept": "*/*",
+        "Content-Type": "application/json"
       },
       body: jsonEncode({
         'email': email,
@@ -82,9 +84,52 @@ class AuthImpl extends AuthRepository {
             data['message'] ?? 'Failed to send password reset request.');
       }
     } else {
-      final error =
-          jsonDecode(response.body)['message'] ?? 'Something went wrong.';
-      throw Exception(error);
+      try {
+        final errorData = jsonDecode(response.body);
+        String errorMessage = errorData['message'] ?? 'Something went wrong.';
+        
+        // Handle specific HTTP status codes
+        switch (response.statusCode) {
+          case 400:
+            errorMessage = errorData['message'] ?? 'Invalid email address or request.';
+            break;
+          case 401:
+            errorMessage = 'Authentication failed. Please try again.';
+            break;
+          case 403:
+            errorMessage = 'Access denied. Please contact support.';
+            break;
+          case 404:
+            errorMessage = 'No account found with this email address.';
+            break;
+          case 429:
+            errorMessage = 'Too many requests. Please wait a moment and try again.';
+            break;
+          case 500:
+          case 502:
+          case 503:
+            errorMessage = 'Server error. Please try again later.';
+            break;
+          default:
+            errorMessage = errorData['message'] ?? 'Unable to send reset code. Please try again.';
+        }
+        
+        throw Exception(errorMessage);
+      } catch (e) {
+        // If JSON parsing fails, handle based on status code
+        switch (response.statusCode) {
+          case 404:
+            throw Exception('No account found with this email address.');
+          case 429:
+            throw Exception('Too many requests. Please wait a moment and try again.');
+          case 500:
+          case 502:
+          case 503:
+            throw Exception('Server error. Please try again later.');
+          default:
+            throw Exception('Unable to send reset code. Please try again.');
+        }
+      }
     }
   }
 
