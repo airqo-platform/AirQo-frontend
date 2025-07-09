@@ -162,30 +162,20 @@ export default function DevicesPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <ExclamationTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Device Registry</h1>
+          <h1 className="text-2xl font-semibold">Devices Overview</h1>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" disabled={isLoading || !!error}>
               <Upload className="mr-2 h-4 w-4" />
               Import Device
             </Button>
             {activeNetwork?.net_name?.toLowerCase() === "airqo" && (
-              <Button>
+              <Button disabled={isLoading || !!error}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Device
               </Button>
@@ -201,11 +191,12 @@ export default function DevicesPage() {
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-2">
+              <Button variant="outline" className="ml-2" disabled={isLoading}>
                 Sort by <ArrowUpDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -234,8 +225,8 @@ export default function DevicesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("name")}
+                  className={error ? "" : "cursor-pointer"}
+                  onClick={error ? undefined : () => handleSort("name")}
                 >
                   Device Name{" "}
                   {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
@@ -243,15 +234,15 @@ export default function DevicesPage() {
                 <TableHead>Device ID</TableHead>
                 <TableHead>Site</TableHead>
                 <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("status")}
+                  className={error ? "" : "cursor-pointer"}
+                  onClick={error ? undefined : () => handleSort("status")}
                 >
                   Status{" "}
                   {sortField === "status" && (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("createdAt")}
+                  className={error ? "" : "cursor-pointer"}
+                  onClick={error ? undefined : () => handleSort("createdAt")}
                 >
                   Deployment Date{" "}
                   {sortField === "createdAt" &&
@@ -348,7 +339,17 @@ export default function DevicesPage() {
               {currentDevices.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">
-                    No devices found
+                    {error ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">Unable to load devices</p>
+                        <p className="text-sm text-muted-foreground">{error.message}</p>
+                      </div>
+                    ) : searchQuery ? (
+                      "No devices found matching your search"
+                    ) : (
+                      "No devices available"
+                    )}
                   </TableCell>
                 </TableRow>
               )}
@@ -357,7 +358,7 @@ export default function DevicesPage() {
         </div>
 
         {/* Pagination */}
-        {sortedDevices.length > 0 && (
+        {sortedDevices.length > 0 && !error && (
           <div className="mt-4 flex justify-center">
             <Pagination>
               <PaginationContent>

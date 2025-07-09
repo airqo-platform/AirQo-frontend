@@ -168,8 +168,8 @@ export const useUserContext = (): UserContextState => {
           showContextSwitcher: canSwitchContext,
           showNetworkMap: true,
           showSites: canViewSites,
-          showGrids: canViewSites, // Only show grids if user has site view permission
-          showCohorts: canViewDevices, // Only show cohorts if user has device view permission
+          showGrids: canViewSites,
+          showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
           showOrganizations: canViewOrganizations,
@@ -189,7 +189,7 @@ export const useUserContext = (): UserContextState => {
           showCohorts: false,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
-          showOrganizations: false, // External orgs don't see org management
+          showOrganizations: false,
           showMyDevices: false,
           showDeviceOverview: canViewDevices,
           showClaimDevice: false,
@@ -218,7 +218,7 @@ export const useUserContext = (): UserContextState => {
   const getContextPermissions = () => {
     if (userContext === 'personal') {
       return {
-        canViewDevices: true, // But only claimed devices
+        canViewDevices: true,
         canViewSites: false,
         canViewUserManagement: false,
         canViewAccessControl: false,
