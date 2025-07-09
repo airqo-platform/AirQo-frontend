@@ -34,7 +34,6 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
     });
 
     on<VerifyResetCodeEvent>((event, emit) async {
-      // Get the current email from state before emitting loading
       final currentState = state;
       String? email;
       if (currentState.email != null) {
@@ -52,7 +51,6 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
           return;
         }
 
-        // Call the actual PIN verification API
         final token = await authRepository.verifyResetPin(event.pin, email);
         
         emit(PasswordResetVerified(
