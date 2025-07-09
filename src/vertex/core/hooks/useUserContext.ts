@@ -8,6 +8,8 @@ export interface SidebarConfig {
   showContextSwitcher: boolean;
   showNetworkMap: boolean;
   showSites: boolean;
+  showGrids: boolean;
+  showCohorts: boolean;
   showUserManagement: boolean;
   showAccessControl: boolean;
   showOrganizations: boolean;
@@ -87,7 +89,7 @@ export const useUserContext = (): UserContextState => {
 
   const isPermissionsLoading = useMemo(() => {
     // Permissions are loading if we have context but permissions aren't ready
-    return !isLoading && userContext && (!canViewDevices || !canViewSites);
+    return !isLoading && userContext && (canViewDevices === null || canViewSites === null);
   }, [isLoading, userContext, canViewDevices, canViewSites]);
 
   // Error state
@@ -130,6 +132,8 @@ export const useUserContext = (): UserContextState => {
         showContextSwitcher: false,
         showNetworkMap: true,
         showSites: false,
+        showGrids: false,
+        showCohorts: false,
         showUserManagement: false,
         showAccessControl: false,
         showOrganizations: false,
@@ -147,6 +151,8 @@ export const useUserContext = (): UserContextState => {
           showContextSwitcher: false,
           showNetworkMap: true,
           showSites: false,
+          showGrids: false,
+          showCohorts: false,
           showUserManagement: false,
           showAccessControl: false,
           showOrganizations: false,
@@ -162,6 +168,8 @@ export const useUserContext = (): UserContextState => {
           showContextSwitcher: canSwitchContext,
           showNetworkMap: true,
           showSites: canViewSites,
+          showGrids: canViewSites, // Only show grids if user has site view permission
+          showCohorts: canViewDevices, // Only show cohorts if user has device view permission
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
           showOrganizations: canViewOrganizations,
@@ -177,6 +185,8 @@ export const useUserContext = (): UserContextState => {
           showContextSwitcher: false,
           showNetworkMap: false,
           showSites: canViewSites,
+          showGrids: false,
+          showCohorts: false,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
           showOrganizations: false, // External orgs don't see org management
@@ -192,6 +202,8 @@ export const useUserContext = (): UserContextState => {
           showContextSwitcher: false,
           showNetworkMap: true,
           showSites: false,
+          showGrids: false,
+          showCohorts: false,
           showUserManagement: false,
           showAccessControl: false,
           showOrganizations: false,
@@ -233,8 +245,8 @@ export const useUserContext = (): UserContextState => {
     
     // Loading states
     isLoading,
-    isContextLoading,
-    isPermissionsLoading,
+    isContextLoading: isContextLoading || false,
+    isPermissionsLoading: isPermissionsLoading || false,
     
     // Error states
     hasError,

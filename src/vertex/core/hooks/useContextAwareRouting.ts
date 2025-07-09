@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUserContext } from './useUserContext';
+import { useUserContext, SidebarConfig } from './useUserContext';
 
 // Map routes to sidebar config properties
-const routeToSidebarConfig: Record<string, keyof ReturnType<typeof useUserContext>['getSidebarConfig']> = {
+const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   '/network-map': 'showNetworkMap',
   '/sites': 'showSites',
   '/user-management': 'showUserManagement',
@@ -13,8 +13,8 @@ const routeToSidebarConfig: Record<string, keyof ReturnType<typeof useUserContex
   '/devices/overview': 'showDeviceOverview',
   '/devices/claim': 'showClaimDevice',
   '/devices/deploy': 'showDeployDevice', // Deploy is part of device overview
-  '/grids': 'showSites',
-  '/cohorts': 'showDeviceOverview',
+  '/grids': 'showGrids',
+  '/cohorts': 'showCohorts',
 };
 
 export const useContextAwareRouting = () => {

@@ -264,7 +264,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
               />
             )}
 
-            {sidebarConfig.showSites && contextPermissions.canViewSites && (
+            {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem
                 href="/grids"
                 icon={Grid}
@@ -274,7 +274,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
               />
             )}
 
-            {sidebarConfig.showDeviceOverview && contextPermissions.canViewDevices && (
+            {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
               <NavItem
                 href="/cohorts"
                 icon={Users}
