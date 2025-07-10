@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 
@@ -386,6 +388,340 @@ enum ExposureRiskLevel {
   low,
   moderate,
   high,
+}
+
+/// Activity types for exposure analysis
+enum ActivityType {
+  stationary,
+  walking,
+  cycling,
+  driving,
+  publicTransport,
+  indoor,
+  unknown,
+}
+
+extension ActivityTypeExtension on ActivityType {
+  String get displayName {
+    switch (this) {
+      case ActivityType.stationary:
+        return 'Stationary';
+      case ActivityType.walking:
+        return 'Walking';
+      case ActivityType.cycling:
+        return 'Cycling';
+      case ActivityType.driving:
+        return 'Driving';
+      case ActivityType.publicTransport:
+        return 'Public Transport';
+      case ActivityType.indoor:
+        return 'Indoor';
+      case ActivityType.unknown:
+        return 'Unknown';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case ActivityType.stationary:
+        return 'Staying in one place for extended periods';
+      case ActivityType.walking:
+        return 'Walking or jogging outdoors';
+      case ActivityType.cycling:
+        return 'Cycling or biking';
+      case ActivityType.driving:
+        return 'Driving a personal vehicle';
+      case ActivityType.publicTransport:
+        return 'Using buses, trains, or other public transport';
+      case ActivityType.indoor:
+        return 'Inside buildings or enclosed spaces';
+      case ActivityType.unknown:
+        return 'Activity could not be determined';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case ActivityType.stationary:
+        return Icons.place;
+      case ActivityType.walking:
+        return Icons.directions_walk;
+      case ActivityType.cycling:
+        return Icons.directions_bike;
+      case ActivityType.driving:
+        return Icons.directions_car;
+      case ActivityType.publicTransport:
+        return Icons.directions_bus;
+      case ActivityType.indoor:
+        return Icons.home;
+      case ActivityType.unknown:
+        return Icons.help_outline;
+    }
+  }
+}
+
+/// Route segment with activity classification
+class ActivitySegment extends Equatable {
+  final String id;
+  final DateTime startTime;
+  final DateTime endTime;
+  final ActivityType activityType;
+  final List<ExposureDataPoint> dataPoints;
+  final double totalExposureScore;
+  final double averageSpeed;
+  final double distanceCovered;
+  final LatLng? startLocation;
+  final LatLng? endLocation;
+  final String? routeName;
+
+  const ActivitySegment({
+    required this.id,
+    required this.startTime,
+    required this.endTime,
+    required this.activityType,
+    required this.dataPoints,
+    required this.totalExposureScore,
+    required this.averageSpeed,
+    required this.distanceCovered,
+    this.startLocation,
+    this.endLocation,
+    this.routeName,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        startTime,
+        endTime,
+        activityType,
+        dataPoints,
+        totalExposureScore,
+        averageSpeed,
+        distanceCovered,
+        startLocation,
+        endLocation,
+        routeName,
+      ];
+
+  Duration get duration => endTime.difference(startTime);
+
+  double get exposurePerMinute {
+    final minutes = duration.inMinutes;
+    return minutes > 0 ? totalExposureScore / minutes : 0.0;
+  }
+
+  ExposureRiskLevel get riskLevel {
+    if (totalExposureScore >= 20) return ExposureRiskLevel.high;
+    if (totalExposureScore >= 10) return ExposureRiskLevel.moderate;
+    if (totalExposureScore >= 3) return ExposureRiskLevel.low;
+    return ExposureRiskLevel.minimal;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
+      'activityType': activityType.name,
+      'dataPoints': dataPoints.map((dp) => dp.toJson()).toList(),
+      'totalExposureScore': totalExposureScore,
+      'averageSpeed': averageSpeed,
+      'distanceCovered': distanceCovered,
+      if (startLocation != null) 'startLocation': {
+        'latitude': startLocation!.latitude,
+        'longitude': startLocation!.longitude,
+      },
+      if (endLocation != null) 'endLocation': {
+        'latitude': endLocation!.latitude,
+        'longitude': endLocation!.longitude,
+      },
+      if (routeName != null) 'routeName': routeName,
+    };
+  }
+
+  factory ActivitySegment.fromJson(Map<String, dynamic> json) {
+    return ActivitySegment(
+      id: json['id'],
+      startTime: DateTime.parse(json['startTime']),
+      endTime: DateTime.parse(json['endTime']),
+      activityType: ActivityType.values.byName(json['activityType']),
+      dataPoints: (json['dataPoints'] as List)
+          .map((dp) => ExposureDataPoint.fromJson(dp))
+          .toList(),
+      totalExposureScore: json['totalExposureScore'],
+      averageSpeed: json['averageSpeed'],
+      distanceCovered: json['distanceCovered'],
+      startLocation: json['startLocation'] != null
+          ? LatLng(json['startLocation']['latitude'], json['startLocation']['longitude'])
+          : null,
+      endLocation: json['endLocation'] != null
+          ? LatLng(json['endLocation']['latitude'], json['endLocation']['longitude'])
+          : null,
+      routeName: json['routeName'],
+    );
+  }
+}
+
+/// Analysis of activities and their exposure impact
+class ActivityAnalysis extends Equatable {
+  final DateTime date;
+  final List<ActivitySegment> segments;
+  final Map<ActivityType, double> exposureByActivity;
+  final Map<ActivityType, Duration> timeByActivity;
+  final ActivityType mostExposingActivity;
+  final ActivityType longestActivity;
+  final List<String> recommendations;
+
+  const ActivityAnalysis({
+    required this.date,
+    required this.segments,
+    required this.exposureByActivity,
+    required this.timeByActivity,
+    required this.mostExposingActivity,
+    required this.longestActivity,
+    required this.recommendations,
+  });
+
+  @override
+  List<Object?> get props => [
+        date,
+        segments,
+        exposureByActivity,
+        timeByActivity,
+        mostExposingActivity,
+        longestActivity,
+        recommendations,
+      ];
+
+  factory ActivityAnalysis.fromSegments(DateTime date, List<ActivitySegment> segments) {
+    if (segments.isEmpty) {
+      return ActivityAnalysis(
+        date: date,
+        segments: [],
+        exposureByActivity: {},
+        timeByActivity: {},
+        mostExposingActivity: ActivityType.unknown,
+        longestActivity: ActivityType.unknown,
+        recommendations: [],
+      );
+    }
+
+    // Calculate exposure by activity
+    final exposureByActivity = <ActivityType, double>{};
+    final timeByActivity = <ActivityType, Duration>{};
+
+    for (final segment in segments) {
+      final activity = segment.activityType;
+      exposureByActivity[activity] = (exposureByActivity[activity] ?? 0) + segment.totalExposureScore;
+      timeByActivity[activity] = (timeByActivity[activity] ?? Duration.zero) + segment.duration;
+    }
+
+    // Find most exposing and longest activities
+    final mostExposing = exposureByActivity.entries.isNotEmpty
+        ? exposureByActivity.entries.reduce((a, b) => a.value > b.value ? a : b).key
+        : ActivityType.unknown;
+
+    final longest = timeByActivity.entries.isNotEmpty
+        ? timeByActivity.entries.reduce((a, b) => a.value > b.value ? a : b).key
+        : ActivityType.unknown;
+
+    // Generate recommendations
+    final recommendations = _generateActivityRecommendations(segments, exposureByActivity, timeByActivity);
+
+    return ActivityAnalysis(
+      date: date,
+      segments: segments,
+      exposureByActivity: exposureByActivity,
+      timeByActivity: timeByActivity,
+      mostExposingActivity: mostExposing,
+      longestActivity: longest,
+      recommendations: recommendations,
+    );
+  }
+
+  static List<String> _generateActivityRecommendations(
+    List<ActivitySegment> segments,
+    Map<ActivityType, double> exposureByActivity,
+    Map<ActivityType, Duration> timeByActivity,
+  ) {
+    final recommendations = <String>[];
+
+    // High exposure activities
+    final highExposureActivities = exposureByActivity.entries
+        .where((e) => e.value > 15)
+        .map((e) => e.key)
+        .toList();
+
+    if (highExposureActivities.contains(ActivityType.walking)) {
+      recommendations.add('Consider walking during early morning or evening hours when air quality is typically better.');
+    }
+
+    if (highExposureActivities.contains(ActivityType.cycling)) {
+      recommendations.add('Plan cycling routes through parks or less trafficked areas to reduce pollution exposure.');
+    }
+
+    if (highExposureActivities.contains(ActivityType.driving)) {
+      recommendations.add('Use air recirculation mode in your car when driving through high-pollution areas.');
+    }
+
+    // Long duration activities
+    final longOutdoorTime = timeByActivity.entries
+        .where((e) => [ActivityType.walking, ActivityType.cycling].contains(e.key))
+        .fold(Duration.zero, (sum, e) => sum + e.value);
+
+    if (longOutdoorTime.inHours > 3) {
+      recommendations.add('You spent ${longOutdoorTime.inHours}+ hours in outdoor activities. Consider checking air quality forecasts before long outdoor sessions.');
+    }
+
+    // Activity patterns
+    final morningSegments = segments.where((s) => s.startTime.hour >= 6 && s.startTime.hour <= 10).toList();
+    final eveningSegments = segments.where((s) => s.startTime.hour >= 17 && s.startTime.hour <= 21).toList();
+
+    final morningExposure = morningSegments.fold(0.0, (sum, s) => sum + s.totalExposureScore);
+    final eveningExposure = eveningSegments.fold(0.0, (sum, s) => sum + s.totalExposureScore);
+
+    if (morningExposure > eveningExposure * 1.5) {
+      recommendations.add('Your morning activities had higher pollution exposure. Consider adjusting your schedule when possible.');
+    }
+
+    return recommendations;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String(),
+      'segments': segments.map((s) => s.toJson()).toList(),
+      'exposureByActivity': exposureByActivity.map((k, v) => MapEntry(k.name, v)),
+      'timeByActivity': timeByActivity.map((k, v) => MapEntry(k.name, v.inSeconds)),
+      'mostExposingActivity': mostExposingActivity.name,
+      'longestActivity': longestActivity.name,
+      'recommendations': recommendations,
+    };
+  }
+
+  factory ActivityAnalysis.fromJson(Map<String, dynamic> json) {
+    final exposureByActivity = <ActivityType, double>{};
+    (json['exposureByActivity'] as Map<String, dynamic>).forEach((key, value) {
+      exposureByActivity[ActivityType.values.byName(key)] = value;
+    });
+
+    final timeByActivity = <ActivityType, Duration>{};
+    (json['timeByActivity'] as Map<String, dynamic>).forEach((key, value) {
+      timeByActivity[ActivityType.values.byName(key)] = Duration(seconds: value);
+    });
+
+    return ActivityAnalysis(
+      date: DateTime.parse(json['date']),
+      segments: (json['segments'] as List)
+          .map((s) => ActivitySegment.fromJson(s))
+          .toList(),
+      exposureByActivity: exposureByActivity,
+      timeByActivity: timeByActivity,
+      mostExposingActivity: ActivityType.values.byName(json['mostExposingActivity']),
+      longestActivity: ActivityType.values.byName(json['longestActivity']),
+      recommendations: List<String>.from(json['recommendations']),
+    );
+  }
 }
 
 extension ExposureRiskLevelExtension on ExposureRiskLevel {

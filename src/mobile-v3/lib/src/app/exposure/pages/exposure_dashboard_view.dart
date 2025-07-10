@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
+import 'package:airqo/src/app/exposure/services/activity_recognition_service.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_analytics_card.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_timeline_widget.dart';
+import 'package:airqo/src/app/exposure/widgets/exposure_map_widget.dart';
+import 'package:airqo/src/app/exposure/widgets/activity_analysis_widget.dart';
+import 'package:airqo/src/app/exposure/widgets/daily_comparison_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
@@ -19,13 +23,16 @@ class ExposureDashboardView extends StatefulWidget {
 class _ExposureDashboardViewState extends State<ExposureDashboardView>
     with AutomaticKeepAliveClientMixin {
   final ExposureCalculator _exposureCalculator = ExposureCalculator();
+  final ActivityRecognitionService _activityService = ActivityRecognitionService();
   final EnhancedLocationServiceManager _locationManager = EnhancedLocationServiceManager();
   
   DailyExposureSummary? _todayExposure;
   WeeklyExposureTrend? _weeklyTrend;
   List<DailyExposureSummary> _recentSummaries = [];
+  ActivityAnalysis? _todayActivityAnalysis;
   bool _isLoading = true;
   String? _errorMessage;
+  int _selectedTabIndex = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -53,10 +60,24 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
         ),
       ]);
 
+      final todayExposure = futures[0] as DailyExposureSummary?;
+      final weeklyTrend = futures[1] as WeeklyExposureTrend?;
+      final recentSummaries = futures[2] as List<DailyExposureSummary>;
+
+      // Analyze today's activities if we have data
+      ActivityAnalysis? activityAnalysis;
+      if (todayExposure != null && todayExposure.dataPoints.isNotEmpty) {
+        activityAnalysis = await _activityService.analyzeDay(
+          DateTime.now(),
+          todayExposure.dataPoints,
+        );
+      }
+
       setState(() {
-        _todayExposure = futures[0] as DailyExposureSummary?;
-        _weeklyTrend = futures[1] as WeeklyExposureTrend?;
-        _recentSummaries = futures[2] as List<DailyExposureSummary>;
+        _todayExposure = todayExposure;
+        _weeklyTrend = weeklyTrend;
+        _recentSummaries = recentSummaries;
+        _todayActivityAnalysis = activityAnalysis;
         _isLoading = false;
       });
     } catch (e) {
@@ -93,32 +114,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
         // Info header
         _buildInfoHeader(theme),
 
-        // Today's exposure
-        if (_todayExposure != null)
-          ExposureAnalyticsCard(
-            exposureSummary: _todayExposure!,
-            showDetailedView: true, // Show as detailed since it's the main view
-          )
-        else
-          _buildNoDataCard(theme, 'Today\'s Exposure'),
+        // Tab selector
+        _buildTabSelector(),
 
-        // Weekly trend
-        if (_weeklyTrend != null)
-          WeeklyExposureTrendCard(weeklyTrend: _weeklyTrend!)
-        else
-          _buildNoDataCard(theme, 'Weekly Trend'),
-
-        // Timeline
-        if (_recentSummaries.isNotEmpty)
-          ExposureTimelineWidget(
-            dailySummaries: _recentSummaries,
-            daysToShow: 7,
-          )
-        else
-          _buildNoDataCard(theme, 'Timeline'),
-
-        // Insights and tips
-        _buildInsightsSection(theme),
+        // Tab content
+        _buildTabContent(),
 
         const SizedBox(height: 32),
       ],
@@ -409,8 +409,186 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
     return insights;
   }
 
+  Widget _buildTabSelector() {
+    final tabs = ['Overview', 'Map', 'Activities', 'Compare'];
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: tabs.asMap().entries.map((entry) {
+          final index = entry.key;
+          final tab = entry.value;
+          final isSelected = _selectedTabIndex == index;
+          
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedTabIndex = index),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  tab,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isSelected ? Colors.white : Colors.grey[600],
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    switch (_selectedTabIndex) {
+      case 0:
+        return _buildOverviewTab();
+      case 1:
+        return _buildMapTab();
+      case 2:
+        return _buildActivitiesTab();
+      case 3:
+        return _buildCompareTab();
+      default:
+        return _buildOverviewTab();
+    }
+  }
+
+  Widget _buildOverviewTab() {
+    return Column(
+      children: [
+        // Today's exposure
+        if (_todayExposure != null)
+          ExposureAnalyticsCard(
+            exposureSummary: _todayExposure!,
+            showDetailedView: true,
+          )
+        else
+          _buildNoDataCard(Theme.of(context), 'Today\'s Exposure'),
+
+        // Weekly trend
+        if (_weeklyTrend != null)
+          WeeklyExposureTrendCard(weeklyTrend: _weeklyTrend!)
+        else
+          _buildNoDataCard(Theme.of(context), 'Weekly Trend'),
+
+        // Timeline
+        if (_recentSummaries.isNotEmpty)
+          ExposureTimelineWidget(
+            dailySummaries: _recentSummaries,
+            daysToShow: 7,
+          )
+        else
+          _buildNoDataCard(Theme.of(context), 'Timeline'),
+
+        // Insights and tips
+        _buildInsightsSection(Theme.of(context)),
+      ],
+    );
+  }
+
+  Widget _buildMapTab() {
+    if (_todayExposure == null || _todayExposure!.dataPoints.isEmpty) {
+      return _buildNoDataCard(Theme.of(context), 'Movement Map');
+    }
+
+    return Column(
+      children: [
+        ExposureMapWidget(
+          exposureSummary: _todayExposure!,
+          showFullscreen: false,
+          onToggleFullscreen: () {
+            // TODO: Implement fullscreen map
+          },
+        ),
+        const SizedBox(height: 16),
+        _buildMapInsights(),
+      ],
+    );
+  }
+
+  Widget _buildActivitiesTab() {
+    if (_todayActivityAnalysis == null) {
+      return _buildNoDataCard(Theme.of(context), 'Activity Analysis');
+    }
+
+    return ActivityAnalysisWidget(
+      analysis: _todayActivityAnalysis!,
+      showDetailedView: true,
+    );
+  }
+
+  Widget _buildCompareTab() {
+    if (_recentSummaries.isEmpty) {
+      return _buildNoDataCard(Theme.of(context), 'Daily Comparison');
+    }
+
+    return DailyComparisonWidget(
+      dailySummaries: _recentSummaries,
+      selectedDay: _todayExposure,
+    );
+  }
+
+  Widget _buildMapInsights() {
+    if (_todayExposure == null) return const SizedBox.shrink();
+
+    final highExposurePoints = _todayExposure!.dataPoints
+        .where((point) => point.exposureScore > 5)
+        .length;
+
+    final totalPoints = _todayExposure!.dataPoints.length;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.primaryColor.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.insights,
+                color: AppColors.primaryColor,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Map Insights',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You visited $totalPoints locations today, with $highExposurePoints showing elevated pollution levels.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.primaryColor.withOpacity(0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openPrivacySettings() {
-       Navigator.push(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => LocationPrivacyScreen()),
     );
