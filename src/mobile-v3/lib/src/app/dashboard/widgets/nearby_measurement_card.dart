@@ -158,25 +158,25 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.near_me,
-                                  size: 14,
-                                  color: AppColors.primaryColor,
-                                ),
-                                SizedBox(width: 4),
-                                // Text(
-                                //   "${distance.toStringAsFixed(1)} km away",
-                                //   style: TextStyle(
-                                //     fontSize: 14,
-                                //     fontWeight: FontWeight.w500,
-                                //     color: AppColors.primaryColor,
-                                //   ),
-                                // ),
-                              ],
-                            ),
+                            // SizedBox(height: 8),
+                            // Row(
+                            //   children: [
+                            //     Icon(
+                            //       Icons.near_me,
+                            //       size: 14,
+                            //       color: AppColors.primaryColor,
+                            //     ),
+                            //     SizedBox(width: 4),
+                            //     // Text(
+                            //     //   "${distance.toStringAsFixed(1)} km away",
+                            //     //   style: TextStyle(
+                            //     //     fontSize: 14,
+                            //     //     fontWeight: FontWeight.w500,
+                            //     //     color: AppColors.primaryColor,
+                            //     //   ),
+                            //     // ),
+                            //   ],
+                            // ),
                           ],
                         ),
                       ),

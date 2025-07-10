@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { useSession } from 'next-auth/react';
 import CustomToast from '@/components/Toast/CustomToast';
 
 /**
@@ -43,7 +44,7 @@ const useUserTheme = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { id: activeGroupId, userID } = useGetActiveGroup();
+  const { userID } = useGetActiveGroup();
 
   // Get current theme context values to ensure API payload reflects current UI state
   const {
@@ -52,6 +53,7 @@ const useUserTheme = () => {
     skin: currentSkin,
     layout: currentLayout,
   } = useTheme();
+  const { status } = useSession();
 
   /**
    * Helper function to map theme context values to API format
@@ -64,35 +66,9 @@ const useUserTheme = () => {
       contentLayout: currentLayout || DEFAULT_THEME.contentLayout,
     };
 
-    // Debug logging in development
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('Mapping theme context to API format:', {
-        context: {
-          currentThemeMode,
-          currentPrimaryColor,
-          currentSkin,
-          currentLayout,
-        },
-        apiFormat,
-      });
-    }
-
     return apiFormat;
   }, [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout]);
 
-  /**
-   * Get the appropriate tenant based on active group
-   * Falls back to 'airqo' if no valid group is found
-   */
-  const getTenant = useCallback(() => {
-    if (activeGroupId && isValidObjectId(activeGroupId)) {
-      // You can add logic here to map group IDs to tenant names if needed
-      // For now, we'll use the group name or default to 'airqo'
-      return 'airqo'; // Can be enhanced to return actual tenant based on group
-    }
-    return 'airqo';
-  }, [activeGroupId]);
   /**
    * Fetch user theme preferences from the API
    */
@@ -133,8 +109,7 @@ const useUserTheme = () => {
         setTheme(userTheme);
       } else {
         // Fallback to normal API fetch
-        const tenant = getTenant();
-        const response = await getUserThemeApi(userID, tenant);
+        const response = await getUserThemeApi(userID);
 
         if (response?.success && response?.data) {
           // Merge with default theme to ensure all properties are present
@@ -158,7 +133,7 @@ const useUserTheme = () => {
       setLoading(false);
       setIsInitialized(true);
     }
-  }, [userID, getTenant]);
+  }, [userID]);
 
   /**
    * Update user theme preferences
@@ -211,23 +186,7 @@ const useUserTheme = () => {
           ...themeSettings,
         };
 
-        // Debug logging to help troubleshoot theme update issues
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('Theme update payload:', {
-            currentThemeData,
-            themeSettings,
-            updatedTheme,
-          });
-        }
-
-        const tenant = getTenant();
-        const response = await updateUserThemeApi(
-          userID,
-          theme,
-          updatedTheme,
-          tenant,
-        );
+        const response = await updateUserThemeApi(userID, theme, updatedTheme);
 
         if (response?.success) {
           // Update local state
@@ -262,7 +221,7 @@ const useUserTheme = () => {
         setLoading(false);
       }
     },
-    [userID, theme, getTenant, mapThemeContextToApiFormat],
+    [userID, theme, mapThemeContextToApiFormat],
   );
 
   /**
@@ -337,18 +296,18 @@ const useUserTheme = () => {
     },
     [updateUserTheme],
   );
-  // NOTE: Automatic theme fetching is disabled since theme is loaded during login setup
-  // If you need to manually fetch theme, call fetchUserTheme() explicitly
-  // useEffect(() => {
-  //   if (
-  //     status === 'authenticated' &&
-  //     session?.user?.id &&
-  //     userID &&
-  //     !isInitialized
-  //   ) {
-  //     fetchUserTheme();
-  //   }
-  // }, [userID, isInitialized, fetchUserTheme, status, session?.user?.id]);
+  // Effect for theme fetching: handles initial load only
+  useEffect(() => {
+    // Fetch theme only on initial load
+    if (
+      status === 'authenticated' &&
+      userID &&
+      isValidObjectId(userID) &&
+      !isInitialized
+    ) {
+      fetchUserTheme();
+    }
+  }, [status, userID, isInitialized, fetchUserTheme]);
 
   return {
     // Theme state

@@ -24,14 +24,19 @@ const useThemeInitialization = () => {
             if (storedTheme && isLoaded === 'true' && !isThemeApplied) {
               const setupTheme = JSON.parse(storedTheme);
 
-              // Apply the cached theme
-              setPrimaryColor(setupTheme.primaryColor);
-              toggleTheme(setupTheme.mode);
-              toggleSkin(setupTheme.interfaceStyle);
-              setLayout(setupTheme.contentLayout);
+              // Debug logging - remove in production
+              if (process.env.NODE_ENV === 'development') {
+                // Theme application debugging
+              }
 
-              // Clear the setup flag
-              window.sessionStorage.removeItem('userThemeLoaded');
+              // Apply the cached theme immediately to UI
+              setPrimaryColor(setupTheme.primaryColor || '#145FFF');
+              toggleTheme(setupTheme.mode || 'light');
+              toggleSkin(setupTheme.interfaceStyle || 'default');
+              setLayout(setupTheme.contentLayout || 'compact');
+
+              // Mark as applied but don't clear the flag yet
+              // Let useUserTheme handle the clearing to avoid race conditions
               setIsThemeApplied(true);
             }
           } catch {

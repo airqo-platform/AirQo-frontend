@@ -1,20 +1,21 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Button from '@/common/components/Button';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import * as Yup from 'yup';
 import Link from 'next/link';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { resetPasswordApi } from '@/core/apis/Organizations';
-import Spinner from '@/components/Spinner';
 import Toast from '@/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
-import { withOrgAuthRoute } from '@/core/HOC';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
+
+import { formatOrgSlug } from '@/core/utils/strings';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -130,8 +131,9 @@ const OrganizationResetPassword = () => {
             Password Reset Successfully
           </h2>
           <p className="text-gray-600 mb-6">
-            Your password has been reset successfully for {getDisplayName()}.
-            You will be redirected to the login page shortly.
+            Your password has been reset successfully for{' '}
+            {formatOrgSlug(getDisplayName())}. You will be redirected to the
+            login page shortly.
           </p>
           <Link
             href={`/org/${orgSlug}/login`}
@@ -152,7 +154,7 @@ const OrganizationResetPassword = () => {
           Reset your password
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          for {getDisplayName()}
+          for {formatOrgSlug(getDisplayName())}
         </p>
       </div>
 
@@ -194,17 +196,21 @@ const OrganizationResetPassword = () => {
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
+                loading={loading}
                 disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: primaryColor || '#135DFF',
+                  backgroundColor: loading
+                    ? '#e5e7eb'
+                    : primaryColor || '#135DFF',
+                  color: loading ? '#222' : undefined,
                   focusRingColor: primaryColor || '#135DFF',
                 }}
               >
-                {loading ? <Spinner size="sm" /> : 'Reset Password'}
-              </button>
+                {loading ? 'Resetting...' : 'Reset Password'}
+              </Button>
             </div>
           </form>
 
@@ -225,4 +231,4 @@ const OrganizationResetPassword = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationResetPassword);
+export default OrganizationResetPassword;

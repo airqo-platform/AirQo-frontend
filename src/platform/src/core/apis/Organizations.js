@@ -4,9 +4,11 @@
  */
 
 import axios from 'axios';
+import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import logger from '@/lib/logger';
 import {
   ORGANIZATION_THEME_URL,
+  ORGANIZATION_THEME_PREFERENCES_URL,
   ORGANIZATION_REGISTER_URL,
   ORGANIZATION_FORGOT_PASSWORD_URL,
   ORGANIZATION_RESET_PASSWORD_URL,
@@ -66,30 +68,6 @@ export const getOrganizationBySlugApi = async (orgSlug) => {
       data: null,
     };
   }
-};
-
-/**
- * Get organization theme data (alias for getOrganizationBySlugApi for backward compatibility)
- * @param {string} orgSlug - Organization slug
- * @returns {Promise} Organization theme data
- */
-export const getOrganizationThemeApi = async (orgSlug) => {
-  const result = await getOrganizationBySlugApi(orgSlug);
-
-  if (result.success && result.data) {
-    return {
-      success: true,
-      data: {
-        name: result.data.name,
-        logo: result.data.logo,
-        primaryColor: result.data.primaryColor,
-        secondaryColor: result.data.secondaryColor,
-        font: result.data.font,
-      },
-    };
-  }
-
-  return result;
 };
 
 /**
@@ -410,4 +388,141 @@ export const resetPasswordApi = async (data) => {
       errors: { network: 'Unable to connect to server' },
     };
   }
+};
+
+/**
+ * Get organization theme preferences
+ * @param {string} groupId - Organization group ID
+ * @returns {Promise} Organization theme preferences
+ */
+export const getOrganizationThemePreferencesApi = (groupId) => {
+  // Validate group ID
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
+
+  return secureApiProxy
+    .get(ORGANIZATION_THEME_PREFERENCES_URL(groupId), {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling
+      const errorMessage =
+        error.response?.data?.message ||
+        'Failed to fetch organization theme preferences';
+      logger.error('Error fetching organization theme preferences:', error);
+      throw new Error(errorMessage);
+    });
+};
+
+/**
+ * Update organization theme preferences
+ * @param {string} groupId - Organization group ID
+ * @param {Object} currentTheme - Current organization theme state
+ * @param {Object} newTheme - New theme settings object
+ * @returns {Promise} Update response
+ */
+export const updateOrganizationThemePreferencesApi = (
+  groupId,
+  currentTheme,
+  newTheme,
+) => {
+  // Validate group ID
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
+
+  // Validate theme data
+  if (!newTheme || typeof newTheme !== 'object') {
+    return Promise.reject(new Error('Valid theme data is required'));
+  }
+
+  if (!currentTheme || typeof currentTheme !== 'object') {
+    return Promise.reject(new Error('Valid current theme data is required'));
+  }
+
+  // Build complete theme object with all four properties
+  const validThemeKeys = [
+    'primaryColor',
+    'mode',
+    'interfaceStyle',
+    'contentLayout',
+  ];
+  const completeTheme = {};
+  validThemeKeys.forEach((key) => {
+    // Use new value if provided, otherwise use current value
+    completeTheme[key] =
+      newTheme[key] !== undefined ? newTheme[key] : currentTheme[key];
+  });
+
+  // Check if there are any actual changes for early return optimization
+  const hasChanges = validThemeKeys.some(
+    (key) => newTheme[key] !== undefined && newTheme[key] !== currentTheme[key],
+  );
+
+  // If no changes, return success without making API call
+  if (!hasChanges) {
+    return Promise.resolve({
+      success: true,
+      message: 'No changes to update',
+      data: currentTheme,
+    });
+  }
+
+  // Validate complete theme properties
+  if (completeTheme.primaryColor) {
+    const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    if (!hexColorRegex.test(completeTheme.primaryColor)) {
+      return Promise.reject(
+        new Error('Primary color must be in valid hex format'),
+      );
+    }
+  }
+
+  if (completeTheme.mode) {
+    const validModes = ['light', 'dark', 'system'];
+    if (!validModes.includes(completeTheme.mode)) {
+      return Promise.reject(
+        new Error('Mode must be one of: light, dark, system'),
+      );
+    }
+  }
+
+  if (completeTheme.interfaceStyle) {
+    const validStyles = ['default', 'bordered'];
+    if (!validStyles.includes(completeTheme.interfaceStyle)) {
+      return Promise.reject(
+        new Error('Interface style must be one of: default, bordered'),
+      );
+    }
+  }
+
+  if (completeTheme.contentLayout) {
+    const validLayouts = ['compact', 'wide'];
+    if (!validLayouts.includes(completeTheme.contentLayout)) {
+      return Promise.reject(
+        new Error('Content layout must be one of: compact, wide'),
+      );
+    }
+  }
+
+  // Wrap complete theme in theme object as required by backend
+  const requestBody = {
+    theme: completeTheme,
+  };
+
+  return secureApiProxy
+    .put(ORGANIZATION_THEME_PREFERENCES_URL(groupId), requestBody, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling
+      const errorMessage =
+        error.response?.data?.message ||
+        'Failed to update organization theme preferences';
+      logger.error('Error updating organization theme preferences:', error);
+      throw new Error(errorMessage);
+    });
 };

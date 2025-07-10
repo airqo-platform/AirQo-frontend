@@ -1,5 +1,5 @@
 import React from 'react';
-import Skeleton from '@/common/components/Skeleton';
+import { Skeleton } from '@/common/components/Skeleton';
 
 const HomeSkeleton = () => {
   return (

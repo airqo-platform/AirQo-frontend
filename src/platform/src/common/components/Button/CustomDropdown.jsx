@@ -29,6 +29,7 @@ const CustomDropdown = ({
   disableMobileCollapse = false,
   mobileMinWidth = 120,
   mobileMaxWidth = 300,
+  loading = false, // new prop for loading state
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(
@@ -82,7 +83,7 @@ const CustomDropdown = ({
   }, [isOpen, update]);
 
   const toggleDropdown = () => {
-    if (!disabled) {
+    if (!disabled && !loading) {
       if (!isButton) setIsOpen((prev) => !prev);
       onClick?.();
     }
@@ -99,7 +100,7 @@ const CustomDropdown = ({
 
   const mergedBtnClasses = clsx(
     isCollapsed ? collapsedBtnClasses : defaultBtnClasses,
-    disabled && 'opacity-60 cursor-not-allowed',
+    (disabled || loading) && 'opacity-60 cursor-not-allowed',
     buttonClassName,
   );
 
@@ -138,7 +139,7 @@ const CustomDropdown = ({
         type="button"
         aria-haspopup="true"
         aria-expanded={isOpen}
-        disabled={disabled}
+        disabled={disabled || loading}
         className={mergedBtnClasses}
         style={buttonStyle}
       >
@@ -152,8 +153,9 @@ const CustomDropdown = ({
                 <span className="truncate">{text}</span>
               )}
               {icon && iconPosition === 'right' && <span>{icon}</span>}
+              {/* Spinner removed per user request: do not show spinner if loading is true */}
             </div>
-            {!collapseMobile && showArrow && (
+            {!collapseMobile && showArrow && !loading && (
               <FiChevronDown
                 size={16}
                 className={clsx(
@@ -184,7 +186,7 @@ const CustomDropdown = ({
       className={clsx('relative inline-block', className)}
     >
       {renderTrigger()}
-      {!isButton && !disabled && (
+      {!isButton && !disabled && !loading && (
         <div
           ref={popperRef}
           style={popperStyle}
@@ -249,6 +251,7 @@ CustomDropdown.propTypes = {
   disableMobileCollapse: PropTypes.bool,
   mobileMinWidth: PropTypes.number,
   mobileMaxWidth: PropTypes.number,
+  loading: PropTypes.bool,
 };
 
 export const DropdownItem = ({

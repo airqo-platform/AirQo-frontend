@@ -2,8 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
-import { withOrgAuth } from '@/core/HOC';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 import AQNumberCard from '@/features/airQuality-cards';
 import Modal from '@/features/download-insights-locations';
@@ -13,12 +12,28 @@ import {
   AnalyticsChartsGrid,
 } from '@/features/analytics-overview';
 import AlertBox from '@/components/AlertBox';
+import EmptyState from '@/common/components/EmptyState';
+import ErrorState from '@/common/components/ErrorState';
 
-const OrganizationInsightsPage = ({ params: _params }) => {
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
+import { useDeviceSummary } from '@/core/hooks/analyticHooks';
+import AirQualityLoadingSkeleton from '@/components/Skeleton/AirQualityLoadingSkeleton';
+
+const OrganizationInsightsPage = () => {
   const dispatch = useDispatch();
   const { organization } = useOrganization();
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const isModalOpen = useSelector((state) => state.modal.openModal);
+
+  // Get active group info
+  const { title: groupTitle } = useGetActiveGroup();
+
+  // Fetch device summary for the active group
+  const {
+    data: deviceSummaryData,
+    isLoading: isDeviceSummaryLoading,
+    isError: isDeviceSummaryError,
+  } = useDeviceSummary(groupTitle, {});
 
   // Use our custom hook for organization data management
   const {
@@ -46,30 +61,56 @@ const OrganizationInsightsPage = ({ params: _params }) => {
 
   if (!organization) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">
-          Organization not found
-        </h3>
-        <p className="mt-2 text-gray-600">
-          Please check your organization URL and try again.
-        </p>
-      </div>
+      <ErrorState
+        type="notFound"
+        title="Organization not found"
+        description="Please check your organization URL and try again."
+      />
     );
   }
 
-  // Handle sites loading error
   if (sitesError && sitesErrorMessage) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-red-600">
-          Unable to load organization sites
-        </h3>
-        <p className="mt-2 text-gray-600">{sitesErrorMessage}</p>
-        <p className="mt-1 text-sm text-gray-500">
-          Please try refreshing the page or contact support if the issue
-          persists.
-        </p>
-      </div>
+      <ErrorState
+        type="server"
+        title="Unable to load organization sites"
+        description={
+          <>
+            {sitesErrorMessage}
+            <br />
+            <span className="text-sm text-gray-500">
+              Please try refreshing the page or contact support if the issue
+              persists.
+            </span>
+          </>
+        }
+      />
+    );
+  }
+
+  if (isDeviceSummaryLoading) {
+    return <AirQualityLoadingSkeleton />;
+  }
+
+  if (
+    !isDeviceSummaryLoading &&
+    !isDeviceSummaryError &&
+    deviceSummaryData.length === 0
+  ) {
+    return (
+      <EmptyState
+        preset="devices"
+        actionLabel="Deploy a device"
+        onAction={() => {
+          const baseUrl =
+            process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
+              ? 'https://staging-vertex.airqo.net/login'
+              : 'https://vertex.airqo.net/login';
+          window.open(baseUrl, '_blank', 'noopener,noreferrer');
+        }}
+        size="medium"
+        variant="card"
+      />
     );
   }
 
@@ -115,4 +156,4 @@ const OrganizationInsightsPage = ({ params: _params }) => {
   );
 };
 
-export default withOrgAuth(OrganizationInsightsPage);
+export default OrganizationInsightsPage;

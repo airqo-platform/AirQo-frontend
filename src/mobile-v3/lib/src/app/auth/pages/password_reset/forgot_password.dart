@@ -115,7 +115,18 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                               if (value == null || value.isEmpty) {
                                 return "This field cannot be blank.";
                               }
+                              if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(value)) {
+                                return "Please enter a valid email address.";
+                              }
                               return null;
+                            },
+                            onChanged: (value) {
+                              // Clear error when user starts typing
+                              if (error != null) {
+                                setState(() {
+                                  error = null;
+                                });
+                              }
                             },
                             hintText: "Enter your email",
                             label: "Email*",
@@ -129,8 +140,36 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
               ),
               if (error != null)
                 Padding(
-                  padding: const EdgeInsets.only(left: 32.0, top: 8),
-                  child: Text(error!, style: TextStyle(color: Colors.red)),
+                  padding: const EdgeInsets.only(left: 32.0, right: 32.0, top: 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      border: Border.all(color: Colors.red.shade200),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red.shade600,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            error!,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               SizedBox(height: 18),
               Padding(

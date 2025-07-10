@@ -9,7 +9,6 @@ import {
 } from '@/core/apis/Account';
 import { useRouter, useParams } from 'next/navigation';
 import Toast from '@/components/Toast';
-import Spinner from '@/components/Spinner';
 import { postUserDefaults } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useDispatch } from 'react-redux';
 
@@ -145,7 +144,7 @@ export default function IndividualAccountInterest() {
               }`}
             style={{ textTransform: 'none' }}
           >
-            {loading ? <Spinner width={25} height={25} /> : 'Continue'}
+            {loading ? 'Submitting...' : 'Continue'}
           </button>
         </div>
       </div>

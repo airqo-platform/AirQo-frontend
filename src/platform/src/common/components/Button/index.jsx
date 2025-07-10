@@ -27,26 +27,26 @@ const Button = React.forwardRef(
       'flex items-center justify-center rounded-lg transition transform active:scale-95 duration-200';
     const variantMap = {
       filled: clsx(
-        'bg-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:bg-[var(--org-primary-600,var(--color-primary,#145fff))]',
+        'bg-primary',
+        'hover:bg-primary/80',
         'text-white',
         'border border-transparent',
         'shadow-sm hover:shadow-lg',
-        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
+        'focus:ring-2 focus:ring-primary focus:ring-opacity-50',
       ),
       outlined: clsx(
         'bg-transparent',
-        'border border-[var(--org-primary,var(--color-primary,#145fff))]',
-        'text-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:bg-[var(--org-primary,var(--color-primary,#145fff))]',
+        'border border-primary',
+        'text-primary',
+        'hover:bg-primary',
         'hover:text-white',
-        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
+        'focus:ring-2 focus:ring-primary focus:ring-opacity-50',
       ),
       text: clsx(
         'bg-transparent',
-        'text-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))]',
-        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
+        'text-primary',
+        'hover:bg-primary/10',
+        'focus:ring-2 focus:ring-primary focus:ring-opacity-50',
       ),
       disabled: clsx(
         'bg-gray-300 dark:bg-gray-600',
@@ -66,11 +66,17 @@ const Button = React.forwardRef(
     // Determine padding - paddingStyles takes precedence for backward compatibility
     const finalPadding = paddingStyles || padding;
 
+    // If loading, override background and text color for visibility
+    const loadingStyles = rest['loading']
+      ? 'bg-gray-400 !text-gray-900 !border-gray-400'
+      : '';
+
     const btnClass = clsx(
       base,
       finalPadding,
       variantStyles,
       disabledStyles,
+      loadingStyles,
       className,
     );
 
@@ -96,6 +102,9 @@ const Button = React.forwardRef(
       );
     }
 
+    // If loading prop is passed, set aria-busy for accessibility
+    const { loading, ...buttonRest } = rest;
+
     return (
       <button
         ref={ref}
@@ -104,7 +113,8 @@ const Button = React.forwardRef(
         className={btnClass}
         data-testid={dataTestId}
         disabled={disabled}
-        {...rest}
+        aria-busy={!!loading}
+        {...buttonRest}
       >
         {Content}
       </button>
@@ -127,14 +137,6 @@ Button.propTypes = {
   Icon: PropTypes.elementType,
   children: PropTypes.node.isRequired,
   showTextOnMobile: PropTypes.bool,
-};
-
-Button.defaultProps = {
-  variant: 'filled',
-  padding: 'py-2 px-4',
-  disabled: false,
-  type: 'button',
-  showTextOnMobile: false,
 };
 
 export default Button;

@@ -500,17 +500,17 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_userPosition != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                    ),
+              // if (_userPosition != null)
+              //   Padding(
+              //     padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                  // child: Container(
+                  //   padding:
+                  //       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    // decoration: BoxDecoration(
+                    //   color: Colors.blue.withOpacity(0.1),
+                    //   borderRadius: BorderRadius.circular(8),
+                    //   border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    // ),
                     // child: Row(
                     //   children: [
                     //     const Icon(Icons.my_location,
@@ -529,8 +529,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     //     ),
                     //   ],
                     // ),
-                  ),
-                ),
+                  // ),
+                // ),
               ListView.builder(
                 itemCount: _nearbyMeasurementsWithDistance.length,
                 padding: const EdgeInsets.only(bottom: 16),

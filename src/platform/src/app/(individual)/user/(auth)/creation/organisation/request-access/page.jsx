@@ -11,7 +11,6 @@ import {
   getOrganisationSlugAvailabilityApi,
 } from '@/core/apis/Account';
 import logger from '@/lib/logger';
-import { withUserAuthRoute } from '@/core/HOC';
 
 const OrgRequestAccessPage = () => {
   const router = useRouter();
@@ -976,4 +975,4 @@ const OrgRequestAccessPage = () => {
   );
 };
 
-export default withUserAuthRoute(OrgRequestAccessPage);
+export default OrgRequestAccessPage;

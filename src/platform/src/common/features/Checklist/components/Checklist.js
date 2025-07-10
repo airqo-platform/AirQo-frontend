@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import StepProgress from './CircularStepper';
@@ -10,6 +10,7 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
+
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Checklist = ({ openVideoModal }) => {
@@ -155,7 +156,7 @@ const Checklist = ({ openVideoModal }) => {
     <ErrorBoundary name="Checklist" feature="Onboarding">
       <div className={reduxStatus === 'loading' ? 'opacity-70' : ''}>
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <div className="w-full md:w-1/2 flex flex-col">
             <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
               Onboarding Checklist

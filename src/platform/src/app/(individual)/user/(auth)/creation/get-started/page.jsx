@@ -1,7 +1,6 @@
 import React from 'react';
 // import CongratsImage from '@/images/EventHandling/congratulations.svg';
 import Link from 'next/link';
-// import withUserAuthRoute from '@/core/HOC/withAuthRoute';
 
 const IndividualAccountCreationSuccess = () => {
   return (

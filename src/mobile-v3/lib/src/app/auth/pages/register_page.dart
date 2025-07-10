@@ -120,7 +120,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 },
                                 hintText: "Enter your first name",
                                 label: "First Name*",
-                                controller: firstNameController),
+                                controller: firstNameController, onChanged: (value) {  },),
                             SizedBox(height: 16),
                             FormFieldWidget(
                                 validator: (value) {
@@ -131,7 +131,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 },
                                 hintText: "Enter your last name",
                                 label: "Last Name*",
-                                controller: lastNameController),
+                                controller: lastNameController, onChanged: (value) {  },),
                             SizedBox(height: 32),
                             InkWell(
                               onTap: () {
@@ -181,7 +181,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   }
                                   return null;
                                 },
-                                controller: emailController),
+                                controller: emailController, onChanged: (value) {  },),
                             SizedBox(height: 16),
                             FormFieldWidget(
                               prefixIcon: Container(
@@ -213,7 +213,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               hintText: "Create your password",
                               label: "Password",
                               isPassword: true,
-                              controller: passwordController,
+                              controller: passwordController, onChanged: (value) {  },
                             ),
                             SizedBox(height: 32),
                             BlocBuilder<AuthBloc, AuthState>(
@@ -320,7 +320,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             ),
                             hintText: emailController.text,
                             enabled: false,
-                            controller: TextEditingController(),
+                            controller: TextEditingController(), onChanged: (value) {  },
                           ),
                           SizedBox(height: 32),
                           InkWell(
