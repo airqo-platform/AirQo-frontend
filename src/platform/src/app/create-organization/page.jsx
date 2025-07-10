@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useRouter } from 'next/navigation';
 import CardWrapper from '@/common/components/CardWrapper';
 import { CreateOrganizationForm } from '@/common/features/create-organization';
@@ -25,7 +24,7 @@ const CreateOrganizationPage = () => {
   };
   return (
     <div className="py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary dark:text-primary-light mb-4">
@@ -43,7 +42,6 @@ const CreateOrganizationPage = () => {
             onSuccess={handleSuccess}
             onCancel={handleCancel}
             showCancelButton={true}
-            className="p-6 sm:p-8"
           />
         </CardWrapper>
       </div>

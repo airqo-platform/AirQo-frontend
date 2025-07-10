@@ -16,30 +16,23 @@ import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
 import { useSession } from 'next-auth/react';
 import Loading from '../loading';
 
-/**
- * Create Organization Layout Component
- *
- * Matches UnifiedPagesLayout structure exactly but without authenticated sidebar.
- * Provides the same layout experience as user pages but focused on organization creation.
- * Requires authentication to access.
- */
 function CreateOrganizationLayout({ children }) {
   const { status } = useSession();
+
+  // Call all hooks at the top level, before any conditional returns
+  const { userID } = useGetActiveGroup();
+  const { maintenance } = useMaintenanceStatus();
+  const { layout } = useTheme();
+
+  // Initialize hooks exactly like UnifiedPagesLayout
+  useUserPreferences();
+  useInactivityLogout(userID);
 
   // Show loading while authentication is being checked
   if (status === 'loading') {
     return <Loading />;
   }
 
-  const { userID } = useGetActiveGroup();
-  const { maintenance } = useMaintenanceStatus();
-
-  // Initialize hooks exactly like UnifiedPagesLayout
-  useUserPreferences();
-  useInactivityLogout(userID);
-
-  // Get current layout (compact or wide)
-  const { layout } = useTheme();
   // Route configuration for create organization page
   const routeConfig = {
     pageTitle: 'Request Organization Access - AirQo Analytics',
@@ -81,10 +74,8 @@ function CreateOrganizationLayout({ children }) {
           </div>
         </div>
       </main>
-      {/* SideBar Drawer for mobile - keeping for consistency */}
-      <UnifiedSideBarDrawer userType="user" /> {/* Global SideBar Drawer */}
+      <UnifiedSideBarDrawer userType="user" />
       <GlobalSideBarDrawer />
-      {/* Theme Customizer - Available like other layouts */}
       <ThemeCustomizer />
     </div>
   );

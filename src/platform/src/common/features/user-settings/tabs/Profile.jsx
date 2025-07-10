@@ -328,9 +328,7 @@ export default function Profile() {
 
       // Reset initialUserData to the newly saved state
       setInitialUserData(userData);
-      setLocalImagePreview(null); // Clear local image preview after successful save
-
-      // Complete checklist step if all required fields are present based on the updated data
+      setLocalImagePreview(null);
       if (
         userData.firstName &&
         userData.lastName &&
@@ -391,14 +389,17 @@ export default function Profile() {
 
   const renderProfileImage = () => {
     const url = localImagePreview || userData.profilePicture;
+
     if (url && !imageError)
       return (
-        <img
-          src={url}
-          alt={userDisplay.fullName}
-          className="w-16 h-16 rounded-full object-cover"
-          onError={() => setImageError(true)}
-        />
+        <div className="relative group w-16 h-16">
+          <img
+            src={url}
+            alt={userDisplay.fullName}
+            className="w-16 h-16 rounded-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        </div>
       );
     return (
       <div
@@ -408,6 +409,13 @@ export default function Profile() {
         {userDisplay.initials}
       </div>
     );
+  };
+
+  // Reset image to original (initial) image
+  const handleResetImage = () => {
+    setLocalImagePreview(null);
+    setSelectedImageBlob(null);
+    setImageError(false);
   };
 
   const hasChanges = useMemo(() => {
@@ -448,12 +456,24 @@ export default function Profile() {
                       disabled={profileUploading}
                       className="file:mr-4 file:py-2 file:px-4 file:border file:rounded file:text-sm file:bg-gray-100"
                     />
-                    {profileUploading && (
-                      <div className="flex items-center mt-1 text-sm text-gray-600">
-                        <FaSpinner className="animate-spin mr-1" />
-                        Uploading…
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      {profileUploading && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <FaSpinner className="animate-spin mr-1" />
+                          Uploading…
+                        </div>
+                      )}
+                      {/* Reset button: only show if user has changed/uploaded a new image before saving */}
+                      {localImagePreview && (
+                        <button
+                          type="button"
+                          onClick={handleResetImage}
+                          className="text-xs text-red-600 dark:text-red-400 underline hover:text-red-800 dark:hover:text-red-300 ml-auto"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
