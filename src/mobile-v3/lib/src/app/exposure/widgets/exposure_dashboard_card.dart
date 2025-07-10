@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
-import 'package:airqo/src/app/exposure/pages/exposure_dashboard_page.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_timeline_widget.dart';
+import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 /// A card widget that shows exposure overview and links to full dashboard
@@ -290,7 +290,7 @@ class _ExposureDashboardCardState extends State<ExposureDashboardCard> {
   void _openFullDashboard() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const ExposureDashboardPage(),
+        builder: (context) => const ExposureDashboardView(),
       ),
     );
   }
