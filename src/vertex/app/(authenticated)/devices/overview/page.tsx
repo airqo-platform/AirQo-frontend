@@ -279,7 +279,7 @@ export default function DevicesPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <span className="uppercase font-mono">
-                        {truncateId(device._id)}
+                        {truncateId(device._id || "N/A")}
                       </span>
                       <Button
                         variant="ghost"
@@ -287,8 +287,11 @@ export default function DevicesPage() {
                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigator.clipboard.writeText(device._id);
-                          toast("Device ID copied to clipboard");
+                          if (device._id) {
+                            navigator.clipboard.writeText(device._id);
+                          } else {
+                            toast("Device ID is undefined");
+                          }
                         }}
                       >
                         <Copy className="h-4 w-4" />

@@ -8,7 +8,8 @@ import type {
   DeviceClaimResponse,
   MyDevicesResponse,
   DeviceAssignmentRequest,
-  DeviceAssignmentResponse
+  DeviceAssignmentResponse,
+  Device
 } from "@/app/types/devices";
 
 const axiosInstance = createAxiosInstance();
@@ -16,28 +17,14 @@ const axiosInstanceWithTokenAccess = createAxiosInstance(false);
 
 interface ErrorResponse {
   message: string;
-}
-
-export interface DeviceStatus {
-  _id: string;
-  name: string;
-  device_number: number;
-  latitude: number;
-  longitude: number;
-  isActive: boolean;
-  mobility: boolean;
-  status?: "online" | "offline";
-  maintenance_status: "good" | "due" | "overdue" | -1;
-  powerType: "solar" | "alternator" | "mains";
-  nextMaintenance?: { $date: string };
-  network: string;
-  site_id?: string;
-  elapsed_time: number;
+  errors?: {
+    message: string;
+  }
 }
 
 interface DeviceStatusSummary {
   _id: string;
-  created_at: { $date: string };
+  created_at: string;
   total_active_device_count: number;
   count_of_online_devices: number;
   count_of_offline_devices: number;
@@ -47,13 +34,49 @@ interface DeviceStatusSummary {
   count_due_maintenance: number;
   count_overdue_maintenance: number;
   count_unspecified_maintenance: number;
-  online_devices: DeviceStatus[];
-  offline_devices: DeviceStatus[];
+  online_devices: Device[];
+  offline_devices: Device[];
 }
 
 export interface DeviceStatusResponse {
   message: string;
   data: DeviceStatusSummary[];
+}
+
+export interface DeviceDetailsResponse {
+  message: string;
+  data: {
+    id: string;
+    name: string;
+    alias: string;
+    mobility: boolean;
+    network: string;
+    groups: string[];
+    serial_number: string;
+    authRequired: boolean;
+    long_name: string;
+    createdAt: string;
+    visibility?: boolean;
+    isPrimaryInLocation: boolean;
+    nextMaintenance: string;
+    device_number: number;
+    status: string;
+    isActive: boolean;
+    writeKey: string;
+    isOnline: boolean;
+    readKey: string;
+    pictures: unknown[];
+    height: number;
+    device_codes: string[];
+    category: string;
+    cohorts: unknown[];
+    description?: string;
+    phoneNumber?: string;
+    latitude?: string;
+    longitude?: string;
+    generation_version?: string;
+    generation_count?: string;
+  };
 }
 
 export const devices = {
@@ -186,6 +209,20 @@ export const devices = {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
         axiosError.response?.data?.message || "Failed to unassign device from organization"
+      );
+    }
+  },
+
+  getDeviceDetails: async (deviceId: string): Promise<DeviceDetailsResponse> => {
+    try {
+      const response = await axiosInstance.get<DeviceDetailsResponse>(
+        `${DEVICES_MGT_URL}/${deviceId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device details"
       );
     }
   },

@@ -16,6 +16,7 @@ import type {
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { Device } from "@/app/types/devices";
 
 interface ErrorResponse {
   message: string;
@@ -68,11 +69,7 @@ export function useDeviceStatus() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["deviceStatus"],
     queryFn: devices.getDevicesStatus,
-    refetchInterval: false, // Disable automatic refetching
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
-    refetchOnMount: false, // Don't refetch when component mounts if data exists
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const summary = useMemo(() => data?.data[0], [data]);
@@ -229,5 +226,13 @@ export const useUnassignDeviceFromOrganization = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+export const useDeviceDetails = (deviceId: string) => {
+  return useQuery({
+    queryKey: ["device-details", deviceId],
+    queryFn: () => devices.getDeviceDetails(deviceId),
+    enabled: !!deviceId,
   });
 };

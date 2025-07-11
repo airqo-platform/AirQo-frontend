@@ -34,36 +34,49 @@ export interface DeviceGrid {
 }
 
 export interface Device {
-  _id: string;
-  isOnline: boolean;
-  device_codes: string[];
-  status: string;
-  category: string;
-  isActive: boolean;
-  description: string;
+  _id?: string;
+  id?: string;
   name: string;
+  alias?: string;
+  mobility?: boolean;
   network: string;
-  long_name: string;
-  createdAt: string;
-  authRequired: boolean;
-  serial_number: string;
-  api_code: string;
-  latitude: number;
-  longitude: number;
   groups: string[];
-  previous_sites: string[];
-  cohorts: string[];
-  grids: DeviceGrid[];
-  site: DeviceSite;
-  claim_status?: "unclaimed" | "claimed" | "deployed";
-  owner_id?: string;
-  claimed_at?: string;
-  assigned_organization_id?: string;
-  deployment_date?: string;
-  mountType?: "pole" | "wall" | "faceboard" | "rooftop" | "suspended";
-  powerType?: "solar" | "mains" | "alternator";
-  height?: number;
+  serial_number: string;
+  authRequired: boolean;
+  long_name: string;
+  latitude?: number | undefined | null | string;
+  longitude?: number | undefined | null | string;
+  approximate_distance_in_km?: number;
+  bearing_in_radians?: number;
+  createdAt: string;
+  visibility?: boolean | undefined;
+  description?: string | undefined;
   isPrimaryInLocation?: boolean;
+  nextMaintenance?: string;
+  deployment_date?: string;
+  mountType?: string;
+  isActive: boolean;
+  isOnline: boolean;
+  pictures?: unknown[];
+  site_id?: string;
+  host_id?: string | null;
+  height?: number;
+  device_codes: string[];
+  category: string;
+  cohorts: unknown[];
+  device_number?: number;
+  readKey?: string;
+  writeKey?: string;
+  phoneNumber?: string;
+  generation_version?: number | undefined | string;
+  generation_count?: number | undefined | string;
+  previous_sites?: string[];
+  grids?: DeviceGrid[];
+  site?: DeviceSite;
+  status?: string;
+  maintenance_status?: "good" | "due" | "overdue" | -1;
+  powerType?: "solar" | "alternator" | "mains";
+  elapsed_time?: number;
 }
 
 export interface DevicesSummaryResponse {
