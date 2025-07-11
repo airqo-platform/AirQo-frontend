@@ -41,6 +41,7 @@ import {
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useRouter } from "next/navigation";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -55,6 +56,7 @@ export default function DevicesPage() {
   const { devices, isLoading, error } = useDevices();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { isAirQoInternal } = useUserContext();
+  const router = useRouter();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -253,7 +255,11 @@ export default function DevicesPage() {
             </TableHeader>
             <TableBody>
               {currentDevices.map((device: Device) => (
-                <TableRow key={device._id}>
+                <TableRow
+                  key={device._id}
+                  className="hover:bg-muted cursor-pointer"
+                  onClick={() => router.push(`/devices/overview/${device._id}`)}
+                >
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <TooltipProvider>

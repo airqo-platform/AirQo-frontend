@@ -226,4 +226,18 @@ export const devices = {
       );
     }
   },
+
+  getDeviceStatusFeed: async (deviceNumber: number) => {
+    try {
+      const response = await axiosInstance.get(
+        `${DEVICES_MGT_URL}/feeds/transform/recent?channel=${deviceNumber}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device status feed"
+      );
+    }
+  },
 };

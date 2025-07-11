@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { devices } from "../apis/devices";
+import { DeviceDetailsResponse, devices } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -230,9 +230,18 @@ export const useUnassignDeviceFromOrganization = () => {
 };
 
 export const useDeviceDetails = (deviceId: string) => {
-  return useQuery({
+  return useQuery<DeviceDetailsResponse, AxiosError<ErrorResponse>>({
     queryKey: ["device-details", deviceId],
     queryFn: () => devices.getDeviceDetails(deviceId),
     enabled: !!deviceId,
   });
 };
+
+export const useDeviceStatusFeed = (deviceNumber?: number) => {
+  return useQuery({
+    queryKey: ["deviceStatusFeed", deviceNumber],
+    queryFn: () => devices.getDeviceStatusFeed(deviceNumber!),
+    enabled: !!deviceNumber,
+    refetchOnWindowFocus: false,
+  });
+}; 
