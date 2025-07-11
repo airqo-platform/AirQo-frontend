@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import { useUserContext } from "@/core/hooks/useUserContext";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -53,6 +54,7 @@ export default function DevicesPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const { devices, isLoading, error } = useDevices();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { isAirQoInternal } = useUserContext();
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -161,23 +163,23 @@ export default function DevicesPage() {
     );
   }
 
-
-
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Devices Overview</h1>
           <div className="flex gap-2">
-            <Button variant="outline" disabled={isLoading || !!error}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import Device
-            </Button>
-            {activeNetwork?.net_name?.toLowerCase() === "airqo" && (
-              <Button disabled={isLoading || !!error}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Device
-              </Button>
+            {isAirQoInternal && (
+              <>
+                <Button variant="outline" disabled={isLoading || !!error}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Device
+                </Button>
+                <Button disabled={isLoading || !!error}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Device
+                </Button>
+              </>
             )}
           </div>
         </div>
