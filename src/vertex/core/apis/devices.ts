@@ -1,35 +1,30 @@
 import createAxiosInstance from "./axiosConfig";
 import { DEVICES_MGT_URL } from "../urls";
 import { AxiosError } from "axios";
-import type { DevicesSummaryResponse } from "@/app/types/devices";
+import type { 
+  DevicesSummaryResponse,
+  DeviceAvailabilityResponse,
+  DeviceClaimRequest,
+  DeviceClaimResponse,
+  MyDevicesResponse,
+  DeviceAssignmentRequest,
+  DeviceAssignmentResponse,
+  Device
+} from "@/app/types/devices";
 
 const axiosInstance = createAxiosInstance();
 const axiosInstanceWithTokenAccess = createAxiosInstance(false);
 
 interface ErrorResponse {
   message: string;
-}
-
-export interface DeviceStatus {
-  _id: string;
-  name: string;
-  device_number: number;
-  latitude: number;
-  longitude: number;
-  isActive: boolean;
-  mobility: boolean;
-  status?: "online" | "offline";
-  maintenance_status: "good" | "due" | "overdue" | -1;
-  powerType: "solar" | "alternator" | "mains";
-  nextMaintenance?: { $date: string };
-  network: string;
-  site_id?: string;
-  elapsed_time: number;
+  errors?: {
+    message: string;
+  }
 }
 
 interface DeviceStatusSummary {
   _id: string;
-  created_at: { $date: string };
+  created_at: string;
   total_active_device_count: number;
   count_of_online_devices: number;
   count_of_offline_devices: number;
@@ -39,13 +34,49 @@ interface DeviceStatusSummary {
   count_due_maintenance: number;
   count_overdue_maintenance: number;
   count_unspecified_maintenance: number;
-  online_devices: DeviceStatus[];
-  offline_devices: DeviceStatus[];
+  online_devices: Device[];
+  offline_devices: Device[];
 }
 
 export interface DeviceStatusResponse {
   message: string;
   data: DeviceStatusSummary[];
+}
+
+export interface DeviceDetailsResponse {
+  message: string;
+  data: {
+    id: string;
+    name: string;
+    alias: string;
+    mobility: boolean;
+    network: string;
+    groups: string[];
+    serial_number: string;
+    authRequired: boolean;
+    long_name: string;
+    createdAt: string;
+    visibility?: boolean;
+    isPrimaryInLocation: boolean;
+    nextMaintenance: string;
+    device_number: number;
+    status: string;
+    isActive: boolean;
+    writeKey: string;
+    isOnline: boolean;
+    readKey: string;
+    pictures: unknown[];
+    height: number;
+    device_codes: string[];
+    category: string;
+    cohorts: unknown[];
+    description?: string;
+    phoneNumber?: string;
+    latitude?: string;
+    longitude?: string;
+    generation_version?: string;
+    generation_count?: string;
+  };
 }
 
 export const devices = {
@@ -101,5 +132,112 @@ export const devices = {
       `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`
     );
     return response.data;
+  },
+
+  // New API methods for device claiming and management
+  checkDeviceAvailability: async (deviceName: string): Promise<DeviceAvailabilityResponse> => {
+    try {
+      const response = await axiosInstance.get<DeviceAvailabilityResponse>(
+        `${DEVICES_MGT_URL}/check-availability/${deviceName}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to check device availability"
+      );
+    }
+  },
+
+  claimDevice: async (claimData: DeviceClaimRequest): Promise<DeviceClaimResponse> => {
+    try {
+      const response = await axiosInstance.post<DeviceClaimResponse>(
+        `${DEVICES_MGT_URL}/claim`,
+        claimData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to claim device"
+      );
+    }
+  },
+
+  getMyDevices: async (userId: string, organizationId?: string): Promise<MyDevicesResponse> => {
+    try {
+      const params = new URLSearchParams({ user_id: userId });
+      if (organizationId) {
+        params.append('organization_id', organizationId);
+      }
+      
+      const response = await axiosInstance.get<MyDevicesResponse>(
+        `${DEVICES_MGT_URL}/my-devices?${params.toString()}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch user devices"
+      );
+    }
+  },
+
+  assignDeviceToOrganization: async (assignmentData: DeviceAssignmentRequest): Promise<DeviceAssignmentResponse> => {
+    try {
+      const response = await axiosInstance.post<DeviceAssignmentResponse>(
+        `${DEVICES_MGT_URL}/assign-organization`,
+        assignmentData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to assign device to organization"
+      );
+    }
+  },
+
+  unassignDeviceFromOrganization: async (deviceName: string, userId: string): Promise<DeviceAssignmentResponse> => {
+    try {
+      const response = await axiosInstance.post<DeviceAssignmentResponse>(
+        `${DEVICES_MGT_URL}/unassign-organization`,
+        { device_name: deviceName, user_id: userId }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to unassign device from organization"
+      );
+    }
+  },
+
+  getDeviceDetails: async (deviceId: string): Promise<DeviceDetailsResponse> => {
+    try {
+      const response = await axiosInstance.get<DeviceDetailsResponse>(
+        `${DEVICES_MGT_URL}/${deviceId}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device details"
+      );
+    }
+  },
+
+  getDeviceStatusFeed: async (deviceNumber: number) => {
+    try {
+      const response = await axiosInstance.get(
+        `${DEVICES_MGT_URL}/feeds/transform/recent?channel=${deviceNumber}`
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device status feed"
+      );
+    }
   },
 };

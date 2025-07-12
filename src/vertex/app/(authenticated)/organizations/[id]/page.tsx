@@ -7,16 +7,17 @@ import { useGroupsDetails } from "@/core/hooks/useGroups"
 import { Loader2, ArrowLeftIcon } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
-import { OrganizationSetupCard } from "@/components/Organization/organization-setup-card"
+import { OrganizationSetupCard } from "@/components/features/organization/organization-setup-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { RouteGuard } from "@/components/route-guard"
-import { OrganizationProfile } from "@/components/Organization/organization-profile"
-import { TeamMembers } from "@/components/Organization/team-members"
-import { OrganizationRoles } from "@/components/Organization/organization-roles"
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard"
+import { OrganizationProfile } from "@/components/features/organization/organization-profile"
+import { TeamMembers } from "@/components/features/organization/team-members"
+import { OrganizationRoles } from "@/components/features/organization/organization-roles"
+import { PERMISSIONS } from "@/core/permissions/constants"
 
 const LoadingFallback = () => (
   <div className="space-y-4">
@@ -65,7 +66,7 @@ export default function OrganizationDetailsPage() {
   }
 
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_USERS">
+    <RouteGuard permission={PERMISSIONS.USER.MANAGEMENT}>
       <div className="container mx-auto">
         {/* Back button */}
         <Button

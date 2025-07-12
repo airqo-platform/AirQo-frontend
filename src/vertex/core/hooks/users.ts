@@ -10,6 +10,7 @@ import {
   setAvailableNetworks,
   setUserGroups,
   setInitialized,
+  setUserContext,
 } from "../redux/slices/userSlice";
 import type {
   LoginCredentials,
@@ -72,6 +73,9 @@ export const useAuth = () => {
       const userInfo = userDetailsResponse.users[0];
 
       // 7. Store networks and groups
+      if (!userInfo) {
+        throw new Error('User info not found in response');
+      }
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(userInfo.groups || []));
       localStorage.setItem(
@@ -126,6 +130,7 @@ export const useAuth = () => {
       localStorage.removeItem("availableNetworks");
       localStorage.removeItem("activeGroup");
       localStorage.removeItem("userGroups");
+      localStorage.removeItem("userContext");
     },
   });
 
@@ -136,6 +141,7 @@ export const useAuth = () => {
     localStorage.removeItem("availableNetworks");
     localStorage.removeItem("activeGroup");
     localStorage.removeItem("userGroups");
+    localStorage.removeItem("userContext");
     dispatch(logout());
     router.push("/login");
   };
@@ -148,10 +154,19 @@ export const useAuth = () => {
       const storedAvailableNetworks = localStorage.getItem("availableNetworks");
       const storedActiveGroup = localStorage.getItem("activeGroup");
       const storedUserGroups = localStorage.getItem("userGroups");
+      const storedUserContext = localStorage.getItem("userContext");
 
       if (token && storedUserDetails) {
         const userDetails = JSON.parse(storedUserDetails) as UserDetails;
-        dispatch(setUserDetails(userDetails));
+        
+        // Ensure userDetails has required properties for setUserDetails
+        const safeUserDetails: UserDetails = {
+          ...userDetails,
+          networks: userDetails.networks || [],
+          groups: userDetails.groups || [],
+        };
+        
+        dispatch(setUserDetails(safeUserDetails));
 
         if (storedActiveNetwork) {
           const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
@@ -170,6 +185,20 @@ export const useAuth = () => {
         if (storedActiveGroup) {
           const activeGroup = JSON.parse(storedActiveGroup) as Group;
           dispatch(setActiveGroup(activeGroup));
+        }
+        if (storedUserContext) {
+          const userContext = storedUserContext as 'personal' | 'airqo-internal' | 'external-org';
+          
+          // Validate stored context against user permissions
+          const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
+          if (userContext === 'airqo-internal' && !isAirQoStaff) {
+            // Reset to safe default if unauthorized context is stored
+            console.warn('Unauthorized context found in localStorage, resetting to personal');
+            dispatch(setUserContext('personal'));
+            localStorage.setItem("userContext", 'personal');
+          } else {
+            dispatch(setUserContext(userContext));
+          }
         }
       } else {
         handleLogout();
