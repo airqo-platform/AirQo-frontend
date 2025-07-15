@@ -140,7 +140,33 @@ const OrganizationMembersPage = () => {
         setInviteEmails(['']);
         await fetchMemberData();
       } else {
-        throw new Error(res.message || 'Invite failed');
+        // If API returns errors in the response, handle them
+        let msg = res.message || 'Invite failed';
+        if (res.errors) {
+          if (typeof res.errors === 'string') {
+            msg = res.errors;
+          } else if (Array.isArray(res.errors)) {
+            msg = res.errors
+              .map((err) =>
+                Array.isArray(err.message)
+                  ? err.message.join(', ')
+                  : err.message,
+              )
+              .join('; ');
+          } else if (typeof res.errors === 'object') {
+            // Handle specific error keys, e.g. existingRequests
+            if (
+              res.errors.existingRequests &&
+              Array.isArray(res.errors.existingRequests) &&
+              res.errors.existingRequests.length
+            ) {
+              msg = `Access requests were already sent for: ${res.errors.existingRequests.join(', ')}`;
+            } else if (res.errors.message) {
+              msg = res.errors.message;
+            }
+          }
+        }
+        throw new Error(msg);
       }
     } catch (e) {
       logger.error('Invite error', e);
@@ -148,12 +174,28 @@ const OrganizationMembersPage = () => {
       const apiData = e.response?.data;
       let msg = e.message;
       if (apiData) {
-        if (Array.isArray(apiData.errors) && apiData.errors.length) {
-          msg = apiData.errors
-            .map((err) =>
-              Array.isArray(err.message) ? err.message.join(', ') : err.message,
-            )
-            .join('; ');
+        if (apiData.errors) {
+          if (typeof apiData.errors === 'string') {
+            msg = apiData.errors;
+          } else if (Array.isArray(apiData.errors)) {
+            msg = apiData.errors
+              .map((err) =>
+                Array.isArray(err.message)
+                  ? err.message.join(', ')
+                  : err.message,
+              )
+              .join('; ');
+          } else if (typeof apiData.errors === 'object') {
+            if (
+              apiData.errors.existingRequests &&
+              Array.isArray(apiData.errors.existingRequests) &&
+              apiData.errors.existingRequests.length
+            ) {
+              msg = `Access requests were already sent for: ${apiData.errors.existingRequests.join(', ')}`;
+            } else if (apiData.errors.message) {
+              msg = apiData.errors.message;
+            }
+          }
         } else if (apiData.message) {
           msg = apiData.message;
         }
