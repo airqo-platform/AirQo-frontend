@@ -10,6 +10,7 @@ import MenuBarIcon from '@/icons/menu_bar';
 import MenuIcon from '@/icons/Actions/menu';
 import MyProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
+import AppDropdown from '../components/AppDropdown';
 import {
   toggleGlobalSidebar,
   setToggleDrawer,
@@ -236,11 +237,12 @@ const GlobalTopbar = ({
               </div>
             </div>
 
-            {/* Desktop Right: Org dropdown, custom actions, profile */}
+            {/* Desktop Right: Org dropdown, app dropdown, custom actions, profile */}
             <div className="hidden lg:flex gap-2 items-center justify-center h-full">
               {!isCreateOrganizationRoute && !isAdminRoute && (
                 <TopbarOrganizationDropdown className="mr-2" />
               )}
+              <AppDropdown />
               {customActions && (
                 <div className="flex items-center">{customActions}</div>
               )}
