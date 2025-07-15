@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import Button from '@/common/components/Button';
 import { FaTimes } from 'react-icons/fa';
 import PropTypes from 'prop-types';
+import Card from '@/common/components/CardWrapper';
 
-const Dialog = ({
+const ReusableDialog = ({
   // Core props
   isOpen,
   onClose,
@@ -36,6 +37,14 @@ const Dialog = ({
   // Accessibility
   ariaLabel,
   ariaDescribedBy,
+
+  // Card styling props (inherited from CardWrapper)
+  bordered,
+  borderColor = 'border-gray-200 dark:border-gray-700',
+  rounded = true,
+  radius = 'rounded-xl',
+  background = 'bg-white dark:bg-[#1d1f20]',
+  shadow = 'shadow-xl',
 }) => {
   const dialogRef = useRef(null);
   const previousActiveElement = useRef(null);
@@ -44,16 +53,19 @@ const Dialog = ({
   useEffect(() => {
     if (isOpen) {
       previousActiveElement.current = document.activeElement;
-      dialogRef.current?.focus();
+      // Use timeout to ensure dialog is rendered before focusing
+      setTimeout(() => {
+        dialogRef.current?.focus();
+      }, 0);
     } else {
       previousActiveElement.current?.focus();
     }
   }, [isOpen]);
 
-  // Escape key handler
+  // Escape key handler and body scroll lock
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !preventBackdropClose) {
         onClose();
       }
     };
@@ -67,7 +79,7 @@ const Dialog = ({
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, preventBackdropClose]);
 
   if (!isOpen) return null;
 
@@ -107,18 +119,19 @@ const Dialog = ({
     }
   };
 
-  const renderHeader = () => {
+  // Create header content using CardWrapper's built-in header system
+  const createHeaderContent = () => {
     if (customHeader) {
       return customHeader;
     }
 
-    if (!title && !Icon) {
+    if (!title && !Icon && !showCloseButton) {
       return null;
     }
 
     return (
-      <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-        <div className="flex items-center space-x-3">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-3">
           {Icon && (
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-full ${iconBgColor}`}
@@ -126,24 +139,26 @@ const Dialog = ({
               <Icon className={`h-5 w-5 ${iconColor}`} />
             </div>
           )}
-          <div>
-            {title && (
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {title}
-              </h2>
-            )}
-            {subtitle && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          {(title || subtitle) && (
+            <div>
+              {title && (
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {title}
+                </h2>
+              )}
+              {subtitle && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          )}
         </div>
         {showCloseButton && (
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex-shrink-0"
             aria-label="Close dialog"
           >
             <FaTimes className="w-4 h-4" />
@@ -153,17 +168,18 @@ const Dialog = ({
     );
   };
 
-  const renderFooter = () => {
+  // Create footer content using CardWrapper's built-in footer system
+  const createFooterContent = () => {
     if (customFooter) {
       return customFooter;
     }
 
-    if (!showFooter) {
+    if (!showFooter || (!primaryAction && !secondaryAction)) {
       return null;
     }
 
     return (
-      <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div className="flex items-center justify-end gap-3 w-full">
         {secondaryAction && (
           <Button
             onClick={secondaryAction.onClick}
@@ -202,35 +218,47 @@ const Dialog = ({
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div
+      <div className="fixed inset-0 flex items-center justify-center">
+        <Card
           ref={dialogRef}
-          tabIndex={-1}
+          className={`relative w-full overflow-hidden ${dialogWidth} flex flex-col z-[10001] ${className}`}
+          contentClassName={`${maxHeight} overflow-y-auto ${contentClassName}`}
+          // Card styling props
+          bordered={bordered}
+          borderColor={borderColor}
+          rounded={rounded}
+          radius={radius}
+          background={background}
+          shadow={shadow}
+          padding="p-0" // We'll handle padding in header/content/footer
+          // Header using CardWrapper's header system
+          header={createHeaderContent()}
+          headerProps={{
+            className:
+              'px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
+          }}
+          // Footer using CardWrapper's footer system
+          footer={createFooterContent()}
+          footerProps={{
+            className:
+              'px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
+          }}
+          // Accessibility props
           role="dialog"
           aria-modal="true"
           aria-label={ariaLabel || title}
           aria-describedby={ariaDescribedBy}
-          className={`relative w-full ${dialogWidth} bg-white rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col overflow-hidden z-[10001] ${className}`}
+          tabIndex={-1}
         >
-          {/* Header */}
-          {renderHeader()}
-
-          {/* Content */}
-          <div
-            className={`flex-1 p-6 ${maxHeight} overflow-y-auto ${contentClassName}`}
-          >
-            {children}
-          </div>
-
-          {/* Footer */}
-          {renderFooter()}
-        </div>
+          {/* Content area - CardWrapper handles the padding through contentClassName */}
+          <div className="px-6 py-4 flex-1">{children}</div>
+        </Card>
       </div>
     </div>
   );
 };
 
-Dialog.propTypes = {
+ReusableDialog.propTypes = {
   // Core props
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
@@ -298,6 +326,14 @@ Dialog.propTypes = {
   // Accessibility
   ariaLabel: PropTypes.string,
   ariaDescribedBy: PropTypes.string,
+
+  // Card styling props (inherited from CardWrapper)
+  bordered: PropTypes.bool,
+  borderColor: PropTypes.string,
+  rounded: PropTypes.bool,
+  radius: PropTypes.string,
+  background: PropTypes.string,
+  shadow: PropTypes.string,
 };
 
-export default Dialog;
+export default ReusableDialog;
