@@ -184,6 +184,17 @@ const MembersTable = ({
     render: (value, row) => col.render(row),
   }));
 
+  // Status filter options
+  const statusFilter = {
+    key: 'isActive',
+    options: [
+      { value: true, label: 'Active' },
+      { value: false, label: 'Inactive' },
+    ],
+    placeholder: 'Filter by status',
+    isMulti: false,
+  };
+
   return (
     <>
       <ReusableTable
@@ -191,12 +202,12 @@ const MembersTable = ({
         data={tableMembers}
         columns={patchedColumns}
         searchable={true}
-        filterable={false}
-        filters={[]}
+        filterable={true}
+        filters={[statusFilter]}
         pageSize={10}
         showPagination={true}
         sortable={true}
-        className="mb-6"
+        searchableColumns={['member', 'contact', 'status', 'lastActive']}
       />
 
       <RemoveUserModal

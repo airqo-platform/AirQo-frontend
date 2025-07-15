@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import Fuse from 'fuse.js';
 import CardWrapper from '@/common/components/CardWrapper';
 import {
   FaSearch,
@@ -9,7 +10,7 @@ import {
   FaSortDown,
 } from 'react-icons/fa';
 
-// Custom Filter Component using react-select styling
+// Custom Filter Component with outside click close
 const CustomFilter = ({
   options,
   value,
@@ -19,6 +20,21 @@ const CustomFilter = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -45,7 +61,7 @@ const CustomFilter = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={filterRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-3 py-2 text-left bg-white border border-primary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm"
@@ -112,6 +128,31 @@ const CustomFilter = ({
   );
 };
 
+// Page Size Selector Component
+const PageSizeSelector = ({
+  pageSize,
+  onPageSizeChange,
+  options = [5, 10, 20, 50, 100],
+}) => {
+  return (
+    <div className="flex items-center space-x-2 text-sm text-gray-700">
+      <span>Show</span>
+      <select
+        value={pageSize}
+        onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
+        className="border border-primary/30 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+      >
+        {options.map((size) => (
+          <option key={size} value={size}>
+            {size}
+          </option>
+        ))}
+      </select>
+      <span>entries</span>
+    </div>
+  );
+};
+
 // Main Reusable Table Component
 const ReusableTable = ({
   title = 'Table',
@@ -124,11 +165,14 @@ const ReusableTable = ({
   showPagination = true,
   sortable = true,
   className = '',
+  pageSizeOptions = [5, 10, 20, 50, 100],
+  searchableColumns = null, // new prop: array of column keys to search
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [filterValues, setFilterValues] = useState({});
+  const [currentPageSize, setCurrentPageSize] = useState(pageSize);
 
   // Initialize filter values
   React.useEffect(() => {
@@ -139,37 +183,109 @@ const ReusableTable = ({
     setFilterValues(initialFilters);
   }, [filters]);
 
-  // Filter and search data
+  // Filter and search data using fuse.js and improved filter logic
   const filteredData = useMemo(() => {
     let filtered = [...data];
 
-    // Apply search
-    if (searchTerm) {
-      filtered = filtered.filter((item) =>
-        columns.some((column) => {
-          const value = item[column.key];
-          return (
-            value &&
-            value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        }),
-      );
-    }
-
-    // Apply filters
+    // Apply filters first
     Object.entries(filterValues).forEach(([key, value]) => {
-      if (value && (Array.isArray(value) ? value.length > 0 : value !== '')) {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0)
+      ) {
         filtered = filtered.filter((item) => {
           if (Array.isArray(value)) {
             return value.includes(item[key]);
+          }
+          // For boolean filters, handle string/boolean conversion
+          if (
+            typeof value === 'boolean' ||
+            value === 'true' ||
+            value === 'false'
+          ) {
+            return String(item[key]) === String(value);
           }
           return item[key] === value;
         });
       }
     });
 
+    // Determine which columns to search
+    let fuseKeys;
+    if (Array.isArray(searchableColumns) && searchableColumns.length > 0) {
+      fuseKeys = searchableColumns;
+    } else {
+      // Default: all columns that have at least one non-null/non-undefined value in data
+      const allKeys = columns.map((col) => col.key);
+      const keysWithData = allKeys.filter((key) =>
+        filtered.some(
+          (item) =>
+            item[key] !== null &&
+            item[key] !== undefined &&
+            String(item[key]).trim() !== '',
+        ),
+      );
+      fuseKeys = keysWithData.length > 0 ? keysWithData : allKeys;
+    }
+
+    // Prepare data for Fuse.js: flatten values for custom renderers and nested objects
+    const getSearchableString = (item, key) => {
+      const col = columns.find((c) => c.key === key);
+      let value = item[key];
+      // If column has a custom render, try to extract text
+      if (col && typeof col.render === 'function') {
+        // Try to get a string representation from the rendered value
+        try {
+          const rendered = col.render(item[key], item);
+          if (typeof rendered === 'string') return rendered;
+          if (typeof rendered === 'number') return String(rendered);
+          // If it's a React element, try to extract text
+          if (rendered && rendered.props && rendered.props.children) {
+            if (typeof rendered.props.children === 'string')
+              return rendered.props.children;
+            if (Array.isArray(rendered.props.children)) {
+              return rendered.props.children
+                .map((child) => (typeof child === 'string' ? child : ''))
+                .join(' ');
+            }
+          }
+        } catch {
+          // fallback to value
+        }
+      }
+      // If value is an object, flatten to string
+      if (value && typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      return value === null || value === undefined ? '' : String(value);
+    };
+
+    // Build a new array for Fuse.js with only searchable keys as strings
+    const fuseData = filtered.map((item) => {
+      const obj = {};
+      fuseKeys.forEach((key) => {
+        obj[key] = getSearchableString(item, key);
+      });
+      return obj;
+    });
+
+    // Apply fuzzy search using fuse.js
+    if (searchTerm && searchTerm.trim() && fuseKeys.length > 0) {
+      const fuse = new Fuse(fuseData, {
+        keys: fuseKeys,
+        threshold: 0.4,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+      });
+      const fuseResults = fuse.search(searchTerm.trim());
+      // Map back to original filtered data by index
+      filtered = fuseResults.map((result) => filtered[result.refIndex]);
+    }
+
     return filtered;
-  }, [data, searchTerm, filterValues, columns]);
+  }, [data, searchTerm, filterValues, columns, searchableColumns]);
 
   // Sort data
   const sortedData = useMemo(() => {
@@ -179,10 +295,18 @@ const ReusableTable = ({
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      if (aValue < bValue) {
+      // Handle null/undefined values
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      // Convert to strings for comparison if needed
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (aStr < bStr) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
-      if (aValue > bValue) {
+      if (aStr > bStr) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
       return 0;
@@ -191,12 +315,23 @@ const ReusableTable = ({
 
   // Paginate data
   const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    const end = start + pageSize;
+    const start = (currentPage - 1) * currentPageSize;
+    const end = start + currentPageSize;
     return sortedData.slice(start, end);
-  }, [sortedData, currentPage, pageSize]);
+  }, [sortedData, currentPage, currentPageSize]);
 
-  const totalPages = Math.ceil(sortedData.length / pageSize);
+  const totalPages = Math.ceil(sortedData.length / currentPageSize);
+
+  // Reset to first page when search term changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterValues]);
+
+  // Reset to first page when page size changes
+  const handlePageSizeChange = (newPageSize) => {
+    setCurrentPageSize(newPageSize);
+    setCurrentPage(1);
+  };
 
   const handleSort = (key) => {
     if (!sortable) return;
@@ -229,7 +364,8 @@ const ReusableTable = ({
     if (column.render) {
       return column.render(item[column.key], item);
     }
-    return item[column.key];
+    const value = item[column.key];
+    return value === null || value === undefined ? '' : String(value);
   };
 
   const generatePageNumbers = () => {
@@ -366,7 +502,12 @@ const ReusableTable = ({
                   colSpan={columns.length}
                   className="px-6 py-12 text-center text-gray-500"
                 >
-                  No data found
+                  {searchTerm ||
+                  Object.values(filterValues).some(
+                    (v) => v && (Array.isArray(v) ? v.length > 0 : v !== ''),
+                  )
+                    ? 'No matching results found'
+                    : 'No data available'}
                 </td>
               </tr>
             )}
@@ -375,58 +516,72 @@ const ReusableTable = ({
       </div>
 
       {/* Pagination */}
-      {showPagination && totalPages > 0 && (
+      {showPagination && sortedData.length > 0 && (
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="text-sm text-gray-700">
-              Showing{' '}
-              {Math.min((currentPage - 1) * pageSize + 1, sortedData.length)} to{' '}
-              {Math.min(currentPage * pageSize, sortedData.length)} of{' '}
-              {sortedData.length} results
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm border border-primary/30 rounded-md hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 flex items-center space-x-1 transition-colors"
-              >
-                <FaChevronLeft className="w-3 h-3" />
-                <span className="hidden sm:inline">Previous</span>
-              </button>
-
-              <div className="flex items-center space-x-1">
-                {generatePageNumbers().map((page, index) => (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      typeof page === 'number' && setCurrentPage(page)
-                    }
-                    disabled={typeof page !== 'number'}
-                    className={`px-3 py-1 text-sm border rounded-md transition-colors ${
-                      page === currentPage
-                        ? 'bg-primary text-white border-primary'
-                        : typeof page === 'number'
-                          ? 'border-primary/30 hover:bg-primary/10 hover:border-primary'
-                          : 'border-transparent cursor-default'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+            <div className="flex items-center space-x-4">
+              <PageSizeSelector
+                pageSize={currentPageSize}
+                onPageSizeChange={handlePageSizeChange}
+                options={pageSizeOptions}
+              />
+              <div className="text-sm text-gray-700">
+                Showing{' '}
+                {Math.min(
+                  (currentPage - 1) * currentPageSize + 1,
+                  sortedData.length,
+                )}{' '}
+                to {Math.min(currentPage * currentPageSize, sortedData.length)}{' '}
+                of {sortedData.length} results
               </div>
-
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm border border-primary/30 rounded-md hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 flex items-center space-x-1 transition-colors"
-              >
-                <span className="hidden sm:inline">Next</span>
-                <FaChevronRight className="w-3 h-3" />
-              </button>
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-primary/30 rounded-md hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 flex items-center space-x-1 transition-colors"
+                >
+                  <FaChevronLeft className="w-3 h-3" />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                <div className="flex items-center space-x-1">
+                  {generatePageNumbers().map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() =>
+                        typeof page === 'number' && setCurrentPage(page)
+                      }
+                      disabled={typeof page !== 'number'}
+                      className={`px-3 py-1 text-sm border rounded-md transition-colors ${
+                        page === currentPage
+                          ? 'bg-primary text-white border-primary'
+                          : typeof page === 'number'
+                            ? 'border-primary/30 hover:bg-primary/10 hover:border-primary'
+                            : 'border-transparent cursor-default'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm border border-primary/30 rounded-md hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 flex items-center space-x-1 transition-colors"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <FaChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
