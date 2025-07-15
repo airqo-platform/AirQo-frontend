@@ -172,7 +172,6 @@ const ReusableTable = ({
   loading = false,
   loadingComponent = null,
   headerComponent = null,
-  headerProps = {},
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -416,7 +415,6 @@ const ReusableTable = ({
     <CardWrapper
       padding="p-0"
       header={headerComponent}
-      headProps={headerProps}
       className={`overflow-hidden shadow ${className}`}
     >
       {/* Header */}
