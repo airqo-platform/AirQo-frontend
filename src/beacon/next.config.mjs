@@ -33,6 +33,15 @@ const nextConfig = {
     NEXT_PUBLIC_SERVICE_NAME: 'airqo-frontend',
     NEXT_PUBLIC_SERVICE_VERSION: '1.0.0',
   },
+  // Add SVG support for React component imports
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: ['@svgr/webpack'],
+    });
+    return config;
+  },
 };
 
 export default nextConfig;

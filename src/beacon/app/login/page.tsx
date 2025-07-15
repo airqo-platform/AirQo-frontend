@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import AirqoLogo from "@/public/icons/airqo_logo.svg";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -75,13 +76,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-[350px]">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <img
-            src="/icons/airqo_logo.svg"
-            alt="AirQo Logo"
-            width={120}
-            height={40}
-            className="mb-4"
-          />
+          <AirqoLogo className="mb-4" alt="AirQo Logo" />
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
