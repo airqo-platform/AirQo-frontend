@@ -19,19 +19,7 @@ const MembersPageSkeleton = ({ rowCount = 5 }) => {
         </div>
         <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-md w-32 animate-pulse"></div>
       </div>
-      {/* Search and Filters Skeleton */}
-      <CardWrapper>
-        {' '}
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search input with icon space */}
-          <div className="flex-1 relative">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-          </div>
-          {/* Status filter dropdown */}
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-32 animate-pulse"></div>
-        </div>
-      </CardWrapper>{' '}
+
       {/* Members Table Skeleton */}
       <CardWrapper padding="p-0" className="overflow-hidden">
         {/* Table Header with Members Count */}
