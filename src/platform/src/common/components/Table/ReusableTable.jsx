@@ -1,6 +1,7 @@
+'use client';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Fuse from 'fuse.js';
-import CardWrapper from '@/common/components/CardWrapper';
+import CardWrapper from '@/components/CardWrapper';
 import {
   FaSearch,
   FaChevronLeft,
@@ -9,6 +10,7 @@ import {
   FaSortUp,
   FaSortDown,
 } from 'react-icons/fa';
+import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 
 // Custom Filter Component with outside click close
 const CustomFilter = ({
@@ -167,12 +169,18 @@ const ReusableTable = ({
   className = '',
   pageSizeOptions = [5, 10, 20, 50, 100],
   searchableColumns = null,
+  loading = false,
+  loadingComponent = null,
+  headerComponent = null,
+  headerProps = {},
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [filterValues, setFilterValues] = useState({});
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
+
+  const { primaryColor } = useThemeSafe();
 
   // Initialize filter values
   React.useEffect(() => {
@@ -407,6 +415,8 @@ const ReusableTable = ({
   return (
     <CardWrapper
       padding="p-0"
+      header={headerComponent}
+      headProps={headerProps}
       className={`overflow-hidden shadow ${className}`}
     >
       {/* Header */}
@@ -455,73 +465,89 @@ const ReusableTable = ({
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table or Loading */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
-            <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${
-                    sortable && column.sortable !== false
-                      ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'
-                      : ''
-                  }`}
-                  onClick={() =>
-                    sortable &&
-                    column.sortable !== false &&
-                    handleSort(column.key)
-                  }
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
-                    {sortable &&
-                      column.sortable !== false &&
-                      getSortIcon(column.key)}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
-            {paginatedData.length > 0 ? (
-              paginatedData.map((item, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-primary/10 dark:hover:bg-primary/20"
-                >
-                  {columns.map((column) => (
-                    <td
-                      key={column.key}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
-                    >
-                      {renderCell(item, column)}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
+        {loading ? (
+          loadingComponent ? (
+            loadingComponent
+          ) : (
+            <div className="w-full py-12 flex justify-center items-center">
+              <div
+                className="SecondaryMainloader"
+                aria-label="Loading"
+                style={{
+                  '--color-primary': primaryColor,
+                }}
+              ></div>
+            </div>
+          )
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
-                >
-                  {searchTerm ||
-                  Object.values(filterValues).some(
-                    (v) => v && (Array.isArray(v) ? v.length > 0 : v !== ''),
-                  )
-                    ? 'No matching results found'
-                    : 'No data available'}
-                </td>
+                {columns.map((column) => (
+                  <th
+                    key={column.key}
+                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${
+                      sortable && column.sortable !== false
+                        ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'
+                        : ''
+                    }`}
+                    onClick={() =>
+                      sortable &&
+                      column.sortable !== false &&
+                      handleSort(column.key)
+                    }
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{column.label}</span>
+                      {sortable &&
+                        column.sortable !== false &&
+                        getSortIcon(column.key)}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
+              {paginatedData.length > 0 ? (
+                paginatedData.map((item, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-primary/10 dark:hover:bg-primary/20"
+                  >
+                    {columns.map((column) => (
+                      <td
+                        key={column.key}
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
+                      >
+                        {renderCell(item, column)}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    {searchTerm ||
+                    Object.values(filterValues).some(
+                      (v) => v && (Array.isArray(v) ? v.length > 0 : v !== ''),
+                    )
+                      ? 'No matching results found'
+                      : 'No data available'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}
-      {showPagination && sortedData.length > 0 && (
+      {!loading && showPagination && sortedData.length > 0 && (
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center space-x-4">
