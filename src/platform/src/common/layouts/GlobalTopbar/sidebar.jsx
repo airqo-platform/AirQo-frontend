@@ -10,7 +10,6 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import Card from '@/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
-import { FiExternalLink } from 'react-icons/fi';
 import AirqoLogo from '@/icons/airqo_logo.svg';
 import {
   getNavigationItems,
@@ -247,16 +246,6 @@ const GlobalSideBarDrawer = () => {
               navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"
-            />
-
-            {/* External link */}
-            <SideBarItem
-              label="AirQo Website"
-              Icon={FiExternalLink}
-              navPath="https://airqo.africa"
-              isExternal={true}
-              onClick={closeDrawer}
-              key="airqo-website"
             />
           </div>
         </div>

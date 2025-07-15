@@ -259,7 +259,7 @@ const GlobalTopbar = ({
             <div className="lg:hidden flex items-center justify-center h-full">
               <MyProfileDropdown
                 dropdownAlign="right"
-                showUserInfo={false}
+                showUserInfo={true}
                 isOrganization={isOrganization}
                 isCreateOrganizationRoute={isCreateOrganizationRoute}
                 isAdminRoute={isAdminRoute}

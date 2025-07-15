@@ -56,7 +56,7 @@ const AppDropdown = () => {
     {
       name: 'Website',
       icon: MdLanguage,
-      href: getUrl('https://airqo.net/'),
+      href: 'https://airqo.net/',
       color: 'bg-purple-500',
     },
     {
