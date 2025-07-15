@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 
 // menu icon
-import MoreHorizIcon from '@/icons/Common/more_horiz.svg';
+import { MdMoreHoriz } from 'react-icons/md';
 
 const Dropdown = ({ onItemClick, menu, length }) => {
   // creating a ref for the dropdown menu
@@ -34,24 +34,24 @@ const Dropdown = ({ onItemClick, menu, length }) => {
       <button
         id="dropdownMenuIconHorizontalButton"
         onClick={toggleDropdown}
-        className="w-10 h-10 p-2 rounded-lg border border-grey-200 flex justify-center items-center hover:border-grey-300"
+        className="w-10 h-10 p-2 rounded-lg border border-gray-200 dark:border-gray-700 flex justify-center items-center hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-[#1d1f20]"
         type="button"
       >
-        <MoreHorizIcon />
+        <MdMoreHoriz className="w-6 h-6 text-gray-600 dark:text-gray-300" />
       </button>
       {/* Dropdown menu list */}
       <div
         id="dropdownDotsHorizontal"
         className={`z-10 ${
           isOpen ? 'block' : 'hidden'
-        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 mt-1`}
+        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-[#1d1f20] dark:divide-gray-800 mt-1`}
       >
         <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
           {menu.map((item) => (
             <li key={item.id} className="px-2">
               <span
                 onClick={() => onItemClick(item.id)}
-                className="flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer rounded-md"
+                className="flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md"
               >
                 {item.name}
               </span>

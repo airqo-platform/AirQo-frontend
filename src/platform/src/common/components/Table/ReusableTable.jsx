@@ -64,12 +64,12 @@ const CustomFilter = ({
     <div className="relative" ref={filterRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-left bg-white border border-primary/30 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+        className="w-full px-3 py-2 text-left bg-white dark:bg-[#1d1f20] border border-primary/30 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm text-gray-900 dark:text-gray-100"
       >
         <span className="block truncate">{getDisplayValue()}</span>
         <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
           <svg
-            className="w-5 h-5 text-gray-400"
+            className="w-5 h-5 text-gray-400 dark:text-gray-300"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -85,14 +85,14 @@ const CustomFilter = ({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-          <div className="p-2 border-b border-gray-200">
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#1d1f20] border border-gray-300 dark:border-gray-700 rounded-md shadow-lg">
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
             <input
               type="text"
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-2 py-1 text-sm border border-primary/30 rounded focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full px-2 py-1 text-sm border border-primary/30 dark:border-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-primary bg-white dark:bg-[#232425] text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
           <div className="max-h-60 overflow-auto">
@@ -100,14 +100,14 @@ const CustomFilter = ({
               <div
                 key={option.value}
                 onClick={() => handleSelect(option)}
-                className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-100 ${
+                className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
                   (
                     isMulti
                       ? value.includes(option.value)
                       : value === option.value
                   )
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-900'
+                    ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary'
+                    : 'text-gray-900 dark:text-gray-100'
                 }`}
               >
                 {isMulti && (
@@ -166,7 +166,7 @@ const ReusableTable = ({
   sortable = true,
   className = '',
   pageSizeOptions = [5, 10, 20, 50, 100],
-  searchableColumns = null, // new prop: array of column keys to search
+  searchableColumns = null,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -410,21 +410,23 @@ const ReusableTable = ({
       className={`overflow-hidden shadow ${className}`}
     >
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {title}
+          </h2>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             {/* Search */}
             {searchable && (
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 w-4 h-4" />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 dark:text-primary/80 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-primary/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm w-full sm:w-64"
+                  className="pl-10 pr-4 py-2 border border-primary/30 dark:border-primary/40 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm w-full sm:w-64 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
             )}
@@ -456,14 +458,14 @@ const ReusableTable = ({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${
                     sortable && column.sortable !== false
-                      ? 'cursor-pointer hover:bg-gray-100'
+                      ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'
                       : ''
                   }`}
                   onClick={() =>
@@ -482,14 +484,17 @@ const ReusableTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
             {paginatedData.length > 0 ? (
               paginatedData.map((item, index) => (
-                <tr key={index} className="hover:bg-primary/10">
+                <tr
+                  key={index}
+                  className="hover:bg-primary/10 dark:hover:bg-primary/20"
+                >
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
                     >
                       {renderCell(item, column)}
                     </td>
@@ -500,7 +505,7 @@ const ReusableTable = ({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-6 py-12 text-center text-gray-500"
+                  className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                 >
                   {searchTerm ||
                   Object.values(filterValues).some(
@@ -517,7 +522,7 @@ const ReusableTable = ({
 
       {/* Pagination */}
       {showPagination && sortedData.length > 0 && (
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center space-x-4">
               <PageSizeSelector
@@ -525,7 +530,7 @@ const ReusableTable = ({
                 onPageSizeChange={handlePageSizeChange}
                 options={pageSizeOptions}
               />
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
                 Showing{' '}
                 {Math.min(
                   (currentPage - 1) * currentPageSize + 1,
@@ -543,7 +548,7 @@ const ReusableTable = ({
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm border border-primary/30 rounded-md hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 flex items-center space-x-1 transition-colors"
+                  className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 >
                   <FaChevronLeft className="w-3 h-3" />
                   <span className="hidden sm:inline">Previous</span>
@@ -561,8 +566,8 @@ const ReusableTable = ({
                         page === currentPage
                           ? 'bg-primary text-white border-primary'
                           : typeof page === 'number'
-                            ? 'border-primary/30 hover:bg-primary/10 hover:border-primary'
-                            : 'border-transparent cursor-default'
+                            ? 'border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900'
+                            : 'border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500'
                       }`}
                     >
                       {page}
@@ -575,7 +580,7 @@ const ReusableTable = ({
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm border border-primary/30 rounded-md hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 flex items-center space-x-1 transition-colors"
+                  className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 >
                   <span className="hidden sm:inline">Next</span>
                   <FaChevronRight className="w-3 h-3" />
