@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReusableTable from '../Table/ReusableTable';
 import RemoveUserModal from './RemoveUserModal';
-import Button from '@/common/components/Button';
+import Dropdown from '../Dropdowns/Dropdown';
 import {
   FaEnvelope,
-  FaEllipsisV,
   FaTrash,
   FaUser,
   FaUserCheck,
@@ -24,21 +23,12 @@ const MembersTable = ({
   groupDetails = null,
   formatLastActive = () => 'Never',
 }) => {
-  const [actionMenuFor, setActionMenuFor] = useState(null);
+  // const [actionMenuFor, setActionMenuFor] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const managerId = groupDetails?.grp_manager?._id;
 
-  // Close any open menus when clicking outside
-  useEffect(() => {
-    const onClick = (e) => {
-      if (!e.target.closest('.action-menu-container')) {
-        setActionMenuFor(null);
-      }
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, []);
+  // No longer needed: action menu outside click handler
 
   const getStatusBadge = (m) => {
     const status = m.isActive ? 'active' : 'inactive';
@@ -150,41 +140,35 @@ const MembersTable = ({
       header: 'Actions',
       render: (member) => {
         if (!member) return null;
-        return (
-          <div className="relative action-menu-container">
-            <Button
-              variant="text"
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              onClick={() =>
-                setActionMenuFor(
-                  actionMenuFor === member._id ? null : member._id,
-                )
-              }
-            >
-              <FaEllipsisV className="w-4 h-4" />
-            </Button>
-
-            {actionMenuFor === member._id && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
-                <div className="py-1">
-                  {member._id !== managerId ? (
-                    <button
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      onClick={() => handleRemove(member)}
-                    >
+        const menu =
+          member._id !== managerId
+            ? [
+                {
+                  id: 'remove',
+                  name: (
+                    <span className="flex items-center text-red-600">
                       <FaTrash className="w-4 h-4 mr-2" />
                       Remove from group
-                    </button>
-                  ) : (
-                    <div className="flex items-center w-full px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                    </span>
+                  ),
+                },
+              ]
+            : [
+                {
+                  id: 'manager',
+                  name: (
+                    <span className="flex items-center text-gray-500">
                       <FaUser className="w-4 h-4 mr-2" />
                       Group Manager
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+                    </span>
+                  ),
+                },
+              ];
+        const handleMenuClick = (id) => {
+          if (id === 'remove') handleRemove(member);
+        };
+        return (
+          <Dropdown onItemClick={handleMenuClick} menu={menu} length={'last'} />
         );
       },
     },
