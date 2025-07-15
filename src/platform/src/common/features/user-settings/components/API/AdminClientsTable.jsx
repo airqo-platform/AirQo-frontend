@@ -207,6 +207,17 @@ const AdminClientsTable = () => {
         searchableColumns={['name', '_id', 'ip_addresses']}
         pageSizeOptions={[8, 16, 32, 64]}
         loading={isLoading}
+        headerComponent={
+          <div className="px-3 py-4 border-b border-gray-200 dark:border-gray-800">
+            <h3 className="text-gray-710 dark:text-white font-medium text-lg">
+              Clients activation manager
+            </h3>
+            <p className="text-gray-500 text-sm md:max-w-[640px] w-full">
+              Activate or deactivate clients to enable or disable their access
+              to the API.
+            </p>
+          </div>
+        }
       />
       <DialogWrapper
         open={confirmActivation}
