@@ -60,6 +60,7 @@
     "react-popper": "^2.3.0",
     "react-redux": "^9.1.2",
     "react-responsive": "^10.0.1",
+    "react-select": "^5.10.2",
     "react-tailwindcss-datepicker": "^1.4.2",
     "react-use": "^17.5.1",
     "recharts": "^2.5.0",
