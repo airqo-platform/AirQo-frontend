@@ -178,7 +178,7 @@ const OrganizationDashboardPage = () => {
         {/* Sites Monitored Card (public) */}
         <div className="md:col-span-1 lg:col-span-1">
           <CardWrapper
-            className="group border-0 bg-white dark:bg-gray-800 relative overflow-hidden rounded-2xl p-0"
+            className="group border-0 bg-white dark:bg-gray-800 relative overflow-hidden p-0"
             padding=""
           >
             <div className="flex flex-col h-full justify-center p-6">
@@ -207,7 +207,7 @@ const OrganizationDashboardPage = () => {
         {isAdmin && (
           <div className="md:col-span-1 lg:col-span-1">
             <CardWrapper
-              className="group border-0 shadow-lg bg-white dark:bg-gray-800 relative overflow-hidden rounded-2xl p-0 cursor-pointer hover:shadow-primary/30 transition"
+              className="group border-0 bg-white dark:bg-gray-800 relative overflow-hidden p-0"
               padding=""
               as="a"
               href="/organization/members"
