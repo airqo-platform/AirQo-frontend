@@ -29,7 +29,7 @@ const MembersPageSkeleton = ({ rowCount = 5 }) => {
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            {/* Table Headers */}{' '}
+            {/* Table Headers */}
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th className="px-6 py-3 text-left">
@@ -76,7 +76,7 @@ const MembersPageSkeleton = ({ rowCount = 5 }) => {
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div>
                       </div>
                       <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-                    </div>{' '}
+                    </div>
                   </td>
                   {/* Status Column - Badge */}
                   <td className="px-6 py-4 whitespace-nowrap">
