@@ -16,6 +16,7 @@ import {
   getUserThemeUrl,
   updateUserThemeUrl,
   getGroupSlugUrl,
+  GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 
@@ -379,6 +380,29 @@ export const updateUserThemeApi = (userId, currentTheme, newTheme) => {
       // Enhanced error handling
       const errorMessage =
         error.response?.data?.message || 'Failed to update user theme';
+      throw new Error(errorMessage);
+    });
+};
+
+// Group Roles
+/**
+ * Get roles for a group
+ * @param {string} groupId - The group ID to fetch roles for
+ * @returns {Promise} - Promise resolving to group roles
+ */
+export const getGroupRolesApi = (groupId) => {
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
+  return secureApiProxy
+    .get(GROUP_ROLES_URL, {
+      params: { group_id: groupId },
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch group roles';
       throw new Error(errorMessage);
     });
 };

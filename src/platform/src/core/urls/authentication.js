@@ -18,6 +18,9 @@ export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;
 export const ACTIVATION_REQUEST_URI = `${CLIENT_URI}/activate-request`;
 export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
 
+// Group roles URL
+export const GROUP_ROLES_URL = `${AUTH_URL}/roles`;
+
 // Group slug management URL
 export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
 

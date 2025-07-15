@@ -1,19 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 
 // menu icon
 import { MdMoreHoriz } from 'react-icons/md';
 
-const Dropdown = ({ onItemClick, menu, length }) => {
-  // creating a ref for the dropdown menu
+const Dropdown = ({ onItemClick, menu }) => {
   const dropdownRef = useRef(null);
-
-  // creating a state variable for the dropdown visibility
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleDropdown = () => setIsOpen(!isOpen);
 
   const closeDropdown = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -30,7 +26,6 @@ const Dropdown = ({ onItemClick, menu, length }) => {
 
   return (
     <div className="Menu_dropdown" ref={dropdownRef}>
-      {/* this is the button */}
       <button
         id="dropdownMenuIconHorizontalButton"
         onClick={toggleDropdown}
@@ -39,35 +34,47 @@ const Dropdown = ({ onItemClick, menu, length }) => {
       >
         <MdMoreHoriz className="w-6 h-6 text-gray-600 dark:text-gray-300" />
       </button>
-      {/* Dropdown menu list */}
-      <div
-        id="dropdownDotsHorizontal"
-        className={`z-10 ${
-          isOpen ? 'block' : 'hidden'
-        } bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-[#1d1f20] dark:divide-gray-800 mt-1`}
-      >
-        <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
-          {menu.map((item) => (
-            <li key={item.id} className="px-2">
-              <span
-                onClick={() => onItemClick(item.id)}
-                className="flex justify-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md"
+      {isOpen &&
+        dropdownRef.current &&
+        createPortal(
+          (() => {
+            const rect = dropdownRef.current.getBoundingClientRect();
+            const menuWidth = 176; // w-44 = 11rem = 176px
+            return (
+              <div
+                id="dropdownDotsHorizontal"
+                className="dropdown-z-fix bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-[#1d1f20] dark:divide-gray-800 mt-1"
+                style={{
+                  zIndex: 99999,
+                  position: 'fixed',
+                  minWidth: '11rem',
+                  top: rect.bottom + window.scrollY,
+                  left: rect.right + window.scrollX - menuWidth,
+                }}
               >
-                {item.name}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      {/* this is custom css for the dropdown */}
+                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
+                  {menu.map((item) => (
+                    <li key={item.id} className="px-2">
+                      <span
+                        onClick={() => onItemClick(item.id)}
+                        className="flex justify-start px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md"
+                      >
+                        {item.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })(),
+          document.body,
+        )}
       <style>{`
         .Menu_dropdown {
           position: relative;
         }
-        .Menu_dropdown #dropdownDotsHorizontal {
-          position: absolute;
-          right: 0;
-          ${length === 'last' ? 'bottom: calc(100% + 0.25rem);' : 'top: 100%;'}
+        .dropdown-z-fix {
+          z-index: 99999 !important;
         }
       `}</style>
     </div>
