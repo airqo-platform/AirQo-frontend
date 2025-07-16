@@ -19,7 +19,8 @@ import {
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
 import CopyIcon from '@/icons/Common/copy.svg';
-import DialogWrapper from '@/components/Modal/DialogWrapper';
+import ReusableDialog from '@/components/Modal/ReusableDialog';
+import AddClientForm from './AddClientForm';
 import InfoCircleIcon from '@/icons/Common/info_circle.svg';
 import ReusableTable from '@/common/components/Table/ReusableTable';
 import AddIcon from '@/icons/Actions/plus.svg';
@@ -43,6 +44,7 @@ const UserClientsTable = () => {
   const [isLoadingActivationRequest, setIsLoadingActivationRequest] =
     useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
+  const [openAddForm, setOpenAddForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const userInfo = useSelector((state) => state.login.userInfo);
   const clients = useSelector((state) => state.apiClient.clients);
@@ -354,7 +356,7 @@ const UserClientsTable = () => {
               </p>
             </div>
             <Button
-              onClick={() => setShowAddClientForm(true)}
+              onClick={() => setOpenAddForm(true)}
               className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 text-sm font-medium"
             >
               <AddIcon /> Create client
@@ -373,20 +375,31 @@ const UserClientsTable = () => {
         closeModal={() => setOpenEditForm(false)}
         data={selectedClient}
       />
-      <DialogWrapper
-        open={showInfoModal}
+      <AddClientForm
+        open={openAddForm}
+        closeModal={() => setOpenAddForm(false)}
+      />
+      <ReusableDialog
+        isOpen={showInfoModal}
         onClose={() => setShowInfoModal(false)}
-        handleClick={handleActivationRequest}
-        primaryButtonText="Send activation request"
-        loading={isLoadingActivationRequest}
-        ModalIcon={InfoCircleIcon}
+        title="Activation Required"
+        icon={InfoCircleIcon}
+        showFooter={true}
+        primaryAction={{
+          label: 'Send activation request',
+          onClick: handleActivationRequest,
+          disabled: isLoadingActivationRequest,
+          className: isLoadingActivationRequest
+            ? 'opacity-60 pointer-events-none'
+            : '',
+        }}
       >
         <div className="text-gray-600 dark:text-gray-300 text-sm">
           You cannot generate a token for an inactive client. Reach out to
           support for assistance at support@airqo.net or send an activation
           request.
         </div>
-      </DialogWrapper>
+      </ReusableDialog>
     </div>
   );
 };
