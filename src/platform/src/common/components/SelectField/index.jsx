@@ -1,15 +1,21 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import { usePopper } from 'react-popper';
 
 /**
- * SelectField Component (Refactored to mimic SelectDropdown design)
+ * SelectField Component (Improved with better positioning and accessibility)
  * Renders a custom select dropdown with an optional label and error message.
  * Props:
  * - label: Optional label text
  * - error: Optional error message
  * - description: Optional description text
  * - containerClassName: Additional classes for the container
- * - className: Additional classes for the select button (now)
+ * - className: Additional classes for the select button
  * - listClassName: Additional classes for the dropdown list container
  * - required: Whether the field is required
  * - disabled: Whether the select is disabled
@@ -17,7 +23,8 @@ import { usePopper } from 'react-popper';
  * - onChange: Change handler function (receives event.target.value)
  * - value: The currently selected value
  * - placeholder: Placeholder text when no option is selected
- * - ...selectProps: Additional props for the hidden select element (if needed for form submission, but generally not used directly for styling)
+ * - maxHeight: Maximum height for the dropdown list (default: 240px)
+ * - ...rest: Additional props for the hidden select element
  */
 const SelectField = ({
   label,
@@ -28,36 +35,77 @@ const SelectField = ({
   listClassName = '',
   required = false,
   disabled = false,
-  children, // Will now be processed to create items
+  children,
   onChange,
-  value, // The current selected value
+  value,
   placeholder = 'Select an option',
-  ...rest // Remaining props (e.g., name, id) will be passed to the hidden select or the button
+  maxHeight = 240,
+  ...rest
 }) => {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef(null); // Ref for the whole component to detect outside clicks
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const containerRef = useRef(null);
+  const listRef = useRef(null);
+  const buttonRef = useRef(null);
 
-  // For Popper positioning
-  const [referenceElement, setReferenceElement] = useState(null); // The button will be the reference
-  const [popperElement, setPopperElement] = useState(null); // The dropdown list will be the popper
-  const { styles: popperStyles, attributes: popperAttributes } = usePopper(
-    referenceElement,
-    popperElement,
-    { placement: 'bottom-start' },
-  );
+  // For Popper positioning with improved configuration
+  const [referenceElement, setReferenceElement] = useState(null);
+  const [popperElement, setPopperElement] = useState(null);
+  const {
+    styles: popperStyles,
+    attributes: popperAttributes,
+    update,
+  } = usePopper(referenceElement, popperElement, {
+    placement: 'bottom-start',
+    strategy: 'fixed', // Use fixed positioning to avoid clipping
+    modifiers: [
+      {
+        name: 'flip',
+        options: {
+          fallbackPlacements: [
+            'top-start',
+            'bottom-start',
+            'top-end',
+            'bottom-end',
+          ],
+          boundary: 'viewport',
+          padding: 8,
+        },
+      },
+      {
+        name: 'preventOverflow',
+        options: {
+          boundary: 'viewport',
+          padding: 8,
+        },
+      },
+      {
+        name: 'offset',
+        options: {
+          offset: [0, 4],
+        },
+      },
+      {
+        name: 'computeStyles',
+        options: {
+          adaptive: false,
+        },
+      },
+    ],
+  });
 
-  // Convert children (option elements) into a consumable items array for the custom dropdown
+  // Convert children (option elements) into a consumable items array
   const items = useMemo(() => {
     return React.Children.map(children, (child) => {
       if (React.isValidElement(child) && child.type === 'option') {
         return {
           value: child.props.value,
           label: child.props.children,
-          disabled: child.props.disabled, // Pass disabled prop from option
+          disabled: child.props.disabled,
         };
       }
       return null;
-    }).filter(Boolean); // Filter out any nulls if there are non-option children
+    }).filter(Boolean);
   }, [children]);
 
   // Find the currently selected item based on the 'value' prop
@@ -65,22 +113,84 @@ const SelectField = ({
     return items.find((item) => item.value === value);
   }, [items, value]);
 
-  const handleSelect = (item) => {
-    if (disabled || item.disabled) return; // Prevent selection if disabled
+  // Handle item selection
+  const handleSelect = useCallback(
+    (item) => {
+      if (disabled || item.disabled) return;
 
-    // Mimic the native select onChange event structure
-    const syntheticEvent = {
-      target: {
-        value: item.value,
-        name: rest.name, // Pass the name if available
-        id: rest.id, // Pass the id if available
-      },
-    };
-    onChange(syntheticEvent);
-    setOpen(false); // Close dropdown after selection
-  };
+      const syntheticEvent = {
+        target: {
+          value: item.value,
+          name: rest.name,
+          id: rest.id,
+        },
+      };
+      onChange?.(syntheticEvent);
+      setOpen(false);
+      setHighlightedIndex(-1);
 
-  // Close the dropdown when clicking outside of it
+      // Return focus to the button after selection
+      buttonRef.current?.focus();
+    },
+    [disabled, onChange, rest.name, rest.id],
+  );
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (disabled) return;
+
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          if (!open) {
+            setOpen(true);
+            setHighlightedIndex(0);
+          } else {
+            setHighlightedIndex((prev) => {
+              const nextIndex = prev < items.length - 1 ? prev + 1 : 0;
+              return nextIndex;
+            });
+          }
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          if (!open) {
+            setOpen(true);
+            setHighlightedIndex(items.length - 1);
+          } else {
+            setHighlightedIndex((prev) => {
+              const nextIndex = prev > 0 ? prev - 1 : items.length - 1;
+              return nextIndex;
+            });
+          }
+          break;
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          if (!open) {
+            setOpen(true);
+            setHighlightedIndex(0);
+          } else if (highlightedIndex >= 0) {
+            handleSelect(items[highlightedIndex]);
+          }
+          break;
+        case 'Escape':
+          event.preventDefault();
+          setOpen(false);
+          setHighlightedIndex(-1);
+          buttonRef.current?.focus();
+          break;
+        case 'Tab':
+          setOpen(false);
+          setHighlightedIndex(-1);
+          break;
+      }
+    },
+    [disabled, open, items, highlightedIndex, handleSelect],
+  );
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -88,12 +198,56 @@ const SelectField = ({
         !containerRef.current.contains(event.target)
       ) {
         setOpen(false);
+        setHighlightedIndex(-1);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open]);
+
+  // Update popper position when dropdown opens
+  useEffect(() => {
+    if (open && update) {
+      update();
+    }
+  }, [open, update]);
+
+  // Handle window resize and scroll to reposition dropdown
+  useEffect(() => {
+    if (open && update) {
+      const handleResize = () => update();
+      const handleScroll = () => update();
+
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('scroll', handleScroll, true);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleScroll, true);
+      };
+    }
+  }, [open, update]);
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (open && highlightedIndex >= 0 && listRef.current) {
+      const highlightedElement = listRef.current.children[highlightedIndex];
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({
+          block: 'nearest',
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [open, highlightedIndex]);
+
+  const buttonId =
+    rest.id || `select-field-${Math.random().toString(36).substring(7)}`;
+  const listId = `${buttonId}-list`;
 
   return (
     <div
@@ -102,9 +256,7 @@ const SelectField = ({
     >
       {label && (
         <label
-          htmlFor={
-            rest.id || `select-field-${Math.random().toString(36).substring(7)}`
-          } // Provide an ID for accessibility
+          htmlFor={buttonId}
           className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
         >
           {label}
@@ -115,16 +267,33 @@ const SelectField = ({
           )}
         </label>
       )}
+
       <div className="relative">
         <button
-          type="button" // Important: default button type is 'submit' in forms
-          ref={setReferenceElement}
+          ref={(el) => {
+            buttonRef.current = el;
+            setReferenceElement(el);
+          }}
+          type="button"
+          id={buttonId}
           onClick={() => !disabled && setOpen((prev) => !prev)}
+          onKeyDown={handleKeyDown}
           disabled={disabled}
-          // Merge common button styles from SelectDropdown
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-labelledby={label ? `${buttonId}-label` : undefined}
+          aria-describedby={
+            error
+              ? `${buttonId}-error`
+              : description
+                ? `${buttonId}-description`
+                : undefined
+          }
+          aria-controls={open ? listId : undefined}
           className={`
             w-full flex justify-between items-center rounded-xl px-4 py-2.5 text-sm
-            transition duration-150 ease-in-out
+            transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2
+            focus:ring-[var(--org-primary,var(--color-primary,#145fff))]
             ${
               error
                 ? 'border border-red-500'
@@ -137,16 +306,15 @@ const SelectField = ({
             }
             ${className}
           `}
-          // Pass necessary props like 'id' and 'name' for form integration (if a hidden select is not used)
           {...rest}
         >
           <span
-            className={`${!selectedItem ? 'text-gray-400 dark:text-gray-500' : ''}`}
+            className={`truncate ${!selectedItem ? 'text-gray-400 dark:text-gray-500' : ''}`}
           >
             {selectedItem ? selectedItem.label : placeholder}
           </span>
           <svg
-            className={`w-5 h-5 ml-2 transition-transform duration-200 ${
+            className={`w-5 h-5 ml-2 transition-transform duration-200 flex-shrink-0 ${
               open ? 'transform rotate-180' : ''
             } ${
               disabled
@@ -169,36 +337,60 @@ const SelectField = ({
         {open && (
           <div
             ref={setPopperElement}
-            style={popperStyles.popper}
+            style={{
+              ...popperStyles.popper,
+              zIndex: 9999,
+              minWidth: referenceElement?.offsetWidth || 'auto',
+              maxHeight: `${maxHeight}px`,
+            }}
             {...popperAttributes.popper}
             className={`
-              mt-1 w-full z-10 bg-white dark:bg-gray-800
-              rounded-md shadow-lg ring-1 ring-black ring-opacity-5
-              border border-gray-400 dark:border-gray-700
-              max-h-60 overflow-y-auto
+              bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5
+              border border-gray-200 dark:border-gray-700 overflow-hidden
               ${listClassName}
             `}
           >
-            <ul className="py-1">
+            <ul
+              ref={listRef}
+              id={listId}
+              role="listbox"
+              aria-labelledby={buttonId}
+              className="py-1 overflow-y-auto"
+              style={{ maxHeight: `${maxHeight - 16}px` }}
+            >
               {items.length > 0 ? (
                 items.map((item, index) => (
                   <li
-                    key={item.value || index} // Use value as key if unique, otherwise index
-                    onClick={() => handleSelect(item)}
+                    key={item.value || index}
                     role="option"
                     aria-selected={
                       selectedItem && selectedItem.value === item.value
                     }
+                    aria-disabled={item.disabled}
+                    onClick={() => handleSelect(item)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
                     className={`
-                      cursor-pointer px-4 py-2.5 text-sm
-                      hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20
-                      text-gray-700 dark:text-gray-200
+                      cursor-pointer px-4 py-2.5 text-sm transition-colors duration-150
+                      ${
+                        item.disabled
+                          ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500'
+                          : 'text-gray-700 dark:text-gray-200'
+                      }
+                      ${
+                        highlightedIndex === index && !item.disabled
+                          ? 'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:bg-opacity-20'
+                          : ''
+                      }
                       ${
                         selectedItem && selectedItem.value === item.value
                           ? 'bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium'
                           : ''
                       }
-                      ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                      ${
+                        !item.disabled
+                          ? 'hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20'
+                          : ''
+                      }
                     `}
                   >
                     {item.label}
@@ -213,8 +405,12 @@ const SelectField = ({
           </div>
         )}
       </div>
+
       {error && (
-        <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
+        <div
+          id={`${buttonId}-error`}
+          className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400"
+        >
           <svg
             className="w-4 h-4 mr-1 flex-shrink-0"
             fill="currentColor"
@@ -229,8 +425,12 @@ const SelectField = ({
           {error}
         </div>
       )}
+
       {!error && description && (
-        <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        <div
+          id={`${buttonId}-description`}
+          className="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
+        >
           {description}
         </div>
       )}

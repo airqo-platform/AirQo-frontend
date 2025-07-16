@@ -22,7 +22,6 @@ const EditUserRoleModal = ({
       setLoadingRoles(true);
       getGroupRolesApi(groupId)
         .then((data) => {
-          console.log('Fetched roles:', data);
           setRoles(data?.roles || []);
           setError('');
         })
