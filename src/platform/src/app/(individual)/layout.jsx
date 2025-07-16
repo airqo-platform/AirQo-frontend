@@ -1,6 +1,5 @@
 'use client';
 
-import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
 import Loading from '../loading';
 import { useSession } from 'next-auth/react';
 
@@ -20,4 +19,4 @@ function IndividualLayout({ children }) {
   return children;
 }
 
-export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(IndividualLayout);
+export default IndividualLayout;
