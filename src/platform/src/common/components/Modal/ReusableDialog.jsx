@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Button from '@/common/components/Button';
 import { FaTimes } from 'react-icons/fa';
 import PropTypes from 'prop-types';
@@ -81,8 +82,6 @@ const ReusableDialog = ({
       document.body.style.overflow = '';
     };
   }, [isOpen, onClose, preventBackdropClose]);
-
-  if (!isOpen) return null;
 
   // Size mapping for dialog widths
   const sizeMap = {
@@ -210,54 +209,81 @@ const ReusableDialog = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[10000]">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
-        onClick={handleBackdropClick}
-        aria-label="Close dialog"
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop with fade in/out */}
+          <motion.div
+            className="fixed inset-0 z-[10000]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <motion.div
+              className="fixed inset-0 bg-black/40 dark:bg-black/80"
+              onClick={handleBackdropClick}
+              aria-label="Close dialog"
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            />
+          </motion.div>
 
-      {/* Dialog */}
-      <div className="fixed inset-0 flex items-center justify-center">
-        <Card
-          ref={dialogRef}
-          className={`relative w-full overflow-hidden ${dialogWidth} flex flex-col z-[10001] ${className}`}
-          contentClassName={`${maxHeight} overflow-y-auto ${contentClassName}`}
-          // Card styling props
-          bordered={bordered}
-          borderColor={borderColor}
-          rounded={rounded}
-          radius={radius}
-          background={background}
-          shadow={shadow}
-          padding="p-0" // We'll handle padding in header/content/footer
-          // Header using CardWrapper's header system
-          header={createHeaderContent()}
-          headerProps={{
-            className:
-              'px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
-          }}
-          // Footer using CardWrapper's footer system
-          footer={createFooterContent()}
-          footerProps={{
-            className:
-              'px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
-          }}
-          // Accessibility props
-          role="dialog"
-          aria-modal="true"
-          aria-label={ariaLabel || title}
-          aria-describedby={ariaDescribedBy}
-          tabIndex={-1}
-        >
-          {/* Content area - CardWrapper handles the padding through contentClassName */}
-          <div className={contentAreaClassName || 'px-6 py-4 flex-1'}>
-            {children}
-          </div>
-        </Card>
-      </div>
-    </div>
+          {/* Dialog with scale and fade animation */}
+          <motion.div
+            className="fixed inset-0 flex items-center justify-center z-[10001]"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{
+              type: 'spring',
+              stiffness: 300,
+              damping: 28,
+              duration: 0.22,
+            }}
+          >
+            <Card
+              ref={dialogRef}
+              className={`relative w-full overflow-hidden ${dialogWidth} flex flex-col z-[10001] ${className}`}
+              contentClassName={`${maxHeight} overflow-y-auto ${contentClassName}`}
+              // Card styling props
+              bordered={bordered}
+              borderColor={borderColor}
+              rounded={rounded}
+              radius={radius}
+              background={background}
+              shadow={shadow}
+              padding="p-0" // We'll handle padding in header/content/footer
+              // Header using CardWrapper's header system
+              header={createHeaderContent()}
+              headerProps={{
+                className:
+                  'px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
+              }}
+              // Footer using CardWrapper's footer system
+              footer={createFooterContent()}
+              footerProps={{
+                className:
+                  'px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
+              }}
+              // Accessibility props
+              role="dialog"
+              aria-modal="true"
+              aria-label={ariaLabel || title}
+              aria-describedby={ariaDescribedBy}
+              tabIndex={-1}
+            >
+              {/* Content area - CardWrapper handles the padding through contentClassName */}
+              <div className={contentAreaClassName || 'px-6 py-4 flex-1'}>
+                {children}
+              </div>
+            </Card>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
