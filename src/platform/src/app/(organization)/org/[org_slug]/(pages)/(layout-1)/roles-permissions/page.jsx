@@ -150,32 +150,35 @@ const RolesPermissionsPage = () => {
   };
 
   // Table columns configuration
-  const handleRoleAction = (action, role) => {
-    if (action === 'edit_role') {
-      setSelectedRole(role);
-      setShowEditDialog(true);
-    } else if (action === 'edit_permissions') {
-      // Redirect to edit permissions page
-      const slug =
-        organization?.slug ||
-        organization?.grp_slug ||
-        organization?.grp_code ||
-        organization?._id;
-      if (slug && role?._id) {
-        router.push(
-          `/org/${slug}/roles-permissions/edit-role-permissions/${role._id}`,
-        );
-      } else {
-        CustomToast({
-          message: 'Missing organization or role ID.',
-          type: 'error',
-        });
+  const handleRoleAction = useCallback(
+    (action, role) => {
+      if (action === 'edit_role') {
+        setSelectedRole(role);
+        setShowEditDialog(true);
+      } else if (action === 'edit_permissions') {
+        // Redirect to edit permissions page
+        const slug =
+          organization?.slug ||
+          organization?.grp_slug ||
+          organization?.grp_code ||
+          organization?._id;
+        if (slug && role?._id) {
+          router.push(
+            `/org/${slug}/roles-permissions/edit-role-permissions/${role._id}`,
+          );
+        } else {
+          CustomToast({
+            message: 'Missing organization or role ID.',
+            type: 'error',
+          });
+        }
+      } else if (action === 'delete_role') {
+        setSelectedRole(role);
+        setShowDeleteDialog(true);
       }
-    } else if (action === 'delete_role') {
-      setSelectedRole(role);
-      setShowDeleteDialog(true);
-    }
-  };
+    },
+    [organization, router],
+  );
 
   const columns = useMemo(
     () => [
