@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Button from '@/common/components/Button';
 import { FiArrowLeft } from 'react-icons/fi';
 import SearchField from '@/common/components/search/SearchField';
@@ -9,141 +9,18 @@ import ErrorState from '@/common/components/ErrorState';
 import EmptyState from '@/common/components/EmptyState';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import RolePermissionsSkeleton from '@/common/components/Skeleton/RolePermissionsSkeleton';
+import {
+  getRoleDetailsApi,
+  getAllPermissionsApi,
+  updateRolePermissionsApi,
+} from '@/core/apis/Account';
+import CustomToast from '@/common/components/Toast/CustomToast';
+import { useRouter, useParams } from 'next/navigation';
 
-// Mock data based on your API responses
-const MOCK_PERMISSIONS = [
-  {
-    _id: '6864d690fe280f0013531dcd',
-    permission: 'NETWORK_MANAGEMENT',
-    description: 'Full network management access',
-  },
-  {
-    _id: '6864d690fe280f0013531dca',
-    permission: 'NETWORK_DELETE',
-    description: 'Delete networks',
-  },
-  {
-    _id: '6864d690fe280f0013531dc7',
-    permission: 'NETWORK_EDIT',
-    description: 'Edit network settings',
-  },
-  {
-    _id: '6864d690fe280f0013531dc4',
-    permission: 'NETWORK_CREATE',
-    description: 'Create new networks',
-  },
-  {
-    _id: '6864d690fe280f0013531dc1',
-    permission: 'NETWORK_VIEW',
-    description: 'View network information',
-  },
-  {
-    _id: '6864d690fe280f0013531dbe',
-    permission: 'TOKEN_MANAGE',
-    description: 'Manage API tokens',
-  },
-  {
-    _id: '6864d690fe280f0013531dbb',
-    permission: 'TOKEN_GENERATE',
-    description: 'Generate API tokens',
-  },
-  {
-    _id: '6864d690fe280f0013531db8',
-    permission: 'API_ACCESS',
-    description: 'Access API endpoints',
-  },
-  {
-    _id: '6864d69026980d001358abda',
-    permission: 'SETTINGS_EDIT',
-    description: 'Edit system settings',
-  },
-  {
-    _id: '6864d69026980d001358abd1',
-    permission: 'DATA_EXPORT',
-    description: 'Export data',
-  },
-  {
-    _id: '6864d69026980d001358abce',
-    permission: 'DATA_VIEW',
-    description: 'View data',
-  },
-  {
-    _id: '6864d69026980d001358abc8',
-    permission: 'ANALYTICS_VIEW',
-    description: 'View analytics',
-  },
-  {
-    _id: '6864d69026980d001358abc5',
-    permission: 'DASHBOARD_VIEW',
-    description: 'View dashboard',
-  },
-  {
-    _id: '6864d69026980d001358abac',
-    permission: 'DEVICE_DEPLOY',
-    description: 'Deploy devices',
-  },
-  {
-    _id: '6864d69026980d001358aba9',
-    permission: 'DEVICE_VIEW',
-    description: 'View devices',
-  },
-  {
-    _id: '6864d68ffe280f0013531d6b',
-    permission: 'MEMBER_INVITE',
-    description: 'Invite new members',
-  },
-  {
-    _id: '6864d68ffe280f0013531d68',
-    permission: 'MEMBER_VIEW',
-    description: 'View members',
-  },
-  {
-    _id: '6864d68f26980d001358ab91',
-    permission: 'MEMBER_REMOVE',
-    description: 'Remove members',
-  },
-  {
-    _id: '6864d68ffe280f0013531d62',
-    permission: 'USER_MANAGEMENT',
-    description: 'Manage users',
-  },
-  {
-    _id: '6864d68ffe280f0013531d53',
-    permission: 'GROUP_MANAGEMENT',
-    description: 'Manage groups',
-  },
-];
-
-// Mock role data - this would come from your role details API
-const MOCK_ROLE = {
-  _id: '656a48a319878a0013ceae42',
-  role_name: 'WHO_SUPER_ADMIN',
-  role_permissions: [
-    {
-      _id: '64549d240a8de000130650c2',
-      permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES',
-    },
-    { _id: '6864d68ffe280f0013531d6b', permission: 'MEMBER_INVITE' },
-    { _id: '6864d68ffe280f0013531d68', permission: 'MEMBER_VIEW' },
-    { _id: '6864d69026980d001358abda', permission: 'SETTINGS_EDIT' },
-    { _id: '6864d69026980d001358abd1', permission: 'DATA_EXPORT' },
-    { _id: '6864d69026980d001358abce', permission: 'DATA_VIEW' },
-    { _id: '6864d69026980d001358abc8', permission: 'ANALYTICS_VIEW' },
-    { _id: '6864d69026980d001358abc5', permission: 'DASHBOARD_VIEW' },
-    { _id: '6864d690fe280f0013531db8', permission: 'API_ACCESS' },
-    { _id: '6864d69026980d001358abac', permission: 'DEVICE_DEPLOY' },
-    { _id: '6864d69026980d001358aba9', permission: 'DEVICE_VIEW' },
-    { _id: '6864d68ffe280f0013531d53', permission: 'GROUP_MANAGEMENT' },
-    { _id: '6864d69026980d001358aba6', permission: 'ROLE_ASSIGNMENT' },
-    { _id: '6864d690fe280f0013531d9b', permission: 'SITE_CREATE' },
-    { _id: '6864d68f26980d001358ab91', permission: 'MEMBER_REMOVE' },
-    { _id: '6864d690fe280f0013531d8f', permission: 'DEVICE_MAINTAIN' },
-    { _id: '6864d690fe280f0013531d98', permission: 'SITE_VIEW' },
-    { _id: '6864d690fe280f0013531dbb', permission: 'TOKEN_GENERATE' },
-  ],
-};
-
-const RolePermissionsEditor = () => {
+const RolePermissionsEditor = ({ onRefresh }) => {
+  const router = useRouter();
+  const params = useParams();
+  const roleId = params?.id;
   const [permissions, setPermissions] = useState([]);
   const [roleData, setRoleData] = useState(null);
   const [selectedPermissions, setSelectedPermissions] = useState(new Set());
@@ -154,38 +31,46 @@ const RolePermissionsEditor = () => {
   const [error, setError] = useState(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
-  // Simulate API calls
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      setPermissionDenied(false);
-      try {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        // Simulate permission denied
-        // setPermissionDenied(true); return;
-        // Simulate error
-        // throw new Error('Failed to fetch');
-        setPermissions(MOCK_PERMISSIONS);
-        setRoleData(MOCK_ROLE);
-        // Set initially selected permissions
-        const initialSelected = new Set(
-          MOCK_ROLE.role_permissions.map((p) => p.permission),
+  // Fetch all permissions and role details
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setPermissionDenied(false);
+    try {
+      const [permsRes, roleRes] = await Promise.all([
+        getAllPermissionsApi(),
+        getRoleDetailsApi(roleId),
+      ]);
+      if (!permsRes.success || !roleRes.success) {
+        throw new Error(
+          permsRes.message || roleRes.message || 'Failed to load data',
         );
-        setSelectedPermissions(initialSelected);
-      } catch (err) {
-        if (err.message === '403') {
-          setPermissionDenied(true);
-        } else {
-          setError(err.message || 'Failed to load data');
-        }
-      } finally {
-        setLoading(false);
       }
-    };
+      setPermissions(permsRes.permissions || []);
+      setRoleData(roleRes.role || roleRes.roles?.[0] || null);
+      // Set initially selected permissions
+      const initialSelected = new Set(
+        (
+          roleRes.role?.role_permissions ||
+          roleRes.roles?.[0]?.role_permissions ||
+          []
+        ).map((p) => p.permission),
+      );
+      setSelectedPermissions(initialSelected);
+    } catch (err) {
+      if (err?.response?.status === 403 || err?.status === 403) {
+        setPermissionDenied(true);
+      } else {
+        setError(err.message || 'Failed to load data');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [roleId]);
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Filter permissions based on search term
   useEffect(() => {
@@ -219,16 +104,35 @@ const RolePermissionsEditor = () => {
 
   const handleSaveChanges = async () => {
     setSaving(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Here you would make the actual API call to update role permissions
-    console.log('Saving permissions:', Array.from(selectedPermissions));
-
-    setSaving(false);
-    // Show success message (you can replace this with a proper toast)
-    alert('Permissions updated successfully!');
+    try {
+      // Find permission IDs for selected permissions
+      const permission_ids = permissions
+        .filter((p) => selectedPermissions.has(p.permission))
+        .map((p) => p._id);
+      const response = await updateRolePermissionsApi(roleId, {
+        permission_ids,
+      });
+      if (response?.success) {
+        CustomToast({
+          message: 'Permissions updated successfully!',
+          type: 'success',
+        });
+        if (typeof onRefresh === 'function') onRefresh();
+        router.back();
+      } else {
+        CustomToast({
+          message: response?.message || 'Failed to update permissions.',
+          type: 'error',
+        });
+      }
+    } catch (err) {
+      CustomToast({
+        message: err?.message || 'Failed to update permissions.',
+        type: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const formatPermissionName = (permission) => {
@@ -238,25 +142,18 @@ const RolePermissionsEditor = () => {
       .replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
-  if (loading) {
-    return <RolePermissionsSkeleton />;
-  }
-
-  if (permissionDenied) {
-    return <PermissionDenied />;
-  }
-
+  if (loading) return <RolePermissionsSkeleton />;
+  if (permissionDenied) return <PermissionDenied />;
   if (error) {
     return (
       <ErrorState
         type="server"
         title="Failed to load role permissions"
         description={error}
-        onPrimaryAction={() => window.location.reload()}
+        onPrimaryAction={fetchData}
       />
     );
   }
-
   if (!permissions.length) {
     return (
       <EmptyState
@@ -273,7 +170,7 @@ const RolePermissionsEditor = () => {
       <div className="flex items-center justify-between mb-8">
         <Button
           variant="outlined"
-          onClick={() => window.history.back()}
+          onClick={() => router.back()}
           className="flex items-center text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm"
           padding="p-2"
         >
@@ -358,7 +255,6 @@ const RolePermissionsEditor = () => {
           <h2 className="text-lg font-medium text-gray-900 mb-6">
             Available Permissions
           </h2>
-
           <div className="max-h-96 overflow-y-auto pr-2">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredPermissions.map((permission) => {
@@ -422,7 +318,6 @@ const RolePermissionsEditor = () => {
                 );
               })}
             </div>
-
             {filteredPermissions.length === 0 && (
               <EmptyState
                 preset="search"

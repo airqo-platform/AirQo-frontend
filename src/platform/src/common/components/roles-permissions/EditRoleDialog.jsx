@@ -24,8 +24,10 @@ const EditRoleDialog = ({
     if (!roleName.trim()) return;
     setLoading(true);
     try {
+      const trimmedName = roleName.trim();
       const payload = {
-        role_name: roleName.trim(),
+        role_name: trimmedName,
+        role_code: trimmedName,
         role_status: roleStatus,
       };
       const response = await updateGroupRoleApi(roleId, payload);
@@ -90,6 +92,7 @@ const EditRoleDialog = ({
             placeholder="Enter role name"
             required
             autoFocus
+            disabled
           />
         </div>
         <div>
