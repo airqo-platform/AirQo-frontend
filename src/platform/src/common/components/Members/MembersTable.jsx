@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import ReusableTable from '../Table/ReusableTable';
 import RemoveUserModal from './RemoveUserModal';
+import EditUserRoleModal from './EditUserRoleModal';
 import Dropdown from '../Dropdowns/Dropdown';
 import { FaEnvelope, FaUser, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import PropTypes from 'prop-types';
@@ -19,7 +20,9 @@ const MembersTable = ({
 }) => {
   const { data: session } = useSession();
   const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editRoleLoading, setEditRoleLoading] = useState(false);
   const managerId = groupDetails?.grp_manager?._id;
 
   // No longer needed: action menu outside click handler
@@ -51,6 +54,22 @@ const MembersTable = ({
   const handleRemove = (user) => {
     setSelectedUser(user);
     setShowRemoveModal(true);
+  };
+
+  const handleEditRole = (user) => {
+    setSelectedUser(user);
+    setShowEditRoleModal(true);
+  };
+
+  const handleSaveRole = async (newRoleId) => {
+    if (!newRoleId) return;
+    setEditRoleLoading(true);
+    // TODO: Implement actual API call to update user role here
+    // Example: await updateUserRoleApi(selectedUser._id, newRoleId);
+    setEditRoleLoading(false);
+    setShowEditRoleModal(false);
+    setSelectedUser(null);
+    // Optionally, refresh members list or show a toast
   };
   const confirmRemove = async () => {
     await onRemoveUser(selectedUser);
@@ -148,6 +167,14 @@ const MembersTable = ({
                 </span>
               ),
             },
+            {
+              id: 'edit-role',
+              name: (
+                <span className="flex items-center text-blue-600">
+                  Edit role
+                </span>
+              ),
+            },
           ];
         } else if (isSelf) {
           // User cannot remove themselves
@@ -161,6 +188,14 @@ const MembersTable = ({
               ),
               disabled: true,
             },
+            {
+              id: 'edit-role',
+              name: (
+                <span className="flex items-center text-blue-600">
+                  Edit role
+                </span>
+              ),
+            },
           ];
         } else {
           menu = [
@@ -172,10 +207,19 @@ const MembersTable = ({
                 </span>
               ),
             },
+            {
+              id: 'edit-role',
+              name: (
+                <span className="flex items-center text-blue-600">
+                  Edit role
+                </span>
+              ),
+            },
           ];
         }
         const handleMenuClick = (id) => {
           if (id === 'remove' && !isSelf) handleRemove(member);
+          if (id === 'edit-role') handleEditRole(member);
         };
         return (
           <Dropdown onItemClick={handleMenuClick} menu={menu} length={'last'} />
@@ -227,6 +271,14 @@ const MembersTable = ({
         onConfirm={confirmRemove}
         user={selectedUser}
         isLoading={removeLoading}
+      />
+      <EditUserRoleModal
+        isOpen={showEditRoleModal}
+        onClose={() => setShowEditRoleModal(false)}
+        user={selectedUser}
+        groupId={groupDetails?._id}
+        onSave={handleSaveRole}
+        isLoading={editRoleLoading}
       />
     </>
   );
