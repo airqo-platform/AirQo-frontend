@@ -33,6 +33,7 @@ const ReusableDialog = ({
   size = 'lg',
   preventBackdropClose = false,
   className = '',
+  contentAreaClassName = '',
 
   // Accessibility
   ariaLabel,
@@ -251,7 +252,9 @@ const ReusableDialog = ({
           tabIndex={-1}
         >
           {/* Content area - CardWrapper handles the padding through contentClassName */}
-          <div className="px-6 py-4 flex-1">{children}</div>
+          <div className={contentAreaClassName || 'px-6 py-4 flex-1'}>
+            {children}
+          </div>
         </Card>
       </div>
     </div>
@@ -276,6 +279,7 @@ ReusableDialog.propTypes = {
   // Content props
   maxHeight: PropTypes.string,
   contentClassName: PropTypes.string,
+  contentAreaClassName: PropTypes.string,
 
   // Footer props
   showFooter: PropTypes.bool,

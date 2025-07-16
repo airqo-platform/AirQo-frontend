@@ -11,6 +11,7 @@ import {
   MdArrowBack,
 } from 'react-icons/md';
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
+import CardWrapper from '@/common/components/CardWrapper';
 
 const AppDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -113,7 +114,7 @@ const AppDropdown = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="bg-white rounded-2xl shadow-xl ring-1 ring-gray-200 overflow-hidden">
+              <CardWrapper padding="p-0" className="shadow-xl overflow-hidden">
                 {!showQRCode ? (
                   <motion.div
                     className="p-6 grid grid-cols-3 gap-6"
@@ -211,7 +212,7 @@ const AppDropdown = () => {
                     </div>
                   </motion.div>
                 )}
-              </div>
+              </CardWrapper>
             </motion.div>
           </>
         )}
