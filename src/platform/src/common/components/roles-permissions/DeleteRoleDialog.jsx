@@ -6,21 +6,31 @@ import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 
 import CustomToast from '@/common/components/Toast/CustomToast';
+import { deleteGroupRoleApi } from '@/core/apis/Account';
 
-const DeleteRoleDialog = ({ isOpen, onClose, roleId }) => {
+const DeleteRoleDialog = ({ isOpen, onClose, roleId, onRefresh }) => {
   const [loading, setLoading] = React.useState(false);
 
   const handleConfirm = async () => {
+    if (!roleId) return;
     setLoading(true);
-    const payload = { role_id: roleId };
-    console.log('DeleteRoleDialog payload:', payload);
     try {
-      // TODO: Replace with actual delete role API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      CustomToast({ message: 'Role deleted successfully!', type: 'success' });
-      onClose();
-    } catch {
-      CustomToast({ message: 'Failed to delete role.', type: 'error' });
+      const response = await deleteGroupRoleApi(roleId);
+      if (response?.success) {
+        CustomToast({ message: 'Role deleted successfully!', type: 'success' });
+        onClose();
+        if (typeof onRefresh === 'function') onRefresh();
+      } else {
+        CustomToast({
+          message: response?.message || 'Failed to delete role.',
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      CustomToast({
+        message: error?.message || 'Failed to delete role.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -70,6 +80,7 @@ DeleteRoleDialog.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   roleId: PropTypes.string.isRequired,
+  onRefresh: PropTypes.func,
 };
 
 export default DeleteRoleDialog;

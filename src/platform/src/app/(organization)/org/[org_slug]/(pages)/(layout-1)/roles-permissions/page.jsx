@@ -184,7 +184,6 @@ const RolesPermissionsPage = () => {
         label: 'Role Name',
         render: (value, item) => (
           <div className="flex items-center">
-            <FaShieldAlt className="w-4 h-4 text-primary mr-2" />
             <div>
               <div className="font-medium text-gray-900 dark:text-gray-100">
                 {value || 'N/A'}
@@ -350,6 +349,7 @@ const RolesPermissionsPage = () => {
         isOpen={showAddDialog}
         onClose={() => setShowAddDialog(false)}
         groupId={getGroupId()}
+        onRefresh={fetchRoles}
       />
 
       {/* Edit Role Dialog */}
@@ -363,6 +363,7 @@ const RolesPermissionsPage = () => {
           roleId={selectedRole._id}
           initialRoleName={selectedRole.role_name}
           initialRoleStatus={selectedRole.role_status}
+          onRefresh={fetchRoles}
         />
       )}
 
@@ -375,6 +376,7 @@ const RolesPermissionsPage = () => {
             setSelectedRole(null);
           }}
           roleId={selectedRole._id}
+          onRefresh={fetchRoles}
         />
       )}
     </>

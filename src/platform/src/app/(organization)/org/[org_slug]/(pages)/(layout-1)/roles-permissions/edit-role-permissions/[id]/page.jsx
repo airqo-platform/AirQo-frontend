@@ -268,7 +268,7 @@ const RolePermissionsEditor = () => {
   }
 
   return (
-    <div className="py-8">
+    <div>
       {/* Header with Back and Save */}
       <div className="flex items-center justify-between mb-8">
         <Button
@@ -314,14 +314,14 @@ const RolePermissionsEditor = () => {
       </div>
 
       {/* Summary */}
-      <CardWrapper className="border border-blue-200 rounded-lg p-4 mb-6">
+      <CardWrapper className="border border-primary/20 rounded-lg mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-blue-900">
+            <p className="text-sm font-medium">
               {selectedPermissions.size} of {permissions.length} permissions
               selected
             </p>
-            <p className="text-xs text-blue-700 mt-1">
+            <p className="text-xs text-primary mt-1">
               {selectedPermissions.size === 0
                 ? 'No permissions selected'
                 : selectedPermissions.size === permissions.length
@@ -353,8 +353,8 @@ const RolePermissionsEditor = () => {
       </CardWrapper>
 
       {/* Permissions Grid */}
-      <CardWrapper className="p-0">
-        <div className="p-6">
+      <CardWrapper>
+        <div>
           <h2 className="text-lg font-medium text-gray-900 mb-6">
             Available Permissions
           </h2>
@@ -370,7 +370,7 @@ const RolePermissionsEditor = () => {
                     key={permission._id}
                     className={`relative rounded-lg border-2 transition-all duration-200 cursor-pointer hover:shadow-md ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-primary bg-primary/10'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                     onClick={() =>
@@ -382,7 +382,7 @@ const RolePermissionsEditor = () => {
                         <div
                           className={`relative w-5 h-5 rounded border-2 transition-all duration-200 ${
                             isSelected
-                              ? 'bg-blue-500 border-blue-500'
+                              ? 'bg-primary border-primary'
                               : 'border-gray-300 hover:border-gray-400'
                           }`}
                         >
@@ -403,14 +403,14 @@ const RolePermissionsEditor = () => {
                         <div className="flex-1 min-w-0">
                           <h3
                             className={`text-sm font-medium transition-colors duration-200 ${
-                              isSelected ? 'text-blue-900' : 'text-gray-900'
+                              isSelected ? 'text-primary' : 'text-gray-900'
                             }`}
                           >
                             {formatPermissionName(permission.permission)}
                           </h3>
                           <p
                             className={`text-xs mt-1 transition-colors duration-200 ${
-                              isSelected ? 'text-blue-700' : 'text-gray-500'
+                              isSelected ? 'text-primary' : 'text-gray-500'
                             }`}
                           >
                             {permission.description}

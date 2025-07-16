@@ -198,6 +198,12 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       label: 'Roles & Permissions',
       icon: ShieldIcon,
       path: `/org/${orgSlug}/roles-permissions`,
+      matcher: {
+        pattern: '/org/{slug}/roles-permissions',
+        orgSlug: orgSlug,
+        includeSubroutes: true,
+        exact: false,
+      },
     },
     {
       type: 'item',

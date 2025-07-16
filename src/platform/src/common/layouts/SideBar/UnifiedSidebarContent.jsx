@@ -78,6 +78,14 @@ const UnifiedSidebarContent = ({
         if (item.type === 'dropdown') {
           const isOpen = dropdownStates[index] || false;
 
+          let matcher = undefined;
+          if (item.path) {
+            matcher =
+              orgSlug && item.path.includes('{orgSlug}')
+                ? item.path.replace('{orgSlug}', orgSlug)
+                : item.path;
+          }
+
           return (
             <SideBarItem
               key={index}
@@ -87,19 +95,38 @@ const UnifiedSidebarContent = ({
               toggleMethod={() => handleDropdownToggle(index)}
               toggleState={isOpen}
               iconOnly={shouldShowIconsOnly}
+              matcher={matcher}
+              navPath={item.path}
             >
-              {item.children?.map((child, childIndex) => (
-                <SideBarDropdownItem
-                  key={childIndex}
-                  itemLabel={child.label}
-                  itemPath={child.path}
-                />
-              ))}
+              {item.children?.map((child, childIndex) => {
+                let childMatcher = undefined;
+                if (child.path) {
+                  childMatcher =
+                    orgSlug && child.path.includes('{orgSlug}')
+                      ? child.path.replace('{orgSlug}', orgSlug)
+                      : child.path;
+                }
+                return (
+                  <SideBarDropdownItem
+                    key={childIndex}
+                    itemLabel={child.label}
+                    itemPath={child.path}
+                    matcher={childMatcher}
+                  />
+                );
+              })}
             </SideBarItem>
           );
         }
 
         // Render regular item
+        let matcher = undefined;
+        if (item.path) {
+          matcher =
+            orgSlug && item.path.includes('{orgSlug}')
+              ? item.path.replace('{orgSlug}', orgSlug)
+              : item.path;
+        }
         return (
           <SideBarItem
             key={index}
@@ -107,6 +134,7 @@ const UnifiedSidebarContent = ({
             Icon={item.icon}
             navPath={item.path}
             iconOnly={shouldShowIconsOnly}
+            matcher={matcher}
           />
         );
       })}

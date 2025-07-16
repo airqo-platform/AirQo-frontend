@@ -405,3 +405,111 @@ export const getGroupRolesApi = (groupId) => {
       throw new Error(errorMessage);
     });
 };
+
+// Create a new role for a group POST REQUEST
+export const createGroupRoleApi = (data) => {
+  if (!data || typeof data !== 'object') {
+    return Promise.reject(new Error('Valid role data is required'));
+  }
+  if (!data.role_name || typeof data.role_name !== 'string') {
+    return Promise.reject(new Error('Role name is required'));
+  }
+  if (!data.group_id || typeof data.group_id !== 'string') {
+    return Promise.reject(new Error('Group ID is required'));
+  }
+
+  return secureApiProxy
+    .post(GROUP_ROLES_URL, data, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to create group role';
+      throw new Error(errorMessage);
+    });
+};
+
+// Update an existing role for a group PUT REQUEST
+export const updateGroupRoleApi = (roleId, data) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!data || typeof data !== 'object') {
+    return Promise.reject(new Error('Valid role data is required'));
+  }
+  if (!data.role_name || typeof data.role_name !== 'string') {
+    return Promise.reject(new Error('Role name is required'));
+  }
+
+  return secureApiProxy
+    .put(`${GROUP_ROLES_URL}/${roleId}`, data, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to update group role';
+      throw new Error(errorMessage);
+    });
+};
+
+// Delete a role for a group DELETE REQUEST
+export const deleteGroupRoleApi = (roleId) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+
+  return secureApiProxy
+    .delete(`${GROUP_ROLES_URL}/${roleId}`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to delete group role';
+      throw new Error(errorMessage);
+    });
+};
+
+// Update role permissions
+export const updateRolePermissionsApi = (roleId, body) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!body || typeof body !== 'object') {
+    return Promise.reject(new Error('Valid permissions data is required'));
+  }
+
+  return secureApiProxy
+    .put(`${GROUP_ROLES_URL}/${roleId}/permissions`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to update role permissions';
+      throw new Error(errorMessage);
+    });
+};
+
+// get all permissions list
+export const getAllPermissionsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/permissions`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch permissions';
+      throw new Error(errorMessage);
+    });
+
+// Get role details by ID
+export const getRoleDetailsApi = (roleId) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+
+  return secureApiProxy
+    .get(`${GROUP_ROLES_URL}/${roleId}`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch role details';
+      throw new Error(errorMessage);
+    });
+};

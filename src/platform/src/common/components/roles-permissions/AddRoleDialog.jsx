@@ -5,26 +5,38 @@ import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 
 import CustomToast from '@/common/components/Toast/CustomToast';
+import { createGroupRoleApi } from '@/core/apis/Account';
 
-const AddRoleDialog = ({ isOpen, onClose, groupId }) => {
+const AddRoleDialog = ({ isOpen, onClose, groupId, onRefresh }) => {
   const [roleName, setRoleName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!roleName.trim()) return;
     setLoading(true);
-    const payload = {
-      role_name: roleName,
-      group_id: groupId,
-    };
-    console.log('AddRoleDialog payload:', payload);
     try {
-      // TODO: Replace with actual create role API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      CustomToast({ message: 'Role created successfully!', type: 'success' });
-      onClose();
-    } catch {
-      CustomToast({ message: 'Failed to create role.', type: 'error' });
+      const payload = {
+        role_name: roleName.trim(),
+        group_id: groupId,
+      };
+      const response = await createGroupRoleApi(payload);
+      if (response?.success) {
+        CustomToast({ message: 'Role created successfully!', type: 'success' });
+        setRoleName('');
+        onClose();
+        if (typeof onRefresh === 'function') onRefresh();
+      } else {
+        CustomToast({
+          message: response?.message || 'Failed to create role.',
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      CustomToast({
+        message: error?.message || 'Failed to create role.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -86,6 +98,7 @@ AddRoleDialog.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   groupId: PropTypes.string.isRequired,
+  onRefresh: PropTypes.func,
 };
 
 export default AddRoleDialog;

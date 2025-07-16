@@ -5,6 +5,7 @@ import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 import SelectField from '@/common/components/SelectField';
 import CustomToast from '@/common/components/Toast/CustomToast';
+import { updateGroupRoleApi } from '@/core/apis/Account';
 
 const EditRoleDialog = ({
   isOpen,
@@ -12,6 +13,7 @@ const EditRoleDialog = ({
   roleId,
   initialRoleName,
   initialRoleStatus,
+  onRefresh,
 }) => {
   const [roleName, setRoleName] = useState(initialRoleName || '');
   const [roleStatus, setRoleStatus] = useState(initialRoleStatus || 'ACTIVE');
@@ -19,20 +21,29 @@ const EditRoleDialog = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!roleName.trim()) return;
     setLoading(true);
-    const payload = {
-      role_name: roleName,
-      role_status: roleStatus,
-      role_id: roleId, // for future use
-    };
-    console.log('EditRoleDialog payload:', payload);
     try {
-      // TODO: Replace with actual edit role API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      CustomToast({ message: 'Role updated successfully!', type: 'success' });
-      onClose();
-    } catch {
-      CustomToast({ message: 'Failed to update role.', type: 'error' });
+      const payload = {
+        role_name: roleName.trim(),
+        role_status: roleStatus,
+      };
+      const response = await updateGroupRoleApi(roleId, payload);
+      if (response?.success) {
+        CustomToast({ message: 'Role updated successfully!', type: 'success' });
+        onClose();
+        if (typeof onRefresh === 'function') onRefresh();
+      } else {
+        CustomToast({
+          message: response?.message || 'Failed to update role.',
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      CustomToast({
+        message: error?.message || 'Failed to update role.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -107,6 +118,7 @@ EditRoleDialog.propTypes = {
   roleId: PropTypes.string.isRequired,
   initialRoleName: PropTypes.string.isRequired,
   initialRoleStatus: PropTypes.string.isRequired,
+  onRefresh: PropTypes.func,
 };
 
 export default EditRoleDialog;
