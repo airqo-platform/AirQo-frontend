@@ -185,14 +185,11 @@ const RolesPermissionsPage = () => {
       {
         key: 'role_name',
         label: 'Role Name',
-        render: (value, item) => (
+        render: (value) => (
           <div className="flex items-center">
             <div>
               <div className="font-medium text-gray-900 dark:text-gray-100">
                 {value || 'N/A'}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {item.role_code || 'No code'}
               </div>
             </div>
           </div>
