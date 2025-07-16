@@ -49,13 +49,13 @@ const AddClientForm = ({ open, closeModal }) => {
     setLoading(true);
 
     if (!clientName) {
-      CustomToast.error("Client name can't be empty");
+      CustomToast({ message: "Client name can't be empty", type: 'error' });
       setLoading(false);
       return;
     }
 
     if (!userId) {
-      CustomToast.error('User ID is required');
+      CustomToast({ message: 'User ID is required', type: 'error' });
       setLoading(false);
       return;
     }
@@ -79,14 +79,18 @@ const AddClientForm = ({ open, closeModal }) => {
         if (res.success === true) {
           dispatch(addClients(res.users[0].clients));
         }
-        CustomToast.success('Client created successfully');
+        CustomToast({
+          message: 'Client created successfully',
+          type: 'success',
+        });
       }
       dispatch(performRefresh());
       closeModal();
     } catch (error) {
-      CustomToast.error(
-        error?.response?.data?.message || 'Failed to create client',
-      );
+      CustomToast({
+        message: error?.response?.data?.message || 'Failed to create client',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }

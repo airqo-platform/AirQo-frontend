@@ -89,13 +89,13 @@ const EditClientForm = ({ open, closeModal, data }) => {
     setLoading(true);
 
     if (!clientName) {
-      CustomToast.error("Client name can't be empty");
+      CustomToast({ message: "Client name can't be empty", type: 'error' });
       setLoading(false);
       return;
     }
 
     if (!userId) {
-      CustomToast.error('User ID is required');
+      CustomToast({ message: 'User ID is required', type: 'error' });
       setLoading(false);
       return;
     }
@@ -119,12 +119,13 @@ const EditClientForm = ({ open, closeModal, data }) => {
       const resp = await getClientsApi(userId);
       dispatch(addClients(res.users[0].clients));
       dispatch(addClientsDetails(resp.clients));
-      CustomToast.success('Client updated successfully');
+      CustomToast({ message: 'Client updated successfully', type: 'success' });
       closeModal();
     } catch (error) {
-      CustomToast.error(
-        error?.response?.data?.message || 'Failed to update client',
-      );
+      CustomToast({
+        message: error?.response?.data?.message || 'Failed to update client',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }

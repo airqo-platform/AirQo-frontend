@@ -4,7 +4,7 @@ import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
 import EditIcon from '@/icons/Common/edit-pencil.svg';
 import { useSelector, useDispatch } from 'react-redux';
-import Toast from '@/components/Toast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import {
   addClients,
   addClientsDetails,
@@ -33,11 +33,6 @@ const UserClientsTable = () => {
     message: '',
     type: '',
   });
-  const [isActivationRequestError, setIsActivationRequestError] = useState({
-    isError: false,
-    message: '',
-    type: '',
-  });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingToken, setIsLoadingToken] = useState(false);
@@ -62,6 +57,14 @@ const UserClientsTable = () => {
       type,
     });
   };
+
+  // Show toast when isError changes
+  useEffect(() => {
+    if (isError.isError) {
+      CustomToast({ message: isError.message, type: isError.type });
+      setIsError({ isError: false, message: '', type: '' });
+    }
+  }, [isError]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -149,31 +152,28 @@ const UserClientsTable = () => {
   };
 
   const handleActivationRequest = async () => {
-    const setActivationRequestErrorState = (message, type) => {
-      setIsActivationRequestError({
-        isError: true,
-        message,
-        type,
-      });
-    };
     setIsLoadingActivationRequest(true);
     try {
       const clientID = selectedClient?._id;
       const response = await activationRequestApi(clientID);
+      setShowInfoModal(false);
       if (response.success) {
-        setShowInfoModal(false);
-        setTimeout(() => {
-          setActivationRequestErrorState(
-            'Activation request sent successfully',
-            'success',
-          );
-        }, 3000);
+        CustomToast({
+          message: 'Activation request sent successfully',
+          type: 'success',
+        });
+      } else {
+        CustomToast({
+          message: 'Failed to send activation request',
+          type: 'error',
+        });
       }
     } catch (error) {
       setShowInfoModal(false);
-      setTimeout(() => {
-        setActivationRequestErrorState(error.message, 'error');
-      }, 3000);
+      CustomToast({
+        message: error.message || 'Failed to send activation request',
+        type: 'error',
+      });
     } finally {
       setIsLoadingActivationRequest(false);
     }
@@ -307,6 +307,7 @@ const UserClientsTable = () => {
       key: 'isActive',
       label: 'Status',
       options: [
+        { value: '', label: 'All' },
         { value: true, label: 'Activated' },
         { value: false, label: 'Not Activated' },
       ],
@@ -317,9 +318,6 @@ const UserClientsTable = () => {
 
   return (
     <div className="mb-2">
-      {isError.isError && (
-        <Toast type={isError.type} message={isError.message} />
-      )}
       <ReusableTable
         title="API Clients"
         data={clients}
@@ -364,12 +362,7 @@ const UserClientsTable = () => {
           </div>
         }
       />
-      {isActivationRequestError.isError && (
-        <Toast
-          type={isActivationRequestError.type}
-          message={isActivationRequestError.message}
-        />
-      )}
+
       <EditClientForm
         open={openEditForm}
         closeModal={() => setOpenEditForm(false)}
