@@ -188,6 +188,7 @@ const MembersTable = ({
   const statusFilter = {
     key: 'isActive',
     options: [
+      { value: '', label: 'All' },
       { value: true, label: 'Active' },
       { value: false, label: 'Inactive' },
     ],
