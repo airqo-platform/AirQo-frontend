@@ -1,15 +1,15 @@
 import { FaUserPlus, FaEnvelope, FaTrash, FaUsers } from 'react-icons/fa';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
+import { inviteUserToGroupTeam } from '@/core/apis/Account';
+import logger from '@/lib/logger';
+import CustomToast from '@/components/Toast/CustomToast';
 
-const InviteModal = ({
-  showInviteModal,
-  setShowInviteModal,
-  inviteEmails,
-  setInviteEmails,
-  handleInviteMembers,
-  inviteLoading,
-}) => {
+const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
+  const [inviteEmails, setInviteEmails] = useState(['']);
+  const [inviteLoading, setInviteLoading] = useState(false);
+
   const handleAddEmailField = () => {
     setInviteEmails([...inviteEmails, '']);
   };
@@ -26,6 +26,107 @@ const InviteModal = ({
     newEmails[index] = value;
     setInviteEmails(newEmails);
   };
+
+  const handleClose = () => {
+    setShowInviteModal(false);
+    setInviteEmails(['']);
+  };
+
+  const handleInviteMembers = async () => {
+    if (!groupId) {
+      CustomToast({ message: 'No group selected', type: 'warning' });
+      return;
+    }
+    const validEmails = inviteEmails.filter((e) => e.trim());
+    if (!validEmails.length) {
+      CustomToast({ message: 'Enter at least one email', type: 'warning' });
+      return;
+    }
+    const invalid = validEmails.filter(
+      (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e),
+    );
+    if (invalid.length) {
+      CustomToast({
+        message: `Invalid emails: ${invalid.join(', ')}`,
+        type: 'error',
+      });
+      return;
+    }
+
+    setInviteLoading(true);
+    try {
+      const res = await inviteUserToGroupTeam(groupId, { emails: validEmails });
+      if (res.success) {
+        const msg = 'Invitation(s) sent successfully.';
+        CustomToast({ message: msg, type: 'success' });
+        handleClose();
+      } else {
+        // If API returns errors in the response, handle them
+        let msg = res.message || 'Invite failed';
+        if (res.errors) {
+          if (typeof res.errors === 'string') {
+            msg = res.errors;
+          } else if (Array.isArray(res.errors)) {
+            msg = res.errors
+              .map((err) =>
+                Array.isArray(err.message)
+                  ? err.message.join(', ')
+                  : err.message,
+              )
+              .join('; ');
+          } else if (typeof res.errors === 'object') {
+            // Handle specific error keys, e.g. existingRequests
+            if (
+              res.errors.existingRequests &&
+              Array.isArray(res.errors.existingRequests) &&
+              res.errors.existingRequests.length
+            ) {
+              msg = `Access requests were already sent for: ${res.errors.existingRequests.join(', ')}`;
+            } else if (res.errors.message) {
+              msg = res.errors.message;
+            }
+          }
+        }
+        throw new Error(msg);
+      }
+    } catch (e) {
+      logger.error('Invite error', e);
+      // Extract API errors
+      const apiData = e.response?.data;
+      let msg = e.message;
+      if (apiData) {
+        if (apiData.errors) {
+          if (typeof apiData.errors === 'string') {
+            msg = apiData.errors;
+          } else if (Array.isArray(apiData.errors)) {
+            msg = apiData.errors
+              .map((err) =>
+                Array.isArray(err.message)
+                  ? err.message.join(', ')
+                  : err.message,
+              )
+              .join('; ');
+          } else if (typeof apiData.errors === 'object') {
+            if (
+              apiData.errors.existingRequests &&
+              Array.isArray(apiData.errors.existingRequests) &&
+              apiData.errors.existingRequests.length
+            ) {
+              msg = `Access requests were already sent for: ${apiData.errors.existingRequests.join(', ')}`;
+            } else if (apiData.errors.message) {
+              msg = apiData.errors.message;
+            }
+          }
+        } else if (apiData.message) {
+          msg = apiData.message;
+        }
+      }
+      CustomToast({ message: msg, type: 'error' });
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   if (!showInviteModal) return null;
 
   const validEmailsCount = inviteEmails.filter((email) => email.trim()).length;
@@ -33,10 +134,7 @@ const InviteModal = ({
   return (
     <ReusableDialog
       isOpen={showInviteModal}
-      onClose={() => {
-        setShowInviteModal(false);
-        setInviteEmails(['']);
-      }}
+      onClose={handleClose}
       title="Invite Team Members"
       subtitle={`${validEmailsCount} ${validEmailsCount === 1 ? 'invitation' : 'invitations'} ready`}
       icon={FaUsers}
@@ -60,10 +158,7 @@ const InviteModal = ({
       }}
       secondaryAction={{
         label: 'Cancel',
-        onClick: () => {
-          setShowInviteModal(false);
-          setInviteEmails(['']);
-        },
+        onClick: handleClose,
         variant: 'outlined',
         disabled: inviteLoading,
         className: 'text-sm',
@@ -137,11 +232,7 @@ const InviteModal = ({
 InviteModal.propTypes = {
   showInviteModal: PropTypes.bool.isRequired,
   setShowInviteModal: PropTypes.func.isRequired,
-  inviteEmails: PropTypes.arrayOf(PropTypes.string).isRequired,
-  setInviteEmails: PropTypes.func.isRequired,
-  handleInviteMembers: PropTypes.func.isRequired,
-  inviteLoading: PropTypes.bool,
-  primaryColor: PropTypes.string,
+  groupId: PropTypes.string,
 };
 
 export default InviteModal;

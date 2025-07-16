@@ -68,13 +68,12 @@ export const getAssignedGroupMembers = (groupID) =>
     })
     .then((response) => response.data);
 
-export const inviteUserToGroupTeam = (groupID, userEmails) =>
+// Accepts groupID and a body object (e.g., { emails: [...] })
+export const inviteUserToGroupTeam = (groupID, body) =>
   secureApiProxy
-    .post(
-      `${USERS_URL}/requests/emails/groups/${groupID}`,
-      { emails: userEmails },
-      { authType: AUTH_TYPES.JWT },
-    )
+    .post(`${USERS_URL}/requests/emails/groups/${groupID}`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
     .then((response) => response.data);
 
 export const removeUserFromGroup = (groupID, userID) =>

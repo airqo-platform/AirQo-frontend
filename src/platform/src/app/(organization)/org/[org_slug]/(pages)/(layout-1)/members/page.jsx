@@ -6,11 +6,7 @@ import { useSelector } from 'react-redux';
 import Button from '@/common/components/Button';
 import EmptyState from '@/common/components/EmptyState';
 import ErrorState from '@/common/components/ErrorState';
-import {
-  getGroupDetailsApi,
-  inviteUserToGroupTeam,
-  removeUserFromGroup,
-} from '@/core/apis/Account';
+import { getGroupDetailsApi, removeUserFromGroup } from '@/core/apis/Account';
 import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
 import { FaUserPlus } from 'react-icons/fa';
@@ -25,8 +21,7 @@ const OrganizationMembersPage = () => {
   // No search/filter state needed
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [inviteEmails, setInviteEmails] = useState(['']);
-  const [inviteLoading, setInviteLoading] = useState(false);
+  // InviteModal now manages its own invite state
   const [removeLoading, setRemoveLoading] = useState(false);
   const [error, setError] = useState(null);
   const [groupDetails, setGroupDetails] = useState(null);
@@ -104,103 +99,7 @@ const OrganizationMembersPage = () => {
     }
   };
 
-  const handleInviteMembers = async () => {
-    const groupId = getGroupId();
-    if (!groupId) {
-      CustomToast({ message: 'No group selected', type: 'warning' });
-      return;
-    }
-    const validEmails = inviteEmails.filter((e) => e.trim());
-    if (!validEmails.length) {
-      CustomToast({ message: 'Enter at least one email', type: 'warning' });
-      return;
-    }
-    const invalid = validEmails.filter(
-      (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e),
-    );
-    if (invalid.length) {
-      CustomToast({
-        message: `Invalid emails: ${invalid.join(', ')}`,
-        type: 'error',
-      });
-      return;
-    }
-
-    setInviteLoading(true);
-    try {
-      // API expects { emails: [...] }
-      const res = await inviteUserToGroupTeam(groupId, validEmails);
-      if (res.success) {
-        CustomToast({ message: 'Invitations sent!', type: 'success' });
-        setShowInviteModal(false);
-        setInviteEmails(['']);
-        await fetchMemberData();
-      } else {
-        // If API returns errors in the response, handle them
-        let msg = res.message || 'Invite failed';
-        if (res.errors) {
-          if (typeof res.errors === 'string') {
-            msg = res.errors;
-          } else if (Array.isArray(res.errors)) {
-            msg = res.errors
-              .map((err) =>
-                Array.isArray(err.message)
-                  ? err.message.join(', ')
-                  : err.message,
-              )
-              .join('; ');
-          } else if (typeof res.errors === 'object') {
-            // Handle specific error keys, e.g. existingRequests
-            if (
-              res.errors.existingRequests &&
-              Array.isArray(res.errors.existingRequests) &&
-              res.errors.existingRequests.length
-            ) {
-              msg = `Access requests were already sent for: ${res.errors.existingRequests.join(', ')}`;
-            } else if (res.errors.message) {
-              msg = res.errors.message;
-            }
-          }
-        }
-        throw new Error(msg);
-      }
-    } catch (e) {
-      logger.error('Invite error', e);
-      // Extract API errors
-      const apiData = e.response?.data;
-      let msg = e.message;
-      if (apiData) {
-        if (apiData.errors) {
-          if (typeof apiData.errors === 'string') {
-            msg = apiData.errors;
-          } else if (Array.isArray(apiData.errors)) {
-            msg = apiData.errors
-              .map((err) =>
-                Array.isArray(err.message)
-                  ? err.message.join(', ')
-                  : err.message,
-              )
-              .join('; ');
-          } else if (typeof apiData.errors === 'object') {
-            if (
-              apiData.errors.existingRequests &&
-              Array.isArray(apiData.errors.existingRequests) &&
-              apiData.errors.existingRequests.length
-            ) {
-              msg = `Access requests were already sent for: ${apiData.errors.existingRequests.join(', ')}`;
-            } else if (apiData.errors.message) {
-              msg = apiData.errors.message;
-            }
-          }
-        } else if (apiData.message) {
-          msg = apiData.message;
-        }
-      }
-      CustomToast({ message: msg, type: 'error' });
-    } finally {
-      setInviteLoading(false);
-    }
-  };
+  // InviteModal now handles all invite logic
 
   const formatLastActive = (m) => {
     if (!m.lastLogin) return 'Never';
@@ -281,11 +180,9 @@ const OrganizationMembersPage = () => {
       <InviteModal
         showInviteModal={showInviteModal}
         setShowInviteModal={setShowInviteModal}
-        inviteEmails={inviteEmails}
-        setInviteEmails={setInviteEmails}
-        handleInviteMembers={handleInviteMembers}
-        inviteLoading={inviteLoading}
         primaryColor={primaryColor}
+        groupId={getGroupId()}
+        onInvited={fetchMemberData}
       />
     </div>
   );

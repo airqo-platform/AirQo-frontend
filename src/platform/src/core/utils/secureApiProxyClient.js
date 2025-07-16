@@ -82,6 +82,7 @@ const createSecureApiClient = () => {
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
+    timeout: 30000,
   });
 
   // Override standard methods to handle authentication
