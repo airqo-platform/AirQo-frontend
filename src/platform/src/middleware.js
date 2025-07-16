@@ -7,7 +7,7 @@ import {
 import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options';
 import logger from './lib/logger';
 
-// Centralized route pattern matching
+// Optimized route pattern matching with caching
 const ROUTE_PATTERNS = {
   AUTH: ['/login', '/register', '/forgotPwd', '/creation', '/verify-email'],
   PUBLIC: ['/', '/public/', '/_next/', '/api/auth/', '/favicon.ico'],
@@ -25,11 +25,29 @@ const ROUTE_PATTERNS = {
   ],
 };
 
-// Check if pathname matches any pattern in array
+// Cache for route pattern matching to avoid repeated string operations
+const routeMatchCache = new Map();
+
+// Check if pathname matches any pattern in array with caching
 const matchesPatterns = (pathname, patterns) => {
-  return patterns.some(
+  const cacheKey = `${pathname}-${patterns.join(',')}`;
+
+  if (routeMatchCache.has(cacheKey)) {
+    return routeMatchCache.get(cacheKey);
+  }
+
+  const matches = patterns.some(
     (pattern) => pathname.includes(pattern) || pathname.startsWith(pattern),
   );
+
+  // Cache result (limit cache size)
+  if (routeMatchCache.size > 1000) {
+    const firstKey = routeMatchCache.keys().next().value;
+    routeMatchCache.delete(firstKey);
+  }
+
+  routeMatchCache.set(cacheKey, matches);
+  return matches;
 };
 
 // Determine fallback login path with centralized logic

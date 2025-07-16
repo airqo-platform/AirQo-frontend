@@ -48,19 +48,20 @@ const AddLocations = ({ onClose }) => {
   const [statusMessage, setStatusMessage] = useState('');
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
 
-  // Get active group
-  const { id: activeGroupId, title: groupTitle } = useGetActiveGroup();
+  // Get active group and user ID (single call)
+  const { id: activeGroupId, title: groupTitle, userID } = useGetActiveGroup();
 
   // Get user preferences
   const preferencesData = useSelector(
     (state) => state.defaults.individual_preferences,
   );
+  // Memoize selected site IDs from preferences
   const selectedSiteIds = useMemo(() => {
     const firstPreference = preferencesData?.[0];
-    return firstPreference?.selected_sites?.map((site) => site._id) || [];
+    return Array.isArray(firstPreference?.selected_sites)
+      ? firstPreference.selected_sites.map((site) => site._id)
+      : [];
   }, [preferencesData]);
-  // Get user ID from useGetActiveGroup hook
-  const { userID } = useGetActiveGroup();
 
   // Fetch sites data
   const {
@@ -68,34 +69,28 @@ const AddLocations = ({ onClose }) => {
     isLoading: loading,
     isError,
     error: fetchError,
-  } = useSitesSummary(groupTitle?.toLowerCase(), {
-    enabled: !!groupTitle,
-  });
+  } = useSitesSummary((groupTitle || 'AirQo').toLowerCase(), {});
 
-  // Filter sites
+  // Filter sites: prefer online sites if available, fallback to all
   const filteredSites = useMemo(() => {
-    if (!sitesSummaryData || !Array.isArray(sitesSummaryData)) return [];
-
-    const hasIsOnlineProperty =
-      sitesSummaryData.length > 0 && 'isOnline' in sitesSummaryData[0];
-
-    if (hasIsOnlineProperty) {
+    if (!Array.isArray(sitesSummaryData) || sitesSummaryData.length === 0)
+      return [];
+    if ('isOnline' in sitesSummaryData[0]) {
       const onlineSites = sitesSummaryData.filter(
         (site) => site.isOnline === true,
       );
       return onlineSites.length > 0 ? onlineSites : sitesSummaryData;
     }
-
     return sitesSummaryData;
   }, [sitesSummaryData]);
 
   // Use custom hook for location selection
   const {
     selectedSites,
-    setSelectedSites, // Make sure to include this in the hook return
+    setSelectedSites,
     sidebarSites,
     clearSelected,
-    error,
+    error: selectionError,
     setError,
     handleClearSelection,
     handleToggleSite,
@@ -181,35 +176,27 @@ const AddLocations = ({ onClose }) => {
       setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
-
     if (!userID) {
       setError('User not found.');
       setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
-
     if (selectedSites.length > MAX_LOCATIONS) {
       setError(`You can select up to ${MAX_LOCATIONS} locations only.`);
       setMessageType(MESSAGE_TYPES.ERROR);
       return;
     }
-
     setSubmitLoading(true);
     setStatusMessage('Saving your preferences...');
     setMessageType(MESSAGE_TYPES.INFO);
-
-    // Prepare sites data
-    const selectedSitesData = selectedSites.map(
-      ({ grids, devices, airqlouds, ...rest }) => rest,
-    );
-
+    // Prepare sites data (strip non-serializable fields)
+    const selectedSitesData = selectedSites.map(({ ...rest }) => rest);
     const payload = {
       user_id: userID,
       group_id: activeGroupId,
       selected_sites: selectedSitesData,
     };
-
-    dispatch(replaceUserPreferences(payload))
+    Promise.resolve(dispatch(replaceUserPreferences(payload)))
       .then(() => {
         onClose();
         if (userID) {
@@ -220,22 +207,19 @@ const AddLocations = ({ onClose }) => {
             }),
           );
         }
-
         // For organizations, also update chart sites directly
-        const selectedSiteIds = selectedSitesData
+        const selectedSiteIdsArr = selectedSitesData
           .map((site) => site._id)
           .filter(Boolean);
-        if (selectedSiteIds.length > 0) {
-          dispatch(setChartSites(selectedSiteIds));
+        if (selectedSiteIdsArr.length > 0) {
+          dispatch(setChartSites(selectedSiteIdsArr));
         }
-
         dispatch(setRefreshChart(true));
         completeStep(1);
       })
-      .catch((_err) => {
+      .catch(() => {
         setError('Failed to update preferences.');
         setMessageType(MESSAGE_TYPES.ERROR);
-        // Log error for debugging but avoid console in production
       })
       .finally(() => {
         setSubmitLoading(false);
@@ -249,37 +233,34 @@ const AddLocations = ({ onClose }) => {
     activeGroupId,
     setError,
     completeStep,
+    setMessageType,
   ]);
 
   // Determine footer message and type
   const footerInfo = useMemo(() => {
-    if (error) {
-      return { message: error, type: MESSAGE_TYPES.ERROR };
+    if (selectionError) {
+      return { message: selectionError, type: MESSAGE_TYPES.ERROR };
     }
-
     if (statusMessage) {
       return { message: statusMessage, type: messageType };
     }
-
     if (selectedSites.length === 0) {
       return {
         message: 'Please select at least one location to save',
         type: MESSAGE_TYPES.WARNING,
       };
     }
-
     if (selectedSites.length === MAX_LOCATIONS) {
       return {
         message: `Maximum of ${MAX_LOCATIONS} locations selected`,
         type: MESSAGE_TYPES.WARNING,
       };
     }
-
     return {
       message: `${selectedSites.length} ${selectedSites.length === 1 ? 'location' : 'locations'} selected`,
       type: MESSAGE_TYPES.INFO,
     };
-  }, [error, statusMessage, messageType, selectedSites.length]);
+  }, [selectionError, statusMessage, messageType, selectedSites.length]);
 
   // Animation variants
   const animations = {

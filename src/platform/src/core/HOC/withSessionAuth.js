@@ -1,12 +1,10 @@
-'use client';
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkAccess } from './authUtils';
 import { setupUserSession, clearUserSession } from '@/core/utils/loginSetup';
-import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options'; // Import centralized logic
+import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
 import LogoutOverlay from '@/common/components/LogoutOverlay';
 import { getLogoutProgress } from './LogoutUser';
@@ -274,14 +272,7 @@ export const withSessionAuth = (
         };
 
         processAuth();
-      }, [
-        status,
-        pathname,
-        protectionLevel,
-        session,
-        permissions,
-        processAuthState,
-      ]);
+      }, [status, pathname, session, processAuthState]);
 
       // Reset processing flag when pathname changes (but preserve setup state)
       useEffect(() => {

@@ -7,31 +7,107 @@ import { getApiBaseUrl, getApiToken } from '@/lib/envConstants';
 // For App Router compatibility
 /* global Response */
 
-// Simple cache for session data to avoid repeated NextAuth calls
-const sessionCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Optimized cache implementation with memory management
+class SessionCache {
+  constructor() {
+    this.cache = new Map();
+    this.ttl = 5 * 60 * 1000; // 5 minutes
+    this.maxSize = 50; // Limit cache size
+    this.cleanupInterval = null;
+    this.initialized = false;
+  }
+
+  init() {
+    if (this.initialized) return;
+    this.initialized = true;
+
+    // Setup periodic cleanup
+    this.cleanupInterval = setInterval(() => {
+      this.cleanup();
+    }, 60000); // Every minute
+
+    // Cleanup on process exit
+    if (typeof process !== 'undefined') {
+      process.on('exit', () => this.clear());
+      process.on('SIGINT', () => this.clear());
+      process.on('SIGTERM', () => this.clear());
+    }
+  }
+
+  cleanup() {
+    const now = Date.now();
+    const keysToDelete = [];
+
+    for (const [key, value] of this.cache.entries()) {
+      if (now - value.timestamp > this.ttl) {
+        keysToDelete.push(key);
+      }
+    }
+
+    keysToDelete.forEach((key) => this.cache.delete(key));
+
+    // If cache is still too large, remove oldest entries
+    if (this.cache.size > this.maxSize) {
+      const entries = Array.from(this.cache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+      const toRemove = entries.slice(0, this.cache.size - this.maxSize);
+      toRemove.forEach(([key]) => this.cache.delete(key));
+    }
+  }
+
+  get(key) {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.session;
+  }
+
+  set(key, session) {
+    this.cache.set(key, {
+      session,
+      timestamp: Date.now(),
+    });
+  }
+
+  clear() {
+    this.cache.clear();
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
+}
+
+// Global session cache instance
+const sessionCache = new SessionCache();
 
 const getCachedSession = async () => {
-  const now = Date.now();
+  sessionCache.init();
+
   const cacheKey = 'nextauth_session';
 
-  // Check if we have valid cached session
-  if (sessionCache.has(cacheKey)) {
-    const { session, timestamp } = sessionCache.get(cacheKey);
-    if (now - timestamp < CACHE_TTL) {
-      return session;
-    }
-    // Cache expired, remove it
-    sessionCache.delete(cacheKey);
+  // Check cache first
+  const cachedSession = sessionCache.get(cacheKey);
+  if (cachedSession) {
+    return cachedSession;
   }
 
   // Get fresh session
   try {
     const session = await getServerSession(authOptions);
-    sessionCache.set(cacheKey, { session, timestamp: now });
+    if (session) {
+      sessionCache.set(cacheKey, session);
+    }
     return session;
-  } catch {
-    // If session retrieval fails, return null
+  } catch (error) {
+    logger.warn('Failed to get server session:', error);
     return null;
   }
 };
@@ -71,8 +147,10 @@ export const createProxyHandler = (options = {}) => {
       res = context;
       const extracted = req.query;
       path = extracted.path;
-      const { path: _, ...otherParams } = extracted;
-      queryParams = otherParams;
+      // Extract query params excluding path
+      queryParams = Object.fromEntries(
+        Object.entries(extracted).filter(([key]) => key !== 'path'),
+      );
     }
 
     const targetPath = Array.isArray(path) ? path.join('/') : path;

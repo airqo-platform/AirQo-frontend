@@ -145,7 +145,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(groupTitle, {});
+  } = useSitesSummary(groupTitle || 'AirQo', {});
 
   const {
     data: devicesData,
@@ -153,7 +153,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: devicesError,
     error: devicesErrorMsg,
     refresh: refreshDevices,
-  } = useDeviceSummary(groupTitle, {});
+  } = useDeviceSummary(groupTitle || 'AirQo', {});
 
   const {
     data: countriesData,

@@ -99,10 +99,10 @@ export const setupUserSession = async (
     logger.info('Fetching user details...');
 
     // If we have a preferred group ID and are maintaining active group,
-    // add a small delay to allow API to propagate domain changes
+    // add a smaller delay to allow API to propagate domain changes
     if (preferredGroupId && (maintainActiveGroup || isDomainUpdate)) {
       logger.info('Waiting for API propagation after domain update...');
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Increased to 2 seconds for domain updates
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced from 2 seconds
     }
 
     const userRes = await getUserDetails(session.user.id);

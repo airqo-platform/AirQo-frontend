@@ -45,12 +45,15 @@ const hideLogoutOverlay = () => {
  */
 const clearTokenCache = () => {
   try {
-    // Access the token cache variables from secureApiProxyClient
     if (typeof window !== 'undefined') {
-      // Reset token cache by setting it to null and expiry to 0
-      // This matches the cache structure in secureApiProxyClient.js
+      // Clear all possible token cache references
       window.__tokenCache = null;
       window.__tokenCacheExpiry = 0;
+
+      // Clear any session storage tokens
+      window.sessionStorage?.removeItem('nextauth.token');
+      window.sessionStorage?.removeItem('access_token');
+      window.sessionStorage?.removeItem('refresh_token');
 
       logger.debug('Token cache cleared successfully');
     }
@@ -67,7 +70,13 @@ const clearSessionCache = () => {
   try {
     if (typeof window !== 'undefined') {
       // Clear session cache used by proxyClient
-      window.__sessionCache = new Map();
+      if (window.__sessionCache) {
+        window.__sessionCache.clear();
+      }
+
+      // Clear any session storage
+      window.sessionStorage?.removeItem('nextauth.session');
+      window.sessionStorage?.removeItem('user_session');
 
       logger.debug('Session cache cleared successfully');
     }
