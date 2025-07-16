@@ -513,3 +513,27 @@ export const getRoleDetailsApi = (roleId) => {
       throw new Error(errorMessage);
     });
 };
+
+// Assign a role to a user POST REQUEST
+export const assignRoleToUserApi = (roleId, body) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!body || typeof body !== 'object') {
+    return Promise.reject(new Error('Valid user data is required'));
+  }
+  if (!body.user || typeof body.user !== 'string') {
+    return Promise.reject(new Error('User ID is required'));
+  }
+
+  return secureApiProxy
+    .post(`${GROUP_ROLES_URL}/${roleId}/user`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to assign role to user';
+      throw new Error(errorMessage);
+    });
+};

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ReusableDialog from '../Modal/ReusableDialog';
 import SelectField from '../SelectField';
-import { getGroupRolesApi } from '@/core/apis/Account';
+import { getGroupRolesApi, assignRoleToUserApi } from '@/core/apis/Account';
 
 const EditUserRoleModal = ({
   isOpen,
@@ -12,6 +12,7 @@ const EditUserRoleModal = ({
   onSave,
   isLoading,
 }) => {
+  console.log(user);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(user?.role || '');
   const [loadingRoles, setLoadingRoles] = useState(false);
@@ -36,9 +37,28 @@ const EditUserRoleModal = ({
     setSelectedRole(user?.role || '');
   }, [user]);
 
-  const handleSave = () => {
-    if (!selectedRole) return;
-    onSave(selectedRole);
+  const handleSave = async () => {
+    const userId = user?._id;
+    if (!selectedRole || !userId) return;
+    try {
+      // Assign the role to the user using _id
+      await assignRoleToUserApi(selectedRole, { user: userId });
+      onSave(selectedRole);
+    } catch (err) {
+      // Try to parse a more user-friendly error message
+      let friendlyMessage = err.message || 'Failed to assign role';
+      if (err.errors && Array.isArray(err.errors)) {
+        const alreadyAssigned = err.errors.find(
+          (e) =>
+            e.message && e.message.includes('is already assigned to the role'),
+        );
+        if (alreadyAssigned) {
+          friendlyMessage =
+            'The selected role is already assigned to this user.';
+        }
+      }
+      setError(friendlyMessage);
+    }
   };
 
   return (
