@@ -246,7 +246,7 @@ const ReusableDialog = ({
           >
             <Card
               ref={dialogRef}
-              className={`relative w-full overflow-hidden ${dialogWidth} flex flex-col z-[10001] ${className}`}
+              className={`relative w-full mx-2 md:mx-0 overflow-hidden ${dialogWidth} flex flex-col z-[10001] ${className}`}
               contentClassName={`${maxHeight} overflow-y-auto ${contentClassName}`}
               // Card styling props
               bordered={bordered}
@@ -255,8 +255,7 @@ const ReusableDialog = ({
               radius={radius}
               background={background}
               shadow={shadow}
-              padding="p-0" // We'll handle padding in header/content/footer
-              // Header using CardWrapper's header system
+              padding="p-0"
               header={createHeaderContent()}
               headerProps={{
                 className:
@@ -275,7 +274,6 @@ const ReusableDialog = ({
               aria-describedby={ariaDescribedBy}
               tabIndex={-1}
             >
-              {/* Content area - CardWrapper handles the padding through contentClassName */}
               <div className={contentAreaClassName || 'px-6 py-4 flex-1'}>
                 {children}
               </div>
