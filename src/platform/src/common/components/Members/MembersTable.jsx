@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import ReusableTable from '../Table/ReusableTable';
 import RemoveUserModal from './RemoveUserModal';
 import Dropdown from '../Dropdowns/Dropdown';
@@ -11,13 +12,12 @@ import PropTypes from 'prop-types';
  */
 const MembersTable = ({
   members = [],
-  // isLoading = false, // removed unused prop
   onRemoveUser = () => {},
   removeLoading = false,
   groupDetails = null,
   formatLastActive = () => 'Never',
 }) => {
-  // const [actionMenuFor, setActionMenuFor] = useState(null);
+  const { data: session } = useSession();
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const managerId = groupDetails?.grp_manager?._id;
@@ -133,31 +133,49 @@ const MembersTable = ({
       header: 'Actions',
       render: (member) => {
         if (!member) return null;
-        const menu =
-          member._id !== managerId
-            ? [
-                {
-                  id: 'remove',
-                  name: (
-                    <span className="flex items-center text-red-600">
-                      Remove from group
-                    </span>
-                  ),
-                },
-              ]
-            : [
-                {
-                  id: 'manager',
-                  name: (
-                    <span className="flex items-center text-gray-500">
-                      <FaUser className="w-4 h-4 mr-2" />
-                      Group Manager
-                    </span>
-                  ),
-                },
-              ];
+        // Prevent user from removing themselves
+        const currentUserId = session?.user?.id || session?.user?._id;
+        const isSelf = currentUserId && member._id === currentUserId;
+        let menu;
+        if (member._id === managerId) {
+          menu = [
+            {
+              id: 'manager',
+              name: (
+                <span className="flex items-center text-gray-500">
+                  <FaUser className="w-4 h-4 mr-2" />
+                  Group Manager
+                </span>
+              ),
+            },
+          ];
+        } else if (isSelf) {
+          // User cannot remove themselves
+          menu = [
+            {
+              id: 'self',
+              name: (
+                <span className="flex items-center text-gray-400 cursor-not-allowed">
+                  You cannot remove yourself
+                </span>
+              ),
+              disabled: true,
+            },
+          ];
+        } else {
+          menu = [
+            {
+              id: 'remove',
+              name: (
+                <span className="flex items-center text-red-600">
+                  Remove from group
+                </span>
+              ),
+            },
+          ];
+        }
         const handleMenuClick = (id) => {
-          if (id === 'remove') handleRemove(member);
+          if (id === 'remove' && !isSelf) handleRemove(member);
         };
         return (
           <Dropdown onItemClick={handleMenuClick} menu={menu} length={'last'} />
