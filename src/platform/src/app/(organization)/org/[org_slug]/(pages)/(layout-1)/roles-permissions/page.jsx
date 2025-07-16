@@ -245,11 +245,12 @@ const RolesPermissionsPage = () => {
         ),
       },
     ],
-    [],
+    [handleRoleAction],
   );
 
   // Status filter options
   const statusFilterOptions = [
+    { value: '', label: 'All' },
     { value: 'ACTIVE', label: 'Active' },
     { value: 'INACTIVE', label: 'Inactive' },
   ];
