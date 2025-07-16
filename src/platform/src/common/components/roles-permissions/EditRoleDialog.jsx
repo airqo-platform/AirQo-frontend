@@ -67,7 +67,7 @@ const EditRoleDialog = ({
         </div>
       }
     >
-      <form onSubmit={handleSubmit} className="pt-2 flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="pt-2 flex flex-col gap-4">
         <div>
           <InputField
             id="role_name"
