@@ -64,11 +64,17 @@ const RolesPermissionsPage = () => {
       if (response.success && response.roles) {
         setRoles(response.roles);
       } else {
+        // If the response has a 403 status, show permission denied
+        if (response.status === 403) {
+          setPermissionDenied(true);
+          setLoading(false);
+          return;
+        }
         throw new Error(response.message || 'Failed to fetch roles');
       }
     } catch (e) {
       // Check for 403 in error response
-      if (e?.response?.status === 403) {
+      if (e?.response?.status === 403 || e?.status === 403) {
         setPermissionDenied(true);
         setLoading(false);
         return;
