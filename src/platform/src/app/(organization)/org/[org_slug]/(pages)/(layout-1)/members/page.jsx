@@ -166,8 +166,6 @@ const OrganizationMembersPage = () => {
         </Button>
       </div>
 
-      {/* Removed CardWrapper with search/filter UI */}
-
       <MembersTable
         members={members}
         isLoading={loading}

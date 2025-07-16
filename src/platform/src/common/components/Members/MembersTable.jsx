@@ -2,13 +2,7 @@ import React, { useState } from 'react';
 import ReusableTable from '../Table/ReusableTable';
 import RemoveUserModal from './RemoveUserModal';
 import Dropdown from '../Dropdowns/Dropdown';
-import {
-  FaEnvelope,
-  FaTrash,
-  FaUser,
-  FaUserCheck,
-  FaUserTimes,
-} from 'react-icons/fa';
+import { FaEnvelope, FaUser, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import PropTypes from 'prop-types';
 
 /**
@@ -57,7 +51,6 @@ const MembersTable = ({
   const handleRemove = (user) => {
     setSelectedUser(user);
     setShowRemoveModal(true);
-    setActionMenuFor(null);
   };
   const confirmRemove = async () => {
     await onRemoveUser(selectedUser);
@@ -147,7 +140,6 @@ const MembersTable = ({
                   id: 'remove',
                   name: (
                     <span className="flex items-center text-red-600">
-                      <FaTrash className="w-4 h-4 mr-2" />
                       Remove from group
                     </span>
                   ),
