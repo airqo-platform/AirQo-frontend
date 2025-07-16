@@ -9,10 +9,15 @@ import EmptyState from '@/common/components/EmptyState';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 import { getGroupRolesApi } from '@/core/apis/Account';
+
 import { FaPlus, FaShieldAlt, FaUsers, FaCheck, FaTimes } from 'react-icons/fa';
 import Dropdown from '@/common/components/Dropdowns/Dropdown';
 import logger from '@/lib/logger';
 import CustomToast from '@/common/components/Toast/CustomToast';
+import AddRoleDialog from '@/common/components/roles-permissions/AddRoleDialog';
+import EditRoleDialog from '@/common/components/roles-permissions/EditRoleDialog';
+import DeleteRoleDialog from '@/common/components/roles-permissions/DeleteRoleDialog';
+import { useRouter } from 'next/navigation';
 
 /**
  * Roles & Permissions Page Component
@@ -28,6 +33,7 @@ import CustomToast from '@/common/components/Toast/CustomToast';
  * @returns {JSX.Element} The roles and permissions page component
  */
 const RolesPermissionsPage = () => {
+  const router = useRouter();
   const { organization } = useOrganization();
   const activeGroup = useSelector((state) => state.groups?.activeGroup);
 
@@ -35,6 +41,12 @@ const RolesPermissionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
+
+  // Dialog state
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
 
   const getGroupId = useCallback(
     () => organization?._id || organization?.id || activeGroup?._id,
@@ -140,20 +152,28 @@ const RolesPermissionsPage = () => {
   // Table columns configuration
   const handleRoleAction = (action, role) => {
     if (action === 'edit_role') {
-      CustomToast({ message: `Edit role: ${role.role_name}`, type: 'info' });
-      // TODO: Implement edit role modal or navigation
+      setSelectedRole(role);
+      setShowEditDialog(true);
     } else if (action === 'edit_permissions') {
-      CustomToast({
-        message: `Edit permissions for: ${role.role_name}`,
-        type: 'info',
-      });
-      // TODO: Implement edit permissions modal or navigation
+      // Redirect to edit permissions page
+      const slug =
+        organization?.slug ||
+        organization?.grp_slug ||
+        organization?.grp_code ||
+        organization?._id;
+      if (slug && role?._id) {
+        router.push(
+          `/org/${slug}/roles-permissions/edit-role-permissions/${role._id}`,
+        );
+      } else {
+        CustomToast({
+          message: 'Missing organization or role ID.',
+          type: 'error',
+        });
+      }
     } else if (action === 'delete_role') {
-      CustomToast({
-        message: `Delete role: ${role.role_name}`,
-        type: 'warning',
-      });
-      // TODO: Implement delete role confirmation and logic
+      setSelectedRole(role);
+      setShowDeleteDialog(true);
     }
   };
 
@@ -245,12 +265,7 @@ const RolesPermissionsPage = () => {
   ];
 
   const handleAddRole = () => {
-    // TODO: Implement add role functionality
-    // This could open a modal or navigate to a role creation page
-    CustomToast({
-      message: 'Add role functionality will be implemented soon!',
-      type: 'info',
-    });
+    setShowAddDialog(true);
   };
 
   if (permissionDenied) {
@@ -298,36 +313,71 @@ const RolesPermissionsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Roles & Permissions
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage roles and permissions for your organization
-          </p>
+    <>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+              Roles & Permissions
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Manage roles and permissions for your organization
+            </p>
+          </div>
+          <Button onClick={handleAddRole} variant="filled">
+            <FaPlus className="mr-2" /> Add Role
+          </Button>
         </div>
-        <Button onClick={handleAddRole} variant="filled">
-          <FaPlus className="mr-2" /> Add Role
-        </Button>
+
+        <ReusableTable
+          title={`Organization Roles (${roles.length})`}
+          data={roles}
+          columns={columns}
+          searchable={true}
+          filterable={true}
+          filters={filters}
+          loading={loading}
+          pageSize={10}
+          pageSizeOptions={[5, 10, 20, 50]}
+          searchableColumns={['role_name', 'role_code']}
+          className="bg-white dark:bg-gray-800"
+          sortable={true}
+        />
       </div>
 
-      <ReusableTable
-        title={`Organization Roles (${roles.length})`}
-        data={roles}
-        columns={columns}
-        searchable={true}
-        filterable={true}
-        filters={filters}
-        loading={loading}
-        pageSize={10}
-        pageSizeOptions={[5, 10, 20, 50]}
-        searchableColumns={['role_name', 'role_code']}
-        className="bg-white dark:bg-gray-800"
-        sortable={true}
+      {/* Add Role Dialog */}
+      <AddRoleDialog
+        isOpen={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        groupId={getGroupId()}
       />
-    </div>
+
+      {/* Edit Role Dialog */}
+      {selectedRole && (
+        <EditRoleDialog
+          isOpen={showEditDialog}
+          onClose={() => {
+            setShowEditDialog(false);
+            setSelectedRole(null);
+          }}
+          roleId={selectedRole._id}
+          initialRoleName={selectedRole.role_name}
+          initialRoleStatus={selectedRole.role_status}
+        />
+      )}
+
+      {/* Delete Role Dialog */}
+      {selectedRole && (
+        <DeleteRoleDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setSelectedRole(null);
+          }}
+          roleId={selectedRole._id}
+        />
+      )}
+    </>
   );
 };
 
