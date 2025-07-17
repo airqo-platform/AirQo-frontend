@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './modules/DataDownload';
-import AddLocations, { AddLocationHeader } from './modules/AddLocations';
+import { AddLocations, AddLocationHeader } from './add-locations/AddLocations';
 import MoreInsights, { InSightsHeader } from './more-insights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
