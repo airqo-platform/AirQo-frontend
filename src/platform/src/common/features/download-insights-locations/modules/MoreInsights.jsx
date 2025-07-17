@@ -26,7 +26,7 @@ import RefreshIcon from '@/icons/map/refreshIcon';
 import CustomToast from '@/components/Toast/CustomToast';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import SkeletonLoader from '@/features/airQuality-charts/components/SkeletonLoader';
+import SkeletonLoader from '@/features/airQuality-charts/ChartContainer/components/SkeletonLoader';
 import { Tooltip } from 'flowbite-react';
 import { MdErrorOutline, MdInfo } from 'react-icons/md';
 import { DoneRefreshed } from '../constants/svgs';
