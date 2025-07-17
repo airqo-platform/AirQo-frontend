@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import { CustomToast } from '@/components/Toast/CustomToast';
+import CustomToast from '@/components/Toast/CustomToast';
 import useMergeAbort from '../utils/mergeAbort';
 
 export default function useMoreInsights() {
