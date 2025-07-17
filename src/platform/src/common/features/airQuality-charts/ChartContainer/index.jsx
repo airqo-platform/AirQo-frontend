@@ -5,8 +5,8 @@ import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
 
 // Custom hooks
-import { useChartDimensions } from '../hooks/useChartDimensions';
-import { useChartState } from '../hooks/useChartState';
+import { useChartDimensions } from './hooks/useChartDimensions';
+import { useChartState } from './hooks/useChartState';
 
 // Components
 import ChartHeader from './components/ChartHeader';
@@ -15,8 +15,8 @@ import ChartRefreshIndicator from './components/ChartRefreshIndicator';
 import Card from '@/components/CardWrapper';
 
 // Utils
-import { ChartExportUtils } from '../utils/chartExportUtils';
-import { CHART_CONFIG } from '../config/chartConfig';
+import { ChartExportUtils } from './utils/chartExportUtils';
+import { CHART_CONFIG } from './config/chartConfig';
 
 const ChartContainer = ({
   chartType,

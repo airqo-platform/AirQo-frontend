@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import CheckIcon from '@/icons/tickIcon';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { ChartExportUtils } from '../../utils/chartExportUtils';
+import { ChartExportUtils } from '../utils/chartExportUtils';
 import CustomToast from '@/components/Toast/CustomToast';
 import StandardsMenu from './StandardsMenu';
 
