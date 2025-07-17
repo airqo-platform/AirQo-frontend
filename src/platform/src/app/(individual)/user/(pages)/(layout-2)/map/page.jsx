@@ -127,7 +127,7 @@ const MapPage = () => {
   // Account for global topbar (3rem = 48px) in height calculations
   const containerClassName = isMobile
     ? 'flex flex-col w-full h-full overflow-hidden'
-    : 'flex flex-row w-full h-full pt-2 pr-2 pb-2 pl-0 overflow-hidden';
+    : 'flex flex-row w-full h-full pt-2 pr-2 pb-[0.4rem] pl-0 overflow-hidden';
 
   const sidebarClassName = isMobile
     ? 'transition-all duration-500 ease-in-out h-[60%] w-full sidebar-scroll-bar order-2'
@@ -162,11 +162,13 @@ const MapPage = () => {
   return (
     <>
       <div className={containerClassName}>
-        <div className={sidebarClassName}>
+        <div
+          className={`md:overflow-hidden md:rounded-l-xl ${sidebarClassName}`}
+        >
           <Sidebar siteDetails={siteDetails} isAdmin={true} />
         </div>
         <div className={mapClassName}>
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full md:overflow-hidden md:rounded-r-xl">
             <AirQoMap
               ref={airqoMapRef}
               mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
