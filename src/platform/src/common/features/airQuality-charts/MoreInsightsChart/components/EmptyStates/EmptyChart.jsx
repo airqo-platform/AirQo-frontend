@@ -23,9 +23,10 @@ export default function EmptyChart({
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500 px-6">
         <MdSearchOff className="text-5xl mb-3" />
-        <h4 className="mb-2 text-lg font-semibold">No Data Available</h4>
+        <h4 className="mb-2 text-lg font-semibold">Could Not Load Data</h4>
         <p className="text-center">
-          We couldn’t find any data matching your current selections.
+          We couldn’t load data for the current selections. Please try again
+          later.
         </p>
       </div>
     );
