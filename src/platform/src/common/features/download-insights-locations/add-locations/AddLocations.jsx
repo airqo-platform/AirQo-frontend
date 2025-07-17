@@ -154,7 +154,6 @@ export const AddLocations = ({ onClose }) => {
             initial="hidden"
             animate="visible"
           >
-            <AddLocationHeader />
             <SidebarContent {...sidebarProps} />
           </motion.div>
         </div>

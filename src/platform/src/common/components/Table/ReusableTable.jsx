@@ -512,7 +512,7 @@ const ReusableTable = ({
                 paginatedData.map((item, index) => (
                   <tr
                     key={index}
-                    className="hover:bg-primary/10 dark:hover:bg-primary/20"
+                    className="hover:bg-primary/5 dark:hover:bg-primary/20"
                   >
                     {columns.map((column) => (
                       <td
