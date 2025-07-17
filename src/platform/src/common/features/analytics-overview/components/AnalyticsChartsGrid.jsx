@@ -1,5 +1,5 @@
 import React from 'react';
-import ChartContainer from '@/features/airQuality-charts/ChartContainer/ChartContainer';
+import ChartContainer from '@/features/airQuality-charts/ChartContainer';
 
 // Optimized chart configuration with consistent styling
 const CHART_CONFIG = {
