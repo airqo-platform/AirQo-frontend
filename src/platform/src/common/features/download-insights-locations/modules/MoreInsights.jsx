@@ -392,8 +392,8 @@ ${data.map((row) => Object.values(row).join(',')).join('\n')}`;
 
     return (
       <InfoMessage
-        title="No Data"
-        description="No data available for the selected sites and time period."
+        title="Chart Unavailable"
+        description="We couldn't display insights for your current selections. Please try again or adjust your filters."
         variant="info"
         className="h-96 flex items-center justify-center"
       >
