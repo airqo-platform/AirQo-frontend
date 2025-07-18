@@ -103,7 +103,7 @@ const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
           style={{ paddingBottom: width > 1024 ? 0 : 100 }}
           className="flex-1 overflow-y-auto"
         >
-          {/* 1. Details view */}
+          {/* Details view */}
           {selectedLocation && !mapLoading && (
             <DetailsView
               location={selectedLocation}
@@ -113,7 +113,7 @@ const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
               selectedWeeklyPrediction={selectedWeekly}
             />
           )}
-          {/* 2. Search results */}
+          {/* Search results */}
           {isSearchFocused && (
             <SearchView
               searchResults={searchResults}
@@ -126,20 +126,20 @@ const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
               isAdmin={isAdmin}
             />
           )}
-          {/* 3. Loading */}
+          {/* Loading */}
           {!selectedLocation && !isSearchFocused && !siteDetails.length && (
             <LoadingSkeleton />
           )}
-          {/* 4. Empty */}
+          {/* Empty */}
           {!selectedLocation &&
-            !isSearchFocused &&
-            !displaySites.length &&
-            siteDetails.length && (
-              <p className="text-center text-gray-500 dark:text-gray-400 mt-4">
-                No locations available
-              </p>
-            )}
-          {/* 5. Sites list */}
+          !isSearchFocused &&
+          !displaySites.length &&
+          siteDetails.length ? (
+            <p className="text-center text-gray-500 dark:text-gray-400 mt-4">
+              No locations available
+            </p>
+          ) : null}
+          {/* Sites list */}
           {!selectedLocation && !isSearchFocused && displaySites.length > 0 && (
             <LocationCards
               searchResults={displaySites}
