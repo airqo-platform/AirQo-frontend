@@ -81,7 +81,7 @@ const SettingsSidebar = ({
 
         <motion.div variants={formItemVariants}>
           <CustomFields
-            title="Pollutants (Select multiple)"
+            title="Pollutants (multi-select)"
             options={POLLUTANT_OPTIONS}
             id="pollutant"
             icon={<WindIcon />}
