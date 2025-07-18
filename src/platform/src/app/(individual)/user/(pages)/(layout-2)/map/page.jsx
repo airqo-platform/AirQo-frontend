@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import AirQoMap from '@/features/airQuality-map';
-import Sidebar from '@/features/airQuality-map/components/sidebar';
+import Sidebar from '@/features/airQuality-map/components/map-sidebar';
 import AirQualityLegend from '@/features/airQuality-map/components/Legend';
 import Toast from '@/components/Toast';
 import Loader from '@/components/Spinner';

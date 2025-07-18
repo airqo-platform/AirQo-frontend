@@ -9,7 +9,7 @@ const SidebarHeader = ({
   handleHeaderClick = () => {},
 }) => {
   return (
-    <div className="p-3 md:p-4">
+    <div className="p-3">
       <div className="w-full flex justify-between items-center">
         <label className="font-medium text-xl text-gray-900 dark:text-gray-100">
           Air Quality Map

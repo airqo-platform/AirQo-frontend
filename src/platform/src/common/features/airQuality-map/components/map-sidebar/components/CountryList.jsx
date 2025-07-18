@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
@@ -9,10 +9,10 @@ import {
 } from '@/lib/store/services/map/MapSlice';
 
 const CountryList = ({
-  siteDetails,
   data,
   selectedCountry,
   setSelectedCountry,
+  siteDetails = [],
 }) => {
   const dispatch = useDispatch();
 
@@ -23,18 +23,20 @@ const CountryList = ({
   }, [data]);
 
   // Handle click event for country selection
-  const handleCountryClick = useCallback(
+  const handleSelect = React.useCallback(
     (country) => {
-      if (!country) return;
-      setSelectedCountry(country);
-      dispatch(setLocation({ country: country.country, city: '' }));
+      const countryName = country.country;
+      setSelectedCountry(countryName);
+      dispatch(setLocation({ country: countryName, city: '' }));
 
+      // Get sorted sites for the selected country
       const selectedSites = siteDetails
-        .filter((site) => site.country === country.country)
+        .filter((site) => site.country === countryName)
         .sort((a, b) => a.name.localeCompare(b.name));
+
       dispatch(addSuggestedSites(selectedSites));
     },
-    [dispatch, siteDetails, setSelectedCountry],
+    [dispatch, setSelectedCountry, siteDetails],
   );
 
   // Skeleton loader component for a single card
@@ -76,19 +78,27 @@ const CountryList = ({
         }
 
         // Check if current country is selected
-        const isSelected = selectedCountry?.country === country.country;
+        const isSelected = selectedCountry === country.country;
 
         return (
           <Card
             key={index}
-            onClick={() => handleCountryClick(country)}
+            onClick={() => handleSelect(country)}
             width="w-full"
             height="h-10"
             padding="px-5"
             radius="rounded-full"
             contentClassName="flex items-center justify-center gap-2 h-full"
-            className={`cursor-pointer ${isSelected ? 'ring-2 ring-primary/40' : ''}`}
-            background="bg-secondary-neutral-dark-50 dark:bg-transparent"
+            className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+              isSelected
+                ? 'ring-2 ring-primary border-primary bg-primary/10 dark:bg-primary/20 scale-105'
+                : 'hover:ring-1 hover:ring-primary/30 hover:scale-[1.02]'
+            }`}
+            background={
+              isSelected
+                ? 'bg-white dark:bg-gray-800'
+                : 'bg-secondary-neutral-dark-50 hover:bg-white dark:bg-transparent dark:hover:bg-gray-800'
+            }
           >
             <Image
               src={`https://flagsapi.com/${country.code.toUpperCase()}/flat/64.png`}
@@ -100,7 +110,13 @@ const CountryList = ({
                 e.target.src = '/path-to-default-flag-image.png';
               }}
             />
-            <span className="text-sm whitespace-nowrap text-secondary-neutral-light-600 dark:text-white font-medium">
+            <span
+              className={`text-sm whitespace-nowrap font-medium ${
+                isSelected
+                  ? 'text-primary dark:text-primary/90'
+                  : 'text-secondary-neutral-light-600 dark:text-white'
+              }`}
+            >
               {country.country}
             </span>
           </Card>
