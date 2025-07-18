@@ -44,7 +44,7 @@ const useUserTheme = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { userID } = useGetActiveGroup();
+  const { userID, id: activeGroupId, activeGroup } = useGetActiveGroup();
 
   // Get current theme context values to ensure API payload reflects current UI state
   const {
@@ -76,10 +76,26 @@ const useUserTheme = () => {
     if (!userID || !isValidObjectId(userID)) {
       // eslint-disable-next-line no-console
       console.warn('Invalid or missing user ID for fetching theme');
+      setError('Invalid or missing user ID for fetching theme');
       setIsInitialized(true);
       return;
     }
 
+    if (!activeGroupId || !isValidObjectId(activeGroupId)) {
+      // eslint-disable-next-line no-console
+      console.warn('Invalid or missing group ID for fetching theme');
+      setError('Invalid or missing group ID for fetching theme');
+      setIsInitialized(true);
+      return;
+    }
+
+    if (!activeGroup) {
+      // eslint-disable-next-line no-console
+      console.warn('Active group data is not available');
+      setError('Active group data is not available');
+      setIsInitialized(true);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -109,7 +125,7 @@ const useUserTheme = () => {
         setTheme(userTheme);
       } else {
         // Fallback to normal API fetch
-        const response = await getUserThemeApi(userID);
+        const response = await getUserThemeApi(userID, activeGroupId);
 
         if (response?.success && response?.data) {
           // Merge with default theme to ensure all properties are present
@@ -133,7 +149,7 @@ const useUserTheme = () => {
       setLoading(false);
       setIsInitialized(true);
     }
-  }, [userID]);
+  }, [userID, activeGroupId, activeGroup]);
 
   /**
    * Update user theme preferences
@@ -151,6 +167,18 @@ const useUserTheme = () => {
 
       if (!userID || !isValidObjectId(userID)) {
         const errorMessage = 'Invalid user ID for updating theme';
+        setError(errorMessage);
+        if (showToast) {
+          CustomToast({
+            message: errorMessage,
+            type: 'error',
+          });
+        }
+        return false;
+      }
+
+      if (!activeGroup || !activeGroupId || !isValidObjectId(activeGroupId)) {
+        const errorMessage = 'Invalid group ID for updating theme';
         setError(errorMessage);
         if (showToast) {
           CustomToast({
@@ -186,7 +214,12 @@ const useUserTheme = () => {
           ...themeSettings,
         };
 
-        const response = await updateUserThemeApi(userID, theme, updatedTheme);
+        const response = await updateUserThemeApi(
+          userID,
+          activeGroupId,
+          theme,
+          updatedTheme,
+        );
 
         if (response?.success) {
           // Update local state
@@ -221,7 +254,7 @@ const useUserTheme = () => {
         setLoading(false);
       }
     },
-    [userID, theme, mapThemeContextToApiFormat],
+    [userID, activeGroupId, activeGroup, theme, mapThemeContextToApiFormat],
   );
 
   /**
@@ -296,18 +329,30 @@ const useUserTheme = () => {
     },
     [updateUserTheme],
   );
-  // Effect for theme fetching: handles initial load only
+  // Effect for theme fetching: handles initial load and group changes
   useEffect(() => {
-    // Fetch theme only on initial load
-    if (
+    // Reset state when group changes
+    if (activeGroupId) {
+      setIsInitialized(false);
+    }
+  }, [activeGroupId]);
+
+  // Effect for theme fetching
+  useEffect(() => {
+    const shouldFetchTheme =
       status === 'authenticated' &&
       userID &&
+      activeGroupId &&
       isValidObjectId(userID) &&
-      !isInitialized
-    ) {
+      isValidObjectId(activeGroupId) &&
+      !isInitialized;
+
+    if (shouldFetchTheme) {
+      // eslint-disable-next-line no-console
+      console.debug('Fetching theme for group:', activeGroupId);
       fetchUserTheme();
     }
-  }, [status, userID, isInitialized, fetchUserTheme]);
+  }, [status, userID, activeGroupId, isInitialized, fetchUserTheme]);
 
   return {
     // Theme state

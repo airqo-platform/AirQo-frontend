@@ -258,16 +258,20 @@ export const getMaintenanceStatus = () =>
 /**
  * Get user theme preferences
  * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} groupId - MongoDB ObjectId of the group
  * @returns {Promise} - Promise resolving to theme preferences
  */
-export const getUserThemeApi = (userId) => {
-  // Validate user ID
+export const getUserThemeApi = (userId, groupId) => {
+  // Validate user ID and group ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
   }
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
 
   return secureApiProxy
-    .get(getUserThemeUrl(userId), {
+    .get(getUserThemeUrl(userId, groupId), {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
@@ -282,14 +286,19 @@ export const getUserThemeApi = (userId) => {
 /**
  * Update user theme preferences (sends all theme properties)
  * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} groupId - MongoDB ObjectId of the group
  * @param {Object} currentTheme - Current theme state
  * @param {Object} newTheme - New theme settings object
  * @returns {Promise} - Promise resolving to updated theme preferences
  */
-export const updateUserThemeApi = (userId, currentTheme, newTheme) => {
-  // Validate user ID
+export const updateUserThemeApi = (userId, groupId, currentTheme, newTheme) => {
+  console.log('group id:', groupId);
+  // Validate user ID and group ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
+  }
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
   }
 
   // Validate theme data
@@ -371,7 +380,7 @@ export const updateUserThemeApi = (userId, currentTheme, newTheme) => {
   };
 
   return secureApiProxy
-    .put(updateUserThemeUrl(userId), requestBody, {
+    .put(updateUserThemeUrl(userId, groupId), requestBody, {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)

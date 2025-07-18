@@ -6,7 +6,7 @@ export const USERS_BASE_URL = `${normalizeUrl(NEXT_PUBLIC_API_BASE_URL)}/users`;
 
 // Theme preferences endpoint
 export const ORGANIZATION_THEME_PREFERENCES_URL = (groupId) =>
-  `users/preferences/theme/organization/${groupId}`;
+  `users/preferences/theme/organization/group/${groupId}`;
 
 // Organization theme and branding endpoints
 export const ORGANIZATION_THEME_URL = (orgSlug) =>

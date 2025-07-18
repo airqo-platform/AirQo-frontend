@@ -122,7 +122,7 @@ export const ThemeSheet = memo(() => {
 
   return (
     <div className="fixed inset-0 z-[10000]">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key="theme-sheet-overlay"
           initial={{ opacity: 0 }}
