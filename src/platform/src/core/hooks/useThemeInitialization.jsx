@@ -24,51 +24,67 @@ const useThemeInitialization = () => {
             if (storedTheme && isLoaded === 'true' && !isThemeApplied) {
               const setupTheme = JSON.parse(storedTheme);
 
-              // Debug logging - remove in production
+              // Debug logging
               if (process.env.NODE_ENV === 'development') {
-                // Theme application debugging
+                console.log('Applying cached theme:', setupTheme);
               }
 
-              // Apply the cached theme immediately to UI
-              setPrimaryColor(setupTheme.primaryColor || '#145FFF');
-              toggleTheme(setupTheme.mode || 'light');
-              toggleSkin(setupTheme.interfaceStyle || 'default');
-              setLayout(setupTheme.contentLayout || 'compact');
+              // Default values as fallback
+              const defaultTheme = {
+                primaryColor: '#145FFF',
+                mode: 'light',
+                interfaceStyle: 'default',
+                contentLayout: 'compact',
+              };
 
-              // Mark as applied but don't clear the flag yet
-              // Let useUserTheme handle the clearing to avoid race conditions
+              // Merge with defaults to ensure all properties exist
+              const themeToApply = {
+                ...defaultTheme,
+                ...setupTheme,
+              };
+
+              // Apply the cached theme immediately to UI
+              setPrimaryColor(themeToApply.primaryColor);
+              toggleTheme(themeToApply.mode);
+              toggleSkin(themeToApply.interfaceStyle);
+              setLayout(themeToApply.contentLayout);
+
+              // Mark as applied but let useUserTheme handle clearing
               setIsThemeApplied(true);
+
+              // Clear the session storage flags only after successful application
+              if (process.env.NODE_ENV === 'development') {
+                console.log(
+                  'Theme applied successfully, clearing session storage flags',
+                );
+              }
             }
-          } catch {
-            // Error applying cached theme, mark as applied to avoid retrying
+          } catch (error) {
+            console.error('Error applying cached theme:', error);
             setIsThemeApplied(true);
           }
         }
       };
 
+      let retryCount = 0;
+      const maxRetries = 50; // 5 seconds maximum retry time
+
       // Check immediately
       checkForCachedTheme();
 
-      // Also set up an interval to check for the theme (in case login setup is still running)
+      // Set up an interval with a retry limit
       const interval = setInterval(() => {
-        if (!isThemeApplied) {
+        if (!isThemeApplied && retryCount < maxRetries) {
           checkForCachedTheme();
+          retryCount++;
         } else {
           clearInterval(interval);
+          setIsThemeApplied(true);
         }
       }, 100); // Check every 100ms
 
-      // Clean up interval after 10 seconds max
-      const timeout = setTimeout(() => {
-        clearInterval(interval);
-        if (!isThemeApplied) {
-          setIsThemeApplied(true); // Give up after 10 seconds
-        }
-      }, 10000);
-
       return () => {
         clearInterval(interval);
-        clearTimeout(timeout);
       };
     }
   }, [

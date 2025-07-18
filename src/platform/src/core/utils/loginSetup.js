@@ -505,17 +505,41 @@ export const setupUserSession = async (
     // Always set the loaded flag, even if no theme was found
     if (typeof window !== 'undefined') {
       try {
+        // Clear any existing theme data first
+        window.sessionStorage.removeItem('userTheme');
+        window.sessionStorage.removeItem('userThemeLoaded');
+
+        // Store the new theme
         if (userTheme) {
-          window.sessionStorage.setItem('userTheme', JSON.stringify(userTheme));
-          logger.info('User theme stored in sessionStorage:', userTheme);
+          // Ensure we have all required theme properties
+          const themeToStore = {
+            primaryColor: userTheme.primaryColor || '#145FFF',
+            mode: userTheme.mode || 'light',
+            interfaceStyle: userTheme.interfaceStyle || 'default',
+            contentLayout: userTheme.contentLayout || 'compact',
+          };
+
+          window.sessionStorage.setItem(
+            'userTheme',
+            JSON.stringify(themeToStore),
+          );
+          logger.info('User theme stored in sessionStorage:', themeToStore);
         } else {
           logger.info('No user theme to store, will use defaults');
         }
-        // Always set this flag to indicate theme loading is complete
+
+        // Set the loaded flag last to ensure complete theme data is ready
         window.sessionStorage.setItem('userThemeLoaded', 'true');
         logger.info('Theme loading flag set in sessionStorage');
       } catch (error) {
         logger.warn('Failed to store theme in session storage:', error);
+        // Attempt to clean up in case of partial success
+        try {
+          window.sessionStorage.removeItem('userTheme');
+          window.sessionStorage.removeItem('userThemeLoaded');
+        } catch (cleanupError) {
+          logger.warn('Failed to clean up theme storage:', cleanupError);
+        }
       }
     }
 

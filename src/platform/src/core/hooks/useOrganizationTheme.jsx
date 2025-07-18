@@ -55,6 +55,8 @@ export const useOrganizationTheme = () => {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
     dedupingInterval: 5000,
+    revalidateOnMount: true, // Always validate on mount
+    revalidateIfStale: true, // Revalidate if data is stale
   });
 
   // Update theme preferences

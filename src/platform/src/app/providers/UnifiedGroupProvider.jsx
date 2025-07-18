@@ -474,9 +474,17 @@ export function UnifiedGroupProvider({ children }) {
           clearTimeout(switchTimeoutRef.current);
         }
 
+        // First update preferences immediately to ensure the group switch is registered
+        await updatePreferences();
+
+        // Then use a short timeout for theme and other UI-related updates
         switchTimeoutRef.current = setTimeout(() => {
           if (mountedRef.current) {
-            updatePreferences();
+            // Force theme refresh by dispatching event
+            const themeChangeEvent = new CustomEvent('force-theme-refresh', {
+              detail: { groupId: targetGroup._id },
+            });
+            window.dispatchEvent(themeChangeEvent);
             switchTimeoutRef.current = null;
           }
         }, 300);
