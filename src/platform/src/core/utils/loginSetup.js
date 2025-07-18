@@ -144,8 +144,43 @@ export const setupUserSession = async (
       sessionOrgSlug,
       isDomainUpdate,
       preferredGroupId,
-    }); // Step 3b: Determine active group and redirect path based on login context
-    if (pathname.includes('/org/')) {
+    });
+
+    // Step 3b: Determine active group and redirect path based on login context
+    // SPECIAL CASE: If we're coming from the root page ("/") or this is a new tab opening,
+    // ALWAYS use AirQo group and redirect to /user/Home regardless of organization context
+    const isRootPageRedirect = pathname === '/' || !pathname;
+
+    if (isRootPageRedirect) {
+      // Force user flow with AirQo group for root page access
+      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
+      if (airqoGroup) {
+        activeGroup = airqoGroup;
+        logger.info('Root page redirect: Setting AirQo as active group', {
+          groupId: airqoGroup._id,
+          groupName: airqoGroup.grp_title || airqoGroup.grp_name,
+          loginContext: 'root_redirect',
+          pathname,
+        });
+      } else {
+        // Fallback if AirQo group not found - use first available group
+        activeGroup = user.groups[0];
+        logger.warn(
+          'Root page redirect: AirQo group not found, using first available group',
+          {
+            fallbackGroupId: activeGroup._id,
+            fallbackGroupName: activeGroup.grp_title || activeGroup.grp_name,
+            userGroups: user.groups.map((g) => ({
+              id: g._id,
+              name: g.grp_title || g.grp_name,
+            })),
+            loginContext: 'root_redirect',
+            pathname,
+          },
+        );
+      }
+      redirectPath = '/user/Home';
+    } else if (pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
       if (currentOrgSlug) {
