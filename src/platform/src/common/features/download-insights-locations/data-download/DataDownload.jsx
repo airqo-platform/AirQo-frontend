@@ -41,7 +41,7 @@ import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 import SettingsSidebar from './components/SettingsSidebar';
 import DataContent, { FILTER_TYPES } from './components/DataContent';
-import { getMimeType } from '../utils';
+import { getMimeType } from './utils';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import InfoMessage from '@/components/Messages/InfoMessage';
 
