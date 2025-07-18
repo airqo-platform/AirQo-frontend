@@ -1,91 +1,86 @@
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
+import { getAQICategoryKey, categoryDetails } from '../../utils/aqiUtils';
 
-// helpers
-const reduceDecimalPlaces = (num) =>
-  Math.round((num + Number.EPSILON) * 10000) / 10000;
-
-const truncate = (str) => (str.length > 20 ? `${str.slice(0, 19)}…` : str);
-
-// dummy category map – replace with real ranges if available
-const categoryMap = {
-  Good: { text: 'Good', color: 'text-green-600' },
-  Moderate: { text: 'Moderate', color: 'text-yellow-600' },
-  Unhealthy: { text: 'Unhealthy', color: 'text-red-600' },
-};
-
-const getAirQualityLevelText = (value) => {
-  if (typeof value !== 'number' || isNaN(value) || value < 0)
-    return categoryMap.Good; // fallback
-  if (value <= 50) return categoryMap.Good;
-  if (value <= 100) return categoryMap.Moderate;
-  return categoryMap.Unhealthy;
-};
+const reduceDecimalPlaces = (n) =>
+  Math.round((n + Number.EPSILON) * 10000) / 10000;
+const truncate = (s) => (s.length > 20 ? `${s.slice(0, 19)}…` : s);
 
 const CustomGraphTooltip = ({
   active,
   payload,
   activeIndex,
-  //   pollutionType,
+  pollutionType = 'pm2_5',
 }) => {
   if (!active || !payload?.length) return null;
 
-  const hoveredPointIndex =
-    activeIndex !== null && activeIndex < payload.length ? activeIndex : 0;
-  const hoveredPoint = payload[hoveredPointIndex];
-  const { value, payload: pointPayload } = hoveredPoint;
-  const formattedDate = pointPayload?.time
-    ? format(new Date(pointPayload.time), 'MMMM dd, yyyy')
-    : '';
+  const hoveredIdx =
+    activeIndex != null && activeIndex < payload.length ? activeIndex : 0;
+  const hovered = payload[hoveredIdx];
+  const { value, payload: p } = hovered;
 
-  const { text, color } = getAirQualityLevelText(value);
+  const date = p?.time ? format(new Date(p.time), 'MMM dd, yyyy') : '';
+  const {
+    text,
+    icon: Icon,
+    color,
+  } = categoryDetails[getAQICategoryKey(value, pollutionType)] || {};
 
   return (
-    <div className="w-80 p-3 rounded-lg shadow-md border border-gray-200 dark:bg-gray-800 dark:border-gray-600 bg-white">
-      <div className="text-sm mb-2 text-gray-400 dark:text-gray-300">
-        {formattedDate}
+    <div className="w-60 p-2.5 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      {/* date */}
+      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+        {date}
       </div>
 
-      <div className="space-y-2">
-        {payload.map((point, idx) => {
-          const isHovered = idx === hoveredPointIndex;
+      {/* readings */}
+      <div className="space-y-1">
+        {payload.map((pt, idx) => {
+          const isHovered = idx === hoveredIdx;
           return (
             <div
               key={idx}
-              className={`flex justify-between items-center p-2 rounded-md transition-colors ${
-                isHovered ? 'bg-primary/10 dark:bg-primary/20' : ''
+              className={`flex justify-between items-center px-1.5 py-1 rounded transition-colors ${
+                isHovered ? 'bg-primary/5 dark:bg-primary/10' : ''
               }`}
             >
               <div className="flex items-center">
-                <div
-                  className={`w-2.5 h-2.5 rounded-full mr-3 transition-colors ${
+                <span
+                  className={`w-2 h-2 rounded-full mr-1.5 ${
                     isHovered ? 'bg-primary' : 'bg-gray-400'
                   }`}
                 />
                 <span
-                  className={`text-sm font-medium transition-colors ${
+                  className={`text-xs font-medium ${
                     isHovered
                       ? 'text-primary'
-                      : 'text-gray-600 dark:text-gray-300'
+                      : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
-                  {truncate(point.name)}
+                  {truncate(pt.name)}
                 </span>
               </div>
-              <span
-                className={`text-sm transition-colors ${
-                  isHovered ? 'text-primary font-medium' : 'text-gray-500'
-                }`}
-              >
-                {reduceDecimalPlaces(point.value)} μg/m³
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {reduceDecimalPlaces(pt.value)}
               </span>
             </div>
           );
         })}
       </div>
 
-      <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-300 dark:border-gray-600">
-        <div className={`text-sm font-medium ${color}`}>{text}</div>
+      {/* unit label */}
+      <div className="text-[0.7rem] text-gray-400 dark:text-gray-500 text-right -mt-0.5 mb-1.5">
+        μg/m³
+      </div>
+
+      {/* AQI summary */}
+      <div className="flex items-center space-x-1.5 pt-1.5 mt-1 border-t border-gray-200 dark:border-gray-700">
+        {Icon && (
+          <div className="w-4 h-4 flex items-center justify-center">
+            <Icon />
+          </div>
+        )}
+        <span className={`text-xs font-semibold ${color}`}>{text}</span>
       </div>
     </div>
   );
@@ -95,7 +90,7 @@ CustomGraphTooltip.propTypes = {
   active: PropTypes.bool,
   payload: PropTypes.array,
   activeIndex: PropTypes.number,
-  pollutionType: PropTypes.string.isRequired,
+  pollutionType: PropTypes.string,
 };
 
 export default CustomGraphTooltip;
