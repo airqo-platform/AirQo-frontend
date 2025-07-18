@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -17,6 +17,12 @@ const DEFAULT_THEME = {
   contentLayout: 'compact',
 };
 
+// Session storage keys
+const SESSION_STORAGE_KEYS = {
+  THEME: 'userTheme',
+  THEME_LOADED: 'userThemeLoaded',
+};
+
 /**
  * Custom hook to manage user theme preferences
  * Handles theme fetching and updating with proper error handling
@@ -26,9 +32,15 @@ const useUserTheme = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { userID, id: activeGroupId, activeGroup } = useGetActiveGroup();
 
-  // Get current theme context values and methods
+  // Refs for cleanup and avoiding stale closures
+  const abortControllerRef = useRef(null);
+  const isUnmountedRef = useRef(false);
+  const lastFetchedGroupIdRef = useRef(null);
+
+  // External hooks
+  const { userID, id: activeGroupId, activeGroup } = useGetActiveGroup();
+  const { status } = useSession();
   const {
     theme: currentThemeMode,
     primaryColor: currentPrimaryColor,
@@ -39,11 +51,23 @@ const useUserTheme = () => {
     toggleSkin,
     setLayout,
   } = useTheme();
-  const { status } = useSession();
 
-  const mapThemeContextToApiFormat = useCallback(() => {
-    // Prefer the current theme context values, but fall back to theme state if needed
-    const themeData = {
+  // Memoized validation checks
+  const isValidUser = useMemo(
+    () => userID && isValidObjectId(userID),
+    [userID],
+  );
+
+  const isValidGroup = useMemo(
+    () => activeGroupId && isValidObjectId(activeGroupId),
+    [activeGroupId],
+  );
+
+  const isAuthenticated = useMemo(() => status === 'authenticated', [status]);
+
+  // Memoized current theme data mapper
+  const mapThemeContextToApiFormat = useCallback(
+    () => ({
       primaryColor:
         currentPrimaryColor || theme.primaryColor || DEFAULT_THEME.primaryColor,
       mode: currentThemeMode || theme.mode || DEFAULT_THEME.mode,
@@ -51,90 +75,145 @@ const useUserTheme = () => {
         currentSkin || theme.interfaceStyle || DEFAULT_THEME.interfaceStyle,
       contentLayout:
         currentLayout || theme.contentLayout || DEFAULT_THEME.contentLayout,
-    };
-    return themeData;
-  }, [
-    currentPrimaryColor,
-    currentThemeMode,
-    currentSkin,
-    currentLayout,
-    theme,
-  ]);
+    }),
+    [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout, theme],
+  );
 
+  // Helper to safely update state if component is still mounted
+  const safeSetState = useCallback((stateSetter, value) => {
+    if (!isUnmountedRef.current) {
+      stateSetter(value);
+    }
+  }, []);
+
+  // Helper to apply theme to context
+  const applyThemeToContext = useCallback(
+    (themeData) => {
+      if (isUnmountedRef.current) return;
+
+      setPrimaryColor(themeData.primaryColor);
+      toggleTheme(themeData.mode);
+      toggleSkin(themeData.interfaceStyle);
+      setLayout(themeData.contentLayout);
+    },
+    [setPrimaryColor, toggleTheme, toggleSkin, setLayout],
+  );
+
+  // Helper to get theme from session storage
+  const getSessionTheme = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const storedTheme = window.sessionStorage.getItem(
+        SESSION_STORAGE_KEYS.THEME,
+      );
+      const isLoaded = window.sessionStorage.getItem(
+        SESSION_STORAGE_KEYS.THEME_LOADED,
+      );
+
+      if (storedTheme && isLoaded === 'true') {
+        window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.THEME_LOADED);
+        return JSON.parse(storedTheme);
+      }
+    } catch (error) {
+      console.warn('Failed to parse session storage theme:', error);
+    }
+
+    return null;
+  }, []);
+
+  // Fetch user theme with proper error handling and cancellation
   const fetchUserTheme = useCallback(async () => {
-    if (!userID || !isValidObjectId(userID)) {
-      setError('Invalid or missing user ID for fetching theme');
-      setIsInitialized(true);
-      setLoading(false);
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+    const { signal } = abortControllerRef.current;
+
+    // Validation checks
+    if (!isValidUser) {
+      safeSetState(setError, 'Invalid or missing user ID for fetching theme');
+      safeSetState(setIsInitialized, true);
+      safeSetState(setLoading, false);
       return;
     }
 
-    if (!activeGroupId || !isValidObjectId(activeGroupId)) {
-      setError('Invalid or missing group ID for fetching theme');
-      setIsInitialized(true);
-      setLoading(false);
+    if (!isValidGroup) {
+      safeSetState(setError, 'Invalid or missing group ID for fetching theme');
+      safeSetState(setIsInitialized, true);
+      safeSetState(setLoading, false);
       return;
     }
 
     if (!activeGroup) {
-      setError('Active group data is not available');
-      setIsInitialized(true);
-      setLoading(false);
+      safeSetState(setError, 'Active group data is not available');
+      safeSetState(setIsInitialized, true);
+      safeSetState(setLoading, false);
       return;
     }
 
     try {
-      setLoading(true);
-      setError(null);
+      safeSetState(setLoading, true);
+      safeSetState(setError, null);
 
-      let setupTheme = null;
-      if (typeof window !== 'undefined') {
-        const storedTheme = window.sessionStorage.getItem('userTheme');
-        const isLoaded = window.sessionStorage.getItem('userThemeLoaded');
-        if (storedTheme && isLoaded === 'true') {
-          setupTheme = JSON.parse(storedTheme);
-          window.sessionStorage.removeItem('userThemeLoaded');
-        }
-      }
+      // Check if request was cancelled
+      if (signal.aborted) return;
 
-      if (setupTheme) {
-        const newTheme = { ...DEFAULT_THEME, ...setupTheme };
-        setTheme(newTheme);
-        // Update theme context
-        setPrimaryColor(newTheme.primaryColor);
-        toggleTheme(newTheme.mode);
-        toggleSkin(newTheme.interfaceStyle);
-        setLayout(newTheme.contentLayout);
+      // Try to get theme from session storage first
+      const sessionTheme = getSessionTheme();
+
+      let newTheme;
+      if (sessionTheme) {
+        newTheme = { ...DEFAULT_THEME, ...sessionTheme };
       } else {
+        // Check if request was cancelled before API call
+        if (signal.aborted) return;
+
         const response = await getUserThemeApi(userID, activeGroupId);
-        const newTheme =
+
+        // Check if request was cancelled after API call
+        if (signal.aborted) return;
+
+        newTheme =
           response?.success && response?.data
             ? { ...DEFAULT_THEME, ...response.data }
             : DEFAULT_THEME;
-        setTheme(newTheme);
-        // Update theme context
-        setPrimaryColor(newTheme.primaryColor);
-        toggleTheme(newTheme.mode);
-        toggleSkin(newTheme.interfaceStyle);
-        setLayout(newTheme.contentLayout);
+      }
+
+      // Update state and context if not cancelled
+      if (!signal.aborted) {
+        safeSetState(setTheme, newTheme);
+        applyThemeToContext(newTheme);
+        lastFetchedGroupIdRef.current = activeGroupId;
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch user theme');
-      setTheme(DEFAULT_THEME);
+      // Don't set error if request was cancelled
+      if (!signal.aborted) {
+        const errorMessage = err.message || 'Failed to fetch user theme';
+        safeSetState(setError, errorMessage);
+        safeSetState(setTheme, DEFAULT_THEME);
+      }
     } finally {
-      setLoading(false);
-      setIsInitialized(true);
+      if (!signal.aborted) {
+        safeSetState(setLoading, false);
+        safeSetState(setIsInitialized, true);
+      }
     }
   }, [
+    isValidUser,
+    isValidGroup,
+    activeGroup,
     userID,
     activeGroupId,
-    activeGroup,
-    setPrimaryColor,
-    toggleTheme,
-    toggleSkin,
-    setLayout,
+    getSessionTheme,
+    applyThemeToContext,
+    safeSetState,
   ]);
 
+  // Update user theme with proper error handling
   const updateUserTheme = useCallback(
     async (themeSettings, options = {}) => {
       const {
@@ -142,18 +221,19 @@ const useUserTheme = () => {
         successMessage = 'Theme updated successfully',
       } = options;
 
-      if (!userID || !isValidObjectId(userID)) {
+      // Validation checks
+      if (!isValidUser) {
         const errorMessage = 'Invalid user ID for updating theme';
-        setError(errorMessage);
+        safeSetState(setError, errorMessage);
         if (showToast) {
           CustomToast({ message: errorMessage, type: 'error' });
         }
         return false;
       }
 
-      if (!activeGroup || !activeGroupId || !isValidObjectId(activeGroupId)) {
+      if (!activeGroup || !isValidGroup) {
         const errorMessage = 'Invalid group ID for updating theme';
-        setError(errorMessage);
+        safeSetState(setError, errorMessage);
         if (showToast) {
           CustomToast({ message: errorMessage, type: 'error' });
         }
@@ -162,7 +242,7 @@ const useUserTheme = () => {
 
       if (!themeSettings || typeof themeSettings !== 'object') {
         const errorMessage = 'Invalid theme settings provided';
-        setError(errorMessage);
+        safeSetState(setError, errorMessage);
         if (showToast) {
           CustomToast({ message: errorMessage, type: 'error' });
         }
@@ -170,8 +250,8 @@ const useUserTheme = () => {
       }
 
       try {
-        setLoading(true);
-        setError(null);
+        safeSetState(setLoading, true);
+        safeSetState(setError, null);
 
         const currentThemeData = mapThemeContextToApiFormat();
         const updatedTheme = {
@@ -188,12 +268,8 @@ const useUserTheme = () => {
         );
 
         if (response?.success) {
-          setTheme(updatedTheme);
-          // Also update theme context
-          setPrimaryColor(updatedTheme.primaryColor);
-          toggleTheme(updatedTheme.mode);
-          toggleSkin(updatedTheme.interfaceStyle);
-          setLayout(updatedTheme.contentLayout);
+          safeSetState(setTheme, updatedTheme);
+          applyThemeToContext(updatedTheme);
 
           if (showToast) {
             CustomToast({ message: successMessage, type: 'success' });
@@ -204,28 +280,29 @@ const useUserTheme = () => {
         throw new Error(response?.message || 'Failed to update theme');
       } catch (err) {
         const errorMessage = err.message || 'Failed to update user theme';
-        setError(errorMessage);
+        safeSetState(setError, errorMessage);
         if (showToast) {
           CustomToast({ message: errorMessage, type: 'error' });
         }
         return false;
       } finally {
-        setLoading(false);
+        safeSetState(setLoading, false);
       }
     },
     [
+      isValidUser,
+      isValidGroup,
+      activeGroup,
       userID,
       activeGroupId,
-      activeGroup,
       theme,
       mapThemeContextToApiFormat,
-      setPrimaryColor,
-      toggleTheme,
-      toggleSkin,
-      setLayout,
+      applyThemeToContext,
+      safeSetState,
     ],
   );
 
+  // Memoized update functions to prevent unnecessary re-renders
   const resetToDefault = useCallback(
     () =>
       updateUserTheme(DEFAULT_THEME, {
@@ -238,9 +315,7 @@ const useUserTheme = () => {
     (primaryColor) =>
       updateUserTheme(
         { primaryColor },
-        {
-          successMessage: 'Primary color updated successfully',
-        },
+        { successMessage: 'Primary color updated successfully' },
       ),
     [updateUserTheme],
   );
@@ -249,9 +324,7 @@ const useUserTheme = () => {
     (mode) =>
       updateUserTheme(
         { mode },
-        {
-          successMessage: `Theme mode changed to ${mode}`,
-        },
+        { successMessage: `Theme mode changed to ${mode}` },
       ),
     [updateUserTheme],
   );
@@ -260,9 +333,7 @@ const useUserTheme = () => {
     (interfaceStyle) =>
       updateUserTheme(
         { interfaceStyle },
-        {
-          successMessage: `Interface style changed to ${interfaceStyle}`,
-        },
+        { successMessage: `Interface style changed to ${interfaceStyle}` },
       ),
     [updateUserTheme],
   );
@@ -271,105 +342,114 @@ const useUserTheme = () => {
     (contentLayout) =>
       updateUserTheme(
         { contentLayout },
-        {
-          successMessage: `Content layout changed to ${contentLayout}`,
-        },
+        { successMessage: `Content layout changed to ${contentLayout}` },
       ),
     [updateUserTheme],
   );
 
-  // Effect: Handle theme cleanup and reinitialization on group change
+  // Effect: Handle theme initialization and group changes
   useEffect(() => {
-    let isSubscribed = true;
+    const shouldFetchTheme =
+      isAuthenticated &&
+      isValidUser &&
+      isValidGroup &&
+      activeGroup &&
+      // Only fetch if group has changed or not initialized
+      (lastFetchedGroupIdRef.current !== activeGroupId || !isInitialized);
 
-    const handleGroupChange = async () => {
-      if (!isSubscribed) return;
-
-      // Set loading state before clearing theme
-      setLoading(true);
-      setIsInitialized(false);
-
-      // Preserve current theme during transition instead of resetting to default
-      // This prevents visual "flash" of default theme
-
-      // Check if we need to fetch new theme
-      const shouldFetchTheme =
-        status === 'authenticated' &&
-        userID &&
-        activeGroupId &&
-        activeGroup &&
-        isValidObjectId(userID) &&
-        isValidObjectId(activeGroupId);
-
-      if (shouldFetchTheme) {
-        // Force a refetch of theme for new group
-        await fetchUserTheme();
-      } else {
-        // If we shouldn't fetch, reset to default and end loading
-        setTheme(DEFAULT_THEME);
-        setLoading(false);
-      }
-    };
-
-    if (activeGroupId && isValidObjectId(activeGroupId)) {
-      handleGroupChange();
+    if (shouldFetchTheme) {
+      fetchUserTheme();
+    } else if (!isAuthenticated || !isValidUser || !isValidGroup) {
+      // Reset to default if user/group is invalid
+      safeSetState(setTheme, DEFAULT_THEME);
+      safeSetState(setLoading, false);
+      safeSetState(setIsInitialized, true);
     }
-
-    return () => {
-      isSubscribed = false;
-    };
-  }, [status, userID, activeGroupId, activeGroup, fetchUserTheme]);
+  }, [
+    isAuthenticated,
+    isValidUser,
+    isValidGroup,
+    activeGroup,
+    activeGroupId,
+    isInitialized,
+    fetchUserTheme,
+    safeSetState,
+  ]);
 
   // Effect: Listen for force theme refresh events
   useEffect(() => {
     const handleForceThemeRefresh = (event) => {
       if (event.detail?.groupId === activeGroupId) {
-        setIsInitialized(false);
+        safeSetState(setIsInitialized, false);
       }
     };
 
-    window.addEventListener('force-theme-refresh', handleForceThemeRefresh);
-    return () => {
-      window.removeEventListener(
-        'force-theme-refresh',
-        handleForceThemeRefresh,
-      );
-    };
-  }, [activeGroupId]);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('force-theme-refresh', handleForceThemeRefresh);
+      return () => {
+        window.removeEventListener(
+          'force-theme-refresh',
+          handleForceThemeRefresh,
+        );
+      };
+    }
+  }, [activeGroupId, safeSetState]);
 
-  // Effect: Apply theme values on initial load or when organization theme changes
+  // Effect: Cleanup on unmount
   useEffect(() => {
-    if (!theme) return;
+    return () => {
+      isUnmountedRef.current = true;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
-    // Apply theme values to context
-    setPrimaryColor(theme.primaryColor);
-    toggleTheme(theme.mode);
-    toggleSkin(theme.interfaceStyle);
-    setLayout(theme.contentLayout);
-  }, [theme, setPrimaryColor, toggleTheme, toggleSkin, setLayout]);
+  // Memoized theme-based boolean values
+  const themeFlags = useMemo(() => {
+    const safeTheme = theme || DEFAULT_THEME;
+    return {
+      isLight: safeTheme.mode === 'light',
+      isDark: safeTheme.mode === 'dark',
+      isSystem: safeTheme.mode === 'system',
+      isDefault: safeTheme.interfaceStyle === 'default',
+      isBordered: safeTheme.interfaceStyle === 'bordered',
+      isCompact: safeTheme.contentLayout === 'compact',
+      isWide: safeTheme.contentLayout === 'wide',
+    };
+  }, [theme]);
 
-  const safeTheme = theme || DEFAULT_THEME;
-
-  return {
-    theme: safeTheme,
-    loading,
-    error,
-    isInitialized,
-    fetchUserTheme,
-    updateUserTheme,
-    resetToDefault,
-    updatePrimaryColor,
-    updateThemeMode,
-    updateInterfaceStyle,
-    updateContentLayout,
-    isLight: safeTheme.mode === 'light',
-    isDark: safeTheme.mode === 'dark',
-    isSystem: safeTheme.mode === 'system',
-    isDefault: safeTheme.interfaceStyle === 'default',
-    isBordered: safeTheme.interfaceStyle === 'bordered',
-    isCompact: safeTheme.contentLayout === 'compact',
-    isWide: safeTheme.contentLayout === 'wide',
-  };
+  // Memoized return object to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      theme: theme || DEFAULT_THEME,
+      loading,
+      error,
+      isInitialized,
+      fetchUserTheme,
+      updateUserTheme,
+      resetToDefault,
+      updatePrimaryColor,
+      updateThemeMode,
+      updateInterfaceStyle,
+      updateContentLayout,
+      ...themeFlags,
+    }),
+    [
+      theme,
+      loading,
+      error,
+      isInitialized,
+      fetchUserTheme,
+      updateUserTheme,
+      resetToDefault,
+      updatePrimaryColor,
+      updateThemeMode,
+      updateInterfaceStyle,
+      updateContentLayout,
+      themeFlags,
+    ],
+  );
 };
 
 export default useUserTheme;
