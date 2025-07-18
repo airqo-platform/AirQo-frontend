@@ -1,6 +1,6 @@
-import SelectionMessage from '../SelectionMessage';
+import SelectionMessage from '../../components/SelectionMessage';
 import { motion, AnimatePresence } from 'framer-motion';
-import DataTable from '../DataTable';
+import DataTable from '../../components/DataTable';
 
 // Filter type constants
 export const FILTER_TYPES = {

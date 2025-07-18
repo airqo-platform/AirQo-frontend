@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
 import PropTypes from 'prop-types';
-import DataDownload, { DownloadDataHeader } from './modules/DataDownload';
+import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
 import { AddLocations, AddLocationHeader } from './add-locations/AddLocations';
 import MoreInsights, { InSightsHeader } from './more-insights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';

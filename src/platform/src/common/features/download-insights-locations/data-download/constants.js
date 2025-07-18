@@ -1,5 +1,3 @@
-// Define options as constants outside the component
-
 export const POLLUTANT_OPTIONS = [
   { id: 1, name: 'PM2.5' },
   { id: 2, name: 'PM10' },
@@ -32,4 +30,3 @@ export const MESSAGE_TYPES = {
   WARNING: 'warning',
   INFO: 'info',
 };
-export const MAX_LOCATIONS = 4;

@@ -23,7 +23,7 @@ import {
   DATA_TYPE_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
-} from '../constants';
+} from './constants';
 
 import useDataDownload from '@/core/hooks/useDataDownload';
 import {
@@ -39,10 +39,8 @@ import CustomToast from '@/components/Toast/CustomToast';
 import { format } from 'date-fns';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { event } from '@/core/hooks/useGoogleAnalytics';
-import SettingsSidebar from '../components/datadownload/SettingsSidebar';
-import DataContent, {
-  FILTER_TYPES,
-} from '../components/datadownload/DataContent';
+import SettingsSidebar from './components/SettingsSidebar';
+import DataContent, { FILTER_TYPES } from './components/DataContent';
 import { getMimeType } from '../utils';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import InfoMessage from '@/components/Messages/InfoMessage';

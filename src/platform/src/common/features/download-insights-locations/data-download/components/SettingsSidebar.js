@@ -2,14 +2,14 @@ import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
 import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
 import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
 import WindIcon from '@/icons/Analytics/windIcon';
-import CustomFields from '../CustomFields';
+import CustomFields from './CustomFields';
 import { motion } from 'framer-motion';
 
 import {
   POLLUTANT_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
-} from '../../constants';
+} from '../constants';
 
 /**
  * SettingsSidebar component for DataDownload
