@@ -65,18 +65,21 @@ const useUserTheme = () => {
     if (!userID || !isValidObjectId(userID)) {
       setError('Invalid or missing user ID for fetching theme');
       setIsInitialized(true);
+      setLoading(false);
       return;
     }
 
     if (!activeGroupId || !isValidObjectId(activeGroupId)) {
       setError('Invalid or missing group ID for fetching theme');
       setIsInitialized(true);
+      setLoading(false);
       return;
     }
 
     if (!activeGroup) {
       setError('Active group data is not available');
       setIsInitialized(true);
+      setLoading(false);
       return;
     }
 
@@ -282,9 +285,12 @@ const useUserTheme = () => {
     const handleGroupChange = async () => {
       if (!isSubscribed) return;
 
-      // Clear current theme state
+      // Set loading state before clearing theme
+      setLoading(true);
       setIsInitialized(false);
-      setTheme(DEFAULT_THEME);
+
+      // Preserve current theme during transition instead of resetting to default
+      // This prevents visual "flash" of default theme
 
       // Check if we need to fetch new theme
       const shouldFetchTheme =
@@ -298,6 +304,10 @@ const useUserTheme = () => {
       if (shouldFetchTheme) {
         // Force a refetch of theme for new group
         await fetchUserTheme();
+      } else {
+        // If we shouldn't fetch, reset to default and end loading
+        setTheme(DEFAULT_THEME);
+        setLoading(false);
       }
     };
 
