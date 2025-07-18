@@ -116,7 +116,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
   const [formData, setFormData] = useState({
     title: { name: 'Untitled Report' },
     dataType: DATA_TYPE_OPTIONS[0],
-    pollutant: POLLUTANT_OPTIONS[0],
+    pollutant: [POLLUTANT_OPTIONS[0]],
     duration: null,
     frequency: FREQUENCY_OPTIONS[0],
     fileType: FILE_TYPE_OPTIONS[0],
@@ -369,10 +369,6 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       return 'Invalid date selection. Please choose valid dates';
     }
 
-    if (startDate >= endDate) {
-      return 'Start date must be before end date';
-    }
-
     // Duration validation based on frequency
     const frequencyLower = formData.frequency.name.toLowerCase();
     if (frequencyLower === 'hourly') {
@@ -450,7 +446,9 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
             formData.dataType.name.toLowerCase() === 'calibrated data'
               ? 'calibrated'
               : 'raw',
-          pollutants: [formData.pollutant.name.toLowerCase().replace('.', '_')],
+          pollutants: formData.pollutant.map((p) =>
+            p.name.toLowerCase().replace('.', '_'),
+          ),
           frequency: formData.frequency.name.toLowerCase(),
           downloadType: formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
