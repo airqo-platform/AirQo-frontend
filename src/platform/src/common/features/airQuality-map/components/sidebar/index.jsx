@@ -414,7 +414,7 @@ const MapSidebar = ({ siteDetails, isAdmin = false, children }) => {
 
   return (
     <Card
-      className="relative w-full h-full shadow-sm text-left"
+      className="relative w-full h-full text-left"
       rounded={false}
       padding="p-0"
       overflow={true}
