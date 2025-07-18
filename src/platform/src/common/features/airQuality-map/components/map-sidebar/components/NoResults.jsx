@@ -1,8 +1,12 @@
 import Card from '@/components/CardWrapper';
 import React from 'react';
+import LocationIcon from '@/icons/Analytics/LocationIcon';
 
 const NoResults = React.memo(({ hasSearched }) => (
   <Card contentClassName="flex flex-col items-center justify-center py-6">
+    <div className="mb-4">
+      <LocationIcon size={35} className="text-gray-400 dark:text-gray-600" />
+    </div>
     <h3 className="text-lg font-medium text-secondary-neutral-dark-700 dark:text-white text-center">
       {hasSearched
         ? 'No results found'
