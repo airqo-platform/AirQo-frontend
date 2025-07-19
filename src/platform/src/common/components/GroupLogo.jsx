@@ -379,9 +379,8 @@ const ImageLogoComponent = ({
   handleImageError,
   size,
   imageClassName,
+  sizeConfig,
 }) => {
-  const sizeConfig = SIZE_CONFIG[size] || SIZE_CONFIG.md;
-
   return (
     <div
       className={`
@@ -396,11 +395,10 @@ const ImageLogoComponent = ({
       aria-label={`${orgDisplay.title} logo`}
     >
       {imageLoading && !imageLoaded && (
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-lg">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
         </div>
       )}
-
       <div
         className={`relative w-full h-full ${size === 'xs' || size === 'sm' ? 'p-0' : 'p-0.5'}`}
       >
@@ -438,8 +436,7 @@ const InitialsLogoComponent = ({
   <div
     className={`
       ${containerClasses} rounded-lg text-white font-semibold
-      shadow-sm ring-2 ring-white dark:ring-gray-800
-      transition-all duration-300 ease-in-out select-none
+      shadow-sm transition-all duration-300 ease-in-out select-none
       ${!disabled ? 'hover:shadow-md hover:scale-105' : ''}
       ${sizeConfig.text}
     `}
@@ -524,11 +521,13 @@ const GroupLogo = ({
         handleImageError={handleImageError}
         size={size}
         imageClassName={imageClassName}
+        sizeConfig={sizeConfig}
       />
     );
   }
 
   // Render initials fallback
+
   return (
     <InitialsLogoComponent
       containerClasses={containerClasses}
@@ -539,8 +538,6 @@ const GroupLogo = ({
     />
   );
 };
-
-GroupLogo.displayName = 'GroupLogo';
 
 GroupLogo.propTypes = {
   className: PropTypes.string,
