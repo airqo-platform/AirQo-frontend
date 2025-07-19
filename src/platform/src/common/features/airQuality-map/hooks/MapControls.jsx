@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import { setSelectedNode } from '@/lib/store/services/map/MapSlice';
 import { FaGlobe } from 'react-icons/fa';
+import LoadingSpinner from '@/common/components/LoadingSpinner';
 
 /**
  * GlobeControl
@@ -473,17 +474,14 @@ export const IconButton = ({ onClick, title, icon }) => (
 /**
  * LoadingOverlay - Display a loading overlay centered on the screen
  */
-export const LoadingOverlay = ({ children, size = 70 }) => (
-  <div
-    className="absolute inset-0 flex items-center justify-center"
-    style={{
-      zIndex: 10000,
-    }}
-  >
-    <div
-      className={`bg-white w-${size} h-${size} flex justify-center items-center rounded-md shadow-md p-3`}
-    >
-      {children}
+export const LoadingOverlay = () => {
+  return (
+    <div className="absolute z-50 inset-0 flex items-center justify-center">
+      <div
+        className={`bg-white w-70 h-70 flex justify-center items-center rounded-md shadow-md p-3`}
+      >
+        <LoadingSpinner text="" />
+      </div>
     </div>
-  </div>
-);
+  );
+};

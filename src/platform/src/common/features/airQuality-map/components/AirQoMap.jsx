@@ -15,8 +15,6 @@ import {
   useRefreshMap,
   useShareLocation,
   useMapScreenshot,
-} from '../hooks';
-import {
   useMapStyles,
   useMapViewport,
   useMapControls,

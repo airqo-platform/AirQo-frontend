@@ -85,11 +85,7 @@ const MapPage = () => {
           />
 
           {/* Loading overlay */}
-          {loading && (
-            <LoadingOverlay size={70}>
-              <Loader width={32} height={32} />
-            </LoadingOverlay>
-          )}
+          {loading && <LoadingOverlay />}
 
           {/* Legend */}
           {showLegendAndControls && (

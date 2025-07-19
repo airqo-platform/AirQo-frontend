@@ -1,7 +1,3 @@
-// ===================================================================
-// features/airQuality-map/utils/performanceOptimizer.js
-// ===================================================================
-
 /**
  * Performance optimization utilities for map operations
  */

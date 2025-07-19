@@ -1,15 +1,9 @@
-// ===================================================================
-// features/airQuality-map/utils/errorHandler.js - New error handling utility
-// ===================================================================
-
 /**
  * Centralized error handling for map operations
  */
 export class MapErrorHandler {
   static handleMapError(error, context = '') {
     console.error(`Map Error ${context}:`, error);
-
-    // You can integrate with your error monitoring service here
     // e.g., Sentry, LogRocket, etc.
 
     return {
