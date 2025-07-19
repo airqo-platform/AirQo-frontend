@@ -6,8 +6,7 @@ import { createRoot } from 'react-dom/client';
 import mapboxgl from 'mapbox-gl';
 import { setSelectedNode } from '@/lib/store/services/map/MapSlice';
 import { FaGlobe } from 'react-icons/fa';
-import LoadingSpinner from '@/common/components/LoadingSpinner';
-
+import Loader from '@/components/Spinner';
 /**
  * GlobeControl
  */
@@ -480,7 +479,7 @@ export const LoadingOverlay = () => {
       <div
         className={`bg-white w-70 h-70 flex justify-center items-center rounded-md shadow-md p-3`}
       >
-        <LoadingSpinner text="" />
+        <Loader />
       </div>
     </div>
   );
