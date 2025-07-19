@@ -1,5 +1,5 @@
 export { default as useMapData } from './useMapData';
-export { default as useLocationBoundaries } from './useLocationBoundaries';
+// export { default as useLocationBoundaries } from './useLocationBoundaries';
 export {
   useRefreshMap,
   useShareLocation,
@@ -16,5 +16,3 @@ export { useMapStyles } from './useMapStyles';
 export { useMapViewport } from './useMapViewport';
 export { useMapControls } from './useMapControls';
 export { useMapInitialization } from './useMapInitialization';
-export { useMapDataOperations } from './useMapData';
-export { useMapEffects } from './useMapEffects';
