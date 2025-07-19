@@ -8,5 +8,13 @@ export {
   IconButton,
   LoadingOverlay,
   GlobeControl,
-} from './useMapControls';
+} from './MapControls';
 export { default as useMapScreenshot } from './useMapScreenshot';
+
+// Export new hooks
+export { useMapStyles } from './useMapStyles';
+export { useMapViewport } from './useMapViewport';
+export { useMapControls } from './useMapControls';
+export { useMapInitialization } from './useMapInitialization';
+export { useMapDataOperations } from './useMapData';
+export { useMapEffects } from './useMapEffects';
