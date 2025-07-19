@@ -1,5 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import CardWrapper from '@/common/components/CardWrapper';
 
 const SettingsTabNavigation = ({
   tabs,
@@ -8,8 +8,11 @@ const SettingsTabNavigation = ({
   className = '',
 }) => {
   return (
-    <div
-      className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-lg ${className}`}
+    <CardWrapper
+      className={`border-b rounded-lg ${className}`}
+      radius="rounded-lg"
+      padding="p-0"
+      shadow=""
     >
       <nav
         className="-mb-px flex space-x-8 px-6"
@@ -52,7 +55,7 @@ const SettingsTabNavigation = ({
           );
         })}
       </nav>
-    </div>
+    </CardWrapper>
   );
 };
 
