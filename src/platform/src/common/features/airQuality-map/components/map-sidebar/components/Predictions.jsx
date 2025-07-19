@@ -1,12 +1,11 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import { isValid, format, isSameDay } from 'date-fns';
-import { getAQIcon, images } from '../../MapNodes';
+import { getAQIcon } from '../../MapNodes';
+import { images } from '../../../constants/mapConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedWeeklyPrediction } from '@/lib/store/services/map/MapSlice';
-import Button from '@/components/Button';
-import Calendar from '@/components/Calendar/Calendar';
 import Spinner from '@/components/Spinner';
 import { useOutsideClick } from '@/core/hooks';
 import Card from '@/components/CardWrapper';

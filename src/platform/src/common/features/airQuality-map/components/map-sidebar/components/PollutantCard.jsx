@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Image from 'next/image';
 import { isSameDay } from 'date-fns';
 import WindIcon from '@/icons/Common/wind.svg';
-import { getAQIcon, images } from '../../MapNodes';
+import { getAQIcon } from '../../MapNodes';
+import { images } from '../../../constants/mapConstants';
 import { useSelector } from 'react-redux';
 import Card from '@/components/CardWrapper';
 

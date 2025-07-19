@@ -19,8 +19,8 @@ import {
   createClusterNode,
   UnclusteredNode,
   getAQICategory,
-  images,
 } from '../components/MapNodes';
+import { images } from '../constants/mapConstants';
 
 // Constants for better maintainability
 const CONSTANTS = {
