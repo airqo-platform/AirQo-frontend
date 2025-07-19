@@ -23,7 +23,7 @@ export const ThemeCustomizer = memo(() => {
     <>
       <button
         onClick={openThemeSheet}
-        className="fixed right-0 top-1/4 transform -translate-y-1/2 
+        className="fixed right-0 top-1/2 transform -translate-y-1/2 
           text-white p-3 
           shadow-md hover:opacity-70 
           transition-all duration-300 z-50 
