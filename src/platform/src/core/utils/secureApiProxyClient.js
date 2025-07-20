@@ -3,37 +3,70 @@ import { getSession } from 'next-auth/react';
 import logger from '../../lib/logger';
 import { getApiToken } from '@/lib/envConstants';
 
-// Token cache to avoid repeated session checks
-let tokenCache = null;
-let tokenCacheExpiry = 0;
-const TOKEN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Optimized token cache with proper cleanup
+class TokenCache {
+  constructor() {
+    this.cache = null;
+    this.expiry = 0;
+    this.ttl = 5 * 60 * 1000; // 5 minutes
+    this.cleanupInterval = null;
+    this.initialized = false;
+  }
 
-// Cleanup function to clear cache
-const clearTokenCache = () => {
-  tokenCache = null;
-  tokenCacheExpiry = 0;
-};
+  init() {
+    if (this.initialized || typeof window === 'undefined') return;
 
-// Setup cache cleanup on page unload to prevent memory leaks
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', clearTokenCache);
-  // Also clear cache periodically to prevent stale data
-  setInterval(() => {
-    const now = Date.now();
-    if (tokenCacheExpiry && now > tokenCacheExpiry) {
-      clearTokenCache();
+    this.initialized = true;
+
+    // Setup cleanup on page unload
+    window.addEventListener('beforeunload', () => this.clear());
+
+    // Periodic cleanup to prevent memory leaks
+    this.cleanupInterval = setInterval(() => {
+      if (this.expiry && Date.now() > this.expiry) {
+        this.clear();
+      }
+    }, this.ttl);
+  }
+
+  get() {
+    if (!this.cache || Date.now() > this.expiry) {
+      return null;
     }
-  }, TOKEN_CACHE_TTL);
+    return this.cache;
+  }
+
+  set(token) {
+    if (token) {
+      this.cache = token;
+      this.expiry = Date.now() + this.ttl;
+    }
+  }
+
+  clear() {
+    this.cache = null;
+    this.expiry = 0;
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
 }
 
-// Function to get JWT Token from NextAuth session with caching
+// Global token cache instance
+const tokenCache = new TokenCache();
+
+// Function to get JWT Token from NextAuth session with optimized caching
 const getJwtToken = async () => {
   if (typeof window === 'undefined') return null;
 
+  // Initialize cache if needed
+  tokenCache.init();
+
   // Check cache first
-  const now = Date.now();
-  if (tokenCache && now < tokenCacheExpiry) {
-    return tokenCache;
+  const cachedToken = tokenCache.get();
+  if (cachedToken) {
+    return cachedToken;
   }
 
   try {
@@ -49,8 +82,7 @@ const getJwtToken = async () => {
 
     // Cache the token
     if (token) {
-      tokenCache = token;
-      tokenCacheExpiry = now + TOKEN_CACHE_TTL;
+      tokenCache.set(token);
     }
 
     return token;
@@ -82,6 +114,7 @@ const createSecureApiClient = () => {
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
+    timeout: 40000, // Increased timeout to 40 seconds
   });
 
   // Override standard methods to handle authentication
@@ -239,7 +272,7 @@ const createSecureApiClient = () => {
       // Enhanced 401 error handling for authentication issues
       if (error.response?.status === 401) {
         // Clear token cache on authentication failure
-        clearTokenCache();
+        tokenCache.clear();
 
         // Only log 401 errors in development or for debugging
         if (process.env.NODE_ENV === 'development') {

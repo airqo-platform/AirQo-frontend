@@ -4,17 +4,12 @@ import PermissionDenied from '@/common/components/PermissionDenied';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 import Button from '@/common/components/Button';
-import CardWrapper from '@/common/components/CardWrapper';
 import EmptyState from '@/common/components/EmptyState';
 import ErrorState from '@/common/components/ErrorState';
-import {
-  getGroupDetailsApi,
-  inviteUserToGroupTeam,
-  removeUserFromGroup,
-} from '@/core/apis/Account';
+import { getGroupDetailsApi, removeUserFromGroup } from '@/core/apis/Account';
 import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
-import { FaUserPlus, FaSearch } from 'react-icons/fa';
+import { FaUserPlus } from 'react-icons/fa';
 import logger from '@/lib/logger';
 import CustomToast from '@/components/Toast/CustomToast';
 
@@ -23,13 +18,10 @@ const OrganizationMembersPage = () => {
   const activeGroup = useSelector((state) => state.groups?.activeGroup);
 
   const [members, setMembers] = useState([]);
-  const [filteredMembers, setFilteredMembers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  // No search/filter state needed
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [inviteEmails, setInviteEmails] = useState(['']);
-  const [inviteLoading, setInviteLoading] = useState(false);
+  // InviteModal now manages its own invite state
   const [removeLoading, setRemoveLoading] = useState(false);
   const [error, setError] = useState(null);
   const [groupDetails, setGroupDetails] = useState(null);
@@ -62,7 +54,6 @@ const OrganizationMembersPage = () => {
         setGroupDetails(res.group);
         const users = res.group.grp_users || [];
         setMembers(users);
-        setFilteredMembers(users);
       } else {
         throw new Error(res.message || 'Invalid API response');
       }
@@ -108,74 +99,7 @@ const OrganizationMembersPage = () => {
     }
   };
 
-  const handleInviteMembers = async () => {
-    const groupId = getGroupId();
-    if (!groupId) {
-      CustomToast({ message: 'No group selected', type: 'warning' });
-      return;
-    }
-    const validEmails = inviteEmails.filter((e) => e.trim());
-    if (!validEmails.length) {
-      CustomToast({ message: 'Enter at least one email', type: 'warning' });
-      return;
-    }
-    const invalid = validEmails.filter(
-      (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e),
-    );
-    if (invalid.length) {
-      CustomToast({
-        message: `Invalid emails: ${invalid.join(', ')}`,
-        type: 'error',
-      });
-      return;
-    }
-
-    setInviteLoading(true);
-    try {
-      // API expects { emails: [...] }
-      const res = await inviteUserToGroupTeam(groupId, validEmails);
-      if (res.success) {
-        CustomToast({ message: 'Invitations sent!', type: 'success' });
-        setShowInviteModal(false);
-        setInviteEmails(['']);
-        await fetchMemberData();
-      } else {
-        throw new Error(res.message || 'Invite failed');
-      }
-    } catch (e) {
-      logger.error('Invite error', e);
-      // Extract API errors
-      const apiData = e.response?.data;
-      let msg = e.message;
-      if (apiData) {
-        if (Array.isArray(apiData.errors) && apiData.errors.length) {
-          msg = apiData.errors
-            .map((err) =>
-              Array.isArray(err.message) ? err.message.join(', ') : err.message,
-            )
-            .join('; ');
-        } else if (apiData.message) {
-          msg = apiData.message;
-        }
-      }
-      CustomToast({ message: msg, type: 'error' });
-    } finally {
-      setInviteLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const filtered = members.filter((m) => {
-      const name = `${m.firstName} ${m.lastName}`.toLowerCase();
-      const matchSearch =
-        name.includes(searchTerm.toLowerCase()) ||
-        m.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const status = m.isActive ? 'active' : 'inactive';
-      const matchStatus = statusFilter === 'all' || status === statusFilter;
-      return matchSearch && matchStatus;
-    });
-    setFilteredMembers(filtered);
-  }, [members, searchTerm, statusFilter]);
+  // InviteModal now handles all invite logic
 
   const formatLastActive = (m) => {
     if (!m.lastLogin) return 'Never';
@@ -242,32 +166,8 @@ const OrganizationMembersPage = () => {
         </Button>
       </div>
 
-      <CardWrapper>
-        <div className="flex gap-4">
-          <div className="relative flex-1">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 py-2 border rounded"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border rounded"
-          >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-      </CardWrapper>
-
       <MembersTable
-        members={filteredMembers}
+        members={members}
         isLoading={loading}
         onRemoveUser={handleRemoveUser}
         removeLoading={removeLoading}
@@ -278,11 +178,9 @@ const OrganizationMembersPage = () => {
       <InviteModal
         showInviteModal={showInviteModal}
         setShowInviteModal={setShowInviteModal}
-        inviteEmails={inviteEmails}
-        setInviteEmails={setInviteEmails}
-        handleInviteMembers={handleInviteMembers}
-        inviteLoading={inviteLoading}
         primaryColor={primaryColor}
+        groupId={getGroupId()}
+        onInvited={fetchMemberData}
       />
     </div>
   );

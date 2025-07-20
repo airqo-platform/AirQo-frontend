@@ -423,8 +423,8 @@ function DataTable({
                     key={item._id || idx}
                     className={`border-b py-4 ${
                       darkMode
-                        ? 'border-gray-700 hover:bg-gray-800'
-                        : 'border-gray-100 hover:bg-slate-50'
+                        ? 'border-gray-700 hover:bg-primary/10'
+                        : 'border-gray-100 hover:bg-primary/5'
                     }`}
                   >
                     {/* Checkbox column */}

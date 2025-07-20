@@ -99,10 +99,10 @@ export const setupUserSession = async (
     logger.info('Fetching user details...');
 
     // If we have a preferred group ID and are maintaining active group,
-    // add a small delay to allow API to propagate domain changes
+    // add a smaller delay to allow API to propagate domain changes
     if (preferredGroupId && (maintainActiveGroup || isDomainUpdate)) {
       logger.info('Waiting for API propagation after domain update...');
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Increased to 2 seconds for domain updates
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced from 2 seconds
     }
 
     const userRes = await getUserDetails(session.user.id);
@@ -144,8 +144,43 @@ export const setupUserSession = async (
       sessionOrgSlug,
       isDomainUpdate,
       preferredGroupId,
-    }); // Step 3b: Determine active group and redirect path based on login context
-    if (pathname.includes('/org/')) {
+    });
+
+    // Step 3b: Determine active group and redirect path based on login context
+    // SPECIAL CASE: If we're coming from the root page ("/") or this is a new tab opening,
+    // ALWAYS use AirQo group and redirect to /user/Home regardless of organization context
+    const isRootPageRedirect = pathname === '/' || !pathname;
+
+    if (isRootPageRedirect) {
+      // Force user flow with AirQo group for root page access
+      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
+      if (airqoGroup) {
+        activeGroup = airqoGroup;
+        logger.info('Root page redirect: Setting AirQo as active group', {
+          groupId: airqoGroup._id,
+          groupName: airqoGroup.grp_title || airqoGroup.grp_name,
+          loginContext: 'root_redirect',
+          pathname,
+        });
+      } else {
+        // Fallback if AirQo group not found - use first available group
+        activeGroup = user.groups[0];
+        logger.warn(
+          'Root page redirect: AirQo group not found, using first available group',
+          {
+            fallbackGroupId: activeGroup._id,
+            fallbackGroupName: activeGroup.grp_title || activeGroup.grp_name,
+            userGroups: user.groups.map((g) => ({
+              id: g._id,
+              name: g.grp_title || g.grp_name,
+            })),
+            loginContext: 'root_redirect',
+            pathname,
+          },
+        );
+      }
+      redirectPath = '/user/Home';
+    } else if (pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
       if (currentOrgSlug) {
@@ -505,17 +540,41 @@ export const setupUserSession = async (
     // Always set the loaded flag, even if no theme was found
     if (typeof window !== 'undefined') {
       try {
+        // Clear any existing theme data first
+        window.sessionStorage.removeItem('userTheme');
+        window.sessionStorage.removeItem('userThemeLoaded');
+
+        // Store the new theme
         if (userTheme) {
-          window.sessionStorage.setItem('userTheme', JSON.stringify(userTheme));
-          logger.info('User theme stored in sessionStorage:', userTheme);
+          // Ensure we have all required theme properties
+          const themeToStore = {
+            primaryColor: userTheme.primaryColor || '#145FFF',
+            mode: userTheme.mode || 'light',
+            interfaceStyle: userTheme.interfaceStyle || 'default',
+            contentLayout: userTheme.contentLayout || 'compact',
+          };
+
+          window.sessionStorage.setItem(
+            'userTheme',
+            JSON.stringify(themeToStore),
+          );
+          logger.info('User theme stored in sessionStorage:', themeToStore);
         } else {
           logger.info('No user theme to store, will use defaults');
         }
-        // Always set this flag to indicate theme loading is complete
+
+        // Set the loaded flag last to ensure complete theme data is ready
         window.sessionStorage.setItem('userThemeLoaded', 'true');
         logger.info('Theme loading flag set in sessionStorage');
       } catch (error) {
         logger.warn('Failed to store theme in session storage:', error);
+        // Attempt to clean up in case of partial success
+        try {
+          window.sessionStorage.removeItem('userTheme');
+          window.sessionStorage.removeItem('userThemeLoaded');
+        } catch (cleanupError) {
+          logger.warn('Failed to clean up theme storage:', cleanupError);
+        }
       }
     }
 

@@ -12,9 +12,12 @@ import {
   FaPalette,
   FaGripHorizontal,
   FaColumns,
+  FaSyncAlt,
 } from 'react-icons/fa';
+import { Tooltip } from 'flowbite-react';
 import { useTheme } from '../hooks/useTheme';
 import useUserTheme from '@/core/hooks/useUserTheme';
+import useOrganizationTheme from '@/core/hooks/useOrganizationTheme';
 import {
   THEME_MODES,
   THEME_SKINS,
@@ -49,7 +52,42 @@ export const ThemeSheet = memo(() => {
     updateThemeMode,
     updateInterfaceStyle,
     updateContentLayout,
+    updateUserTheme,
+    theme: userTheme,
   } = useUserTheme();
+
+  // Get organization theme
+  // Fix: useOrganizationTheme is a default export, not named
+  const { themeData: orgTheme } = useOrganizationTheme();
+
+  // Compare user and org theme for sync status
+  const isThemeInSync =
+    orgTheme && userTheme
+      ? orgTheme.primaryColor === userTheme.primaryColor &&
+        orgTheme.mode === userTheme.mode &&
+        orgTheme.interfaceStyle === userTheme.interfaceStyle &&
+        orgTheme.contentLayout === userTheme.contentLayout
+      : true;
+
+  // Reset handler
+  const handleResetToOrgTheme = useCallback(() => {
+    if (!orgTheme) return;
+    updateUserTheme(orgTheme, {
+      successMessage: 'Theme reset to organization defaults',
+    });
+    // Update UI immediately
+    setPrimaryColor(orgTheme.primaryColor);
+    toggleTheme(orgTheme.mode);
+    toggleSkin(orgTheme.interfaceStyle);
+    setLayout(orgTheme.contentLayout);
+  }, [
+    orgTheme,
+    updateUserTheme,
+    setPrimaryColor,
+    toggleTheme,
+    toggleSkin,
+    setLayout,
+  ]);
 
   const themeOptions = [
     { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
@@ -122,7 +160,7 @@ export const ThemeSheet = memo(() => {
 
   return (
     <div className="fixed inset-0 z-[10000]">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key="theme-sheet-overlay"
           initial={{ opacity: 0 }}
@@ -146,22 +184,60 @@ export const ThemeSheet = memo(() => {
         >
           {/* Header */}
           <header className="flex items-center justify-between p-4 border-b dark:border-neutral-800">
-            <h2
-              id="theme-sheet-title"
-              className="text-lg font-bold dark:text-white"
-            >
-              Theme Settings
-            </h2>
-            <button
-              onClick={closeThemeSheet}
-              className="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              aria-label="Close theme settings"
-            >
-              <FaTimes
-                className="text-neutral-600 dark:text-neutral-300"
-                size={18}
-              />
-            </button>
+            <div className="flex items-center gap-2">
+              <h2
+                id="theme-sheet-title"
+                className="text-lg font-bold dark:text-white"
+              >
+                Theme Settings
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Tooltip
+                content={
+                  isThemeInSync
+                    ? 'Theme matches organization settings'
+                    : 'Reset to organization theme'
+                }
+              >
+                <div className="relative">
+                  <button
+                    onClick={handleResetToOrgTheme}
+                    disabled={isThemeInSync}
+                    style={
+                      !isThemeInSync && orgTheme && orgTheme.primaryColor
+                        ? { color: orgTheme.primaryColor }
+                        : {}
+                    }
+                    className={`p-1.5 rounded-full transition-colors ${
+                      isThemeInSync
+                        ? 'text-neutral-400 dark:text-neutral-600 cursor-not-allowed'
+                        : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                    }`}
+                    aria-label="Reset to organization theme"
+                  >
+                    <FaSyncAlt size={16} />
+                    {/* Out-of-sync notification dot in top-right corner */}
+                    {!isThemeInSync && (
+                      <span
+                        className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 border border-white dark:border-neutral-900 rounded-full animate-pulse z-10"
+                        title="Your theme differs from the organization default"
+                      />
+                    )}
+                  </button>
+                </div>
+              </Tooltip>
+              <button
+                onClick={closeThemeSheet}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                aria-label="Close theme settings"
+              >
+                <FaTimes
+                  className="text-neutral-600 dark:text-neutral-300"
+                  size={16}
+                />
+              </button>
+            </div>
           </header>
 
           <div className="flex-1 p-4 space-y-6">

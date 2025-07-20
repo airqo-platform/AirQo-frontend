@@ -5,12 +5,8 @@ import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import UsersIcon from '@/icons/SideBar/UsersIcon';
 import UserIcon from '@/icons/Topbar/userIcon';
-import {
-  MdBusiness,
-  MdSecurity,
-  MdDescription,
-  MdDashboard,
-} from 'react-icons/md';
+import { MdBusiness, MdDescription, MdDashboard } from 'react-icons/md';
+import ShieldIcon from '@/icons/SideBar/ShieldIcon';
 import { checkAccess } from '@/core/HOC/authUtils';
 
 /**
@@ -156,7 +152,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: MdSecurity,
+      icon: ShieldIcon,
       path: '/admin/roles',
     },
     {
@@ -196,6 +192,18 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       label: 'Members',
       icon: UsersIcon,
       path: `/org/${orgSlug}/members`,
+    },
+    {
+      type: 'item',
+      label: 'Roles & Permissions',
+      icon: ShieldIcon,
+      path: `/org/${orgSlug}/roles-permissions`,
+      matcher: {
+        pattern: '/org/{slug}/roles-permissions',
+        orgSlug: orgSlug,
+        includeSubroutes: true,
+        exact: false,
+      },
     },
     {
       type: 'item',

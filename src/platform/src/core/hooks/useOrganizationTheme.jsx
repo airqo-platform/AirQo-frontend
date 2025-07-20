@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import useSWR from 'swr';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
@@ -8,6 +8,24 @@ import {
 } from '@/core/apis/Organizations';
 import logger from '@/lib/logger';
 
+// Constants
+const DEFAULT_THEME = {
+  primaryColor: '#3B82F6',
+  mode: 'light',
+  interfaceStyle: 'bordered',
+  contentLayout: 'compact',
+};
+
+const SWR_CONFIG = {
+  revalidateOnFocus: false,
+  revalidateOnReconnect: true,
+  dedupingInterval: 5000,
+  revalidateOnMount: true,
+  revalidateIfStale: true,
+  errorRetryCount: 3,
+  errorRetryInterval: 1000,
+};
+
 /**
  * Custom hook for managing organization theme preferences
  * Combines SWR-based theme management with Redux store access
@@ -16,48 +34,56 @@ import logger from '@/lib/logger';
 export const useOrganizationTheme = () => {
   const { id: activeGroupId } = useGetActiveGroup();
   const [isUpdating, setIsUpdating] = useState(false);
+  const isUnmountedRef = useRef(false);
 
   // Access organization theme from Redux store (default theme from login)
   const organizationTheme = useSelector((state) => state.organizationTheme);
 
-  // Create SWR key
-  const swrKey = activeGroupId ? `org-theme-${activeGroupId}` : null; // Fetcher function
+  // Memoized SWR key to prevent unnecessary re-renders
+  const swrKey = useMemo(
+    () => (activeGroupId ? `org-theme-${activeGroupId}` : null),
+    [activeGroupId],
+  );
+
+  // Memoized fetcher function with proper error handling
   const fetcher = useCallback(async () => {
     if (!activeGroupId) return null;
 
     try {
       const response = await getOrganizationThemePreferencesApi(activeGroupId);
 
-      // Handle different response formats
-      if (response && response.data) {
-        // If response has a data property, use it
+      // Standardize response format
+      if (response?.data) {
         return response.data;
-      } else if (response && response.primaryColor) {
-        // If response directly contains theme data
+      } else if (response?.primaryColor) {
         return response;
-      } else {
-        // Fallback - return whatever we got
+      } else if (response) {
         return response;
       }
+
+      return null;
     } catch (error) {
       logger.error('Error fetching organization theme:', error);
       throw error;
     }
   }, [activeGroupId]);
 
-  // Use SWR for data fetching
+  // Use SWR for data fetching with optimized configuration
   const {
     data: themeData,
     error,
     isLoading,
     mutate: mutateSWR,
-  } = useSWR(swrKey, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    dedupingInterval: 5000,
-  });
+  } = useSWR(swrKey, fetcher, SWR_CONFIG);
 
-  // Update theme preferences
+  // Safe state setter to prevent updates after unmount
+  const safeSetState = useCallback((setter, value) => {
+    if (!isUnmountedRef.current) {
+      setter(value);
+    }
+  }, []);
+
+  // Update theme preferences with optimistic updates
   const updateTheme = useCallback(
     async (newThemeData) => {
       if (!activeGroupId) {
@@ -68,25 +94,39 @@ export const useOrganizationTheme = () => {
         throw new Error('No current theme data available');
       }
 
-      setIsUpdating(true);
+      if (!newThemeData || typeof newThemeData !== 'object') {
+        throw new Error('Invalid theme data provided');
+      }
+
+      safeSetState(setIsUpdating, true);
+
       try {
+        // Optimistic update - immediately update UI
+        const optimisticData = { ...themeData, ...newThemeData };
+        await mutateSWR(optimisticData, false);
+
+        // Make API call
         const response = await updateOrganizationThemePreferencesApi(
           activeGroupId,
           themeData,
           newThemeData,
         );
 
-        // Optimistically update the local data
-        await mutateSWR(response.data || response, false);
+        // Update with actual response
+        const actualData = response?.data || response;
+        await mutateSWR(actualData, false);
+
         return response;
       } catch (error) {
         logger.error('Error updating organization theme:', error);
+        // Revert optimistic update on error
+        await mutateSWR();
         throw error;
       } finally {
-        setIsUpdating(false);
+        safeSetState(setIsUpdating, false);
       }
     },
-    [activeGroupId, themeData, mutateSWR],
+    [activeGroupId, themeData, mutateSWR, safeSetState],
   );
 
   // Refresh data
@@ -94,63 +134,82 @@ export const useOrganizationTheme = () => {
     return mutateSWR();
   }, [mutateSWR]);
 
-  // Helper functions for organization theme data from Redux
-  const hasOrganizationTheme = () => !!organizationTheme.organizationTheme;
+  // Memoized Redux theme selectors to prevent unnecessary re-renders
+  const reduxThemeData = useMemo(
+    () => ({
+      theme: organizationTheme.organizationTheme,
+      isLoading: organizationTheme.isLoading,
+      error: organizationTheme.error,
+      hasData: organizationTheme.hasData,
+    }),
+    [organizationTheme],
+  );
 
-  const getOrganizationPrimaryColor = () => {
-    return organizationTheme.organizationTheme?.primaryColor || '#3B82F6';
-  };
+  // Memoized helper functions
+  const themeHelpers = useMemo(
+    () => ({
+      hasOrganizationTheme: () => !!reduxThemeData.theme,
 
-  const getOrganizationThemeMode = () => {
-    return organizationTheme.organizationTheme?.mode || 'light';
-  };
+      getOrganizationPrimaryColor: () =>
+        reduxThemeData.theme?.primaryColor || DEFAULT_THEME.primaryColor,
 
-  const getOrganizationInterfaceStyle = () => {
-    return organizationTheme.organizationTheme?.interfaceStyle || 'bordered';
-  };
+      getOrganizationThemeMode: () =>
+        reduxThemeData.theme?.mode || DEFAULT_THEME.mode,
 
-  const getOrganizationContentLayout = () => {
-    return organizationTheme.organizationTheme?.contentLayout || 'compact';
-  };
+      getOrganizationInterfaceStyle: () =>
+        reduxThemeData.theme?.interfaceStyle || DEFAULT_THEME.interfaceStyle,
 
-  // Get full organization theme with defaults
-  const getOrganizationThemeWithDefaults = () => {
-    const defaultTheme = {
-      primaryColor: '#3B82F6',
-      mode: 'light',
-      interfaceStyle: 'bordered',
-      contentLayout: 'compact',
+      getOrganizationContentLayout: () =>
+        reduxThemeData.theme?.contentLayout || DEFAULT_THEME.contentLayout,
+
+      getOrganizationThemeWithDefaults: () =>
+        reduxThemeData.theme
+          ? { ...DEFAULT_THEME, ...reduxThemeData.theme }
+          : DEFAULT_THEME,
+    }),
+    [reduxThemeData.theme],
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isUnmountedRef.current = true;
     };
+  }, []);
 
-    return organizationTheme.organizationTheme
-      ? { ...defaultTheme, ...organizationTheme.organizationTheme }
-      : defaultTheme;
-  };
+  // Memoized return object to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      // SWR-based theme data (for updates)
+      themeData,
+      error,
+      isLoading,
+      isUpdating,
+      updateTheme,
+      refresh,
+      hasActiveGroup: !!activeGroupId,
 
-  return {
-    // SWR-based theme data (for updates)
-    themeData,
-    error,
-    isLoading,
-    isUpdating,
-    updateTheme,
-    refresh,
-    hasActiveGroup: !!activeGroupId,
+      // Redux-based organization theme data (default from login)
+      organizationTheme: reduxThemeData.theme,
+      organizationThemeLoading: reduxThemeData.isLoading,
+      organizationThemeError: reduxThemeData.error,
+      organizationThemeHasData: reduxThemeData.hasData,
 
-    // Redux-based organization theme data (default from login)
-    organizationTheme: organizationTheme.organizationTheme,
-    organizationThemeLoading: organizationTheme.isLoading,
-    organizationThemeError: organizationTheme.error,
-    organizationThemeHasData: organizationTheme.hasData,
-
-    // Helper functions
-    hasOrganizationTheme,
-    getOrganizationPrimaryColor,
-    getOrganizationThemeMode,
-    getOrganizationInterfaceStyle,
-    getOrganizationContentLayout,
-    getOrganizationThemeWithDefaults,
-  };
+      // Helper functions
+      ...themeHelpers,
+    }),
+    [
+      themeData,
+      error,
+      isLoading,
+      isUpdating,
+      updateTheme,
+      refresh,
+      activeGroupId,
+      reduxThemeData,
+      themeHelpers,
+    ],
+  );
 };
 
 export default useOrganizationTheme;
