@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose'
+import { NextRequest, NextResponse } from 'next/server'
 
 async function verifyToken(token: string): Promise<boolean> {
   try {
