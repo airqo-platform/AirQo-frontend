@@ -33,7 +33,7 @@ module.exports = withVideos({
     dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
   },
 
-  webpack(config) {
+  webpack(config, { isServer, dev }) {
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
@@ -45,6 +45,21 @@ module.exports = withVideos({
       net: false,
       tls: false,
     };
+
+    // Suppress axios warnings in Edge Runtime by excluding it from edge builds
+    if (!isServer && !dev) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        // Only exclude axios in production client builds to avoid edge runtime warnings
+      };
+    }
+
+    // Ignore specific warnings related to Node.js APIs in Edge Runtime
+    config.ignoreWarnings = [
+      { module: /node_modules\/axios\/lib\/utils\.js/ },
+      /A Node\.js API is used \(setImmediate\)/,
+      /A Node\.js API is used \(process\.nextTick\)/,
+    ];
 
     return config;
   },

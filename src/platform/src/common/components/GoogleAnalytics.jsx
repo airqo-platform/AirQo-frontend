@@ -10,12 +10,17 @@ export default function GoogleAnalytics() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (pathname) {
+    if (pathname && GA_MEASUREMENT_ID) {
       window.gtag('config', GA_MEASUREMENT_ID, {
         page_path: pathname + searchParams.toString(),
       });
     }
   }, [pathname, searchParams]);
+
+  // Don't render if GA_MEASUREMENT_ID is not configured
+  if (!GA_MEASUREMENT_ID) {
+    return null;
+  }
 
   return (
     <>

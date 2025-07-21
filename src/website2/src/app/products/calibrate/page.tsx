@@ -3,19 +3,29 @@ import type { Metadata } from 'next';
 import CalibratePage from '@/views/products/CalibratePage';
 
 export const metadata: Metadata = {
-  title: 'Air Quality Sensor Calibration Tools',
+  title: 'AirQalibrate | Advanced Air Quality Sensor Calibration',
   description:
-    "Ensure accurate air quality measurements with AirQo's specialized calibration tools and methodologies designed for the unique environmental conditions of African cities.",
+    'Ensure accuracy and reliability of air quality measurements with AirQalibrate - our specialized calibration platform designed for low-cost sensors in African environmental conditions.',
   keywords:
-    'air quality calibration, sensor calibration, pollution monitor calibration, AirQo calibration tools, environmental sensor accuracy, air quality measurement, African air monitoring',
+    'AirQalibrate, air quality calibration, sensor calibration, pollution monitor calibration, AirQo calibration tools, environmental sensor accuracy, air quality measurement accuracy, African air monitoring calibration',
   alternates: {
     canonical: 'https://airqo.net/products/calibrate',
   },
   openGraph: {
-    title: 'Air Quality Sensor Calibration Tools | AirQo Products',
+    type: 'website',
+    title: 'AirQalibrate | Advanced Air Quality Sensor Calibration',
     description:
-      "Ensure accurate air quality measurements with AirQo's specialized calibration tools for African environmental conditions.",
+      'Ensure accuracy and reliability of air quality measurements with AirQalibrate - our specialized calibration platform for low-cost sensors.',
     url: 'https://airqo.net/products/calibrate',
+    images: [
+      {
+        url: 'https://airqo.net/icon.png',
+        width: 1200,
+        height: 630,
+        alt: 'AirQalibrate Sensor Calibration Platform',
+      },
+    ],
+    siteName: 'AirQo',
   },
 };
 

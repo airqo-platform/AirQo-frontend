@@ -1,10 +1,11 @@
-import jwt_decode from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
 import Cookies from 'js-cookie';
 import {
   setUserInfo,
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
+import { setActiveGroup } from '@/lib/store/services/groups';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import logger from '../../lib/logger';
 
@@ -13,8 +14,8 @@ export const handleGoogleLoginFromCookie = async (dispatch, router) => {
     const token = Cookies.get('access_token');
     if (!token) throw new Error('No access_token found');
 
-    localStorage.setItem('token', token);
-    const decoded = jwt_decode(token);
+    // Note: Token is now managed by NextAuth session, not localStorage
+    const decoded = jwtDecode(token);
 
     // Fetch user
     const userRes = await getUserDetails(decoded._id);
@@ -41,9 +42,9 @@ export const handleGoogleLoginFromCookie = async (dispatch, router) => {
       );
     }
 
-    localStorage.setItem('loggedUser', JSON.stringify(user));
-    localStorage.setItem('activeGroup', JSON.stringify(activeGroup));
+    // Store in Redux instead of localStorage
     dispatch(setUserInfo(user));
+    dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));
     Cookies.remove('access_token');
     router.push('/');

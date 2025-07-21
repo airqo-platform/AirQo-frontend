@@ -12,8 +12,12 @@ import {
   FaPalette,
   FaGripHorizontal,
   FaColumns,
+  FaSyncAlt,
 } from 'react-icons/fa';
+import { Tooltip } from 'flowbite-react';
 import { useTheme } from '../hooks/useTheme';
+import useUserTheme from '@/core/hooks/useUserTheme';
+import useOrganizationTheme from '@/core/hooks/useOrganizationTheme';
 import {
   THEME_MODES,
   THEME_SKINS,
@@ -42,6 +46,49 @@ export const ThemeSheet = memo(() => {
     closeThemeSheet,
   } = useTheme();
 
+  // User theme hook for API integration
+  const {
+    updatePrimaryColor,
+    updateThemeMode,
+    updateInterfaceStyle,
+    updateContentLayout,
+    updateUserTheme,
+    theme: userTheme,
+  } = useUserTheme();
+
+  // Get organization theme
+  // Fix: useOrganizationTheme is a default export, not named
+  const { themeData: orgTheme } = useOrganizationTheme();
+
+  // Compare user and org theme for sync status
+  const isThemeInSync =
+    orgTheme && userTheme
+      ? orgTheme.primaryColor === userTheme.primaryColor &&
+        orgTheme.mode === userTheme.mode &&
+        orgTheme.interfaceStyle === userTheme.interfaceStyle &&
+        orgTheme.contentLayout === userTheme.contentLayout
+      : true;
+
+  // Reset handler
+  const handleResetToOrgTheme = useCallback(() => {
+    if (!orgTheme) return;
+    updateUserTheme(orgTheme, {
+      successMessage: 'Theme reset to organization defaults',
+    });
+    // Update UI immediately
+    setPrimaryColor(orgTheme.primaryColor);
+    toggleTheme(orgTheme.mode);
+    toggleSkin(orgTheme.interfaceStyle);
+    setLayout(orgTheme.contentLayout);
+  }, [
+    orgTheme,
+    updateUserTheme,
+    setPrimaryColor,
+    toggleTheme,
+    toggleSkin,
+    setLayout,
+  ]);
+
   const themeOptions = [
     { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
     { value: THEME_MODES.DARK, icon: FaMoon, label: 'Dark' },
@@ -63,9 +110,50 @@ export const ThemeSheet = memo(() => {
     },
   ];
 
+  // Enhanced handlers that sync with API
   const handleColorChange = useCallback(
-    (e) => setPrimaryColor(e.target.value),
-    [setPrimaryColor],
+    (e) => {
+      const newColor = e.target.value;
+      setPrimaryColor(newColor);
+      // Update via API in the background
+      updatePrimaryColor(newColor);
+    },
+    [setPrimaryColor, updatePrimaryColor],
+  );
+
+  const handlePresetColorClick = useCallback(
+    (color) => {
+      setPrimaryColor(color);
+      // Update via API in the background
+      updatePrimaryColor(color);
+    },
+    [setPrimaryColor, updatePrimaryColor],
+  );
+
+  const handleThemeToggle = useCallback(
+    (newTheme) => {
+      toggleTheme(newTheme);
+      // Update via API in the background
+      updateThemeMode(newTheme);
+    },
+    [toggleTheme, updateThemeMode],
+  );
+
+  const handleSkinToggle = useCallback(
+    (newSkin) => {
+      toggleSkin(newSkin);
+      // Update via API in the background
+      updateInterfaceStyle(newSkin);
+    },
+    [toggleSkin, updateInterfaceStyle],
+  );
+  const handleLayoutChange = useCallback(
+    (newLayout) => {
+      setLayout(newLayout);
+      // Update via API in the background
+      updateContentLayout(newLayout);
+    },
+    [setLayout, updateContentLayout],
   );
 
   if (!isThemeSheetOpen) return null;
@@ -74,6 +162,7 @@ export const ThemeSheet = memo(() => {
     <div className="fixed inset-0 z-[10000]">
       <AnimatePresence>
         <motion.div
+          key="theme-sheet-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.4 }}
           exit={{ opacity: 0 }}
@@ -83,6 +172,7 @@ export const ThemeSheet = memo(() => {
         />
 
         <motion.div
+          key="theme-sheet-content"
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
@@ -94,22 +184,60 @@ export const ThemeSheet = memo(() => {
         >
           {/* Header */}
           <header className="flex items-center justify-between p-4 border-b dark:border-neutral-800">
-            <h2
-              id="theme-sheet-title"
-              className="text-lg font-bold dark:text-white"
-            >
-              Theme Settings
-            </h2>
-            <button
-              onClick={closeThemeSheet}
-              className="p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              aria-label="Close theme settings"
-            >
-              <FaTimes
-                className="text-neutral-600 dark:text-neutral-300"
-                size={18}
-              />
-            </button>
+            <div className="flex items-center gap-2">
+              <h2
+                id="theme-sheet-title"
+                className="text-lg font-bold dark:text-white"
+              >
+                Theme Settings
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Tooltip
+                content={
+                  isThemeInSync
+                    ? 'Theme matches organization settings'
+                    : 'Reset to organization theme'
+                }
+              >
+                <div className="relative">
+                  <button
+                    onClick={handleResetToOrgTheme}
+                    disabled={isThemeInSync}
+                    style={
+                      !isThemeInSync && orgTheme && orgTheme.primaryColor
+                        ? { color: orgTheme.primaryColor }
+                        : {}
+                    }
+                    className={`p-1.5 rounded-full transition-colors ${
+                      isThemeInSync
+                        ? 'text-neutral-400 dark:text-neutral-600 cursor-not-allowed'
+                        : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                    }`}
+                    aria-label="Reset to organization theme"
+                  >
+                    <FaSyncAlt size={16} />
+                    {/* Out-of-sync notification dot in top-right corner */}
+                    {!isThemeInSync && (
+                      <span
+                        className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 border border-white dark:border-neutral-900 rounded-full animate-pulse z-10"
+                        title="Your theme differs from the organization default"
+                      />
+                    )}
+                  </button>
+                </div>
+              </Tooltip>
+              <button
+                onClick={closeThemeSheet}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                aria-label="Close theme settings"
+              >
+                <FaTimes
+                  className="text-neutral-600 dark:text-neutral-300"
+                  size={16}
+                />
+              </button>
+            </div>
           </header>
 
           <div className="flex-1 p-4 space-y-6">
@@ -121,13 +249,12 @@ export const ThemeSheet = memo(() => {
               <div className="flex items-center gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
-                    key={color}
-                    onClick={() => setPrimaryColor(color)}
+                    key={`preset-${color}`}
+                    onClick={() => handlePresetColorClick(color)}
                     className={`
-                      w-8 h-8 rounded-md flex items-center justify-center
-                      ${
+                      w-8 h-8 rounded-md flex items-center justify-center                      ${
                         primaryColor === color
-                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-primary'
+                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-[var(--org-primary,var(--color-primary,#145fff))]'
                           : 'hover:ring-1 hover:ring-neutral-300 dark:hover:ring-neutral-700'
                       }
                     `}
@@ -148,7 +275,7 @@ export const ThemeSheet = memo(() => {
                       w-8 h-8 rounded-md flex items-center justify-center bg-white dark:bg-neutral-800
                       ${
                         !PRESET_COLORS.includes(primaryColor)
-                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-primary'
+                          ? 'ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-[var(--org-primary,var(--color-primary,#145fff))]'
                           : 'hover:ring-1 hover:ring-neutral-300 dark:hover:ring-neutral-700'
                       }
                     `}
@@ -167,6 +294,23 @@ export const ThemeSheet = memo(() => {
                     aria-label="Pick a custom primary color"
                   />
                 </div>
+                {/* Render a button for the custom color if it's not in presets */}
+                {!PRESET_COLORS.includes(primaryColor) && primaryColor && (
+                  <button
+                    key={`custom-${primaryColor}`}
+                    className={`
+                      w-8 h-8 rounded-md flex items-center justify-center
+                      ring-2 ring-offset-1 dark:ring-offset-neutral-900 ring-[var(--org-primary,var(--color-primary,#145fff))]
+                    `}
+                    aria-label={`Custom color ${primaryColor}`}
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <span
+                      className="w-5 h-5 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                  </button>
+                )}
               </div>
             </section>
 
@@ -177,12 +321,11 @@ export const ThemeSheet = memo(() => {
                 {themeOptions.map(({ value, icon: Icon, label }) => (
                   <button
                     key={value}
-                    onClick={() => toggleTheme(value)}
+                    onClick={() => handleThemeToggle(value)}
                     className={`
-                      flex flex-col items-center p-2 rounded-md transition-all
-                      ${
+                      flex flex-col items-center p-2 rounded-md transition-all                      ${
                         theme === value
-                          ? 'bg-primary text-white'
+                          ? 'bg-[var(--org-primary,var(--color-primary,#145fff))] text-white'
                           : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                       }
                     `}
@@ -206,7 +349,7 @@ export const ThemeSheet = memo(() => {
                   ({ value, label, description, icon: Icon }) => (
                     <button
                       key={value}
-                      onClick={() => toggleSkin(value)}
+                      onClick={() => handleSkinToggle(value)}
                       className={`
                       w-full text-left p-3 rounded-md transition-all
                       ${
@@ -240,7 +383,7 @@ export const ThemeSheet = memo(() => {
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setLayout(THEME_LAYOUT.COMPACT)}
+                  onClick={() => handleLayoutChange(THEME_LAYOUT.COMPACT)}
                   className={`
                     flex flex-col items-center p-2 rounded-md transition-all
                     ${
@@ -256,7 +399,7 @@ export const ThemeSheet = memo(() => {
                 </button>
 
                 <button
-                  onClick={() => setLayout(THEME_LAYOUT.WIDE)}
+                  onClick={() => handleLayoutChange(THEME_LAYOUT.WIDE)}
                   className={`
                     flex flex-col items-center p-2 rounded-md transition-all
                     ${

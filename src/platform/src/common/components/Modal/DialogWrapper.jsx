@@ -1,6 +1,6 @@
 import React from 'react';
-import Button from '@/components/Button';
-import Card from '@/components/CardWrapper';
+import Button from '@/common/components/Button';
+import Card from '@/common/components/CardWrapper';
 
 export const DialogWrapper = ({
   children,
@@ -10,6 +10,8 @@ export const DialogWrapper = ({
   onClose,
   primaryButtonText = 'Submit',
   loading = false,
+  width = 'w-full max-w-[400px]',
+  footer,
 }) => {
   const handleCancel = () => {
     onClose();
@@ -23,7 +25,7 @@ export const DialogWrapper = ({
       } w-screen h-screen flex items-center justify-center`}
     >
       <Card
-        width="w-full max-w-[400px]"
+        width={width}
         height="h-auto"
         className="mx-auto p-2"
         contentClassName="overflow-hidden"
@@ -36,24 +38,27 @@ export const DialogWrapper = ({
             </div>
           )
         }
-        // Provide footer with Cancel and Submit buttons
         footer={
-          <div className="flex justify-end items-center gap-3 w-full">
-            <Button
-              onClick={handleCancel}
-              variant="outlined"
-              className="text-sm font-medium dark:bg-transparent"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant={loading ? 'disabled' : 'filled'}
-              className="text-sm font-medium"
-              onClick={handleClick}
-            >
-              {loading ? 'Loading...' : primaryButtonText}
-            </Button>
-          </div>
+          footer !== undefined ? (
+            footer
+          ) : (
+            <div className="flex justify-end items-center gap-3 w-full">
+              <Button
+                onClick={handleCancel}
+                variant="outlined"
+                className="text-sm font-medium dark:bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant={loading ? 'disabled' : 'filled'}
+                className="text-sm font-medium"
+                onClick={handleClick}
+              >
+                {loading ? 'Loading...' : primaryButtonText}
+              </Button>
+            </div>
+          )
         }
         headerProps={{ className: 'pb-4' }}
         footerProps={{ className: 'pt-4' }}

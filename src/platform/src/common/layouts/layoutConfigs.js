@@ -2,42 +2,42 @@
 export const LAYOUT_CONFIGS = {
   // Dashboard routes configuration
   DASHBOARD: {
-    '/Home': {
+    '/user/Home': {
       pageTitle: 'Home - AirQo Analytics',
       topbarTitle: 'Home',
       noBorderBottom: true,
       showSearch: false,
       noTopNav: false,
     },
-    '/analytics': {
+    '/user/analytics': {
       pageTitle: 'Analytics - AirQo Analytics',
       topbarTitle: 'Analytics',
       noBorderBottom: false,
       showSearch: true,
       noTopNav: false,
     },
-    '/settings': {
-      pageTitle: 'Settings - AirQo Analytics',
-      topbarTitle: 'Settings',
+    '/user/profile': {
+      pageTitle: 'Profile - AirQo Analytics',
+      topbarTitle: 'Profile',
       noBorderBottom: true,
       showSearch: false,
       noTopNav: false,
     },
-    '/collocation': {
+    '/user/collocation': {
       pageTitle: 'Collocation - AirQo Analytics',
       topbarTitle: 'Collocation',
       noBorderBottom: false,
       showSearch: false,
       noTopNav: false,
     },
-    '/collocation/overview': {
+    '/user/collocation/overview': {
       pageTitle: 'Collocation Overview - AirQo Analytics',
       topbarTitle: 'Collocation Overview',
       noBorderBottom: false,
       showSearch: false,
       noTopNav: false,
     },
-    '/collocation/collocate': {
+    '/user/collocation/collocate': {
       pageTitle: 'Collocate Devices - AirQo Analytics',
       topbarTitle: 'Collocate Devices',
       noBorderBottom: false,
@@ -45,35 +45,133 @@ export const LAYOUT_CONFIGS = {
       noTopNav: false,
     },
   },
-
   // Auth routes configuration
   AUTH: {
-    '/account/login': {
+    '/user/login': {
       pageTitle: 'Sign In - AirQo Analytics',
       rightText:
         'Welcome back! Sign in to access your AirQo Analytics dashboard and monitor air quality data.',
-      sideBackgroundColor: 'bg-blue-50 dark:bg-[#252627]',
+      sideBackgroundColor:
+        'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
     },
-    '/account/creation': {
+    '/user/creation': {
       pageTitle: 'Create Account - AirQo Analytics',
       rightText:
         'Join AirQo Analytics to start monitoring and analyzing air quality data in your area.',
-      sideBackgroundColor: 'bg-green-50 dark:bg-[#252627]',
+      sideBackgroundColor:
+        'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
     },
-    '/account/forgotPwd': {
+    '/user/forgotPwd': {
       pageTitle: 'Reset Password - AirQo Analytics',
       rightText:
         'Reset your password to regain access to your AirQo Analytics account.',
-      sideBackgroundColor: 'bg-orange-50 dark:bg-[#252627]',
+      sideBackgroundColor:
+        'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
     },
-  },
-
-  // Map routes configuration
+  }, // Map routes configuration
   MAP: {
-    '/map': {
+    '/user/map': {
       pageTitle: 'Air Quality Map - AirQo Analytics',
       topbarTitle: 'Air Quality Map',
       noBorderBottom: true,
+      showSearch: true,
+      noTopNav: false,
+    },
+  },
+  // Organization routes configuration
+  ORGANIZATION: {
+    // Dashboard routes
+    '/org/[org_slug]/dashboard': {
+      pageTitle: 'Dashboard - Organization Analytics',
+      topbarTitle: 'Dashboard',
+      noBorderBottom: true,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/insights': {
+      pageTitle: 'Insights - Organization Analytics',
+      topbarTitle: 'Data Insights',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/profile': {
+      pageTitle: 'Profile - Organization Analytics',
+      topbarTitle: 'Profile',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/settings': {
+      pageTitle: 'Settings - Organization Analytics',
+      topbarTitle: 'Settings',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/members': {
+      pageTitle: 'Members - Organization Analytics',
+      topbarTitle: 'Members',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+  },
+  // Admin routes configuration
+  ADMIN: {
+    '/admin': {
+      pageTitle: 'Admin Dashboard - AirQo Analytics',
+      topbarTitle: 'Admin Dashboard',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/organisations': {
+      pageTitle: 'Organizations - Admin Panel',
+      topbarTitle: 'Organizations',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/organisations/requests': {
+      pageTitle: 'Organization Requests - Admin Panel',
+      topbarTitle: 'Organization Requests',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/analytics': {
+      pageTitle: 'System Analytics - Admin Panel',
+      topbarTitle: 'System Analytics',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/users': {
+      pageTitle: 'User Management - Admin Panel',
+      topbarTitle: 'Users',
+      noBorderBottom: false,
+      showSearch: true,
+      noTopNav: false,
+    },
+    '/admin/roles': {
+      pageTitle: 'Roles & Permissions - Admin Panel',
+      topbarTitle: 'Roles & Permissions',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/settings': {
+      pageTitle: 'System Settings - Admin Panel',
+      topbarTitle: 'System Settings',
+      noBorderBottom: false,
+      showSearch: false,
+      noTopNav: false,
+    },
+    '/admin/activity-logs': {
+      pageTitle: 'Activity Logs - Admin Panel',
+      topbarTitle: 'Activity Logs',
+      noBorderBottom: false,
       showSearch: true,
       noTopNav: false,
     },
@@ -93,13 +191,28 @@ export const DEFAULT_CONFIGS = {
     pageTitle: 'AirQo Analytics',
     rightText:
       'Access your AirQo Analytics account to monitor air quality data.',
-    sideBackgroundColor: 'bg-blue-50 dark:bg-[#252627]',
+    sideBackgroundColor:
+      'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[#252627]',
   },
   MAP: {
     pageTitle: 'Map - AirQo Analytics',
     topbarTitle: 'Air Quality Map',
     noBorderBottom: true,
     showSearch: true,
+    noTopNav: false,
+  },
+  ORGANIZATION: {
+    pageTitle: 'Organization Analytics',
+    topbarTitle: 'Dashboard',
+    noBorderBottom: false,
+    showSearch: false,
+    noTopNav: false,
+  },
+  ADMIN: {
+    pageTitle: 'Admin Panel - AirQo Analytics',
+    topbarTitle: 'Admin Panel',
+    noBorderBottom: false,
+    showSearch: false,
     noTopNav: false,
   },
 };

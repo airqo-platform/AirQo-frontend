@@ -9,35 +9,43 @@ import {
 } from '../apis/Analytics';
 import { format } from 'date-fns';
 import { ANALYTICS_SWR_CONFIG, SWR_CONFIG } from '../swrConfigs';
+import logger from '../../lib/logger';
 
-// Util Methods
-/**
- * Format date to API required format
- * @param {Date|string} date - Date to format
- * @returns {string|null} - Formatted date string or null if date is invalid
- */
-const formatDate = (date) => {
-  if (!date) return null;
+// Optimized date formatting with memoization
+const formatDate = (() => {
+  const cache = new Map();
 
-  try {
-    // Ensure we're working with a Date object
-    const dateObj = date instanceof Date ? date : new Date(date);
+  return (date) => {
+    if (!date) return null;
 
-    // Check if date is valid
-    if (isNaN(dateObj.getTime())) return null;
+    // Create cache key
+    const key = date instanceof Date ? date.getTime() : date;
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
 
-    return format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return null;
-  }
-};
+    try {
+      const dateObj = date instanceof Date ? date : new Date(date);
+      if (isNaN(dateObj.getTime())) return null;
 
-/**
- * Custom SWR key generator for analytics data
- * @param {Object} params - Analytics parameters
- * @returns {Array|null} - SWR key array or null if params are invalid
- */
+      const formatted = format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+      // Cache result (limit cache size)
+      if (cache.size > 100) {
+        const firstKey = cache.keys().next().value;
+        cache.delete(firstKey);
+      }
+      cache.set(key, formatted);
+
+      return formatted;
+    } catch (error) {
+      logger.error('Error formatting date:', error);
+      return null;
+    }
+  };
+})();
+
+// Optimized analytics key generator with stable sorting
 const getAnalyticsKey = (params) => {
   const {
     selectedSiteIds,
@@ -60,16 +68,17 @@ const getAnalyticsKey = (params) => {
   const startDateFormatted = formatDate(dateRange.startDate);
   const endDateFormatted = formatDate(dateRange.endDate);
 
-  // Skip fetch if dates couldn't be formatted properly
   if (!startDateFormatted || !endDateFormatted) {
     return null;
   }
 
-  // Optimize key generation for better cache hits
+  // Create stable key with sorted site IDs
+  const sortedSiteIds = [...selectedSiteIds].sort().join(',');
+
+  // Return more concise key
   return [
     'analytics',
-    // Sort site IDs to ensure consistent cache keys regardless of order
-    JSON.stringify([...selectedSiteIds].sort()),
+    sortedSiteIds,
     startDateFormatted,
     endDateFormatted,
     chartType || 'line',
@@ -88,8 +97,15 @@ const getAnalyticsKey = (params) => {
 export const useSitesSummary = (group, options = {}) => {
   const { data, error, isLoading, mutate } = useSWR(
     group ? ['sites-summary', group] : null,
-    async () => await getSitesSummaryApi({ group }),
-    { ...SWR_CONFIG, ...options },
+    async () => {
+      const result = await getSitesSummaryApi({ group });
+      return result;
+    },
+    {
+      ...SWR_CONFIG,
+      revalidateOnMount: true,
+      ...options,
+    },
   );
 
   return {
@@ -110,8 +126,15 @@ export const useSitesSummary = (group, options = {}) => {
 export const useDeviceSummary = (group = null, options = {}) => {
   const { data, error, isLoading, mutate } = useSWR(
     ['device-summary', group],
-    async () => await getDeviceSummaryApi({ group }),
-    { ...SWR_CONFIG, ...options },
+    async () => {
+      const result = await getDeviceSummaryApi({ group });
+      return result;
+    },
+    {
+      ...SWR_CONFIG,
+      revalidateOnMount: true,
+      ...options,
+    },
   );
 
   return {
@@ -132,8 +155,15 @@ export const useDeviceSummary = (group = null, options = {}) => {
 export const useGridSummary = (admin_level = null, options = {}) => {
   const { data, error, isLoading, mutate } = useSWR(
     ['grid-summary', admin_level],
-    async () => await getGridSummaryApi({ admin_level }),
-    { ...SWR_CONFIG, ...options },
+    async () => {
+      const result = await getGridSummaryApi({ admin_level });
+      return result;
+    },
+    {
+      ...SWR_CONFIG,
+      revalidateOnMount: true,
+      ...options,
+    },
   );
 
   return {
@@ -179,7 +209,6 @@ export const useAnalyticsData = (params, options = {}) => {
     pollutant,
     organisationName,
   });
-
   // Use SWR for data fetching with caching
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
@@ -206,7 +235,7 @@ export const useAnalyticsData = (params, options = {}) => {
         const result = await getAnalyticsDataApi({ body: requestBody });
         return result;
       } catch (error) {
-        console.error('Error in analytics data fetcher:', error);
+        logger.error('Error in analytics data fetcher:', error);
         throw error; // Re-throw to let SWR handle error state
       }
     },
@@ -253,8 +282,14 @@ export const useRecentMeasurements = (params, options = {}) => {
 export const useSiteAndDeviceIds = (grid_id) => {
   const { data, error, isLoading, mutate } = useSWR(
     grid_id ? ['site-and-device-ids', grid_id] : null,
-    () => generateSiteAndDeviceIds(grid_id),
-    { ...SWR_CONFIG },
+    async () => {
+      const result = await generateSiteAndDeviceIds(grid_id);
+      return result;
+    },
+    {
+      ...SWR_CONFIG,
+      revalidateOnMount: true,
+    },
   );
 
   return {

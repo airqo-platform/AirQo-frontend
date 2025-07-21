@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ArrowDownIcon from '@/icons/Common/arrow_down';
 import ArrowUpIcon from '@/icons/Common/arrow_up';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import moment from 'moment';
 import { isEmpty } from 'underscore';
 import Spinner from '@/components/Spinner';
@@ -67,7 +67,7 @@ const CustomTable = ({
       >
         <colgroup>
           <col className="w-[61px]" />
-          {headers.map((header, columnIndex) => (
+          {headers.map((header) => (
             <col
               key={header}
               style={{ width: `${size - 61 / headers.length}%` }}

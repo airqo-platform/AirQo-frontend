@@ -1,7 +1,114 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import jwtDecode from 'jwt-decode';
+import logger from '@/lib/logger';
+import {
+  getApiBaseUrl,
+  getApiToken,
+  getNextAuthSecret,
+} from '@/lib/envConstants';
+
+// Centralized login redirect logic
+export const getLoginRedirectPath = (pathname, orgSlug = null) => {
+  if (pathname?.includes('/org/')) {
+    const extractedSlug =
+      orgSlug || pathname.match(/^\/org\/([^/]+)/)?.[1] || 'airqo';
+    // Special case: if orgSlug is 'airqo', redirect to user login
+    return extractedSlug === 'airqo'
+      ? '/user/login'
+      : `/org/${extractedSlug}/login`;
+  }
+  return '/user/login';
+};
+
+// Centralized error handling for API calls
+const handleApiError = async (response) => {
+  let errorMessage = 'Authentication failed';
+
+  try {
+    const errorBody = await response.text();
+    logger.info('[NextAuth] Error response body:', errorBody);
+
+    try {
+      const errorData = JSON.parse(errorBody);
+      errorMessage =
+        errorData?.message || `HTTP ${response.status}: ${errorBody}`;
+    } catch {
+      errorMessage = `HTTP ${response.status}: ${errorBody}`;
+    }
+  } catch {
+    errorMessage = `HTTP ${response.status}: Failed to read error response`;
+  }
+
+  logger.error('[NextAuth] API Error:', errorMessage);
+  return errorMessage;
+};
+
+// Centralized user object creation
+const createUserObject = (data, decodedToken, credentials) => ({
+  id: data._id,
+  userName: data.userName,
+  email: data.email,
+  token: data.token,
+  firstName: decodedToken.firstName,
+  lastName: decodedToken.lastName,
+  organization: decodedToken.organization,
+  long_organization: decodedToken.long_organization,
+  privilege: decodedToken.privilege,
+  country: decodedToken.country,
+  profilePicture: decodedToken.profilePicture,
+  phoneNumber: decodedToken.phoneNumber,
+  createdAt: decodedToken.createdAt,
+  updatedAt: decodedToken.updatedAt,
+  rateLimit: decodedToken.rateLimit,
+  lastLogin: decodedToken.lastLogin,
+  iat: decodedToken.iat,
+  requestedOrgSlug: credentials.orgSlug || null,
+  isOrgLogin: !!credentials.orgSlug,
+});
+
+// Centralized token transfer logic
+const transferTokenDataToSession = (target, token) => {
+  const tokenFields = [
+    'id',
+    'userName',
+    'email',
+    'firstName',
+    'lastName',
+    'organization',
+    'long_organization',
+    'privilege',
+    'country',
+    'profilePicture',
+    'phoneNumber',
+    'createdAt',
+    'updatedAt',
+    'rateLimit',
+    'lastLogin',
+    'iat',
+    'requestedOrgSlug',
+    'isOrgLogin',
+  ];
+
+  tokenFields.forEach((field) => {
+    if (token[field] !== undefined) {
+      target[field] = token[field];
+    }
+  });
+
+  // Handle special fields for session
+  if (target !== token) {
+    target.accessToken = token.accessToken;
+    if (target.user) {
+      target.orgSlug = token.requestedOrgSlug;
+      target.isOrgLogin = token.isOrgLogin;
+    }
+  }
+
+  return target;
+};
 
 export const options = {
+  secret: getNextAuthSecret() || 'fallback-secret-for-development',
   providers: [
     CredentialsProvider({
       id: 'credentials',
@@ -9,159 +116,118 @@ export const options = {
       credentials: {
         userName: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        orgSlug: { label: 'Organization', type: 'text', required: false },
       },
       async authorize(credentials) {
         if (!credentials?.userName || !credentials?.password) {
           throw new Error('Email and password are required');
         }
+
         try {
-          // Use server-side API_BASE_URL for NextAuth (server-side context)
-          const API_BASE_URL =
-            process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
-          if (!API_BASE_URL) {
+          const baseUrl = getApiBaseUrl();
+          if (!baseUrl) {
+            logger.error(
+              '[NextAuth] Environment Error: API base URL not configured',
+            );
             throw new Error(
-              'Neither API_BASE_URL nor NEXT_PUBLIC_API_BASE_URL environment variable is defined',
+              'Authentication service is temporarily unavailable. Please try again later.',
             );
           }
 
-          // Remove trailing slash and properly construct URL
-          const baseUrl = API_BASE_URL.replace(/\/$/, '');
-          const url = new URL(`${baseUrl}/users/loginUser`);
-
-          // Add API token if available (some endpoints might require it)
-          const API_TOKEN = process.env.API_TOKEN;
-          if (API_TOKEN) {
-            url.searchParams.append('token', API_TOKEN);
+          let url;
+          try {
+            url = new URL(`${baseUrl}/users/loginUser`);
+          } catch (urlError) {
+            logger.error(
+              '[NextAuth] URL Error:',
+              `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`,
+            );
+            throw new Error(
+              'Authentication service configuration error. Please try again later.',
+            );
           }
 
-          // Call your existing API endpoint
+          const apiToken = getApiToken();
+          if (apiToken) {
+            url.searchParams.append('token', apiToken);
+          }
+
+          const headers = { 'Content-Type': 'application/json' };
+
+          logger.info('[NextAuth] Making API request to:', url.toString());
+          logger.info('[NextAuth] Request payload:', {
+            userName: credentials.userName,
+            password: '***HIDDEN***',
+          });
+
           const response = await fetch(url.toString(), {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               userName: credentials.userName,
               password: credentials.password,
             }),
           });
 
-          // Check if response is JSON before parsing
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            // Get response text to see what was actually returned
-            const responseText = await response.text();
+          logger.info('[NextAuth] API Response status:', response.status);
 
-            throw new Error(
-              `API returned ${response.status} ${response.statusText}. Expected JSON but got ${contentType}. Response: ${responseText.substring(0, 200)}...`,
-            );
+          if (!response.ok) {
+            const errorMessage = await handleApiError(response);
+            throw new Error(errorMessage);
           }
 
           const data = await response.json();
+          logger.info('[NextAuth] API Response data:', {
+            hasToken: !!data.token,
+            userId: data._id,
+            userName: data.userName,
+            email: data.email,
+          });
 
-          if (!response.ok) {
-            throw new Error(data.message || 'Authentication failed');
+          if (!data?.token) {
+            logger.error('[NextAuth] No token received from API');
+            throw new Error('No authentication token received from server');
           }
 
-          if (data && data.token) {
-            // Decode the JWT to get user information
-            const decodedToken = jwtDecode(data.token);
-
-            return {
-              id: data._id,
-              userName: data.userName,
-              email: data.email,
-              token: data.token,
-              // Add decoded token data
-              firstName: decodedToken.firstName,
-              lastName: decodedToken.lastName,
-              organization: decodedToken.organization,
-              long_organization: decodedToken.long_organization,
-              privilege: decodedToken.privilege, // TODO:REMOVE
-              country: decodedToken.country,
-              profilePicture: decodedToken.profilePicture,
-              phoneNumber: decodedToken.phoneNumber,
-              createdAt: decodedToken.createdAt,
-              updatedAt: decodedToken.updatedAt,
-              rateLimit: decodedToken.rateLimit,
-              lastLogin: decodedToken.lastLogin,
-              iat: decodedToken.iat,
-            };
+          let decodedToken;
+          try {
+            decodedToken = jwtDecode(data.token);
+          } catch (jwtError) {
+            logger.error('[NextAuth] JWT decode error:', jwtError.message);
+            throw new Error('Invalid token received from API');
           }
 
-          throw new Error('Invalid credentials');
+          return createUserObject(data, decodedToken, credentials);
         } catch (error) {
           throw new Error(error.message || 'Authentication failed');
         }
       },
     }),
   ],
+
   pages: {
-    signIn: '/account/login',
-    signOut: '/account/login',
-    error: '/account/login',
+    signIn: '/user/login',
+    signOut: '/user/login',
+    error: '/user/login',
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  session: {
-    strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
-  },
+
   callbacks: {
     async jwt({ token, user }) {
-      // Persist the OAuth access_token and user data to the token right after signin
       if (user) {
-        token.id = user.id;
-        token.userName = user.userName;
-        token.email = user.email;
+        transferTokenDataToSession(token, user);
         token.accessToken = user.token;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.organization = user.organization;
-        token.long_organization = user.long_organization;
-        token.privilege = user.privilege;
-        token.country = user.country;
-        token.profilePicture = user.profilePicture;
-        token.phoneNumber = user.phoneNumber;
-        token.createdAt = user.createdAt;
-        token.updatedAt = user.updatedAt;
-        token.rateLimit = user.rateLimit;
-        token.lastLogin = user.lastLogin;
-        token.iat = user.iat;
       }
-
-      // Check if token is expired
-      if (token.iat && Date.now() / 1000 > token.iat + 24 * 60 * 60) {
-        // Token is expired, return null to force logout
-        return null;
-      }
-
       return token;
     },
+
     async session({ session, token }) {
-      // Send properties to the client
       if (token) {
-        session.user.id = token.id;
-        session.user.userName = token.userName;
-        session.user.email = token.email;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
-        session.user.organization = token.organization;
-        session.user.long_organization = token.long_organization;
-        session.user.privilege = token.privilege;
-        session.user.country = token.country;
-        session.user.profilePicture = token.profilePicture;
-        session.user.phoneNumber = token.phoneNumber;
-        session.user.createdAt = token.createdAt;
-        session.user.updatedAt = token.updatedAt;
-        session.user.rateLimit = token.rateLimit;
-        session.user.lastLogin = token.lastLogin;
-        session.accessToken = token.accessToken;
-        session.iat = token.iat;
+        transferTokenDataToSession(session.user, token);
+        transferTokenDataToSession(session, token);
       }
       return session;
     },
   },
 };
 
-// Export authOptions for middleware compatibility
 export const authOptions = options;

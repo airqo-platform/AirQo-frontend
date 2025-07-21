@@ -1,0 +1,309 @@
+/* Modal Responsive Styles */
+
+/* Base modal container improvements */
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  height: 85vh;
+  max-height: 800px;
+  min-height: 500px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Mobile adjustments for modal container */
+@media (max-width: 640px) {
+  .modal-container {
+    height: 95vh;
+    max-height: 95vh;
+    min-height: 400px;
+    margin: 0.5rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .modal-container {
+    height: 90vh;
+    max-height: 700px;
+    min-height: 450px;
+  }
+}
+
+/* Responsive modal content */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Sidebar responsive improvements */
+.modal-sidebar {
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Main content area */
+.modal-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Scrollable content area */
+.modal-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* Mobile specific improvements */
+@media (max-width: 640px) {
+  .modal-sidebar {
+    max-height: 40vh;
+  }
+
+  .modal-mobile-btn {
+    padding: 0.5rem 0.75rem;
+    background-color: #f3f4f6;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  .modal-mobile-btn:hover {
+    background-color: #e5e7eb;
+  }
+
+  .dark .modal-mobile-btn {
+    background-color: #374151;
+  }
+
+  .dark .modal-mobile-btn:hover {
+    background-color: #4b5563;
+  }
+}
+
+/* Tablet specific improvements */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .modal-sidebar {
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+  }
+}
+
+/* Desktop specific improvements */
+@media (min-width: 1024px) {
+  .modal-sidebar {
+    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
+  }
+}
+
+/* Chart container responsive */
+.chart-container {
+  height: 350px;
+  min-height: 300px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .chart-container {
+    height: 400px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chart-container {
+    height: 400px;
+  }
+}
+
+/* Footer responsive */
+.modal-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .modal-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+.dark .modal-footer {
+  border-top-color: #374151;
+  background-color: #1f2937;
+}
+
+/* Button group responsive */
+.button-group {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .button-group {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+}
+
+/* Text overflow handling */
+.modal-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Loading states */
+.modal-loading-skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.dark .modal-loading-skeleton {
+  background-color: #374151;
+}
+
+/* Animation improvements */
+.modal-fade-in {
+  animation: modalFadeIn 0.3s ease-out forwards;
+}
+
+.modal-slide-in {
+  animation: modalSlideIn 0.3s ease-out forwards;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Accessibility improvements */
+.modal-focus-trap {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modal-container {
+    border: 2px solid;
+  }
+
+  .modal-footer {
+    border-top-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .modal-fade-in,
+  .modal-slide-in {
+    animation: none;
+  }
+}
+
+/* Additional responsive fixes */
+
+/* Ensure sidebar borders extend full height */
+.modal-sidebar-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fixed dimensions for consistent modal experience */
+.modal-fixed-dimensions {
+  width: 100%;
+  max-width: 1200px;
+  height: 85vh;
+  max-height: 800px;
+  min-height: 500px;
+}
+
+/* Content area scrolling */
+.modal-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* Sidebar specific styles */
+.modal-sidebar-content {
+  width: 240px;
+  height: 100%;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.dark .modal-sidebar-content {
+  border-right-color: #374151;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .modal-fixed-dimensions {
+    height: 95vh;
+    max-height: 95vh;
+    min-height: 400px;
+    margin: 0.5rem;
+  }
+
+  .modal-sidebar-content {
+    width: 100%;
+  }
+}
+
+/* Tablet responsive adjustments */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .modal-fixed-dimensions {
+    height: 90vh;
+    max-height: 700px;
+    min-height: 450px;
+  }
+
+  .modal-sidebar-content {
+    width: 220px;
+  }
+}

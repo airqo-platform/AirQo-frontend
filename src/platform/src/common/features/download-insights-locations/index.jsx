@@ -4,14 +4,15 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
 import PropTypes from 'prop-types';
-import DataDownload, { DownloadDataHeader } from './modules/DataDownload';
-import AddLocations, { AddLocationHeader } from './modules/AddLocations';
-import MoreInsights, { InSightsHeader } from './modules/MoreInsights';
+import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
+import { AddLocations, AddLocationHeader } from './add-locations/AddLocations';
+import MoreInsights, { InSightsHeader } from './more-insights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
 import Search, { AddSearchHeader } from './modules/Search';
 import SelectMore, { SelectMoreHeader } from './modules/SelectMore';
-import { useTheme } from '@/features/theme-customizer/hooks/useTheme';
+import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import './styles/modal-responsive.css';
 
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
@@ -71,19 +72,24 @@ const Modal = ({ isOpen, onClose }) => {
       transition: { duration: 0.2 },
     },
   };
-
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50">
-          <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div className="absolute inset-0 bg-gray-500 opacity-60"></div>
-          </div>
+        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
+            onClick={onClose}
+            aria-label="Close organization selection modal"
+          />
           <motion.div
             {...modalAnimationConfig}
-            className="w-full max-w-5xl lg:h-[80vh] max-h-[90vh] bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative mx-2 lg:mx-0"
+            className="modal-container w-full max-w-6xl bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative 
+                       h-[85vh] max-h-[800px] min-h-[500px]
+                       flex flex-col"
           >
-            <div className="flex items-center justify-between py-4 px-5 border-b border-gray-300 dark:border-gray-700">
+            {/* Fixed Header */}
+            <div className="flex items-center justify-between py-3 sm:py-4 px-4 sm:px-5 border-b border-gray-300 dark:border-gray-700 flex-shrink-0">
               <ModalHeader />
               <button
                 type="button"
@@ -95,13 +101,9 @@ const Modal = ({ isOpen, onClose }) => {
                 <span className="sr-only">Close Modal</span>
               </button>
             </div>
-            <div
-              className="relative overflow-y-auto dark:text-white"
-              style={{
-                maxHeight: 'calc(90vh - 65px)',
-                height: 'calc(80vh - 65px)',
-              }}
-            >
+
+            {/* Scrollable Content */}
+            <div className="modal-content flex-1 overflow-hidden dark:text-white">
               <ModalBody onClose={onClose} />
             </div>
           </motion.div>

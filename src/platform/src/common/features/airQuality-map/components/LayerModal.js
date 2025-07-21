@@ -7,54 +7,56 @@ import Card from '@/components/CardWrapper';
  * Option component for rendering each selectable option.
  * Uses React.memo to prevent unnecessary re-renders.
  */
-const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
-  const handleClick = useCallback(() => {
-    if (!disabled) {
-      try {
-        onSelect();
-      } catch (error) {
-        console.error('Error in Option onSelect handler:', error);
+const Option = memo(
+  ({ isSelected, children, onSelect, image, disabled = false }) => {
+    const handleClick = useCallback(() => {
+      if (!disabled) {
+        try {
+          onSelect();
+        } catch (error) {
+          console.error('Error in Option onSelect handler:', error);
+        }
       }
-    }
-  }, [onSelect, disabled]);
+    }, [onSelect, disabled]);
 
-  const containerClasses = `
+    const containerClasses = `
     flex flex-col items-center space-y-2 
     transition-all duration-300 ease-in-out
     ${isSelected ? 'scale-105' : 'hover:scale-105'} 
     ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
   `;
 
-  const imageContainerClasses = `
+    const imageContainerClasses = `
     relative w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 
     transition-all duration-300 ease-in-out
-    ${isSelected ? 'border-blue-500 ring-4 ring-blue-100' : 'border-gray-300'}
+    ${isSelected ? 'border-[var(--org-primary,var(--color-primary,#145fff))] ring-4 ring-[var(--org-primary-100,rgba(20,95,255,0.2))]' : 'border-gray-300'}
   `;
 
-  return (
-    <button
-      onClick={handleClick}
-      className={containerClasses}
-      disabled={disabled}
-      aria-pressed={isSelected}
-      type="button"
-    >
-      <div className={imageContainerClasses}>
-        {' '}
-        <Image
-          src={image}
-          alt={`${children} option`}
-          fill
-          style={{ objectFit: 'cover' }}
-          className="rounded-lg"
-          loading="eager"
-          priority={isSelected}
-        />
-      </div>
-      <span className="text-sm font-medium">{children}</span>
-    </button>
-  );
-});
+    return (
+      <button
+        onClick={handleClick}
+        className={containerClasses}
+        disabled={disabled}
+        aria-pressed={isSelected}
+        type="button"
+      >
+        <div className={imageContainerClasses}>
+          {' '}
+          <Image
+            src={image}
+            alt={`${children} option`}
+            fill
+            style={{ objectFit: 'cover' }}
+            className="rounded-lg"
+            loading="eager"
+            priority={isSelected}
+          />
+        </div>
+        <span className="text-sm font-medium">{children}</span>
+      </button>
+    );
+  },
+);
 
 Option.displayName = 'Option';
 
@@ -64,10 +66,6 @@ Option.propTypes = {
   onSelect: PropTypes.func.isRequired,
   image: PropTypes.string.isRequired,
   disabled: PropTypes.bool,
-};
-
-Option.defaultProps = {
-  disabled: false,
 };
 
 /**
@@ -81,7 +79,7 @@ const LayerModal = ({
   onStyleSelect,
   mapStyles,
   mapDetails,
-  disabled,
+  disabled = '',
 }) => {
   // Find the Streets option by default or use the first style
   const defaultStyle =
@@ -218,7 +216,7 @@ const LayerModal = ({
             onClick={handleApply}
             className={`
               px-4 py-2 rounded-md text-white transition-colors
-              ${hasChanges ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-400'}
+              ${hasChanges ? 'bg-[var(--org-primary,var(--color-primary,#145fff))] hover:bg-[var(--org-primary-600,var(--color-primary,#145fff))]' : 'bg-[var(--org-primary-400,rgba(20,95,255,0.8))]'}
             `}
             disabled={!hasChanges}
           >
@@ -251,10 +249,6 @@ LayerModal.propTypes = {
     }),
   ).isRequired,
   disabled: PropTypes.string,
-};
-
-LayerModal.defaultProps = {
-  disabled: '',
 };
 
 export default memo(LayerModal);

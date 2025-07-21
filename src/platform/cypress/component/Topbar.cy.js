@@ -1,15 +1,16 @@
+/* eslint-env cypress */
 import React from 'react';
 import { mount } from '@cypress/react';
 import { Provider } from 'react-redux';
-import TopBar from '@/components/TopBar';
+import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import createStore from '@/lib/store';
 
-describe('TopBar Component', () => {
-  it('should render the TopBar component', () => {
+describe('GlobalTopbar Component', () => {
+  it('should render the GlobalTopbar component', () => {
     const store = createStore();
     mount(
       <Provider store={store}>
-        <TopBar />
+        <GlobalTopbar />
       </Provider>,
     );
     cy.get('[data-cy=topbar]').should('be.visible');
@@ -19,7 +20,7 @@ describe('TopBar Component', () => {
     const store = createStore();
     mount(
       <Provider store={store}>
-        <TopBar />
+        <GlobalTopbar />
       </Provider>,
     );
     cy.get('[data-cy=profile-btn]').click();

@@ -1,5 +1,5 @@
 export { default as useMapData } from './useMapData';
-export { default as useLocationBoundaries } from './useLocationBoundaries';
+// export { default as useLocationBoundaries } from './useLocationBoundaries';
 export {
   useRefreshMap,
   useShareLocation,
@@ -8,5 +8,11 @@ export {
   IconButton,
   LoadingOverlay,
   GlobeControl,
-} from './useMapControls';
+} from './MapControls';
 export { default as useMapScreenshot } from './useMapScreenshot';
+
+// Export new hooks
+export { useMapStyles } from './useMapStyles';
+export { useMapViewport } from './useMapViewport';
+export { useMapControls } from './useMapControls';
+export { useMapInitialization } from './useMapInitialization';
