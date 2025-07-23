@@ -50,7 +50,13 @@ export default function NotFoundPage() {
           </Link>
 
           <button
-            onClick={() => window.history.back()}
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = "/";
+              }
+            }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg transition-transform hover:scale-105"
             aria-label="Go back to previous page"
           >

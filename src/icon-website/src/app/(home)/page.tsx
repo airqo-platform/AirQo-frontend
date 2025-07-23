@@ -18,7 +18,7 @@ const JSON_LD = {
     url: "https://airqo.net/",
   },
   url: "https://airqo-icons.vercel.app",
-  image: "https://airqo-icons.vercel.app/og-image.png",
+  image: "https://airqo-icons.vercel.app/airqo_logo.svg",
   author: {
     "@type": "Organization",
     name: "AirQO Platform",

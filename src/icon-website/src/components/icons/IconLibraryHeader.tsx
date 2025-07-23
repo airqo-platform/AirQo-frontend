@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { AirQOIconsUtils } from "@airqo/icons-react";
 
 export default function IconLibraryHeader() {
-  const count = AirQOIconsUtils.getAllIcons().length;
+  const count = useMemo(() => {
+    try {
+      return AirQOIconsUtils.getAllIcons().length;
+    } catch (error) {
+      console.error("Failed to load icons:", error);
+      return 0;
+    }
+  }, []);
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="mx-auto max-w-7xl px-4 py-8 text-center">

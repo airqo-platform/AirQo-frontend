@@ -4,9 +4,9 @@ import Navigation from "@/components/ui/Navigation";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "AeroGlyphs - Beautiful React Icons Library",
+  title: "AirQo Icons - Beautiful React Icons Library",
   description:
-    "AeroGlyphs: High-quality React icon components with TypeScript support. 1,376+ icons, flat import structure, tree-shakable, customizable, and optimized for modern web applications.",
+    "AirQo Icons: High-quality React icon components with TypeScript support. 1,376+ icons, flat import structure, tree-shakable, customizable, and optimized for modern web applications.",
   keywords: [
     "icons",
     "react",
@@ -14,24 +14,24 @@ export const metadata: Metadata = {
     "typescript",
     "svg",
     "components",
-    "aeroglyphs",
+    "airqo icons",
     "icon library",
     "react icons",
     "svg icons",
   ],
-  authors: [{ name: "AeroGlyphs Team", url: "https://aeroglyphs.com/" }],
+  authors: [{ name: "AirQo Platform", url: "https://airqo.net/" }],
   openGraph: {
-    title: "AeroGlyphs - Beautiful React Icons Library",
+    title: "AirQo Icons - Beautiful React Icons Library",
     description:
-      "AeroGlyphs: High-quality React icon components with TypeScript support. 1,376+ icons.",
-    url: "https://aeroglyphs.com",
-    siteName: "AeroGlyphs",
+      "AirQo Icons: High-quality React icon components with TypeScript support. 1,376+ icons.",
+    url: "https://airqo-icons.vercel.app",
+    siteName: "AirQo Icons",
     images: [
       {
-        url: "/og-image.png",
+        url: "/airqo_logo.svg",
         width: 1200,
         height: 630,
-        alt: "AeroGlyphs Preview",
+        alt: "AirQO Icons Preview",
       },
     ],
     locale: "en_US",
@@ -39,10 +39,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AeroGlyphs - Beautiful React Icons Library",
+    title: "AirQo Icons - Beautiful React Icons Library",
     description:
-      "AeroGlyphs: High-quality React icon components with TypeScript support. 1,376+ icons.",
-    images: ["/og-image.png"],
+      "AirQo Icons: High-quality React icon components with TypeScript support. 1,376+ icons.",
+    images: ["/airqo_logo.svg"],
   },
   robots: {
     index: true,

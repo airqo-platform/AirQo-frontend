@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "AirQO Icons",
     images: [
       {
-        url: "/og-image.png",
+        url: "/airqo_logo.svg",
         width: 1200,
         height: 630,
         alt: "AirQO Icons Preview",
@@ -30,6 +30,6 @@ export const metadata: Metadata = {
     title: "404 - Page Not Found | AirQO Icons",
     description:
       "Sorry, the page you are looking for does not exist. Discover AirQO Icons, a free, beautiful React icon library for developers.",
-    images: ["/og-image.png"],
+    images: ["/airqo_logo.svg"],
   },
 };

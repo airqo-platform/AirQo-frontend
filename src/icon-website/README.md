@@ -1,4 +1,4 @@
-# aeroglyphs
+# AirQo Icons
 
 ## ⚠️ Hydration Mismatch Warning
 

@@ -10,9 +10,14 @@ export default function SampleIcons() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const all = AirQOIconsUtils.getAllIcons();
-    setIcons(all.slice(0, 6));
-    setLoading(false);
+    try {
+      const all = AirQOIconsUtils.getAllIcons();
+      setIcons(all.slice(0, 6));
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to load icons:", error);
+      setLoading(false);
+    }
   }, []);
 
   return (
@@ -43,6 +48,9 @@ export default function SampleIcons() {
                     <icon.component
                       className="w-6 h-6"
                       style={{ color: modernBlue }}
+                      onError={() =>
+                        console.warn(`Failed to render icon: ${icon.name}`)
+                      }
                     />
                   )}
                 </div>

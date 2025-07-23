@@ -93,11 +93,14 @@ export default function IconPreviewDialog({ icon, isOpen, onClose }: Props) {
   const currentIcon = icon || mockIcon;
 
   const copy = (text: string) => {
-    if (navigator && navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard
+      ?.writeText(text)
+      .then(() => {
         toast.success("Copied!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy to clipboard");
       });
-    }
   };
 
   const reactCode = `import { ${currentIcon.name} } from '@airqo/icons-react';

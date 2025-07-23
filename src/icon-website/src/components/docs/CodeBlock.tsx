@@ -9,9 +9,13 @@ interface Props {
 }
 
 export default function CodeBlock({ code, title, language }: Props) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied!");
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success("Copied!");
+    } catch (error) {
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   return (
