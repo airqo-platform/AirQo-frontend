@@ -3,6 +3,20 @@ const nextConfig = {
   // Enable standalone output for containerization
   output: 'standalone',
   
+  // Configure images for external sources
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+    ],
+  },
+  
   // Configure API proxying to backend
   async rewrites() {
     return [

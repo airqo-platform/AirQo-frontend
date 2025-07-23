@@ -1,15 +1,8 @@
-import { jwtVerify } from 'jose'
-import { NextRequest, NextResponse } from 'next/server'
 
-async function verifyToken(token: string): Promise<boolean> {
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret')
-    await jwtVerify(token, secret)
-    return true
-  } catch {
-    return false
-  }
-}
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value
@@ -18,7 +11,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (!token || !await verifyToken(token)) {
+  if (!token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -26,5 +19,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|favicon.ico|public).*)'],
 }

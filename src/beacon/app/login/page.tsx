@@ -1,4 +1,3 @@
-// app/login/page.js (or wherever your login page is located)
 "use client"
 
 import { useState, useEffect, FormEvent } from "react"
@@ -7,7 +6,11 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+
+import Link from "next/link"
+
 import AirqoLogo from "@/public/icons/airqo_logo.svg";
+
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -17,8 +20,9 @@ export default function LoginPage() {
   const [logoutMessage, setLogoutMessage] = useState("")
   const router = useRouter()
 
+  const AIRQO_API_BASE_URL = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL
+
   useEffect(() => {
-    // Check if user was redirected from logout
     const params = new URLSearchParams(window.location.search)
     if (params.get("logout") === "true") {
       setLogoutMessage("You have been successfully logged out")
@@ -28,47 +32,47 @@ export default function LoginPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setIsLoading(true)
-    setError("") 
+    setError("")
 
     try {
-      // Create form data for FastAPI OAuth2PasswordRequestForm
-      const formData = new FormData();
-      formData.append('username', email); // FastAPI expects 'username' for email
-      formData.append('password', password);
-
-      // Make API call to your FastAPI authentication endpoint
-      const response = await fetch(`http://srv828289.hstgr.cloud:8000/login`, {
+      const response = await fetch(`${AIRQO_API_BASE_URL}/api/v2/users/loginUser`, {
         method: "POST",
-        body: formData,
-      });
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userName: email,
+          password: password
+        }),
+      })
 
       if (response.ok) {
-        const data = await response.json();
-        
-        // Save to localStorage (optional for frontend use)
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('user_data', JSON.stringify(data.user));
-      
-        // Save token to cookie for middleware
-        document.cookie = `token=${data.access_token}; path=/;`;
-      
-        // Redirect to dashboard
-        router.push("/dashboard");
-      }
-       else {
-        // Try to get error message from response
-        try {
-          const errorData = await response.json();
-          setError(errorData.detail || "Invalid email or password. Please try again.");
-        } catch (e) {
-          setError("Invalid email or password. Please try again.");
+        const data = await response.json()
+
+        // Clean token (remove "JWT " prefix if present)
+        const rawToken = data.token || data.access_token || ""
+        const token = rawToken.startsWith("JWT ") ? rawToken.split(" ")[1] : rawToken
+
+        // Store auth data
+        localStorage.setItem("access_token", token)
+        if (data.user) {
+          localStorage.setItem("user_data", JSON.stringify(data.user))
         }
+
+        // Store token in cookie
+        document.cookie = `token=${token}; path=/;`
+
+        // Navigate to dashboard
+        router.push("/dashboard")
+      } else {
+        const errorData = await response.json()
+        setError(errorData.message || errorData.detail || "Invalid email or password.")
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      setError("An error occurred during login. Please try again.");
+    } catch (err) {
+      console.error("Login error:", err)
+      setError("An error occurred during login. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -88,37 +92,44 @@ export default function LoginPage() {
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>
           )}
           <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                id="email"
-                placeholder="name@example.com"
-                type="email"
-                autoCapitalize="none"
-                autoComplete="email"
-                autoCorrect="off"
-                disabled={isLoading}
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                id="password"
-                placeholder="••••••••"
-                type="password"
-                autoComplete="current-password"
-                disabled={isLoading}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            <Input
+              id="email"
+              placeholder="name@example.com"
+              type="email"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect="off"
+              disabled={isLoading}
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              id="password"
+              placeholder="••••••••"
+              type="password"
+              autoComplete="current-password"
+              disabled={isLoading}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Forgot your password?
+          </Link>
+          <div className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link href="/register" className="text-blue-600 hover:underline">
+              Sign up
+            </Link>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   )
