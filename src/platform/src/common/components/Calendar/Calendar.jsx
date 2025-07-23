@@ -270,7 +270,7 @@ const Calendar = ({
         style={{
           zIndex: 10000,
         }}
-        className={`border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1d1f20] dark:text-gray-100 shadow-lg rounded-xl ${
+        className={`border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1d1f20] dark:text-gray-100 shadow-lg rounded-lg ${
           showTwoCalendars
             ? 'max-w-full min-w-[260px] md:min-w-[660px] lg:min-w-[700px]'
             : 'w-full max-w-[241px]'
