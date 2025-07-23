@@ -10,6 +10,7 @@ import {
   X,
   Github,
   ExternalLink,
+  Package,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -84,17 +85,34 @@ export default function Navigation() {
               );
             })}
 
-            {/* GitHub link */}
-            <a
-              href="https://github.com/airqo-platform/airqo-libraries"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-            >
-              <Github className="w-4 h-4" />
-              <span>GitHub</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
+            {/* External Links */}
+            <div className="flex items-center space-x-1">
+              {/* NPM link */}
+              <a
+                href="https://www.npmjs.com/settings/airqo/packages"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
+                title="View packages on NPM"
+              >
+                <Package className="w-4 h-4" />
+                <span>NPM</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+
+              {/* GitHub link */}
+              <a
+                href="https://github.com/airqo-platform/airqo-libraries"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1.5 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
+                title="View source code on GitHub"
+              >
+                <Github className="w-4 h-4" />
+                <span>GitHub</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </nav>
 
           {/* ── Mobile Toggle ── */}
@@ -135,19 +153,36 @@ export default function Navigation() {
               );
             })}
 
-            <a
-              href="https://github.com/airqo-platform/airqo-libraries"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-            >
-              <div className="flex items-center space-x-2">
-                <Github className="w-4 h-4" />
-                <span>GitHub</span>
-              </div>
-              <ExternalLink className="w-4 h-4" />
-            </a>
+            {/* Mobile External Links */}
+            <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+              <a
+                href="https://www.npmjs.com/settings/airqo/packages"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <Package className="w-4 h-4" />
+                  <span>NPM Packages</span>
+                </div>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+
+              <a
+                href="https://github.com/airqo-platform/airqo-libraries"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <Github className="w-4 h-4" />
+                  <span>GitHub</span>
+                </div>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         )}
       </div>
