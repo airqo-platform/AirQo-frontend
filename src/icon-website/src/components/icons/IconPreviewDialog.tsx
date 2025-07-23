@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Palette } from "lucide-react";
+import { X, Palette, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 import { AirQOIconsUtils } from "@airqo/icons-react";
 
@@ -97,35 +97,6 @@ export default function IconPreviewDialog({ icon, isOpen, onClose }: Props) {
       navigator.clipboard.writeText(text).then(() => {
         toast.success("Copied!");
       });
-    }
-  };
-
-  const downloadSVG = async () => {
-    if (!currentIcon) return;
-    try {
-      // Use AirQOIconsUtils if available
-      if (
-        AirQOIconsUtils &&
-        typeof AirQOIconsUtils.generateSVG === "function"
-      ) {
-        const svg = await AirQOIconsUtils.generateSVG(
-          currentIcon.name,
-          size,
-          color
-        );
-        const blob = new Blob([svg], { type: "image/svg+xml" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${currentIcon.name}.svg`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success("SVG downloaded");
-      } else {
-        toast.error("SVG export not available");
-      }
-    } catch {
-      toast.error("Failed to generate SVG");
     }
   };
 
@@ -289,59 +260,70 @@ export default function IconPreviewDialog({ icon, isOpen, onClose }: Props) {
 
               {/* Code Section */}
               <div>
-                <h4 className="text-sm font-semibold mb-2">Usage</h4>
+                <h4 className="text-sm font-semibold mb-4 text-gray-900 dark:text-white">
+                  Usage
+                </h4>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {/* React Code */}
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs">React</span>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          React
+                        </span>
+                      </div>
                       <button
                         onClick={() => copy(reactCode)}
-                        className="text-xs"
-                        style={{ color: modernBlue }}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                       >
+                        <Copy className="w-3 h-3" />
                         Copy
                       </button>
                     </div>
-                    <pre className="bg-gray-900 text-gray-100 p-2 rounded text-xs overflow-x-auto">
-                      <code>{reactCode}</code>
-                    </pre>
+                    <div className="p-4">
+                      <pre className="text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
+                        <code>{reactCode}</code>
+                      </pre>
+                    </div>
                   </div>
 
                   {/* Flutter Code */}
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs">Flutter</span>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Flutter
+                        </span>
+                      </div>
                       <button
                         onClick={() => copy(flutterCode)}
-                        className="text-xs"
-                        style={{ color: modernBlue }}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                       >
+                        <Copy className="w-3 h-3" />
                         Copy
                       </button>
                     </div>
-                    <pre className="bg-gray-900 text-gray-100 p-2 rounded text-xs overflow-x-auto">
-                      <code>{flutterCode}</code>
-                    </pre>
+                    <div className="p-4">
+                      <pre className="text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
+                        <code>{flutterCode}</code>
+                      </pre>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end items-center gap-2 p-4 border-t">
+            {/* Footer - Only Copy Name button now */}
+            <div className="flex justify-end items-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => copy(currentIcon.name)}
-                className="px-4 py-1.5 text-sm text-white rounded shadow-sm"
+                className="px-4 py-2 text-sm text-white rounded-lg shadow-sm hover:shadow transition-shadow"
                 style={{ backgroundColor: modernBlue }}
               >
                 Copy Name
-              </button>
-              <button
-                onClick={downloadSVG}
-                className="px-4 py-1.5 text-sm bg-green-600 text-white rounded shadow-sm"
-              >
-                Download SVG
               </button>
             </div>
           </motion.div>
