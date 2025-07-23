@@ -79,6 +79,12 @@ const CustomFields = ({
         setSelected((prev) => {
           const list = Array.isArray(prev) ? prev : [];
           const exists = list.find((p) => p.id === option.id);
+
+          // Prevent deselecting if it's the last selected item
+          if (exists && list.length === 1) {
+            return list;
+          }
+
           const next = exists
             ? list.filter((p) => p.id !== option.id)
             : [...list, option];
@@ -113,6 +119,30 @@ const CustomFields = ({
     multiSelect
       ? Array.isArray(selected) && selected.some((p) => p.id === opt.id)
       : selected?.id === opt.id;
+
+  const CheckboxIcon = ({ checked, disabled }) => (
+    <div
+      className={`
+      w-4 h-4 border-2 rounded flex items-center justify-center transition-colors
+      ${checked ? 'bg-primary border-primary' : 'border-gray-300 bg-white'}
+      ${disabled ? 'opacity-50' : ''}
+    `}
+    >
+      {checked && (
+        <svg
+          className="w-3 h-3 text-white"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      )}
+    </div>
+  );
 
   return (
     <div className={`w-full flex flex-col gap-2 ${className}`}>
@@ -172,15 +202,46 @@ const CustomFields = ({
               ].includes(id)
             }
           >
-            {options.map((opt) => (
-              <DropdownItem
-                key={opt.id}
-                onClick={() => handleSelect(opt)}
-                active={isActive(opt)}
-              >
-                {formatName(opt.name, textFormat)}
-              </DropdownItem>
-            ))}
+            {options.map((opt) => {
+              const checked = isActive(opt);
+              const isOnlySelected =
+                multiSelect &&
+                Array.isArray(selected) &&
+                selected.length === 1 &&
+                checked;
+
+              return (
+                <DropdownItem
+                  key={opt.id}
+                  onClick={() => handleSelect(opt)}
+                  active={!multiSelect && checked}
+                  className={multiSelect ? 'hover:bg-transparent' : ''}
+                >
+                  <div
+                    className={`
+                    flex items-center gap-3 w-full py-1
+                    ${multiSelect ? 'cursor-pointer' : ''}
+                  `}
+                  >
+                    {multiSelect && (
+                      <CheckboxIcon
+                        checked={checked}
+                        disabled={isOnlySelected}
+                      />
+                    )}
+                    <span
+                      className={`
+                      flex-1 text-sm
+                      ${checked && multiSelect ? 'font-medium' : 'text-gray-700'}
+                      ${isOnlySelected ? 'opacity-50' : ''}
+                    `}
+                    >
+                      {formatName(opt.name, textFormat)}
+                    </span>
+                  </div>
+                </DropdownItem>
+              );
+            })}
           </CustomDropdown>
         </div>
       )}

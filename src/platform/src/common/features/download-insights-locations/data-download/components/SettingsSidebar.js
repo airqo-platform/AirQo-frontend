@@ -104,7 +104,7 @@ const SettingsSidebar = ({
           />
 
           {durationGuidance && (
-            <div className="text-xs text-blue-600 -mt-2 ml-1">
+            <div className="text-xs text-blue-600 mt-2 ">
               {durationGuidance}
             </div>
           )}
