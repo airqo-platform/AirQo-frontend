@@ -167,7 +167,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: citiesError,
     error: citiesErrorMsg,
     refresh: refreshCities,
-  } = useGridSummary('city');
+  } = useGridSummary('city,state,county,district,region,province');
 
   // Enhanced error handling with automatic clearing
   const resetErrorAfterDelay = useCallback((error) => {
@@ -704,14 +704,26 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         {
           key: 'name',
           label: 'Country',
-          render: (item) => (
-            <div className="flex items-center capitalize">
-              <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <WorldIcon width={16} height={16} />
-              </span>
-              <span>{item.name || item.long_name || 'N/A'}</span>
-            </div>
-          ),
+          render: (item) => {
+            // Replace underscores and hyphens with spaces, then capitalize each word
+            const rawName = item.name || item.long_name || '';
+            const formattedName = rawName
+              .replace(/[_-]/g, ' ')
+              .split(' ')
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+              )
+              .join(' ');
+            return (
+              <div className="flex items-center capitalize">
+                <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
+                  <WorldIcon width={16} height={16} />
+                </span>
+                <span>{formattedName || 'N/A'}</span>
+              </div>
+            );
+          },
         },
         {
           key: 'numberOfSites',
