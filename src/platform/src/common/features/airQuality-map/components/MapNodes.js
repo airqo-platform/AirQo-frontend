@@ -1,100 +1,6 @@
-import { renderToString } from 'react-dom/server';
-
-// Import icon components
-import GoodAir from '@/icons/Charts/GoodAir';
-import ModerateAir from '@/icons/Charts/Moderate';
-import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import Hazardous from '@/icons/Charts/Hazardous';
-import Invalid from '@/icons/Charts/Invalid';
+import { markerDetails, colors, images } from '../constants/mapConstants';
 
 import { parseISO, format } from 'date-fns';
-
-// -------------------------------------------------------------------
-// Icon Images: Encoded SVG images for use in markers/popups
-// -------------------------------------------------------------------
-export const images = {
-  GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<GoodAir />))}`,
-  ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<ModerateAir />))}`,
-  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(renderToString(<UnhealthyForSensitiveGroups />))}`,
-  Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
-  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
-  Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
-  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
-};
-
-// -------------------------------------------------------------------
-// Marker thresholds and colors based on pollutant type
-// -------------------------------------------------------------------
-const markerDetails = {
-  pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
-    { limit: 225.5, category: 'Hazardous' },
-    { limit: 125.5, category: 'VeryUnhealthy' },
-    { limit: 55.5, category: 'Unhealthy' },
-    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 9.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  pm10: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 424.1, category: 'Hazardous' },
-    { limit: 354.1, category: 'VeryUnhealthy' },
-    { limit: 254.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  no2: [
-    { limit: 2049.1, category: 'Invalid' },
-    { limit: 1249.1, category: 'Hazardous' },
-    { limit: 649.1, category: 'VeryUnhealthy' },
-    { limit: 360.1, category: 'Unhealthy' },
-    { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 53.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  o3: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 504.1, category: 'Hazardous' },
-    { limit: 404.1, category: 'VeryUnhealthy' },
-    { limit: 204.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  co: [
-    { limit: 50.5, category: 'Invalid' },
-    { limit: 40.5, category: 'Hazardous' },
-    { limit: 30.5, category: 'VeryUnhealthy' },
-    { limit: 10.5, category: 'Unhealthy' },
-    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 2.5, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  so2: [
-    { limit: 1004.1, category: 'Invalid' },
-    { limit: 804.1, category: 'Hazardous' },
-    { limit: 604.1, category: 'VeryUnhealthy' },
-    { limit: 304.1, category: 'Unhealthy' },
-    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 75.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-};
-
-const colors = {
-  Invalid: '#C6D1DB',
-  Hazardous: '#D95BA3',
-  VeryUnhealthy: '#AC5CD9',
-  Unhealthy: '#F7453C',
-  UnhealthyForSensitiveGroups: '#FF851F',
-  ModerateAir: '#FFD633',
-  GoodAir: '#34C759',
-  undefined: '#C6D1DB',
-};
 
 // -------------------------------------------------------------------
 // Get the AQI category for a pollutant value.
@@ -334,7 +240,7 @@ export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
 
       <div class="flex justify-between gap-2 w-full items-center">
         <div class="flex items-center space-x-2">
-          <div class="rounded-full bg-blue-500 w-3 h-3"></div>
+          <div class="rounded-full bg-[var(--org-primary,var(--color-primary,#145fff))] w-3 h-3"></div>
           <div
             class="font-semibold text-sm leading-4"
             style="width:25ch; color: ${popupTextColor};"

@@ -1,6 +1,6 @@
 describe('Settings Page', () => {
   beforeEach(() => {
-    cy.visit('/settings');
+    cy.visit('/user/settings');
   });
 
   it('should render the Layout component', () => {

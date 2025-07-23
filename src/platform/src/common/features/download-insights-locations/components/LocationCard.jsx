@@ -13,9 +13,9 @@ const LocationCard = ({
   site,
   onToggle,
   isSelected,
-  isLoading,
-  disableToggle,
-  cardStyle,
+  isLoading = false,
+  disableToggle = false,
+  cardStyle = null,
 }) => {
   const cardVariants = {
     initial: { opacity: 0, y: 5 },
@@ -31,7 +31,7 @@ const LocationCard = ({
   if (isLoading) {
     return (
       <motion.div
-        className="flex flex-col gap-3 p-3 items-start bg-gray-100 dark:bg-gray-800 rounded-xl w-full h-[68px]"
+        className="flex flex-col gap-3 p-3 items-start bg-gray-100 dark:bg-gray-800 rounded-lg w-full h-[68px]"
         variants={cardVariants}
         initial="initial"
         animate="animate"
@@ -135,12 +135,6 @@ LocationCard.propTypes = {
   isLoading: PropTypes.bool,
   disableToggle: PropTypes.bool,
   cardStyle: PropTypes.object,
-};
-
-LocationCard.defaultProps = {
-  isLoading: false,
-  disableToggle: false,
-  cardStyle: null,
 };
 
 export default LocationCard;

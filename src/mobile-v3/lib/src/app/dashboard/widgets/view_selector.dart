@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
+import 'package:airqo/src/app/shared/widgets/country_button';
 import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -50,20 +51,21 @@ class _ViewSelectorState extends State<ViewSelector> {
     }
   }
 
-void _sortCountries() {
-  sortedCountries = List.from(CountryRepository.countries);
+  void _sortCountries() {
+    sortedCountries = List.from(CountryRepository.countries);
 
-  final userCountry = widget.userCountry;
-  if (userCountry != null && userCountry.isNotEmpty) {
-    int userCountryIndex = sortedCountries.indexWhere((country) =>
-        country.countryName.toLowerCase() == userCountry.toLowerCase());
+    final userCountry = widget.userCountry;
+    if (userCountry != null && userCountry.isNotEmpty) {
+      int userCountryIndex = sortedCountries.indexWhere((country) =>
+          country.countryName.toLowerCase() == userCountry.toLowerCase());
 
-    if (userCountryIndex != -1) {
-      CountryModel userCountryModel = sortedCountries.removeAt(userCountryIndex);
-      sortedCountries.insert(0, userCountryModel);
+      if (userCountryIndex != -1) {
+        CountryModel userCountryModel =
+            sortedCountries.removeAt(userCountryIndex);
+        sortedCountries.insert(0, userCountryModel);
+      }
     }
   }
-}
 
   void _triggerTooltipOnViewChange() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -328,48 +330,12 @@ void _sortCountries() {
     required VoidCallback onTap,
     bool isUserCountry = false,
   }) {
-    return GestureDetector(
+    return CountryButton(
+      flag: flag,
+      name: name,
+      isSelected: isSelected,
       onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryColor
-              : isUserCountry && !isSelected
-                  ? Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkHighlight.withOpacity(0.8)
-                      : AppColors.dividerColorlight.withOpacity(0.8)
-                  : Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkHighlight
-                      : AppColors.dividerColorlight,
-          borderRadius: BorderRadius.circular(30),
-          border: isUserCountry && !isSelected
-              ? Border.all(
-                  color: AppColors.primaryColor.withOpacity(0.3),
-                  width: 1,
-                )
-              : null,
-        ),
-        child: Row(
-          children: [
-            Text(flag, style: TextStyle(fontSize: 16)),
-            SizedBox(width: 6),
-            Text(
-              name,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black87,
-                fontWeight: isSelected || isUserCountry
-                    ? FontWeight.bold
-                    : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
+      isUserCountry: isUserCountry,
     );
   }
 }

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
-import { useWindowSize } from '@/lib/windowSize';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 
 // Icons
 import GoodAir from '@/icons/Charts/GoodAir';
@@ -81,10 +81,9 @@ const AirQualityLegend = ({ pollutant }) => {
   );
 
   const levels = pollutantLevels[pollutant] || [];
-
   return (
     <Card
-      className="flex flex-col items-center"
+      className="flex flex-col items-center z-50"
       padding="p-0 md:p-2"
       shadow="shadow"
       rounded
@@ -121,20 +120,7 @@ const AirQualityLegend = ({ pollutant }) => {
             style="light"
             arrow={true}
             animation="duration-300"
-            popperOptions={{
-              modifiers: [
-                { name: 'offset', options: { offset: [0, 16] } },
-                {
-                  name: 'preventOverflow',
-                  options: {
-                    padding: 8,
-                    boundary: 'viewport',
-                  },
-                },
-              ],
-            }}
             className="w-auto"
-            contentClassName="w-auto min-w-[160px] max-w-xs px-4 py-2 break-words"
           >
             <button
               className="bg-transparent rounded-full"

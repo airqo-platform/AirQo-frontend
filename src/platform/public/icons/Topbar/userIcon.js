@@ -2,7 +2,7 @@ import React from 'react';
 
 const userIcon = ({
   size = 16,
-  strokeWidth = 1.5,
+  strokeWidth = 1.2,
   className = '',
   ...props
 }) => {

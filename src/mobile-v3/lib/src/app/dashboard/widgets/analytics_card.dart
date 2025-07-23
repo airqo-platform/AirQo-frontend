@@ -87,7 +87,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Theme.of(context).highlightColor,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -179,8 +179,8 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
             Divider(
                 thickness: .5,
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white),
+                    ? AppColors.dividerColordark
+                    : AppColors.dividerColorlight),
             Padding(
               padding: const EdgeInsets.only(
                   left: 16, right: 16, bottom: 16, top: 4),
@@ -215,8 +215,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                           Row(children: [
                             Text(
                               measurement.pm25?.value != null
-                                  ? measurement.pm25!.value!
-                                      .toStringAsFixed(2)
+                                  ? measurement.pm25!.value!.toStringAsFixed(2)
                                   : "-",
                               style: TextStyle(
                                   fontWeight: FontWeight.w700,
@@ -241,8 +240,8 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                         child: Center(
                           child: measurement.pm25?.value != null
                               ? SvgPicture.asset(
-                                  getAirQualityIcon(measurement,
-                                      measurement.pm25!.value!),
+                                  getAirQualityIcon(
+                                      measurement, measurement.pm25!.value!),
                                   height: 86,
                                   width: 86,
                                 )
@@ -262,8 +261,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color:
-                            _getAqiColor(measurement).withOpacity(0.15),
+                        color: _getAqiColor(measurement).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

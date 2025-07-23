@@ -1,155 +1,98 @@
 'use client';
 
-import React from 'react';
 import PropTypes from 'prop-types';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GroupLogo from '@/common/components/GroupLogo';
 
 const AuthLayout = ({
   children,
   title,
   subtitle,
   showBackToAirqo = true,
-  backToAirqoPath = '/account/login',
+  backToAirqoPath = '/user/login',
 }) => {
-  const { organization, getDisplayName, primaryColor, secondaryColor, logo } =
-    useOrganization();
+  const {
+    organization,
+    getDisplayName,
+    isLoading,
+    isInitialized,
+    primaryColor,
+  } = useOrganization();
 
-  // Apply organization theme
-  React.useEffect(() => {
-    if (primaryColor && secondaryColor) {
-      const root = document.documentElement;
-      root.style.setProperty('--org-primary', primaryColor);
-      root.style.setProperty('--org-secondary', secondaryColor);
-    }
-  }, [primaryColor, secondaryColor]);
+  // Show loading spinner while organization data is being fetched
+  // Also show loading if we haven't initialized yet (prevents flashing)
+  if (isLoading || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#1b1d1e] flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-gray-600 dark:text-gray-400 mt-4">
+            Loading organization...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const organizationName = getDisplayName() || 'AirQo';
-  const logoSrc = logo || '/icons/airqo_logo.svg';
-
-  // Create a gradient background based on organization colors
-  const gradientStyle =
-    primaryColor && secondaryColor
-      ? {
-          background: `linear-gradient(135deg, ${primaryColor}10 0%, ${secondaryColor}15 100%)`,
-        }
-      : {
-          background: 'linear-gradient(135deg, #135DFF10 0%, #1B255915 100%)',
-        };
-
-  // Create border accent color
-  const borderAccentStyle = primaryColor
-    ? { borderTopColor: primaryColor, borderTopWidth: '4px' }
-    : { borderTopColor: '#135DFF', borderTopWidth: '4px' };
+  // Use organization data directly - fallback to getDisplayName if organization.name is not available
+  const organizationName = organization?.name || getDisplayName?.() || 'AirQo';
+  const organizationLogo = organization?.logo;
 
   return (
     <ErrorBoundary>
-      <div
-        className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden"
-        style={gradientStyle}
-      >
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-20 blur-3xl"
-            style={{ backgroundColor: primaryColor || '#135DFF' }}
-          />
-          <div
-            className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full opacity-15 blur-3xl"
-            style={{ backgroundColor: secondaryColor || '#1B2559' }}
-          />
-        </div>
-
-        <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          {/* Organization Logo and Header */}
-          <div className="text-center">
-            <div className="relative mb-6">
-              {logoSrc ? (
-                <div className="relative inline-block">
-                  {/* Logo glow effect */}
-                  <div
-                    className="absolute inset-0 rounded-full blur-md opacity-30"
-                    style={{ backgroundColor: primaryColor || '#135DFF' }}
-                  />
-                  <img
-                    className="relative mx-auto h-20 w-auto drop-shadow-lg"
-                    src={logoSrc}
-                    alt={`${organizationName} logo`}
-                    onError={(e) => {
-                      // Fallback to AirQo logo if organization logo fails to load
-                      e.target.src = '/icons/airqo_logo.svg';
-                    }}
-                  />
-                </div>
-              ) : (
-                // Loading state for logo
-                <div className="mx-auto h-20 w-20 bg-white bg-opacity-20 animate-pulse rounded-lg flex items-center justify-center backdrop-blur-sm">
-                  <LoadingSpinner size="sm" />
-                </div>
-              )}
+      <div className="min-h-screen bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 flex justify-center items-center">
+        <div className="w-full max-w-md space-y-6">
+          {/* Organization Logo */}
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center">
+              <GroupLogo
+                size="xl"
+                imageUrl={organizationLogo}
+                fallbackText={organizationName}
+                containerClassName="border-2 border-white p-0.5 dark:border-gray-200 shadow-lg"
+                className="bg-white dark:bg-gray-50 rounded-lg"
+              />
             </div>
-
-            <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-2">
-              {title || `Sign in to ${organizationName}`}
-            </h2>
-            {subtitle && (
-              <p className="text-center text-sm text-gray-600 max-w-sm mx-auto">
-                {subtitle}
-              </p>
-            )}
           </div>
-        </div>
-
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-          <div
-            className="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 backdrop-blur-sm border border-white border-opacity-20"
-            style={borderAccentStyle}
-          >
-            {children}
-
-            {/* Organization Info with enhanced styling */}
-            <div className="mt-6 border-t border-gray-200 pt-6">
-              <div className="text-center">
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: primaryColor || '#135DFF' }}
-                >
-                  {organization
-                    ? `${organizationName}'s Private Dashboard`
-                    : 'AirQo Platform'}
+          {/* Title and Subtitle */}
+          {(title || subtitle) && (
+            <header className="mb-8">
+              {title && (
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 leading-tight">
+                  {title}
+                </h1>
+              )}
+              {subtitle && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {subtitle}
                 </p>
-                {organization?.description && (
-                  <p className="text-xs text-gray-500 mt-1 italic">
-                    {organization.description}
-                  </p>
-                )}
-              </div>
-            </div>
+              )}
+            </header>
+          )}
+          {/* Form Content */}
+          <main className="space-y-6">{children}</main>
 
-            {/* Fallback to main AirQo login with enhanced styling */}
-            {showBackToAirqo && organization && (
-              <div className="mt-4 text-center">
+          {/* Organization Info */}
+          <footer className="pt-2 border-gray-200 dark:border-gray-700">
+            {/* Back to AirQo link */}
+            {showBackToAirqo && (
+              <div className="text-center">
                 <a
                   href={backToAirqoPath}
-                  className="inline-flex items-center text-xs text-gray-500 hover:text-gray-700 transition-colors duration-200 px-3 py-1 rounded-full hover:bg-gray-100"
+                  className="inline-flex text-primary items-center text-xs hover:underline transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
+                  style={{
+                    color: primaryColor || '#6B7280',
+                  }}
+                  aria-label="Go back to AirQo Platform"
                 >
-                  <svg
-                    className="w-3 h-3 mr-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Use main AirQo login
+                  <span className="mr-1">←</span>
+                  Back to AirQo Platform
                 </a>
               </div>
             )}
-          </div>
+          </footer>
         </div>
       </div>
     </ErrorBoundary>

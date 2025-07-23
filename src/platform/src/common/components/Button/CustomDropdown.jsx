@@ -29,6 +29,7 @@ const CustomDropdown = ({
   disableMobileCollapse = false,
   mobileMinWidth = 120,
   mobileMaxWidth = 300,
+  loading = false, // new prop for loading state
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(
@@ -82,7 +83,7 @@ const CustomDropdown = ({
   }, [isOpen, update]);
 
   const toggleDropdown = () => {
-    if (!disabled) {
+    if (!disabled && !loading) {
       if (!isButton) setIsOpen((prev) => !prev);
       onClick?.();
     }
@@ -93,13 +94,13 @@ const CustomDropdown = ({
 
   // button class definitions
   const defaultBtnClasses =
-    'flex items-center justify-between rounded-xl px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition active:scale-95';
+    'flex items-center justify-between rounded-lg px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition active:scale-95';
   const collapsedBtnClasses =
-    'flex items-center justify-center rounded-xl px-4 py-3 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
+    'flex items-center justify-center rounded-lg px-4 py-3 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
 
   const mergedBtnClasses = clsx(
     isCollapsed ? collapsedBtnClasses : defaultBtnClasses,
-    disabled && 'opacity-60 cursor-not-allowed',
+    (disabled || loading) && 'opacity-60 cursor-not-allowed',
     buttonClassName,
   );
 
@@ -138,7 +139,7 @@ const CustomDropdown = ({
         type="button"
         aria-haspopup="true"
         aria-expanded={isOpen}
-        disabled={disabled}
+        disabled={disabled || loading}
         className={mergedBtnClasses}
         style={buttonStyle}
       >
@@ -152,8 +153,9 @@ const CustomDropdown = ({
                 <span className="truncate">{text}</span>
               )}
               {icon && iconPosition === 'right' && <span>{icon}</span>}
+              {/* Spinner removed per user request: do not show spinner if loading is true */}
             </div>
-            {!collapseMobile && showArrow && (
+            {!collapseMobile && showArrow && !loading && (
               <FiChevronDown
                 size={16}
                 className={clsx(
@@ -184,7 +186,7 @@ const CustomDropdown = ({
       className={clsx('relative inline-block', className)}
     >
       {renderTrigger()}
-      {!isButton && !disabled && (
+      {!isButton && !disabled && !loading && (
         <div
           ref={popperRef}
           style={popperStyle}
@@ -202,7 +204,7 @@ const CustomDropdown = ({
           >
             <div
               className={clsx(
-                'mt-1 p-1 rounded-xl shadow-md border bg-white dark:border-gray-700 dark:bg-[#1d1f20]',
+                'mt-1 p-1 rounded-lg shadow-md border bg-white dark:border-gray-700 dark:bg-[#1d1f20]',
                 'w-full sm:min-w-[200px]',
                 menuClassName,
               )}
@@ -249,6 +251,7 @@ CustomDropdown.propTypes = {
   disableMobileCollapse: PropTypes.bool,
   mobileMinWidth: PropTypes.number,
   mobileMaxWidth: PropTypes.number,
+  loading: PropTypes.bool,
 };
 
 export const DropdownItem = ({
@@ -281,7 +284,7 @@ export const DropdownItem = ({
     type="button"
     disabled={disabled}
     className={clsx(
-      'w-full px-4 py-2 text-left rounded-xl flex items-center text-gray-700 dark:text-gray-200 hover:bg-primary/10 dark:hover:bg-primary/20',
+      'w-full px-4 py-2 text-left rounded-lg flex items-center text-gray-700 dark:text-gray-200 hover:bg-primary/10 dark:hover:bg-primary/20',
       active && 'bg-primary/10 dark:bg-primary/40',
       disabled && 'opacity-60 cursor-not-allowed hover:bg-transparent',
       className,

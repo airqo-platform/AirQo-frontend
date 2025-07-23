@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import StepProgress from './CircularStepper';
 import ChecklistStepCard from './ChecklistStepCard';
 import ChecklistSkeleton from './ChecklistSkeleton';
 import { createSteps, mergeStepsWithChecklist } from '../utils/steps';
+import logger from '@/lib/logger';
 import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
+
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Checklist = ({ openVideoModal }) => {
@@ -51,8 +53,7 @@ const Checklist = ({ openVideoModal }) => {
         try {
           // Log for debugging
           if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
-            console.log('Fetching checklist data for user:', userId);
+            logger.info('Fetching checklist data for user:', userId);
           }
 
           await dispatch(fetchUserChecklists(userId));
@@ -63,8 +64,7 @@ const Checklist = ({ openVideoModal }) => {
         } catch (error) {
           // Log error but don't expose in production
           if (process.env.NODE_ENV !== 'production') {
-            // eslint-disable-next-line no-console
-            console.error('Error fetching checklist data:', error);
+            logger.error('Error fetching checklist data:', error);
           }
         }
       }
@@ -156,7 +156,7 @@ const Checklist = ({ openVideoModal }) => {
     <ErrorBoundary name="Checklist" feature="Onboarding">
       <div className={reduxStatus === 'loading' ? 'opacity-70' : ''}>
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <div className="w-full md:w-1/2 flex flex-col">
             <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
               Onboarding Checklist

@@ -18,7 +18,7 @@ export const createSteps = (handleStepClick) => [
     label: 'Choose location you are most interested in',
     description: 'Set up your preferred locations for air quality monitoring',
     time: '2 min',
-    link: '/analytics',
+    link: '/user/analytics',
     func: () => handleStepClick(2),
     icon: 'location',
   },
@@ -28,7 +28,7 @@ export const createSteps = (handleStepClick) => [
     description:
       'Customize your profile settings for a personalized experience',
     time: '4 min',
-    link: '/settings',
+    link: '/user/settings',
     func: () => handleStepClick(3),
     icon: 'profile',
   },

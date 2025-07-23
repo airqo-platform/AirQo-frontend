@@ -13,7 +13,7 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <div className="min-h-screen w-full flex flex-col">
+    <div className="min-h-screen w-full flex flex-col overflow-x-hidden">
       {/* Navbar */}
       <header className="sticky top-0 z-50">
         <Navbar />

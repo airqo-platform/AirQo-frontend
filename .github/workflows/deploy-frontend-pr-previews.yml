@@ -32,7 +32,7 @@ jobs:
       run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
       run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
-      run_netmanager-app: ${{ steps.check_files.outputs.run_netmanager-app }} # netmanager-app
+      run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
 
     runs-on: ubuntu-latest
     steps:
@@ -58,7 +58,7 @@ jobs:
           echo "run_website2=false" >>$GITHUB_OUTPUT
           echo "run_inventory=false" >>$GITHUB_OUTPUT
           echo "run_reports=false" >>$GITHUB_OUTPUT
-          echo "run_netmanager-app=false" >>$GITHUB_OUTPUT    
+          echo "run_vertex=false" >>$GITHUB_OUTPUT    
 
           while IFS= read -r file
           do
@@ -95,8 +95,8 @@ jobs:
               echo "run_reports=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/netmanager-app/* ]]; then
-              echo "run_netmanager-app=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/vertex/* ]]; then
+              echo "run_vertex=true" >>$GITHUB_OUTPUT
             fi            
 
           done < files.txt
@@ -819,11 +819,11 @@ jobs:
               body: 'New reports changes available for preview [here](${{ needs.reports.outputs.url }})'
             })
 
-  ### deploy netmanager-app preview ###
-  netmanager-app:
-    name: build-push-deploy-netmanager-app-preview
+  ### deploy vertex preview ###
+  vertex:
+    name: build-push-deploy-vertex-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_netmanager-app == 'true'
+    if: needs.check.outputs.run_vertex == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -840,7 +840,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-netmanager-app" > src/netmanager-app/.env
+        run: gcloud secrets versions access latest --secret="sta-env-vertex" > src/vertex/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -851,40 +851,40 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd src/netmanager-app/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-app-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-app-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-app-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-app-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-app-pr-previews:latest
+          cd src/vertex/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/vertex-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/vertex-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/vertex-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/vertex-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/vertex-pr-previews:latest
 
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-app-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
             --region=${{ secrets.REGION }} \
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-app-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/vertex-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-netmanager-app:latest \
+            --update-secrets=/etc/env/.env=sta-env-vertex:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npm run start" \
             --allow-unauthenticated
 
       - name: Get preview service url
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-app-preview \
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
 
-  netmanager-app-pr-comment:
-    name: netmanager-app-preview-link-comment
-    if: needs.check.outputs.run_netmanager-app == 'true'
-    needs: [netmanager-app]
+  vertex-pr-comment:
+    name: vertex-preview-link-comment
+    if: needs.check.outputs.run_vertex == 'true'
+    needs: [vertex]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -894,5 +894,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New netmanager-app changes available for preview [here](${{ needs.netmanager-app.outputs.url }})'
+              body: 'New vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
             })

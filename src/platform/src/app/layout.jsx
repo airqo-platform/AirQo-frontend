@@ -31,10 +31,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>
-        <ClientProviders>{children}</ClientProviders>
+      <body className="bg-background">
+        <ClientProviders>{children}</ClientProviders>{' '}
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places&loading=async`}
           strategy="afterInteractive"
         />
       </body>

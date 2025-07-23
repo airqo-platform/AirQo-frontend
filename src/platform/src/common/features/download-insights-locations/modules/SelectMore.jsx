@@ -6,7 +6,7 @@ import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Header component for the Add Location modal.
@@ -39,8 +39,6 @@ const SelectMoreHeader = () => {
  */
 const SelectMore = ({ onClose }) => {
   const dispatch = useDispatch();
-  const { data } = useSelector((state) => state.modal.modalType);
-  console.log(data);
 
   // Retrieve user preferences from Redux store
   const preferencesData = useSelector(
@@ -177,7 +175,7 @@ const SelectMore = ({ onClose }) => {
   return (
     <>
       {/* Selected Sites Sidebar */}
-      <div className="w-[280px] h-[658px] overflow-y-auto border-r relative space-y-3 px-4 pt-5 pb-14">
+      <div className="w-[240px] h-full overflow-y-auto border-r border-gray-200 dark:border-gray-700 relative space-y-3 px-4 pt-5 pb-14">
         {selectedSitesContent}
       </div>
 

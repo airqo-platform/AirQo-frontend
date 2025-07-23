@@ -17,3 +17,16 @@ export const GENERATE_TOKEN_URI = `${AUTH_URL}/tokens`;
 export const ACTIVATE_USER_CLIENT = `${CLIENT_URI}/activate`;
 export const ACTIVATION_REQUEST_URI = `${CLIENT_URI}/activate-request`;
 export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
+
+// Group roles URL
+export const GROUP_ROLES_URL = `${AUTH_URL}/roles`;
+
+// Group slug management URL
+export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
+
+// Theme Management URLs
+export const USER_THEME_BASE_URL = `${USERS_URL}/preferences/theme/user`;
+export const getUserThemeUrl = (userId, groupId) =>
+  `${USER_THEME_BASE_URL}/${userId}/group/${groupId}`;
+export const updateUserThemeUrl = (userId, groupId) =>
+  `${USER_THEME_BASE_URL}/${userId}/group/${groupId}`;
