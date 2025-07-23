@@ -156,7 +156,7 @@ export default function Navigation() {
             {/* Mobile External Links */}
             <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
               <a
-                href="https://www.npmjs.com/settings/airqo/packages"
+                href="https://www.npmjs.com/package/@airqo/icons-react"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMobileOpen(false)}
