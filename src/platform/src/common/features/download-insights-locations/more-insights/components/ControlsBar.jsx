@@ -71,8 +71,8 @@ function ControlsBar({
           onChange={handleDateChange}
           horizontalOffset={isMobile ? 0 : 60}
           dropdown
-          enableTimePicker
-          showTimePickerToggle
+          enableTimePicker={isMobile ? false : true}
+          showTimePickerToggle={isMobile ? false : true}
         />
 
         <CustomDropdown

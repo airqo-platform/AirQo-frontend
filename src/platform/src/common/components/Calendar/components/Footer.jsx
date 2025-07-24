@@ -9,16 +9,14 @@ const Footer = ({
   selectedRange,
   handleValueChange,
   close,
-  enableTimePicker: initialEnableTimePicker = false,
   handleStartTimeChange,
   handleEndTimeChange,
   onTimePickerToggle,
   showTimePickerToggle = false, // New prop to control toggle visibility
 }) => {
   const [errorMsg, setErrorMsg] = useState('');
-  const [enableTimePicker, setEnableTimePicker] = useState(
-    initialEnableTimePicker,
-  );
+  // Always default to toggled off
+  const [enableTimePicker, setEnableTimePicker] = useState(false);
 
   const formatTimeForInput = (date) => {
     if (!date || !isValid(date)) return '00:00';
