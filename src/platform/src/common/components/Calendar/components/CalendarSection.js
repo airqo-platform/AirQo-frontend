@@ -14,27 +14,44 @@ import {
 import CalendarHeader from './CalendarHeader';
 
 const getDayClassNames = (day, month, selectedRange) => {
-  const isStartOrEnd =
-    (selectedRange.start && isSameDay(day, selectedRange.start)) ||
-    (selectedRange.end && isSameDay(day, selectedRange.end));
+  const isStart = selectedRange.start && isSameDay(day, selectedRange.start);
+  const isEnd = selectedRange.end && isSameDay(day, selectedRange.end);
+  const isSingle = selectedRange.start && !selectedRange.end;
   const isInBetween =
     selectedRange.start &&
     selectedRange.end &&
     isWithinInterval(day, selectedRange) &&
-    !isStartOrEnd;
+    !isStart &&
+    !isEnd;
   const isStartOfWeek = day.getDay() === 1;
   const isEndOfWeek = day.getDay() === 0;
   let classNames = 'flex justify-center items-center ';
-  if (isInBetween || isStartOrEnd)
+  // Highlight in-between days for range (no border radius)
+  if (isInBetween) {
+    classNames += 'bg-primary/10 text-gray-800 dark:text-gray-200 ';
+  }
+  // Start of range: only left side rounded unless it's also end (single day)
+  if (isStart && !isEnd) {
     classNames +=
-      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 ';
-  if (
-    (selectedRange.start && isSameDay(day, selectedRange.start)) ||
-    isStartOfWeek
-  )
-    classNames += 'rounded-l-full ';
-  if ((selectedRange.end && isSameDay(day, selectedRange.end)) || isEndOfWeek)
-    classNames += 'rounded-r-full ';
+      'bg-primary/10 text-gray-800 dark:text-gray-200 rounded-l-full ';
+    if (isStartOfWeek) classNames += 'rounded-l-full ';
+  }
+  // End of range: only right side rounded unless it's also start (single day)
+  if (isEnd && !isStart) {
+    classNames +=
+      'bg-primary/10 text-gray-800 dark:text-gray-200 rounded-r-full ';
+    if (isEndOfWeek) classNames += 'rounded-r-full ';
+  }
+  // Single date selection: fully rounded
+  if (isSingle && isStart) {
+    classNames +=
+      'bg-primary/10 text-gray-800 dark:text-gray-200 rounded-full ';
+  }
+  // If both start and end are the same day (single day selection)
+  if (isStart && isEnd) {
+    classNames +=
+      'bg-primary/10 text-gray-800 dark:text-gray-200 rounded-full ';
+  }
   return classNames;
 };
 
