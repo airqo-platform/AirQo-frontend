@@ -41,6 +41,8 @@ import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 import SettingsSidebar from './components/SettingsSidebar';
 import DataContent, { FILTER_TYPES } from './components/DataContent';
+import { useDispatch } from 'react-redux';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { getMimeType } from './utils';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -74,6 +76,7 @@ const MESSAGE_TYPES = {
  * @param {string} props.sidebarBg - Background color for sidebar
  */
 const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
+  const dispatch = useDispatch();
   // Consolidate refs for better cleanup management
   const refs = useRef({
     abortController: null,
@@ -995,6 +998,25 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       );
     }
 
+    // Only enable View Data for Sites
+    const showViewDataButton =
+      activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0;
+
+    // Handler for View Data button click (Sites only)
+    const onViewDataClick = () => {
+      if (activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0) {
+        dispatch(
+          setModalType({
+            type: 'inSights',
+            ids: null,
+            data: selectedItems,
+            backToDownload: true,
+          }),
+        );
+        dispatch(setOpenModal(true));
+      }
+    };
+
     return (
       <motion.div variants={animations.itemVariants}>
         <DataContent
@@ -1013,6 +1035,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           handleFilter={handleFilter}
           searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
           handleRetryLoad={handleRetryLoad}
+          showViewDataButton={showViewDataButton}
+          onViewDataClick={onViewDataClick}
         />
       </motion.div>
     );

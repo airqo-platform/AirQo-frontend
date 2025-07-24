@@ -33,14 +33,47 @@ const variants = {
   item: { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } },
 };
 
-export const InSightsHeader = () => (
-  <h3
-    className="flex text-lg leading-6 font-medium dark:text-white"
-    id="modal-title"
-  >
-    More Insights
-  </h3>
-);
+import { useSelector, useDispatch } from 'react-redux';
+import { IoIosArrowBack } from 'react-icons/io';
+import { setModalType } from '@/lib/store/services/downloadModal';
+
+export const InSightsHeader = () => {
+  const dispatch = useDispatch();
+  const backToDownload = useSelector(
+    (state) => state.modal.modalType?.backToDownload,
+  );
+
+  const handleBack = () => {
+    dispatch(
+      setModalType({
+        type: 'download',
+        ids: [],
+        data: [],
+        backToDownload: false,
+      }),
+    );
+  };
+
+  return (
+    <div className="flex items-center">
+      {backToDownload && (
+        <button
+          onClick={handleBack}
+          aria-label="Back to Data Download"
+          className="mr-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          <IoIosArrowBack size={22} />
+        </button>
+      )}
+      <h3
+        className="flex text-lg leading-6 font-medium dark:text-white"
+        id="modal-title"
+      >
+        More Insights
+      </h3>
+    </div>
+  );
+};
 
 function MoreInsights() {
   const {

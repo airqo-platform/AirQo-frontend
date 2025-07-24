@@ -6,6 +6,7 @@ const initialState = {
     type: '',
     ids: [],
     data: [],
+    backToDownload: false,
   },
 };
 
@@ -17,8 +18,13 @@ const modalSlice = createSlice({
       state.openModal = action.payload;
     },
     setModalType(state, action) {
-      const { type, ids = [], data = [] } = action.payload;
-      state.modalType = { type, ids, data };
+      const {
+        type,
+        ids = [],
+        data = [],
+        backToDownload = false,
+      } = action.payload;
+      state.modalType = { type, ids, data, backToDownload };
     },
     setModalText(state, action) {
       state.modalType.type = action.payload;
