@@ -1,629 +1,348 @@
+// src/common/features/charts/utils/chartExportUtils.js (or your relevant path)
+
 /**
- * Chart export utility for handling PDF and PNG exports using browser print functionality and canvas
+ * Modern Chart Export Utility
+ * Clean, professional exports with proper spacing and typography
+ * Refactored PDF export using pdfmake instead of window.print()
  */
 export class ChartExportUtils {
   static EXPORT_FORMATS = ['pdf', 'png'];
-
-  static DEFAULT_OPTIONS = {
-    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-    fontSize: '12px',
-    fontWeight: '500',
-    exportDelay: 800,
-    pageMargin: '15mm',
-    pageSize: 'A4',
-    orientation: 'landscape',
-    scale: 2,
-    quality: 0.95,
+  static FORMATS = ['pdf', 'png']; // Legacy compatibility
+  static CONFIG = {
+    fonts:
+      '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+    colors: {
+      background: '#ffffff',
+      text: '#1f2937',
+      muted: '#6b7280',
+      border: '#e5e7eb',
+      accent: '#3b82f6',
+    },
+    spacing: {
+      header: '32px',
+      content: '24px',
+      footer: '20px',
+    },
+    export: {
+      delay: 800,
+      scale: 2,
+      quality: 0.95,
+    },
   };
 
   /**
-   * Export chart element using browser print functionality or canvas
-   * @param {HTMLElement} chartElement - The chart element to export
-   * @param {string} format - Export format ('pdf' or 'png')
-   * @param {Object} options - Export options
-   * @returns {Promise<void>}
+   * Main export function
    */
-  static async exportChart(chartElement, format = 'pdf', options = {}) {
-    if (!chartElement || !this.EXPORT_FORMATS.includes(format)) {
-      throw new Error(
-        `Invalid format: ${format}. Supported formats: ${this.EXPORT_FORMATS.join(', ')}`,
-      );
+  static async exportChart(element, format = 'pdf', options = {}) {
+    if (!element || !this.EXPORT_FORMATS.includes(format)) {
+      throw new Error(`Invalid element or format: ${format}`);
     }
-
-    const config = { ...this.DEFAULT_OPTIONS, ...options };
-
+    const config = { ...this.CONFIG, ...options };
     try {
-      // Wait for chart rendering to complete
-      await new Promise((resolve) => setTimeout(resolve, config.exportDelay));
-
+      await this._wait(config.export.delay);
       if (format === 'pdf') {
-        await this._printChart(chartElement, config);
-      } else if (format === 'png') {
-        await this._exportToPNG(chartElement, config);
+        return await this._exportPDF(element, config);
+      } else {
+        return await this._exportPNG(element, config);
       }
     } catch (error) {
-      // Log error for debugging
+      console.error('Export failed:', error);
       throw new Error(`Export failed: ${error.message}`);
     }
   }
 
   /**
-   * Export chart to PNG using canvas
-   * @private
+   * PNG Export
    */
-  static async _exportToPNG(chartElement, config) {
-    const chartContainer =
-      chartElement.closest('.chart-container') || chartElement;
-    const chartTitle = this._extractChartTitle(chartContainer);
-
-    // Apply export class temporarily
-    chartContainer.classList.add('exporting');
-
+  static async _exportPNG(element, config) {
+    const container = this._findContainer(element);
+    const title = this._getTitle(container);
+    container.classList.add('exporting');
     try {
-      // Use html2canvas for better chart rendering
-      const canvas = await this._createCanvasFromElement(
-        chartContainer,
-        config,
-      );
-
-      // Download the canvas as PNG
-      const link = document.createElement('a');
-      link.download = `${chartTitle.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = canvas.toDataURL('image/png', config.quality);
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const canvas = await this._createCanvas(container, config);
+      await this._downloadFile(canvas, title, 'png', config.export.quality);
     } finally {
-      chartContainer.classList.remove('exporting');
+      container.classList.remove('exporting');
     }
   }
 
   /**
-   * Create canvas from element using html2canvas
-   * @private
+   * PDF Export using pdfmake for a professional layout
+   * Generates a canvas image of the chart and embeds it in a PDF.
    */
-  static async _createCanvasFromElement(element, config) {
-    // Dynamic import of html2canvas
-    const html2canvas = await import('html2canvas').then(
-      (module) => module.default,
-    );
+  static async _exportPDF(element, config) {
+    const container = this._findContainer(element);
+    const title = this._getTitle(container);
 
+    container.classList.add('exporting');
+    try {
+      // 1. Capture the chart as a high-quality canvas image
+      const canvas = await this._createCanvas(container, config);
+
+      // 2. Convert canvas to Data URL (base64)
+      const imgData = canvas.toDataURL('image/png');
+
+      // 3. Define PDF specific configuration
+      const pdfConfig = {
+        pageMargins: [40, 60, 40, 60], // [left, top, right, bottom] in points
+        // Note: Do not specify defaultStyle.font here if relying on built-in fonts
+        // and automatic bold simulation. Let pdfmake handle it.
+      };
+
+      // 4. Prepare PDF content structure
+      const date = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      const docDefinition = {
+        pageSize: 'A4',
+        pageOrientation: 'landscape',
+        pageMargins: pdfConfig.pageMargins,
+        // Remove defaultStyle.font to let pdfmake use built-ins correctly
+        // defaultStyle: pdfConfig.defaultStyle,
+        content: [
+          // Header
+          {
+            columns: [
+              {
+                text: title,
+                style: 'header',
+                // bold: true, // Move bold here or keep in style
+              },
+              {
+                stack: [
+                  { text: date, style: 'date', alignment: 'right' },
+                  {
+                    text: 'AirQo Platform',
+                    style: 'brand',
+                    alignment: 'right',
+                  },
+                ],
+                width: 'auto',
+              },
+            ],
+            columnGap: 10,
+          },
+          // Add a line separator
+          {
+            canvas: [
+              {
+                type: 'line',
+                x1: 0,
+                y1: 0,
+                x2: 595 - 2 * 40, // A4 landscape width (595pt) minus margins
+                y2: 0,
+                lineWidth: 1,
+                lineColor: config.colors.border.replace('#', ''), // Simple conversion for pdfmake
+              },
+            ],
+            margin: [0, 10, 0, 15], // Add some vertical spacing
+          },
+          // Chart Image - Centered
+          {
+            image: imgData,
+            width: 515, // Fit within margins (595 - 2*40 = 515)
+            alignment: 'center',
+            margin: [0, 0, 0, 20], // Add bottom margin
+          },
+        ],
+        footer: () => {
+          return {
+            columns: [
+              {
+                text: `© ${new Date().getFullYear()} AirQo Platform - Air Quality Analytics`,
+                style: 'footer',
+                alignment: 'center',
+                margin: [0, 10, 0, 0],
+              },
+            ],
+          };
+        },
+        styles: {
+          header: {
+            fontSize: 20,
+            bold: true, // Define bold here in the style
+            color: config.colors.text,
+          },
+          date: {
+            fontSize: 10,
+            bold: true, // Define bold here
+            color: config.colors.text,
+            margin: [0, 0, 0, 2],
+          },
+          brand: {
+            fontSize: 8,
+            color: config.colors.muted,
+            italics: true, // Use italics if preferred
+          },
+          footer: {
+            fontSize: 8,
+            color: config.colors.muted,
+          },
+        },
+        // Crucially, define the fonts section to map standard font names
+        // to their built-in representations. This allows bold/italics to work.
+        fonts: {
+          // Map 'Helvetica' (and common aliases) to the built-in font
+          Helvetica: {
+            normal: 'Helvetica',
+            bold: 'Helvetica-Bold', // Built-in bold variant name
+            italics: 'Helvetica-Oblique', // Built-in italic variant name
+            bolditalics: 'Helvetica-BoldOblique', // Built-in bold-italic variant name
+          },
+          // Optionally map other standard fonts if used
+          // Times: { ... },
+          // Courier: { ... }
+          // If you want to use 'Roboto' as default, you'd need to provide the .ttf files
+          // via vfs and define them here. For now, stick to built-ins.
+        },
+        // Page margins are already set above
+      };
+
+      // 5. Dynamically import pdfmake
+      const pdfMakeModule = await import('pdfmake/build/pdfmake');
+      const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
+
+      const pdfMake = pdfMakeModule.default;
+      const vfs = pdfFontsModule.default;
+
+      // Assign the virtual file system for fonts to pdfmake
+      if (vfs && typeof vfs === 'object') {
+        pdfMake.vfs = vfs;
+      } else {
+        console.warn(
+          'pdfmake vfs_fonts not loaded correctly, using default (built-in) fonts only.',
+        );
+      }
+
+      // 6. Create and download the PDF
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      const filename = `${this._sanitizeFilename(title)}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdfDocGenerator.download(filename);
+    } finally {
+      container.classList.remove('exporting');
+    }
+  }
+
+  /**
+   * Create optimized canvas
+   */
+  static async _createCanvas(element, config) {
+    const html2canvas = await import('html2canvas').then((m) => m.default);
     return html2canvas(element, {
-      scale: config.scale,
+      scale: config.export.scale,
+      backgroundColor: config.colors.background,
       useCORS: true,
       allowTaint: false,
-      backgroundColor: '#ffffff',
-      width: element.offsetWidth,
-      height: element.offsetHeight,
       logging: false,
-      imageTimeout: 15000,
-      onclone: (clonedDoc) => {
-        // Ensure all SVG elements are properly rendered
-        const svgElements = clonedDoc.querySelectorAll('svg');
-        svgElements.forEach((svg) => {
-          const rect = svg.getBoundingClientRect();
-          svg.setAttribute('width', Math.max(rect.width, 800));
-          svg.setAttribute('height', Math.max(rect.height, 400));
-          svg.style.background = 'white';
-        });
-
-        // Hide buttons and dropdowns in cloned document
-        const buttonsAndDropdowns = clonedDoc.querySelectorAll(
-          'button, .dropdown, .chart-header-dropdown',
-        );
-        buttonsAndDropdowns.forEach((el) => {
-          el.style.display = 'none';
-        });
-
-        // Ensure legend is visible
-        const legends = clonedDoc.querySelectorAll('.recharts-legend-wrapper');
-        legends.forEach((legend) => {
-          legend.style.display = 'block';
-          legend.style.visibility = 'visible';
-          legend.style.opacity = '1';
-        });
-
-        // Ensure reference lines are visible
-        const refLines = clonedDoc.querySelectorAll('.recharts-reference-line');
-        refLines.forEach((line) => {
-          line.style.stroke = '#EF4444';
-          line.style.strokeWidth = '2.5';
-          line.style.opacity = '1';
-        });
-      },
+      onclone: (doc) => this._cleanClone(doc, config),
     });
   }
 
   /**
-   * Print chart using browser's print functionality
-   * @private
+   * Clean cloned document for PNG export (and potentially for consistent canvas capture)
    */
-  static async _printChart(chartElement, config) {
-    // Find the chart container and get chart data
-    const chartContainer =
-      chartElement.closest('.chart-container') || chartElement;
-    const chartTitle = this._extractChartTitle(chartContainer);
-
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank', 'width=1200,height=800');
-
-    if (!printWindow) {
-      throw new Error('Popup blocked. Please allow popups and try again.');
-    }
-
-    try {
-      // Clone the chart content
-      const clonedChart = chartContainer.cloneNode(true);
-
-      // Create print document
-      this._createPrintDocument(printWindow, clonedChart, chartTitle, config);
-
-      // Wait for content to load
-      await new Promise((resolve) => {
-        printWindow.onload = resolve;
-        setTimeout(resolve, 1000); // Fallback timeout
-      });
-
-      // Focus and print
-      printWindow.focus();
-      printWindow.print();
-
-      // Close window after a delay to allow printing
-      setTimeout(() => {
-        printWindow.close();
-      }, 500);
-    } catch (error) {
-      printWindow.close();
-      throw error;
-    }
-  }
-
-  /**
-   * Extract chart title from container
-   * @private
-   */
-  static _extractChartTitle(container) {
-    // Try to find title in parent elements working upward
-    let current = container;
-    while (current && current !== document.body) {
-      const titleElement = current.querySelector(
-        'h1, h2, h3, h4, h5, h6, [data-chart-title]',
-      );
-      if (titleElement) {
-        return titleElement.textContent?.trim() || 'Air Quality Chart';
-      }
-
-      // Check if current element itself has a title
-      if (current.title) {
-        return current.title.trim();
-      }
-
-      // Check for aria-label
-      if (current.getAttribute('aria-label')) {
-        return current.getAttribute('aria-label').trim();
-      }
-
-      current = current.parentElement;
-    }
-
-    // Fallback: try to find in the entire chart container hierarchy
-    const chartTitleElement = document.querySelector(
-      '.chart-container h3, .chart-container h2, .chart-container h1',
+  static _cleanClone(doc, config) {
+    // Remove interactive elements
+    const interactive = doc.querySelectorAll(
+      'button, .dropdown, .tooltip, [data-tooltip], .recharts-tooltip-wrapper',
     );
-    if (chartTitleElement) {
-      return chartTitleElement.textContent?.trim() || 'Air Quality Chart';
-    }
-
-    return 'Air Quality Chart';
+    interactive.forEach((el) => {
+      // Hide visually and remove from layout
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.setAttribute('aria-hidden', 'true');
+    });
+    // Apply chart optimizations to the cloned document
+    this._optimizeChart(doc.body, config);
   }
 
   /**
-   * Create print document HTML
-   * @private
+   * Optimize chart elements (for image capture consistency)
    */
-  static _createPrintDocument(printWindow, chartElement, title, config) {
-    const { fontFamily, pageMargin, pageSize, orientation } = config;
-
-    // Clean up the chart element for better print rendering
-    const cleanedChart = this._cleanChartForPrint(chartElement);
-
-    const printHTML = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title} - Export</title>
-        <style>
-          ${this._getPrintStyles(fontFamily, pageMargin, pageSize, orientation)}
-        </style>
-      </head>
-      <body>
-        <div class="print-container">
-          <header class="print-header">
-            <h1>${title}</h1>
-            <div class="print-meta">
-              <span>Generated on: ${new Date().toLocaleString()}</span>
-              <span>AirQo Platform - Air Quality Data</span>
-            </div>
-          </header>
-          <main class="print-content">
-            ${cleanedChart.outerHTML}
-          </main>
-          <footer class="print-footer">
-            <span>© ${new Date().getFullYear()} AirQo Platform</span>
-          </footer>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(printHTML);
-    printWindow.document.close();
-  }
-
-  /**
-   * Clean chart element for better print rendering
-   * @private
-   */
-  static _cleanChartForPrint(chartElement) {
-    const cloned = chartElement.cloneNode(true);
-
-    // Remove any buttons or dropdowns
-    const buttons = cloned.querySelectorAll(
-      'button, .dropdown, .chart-header-dropdown',
-    );
-    buttons.forEach((btn) => btn.remove());
-
-    // Ensure legend is visible and properly styled
-    const legends = cloned.querySelectorAll('.recharts-legend-wrapper');
+  static _optimizeChart(element, config) {
+    // Style reference lines
+    const refLines = element.querySelectorAll('.recharts-reference-line line');
+    refLines.forEach((line) => {
+      line.setAttribute('stroke', '#ef4444');
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-dasharray', '5 5');
+    });
+    // Style grid
+    const gridLines = element.querySelectorAll('.recharts-cartesian-grid line');
+    gridLines.forEach((line) => {
+      line.setAttribute('stroke', config.colors.border);
+      line.setAttribute('stroke-opacity', '0.4');
+    });
+    // Ensure legends are visible
+    const legends = element.querySelectorAll('.recharts-legend-wrapper');
     legends.forEach((legend) => {
       legend.style.display = 'block';
       legend.style.visibility = 'visible';
-      legend.style.opacity = '1';
       legend.style.position = 'relative';
+      legend.style.marginTop = '24px';
     });
+  }
 
-    // Enhance reference lines
-    const refLines = cloned.querySelectorAll('.recharts-reference-line line');
-    refLines.forEach((line) => {
-      line.setAttribute('stroke', '#EF4444');
-      line.setAttribute('stroke-width', '2.5');
-      line.setAttribute('stroke-dasharray', '8 4');
-      line.setAttribute('opacity', '1');
-    });
-
-    // Enhance reference line labels
-    const refLabels = cloned.querySelectorAll(
-      '.recharts-reference-line .recharts-label',
+  /**
+   * Helper methods
+   */
+  static _findContainer(element) {
+    return (
+      element.closest('.chart-container') ||
+      element.closest('[class*="chart"]') ||
+      element
     );
-    refLabels.forEach((label) => {
-      label.setAttribute('fill', '#EF4444');
-      label.style.fontWeight = '700';
-      label.style.fontSize = '12px';
-    });
-
-    return cloned;
   }
-
-  /**
-   * Generate print-specific CSS styles
-   * @private
-   */
-  static _getPrintStyles(fontFamily, pageMargin, pageSize, orientation) {
-    return `
-      @page {
-        size: ${pageSize} ${orientation};
-        margin: ${pageMargin};
+  static _getTitle(container) {
+    const selectors = ['h1', 'h2', 'h3', '[data-chart-title]', '.chart-title'];
+    for (const selector of selectors) {
+      const el =
+        container.querySelector(selector) ||
+        container.parentElement?.querySelector(selector);
+      if (el?.textContent?.trim()) {
+        return el.textContent.trim();
       }
-      
-      * {
-        box-sizing: border-box;
-        -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: ${fontFamily};
-        background: white !important;
-        color: #1F2937 !important;
-        line-height: 1.4;
-        overflow: hidden;
-      }
-
-      .print-container {
-        width: 100%;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-        margin: 0;
-        page-break-inside: avoid;
-        overflow: hidden;
-      }
-
-      .print-header {
-        text-align: center;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #E5E7EB;
-        padding-bottom: 10px;
-        flex-shrink: 0;
-      }
-
-      .print-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 20px;
-        font-weight: 600;
-        color: #1F2937 !important;
-      }
-
-      .print-meta {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: #6B7280 !important;
-      }
-
-      .print-content {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 0;
-        overflow: hidden;
-        padding: 10px 0;
-      }
-
-      .print-footer {
-        text-align: center;
-        font-size: 9px;
-        color: #9CA3AF !important;
-        border-top: 1px solid #E5E7EB;
-        padding-top: 8px;
-        margin-top: 10px;
-        flex-shrink: 0;
-      }
-
-      /* Chart specific styles */
-      .chart-container,
-      .export-chart-container {
-        width: 100% !important;
-        height: 100% !important;
-        max-height: 100% !important;
-        background: white !important;
-        overflow: visible !important;
-        page-break-inside: avoid;
-      }
-
-      .recharts-wrapper {
-        background: white !important;
-        overflow: visible !important;
-        width: 100% !important;
-        height: 100% !important;
-      }
-
-      .recharts-surface {
-        background: white !important;
-        overflow: visible !important;
-      }
-
-      /* Ensure all chart elements are visible */
-      .recharts-cartesian-grid line {
-        stroke: #E5E7EB !important;
-        stroke-opacity: 0.5 !important;
-      }
-
-      .recharts-text {
-        font-family: ${fontFamily} !important;
-        font-size: 11px !important;
-        fill: #374151 !important;
-      }
-
-      .recharts-legend-wrapper {
-        overflow: visible !important;
-        position: relative !important;
-      }
-
-      .recharts-legend-item {
-        margin-right: 12px !important;
-        margin-bottom: 4px !important;
-      }
-
-      .recharts-legend-item text {
-        font-size: 12px !important;
-        fill: #1F2937 !important;
-        font-weight: 500 !important;
-        font-family: ${fontFamily} !important;
-      }
-
-      .recharts-cartesian-axis-tick text {
-        font-size: 10px !important;
-        fill: #6B7280 !important;
-        font-family: ${fontFamily} !important;
-      }
-
-      .recharts-tooltip-wrapper {
-        display: none !important;
-      }
-
-      /* Hide any buttons or interactive elements */
-      button,
-      .dropdown,
-      .chart-header-dropdown,
-      .relative.w-full:has(button),
-      .chart-refresh-indicator {
-        display: none !important;
-      }
-
-      /* Reference line - ensure it's visible and prominent */
-      .recharts-reference-line {
-        stroke: #EF4444 !important;
-        stroke-width: 2.5 !important;
-        stroke-dasharray: 8 4 !important;
-        opacity: 1 !important;
-      }
-
-      .recharts-reference-line line {
-        stroke: #EF4444 !important;
-        stroke-width: 2.5 !important;
-        stroke-dasharray: 8 4 !important;
-        opacity: 1 !important;
-      }
-
-      .recharts-label,
-      .recharts-reference-line .recharts-label {
-        fill: #EF4444 !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
-        font-family: ${fontFamily} !important;
-        opacity: 1 !important;
-      }
-
-      /* Ensure proper spacing */
-      .chart-content {
-        width: 100% !important;
-        height: 100% !important;
-        overflow: visible !important;
-      }
-
-      /* Bar chart specific fixes */
-      .recharts-bar-rectangle,
-      .recharts-bar-rectangle path {
-        fill-opacity: 1 !important;
-        stroke: none !important;
-      }
-
-      .recharts-bar rect {
-        fill-opacity: 1 !important;
-        stroke: none !important;
-      }
-
-      /* Line chart specific fixes */
-      .recharts-line .recharts-line-curve {
-        stroke-width: 2.5 !important;
-        fill: none !important;
-        opacity: 1 !important;
-      }
-
-      .recharts-line .recharts-line-dots .recharts-dot {
-        fill-opacity: 1 !important;
-        stroke-width: 2 !important;
-        opacity: 1 !important;
-      }
-
-      .recharts-active-dot {
-        display: none !important;
-      }
-
-      /* Force single page */
-      @media print {
-        body, .print-container {
-          height: 100vh !important;
-          overflow: hidden !important;
-          page-break-inside: avoid !important;
-          page-break-after: avoid !important;
-        }
-        
-        .print-content {
-          height: calc(100vh - 120px) !important;
-          overflow: hidden !important;
-        }
-      }
-    `;
-  }
-
-  /**
-   * Get background color for print
-   */
-  static getBackgroundColor() {
-    return '#FFFFFF'; // Always white for print
-  }
-
-  /**
-   * Get text color for print
-   */
-  static getTextColor() {
-    return '#1F2937'; // Always dark for print
-  }
-
-  /**
-   * Apply export styles to document (simplified for print-only export)
-   */
-  static applyExportStyles() {
-    const styleId = 'chart-export-styles';
-
-    // Remove existing styles if present
-    const existingStyles = document.getElementById(styleId);
-    if (existingStyles) {
-      existingStyles.remove();
     }
-
-    const styleTag = document.createElement('style');
-    styleTag.id = styleId;
-    styleTag.innerHTML = `
-      .export-chart-container {
-        position: relative;
-        overflow: visible !important;
-        background: ${this.getBackgroundColor()};
-      }
-      
-      .chart-content {
-        transform-origin: top left;
-        box-shadow: none !important;
-        border: none !important;
-        border-radius: 0 !important;
-        overflow: visible !important;
-      }
-      
-      /* Only hide tooltips during export */
-      .exporting .recharts-tooltip-wrapper {
-        display: none !important;
-      }
-      
-      .recharts-wrapper,
-      .recharts-surface {
-        overflow: visible !important;
-        background: white !important;
-      }
-      
-      .recharts-cartesian-grid line {
-        stroke-opacity: 0.3;
-      }
-      
-      .recharts-legend-item {
-        margin-right: 16px !important;
-      }
-      
-      .recharts-text {
-        font-family: system-ui, -apple-system, sans-serif !important;
-        font-weight: 500 !important;
-      }
-      
-      .recharts-cartesian-axis-tick text {
-        font-size: 12px !important;
-        font-family: system-ui, -apple-system, sans-serif !important;
-        fill: #4B5563 !important;
-      }
-      
-      .recharts-legend-item text {
-        font-size: 14px !important;
-        font-family: system-ui, -apple-system, sans-serif !important;
-        fill: #1F2937 !important;
-      }
-    `;
-
-    document.head.appendChild(styleTag);
-
-    // Return cleanup function
-    return () => {
-      const styles = document.getElementById(styleId);
-      if (styles) {
-        styles.remove();
-      }
-    };
+    return (
+      container.title ||
+      container.getAttribute('aria-label') ||
+      'Air Quality Chart'
+    );
+  }
+  static _escape(text) {
+    return text.replace(
+      /[<>&"']/g,
+      (match) =>
+        ({
+          '<': '<',
+          '>': '>',
+          '&': '&amp;',
+          '"': '&quot;',
+          "'": '&#x27;',
+        })[match],
+    );
+  }
+  static _sanitizeFilename(title) {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50);
+  }
+  static async _downloadFile(canvas, title, format, quality) {
+    const filename = `${this._sanitizeFilename(title)}-${new Date().toISOString().slice(0, 10)}.${format}`;
+    const mimeType = `image/${format}`;
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL(mimeType, quality);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  static async _wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

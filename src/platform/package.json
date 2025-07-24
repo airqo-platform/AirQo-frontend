@@ -47,6 +47,7 @@
     "next-videos": "^1.4.1",
     "pako": "^2.1.0",
     "papaparse": "^5.4.1",
+    "pdfmake": "^0.2.20",
     "postcss": "^8.4.16",
     "posthog-js": "^1.230.1",
     "prop-types": "^15.8.1",
