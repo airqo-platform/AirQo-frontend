@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { format } from 'date-fns';
+import { format, getHours, getMinutes, isValid } from 'date-fns';
+
 import Button from '../../Button';
 
-/**
- * Footer component contains Cancel and Apply buttons with date inputs for larger screens.
- */
 const Footer = ({
   selectedRange,
-  setSelectedRange,
   handleValueChange,
   close,
+  enableTimePicker,
+  handleStartTimeChange,
+  handleEndTimeChange,
 }) => {
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleCancel = () => {
-    setSelectedRange({ start: null, end: null });
-    close();
+  const formatTimeForInput = (date) => {
+    if (!date || !isValid(date)) return '00:00';
+    return `${String(getHours(date)).padStart(2, '0')}:${String(getMinutes(date)).padStart(2, '0')}`;
   };
 
+  const handleCancel = () => {
+    close();
+  };
   const handleApply = () => {
     if (!selectedRange.start || !selectedRange.end) {
       setErrorMsg('Please select both start and end dates.');
-      setTimeout(() => {
-        setErrorMsg('');
-      }, 3000);
+      setTimeout(() => setErrorMsg(''), 3000);
       return;
     }
     handleValueChange(selectedRange);
@@ -33,38 +34,101 @@ const Footer = ({
 
   return (
     <div className="flex flex-col items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700 md:flex-row">
-      <form className="hidden md:flex md:items-center md:space-x-2">
-        <input
-          type="text"
-          readOnly
-          value={
-            selectedRange.start
-              ? format(selectedRange.start, 'MMM d, yyyy')
-              : ''
-          }
-          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
-          placeholder="Start date"
-          disabled
-          aria-label="Start Date"
-        />
-        <div className="px-2">
-          <span className="text-gray-600 dark:text-gray-400 text-[16px]">
-            -
-          </span>
-        </div>
-        <input
-          type="text"
-          readOnly
-          value={
-            selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''
-          }
-          className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
-          placeholder="End date"
-          disabled
-          aria-label="End Date"
-        />
-      </form>
-
+      {enableTimePicker ? (
+        <form className="hidden md:flex md:items-center md:space-x-2">
+          <div className="flex flex-col">
+            <input
+              type="text"
+              readOnly
+              value={
+                selectedRange.start
+                  ? format(selectedRange.start, 'MMM d, yyyy')
+                  : ''
+              }
+              className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
+              placeholder="Start date"
+              disabled
+              aria-label="Start Date"
+            />
+            <input
+              type="time"
+              value={
+                selectedRange.start
+                  ? formatTimeForInput(selectedRange.startTime)
+                  : '00:00'
+              }
+              onChange={handleStartTimeChange}
+              className="mt-1 flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
+              aria-label="Start Time"
+              disabled={!selectedRange.start}
+            />
+          </div>
+          <div className="px-2 flex items-center">
+            <span className="text-gray-600 dark:text-gray-400 text-[16px]">
+              -
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <input
+              type="text"
+              readOnly
+              value={
+                selectedRange.end
+                  ? format(selectedRange.end, 'MMM d, yyyy')
+                  : ''
+              }
+              className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
+              placeholder="End date"
+              disabled
+              aria-label="End Date"
+            />
+            <input
+              type="time"
+              value={
+                selectedRange.end
+                  ? formatTimeForInput(selectedRange.endTime)
+                  : '23:59'
+              }
+              onChange={handleEndTimeChange}
+              className="mt-1 flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
+              aria-label="End Time"
+              disabled={!selectedRange.end}
+            />
+          </div>
+        </form>
+      ) : (
+        <form className="hidden md:flex md:items-center md:space-x-2">
+          <input
+            type="text"
+            readOnly
+            value={
+              selectedRange.start
+                ? format(selectedRange.start, 'MMM d, yyyy')
+                : ''
+            }
+            className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
+            placeholder="Start date"
+            disabled
+            aria-label="Start Date"
+          />
+          <div className="px-2">
+            <span className="text-gray-600 dark:text-gray-400 text-[16px]">
+              -
+            </span>
+          </div>
+          <input
+            type="text"
+            readOnly
+            value={
+              selectedRange.end ? format(selectedRange.end, 'MMM d, yyyy') : ''
+            }
+            className="flex items-center shadow-sm w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 dark:bg-gray-800 rounded-lg focus:bg-white dark:focus:bg-gray-700 focus:ring-1 focus:ring-primary focus:outline-none md:w-32"
+            placeholder="End date"
+            disabled
+            aria-label="End Date"
+          />
+        </form>
+      )}
       <div className="flex items-center space-x-2 mt-2 md:mt-0">
         <Button
           onClick={handleCancel}
@@ -84,7 +148,6 @@ const Footer = ({
           Apply
         </Button>
       </div>
-
       {errorMsg && (
         <div className="text-red-500 dark:text-red-400 text-sm mt-2 md:mt-0">
           {errorMsg}
@@ -98,10 +161,14 @@ Footer.propTypes = {
   selectedRange: PropTypes.shape({
     start: PropTypes.instanceOf(Date),
     end: PropTypes.instanceOf(Date),
+    startTime: PropTypes.instanceOf(Date),
+    endTime: PropTypes.instanceOf(Date),
   }).isRequired,
-  setSelectedRange: PropTypes.func.isRequired,
   handleValueChange: PropTypes.func.isRequired,
   close: PropTypes.func.isRequired,
+  enableTimePicker: PropTypes.bool.isRequired,
+  handleStartTimeChange: PropTypes.func,
+  handleEndTimeChange: PropTypes.func,
 };
 
 export default React.memo(Footer);

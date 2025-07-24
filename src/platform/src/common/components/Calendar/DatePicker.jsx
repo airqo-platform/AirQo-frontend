@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { format } from 'date-fns';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
+import PropTypes from 'prop-types';
+import { format, isValid, parseISO } from 'date-fns';
 import { usePopper } from 'react-popper';
 import { Transition } from '@headlessui/react';
 import Calendar from './Calendar';
 import CalendarIcon from '@/icons/Analytics/calendarIcon';
 import CustomDropdown from '../Button/CustomDropdown';
 
-/**
- * DatePicker component that integrates Calendar with react-popper.
- * It manages its open/close state and renders the calendar in a popper with an arrow.
- */
 const DatePicker = ({
   customPopperStyle = {},
   alignment = 'left',
@@ -19,23 +22,42 @@ const DatePicker = ({
   required = false,
   mobileCollapse,
   calendarXPosition = '',
+  enableTimePicker = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceElement, setReferenceElement] = useState(null);
   const [popperElement, setPopperElement] = useState(null);
   const [arrowElement, setArrowElement] = useState(null);
-  const containerRef = useRef(null); // Ref for the main DatePicker container
-
-  // Use ref to track previous initialValue to prevent unnecessary state updates
-  const prevInitialValueRef = useRef(null);
-
-  // Initialize with provided initialValue if available
-  const [selectedDate, setSelectedDate] = useState({
-    start: initialValue?.name?.start || null,
-    end: initialValue?.name?.end || null,
+  const containerRef = useRef(null);
+  const prevInitialValueRef = useRef({
+    start: null,
+    end: null,
+    startTime: null,
+    endTime: null,
   });
 
-  // Configure react-popper
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const startRaw = initialValue?.name?.start;
+    const endRaw = initialValue?.name?.end;
+    const startTimeRaw = enableTimePicker
+      ? initialValue?.name?.startTime
+      : null;
+    const endTimeRaw = enableTimePicker ? initialValue?.name?.endTime : null;
+
+    const parseDate = (date) => {
+      if (!date) return null;
+      const parsed = typeof date === 'string' ? parseISO(date) : new Date(date);
+      return isValid(parsed) ? parsed : null;
+    };
+
+    const start = parseDate(startRaw);
+    const end = parseDate(endRaw);
+    const startTime = parseDate(startTimeRaw);
+    const endTime = parseDate(endTimeRaw);
+
+    return { start, end, startTime, endTime };
+  });
+
   const { styles, attributes, update } = usePopper(
     referenceElement,
     popperElement,
@@ -60,51 +82,22 @@ const DatePicker = ({
         },
         { name: 'computeStyles', options: { adaptive: false } },
         { name: 'eventListeners', options: { scroll: true, resize: true } },
-        {
-          name: 'arrow',
-          options: {
-            element: arrowElement,
-            padding: 8,
-          },
-        },
+        { name: 'arrow', options: { element: arrowElement, padding: 8 } },
       ],
     },
   );
 
-  /**
-   * Toggles the calendar's open/close state.
-   */
   const toggleOpen = useCallback(() => {
     setIsOpen((prev) => !prev);
-    // Request popper update when opening to ensure correct positioning
-    if (!isOpen && update) {
-      setTimeout(update, 10);
-    }
+    if (!isOpen && update) setTimeout(update, 10);
   }, [isOpen, update]);
 
-  /**
-   * Called whenever the user selects a date range in the Calendar.
-   * Formats the date structure to match what CustomFields expects.
-   */
   const handleValueChange = useCallback(
     (newValue) => {
-      // Update local state
       setSelectedDate(newValue);
-
-      // Only trigger onChange if both dates are selected or dates have changed
       if (newValue.start || newValue.end) {
-        // Transform the date structure to match what CustomFields expects
-        const formattedDates = {
-          name: {
-            start: newValue.start,
-            end: newValue.end,
-          },
-        };
-        onChange?.(formattedDates);
+        onChange?.({ name: newValue });
       }
-
-      // Close the calendar after selection is complete
-      // Give a slight delay to allow UI to update if needed
       if (newValue.start && newValue.end) {
         setTimeout(() => setIsOpen(false), 300);
       }
@@ -112,9 +105,6 @@ const DatePicker = ({
     [onChange],
   );
 
-  /**
-   * Closes the popper when clicking outside of it.
-   */
   const handleClickOutside = useCallback(
     (event) => {
       if (
@@ -129,69 +119,103 @@ const DatePicker = ({
     [popperElement, referenceElement],
   );
 
-  // Update the selected date if initialValue changes externally
   useEffect(() => {
     if (!initialValue) return;
+    const newStartRaw = initialValue?.name?.start;
+    const newEndRaw = initialValue?.name?.end;
+    const newStartTimeRaw = enableTimePicker
+      ? initialValue?.name?.startTime
+      : null;
+    const newEndTimeRaw = enableTimePicker ? initialValue?.name?.endTime : null;
 
-    // Use a deep comparison for objects to prevent unnecessary re-renders
-    const newStart = initialValue?.name?.start || null;
-    const newEnd = initialValue?.name?.end || null;
+    const parseDate = (date) => {
+      if (!date) return null;
+      const parsed = typeof date === 'string' ? parseISO(date) : new Date(date);
+      return isValid(parsed) ? parsed : null;
+    };
 
-    if (
-      newStart !== prevInitialValueRef.current?.start ||
-      newEnd !== prevInitialValueRef.current?.end
-    ) {
+    const newStart = parseDate(newStartRaw);
+    const newEnd = parseDate(newEndRaw);
+    const newStartTime = parseDate(newStartTimeRaw);
+    const newEndTime = parseDate(newEndTimeRaw);
+
+    const hasChanged =
+      newStart?.getTime() !== prevInitialValueRef.current.start?.getTime() ||
+      newEnd?.getTime() !== prevInitialValueRef.current.end?.getTime() ||
+      (enableTimePicker &&
+        (newStartTime?.getTime() !==
+          prevInitialValueRef.current.startTime?.getTime() ||
+          newEndTime?.getTime() !==
+            prevInitialValueRef.current.endTime?.getTime()));
+
+    if (hasChanged) {
       setSelectedDate({
         start: newStart,
         end: newEnd,
+        startTime: newStartTime,
+        endTime: newEndTime,
       });
-
       prevInitialValueRef.current = {
         start: newStart,
         end: newEnd,
+        startTime: newStartTime,
+        endTime: newEndTime,
       };
     }
-  }, [initialValue]);
+  }, [initialValue, enableTimePicker]);
 
-  // Attach/detach outside click handler
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
     }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, handleClickOutside]);
 
-  // Format the selected date range for display
   const getFormattedDateText = useCallback(() => {
-    if (!selectedDate.start && !selectedDate.end) {
-      return 'Select Date Range';
-    }
-
-    const formattedStartDate = selectedDate.start
-      ? format(new Date(selectedDate.start), 'MMM d, yyyy')
+    if (!selectedDate.start && !selectedDate.end) return 'Select Date Range';
+    const startDateStr = selectedDate.start
+      ? format(selectedDate.start, 'MMM d, yyyy')
       : '';
-
-    const formattedEndDate = selectedDate.end
-      ? format(new Date(selectedDate.end), 'MMM d, yyyy')
+    const endDateStr = selectedDate.end
+      ? format(selectedDate.end, 'MMM d, yyyy')
       : '';
-
+    let datePart = '';
     if (selectedDate.start && selectedDate.end) {
-      return `${formattedStartDate} - ${formattedEndDate}`;
+      datePart = `${startDateStr} - ${endDateStr}`;
     } else if (selectedDate.start) {
-      return `${formattedStartDate} - Select end date`;
+      datePart = `${startDateStr} - Select end date`;
     } else {
-      return `Select start date - ${formattedEndDate}`;
+      datePart = `Select start date - ${endDateStr}`;
     }
-  }, [selectedDate]);
 
-  // Get formatted button text
-  const btnText = getFormattedDateText();
+    if (enableTimePicker) {
+      const formatTime = (date) => (date ? format(date, 'HH:mm') : '--:--');
+      const startTimeStr = selectedDate.startTime
+        ? formatTime(selectedDate.startTime)
+        : selectedDate.start
+          ? '00:00'
+          : '--:--';
+      const endTimeStr = selectedDate.endTime
+        ? formatTime(selectedDate.endTime)
+        : selectedDate.end
+          ? '23:59'
+          : '--:--';
+      let timePart = '';
+      if (selectedDate.start && selectedDate.end) {
+        timePart = `${startTimeStr} - ${endTimeStr}`;
+      } else if (selectedDate.start) {
+        timePart = `${startTimeStr} - --:--`;
+      } else if (selectedDate.end) {
+        timePart = `--:-- - ${endTimeStr}`;
+      }
+      if (timePart) return `${datePart} ${timePart}`;
+    }
+    return datePart;
+  }, [selectedDate, enableTimePicker]);
 
-  // Conditional class for required field styling
+  const btnText = useMemo(() => getFormattedDateText(), [getFormattedDateText]);
   const requiredClass =
     required && !selectedDate.start && !selectedDate.end
       ? 'border-red-300'
@@ -213,8 +237,6 @@ const DatePicker = ({
           dropdownAlign={alignment}
         />
       </div>
-
-      {/* Transition for the popper (calendar container) */}
       <Transition
         show={isOpen}
         enter="ease-out duration-300"
@@ -224,9 +246,7 @@ const DatePicker = ({
         leaveFrom="opacity-100 translate-y-0 sm:scale-100"
         leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         as="div"
-        ref={(node) => {
-          setPopperElement(node);
-        }}
+        ref={setPopperElement}
         style={{ ...styles.popper, ...customPopperStyle, zIndex: 1000 }}
         {...attributes.popper}
         className="z-50"
@@ -240,20 +260,19 @@ const DatePicker = ({
               height: 0,
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderBottom: '6px solid white', // Default arrow color
+              borderBottom: '6px solid white',
               position: 'absolute',
               zIndex: 1,
             }}
-            className="dark:border-b-gray-800" // Dark mode arrow color
+            className="dark:border-b-gray-800"
             {...attributes.arrow}
           />
-
-          {/* Calendar container */}
           <Calendar
             showTwoCalendars={false}
             handleValueChange={handleValueChange}
             initialValue={selectedDate}
             closeDatePicker={() => setIsOpen(false)}
+            enableTimePicker={enableTimePicker}
           />
         </div>
       </Transition>
@@ -261,4 +280,31 @@ const DatePicker = ({
   );
 };
 
+DatePicker.propTypes = {
+  customPopperStyle: PropTypes.object,
+  alignment: PropTypes.oneOf(['left', 'right']),
+  onChange: PropTypes.func,
+  initialValue: PropTypes.shape({
+    name: PropTypes.shape({
+      start: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.instanceOf(Date),
+      ]),
+      end: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+      startTime: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.instanceOf(Date),
+      ]),
+      endTime: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.instanceOf(Date),
+      ]),
+    }),
+  }),
+  className: PropTypes.string,
+  required: PropTypes.bool,
+  mobileCollapse: PropTypes.bool,
+  calendarXPosition: PropTypes.string,
+  enableTimePicker: PropTypes.bool,
+};
 export default DatePicker;
