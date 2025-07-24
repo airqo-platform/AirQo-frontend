@@ -5,7 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Close from '@/icons/close_icon';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
-import { AddLocations, AddLocationHeader } from './add-locations/AddLocations';
+import { AddLocations } from './add-locations/AddLocations';
+import AddLocationHeader from './add-locations/components/AddLocationHeader';
+import AddLocationsForMoreInsights, {
+  AddLocationsForMoreInsightsHeader,
+} from './add-locations-more-insights';
 import MoreInsights, { InSightsHeader } from './more-insights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
@@ -17,6 +21,10 @@ import './styles/modal-responsive.css';
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
   addLocation: { header: AddLocationHeader, body: AddLocations },
+  addLocationForMoreInsights: {
+    header: AddLocationsForMoreInsightsHeader,
+    body: AddLocationsForMoreInsights,
+  },
   inSights: { header: InSightsHeader, body: MoreInsights },
   moreSights: { header: SelectMoreHeader, body: SelectMore },
   plant_tree: { header: AddPlantTreeHeader, body: PlantTree },

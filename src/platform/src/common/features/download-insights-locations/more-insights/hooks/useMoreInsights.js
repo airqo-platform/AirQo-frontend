@@ -1,18 +1,71 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
 import CustomToast from '@/components/Toast/CustomToast';
 import useMergeAbort from '../utils/mergeAbort';
+import {
+  setMoreInsightsSites,
+  selectMoreInsightsSites,
+  clearMoreInsightsData,
+} from '@/lib/store/services/moreInsights';
 
 export default function useMoreInsights() {
+  const dispatch = useDispatch();
   const modalData = useSelector((s) => s.modal.modalType?.data);
+  const modalType = useSelector((s) => s.modal.modalType?.type);
+  const isModalOpen = useSelector((s) => s.modal.open);
   const chartData = useSelector((s) => s.chart);
+  const moreInsightsSites = useSelector(selectMoreInsightsSites);
 
-  const allSites = useMemo(
-    () => (Array.isArray(modalData) ? modalData : modalData ? [modalData] : []),
-    [modalData],
-  );
+  // Use More Insights sites if available, otherwise fall back to modal data
+  const allSites = useMemo(() => {
+    if (moreInsightsSites.length > 0) {
+      return moreInsightsSites;
+    }
+    // Fallback to modal data for initial load
+    return Array.isArray(modalData) ? modalData : modalData ? [modalData] : [];
+  }, [moreInsightsSites, modalData]);
+
+  // Track the last modal data to detect changes
+  const lastModalDataRef = useRef(null);
+  const lastModalStateRef = useRef({ isOpen: false, type: null });
+
+  // Cleanup when modal closes or changes type away from inSights
+  useEffect(() => {
+    const currentModalState = { isOpen: isModalOpen, type: modalType };
+    const lastModalState = lastModalStateRef.current;
+
+    // If modal was open with inSights but now closed or different type
+    if (
+      lastModalState.isOpen &&
+      lastModalState.type === 'inSights' &&
+      (!isModalOpen || modalType !== 'inSights')
+    ) {
+      // Clear state when leaving More Insights
+      dispatch(clearMoreInsightsData());
+      lastModalDataRef.current = null;
+    }
+
+    lastModalStateRef.current = currentModalState;
+  }, [isModalOpen, modalType, dispatch]);
+
+  // Initialize or update More Insights sites when modal data changes
+  useEffect(() => {
+    if (modalData) {
+      const sitesToSet = Array.isArray(modalData) ? modalData : [modalData];
+
+      // Check if modal data has actually changed (different card selected)
+      const modalDataChanged =
+        !lastModalDataRef.current ||
+        JSON.stringify(lastModalDataRef.current) !== JSON.stringify(modalData);
+
+      if (modalDataChanged && sitesToSet.length > 0) {
+        dispatch(setMoreInsightsSites(sitesToSet));
+        lastModalDataRef.current = modalData;
+      }
+    }
+  }, [modalData, dispatch]);
 
   /* ------------- state ------------- */
   const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
@@ -34,10 +87,30 @@ export default function useMoreInsights() {
   }, []);
   const [dateRange, setDateRange] = useState(initialDateRange);
 
-  const [dataLoadingSites, setDataLoadingSites] = useState(
-    allSites.map((s) => s._id),
-  );
-  const [visibleSites, setVisibleSites] = useState(allSites.map((s) => s._id));
+  const [dataLoadingSites, setDataLoadingSites] = useState([]);
+  const [visibleSites, setVisibleSites] = useState([]);
+
+  // Update data loading sites and visible sites when allSites changes
+  useEffect(() => {
+    if (allSites.length > 0) {
+      const siteIds = allSites.map((s) => s._id);
+      setDataLoadingSites(siteIds);
+      setVisibleSites(siteIds);
+    } else {
+      // Reset when no sites available
+      setDataLoadingSites([]);
+      setVisibleSites([]);
+    }
+  }, [allSites]);
+
+  // Also update when moreInsightsSites specifically changes (from add locations)
+  useEffect(() => {
+    if (moreInsightsSites.length > 0) {
+      const siteIds = moreInsightsSites.map((s) => s._id);
+      setDataLoadingSites(siteIds);
+      setVisibleSites(siteIds);
+    }
+  }, [moreInsightsSites]);
 
   /* ------------- abort helpers ------------- */
   const abortRef = useMergeAbort();
@@ -95,20 +168,38 @@ export default function useMoreInsights() {
             });
             return p;
           }
-          return p.includes(siteId)
+          const newVisibleSites = p.includes(siteId)
             ? p.filter((i) => i !== siteId)
             : [...p, siteId];
+
+          // Update Redux state to keep it in sync
+          const newSites = allSites.filter((site) =>
+            newVisibleSites.includes(site._id),
+          );
+          dispatch(setMoreInsightsSites(newSites));
+
+          return newVisibleSites;
         });
         return true;
       }
       if (action === 'remove' && dataLoadingSites.length > 1) {
         setDataLoadingSites((p) => p.filter((i) => i !== siteId));
-        setVisibleSites((p) => p.filter((i) => i !== siteId));
+        setVisibleSites((p) => {
+          const newVisibleSites = p.filter((i) => i !== siteId);
+
+          // Update Redux state to keep it in sync
+          const newSites = allSites.filter((site) =>
+            newVisibleSites.includes(site._id),
+          );
+          dispatch(setMoreInsightsSites(newSites));
+
+          return newVisibleSites;
+        });
         return true;
       }
       return false;
     },
-    [dataLoadingSites],
+    [dataLoadingSites, allSites, dispatch],
   );
 
   const handleManualRefresh = useCallback(async () => {
@@ -122,7 +213,7 @@ export default function useMoreInsights() {
     } catch {
       setIsManualRefresh(false);
     }
-  }, [refetch, isManualRefresh, isValidating]);
+  }, [refetch, isManualRefresh, isValidating, abortRef]);
 
   return {
     /* data */
