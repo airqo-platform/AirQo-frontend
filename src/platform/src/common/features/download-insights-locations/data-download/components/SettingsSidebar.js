@@ -20,7 +20,6 @@ const SettingsSidebar = ({
   edit,
   filteredDataTypeOptions,
   durationGuidance,
-  handleSubmit,
   handleTitleChange,
   sidebarBg = '#f6f6f7',
 }) => {
@@ -42,15 +41,14 @@ const SettingsSidebar = ({
   };
 
   return (
-    <motion.form
+    <motion.div
       className="w-[240px] h-full relative space-y-3 px-5 pt-5 pb-14 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
-      onSubmit={handleSubmit}
       variants={sidebarVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Form Fields */}
+      {/* Form Fields - Remove form wrapper to prevent auto-submission */}
       <motion.div className="space-y-4">
         <motion.div variants={formItemVariants}>
           <div className="mb-2">
@@ -64,6 +62,13 @@ const SettingsSidebar = ({
               onChange={handleTitleChange}
               autoFocus
               disabled={edit}
+              onKeyDown={(e) => {
+                // Prevent Enter key from triggering form submission
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             />
           </div>
         </motion.div>
@@ -132,7 +137,7 @@ const SettingsSidebar = ({
           />
         </motion.div>
       </motion.div>
-    </motion.form>
+    </motion.div>
   );
 };
 

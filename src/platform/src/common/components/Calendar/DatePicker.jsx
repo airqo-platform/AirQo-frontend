@@ -87,10 +87,18 @@ const DatePicker = ({
     },
   );
 
-  const toggleOpen = useCallback(() => {
-    setIsOpen((prev) => !prev);
-    if (!isOpen && update) setTimeout(update, 10);
-  }, [isOpen, update]);
+  const toggleOpen = useCallback(
+    (e) => {
+      // Fix: Prevent event bubbling that might trigger form submission
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      setIsOpen((prev) => !prev);
+      if (!isOpen && update) setTimeout(update, 10);
+    },
+    [isOpen, update],
+  );
 
   const handleValueChange = useCallback(
     (newValue) => {
@@ -98,8 +106,9 @@ const DatePicker = ({
       if (newValue.start || newValue.end) {
         onChange?.({ name: newValue });
       }
+      // Fix: Only close calendar when both dates are selected
       if (newValue.start && newValue.end) {
-        setTimeout(() => setIsOpen(false), 300);
+        setTimeout(() => setIsOpen(false), 100);
       }
     },
     [onChange],
@@ -221,6 +230,11 @@ const DatePicker = ({
       ? 'border-red-300'
       : '';
 
+  // Fix: Handle calendar close properly
+  const handleCalendarClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <div ref={setReferenceElement}>
@@ -271,7 +285,7 @@ const DatePicker = ({
             showTwoCalendars={false}
             handleValueChange={handleValueChange}
             initialValue={selectedDate}
-            closeDatePicker={() => setIsOpen(false)}
+            closeDatePicker={handleCalendarClose}
             enableTimePicker={enableTimePicker}
           />
         </div>
@@ -307,4 +321,5 @@ DatePicker.propTypes = {
   calendarXPosition: PropTypes.string,
   enableTimePicker: PropTypes.bool,
 };
+
 export default DatePicker;

@@ -4,6 +4,7 @@ import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
 import DatePicker from '@/components/Calendar/DatePicker';
+import Calendar from '@/components/Calendar/Calendar';
 
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return '';
@@ -144,6 +145,42 @@ const CustomFields = ({
     </div>
   );
 
+  // Responsive calendar logic
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [showCalendarDialog, setShowCalendarDialog] = useState(false);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsLargeScreen(window.innerWidth >= 768); // md breakpoint
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
+  // Fix: Prevent event bubbling for calendar actions
+  const handleCalendarButtonClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowCalendarDialog(true);
+  }, []);
+
+  const handleCalendarChange = useCallback(
+    (range) => {
+      setSelected({ id: 'calendar', name: range });
+      handleOptionSelect(id, { id: 'calendar', name: range });
+      // Only close if both start and end dates are selected
+      if (range.start && range.end) {
+        setShowCalendarDialog(false);
+      }
+    },
+    [handleOptionSelect, id],
+  );
+
+  const handleCalendarClose = useCallback(() => {
+    setShowCalendarDialog(false);
+  }, []);
+
   return (
     <div className={`w-full flex flex-col gap-2 ${className}`}>
       <div className="flex flex-col">
@@ -170,15 +207,61 @@ const CustomFields = ({
           aria-required={required}
         />
       ) : useCalendar ? (
-        <DatePicker
-          onChange={handleSelect}
-          mobileCollapse
-          calendarXPosition="relative right-[18px]"
-          initialValue={selected}
-          required={required}
-          aria-required={required}
-          className={required && !selected?.name ? 'border-red-300' : ''}
-        />
+        isLargeScreen ? (
+          <>
+            <button
+              type="button"
+              className="w-full px-3 py-2 shadow text-left border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500"
+              onClick={handleCalendarButtonClick}
+            >
+              {selected?.name?.start && selected?.name?.end
+                ? `${selected.name.start ? new Date(selected.name.start).toLocaleDateString() : ''} - ${selected.name.end ? new Date(selected.name.end).toLocaleDateString() : ''}`
+                : 'Select Date Range'}
+            </button>
+            {showCalendarDialog && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10"
+                onClick={(e) => {
+                  // Only close if clicking the backdrop, not the calendar
+                  if (e.target === e.currentTarget) {
+                    handleCalendarClose();
+                  }
+                }}
+              >
+                <div
+                  className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Calendar
+                    showTwoCalendars={true}
+                    handleValueChange={handleCalendarChange}
+                    closeDatePicker={handleCalendarClose}
+                    enableTimePicker
+                    initialMonth1={
+                      selected?.name?.start
+                        ? new Date(selected.name.start)
+                        : null
+                    }
+                    // initialMonth2={
+                    //   selected?.name?.end ? new Date(selected.name.end) : null
+                    // }
+                    initialValue={selected?.name}
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <DatePicker
+            onChange={handleSelect}
+            mobileCollapse
+            calendarXPosition="relative"
+            initialValue={selected}
+            required={required}
+            aria-required={required}
+            className={required && !selected?.name ? 'border-red-300' : ''}
+          />
+        )
       ) : (
         <div className="w-full relative">
           <CustomDropdown
@@ -209,7 +292,6 @@ const CustomFields = ({
                 Array.isArray(selected) &&
                 selected.length === 1 &&
                 checked;
-
               return (
                 <DropdownItem
                   key={opt.id}
