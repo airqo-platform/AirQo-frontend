@@ -12,6 +12,7 @@ const Calendar = ({
   closeDatePicker,
   showTwoCalendars = true,
   enableTimePicker = false,
+  showTimePickerToggle = false,
   initialValue,
 }) => {
   const daysOfWeek = useMemo(
@@ -113,6 +114,7 @@ const Calendar = ({
               enableTimePicker={enableTimePicker}
               handleStartTimeChange={handleStartTimeChange}
               handleEndTimeChange={handleEndTimeChange}
+              showTimePickerToggle={showTimePickerToggle}
             />
           )}
         </div>

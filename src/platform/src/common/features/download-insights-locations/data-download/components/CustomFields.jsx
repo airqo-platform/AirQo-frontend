@@ -246,6 +246,7 @@ const CustomFields = ({
                     //   selected?.name?.end ? new Date(selected.name.end) : null
                     // }
                     initialValue={selected?.name}
+                    showTimePickerToggle
                   />
                 </div>
               </div>

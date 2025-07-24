@@ -39,6 +39,7 @@ const CustomCalendar = ({
   horizontalOffset = 0,
   verticalOffset = 0,
   dropdownStyle = {},
+  showTimePickerToggle = false,
   enableTimePicker = false,
 }) => {
   const containerRef = useRef(null);
@@ -190,6 +191,7 @@ const CustomCalendar = ({
             closeDatePicker={() => setOpenDatePicker(false)}
             showTwoCalendars={!isMobile}
             enableTimePicker={enableTimePicker}
+            showTimePickerToggle={showTimePickerToggle}
           />
         </div>
       </Transition>
