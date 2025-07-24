@@ -78,9 +78,9 @@ const ChartContainer = ({
 
   // Apply export styles when component mounts
   useEffect(() => {
-    const cleanup = ChartExportUtils.applyExportStyles(isDark);
+    const cleanup = ChartExportUtils.applyExportStyles();
     return cleanup;
-  }, [isDark]);
+  }, []);
 
   // Card styling
   const cardClasses = `

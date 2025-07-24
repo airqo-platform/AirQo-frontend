@@ -41,7 +41,6 @@ const ChartDropdownMenu = ({
 
       try {
         const exportOptions = {
-          backgroundColor: ChartExportUtils.getBackgroundColor(isDark),
           chartTitle,
         };
 
@@ -74,7 +73,6 @@ const ChartDropdownMenu = ({
     [
       chartContentRef,
       chartTitle,
-      isDark,
       onExportStart,
       onExportComplete,
       onExportError,

@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {
   LineChart,
   BarChart,
+  Line,
+  Bar,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -29,10 +31,8 @@ import ImprovedAxisTick from './components/AxisTicks/ImprovedAxisTick';
 import EmptyChart from './components/EmptyStates/EmptyChart';
 import CustomReferenceLabel from './components/Reference/CustomReferenceLabel';
 import CustomDot from './components/Series/CustomDot';
-import CustomBar from './components/Series/CustomBar';
 import CustomGraphTooltip from './components/Tooltip/CustomGraphTooltip';
 import CustomLegend from './components/Legend/CustomLegend';
-import { SeriesLine, SeriesBar } from './components/Series/SeriesComponents';
 
 const MoreInsightsChart = React.memo(function MoreInsightsChart({
   data,
@@ -86,7 +86,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
 
   // Chart type selection
   const ChartComponent = chartType === 'bar' ? BarChart : LineChart;
-  const SeriesComponent = chartType === 'bar' ? SeriesBar : SeriesLine;
+  const SeriesComponent = chartType === 'bar' ? Bar : Line;
 
   if (!chartData.length || !seriesKeys.length)
     return (
@@ -231,7 +231,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 opacity={isActive ? 1 : 0.5}
                 dot={chartType === 'line' ? <CustomDot /> : undefined}
                 activeDot={chartType === 'line' ? { r: 6 } : undefined}
-                shape={chartType === 'bar' ? <CustomBar /> : undefined}
                 onMouseEnter={() => legendState.handleLegendMouseEnter(idx)}
                 onMouseLeave={legendState.handleLegendMouseLeave}
                 className={`chart-series chart-series-${idx} ${
