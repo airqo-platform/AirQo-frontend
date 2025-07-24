@@ -185,7 +185,7 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
           </motion.div>
 
           <EnhancedFooter
-            btnText={submitLoading ? 'Updating...' : 'Update Analysis'}
+            btnText={submitLoading ? 'Updating...' : 'Update Locations'}
             setError={setError}
             message={footerInfo.message}
             messageType={footerInfo.type}
