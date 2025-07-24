@@ -1,3 +1,5 @@
+// src/components/ChartDropdownMenu.js
+
 import React, {
   useState,
   useCallback,
@@ -57,7 +59,6 @@ const ChartDropdownMenu = ({
         });
         return;
       }
-
       if (
         !chartContentRef?.current ||
         !ChartExportUtils.EXPORT_FORMATS.includes(format)
@@ -68,7 +69,6 @@ const ChartDropdownMenu = ({
         });
         return;
       }
-
       if (disabled || isRefreshing || localExportState.loading) {
         return;
       }
@@ -139,10 +139,8 @@ const ChartDropdownMenu = ({
         }, 3000);
       } catch (error) {
         console.error('Export failed:', error);
-
         const errorMessage =
           error.message || 'Export failed. Please try again.';
-
         setLocalExportState((prev) => ({
           ...prev,
           loading: null,
@@ -180,7 +178,6 @@ const ChartDropdownMenu = ({
   // Enhanced modal handler
   const handleOpenModal = useCallback(() => {
     if (disabled || isRefreshing) return;
-
     try {
       dispatch(
         setModalType({
@@ -205,21 +202,17 @@ const ChartDropdownMenu = ({
     (isDisabled = false, isActive = false) => {
       const baseClasses =
         'flex justify-between items-center w-full px-4 py-2.5 text-sm transition-colors duration-150';
-
       const themeClasses = isDark
         ? 'text-gray-200 hover:bg-gray-700 focus:bg-gray-700'
         : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100';
-
       const stateClasses = isDisabled
         ? 'opacity-50 cursor-not-allowed'
         : 'cursor-pointer';
-
       const activeClasses = isActive
         ? isDark
           ? 'bg-gray-700 border-l-2 border-blue-400'
           : 'bg-gray-100 border-l-2 border-blue-500'
         : '';
-
       return `${baseClasses} ${themeClasses} ${stateClasses} ${activeClasses}`.trim();
     },
     [isDark],
@@ -289,7 +282,6 @@ const ChartDropdownMenu = ({
           localExportState.loading === format || exportState.format === format;
         const isCompleted = localExportState.completed === format;
         const isDisabled = isExporting || disabled || isRefreshing;
-
         return (
           <button
             key={format}
@@ -315,7 +307,6 @@ const ChartDropdownMenu = ({
               </svg>
               <span>Export as {format.toUpperCase()}</span>
             </span>
-
             <span className="flex items-center -mr-1">
               {isLoading ? (
                 LoadingSpinner
@@ -366,7 +357,6 @@ const ChartDropdownMenu = ({
   const renderErrorDisplay = () => {
     const error = localExportState.error || exportState.error;
     if (!error) return null;
-
     return (
       <div
         className={`
@@ -406,17 +396,11 @@ const ChartDropdownMenu = ({
       aria-label="Chart actions menu"
     >
       {renderRefreshButton()}
-
       <hr className={dividerClassName} />
-
       {renderExportButtons()}
-
       <hr className={dividerClassName} />
-
       {renderInsightsButton()}
-
       <StandardsMenu isDark={isDark} />
-
       {renderErrorDisplay()}
     </div>
   );
@@ -428,13 +412,11 @@ const ChartDropdownMenuMemo = React.memo(
   (prevProps, nextProps) => {
     // Compare all props except functions and refs
     const simpleProps = ['chartTitle', 'isDark', 'isRefreshing', 'disabled'];
-
     for (const prop of simpleProps) {
       if (prevProps[prop] !== nextProps[prop]) {
         return false;
       }
     }
-
     // Compare exportState object
     if (
       JSON.stringify(prevProps.exportState) !==
@@ -442,11 +424,8 @@ const ChartDropdownMenuMemo = React.memo(
     ) {
       return false;
     }
-
     return true;
   },
 );
-
 ChartDropdownMenuMemo.displayName = 'ChartDropdownMenu';
-
 export default ChartDropdownMenuMemo;

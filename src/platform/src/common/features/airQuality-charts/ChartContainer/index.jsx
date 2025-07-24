@@ -1,20 +1,15 @@
-'use client';
-import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+// src/components/ChartContainer.js
+
+import React, { useRef, useCallback, useMemo, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import useOutsideClick from '@/core/hooks/useOutsideClick';
-
-// Custom hooks
 import { useChartDimensions } from './hooks/useChartDimensions';
 import { useChartState } from './hooks/useChartState';
-
-// Components
 import ChartHeader from './components/ChartHeader';
 import ChartContentWrapper from './components/ChartContentWrapper';
 import ChartRefreshIndicator from './components/ChartRefreshIndicator';
 import Card from '@/components/CardWrapper';
-
-// Utils
 import { ChartExportUtils } from './utils/chartExportUtils';
 import { CHART_CONFIG } from './config/chartConfig';
 
@@ -81,10 +76,8 @@ const ChartContainer = ({
         handleExportError(format, 'Chart element not found');
         return;
       }
-
       try {
         handleExportStart(format);
-
         const mergedOptions = {
           ...exportOptions,
           ...customOptions,
@@ -94,13 +87,11 @@ const ChartContainer = ({
           pollutionType,
           isDark,
         };
-
         await ChartExportUtils.exportChart(
           chartContentRef.current,
           format,
           mergedOptions,
         );
-
         handleExportComplete(format);
       } catch (error) {
         console.error(`Chart export failed (${format}):`, error);
@@ -136,7 +127,6 @@ const ChartContainer = ({
   // Apply export styles when component mounts with cleanup
   useEffect(() => {
     let cleanup;
-
     const initializeExportStyles = async () => {
       try {
         cleanup = ChartExportUtils.applyExportStyles();
@@ -144,9 +134,7 @@ const ChartContainer = ({
         console.warn('Failed to apply export styles:', error);
       }
     };
-
     initializeExportStyles();
-
     return () => {
       if (cleanup && typeof cleanup === 'function') {
         cleanup();
@@ -213,7 +201,6 @@ const ChartContainer = ({
         position="top-left"
         isDark={isDark}
       />
-
       {/* Main Chart Card */}
       <Card
         header={
@@ -267,7 +254,6 @@ const ChartContainer = ({
           </div>
         </div>
       </Card>
-
       {/* Enhanced Export Status Notification */}
       {(exportState.isExporting || exportState.error) && (
         <div className={exportNotificationClasses}>
@@ -318,13 +304,11 @@ const ChartContainerMemo = React.memo(
       'isValidating',
       'className',
     ];
-
     for (const key of keysToCompare) {
       if (prevProps[key] !== nextProps[key]) {
         return false;
       }
     }
-
     // Deep comparison for data array
     if (
       Array.isArray(prevProps.data) &&
@@ -333,11 +317,8 @@ const ChartContainerMemo = React.memo(
     ) {
       return false;
     }
-
     return true;
   },
 );
-
 ChartContainerMemo.displayName = 'ChartContainer';
-
 export default ChartContainerMemo;
