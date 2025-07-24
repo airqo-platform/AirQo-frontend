@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { Tooltip } from 'flowbite-react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import LocationIcon from '@/icons/Analytics/LocationIcon';
@@ -46,9 +47,8 @@ const LocationCard = ({
   }
 
   const { name, search_name, country, city, _id } = site;
-  const displayName = truncateName(
-    name || (search_name && search_name.split(',')[0]) || '',
-  );
+  const fullName = name || (search_name && search_name.split(',')[0]) || '';
+  const displayName = truncateName(fullName);
   const locationDescription = country || city || 'Unknown Location';
 
   const handleCardClick = () => {
@@ -89,7 +89,11 @@ const LocationCard = ({
           <LocationIcon width={20} height={20} />
         </motion.div>
         <div className="flex flex-col">
-          <h3 className="text-sm font-medium dark:text-white">{displayName}</h3>
+          <Tooltip content={fullName} placement="top" trigger="hover">
+            <h3 className="text-sm font-medium dark:text-white cursor-help">
+              {displayName}
+            </h3>
+          </Tooltip>
           <small className="text-xs text-gray-500 dark:text-white">
             {locationDescription}
           </small>
