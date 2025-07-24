@@ -91,8 +91,7 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
           fromMoreInsights: false,
         }),
       );
-
-      onClose();
+      // Do NOT close the modal here; let modal system switch view
     } catch {
       setError('Failed to update analysis locations.');
       setMessageType(MESSAGE_TYPES.ERROR);
@@ -100,7 +99,7 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
       setSubmitLoading(false);
       setStatusMessage('');
     }
-  }, [selectedSites, dispatch, onClose, setError]);
+  }, [selectedSites, dispatch, setError]);
 
   const handleCancel = useCallback(() => {
     // Cancel temporary selections and go back to More Insights
