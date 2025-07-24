@@ -116,7 +116,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
             stroke={isDark ? '#555' : '#999'}
             strokeDasharray="2 2"
             className="chart-grid"
-            opacity={1}
+            opacity={CHART_CONFIG.chart.gridOpacity}
             strokeWidth={1}
           />
           <XAxis
