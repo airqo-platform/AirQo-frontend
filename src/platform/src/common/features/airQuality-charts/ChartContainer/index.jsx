@@ -1,5 +1,3 @@
-// src/components/ChartContainer.js
-
 import React, { useRef, useCallback, useMemo, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';

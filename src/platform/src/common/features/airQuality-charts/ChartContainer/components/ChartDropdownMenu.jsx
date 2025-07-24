@@ -1,5 +1,3 @@
-// src/components/ChartDropdownMenu.js
-
 import React, {
   useState,
   useCallback,

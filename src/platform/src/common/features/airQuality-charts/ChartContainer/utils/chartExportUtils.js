@@ -1,5 +1,3 @@
-// src/common/features/charts/utils/chartExportUtils.js
-
 /**
  * Modern Chart Export Utility
  * Clean, professional exports with proper spacing and typography
