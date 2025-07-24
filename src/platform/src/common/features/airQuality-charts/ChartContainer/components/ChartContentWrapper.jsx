@@ -29,7 +29,7 @@ const ChartContentWrapper = ({
     return (
       <div
         ref={chartContentRef}
-        className="w-full h-full chart-content"
+        className="w-full h-full chart-content dark:bg-gray-800"
         style={chartStyle}
       >
         <MoreInsightsChart
