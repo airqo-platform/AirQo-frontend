@@ -1,5 +1,3 @@
-// components/CustomLegend.jsx (or your relevant path)
-
 import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
 

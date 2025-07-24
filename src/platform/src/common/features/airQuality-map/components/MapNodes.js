@@ -194,83 +194,84 @@ export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
     return '';
   }
 
+  // Support both pm2_5 and pm10, and show which is being displayed
   const {
     pm2_5,
+    pm10,
     aqi,
     location = 'Unknown Location',
     time,
   } = feature.properties;
+  let pollutantType = 'pm2.5';
+  let value = pm2_5;
+  if (typeof pm10 === 'number' && (!pm2_5 || isNaN(pm2_5))) {
+    pollutantType = 'pm10';
+    value = pm10;
+  }
 
-  if (typeof pm2_5 !== 'number' || !aqi || typeof time !== 'string') {
+  if (typeof value !== 'number' || !aqi || typeof time !== 'string') {
     console.error(
-      'Missing or invalid PM2.5, AQI or timestamp',
+      'Missing or invalid value, AQI or timestamp',
       feature.properties,
     );
     return '';
   }
 
-  // 2) Parse + format date with date‑fns
+  // Parse + format date
   let parsedDate = parseISO(time);
   if (isNaN(parsedDate)) {
     console.error('Invalid date string', time);
     return '';
   }
-  const formattedDate = format(parsedDate, 'MMMM dd, yyyy'); // e.g. "April 18, 2025"
+  const formattedDate = format(parsedDate, 'MMMM dd, yyyy');
 
-  // 3) Choose dark/light colors
-  const popupBgColor = isDarkMode ? '#333' : '#fff';
-  const popupTextColor = isDarkMode ? '#fff' : '#3C4555';
+  // Card design improvements
+  const popupBgColor = isDarkMode ? '#23272f' : '#f9fafb';
+  const popupTextColor = isDarkMode ? '#fff' : '#1e293b';
+  const borderColor = isDarkMode ? '#334155' : '#e5e7eb';
 
-  // 4) Return HTML string
+  // Show which pollutant is being displayed
+  const pollutantLabel = pollutantType === 'pm2.5' ? 'PM2.5' : 'PM10';
+  const pollutantUnit = pollutantType === 'pm2.5' ? 'µg/m³' : 'µg/m³';
+
   return `
     <div
-      class="flex flex-col gap-2 p-3 rounded-lg shadow-lg"
+      class="flex flex-col p-4 rounded-lg shadow-lg border"
       style="
-        min-width: 250px;
-        width: max-content;
-        background-color: ${popupBgColor};
+        min-width: 260px;
+        max-width: 350px;
+        width: 100%;
+        background: ${popupBgColor};
+        color: ${popupTextColor};
+        border: 1px solid ${borderColor};
+        box-sizing: border-box;
       "
     >
-      <div
-        class="text-gray-500 text-xs font-normal font-sans leading-none"
-        style="color: ${popupTextColor};"
-      >
-        Last updated: ${formattedDate}
-      </div>
-
-      <div class="flex justify-between gap-2 w-full items-center">
-        <div class="flex items-center space-x-2">
-          <div class="rounded-full bg-[var(--org-primary,var(--color-primary,#145fff))] w-3 h-3"></div>
-          <div
-            class="font-semibold text-sm leading-4"
-            style="width:25ch; color: ${popupTextColor};"
-          >
-            ${location}
-          </div>
-        </div>
-        <div
-          class="font-semibold text-sm leading-4"
-          style="color: ${popupTextColor};"
-        >
-          ${pm2_5.toFixed(2)} µg/m³
-        </div>
-      </div>
-
-      <div class="flex justify-between gap-5 items-center w-full">
-        <p
-          class="font-semibold text-sm leading-4"
-          style="color: ${aqi.color}; width:30ch;"
-        >
-          Air Quality is
-          ${String(feature.properties.airQuality)
-            .replace(/([A-Z])/g, ' $1')
-            .trim()}
-        </p>
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-medium opacity-70">Last updated: ${formattedDate}</span>
         <img
           src="${images[aqi.icon] || images['Invalid']}"
           alt="AQI Icon"
-          class="w-8 h-8"
+          class="w-8 h-8 ml-2"
         />
+      </div>
+      <div class="flex items-center gap-2 mb-2">
+        <div class="rounded-full w-3 h-3" style="background: var(--org-primary, var(--color-primary, #145fff));"></div>
+        <span class="font-bold text-base" style="color: ${popupTextColor}; line-height:1.2;">${location}</span>
+      </div>
+      <div class="flex flex-row items-center gap-2 mb-2">
+        <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">${pollutantLabel}</span>
+        <span class="font-bold text-2xl" style="color: ${popupTextColor}; line-height: 1.1;">
+          ${value.toFixed(2)}
+        </span>
+        <span class="text-xs font-normal">${pollutantUnit}</span>
+      </div>
+      <div class="flex items-center">
+        <span class="font-semibold text-base" style="color: ${aqi.color};">${String(
+          feature.properties.airQuality,
+        )
+          .replace(/([A-Z])/g, ' $1')
+          .trim()}</span>
       </div>
     </div>
   `;
