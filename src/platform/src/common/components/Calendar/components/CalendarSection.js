@@ -93,7 +93,7 @@ const CalendarSection = ({
 
   return (
     <div
-      className={`${showTwoCalendars ? 'px-6 pt-5 pb-5' : 'px-2 pt-2'} flex flex-col`}
+      className={`${showTwoCalendars ? 'px-6 pt-5 pb-5' : 'px-2 pt-2 w-[200px] '} flex flex-col`}
     >
       <CalendarHeader
         month={format(month, 'MMMM yyyy')}
