@@ -16,9 +16,9 @@ const columns = [
           <LocationIcon width={16} height={16} />
         </span>
         <span className="ml-2">
-          {item.search_name ||
-            item.name ||
+          {item.name ||
             item.location_name ||
+            item.search_name ||
             'Unknown Location'}
         </span>
       </div>
