@@ -771,14 +771,16 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       ],
       sites: [
         {
-          key: 'search_name',
+          key: 'name',
           label: 'Location',
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
                 <LocationIcon width={16} height={16} />
               </span>
-              <span>{item.search_name || 'N/A'}</span>
+              <span>
+                {item.name || item.search_name || item.location_name || 'N/A'}
+              </span>
             </div>
           ),
         },
