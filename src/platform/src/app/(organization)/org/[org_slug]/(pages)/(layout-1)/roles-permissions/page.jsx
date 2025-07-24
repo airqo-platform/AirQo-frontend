@@ -93,7 +93,7 @@ const RolesPermissionsPage = () => {
       }
       logger.error('Fetch roles error', e);
       setError(e.message);
-      CustomToast({ message: e.message, type: 'error' });
+      // CustomToast({ message: e.message, type: 'error' });
     } finally {
       setLoading(false);
     }
