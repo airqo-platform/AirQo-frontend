@@ -14,7 +14,7 @@ import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -54,19 +54,26 @@ export default function MapLayout({ children }) {
       }
     };
   }, [dispatch, isMobile]);
+
   return (
     <div className="flex overflow-hidden min-h-screen" data-testid="layout">
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
-      </Head>{' '}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
+      </Head>
+
       {/* Global TopBar - Full width at top */}
       <GlobalTopbar
         topbarTitle={routeConfig.topbarTitle}
         showSearch={routeConfig.showSearch}
-      />{' '}
-      {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[63px] z-40 text-sidebar-text transition-all duration-300">
+      />
+
+      {/* Sidebar - Hidden on mobile, collapsed on desktop for map */}
+      <aside className="hidden lg:block fixed left-0 top-[60px] z-40 text-sidebar-text transition-all duration-300">
         <AuthenticatedSideBar forceCollapse={true}>
           <UnifiedSidebarContent
             userType="user"
@@ -75,19 +82,27 @@ export default function MapLayout({ children }) {
           />
         </AuthenticatedSideBar>
       </aside>
+
       {/* Main Content - Account for both topbar and sidebar */}
-      <main className="flex-1 transition-all duration-300 overflow-hidden pt-36 lg:pt-[60px] lg:ml-[86px]">
-        <div className="h-[calc(100vh-9rem)] lg:h-[calc(100vh-4rem)] overflow-hidden">
+      <main
+        className="flex-1 transition-all duration-300 overflow-hidden 
+        pt-[120px] sm:pt-[130px] md:pt-[140px] lg:pt-[60px] 
+        lg:ml-[86px]"
+      >
+        <div className="h-[calc(100vh-120px)] sm:h-[calc(100vh-130px)] md:h-[calc(100vh-140px)] lg:h-[calc(100vh-60px)] overflow-hidden">
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
+
           {/* Content - Full remaining height */}
           <div className="h-full text-text transition-all duration-300 overflow-hidden">
             {children}
-          </div>{' '}
+          </div>
         </div>
       </main>
-      {/* SideBar Drawer */}
+
+      {/* Mobile Drawer - Only show on mobile */}
       <UnifiedSideBarDrawer userType="user" />
+
       {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />
     </div>

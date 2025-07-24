@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
 import PropTypes from 'prop-types';
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import GroupLogo from '@/common/components/GroupLogo';
 
 const AuthLayout = ({
   children,
@@ -13,123 +13,86 @@ const AuthLayout = ({
   showBackToAirqo = true,
   backToAirqoPath = '/user/login',
 }) => {
-  const { organization, getDisplayName, logo } = useOrganization();
+  const {
+    organization,
+    getDisplayName,
+    isLoading,
+    isInitialized,
+    primaryColor,
+  } = useOrganization();
 
-  const organizationName = getDisplayName() || 'AirQo';
-  const logoSrc = logo || '/icons/airqo_logo.svg';
+  // Show loading spinner while organization data is being fetched
+  // Also show loading if we haven't initialized yet (prevents flashing)
+  if (isLoading || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#1b1d1e] flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-gray-600 dark:text-gray-400 mt-4">
+            Loading organization...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  // Get organization primary color or fallback to default
-  const primaryColor = organization?.primaryColor || '#145fff';
-
-  // Apply organization theme colors to CSS custom properties
-  React.useEffect(() => {
-    if (primaryColor && typeof window !== 'undefined') {
-      const root = document.documentElement;
-      root.style.setProperty('--org-primary', primaryColor);
-      root.style.setProperty('--color-primary', primaryColor);
-      root.style.setProperty('--primary-color', primaryColor);
-
-      // Convert hex to RGB for alpha variants
-      const hexToRgb = (hex) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result
-          ? {
-              r: parseInt(result[1], 16),
-              g: parseInt(result[2], 16),
-              b: parseInt(result[3], 16),
-            }
-          : null;
-      };
-
-      const rgb = hexToRgb(primaryColor);
-
-      if (rgb) {
-        root.style.setProperty(
-          '--org-primary-rgb',
-          `${rgb.r}, ${rgb.g}, ${rgb.b}`,
-        );
-        root.style.setProperty(
-          '--color-primary-rgb',
-          `${rgb.r}, ${rgb.g}, ${rgb.b}`,
-        );
-      }
-    }
-  }, [primaryColor]);
+  // Use organization data directly - fallback to getDisplayName if organization.name is not available
+  const organizationName = organization?.name || getDisplayName?.() || 'AirQo';
+  const organizationLogo = organization?.logo;
 
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 flex justify-center items-center">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md space-y-6">
           {/* Organization Logo */}
           <div className="mb-8">
-            {logoSrc ? (
-              <img
-                className="h-12 w-auto"
-                src={logoSrc}
-                alt={`${organizationName} logo`}
-                onError={(e) => {
-                  // Fallback to AirQo logo if organization logo fails to load
-                  e.target.src = '/icons/airqo_logo.svg';
-                }}
+            <div className="inline-flex items-center justify-center">
+              <GroupLogo
+                size="xl"
+                imageUrl={organizationLogo}
+                fallbackText={organizationName}
+                containerClassName="border-2 border-white p-0.5 dark:border-gray-200 shadow-lg"
+                className="bg-white dark:bg-gray-50 rounded-lg"
               />
-            ) : (
-              // Loading state for logo
-              <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 animate-pulse rounded flex items-center justify-center">
-                <LoadingSpinner size="sm" />
-              </div>
-            )}
+            </div>
           </div>
           {/* Title and Subtitle */}
           {(title || subtitle) && (
-            <div className="mb-8">
+            <header className="mb-8">
               {title && (
-                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 leading-tight">
                   {title}
                 </h1>
               )}
               {subtitle && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   {subtitle}
                 </p>
               )}
-            </div>
+            </header>
           )}
-          {/* Form Content */}{' '}
-          <div className="space-y-6">
-            {children}
+          {/* Form Content */}
+          <main className="space-y-6">{children}</main>
 
-            {/* Organization Info */}
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+          {/* Organization Info */}
+          <footer className="pt-2 border-gray-200 dark:border-gray-700">
+            {/* Back to AirQo link */}
+            {showBackToAirqo && (
               <div className="text-center">
-                {' '}
-                <p
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--org-primary, #145fff)' }}
+                <a
+                  href={backToAirqoPath}
+                  className="inline-flex text-primary items-center text-xs hover:underline transition-colors duration-200 underline underline-offset-2 hover:underline-offset-4"
+                  style={{
+                    color: primaryColor || '#6B7280',
+                  }}
+                  aria-label="Go back to AirQo Platform"
                 >
-                  {organization
-                    ? `${organizationName}'s Private Dashboard`
-                    : 'AirQo Platform'}
-                </p>
-                {organization?.description && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {organization.description}
-                  </p>
-                )}
+                  <span className="mr-1">←</span>
+                  Back to AirQo Platform
+                </a>
               </div>
-
-              {/* Back to AirQo link */}
-              {showBackToAirqo && (
-                <div className="mt-4 text-center">
-                  <a
-                    href={backToAirqoPath}
-                    className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors underline"
-                  >
-                    ← Back to AirQo Platform
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
+            )}
+          </footer>
         </div>
       </div>
     </ErrorBoundary>

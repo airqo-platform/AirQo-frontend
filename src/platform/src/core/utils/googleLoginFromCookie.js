@@ -1,4 +1,4 @@
-import jwt_decode from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
 import Cookies from 'js-cookie';
 import {
   setUserInfo,
@@ -15,7 +15,7 @@ export const handleGoogleLoginFromCookie = async (dispatch, router) => {
     if (!token) throw new Error('No access_token found');
 
     // Note: Token is now managed by NextAuth session, not localStorage
-    const decoded = jwt_decode(token);
+    const decoded = jwtDecode(token);
 
     // Fetch user
     const userRes = await getUserDetails(decoded._id);

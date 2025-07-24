@@ -1,12 +1,11 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { OrganizationProvider } from '@/app/providers/OrganizationProvider';
+import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
 
-export default function OrganizationAuthLayout({ children }) {
-  const params = useParams();
-  const orgSlug = params?.org_slug || '';
-  return (
-    <OrganizationProvider orgSlug={orgSlug}>{children}</OrganizationProvider>
-  );
+function OrganizationAuthLayout({ children }) {
+  return <>{children}</>;
 }
+
+export default withSessionAuth(PROTECTION_LEVELS.AUTH_ONLY)(
+  OrganizationAuthLayout,
+);

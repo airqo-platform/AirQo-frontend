@@ -3,13 +3,11 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import Toast from '@/components/Toast';
-import Spinner from '@/components/Spinner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { resetPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withUserAuthRoute } from '@/core/HOC';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string().required('Password is required'),
@@ -114,11 +112,7 @@ const ResetPassword = () => {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? (
-                  <Spinner width={25} height={25} />
-                ) : (
-                  'Reset Password'
-                )}
+                {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </div>
           </form>
@@ -136,4 +130,4 @@ const ResetPassword = () => {
   );
 };
 
-export default withUserAuthRoute(ResetPassword);
+export default ResetPassword;

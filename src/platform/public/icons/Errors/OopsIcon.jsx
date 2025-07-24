@@ -1,16 +1,19 @@
-import * as React from 'react';
+'use client';
 
-function OopsIcon({ size = 500, strokeWidth = 1.3, className = '', ...props }) {
+import React from 'react';
+
+// The icon will scale to the size of its parent container.
+// Control its dimensions using CSS classes (e.g., 'w-32 h-32') where you use it.
+function OopsIcon({ strokeWidth = 1.3, className = '', ...props }) {
   return (
     <svg
-      width={size}
-      height={size}
       viewBox="0 0 525 371"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       {...props}
     >
+      {/* SVG path data remains unchanged */}
       <path
         d="M300.028 319.016c-41.333 2.138-207.438 9.913-261.318-26.744-53.88-36.658 17.665-113.934 55.055-140.975 37.39-27.042 99.149-72.865 144.054-79.645 44.904-6.781 120.847 6.956 170.158 33.851 49.311 26.896 78.217 76.764 76.735 110.157-1.482 33.394-51.664 83.746-99.217 93.596a462.886 462.886 0 01-85.467 9.76z"
         fill="currentColor"

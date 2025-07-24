@@ -13,8 +13,9 @@ import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
+import SWRProvider from './SWRProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
-import { OrganizationLoadingProvider } from './OrganizationLoadingProvider';
+import UnifiedGroupProvider from './UnifiedGroupProvider';
 import LogoutProvider from './LogoutProvider';
 import { useThemeInitialization } from '@/core/hooks';
 // Import environment validation
@@ -165,16 +166,16 @@ function ClientProvidersInner({ children }) {
 export default function ClientProviders({ children }) {
   return (
     <NextAuthProvider>
-      <ReduxProviders>
-        <ThemeProvider>
-          <ThemeInitializer />
-          <LogoutProvider>
-            <OrganizationLoadingProvider>
-              {children}
-            </OrganizationLoadingProvider>
-          </LogoutProvider>
-        </ThemeProvider>
-      </ReduxProviders>
+      <SWRProvider>
+        <ReduxProviders>
+          <ThemeProvider>
+            <ThemeInitializer />
+            <LogoutProvider>
+              <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
+            </LogoutProvider>
+          </ThemeProvider>
+        </ReduxProviders>
+      </SWRProvider>
     </NextAuthProvider>
   );
 }

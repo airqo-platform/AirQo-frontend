@@ -8,7 +8,11 @@ import LogoutIcon from '@/icons/SideBar/LogoutIcon';
 import LogoutUser from '@/core/HOC/LogoutUser';
 import Card from '@/components/CardWrapper';
 import UnifiedSidebarContent from './UnifiedSidebarContent';
-import { getUserTypeFromPath, getMobileNavigationItems } from './sidebarConfig';
+import {
+  getUserTypeFromPath,
+  getMobileNavigationItems,
+  getOrgSlugFromPath,
+} from './sidebarConfig';
 
 /**
  * Unified drawer component that works for all user types
@@ -21,12 +25,17 @@ const UnifiedSideBarDrawer = ({ userType, isDarkMode = false }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Determine user type from current route if not provided
+
   const pathname =
     typeof window !== 'undefined' ? window.location.pathname : '';
   const resolvedUserType = userType || getUserTypeFromPath(pathname);
-
-  // Get mobile navigation items
-  const navigationItems = getMobileNavigationItems(resolvedUserType);
+  let navigationItems;
+  if (resolvedUserType === 'organization') {
+    const orgSlug = getOrgSlugFromPath(pathname);
+    navigationItems = getMobileNavigationItems(resolvedUserType, { orgSlug });
+  } else {
+    navigationItems = getMobileNavigationItems(resolvedUserType);
+  }
 
   // Compute the drawer width based on the toggle state
   const drawerWidth = useMemo(

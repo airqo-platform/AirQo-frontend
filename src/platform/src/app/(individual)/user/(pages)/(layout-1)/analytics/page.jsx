@@ -13,7 +13,6 @@ import {
 import AlertBox from '@/components/AlertBox';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
-import { withUserAuth } from '@/core/HOC';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -103,4 +102,4 @@ const AuthenticatedHomePage = () => {
   );
 };
 
-export default withUserAuth(AuthenticatedHomePage);
+export default AuthenticatedHomePage;

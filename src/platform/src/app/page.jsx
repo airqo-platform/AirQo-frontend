@@ -27,22 +27,10 @@ const HomePage = () => {
         setIsRedirecting(true);
 
         if (status === 'authenticated' && session?.user) {
-          // Check if this was an organization login
-          const isOrgLogin = session.isOrgLogin || session.user.isOrgLogin;
-          const sessionOrgSlug =
-            session.orgSlug || session.user.requestedOrgSlug;
-
-          if (isOrgLogin && sessionOrgSlug) {
-            // Organization login - redirect to org dashboard
-            router.replace(`/org/${sessionOrgSlug}/dashboard`);
-          } else if (session.user.organization) {
-            // Check if user is organization user (legacy check)
-            const orgSlug = session.user.organization_slug || 'airqo';
-            router.replace(`/org/${orgSlug}/dashboard`);
-          } else {
-            // Individual user
-            router.replace('/user/Home');
-          }
+          // ALWAYS redirect authenticated users to /user/Home regardless of org login or previous context
+          // This ensures when users open the application in another tab they go to /user/Home
+          // with active group set to airqo
+          router.replace('/user/Home');
         } else {
           // Not authenticated - redirect to user login
           router.replace('/user/login');

@@ -4,13 +4,9 @@ import BarChartIcon from '@/icons/SideBar/BarChartIcon';
 import CollocateIcon from '@/icons/SideBar/CollocateIcon';
 import WorldIcon from '@/icons/SideBar/world_Icon';
 import UsersIcon from '@/icons/SideBar/UsersIcon';
-import PersonIcon from '@/icons/Settings/PersonIcon';
-import {
-  MdBusiness,
-  MdSecurity,
-  MdDescription,
-  MdDashboard,
-} from 'react-icons/md';
+import UserIcon from '@/icons/Topbar/userIcon';
+import { MdBusiness, MdDescription, MdDashboard } from 'react-icons/md';
+import ShieldIcon from '@/icons/SideBar/ShieldIcon';
 import { checkAccess } from '@/core/HOC/authUtils';
 
 /**
@@ -84,20 +80,24 @@ export const getUserNavigationItems = () => {
   }
 
   // Add remaining navigation items
-  items.push(
-    {
-      type: 'item',
-      label: 'Map',
-      icon: WorldIcon,
-      path: '/user/map',
-    },
-    {
-      type: 'item',
-      label: 'Settings',
-      icon: SettingsIcon,
-      path: '/user/settings',
-    },
-  );
+  items.push({
+    type: 'item',
+    label: 'Map',
+    icon: WorldIcon,
+    path: '/user/map',
+  });
+
+  // divider for Account section
+  items.push({
+    type: 'divider',
+    label: 'Account',
+  });
+  items.push({
+    type: 'item',
+    label: 'Profile',
+    icon: UserIcon,
+    path: '/user/profile',
+  });
 
   return items;
 };
@@ -152,7 +152,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: MdSecurity,
+      icon: ShieldIcon,
       path: '/admin/roles',
     },
     {
@@ -182,22 +182,46 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       icon: BarChartIcon,
       path: `/org/${orgSlug}/insights`,
     },
+
+    {
+      type: 'divider',
+      label: 'Management',
+    },
+    {
+      type: 'item',
+      label: 'Members',
+      icon: UsersIcon,
+      path: `/org/${orgSlug}/members`,
+    },
+    {
+      type: 'item',
+      label: 'Roles & Permissions',
+      icon: ShieldIcon,
+      path: `/org/${orgSlug}/roles-permissions`,
+      matcher: {
+        pattern: '/org/{slug}/roles-permissions',
+        orgSlug: orgSlug,
+        includeSubroutes: true,
+        exact: false,
+      },
+    },
+    {
+      type: 'item',
+      label: 'Settings',
+      icon: SettingsIcon,
+      path: `/org/${orgSlug}/settings`,
+    },
+    // Account section
     {
       type: 'divider',
       label: 'Account',
     },
     {
       type: 'item',
-      label: 'My Profile',
-      icon: PersonIcon,
+      label: 'Profile',
+      icon: UserIcon,
       path: `/org/${orgSlug}/profile`,
     },
-    // {
-    //   type: 'item',
-    //   label: 'Settings',
-    //   icon: SettingsIcon,
-    //   path: `/org/${orgSlug}/settings`,
-    // },
   ];
 };
 
