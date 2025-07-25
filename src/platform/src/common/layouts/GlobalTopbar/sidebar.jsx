@@ -1,8 +1,7 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { usePathname, useParams } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
-import CloseIcon from '@/icons/close_icon';
-import LineChartIcon from '@/icons/Charts/LineChartIcon';
+import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setGlobalSidebarOpen,
@@ -218,10 +217,10 @@ const GlobalSideBarDrawer = () => {
           </div>
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+            className="relative w-auto focus:outline-none p-2"
             onClick={closeDrawer}
           >
-            <CloseIcon />
+            <AqXClose />
           </button>
         </div>
 
@@ -242,7 +241,7 @@ const GlobalSideBarDrawer = () => {
             {/* Data Analytics */}
             <SideBarItem
               label="Data Analytics"
-              Icon={LineChartIcon}
+              Icon={AqBarChart07}
               navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"

@@ -1,10 +1,9 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-import CloseIcon from '@/icons/close_icon';
-import LogoutIcon from '@/icons/SideBar/LogoutIcon';
+import { AqXClose, AqLogOut01 } from '@airqo/icons-react';
 import LogoutUser from '@/core/HOC/LogoutUser';
 import Card from '@/components/CardWrapper';
 import UnifiedSidebarContent from './UnifiedSidebarContent';
@@ -95,10 +94,10 @@ const UnifiedSideBarDrawer = ({ userType, isDarkMode = false }) => {
           <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-1 lg:p-2"
+            className="relative w-auto focus:outline-none p-1 lg:p-2"
             onClick={closeDrawer}
           >
-            <CloseIcon />
+            <AqXClose />
           </button>
         </div>
 
@@ -130,7 +129,7 @@ const UnifiedSideBarDrawer = ({ userType, isDarkMode = false }) => {
               disabled={isLoading}
             >
               <div className="flex items-center space-x-3">
-                <LogoutIcon className="w-5 h-5" />
+                <AqLogOut01 className="w-5 h-5" />
                 <span className="text-sm font-medium">
                   {isLoading ? 'Signing out...' : 'Sign out'}
                 </span>
