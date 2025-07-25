@@ -4,7 +4,7 @@ import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import { itemVariants } from '../animations';
 import { getFieldWithFallback } from '../utils/getFieldWithFallback';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 
 const columns = [
   {
@@ -13,7 +13,7 @@ const columns = [
     render: (item) => (
       <div className="flex items-center">
         <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-          <LocationIcon width={16} height={16} />
+          <AqMarkerPin01 size={16} />
         </span>
         <span className="ml-2">
           {item.name ||

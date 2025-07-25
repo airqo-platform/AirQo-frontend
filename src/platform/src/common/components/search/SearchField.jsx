@@ -59,7 +59,10 @@ const SearchField = ({
             iconWrapperClassName,
           )}
         >
-          <AqSearchSm className="text-gray-600 dark:text-gray-300" />
+          <AqSearchSm
+            aria-hidden="true"
+            className="text-gray-600 dark:text-gray-300"
+          />
         </div>
 
         <input

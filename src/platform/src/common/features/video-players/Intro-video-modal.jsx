@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { updateTaskProgress } from '@/lib/store/services/checklists/CheckList';
-import CloseIcon from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 import Spinner from '@/components/Spinner';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -153,7 +153,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
               data-modal-hide="custom-modal"
               tabIndex={0}
             >
-              <CloseIcon fill="#FFFFFF" className="w-4 h-4" />
+              <AqXClose color="#FFFFFF" className="w-4 h-4" />
               <span className="sr-only">Close modal</span>
             </button>
           </div>

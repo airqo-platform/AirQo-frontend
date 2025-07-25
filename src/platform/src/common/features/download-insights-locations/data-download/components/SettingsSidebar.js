@@ -1,7 +1,10 @@
-import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
-import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
-import WindIcon from '@/icons/Analytics/windIcon';
+import {
+  AqSliders02,
+  AqWind01,
+  AqClockFastForward,
+  AqFileCheck02,
+} from '@airqo/icons-react';
+
 import CustomFields from './CustomFields';
 import { motion } from 'framer-motion';
 
@@ -78,7 +81,7 @@ const SettingsSidebar = ({
             title="Data type"
             options={filteredDataTypeOptions}
             id="dataType"
-            icon={<CalibrateIcon />}
+            icon={<AqSliders02 size={16} />}
             defaultOption={formData.dataType}
             handleOptionSelect={handleOptionSelect}
           />
@@ -89,7 +92,7 @@ const SettingsSidebar = ({
             title="Pollutants (multi-select)"
             options={POLLUTANT_OPTIONS}
             id="pollutant"
-            icon={<WindIcon />}
+            icon={<AqWind01 size={16} />}
             defaultOption={formData.pollutant}
             multiSelect={true}
             textFormat="capitalize"
@@ -120,7 +123,7 @@ const SettingsSidebar = ({
             title="Frequency"
             options={FREQUENCY_OPTIONS}
             id="frequency"
-            icon={<FrequencyIcon />}
+            icon={<AqClockFastForward size={16} />}
             defaultOption={formData.frequency}
             handleOptionSelect={handleOptionSelect}
           />
@@ -131,7 +134,7 @@ const SettingsSidebar = ({
             title="File type"
             options={FILE_TYPE_OPTIONS}
             id="fileType"
-            icon={<FileTypeIcon />}
+            icon={<AqFileCheck02 size={16} />}
             defaultOption={formData.fileType}
             handleOptionSelect={handleOptionSelect}
           />

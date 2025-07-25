@@ -9,8 +9,7 @@ import ChartContainer from './components/ChartContainer';
 import HiddenSitesInfo from './components/HiddenSitesInfo';
 import useMoreInsights from './hooks/useMoreInsights';
 import useDownload from './hooks/useDownload';
-import { IoIosMenu } from 'react-icons/io';
-import Close from '@/icons/close_icon';
+import { AqXClose, AqMenu01 } from '@airqo/icons-react';
 
 import AirQualityCard from '@/features/download-insights-locations/components/AirQualityCard';
 import SelectionMessage from '@/features/download-insights-locations/components/SelectionMessage';
@@ -145,7 +144,7 @@ function MoreInsights() {
             onClick={() => setMobileSidebarVisible(true)}
             className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            <IoIosMenu size={24} />
+            <AqMenu01 />
           </button>
         </div>
 
@@ -164,7 +163,7 @@ function MoreInsights() {
                     aria-label="Close sidebar"
                     onClick={() => setMobileSidebarVisible(false)}
                   >
-                    <Close />
+                    <AqXClose />
                   </button>
                 </div>
                 <Sidebar

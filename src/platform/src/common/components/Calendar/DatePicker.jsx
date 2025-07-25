@@ -10,7 +10,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { usePopper } from 'react-popper';
 import { Transition } from '@headlessui/react';
 import Calendar from './Calendar';
-import CalendarIcon from '@/icons/Analytics/calendarIcon';
+import { AqCalendar } from '@airqo/icons-react';
 import CustomDropdown from '../Button/CustomDropdown';
 
 const DatePicker = ({
@@ -240,7 +240,7 @@ const DatePicker = ({
       <div ref={setReferenceElement}>
         <CustomDropdown
           text={btnText}
-          icon={<CalendarIcon fill="#536A87" />}
+          icon={<AqCalendar color="#536A87" />}
           iconPosition="left"
           onClick={toggleOpen}
           isButton={true}

@@ -1,8 +1,8 @@
 'use client';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import Close from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
 import { AddLocations } from './add-locations/AddLocations';
@@ -105,7 +105,7 @@ const Modal = ({ isOpen, onClose }) => {
                 className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded-full transition-colors duration-150"
                 aria-label="Close Modal"
               >
-                <Close fill={`${isDarkMode ? '#fff' : '#000'}`} />
+                <AqXClose color={`${isDarkMode ? '#fff' : '#000'}`} />
                 <span className="sr-only">Close Modal</span>
               </button>
             </div>

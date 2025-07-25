@@ -1,6 +1,5 @@
 import { toast } from 'sonner';
-import CheckCircleIcon from '@/icons/Analytics/checkCircleIcon';
-import WarningIcon from '@/icons/Actions/exclamation.svg';
+import { AqCheck, AqAlertCircle } from '@airqo/icons-react';
 import { MdError } from 'react-icons/md';
 import { IoInformationCircle } from 'react-icons/io5';
 
@@ -27,7 +26,7 @@ const CustomToast = ({
 
   switch (type) {
     case 'warning':
-      icon = <WarningIcon width={20} height={20} className="text-white" />;
+      icon = <AqAlertCircle size={20} className="text-white" />;
       className = 'bg-orange-600 text-white';
       break;
     case 'error':
@@ -41,7 +40,7 @@ const CustomToast = ({
       break;
     case 'success':
     default:
-      icon = <CheckCircleIcon width={20} height={20} className="text-white" />;
+      icon = <AqCheck size={20} className="text-white" />;
       className = 'bg-primary text-white';
       break;
   }

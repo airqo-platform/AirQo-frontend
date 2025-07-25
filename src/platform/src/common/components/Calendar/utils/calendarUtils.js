@@ -1,4 +1,10 @@
-import { isSameDay, isWithinInterval } from 'date-fns';
+import {
+  isSameDay,
+  isWithinInterval,
+  getHours,
+  getMinutes,
+  isValid,
+} from 'date-fns';
 
 /**
  * Helper function to compute dynamic class names for each day.
@@ -41,4 +47,10 @@ export const getDayClassNames = (day, month, selectedRange) => {
   }
 
   return classNames;
+};
+
+// In src/platform/src/common/components/Calendar/utils/calendarUtils.js
+export const formatTimeForInput = (date) => {
+  if (!date || !isValid(date)) return '00:00';
+  return `${String(getHours(date)).padStart(2, '0')}:${String(getMinutes(date)).padStart(2, '0')}`;
 };

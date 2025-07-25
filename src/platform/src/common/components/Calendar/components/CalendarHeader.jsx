@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { format, getHours, getMinutes, isValid } from 'date-fns';
+import { format } from 'date-fns';
+import { formatTimeForInput } from '../utils/calendarUtils';
 import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import Button from '../../Button';
 
@@ -14,11 +15,6 @@ const CalendarHeader = ({
   handleStartTimeChange,
   handleEndTimeChange,
 }) => {
-  const formatTimeForInput = (date) => {
-    if (!date || !isValid(date)) return '00:00';
-    return `${String(getHours(date)).padStart(2, '0')}:${String(getMinutes(date)).padStart(2, '0')}`;
-  };
-
   return (
     <div className="flex items-center justify-between">
       {showTwoCalendars ? (

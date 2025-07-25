@@ -1,9 +1,12 @@
-import GoodAirIcon from '@/icons/Charts/GoodAir';
-import HazardousIcon from '@/icons/Charts/Hazardous';
-import ModerateIcon from '@/icons/Charts/Moderate';
-import UnhealthyIcon from '@/icons/Charts/Unhealthy';
-import UnhealthySGIcon from '@/icons/Charts/UnhealthySG';
-import VeryUnhealthyIcon from '@/icons/Charts/VeryUnhealthy';
+import {
+  AqGood,
+  AqModerate,
+  AqUnhealthyForSensitiveGroups,
+  AqVeryUnhealthy,
+  AqUnhealthy,
+  AqHazardous,
+  AqNoValue,
+} from '@airqo/icons-react';
 
 // Define the pollutant ranges based on standard AQI breakpoints
 const pollutantRanges = {
@@ -31,37 +34,37 @@ const pollutantRanges = {
 const categoryDetails = {
   GoodAir: {
     text: 'Air Quality is Good',
-    icon: GoodAirIcon,
+    icon: AqGood,
     color: 'text-green-500',
   },
   ModerateAir: {
     text: 'Air Quality is Moderate',
-    icon: ModerateIcon,
+    icon: AqModerate,
     color: 'text-yellow-500',
   },
   UnhealthyForSensitiveGroups: {
     text: 'Air Quality is Unhealthy for Sensitive Groups',
-    icon: UnhealthySGIcon,
+    icon: AqUnhealthyForSensitiveGroups,
     color: 'text-orange-500',
   },
   Unhealthy: {
     text: 'Air Quality is Unhealthy',
-    icon: UnhealthyIcon,
+    icon: AqUnhealthy,
     color: 'text-red-500',
   },
   VeryUnhealthy: {
     text: 'Air Quality is Very Unhealthy',
-    icon: VeryUnhealthyIcon,
+    icon: AqVeryUnhealthy,
     color: 'text-purple-500',
   },
   Hazardous: {
     text: 'Air Quality is Hazardous',
-    icon: HazardousIcon,
+    icon: AqHazardous,
     color: 'text-gray-500',
   },
   Invalid: {
     text: 'Invalid Air Quality Data',
-    icon: null,
+    icon: AqNoValue,
     color: 'text-gray-300',
   },
 };

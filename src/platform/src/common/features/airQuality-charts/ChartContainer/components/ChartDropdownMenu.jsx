@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import CheckIcon from '@/icons/tickIcon';
+import { AqCheck } from '@airqo/icons-react';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { ChartExportUtils } from '../utils/chartExportUtils';
 import CustomToast from '@/components/Toast/CustomToast';
@@ -309,10 +309,9 @@ const ChartDropdownMenu = ({
               {isLoading ? (
                 LoadingSpinner
               ) : isCompleted ? (
-                <CheckIcon
-                  fill={isDark ? '#10B981' : '#059669'}
-                  width={18}
-                  height={18}
+                <AqCheck
+                  color={isDark ? '#10B981' : '#059669'}
+                  size={18}
                   aria-label="Export completed"
                 />
               ) : null}

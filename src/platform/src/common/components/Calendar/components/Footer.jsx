@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { format, getHours, getMinutes, isValid } from 'date-fns';
+import { format } from 'date-fns';
 import { Tooltip } from 'flowbite-react';
 import { FaRegQuestionCircle } from 'react-icons/fa';
 import Button from '../../Button';
+import { formatTimeForInput } from '../utils/calendarUtils';
 
 const Footer = ({
   selectedRange,
@@ -17,11 +18,6 @@ const Footer = ({
   const [errorMsg, setErrorMsg] = useState('');
   // Always default to toggled off
   const [enableTimePicker, setEnableTimePicker] = useState(false);
-
-  const formatTimeForInput = (date) => {
-    if (!date || !isValid(date)) return '00:00';
-    return `${String(getHours(date)).padStart(2, '0')}:${String(getMinutes(date)).padStart(2, '0')}`;
-  };
 
   const handleCancel = () => {
     close();

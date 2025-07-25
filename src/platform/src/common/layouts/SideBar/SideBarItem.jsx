@@ -10,8 +10,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { usePopper } from 'react-popper';
-import { MdKeyboardArrowRight } from 'react-icons/md';
-import ArrowDropDownIcon from '@/icons/arrow_drop_down';
+import { AqChevronDown, AqChevronRight } from '@airqo/icons-react';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
 /**
@@ -693,10 +692,10 @@ const SidebarItem = ({
                 <h3 className={`font-normal text-sm ${textClass}`}>{label}</h3>
               </div>
               {hasDropdown && (
-                <ArrowDropDownIcon className={`${textClass} w-4 h-4`} />
+                <AqChevronDown className={`${textClass} w-4 h-4`} />
               )}
               {hasSubroutes && !hasDropdown && (
-                <MdKeyboardArrowRight
+                <AqChevronRight
                   className={`${textClass} w-4 h-4 transition-transform duration-200 ${
                     showPopup ? 'translate-x-1' : 'group-hover:translate-x-0.5'
                   }`}
