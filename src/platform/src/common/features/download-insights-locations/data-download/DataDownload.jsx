@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import {
   AqXClose,
-  AqWind01,
+  AqGlobe05,
   AqMarkerPin01,
   AqMonitor03,
   AqMenu01,
@@ -723,7 +723,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
             return (
               <div className="flex items-center capitalize">
                 <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                  <AqWind01 width={16} height={16} />
+                  <AqGlobe05 size={16} />
                 </span>
                 <span>{formattedName || 'N/A'}</span>
               </div>
@@ -743,7 +743,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <AqMarkerPin01 width={16} height={16} />
+                <AqGlobe05 size={16} />
               </span>
               <span>
                 {(item.name || item.long_name || '')
@@ -778,7 +778,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <AqMarkerPin01 width={16} height={16} />
+                <AqMarkerPin01 size={16} />
               </span>
               <span>
                 {item.name || item.search_name || item.location_name || 'N/A'}
@@ -797,7 +797,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           render: (item) => (
             <div className="flex items-center capitalize">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <AqMonitor03 width={16} height={16} />
+                <AqMonitor03 size={16} />
               </span>
               <span>{item.name || item.long_name || 'N/A'}</span>
             </div>

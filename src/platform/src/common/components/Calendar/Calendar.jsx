@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import CalendarSection from './components/CalendarSection';
 import Footer from './components/Footer';
@@ -53,16 +53,19 @@ const Calendar = ({
     initialSelectedRange,
   });
 
-  const handleFinalValueChange = (range) => {
-    const finalStart = getCombinedDateTime(range.start, range.startTime);
-    const finalEnd = getCombinedDateTime(range.end, range.endTime);
-    handleValueChange({
-      start: finalStart,
-      end: finalEnd,
-      startTime: range.startTime,
-      endTime: range.endTime,
-    });
-  };
+  const handleFinalValueChange = useCallback(
+    (range) => {
+      const finalStart = getCombinedDateTime(range.start, range.startTime);
+      const finalEnd = getCombinedDateTime(range.end, range.endTime);
+      handleValueChange({
+        start: finalStart,
+        end: finalEnd,
+        startTime: range.startTime,
+        endTime: range.endTime,
+      });
+    },
+    [getCombinedDateTime, handleValueChange],
+  );
 
   return (
     <div

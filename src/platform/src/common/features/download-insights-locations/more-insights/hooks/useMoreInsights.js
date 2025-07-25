@@ -91,6 +91,7 @@ export default function useMoreInsights() {
   const [visibleSites, setVisibleSites] = useState([]);
 
   // Update data loading sites and visible sites when allSites changes
+  // Update data loading sites and visible sites when allSites changes (consolidated)
   useEffect(() => {
     if (allSites.length > 0) {
       const siteIds = allSites.map((s) => s._id);
@@ -102,15 +103,6 @@ export default function useMoreInsights() {
       setVisibleSites([]);
     }
   }, [allSites]);
-
-  // Also update when moreInsightsSites specifically changes (from add locations)
-  useEffect(() => {
-    if (moreInsightsSites.length > 0) {
-      const siteIds = moreInsightsSites.map((s) => s._id);
-      setDataLoadingSites(siteIds);
-      setVisibleSites(siteIds);
-    }
-  }, [moreInsightsSites]);
 
   /* ------------- abort helpers ------------- */
   const abortRef = useMergeAbort();

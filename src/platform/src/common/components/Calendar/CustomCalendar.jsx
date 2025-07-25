@@ -215,6 +215,8 @@ CustomCalendar.propTypes = {
   horizontalOffset: PropTypes.number,
   verticalOffset: PropTypes.number,
   dropdownStyle: PropTypes.object,
+  showTimePickerToggle: PropTypes.bool,
+  enableTimePicker: PropTypes.bool,
 };
 
 export default CustomCalendar;

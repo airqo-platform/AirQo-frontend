@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import ProgressComponent from '@/components/Account/ProgressComponent';
-import HintIcon from '@/icons/Actions/exclamation.svg';
+import {
+  AqAnnotationQuestion,
+  AqSearchSm,
+  AqMarkerPin01,
+  AqXClose,
+  AqInfoCircle,
+} from '@airqo/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-import SearchIcon from '@/icons/Common/search_md.svg';
 import Spinner from '@/components/Spinner';
 
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Toast from '@/components/Toast';
 import Link from 'next/link';
-import LocationIcon from '@/icons/LocationIcon';
-import CloseIcon from '@/icons/close_icon';
-import InfoCircle from '@/icons/Alerts/Info_circle';
 import { isEmpty } from 'underscore';
 import countries from 'i18n-iso-countries';
 import englishLocale from 'i18n-iso-countries/langs/en.json';
@@ -164,7 +166,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                       />
                     </div>
                     <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                      <HintIcon className="mr-2 stroke-grey-350" />
+                      <AqAnnotationQuestion className="mr-2 stroke-grey-350" />
                       <span>
                         Please provide a valid website! Ex: www.example.com
                       </span>
@@ -206,7 +208,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                   placeholder="Enter a description..."
                 ></textarea>
                 <span className="text-xs flex space-x-1 text-grey-300 mt-2">
-                  <InfoCircle />
+                  <AqInfoCircle />
                   <span>Write a short description</span>
                 </span>
               </div>
@@ -603,7 +605,7 @@ const CreateOrganisationDetailsPageThree = () => {
               <div className="text-sm">Add Locations</div>
               <div className="mt-2 w-full flex flex-row items-center justify-start ">
                 <div className="flex items-center justify-center pl-3 bg-white border h-12 rounded-lg rounded-r-none border-r-0 border-input-light-outline focus:border-input-light-outline">
-                  <SearchIcon />
+                  <AqSearchSm />
                 </div>
                 <input
                   onChange={(e) => {
@@ -630,7 +632,7 @@ const CreateOrganisationDetailsPageThree = () => {
                         }}
                         key={key}
                       >
-                        <LocationIcon />
+                        <AqMarkerPin01 />
                         <div className="text-sm ml-1 text-black capitalize">
                           {location.name}
                         </div>
@@ -638,7 +640,7 @@ const CreateOrganisationDetailsPageThree = () => {
                     ))
                   ) : (
                     <div className="flex flex-row justify-start items-center mb-0.5 text-sm w-full">
-                      <LocationIcon />
+                      <AqMarkerPin01 />
                       <div className="text-sm ml-1 text-black font-medium capitalize">
                         Location not found
                       </div>
@@ -668,12 +670,7 @@ const CreateOrganisationDetailsPageThree = () => {
                       className="hover:cursor-pointer"
                     >
                       <span className="mt-[4px]">
-                        <CloseIcon
-                          fill="#145FFF"
-                          strokeWidth="2"
-                          width={16}
-                          height={16}
-                        />
+                        <AqXClose color="#145FFF" size={16} />
                       </span>
                     </div>
                   </div>

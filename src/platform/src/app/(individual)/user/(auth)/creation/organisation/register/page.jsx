@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
 import AccountPageLayout from '@/components/Account/Layout';
@@ -11,9 +11,7 @@ import {
   setUserPassword,
   setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
-import HintIcon from '@/icons/Actions/exclamation.svg';
-import VisibilityOffIcon from '@/icons/Account/visibility_off.svg';
-import VisibilityOnIcon from '@/icons/Account/visibility_on.svg';
+import { AqAnnotationQuestion, AqEye, AqEyeOff } from '@airqo/icons-react';
 import Toast from '@/components/Toast';
 import { useRouter } from 'next/navigation';
 import Spinner from '@/components/Spinner';
@@ -171,7 +169,7 @@ const OrganisationIndividualAccountCreation = () => {
                 />
                 {email.length >= 3 && !email.includes('@') && (
                   <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                    <HintIcon className="w-8 h-8 mr-2" />
+                    <AqAnnotationQuestion className="w-8 h-8 mr-2" />
                     <span>Please provide a valid email address!</span>
                   </div>
                 )}
@@ -205,15 +203,15 @@ const OrganisationIndividualAccountCreation = () => {
                   className="absolute right-4 top-[25px]  transform -translate-y-1/2 cursor-pointer"
                 >
                   {passwordType === 'password' ? (
-                    <VisibilityOffIcon />
+                    <AqEyeOff />
                   ) : (
-                    <VisibilityOnIcon className="stroke-1 stroke-svg-green" />
+                    <AqEye className="stroke-1 stroke-svg-green" />
                   )}
                 </div>
               </div>
               {passwordWordErrors && (
                 <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                  <HintIcon className="w-8 h-8 mr-2" />{' '}
+                  <AqAnnotationQuestion className="w-8 h-8 mr-2" />{' '}
                   <span>
                     Password must be more than 6 characters and contain an
                     uppercase letter(A-Z), lowercase letter(a-z), a number(0-9)

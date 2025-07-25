@@ -125,7 +125,7 @@ function ControlsBar({
           <Button
             onClick={download}
             disabled={downloadLoading}
-            Icon={<AqDownload02 />}
+            Icon={AqDownload02}
           >
             {downloadLoading
               ? 'Downloading...'

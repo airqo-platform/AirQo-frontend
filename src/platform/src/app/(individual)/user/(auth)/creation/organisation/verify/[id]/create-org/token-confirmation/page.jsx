@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import ProgressComponent from '@/components/Account/ProgressComponent';
-import HintIcon from '@/icons/Actions/exclamation.svg';
+import { AqAnnotationQuestion } from '@airqo/icons-react';
 import Spinner from '@/components/Spinner';
 
 import { useRouter, useParams } from 'next/navigation';
@@ -122,7 +122,7 @@ const ContactAdminModal = ({ open, onClose }) => {
               </div>
               {email && email.length > 3 && !isValidEmail(email) && (
                 <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                  <HintIcon className="w-8 h-8" />
+                  <AqAnnotationQuestion className="w-8 h-8" />
                   <span>Please provide a valid email address!</span>
                 </div>
               )}
@@ -152,7 +152,7 @@ const ContactAdminModal = ({ open, onClose }) => {
         )}
         {errorMessage && (
           <div className="flex flex-row items-center text-xs text-red-600 bg-red-50 px-2 rounded">
-            <HintIcon className="w-8 h-8 mr-1 pt-2" />
+            <AqAnnotationQuestion className="w-8 h-8 mr-1 pt-2" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -229,7 +229,7 @@ const ConfirmOrganizationCohortToken = () => {
                 />
                 {tokenErrorMsg && (
                   <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                    <HintIcon className="w-8 h-8 mr-2" />
+                    <AqAnnotationQuestion className="w-8 h-8 mr-2" />
                     <span>{tokenErrorMsg}</span>
                   </div>
                 )}

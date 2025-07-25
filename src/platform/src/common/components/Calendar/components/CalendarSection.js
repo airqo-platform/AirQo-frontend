@@ -10,6 +10,7 @@ import {
   isSameDay,
   isSameMonth,
   startOfDay,
+  isWithinInterval,
 } from 'date-fns';
 import CalendarHeader from './CalendarHeader';
 
@@ -20,7 +21,10 @@ const getDayClassNames = (day, month, selectedRange) => {
   const isInBetween =
     selectedRange.start &&
     selectedRange.end &&
-    isWithinInterval(day, selectedRange) &&
+    isWithinInterval(day, {
+      start: selectedRange.start,
+      end: selectedRange.end,
+    }) &&
     !isStart &&
     !isEnd;
   const isStartOfWeek = day.getDay() === 1;
@@ -53,11 +57,6 @@ const getDayClassNames = (day, month, selectedRange) => {
       'bg-primary/10 text-gray-800 dark:text-gray-200 rounded-full ';
   }
   return classNames;
-};
-
-const isWithinInterval = (date, interval) => {
-  const time = date.getTime();
-  return time >= interval.start.getTime() && time <= interval.end.getTime();
 };
 
 const CalendarSection = ({

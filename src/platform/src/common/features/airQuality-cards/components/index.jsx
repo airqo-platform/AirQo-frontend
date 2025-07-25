@@ -17,10 +17,11 @@ const getMeasurementValue = (measurement, pollutantType) =>
 /** Trend arrow with tooltip */
 const TrendIndicator = memo(({ trendData }) => {
   const Icon = trendData?.isIncreasing ? AqArrowNarrowUp : AqArrowNarrowDown;
+  // If trend has worsened (isIncreasing), use bg-primary/10 for background
   const bgClass = trendData
     ? trendData.isIncreasing
-      ? 'bg-gray-100 dark:bg-gray-100/10'
-      : 'bg-primary/10'
+      ? 'bg-primary/10'
+      : 'bg-gray-100 dark:bg-gray-100/10'
     : 'bg-gray-100 dark:bg-gray-700';
   const colorClass = trendData
     ? trendData.isIncreasing
@@ -83,9 +84,10 @@ const SiteCard = memo(
     const trendData =
       pctDiff != null
         ? {
-            trendTooltip: `${Math.abs(pctDiff)}% ${
-              pctDiff > 0 ? 'worsened' : 'improved'
-            } compared to last week.`,
+            trendTooltip:
+              pctDiff > 0
+                ? `Air quality worsened by ${Math.abs(pctDiff).toFixed(2)}% compared to last week.`
+                : `Air quality improved by ${Math.abs(pctDiff).toFixed(2)}% compared to last week.`,
             isIncreasing: pctDiff > 0,
           }
         : null;

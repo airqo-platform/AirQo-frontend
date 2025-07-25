@@ -48,8 +48,9 @@ export const useLocationSelectionForMoreInsights = (
       setSidebarSites([]);
     }
     setClearSelected(true);
-    // reset trigger after render
-    setTimeout(() => setClearSelected(false), 100);
+    // reset trigger after render with cleanup
+    const timeoutId = setTimeout(() => setClearSelected(false), 100);
+    return () => clearTimeout(timeoutId);
   }, [filteredSites]);
 
   const handleToggleSite = useCallback(
