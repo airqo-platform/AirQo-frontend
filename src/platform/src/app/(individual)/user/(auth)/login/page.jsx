@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { signIn as _signIn, getSession as _getSession } from 'next-auth/react';
 import Link from 'next/link';
 import * as Yup from 'yup';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { AqEye, AqEyeOff } from '@airqo/icons-react';
 
 import AccountPageLayout from '@/components/Account/Layout';
 import Toast from '@/components/Toast';
@@ -173,11 +173,7 @@ const UserLogin = () => {
                   onClick={togglePasswordVisibility}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <FaEyeSlash size={20} />
-                  ) : (
-                    <FaEye size={20} />
-                  )}
+                  {showPassword ? <AqEyeOff size={20} /> : <AqEye size={20} />}
                 </button>
               </div>
             </div>
