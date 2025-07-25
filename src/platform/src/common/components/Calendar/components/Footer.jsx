@@ -46,10 +46,10 @@ const Footer = ({
       <span className="text-xs text-gray-600 dark:text-gray-300 flex items-center">
         <Tooltip
           content={
-            <span>
+            <span className="text-xs">
               You must select a date from the calendar to set the time.
               <br />
-              Click the clock icon to select time.
+              Click the clock icon to select time or enter it manually.
             </span>
           }
           placement="top"
