@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { format, getHours, getMinutes, isValid } from 'date-fns';
-import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
-import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
+import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import Button from '../../Button';
 
 const CalendarHeader = ({
@@ -30,7 +29,7 @@ const CalendarHeader = ({
             padding="p-2"
             aria-label="Previous Month"
           >
-            <ShortLeftArrow />
+            <AqChevronLeft size={16} />
           </Button>
           <div className="text-sm text-gray-700 dark:text-gray-200 font-semibold">
             {month}
@@ -41,7 +40,7 @@ const CalendarHeader = ({
             padding="p-2"
             aria-label="Next Month"
           >
-            <ShortRightArrow />
+            <AqChevronRight size={16} />
           </Button>
         </>
       ) : (

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import ArrowDownIcon from '@/icons/Common/arrow_down';
-import ArrowUpIcon from '@/icons/Common/arrow_up';
+import { useState } from 'react';
+import { AqChevronDown, AqChevronUp } from '@airqo/icons-react';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import moment from 'moment';
 import { isEmpty } from 'underscore';
@@ -92,9 +91,9 @@ const CustomTable = ({
                   <>
                     {sortColumn === columnIndex &&
                       (sortDirection === 'asc' ? (
-                        <ArrowUpIcon />
+                        <AqChevronUp size={16} />
                       ) : (
-                        <ArrowDownIcon />
+                        <AqChevronDown size={16} />
                       ))}
                   </>
                 )}

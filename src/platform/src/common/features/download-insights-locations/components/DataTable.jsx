@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   MdIndeterminateCheckBox,
   MdErrorOutline,
   MdRefresh,
 } from 'react-icons/md';
-import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
-import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
+import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -485,7 +484,7 @@ function DataTable({
               aria-label="Previous page"
               padding="p-2"
             >
-              <ShortLeftArrow />
+              <AqChevronLeft size={16} />
             </Button>
             <Button
               variant="outlined"
@@ -494,7 +493,7 @@ function DataTable({
               aria-label="Next page"
               padding="p-2"
             >
-              <ShortRightArrow />
+              <AqChevronRight size={16} />
             </Button>
           </div>
         </div>

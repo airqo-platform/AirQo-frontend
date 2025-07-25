@@ -1,9 +1,8 @@
 'use client';
-import React from 'react';
 import { Tooltip } from 'flowbite-react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 
 const truncateName = (name, maxLength = 13) => {
   if (!name) return 'Unknown Location';
@@ -86,7 +85,7 @@ const LocationCard = ({
           animate={isSelected ? { rotate: [0, 15, 0] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <LocationIcon width={20} height={20} />
+          <AqMarkerPin01 size={20} />
         </motion.div>
         <div className="flex flex-col">
           <Tooltip content={fullName} placement="top" trigger="hover">
