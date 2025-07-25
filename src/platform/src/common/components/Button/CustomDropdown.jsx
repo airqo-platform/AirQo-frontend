@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
-import { FiChevronDown } from 'react-icons/fi';
+import { ChevronDown } from '@airqo/icons-react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
@@ -156,7 +156,7 @@ const CustomDropdown = ({
               {/* Spinner removed per user request: do not show spinner if loading is true */}
             </div>
             {!collapseMobile && showArrow && !loading && (
-              <FiChevronDown
+              <ChevronDown
                 size={16}
                 className={clsx(
                   'ml-2 transition-transform duration-200',
