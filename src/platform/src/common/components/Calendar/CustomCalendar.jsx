@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Transition } from '@headlessui/react';
 import {
@@ -15,7 +15,7 @@ import {
   format,
   getYear,
 } from 'date-fns';
-import CalendarIcon from '@/icons/Analytics/calendarIcon';
+import { Calendar as CalendarIcon } from '@airqo/icons-react';
 import CustomDropdown from '../Button/CustomDropdown';
 import Calendar from './Calendar';
 import { useOutsideClick } from '@/core/hooks';
@@ -157,7 +157,7 @@ const CustomCalendar = ({
     <div ref={containerRef} className={`relative ${className}`}>
       <CustomDropdown
         text={value.label || 'Select Date Range'}
-        icon={<CalendarIcon fill="#536A87" />}
+        icon={<CalendarIcon size={16} />}
         iconPosition="left"
         onClick={handleToggle}
         isButton

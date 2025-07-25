@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useMediaQuery } from 'react-responsive';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
@@ -6,10 +5,12 @@ import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
 import Button from '@/components/Button';
-import PlusIcon from '@/icons/map/plusIcon';
-import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
+import {
+  Plus,
+  Download02,
+  Settings02,
+  ClockFastForward,
+} from '@airqo/icons-react';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
@@ -37,7 +38,9 @@ const AnalyticsControls = ({
       <div className="flex flex-wrap gap-2">
         {/* Time Frame Dropdown */}
         <CustomDropdown
-          icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
+          icon={
+            window.innerWidth < 640 ? <ClockFastForward size={16} /> : undefined
+          }
           text={<span className="capitalize">{chartData.timeFrame}</span>}
           dropdownWidth="150px"
         >
@@ -68,7 +71,7 @@ const AnalyticsControls = ({
         {/* Pollutant Dropdown */}
         <CustomDropdown
           text="Pollutant"
-          icon={<SettingsIcon />}
+          icon={<Settings02 size={16} />}
           iconPosition="left"
         >
           <div className="py-1">
@@ -89,7 +92,7 @@ const AnalyticsControls = ({
         {/* Add Location Button */}
         <CustomDropdown
           text="Add location"
-          icon={<PlusIcon width={16} height={16} />}
+          icon={<Plus width={16} height={16} />}
           iconPosition="left"
           isButton
           onClick={() => handleOpenModal('addLocation')}
@@ -101,7 +104,7 @@ const AnalyticsControls = ({
           trigger={
             <Button
               onClick={() => handleOpenModal('download')}
-              Icon={DownloadIcon}
+              Icon={Download02}
             >
               Download Data
             </Button>

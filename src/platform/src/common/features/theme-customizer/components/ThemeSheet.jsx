@@ -1,19 +1,19 @@
 'use client';
 
-import React, { memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FaTimes,
-  FaSun,
-  FaMoon,
-  FaDesktop,
-  FaTable,
-  FaBorderAll,
-  FaPalette,
-  FaGripHorizontal,
-  FaColumns,
-  FaSyncAlt,
-} from 'react-icons/fa';
+  Sun,
+  Moon02,
+  DotsGrid,
+  Grid01,
+  Monitor01,
+  LayoutGrid01,
+  LayoutGrid02,
+  XClose,
+  Palette,
+  RefreshCcw02,
+} from '@airqo/icons-react';
 import { Tooltip } from 'flowbite-react';
 import { useTheme } from '../hooks/useTheme';
 import useUserTheme from '@/core/hooks/useUserTheme';
@@ -90,9 +90,9 @@ export const ThemeSheet = memo(() => {
   ]);
 
   const themeOptions = [
-    { value: THEME_MODES.LIGHT, icon: FaSun, label: 'Light' },
-    { value: THEME_MODES.DARK, icon: FaMoon, label: 'Dark' },
-    { value: THEME_MODES.SYSTEM, icon: FaDesktop, label: 'System' },
+    { value: THEME_MODES.LIGHT, icon: Sun, label: 'Light' },
+    { value: THEME_MODES.DARK, icon: Moon02, label: 'Dark' },
+    { value: THEME_MODES.SYSTEM, icon: Monitor01, label: 'System' },
   ];
 
   const skinOptions = [
@@ -100,13 +100,13 @@ export const ThemeSheet = memo(() => {
       value: THEME_SKINS.DEFAULT,
       label: 'Default',
       description: 'Clean, minimal design',
-      icon: FaTable,
+      icon: LayoutGrid02,
     },
     {
       value: THEME_SKINS.BORDERED,
       label: 'Bordered',
       description: 'Enhanced borders',
-      icon: FaBorderAll,
+      icon: LayoutGrid01,
     },
   ];
 
@@ -216,7 +216,7 @@ export const ThemeSheet = memo(() => {
                     }`}
                     aria-label="Reset to organization theme"
                   >
-                    <FaSyncAlt size={16} />
+                    <RefreshCcw02 size={16} />
                     {/* Out-of-sync notification dot in top-right corner */}
                     {!isThemeInSync && (
                       <span
@@ -232,7 +232,7 @@ export const ThemeSheet = memo(() => {
                 className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 aria-label="Close theme settings"
               >
-                <FaTimes
+                <XClose
                   className="text-neutral-600 dark:text-neutral-300"
                   size={16}
                 />
@@ -280,7 +280,7 @@ export const ThemeSheet = memo(() => {
                       }
                     `}
                   >
-                    <FaPalette
+                    <Palette
                       size={16}
                       className="text-neutral-600 dark:text-neutral-300"
                     />
@@ -394,7 +394,7 @@ export const ThemeSheet = memo(() => {
                   `}
                   aria-pressed={layout === THEME_LAYOUT.COMPACT}
                 >
-                  <FaGripHorizontal size={18} />
+                  <DotsGrid size={18} />
                   <span className="text-xs mt-1">Compact</span>
                 </button>
 
@@ -410,7 +410,7 @@ export const ThemeSheet = memo(() => {
                   `}
                   aria-pressed={layout === THEME_LAYOUT.WIDE}
                 >
-                  <FaColumns size={18} />
+                  <Grid01 size={18} />
                   <span className="text-xs mt-1">Wide</span>
                 </button>
               </div>
