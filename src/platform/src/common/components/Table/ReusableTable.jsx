@@ -2,14 +2,14 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Fuse from 'fuse.js';
 import CardWrapper from '@/components/CardWrapper';
+import { FaSort } from 'react-icons/fa';
 import {
-  FaSearch,
-  FaChevronLeft,
-  FaChevronRight,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-} from 'react-icons/fa';
+  AqSearchSm,
+  AqChevronDown,
+  AqChevronUp,
+  AqChevronLeft,
+  AqChevronRight,
+} from '@airqo/icons-react';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 
 // Custom Filter Component with outside click close
@@ -361,9 +361,9 @@ const ReusableTable = ({
     if (sortConfig.key !== key)
       return <FaSort className="w-3 h-3 text-gray-400" />;
     return sortConfig.direction === 'asc' ? (
-      <FaSortUp className="w-3 h-3 text-primary" />
+      <AqChevronUp className="w-3 h-3 text-primary" />
     ) : (
-      <FaSortDown className="w-3 h-3 text-primary" />
+      <AqChevronDown className="w-3 h-3 text-primary" />
     );
   };
 
@@ -428,7 +428,7 @@ const ReusableTable = ({
             {/* Search */}
             {searchable && (
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 dark:text-primary/80 w-4 h-4" />
+                <AqSearchSm className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 dark:text-primary/80 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
@@ -574,7 +574,7 @@ const ReusableTable = ({
                   disabled={currentPage === 1}
                   className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 >
-                  <FaChevronLeft className="w-3 h-3" />
+                  <AqChevronLeft className="w-3 h-3" />
                   <span className="hidden sm:inline">Previous</span>
                 </button>
 
@@ -607,7 +607,7 @@ const ReusableTable = ({
                   className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 >
                   <span className="hidden sm:inline">Next</span>
-                  <FaChevronRight className="w-3 h-3" />
+                  <AqChevronRight className="w-3 h-3" />
                 </button>
               </div>
             )}

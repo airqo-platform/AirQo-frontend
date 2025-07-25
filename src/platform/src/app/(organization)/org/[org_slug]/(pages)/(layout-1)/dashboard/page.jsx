@@ -9,9 +9,7 @@ import ErrorState from '@/common/components/ErrorState';
 import { getGroupDetailsApi } from '@/core/apis/Account';
 import { useDeviceSummary } from '@/core/hooks/analyticHooks';
 import PermissionDenied from '@/common/components/PermissionDenied';
-
-// Import icons from react-icons
-import { FiUsers as UsersIcon, FiMapPin } from 'react-icons/fi';
+import { AqUsers01, AqMarkerPin01 } from '@airqo/icons-react';
 
 const OrganizationDashboardPage = () => {
   const { activeGroup } = useUnifiedGroup();
@@ -185,7 +183,7 @@ const OrganizationDashboardPage = () => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <FiMapPin className="w-6 h-6 text-primary" />
+                    <AqMarkerPin01 className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -216,7 +214,7 @@ const OrganizationDashboardPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-                      <UsersIcon className="w-6 h-6 text-white" />
+                      <AqUsers01 className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-500 dark:text-gray-400">

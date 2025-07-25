@@ -1,8 +1,4 @@
 /**
- * Form utilities for organization creation
- */
-
-/**
  * Generate organization slug from name
  * @param {string} organizationName - The organization name
  * @returns {string} - Generated slug

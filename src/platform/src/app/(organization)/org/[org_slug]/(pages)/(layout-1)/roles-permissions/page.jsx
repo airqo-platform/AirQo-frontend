@@ -9,8 +9,13 @@ import EmptyState from '@/common/components/EmptyState';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 import { getGroupRolesApi } from '@/core/apis/Account';
-
-import { FaPlus, FaShieldAlt, FaUsers, FaCheck, FaTimes } from 'react-icons/fa';
+import {
+  AqPlus,
+  AqShield03,
+  AqUsers03,
+  AqCheck,
+  AqXClose,
+} from '@airqo/icons-react';
 import Dropdown from '@/common/components/Dropdowns/Dropdown';
 import logger from '@/lib/logger';
 import CustomToast from '@/common/components/Toast/CustomToast';
@@ -140,9 +145,9 @@ const RolesPermissionsPage = () => {
         }`}
       >
         {isActive ? (
-          <FaCheck className="w-3 h-3 mr-1" />
+          <AqCheck className="w-3 h-3 mr-1" />
         ) : (
-          <FaTimes className="w-3 h-3 mr-1" />
+          <AqXClose className="w-3 h-3 mr-1" />
         )}
         {status || 'Unknown'}
       </span>
@@ -214,7 +219,7 @@ const RolesPermissionsPage = () => {
         label: 'Permissions',
         render: (value) => (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-            <FaShieldAlt className="w-3 h-3 mr-1" />
+            <AqShield03 className="w-3 h-3 mr-1" />
             {Array.isArray(value) ? value.length : 0}
           </span>
         ),
@@ -224,7 +229,7 @@ const RolesPermissionsPage = () => {
         label: 'Users',
         render: (value) => (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-            <FaUsers className="w-3 h-3 mr-1" />
+            <AqUsers03 className="w-3 h-3 mr-1" />
             {Array.isArray(value) ? value.length : 0}
           </span>
         ),
@@ -301,7 +306,7 @@ const RolesPermissionsPage = () => {
   if (roles.length === 0 && !loading && !error) {
     return (
       <EmptyState
-        icon={FaShieldAlt}
+        icon={AqShield03}
         title="No roles created yet"
         description="Create your first role to manage permissions and access control for your organization members."
         actionLabel="Add Role"
@@ -325,7 +330,7 @@ const RolesPermissionsPage = () => {
             </p>
           </div>
           <Button onClick={handleAddRole} variant="filled">
-            <FaPlus className="mr-2" /> Add Role
+            <AqPlus className="mr-2" /> Add Role
           </Button>
         </div>
 

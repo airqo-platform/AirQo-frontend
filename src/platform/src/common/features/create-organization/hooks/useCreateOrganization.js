@@ -1,5 +1,3 @@
-// src/hooks/useCreateOrganization.js
-
 import { useState } from 'react';
 import {
   createOrganisationRequestApi,
@@ -15,8 +13,8 @@ import logger from '@/lib/logger';
  */
 export const useCreateOrganization = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [slugAvailability, setSlugAvailability] = useState(null); // true | false | null
-  const [slugSuggestions, setSlugSuggestions] = useState([]); // [string]
+  const [slugAvailability, setSlugAvailability] = useState(null);
+  const [slugSuggestions, setSlugSuggestions] = useState([]);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
   /**

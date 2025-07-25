@@ -5,7 +5,13 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { FaGlobe, FaCheck, FaTimes, FaSpinner, FaInfo } from 'react-icons/fa';
+import {
+  AqGlobe02Maps_Travel,
+  AqCheck,
+  AqXClose,
+  AqLoading02,
+} from '@airqo/icons-react';
+import { FaInfo } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/components/Toast/CustomToast';
 import useGroupSlugManager from '@/core/hooks/useGroupSlugManager';
@@ -277,7 +283,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <div className="p-3 rounded-xl mr-4 bg-primary/10 dark:bg-primary/20">
-                  <FaGlobe className="text-xl text-primary" />
+                  <AqGlobe02Maps_Travel className="text-xl text-primary" />
                 </div>
                 Domain Settings
               </h2>
@@ -293,7 +299,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
           {slugStatus === 'success' && (
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fadeIn">
               <div className="flex items-center space-x-3">
-                <FaSpinner className="text-blue-600 dark:text-blue-400 animate-spin" />
+                <AqLoading02 className="text-blue-600 dark:text-blue-400 animate-spin" />
                 <div>
                   <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
                     Setting up your new domain...
@@ -351,14 +357,14 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                 formData.slug &&
                 formData.slug !== formData.originalSlug && (
                   <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400 animate-fadeIn">
-                    <FaSpinner className="animate-spin h-4 w-4 mr-2 text-primary dark:text-primary-light" />
+                    <AqLoading02 className="animate-spin h-4 w-4 mr-2 text-primary dark:text-primary-light" />
                     Checking availability...
                   </p>
                 )}
 
               {formatError && (
                 <p className="mt-1 flex items-center text-sm text-red-600 dark:text-red-400 animate-fadeIn">
-                  <FaTimes className="h-4 w-4 mr-1" />
+                  <AqXClose className="h-4 w-4 mr-1" />
                   {formatError}
                 </p>
               )}
@@ -376,12 +382,12 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                   >
                     {slugAvailability ? (
                       <>
-                        <FaCheck className="h-4 w-4 mr-1 text-green-500" />
+                        <AqCheck className="h-4 w-4 mr-1 text-green-500" />
                         <span>{formData.slug} is available.</span>
                       </>
                     ) : (
                       <>
-                        <FaTimes className="h-4 w-4 mr-1 text-red-500" />
+                        <AqXClose className="h-4 w-4 mr-1 text-red-500" />
                         <span>{availabilityMessage}</span>
                       </>
                     )}
@@ -422,7 +428,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
                 <div className="bg-primary/5 dark:bg-primary/10 rounded-xl p-6 border border-primary/20 dark:border-primary/30">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                      <FaGlobe className="text-primary text-sm" />
+                      <AqGlobe02Maps_Travel className="text-primary text-sm" />
                     </div>
                     <h4 className="text-sm font-semibold text-primary">
                       Preview URL

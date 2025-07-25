@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import ReusableTable from '../Table/ReusableTable';
 import RemoveUserModal from './RemoveUserModal';
 import EditUserRoleModal from './EditUserRoleModal';
 import Dropdown from '../Dropdowns/Dropdown';
-import { FaEnvelope, FaUser, FaUserCheck, FaUserTimes } from 'react-icons/fa';
 import PropTypes from 'prop-types';
+import {
+  AqMail01,
+  AqUserX02,
+  AqUserCheck02,
+  AqUser02,
+} from '@airqo/icons-react';
 
 /**
  * Members Table Component
@@ -36,8 +41,8 @@ const MembersTable = ({
         'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
     };
     const icons = {
-      active: <FaUserCheck className="w-3 h-3" />,
-      inactive: <FaUserTimes className="w-3 h-3" />,
+      active: <AqUserCheck02 className="w-3 h-3" />,
+      inactive: <AqUserX02 className="w-3 h-3" />,
     };
     return (
       <span
@@ -120,7 +125,7 @@ const MembersTable = ({
         return (
           <div>
             <div className="text-sm text-gray-900 dark:text-white flex items-center">
-              <FaEnvelope className="w-4 h-4 text-gray-400 mr-2" />
+              <AqMail01 className="w-4 h-4 text-gray-400 mr-2" />
               {member.email}
             </div>
             {member.description && (
@@ -162,7 +167,7 @@ const MembersTable = ({
               id: 'manager',
               name: (
                 <span className="flex items-center text-gray-500">
-                  <FaUser className="w-4 h-4 mr-2" />
+                  <AqUser02 className="w-4 h-4 mr-2" />
                   Group Manager
                 </span>
               ),

@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
-import SearchIcon from '@/icons/Common/search_md.svg';
-import CloseIcon from '@/icons/close_icon';
+import { AqXClose, AqSearchSm } from '@airqo/icons-react';
 import { addSearchTerm } from '@/lib/store/services/search/LocationSearchSlice';
 
 const SearchField = ({
@@ -60,7 +59,7 @@ const SearchField = ({
             iconWrapperClassName,
           )}
         >
-          <SearchIcon className="text-gray-600 dark:text-gray-300" />
+          <AqSearchSm className="text-gray-600 dark:text-gray-300" />
         </div>
 
         <input
@@ -95,7 +94,7 @@ const SearchField = ({
               clearButtonClassName,
             )}
           >
-            <CloseIcon className="text-gray-600 dark:text-gray-300 hover:text-[var(--org-primary,var(--color-primary,#145fff))] dark:hover:text-white" />
+            <AqXClose className="text-gray-600 dark:text-gray-300 hover:text-[var(--org-primary,var(--color-primary,#145fff))] dark:hover:text-white" />
           </button>
         )}
       </div>

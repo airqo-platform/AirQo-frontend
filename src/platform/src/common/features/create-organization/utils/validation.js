@@ -1,5 +1,3 @@
-// src/utils/validation.js
-
 /**
  * Step 1 (details) validator.
  * @returns {{ errors: Record<string,string>, isValid: boolean }}

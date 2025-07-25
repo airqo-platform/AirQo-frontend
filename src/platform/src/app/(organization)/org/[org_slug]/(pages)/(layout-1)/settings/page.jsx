@@ -21,7 +21,7 @@ import {
   updateGroupDetailsApi,
   getUserDetails,
 } from '@/core/apis/Account';
-import { cloudinaryImageUpload } from '@/core/apis/Cloudinary'; // Add Cloudinary import
+import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import { OrganizationSettingsContainer } from '@/common/components/Organization';
 import { OrganizationSettingsSkeleton } from '@/common/components/Skeleton';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';

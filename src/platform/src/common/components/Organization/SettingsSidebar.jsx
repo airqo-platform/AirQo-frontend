@@ -1,5 +1,9 @@
-import React from 'react';
-import { FaSave, FaSpinner, FaEdit, FaUndo } from 'react-icons/fa';
+import {
+  AqSave01,
+  AqEdit05,
+  AqRefreshCcw01,
+  AqLoading02,
+} from '@airqo/icons-react';
 import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -25,7 +29,7 @@ const SettingsSidebar = ({
     <CardWrapper>
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-          <FaSave className="mr-2 text-primary" />
+          <AqSave01 className="mr-2 text-primary" />
           Actions
         </h3>
         {/* Action Buttons Section */}
@@ -36,7 +40,7 @@ const SettingsSidebar = ({
               onClick={onSave}
               disabled={isSaving || !hasUnsavedChanges}
               variant="filled"
-              Icon={isSaving ? FaSpinner : FaSave}
+              Icon={!isSaving ? AqLoading02 : AqSave01}
               className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isSaving ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
@@ -52,7 +56,7 @@ const SettingsSidebar = ({
               }}
               disabled={isDomainUpdating || !hasUnsavedChanges}
               variant="filled"
-              Icon={isDomainUpdating ? FaSpinner : FaEdit}
+              Icon={isDomainUpdating ? AqLoading02 : AqEdit05}
               className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isDomainUpdating ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
             >
               {isDomainUpdating ? 'Updating URL...' : 'Update URL'}
@@ -68,7 +72,7 @@ const SettingsSidebar = ({
                 variant="outlined"
                 className="w-full py-3 px-4 flex items-center justify-center rounded-lg font-semibold transition-all duration-200 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                <FaUndo className="mr-2 h-4 w-4" />
+                <AqRefreshCcw01 className="mr-2 h-4 w-4" />
                 Discard Changes
               </Button>
             )}
