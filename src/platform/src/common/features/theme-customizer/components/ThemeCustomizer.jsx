@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Settings02 } from '@airqo/icons-react';
+import { AqSettings02 } from '@airqo/icons-react';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeSheet } from './ThemeSheet';
 import { usePathname } from 'next/navigation';
@@ -35,7 +35,7 @@ export const ThemeCustomizer = memo(() => {
           backgroundColor: 'var(--color-primary)',
         }}
       >
-        <Settings02 size={16} />
+        <AqSettings02 size={16} />
       </button>
       <ThemeSheet />
     </>

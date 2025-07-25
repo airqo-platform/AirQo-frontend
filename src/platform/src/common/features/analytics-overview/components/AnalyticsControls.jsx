@@ -6,10 +6,10 @@ import CustomDropdown, {
 } from '@/components/Button/CustomDropdown';
 import Button from '@/components/Button';
 import {
-  Plus,
-  Download02,
-  Settings02,
-  ClockFastForward,
+  AqPlus,
+  AqDownload02,
+  AqSettings02,
+  AqClockFastForward,
 } from '@airqo/icons-react';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
@@ -39,7 +39,9 @@ const AnalyticsControls = ({
         {/* Time Frame Dropdown */}
         <CustomDropdown
           icon={
-            window.innerWidth < 640 ? <ClockFastForward size={16} /> : undefined
+            window.innerWidth < 640 ? (
+              <AqClockFastForward size={16} />
+            ) : undefined
           }
           text={<span className="capitalize">{chartData.timeFrame}</span>}
           dropdownWidth="150px"
@@ -71,7 +73,7 @@ const AnalyticsControls = ({
         {/* Pollutant Dropdown */}
         <CustomDropdown
           text="Pollutant"
-          icon={<Settings02 size={16} />}
+          icon={<AqSettings02 size={16} />}
           iconPosition="left"
         >
           <div className="py-1">
@@ -92,7 +94,7 @@ const AnalyticsControls = ({
         {/* Add Location Button */}
         <CustomDropdown
           text="Add location"
-          icon={<Plus width={16} height={16} />}
+          icon={<AqPlus width={16} height={16} />}
           iconPosition="left"
           isButton
           onClick={() => handleOpenModal('addLocation')}
@@ -104,7 +106,7 @@ const AnalyticsControls = ({
           trigger={
             <Button
               onClick={() => handleOpenModal('download')}
-              Icon={Download02}
+              Icon={AqDownload02}
             >
               Download Data
             </Button>

@@ -3,16 +3,16 @@
 import { memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sun,
-  Moon02,
-  DotsGrid,
-  Grid01,
-  Monitor01,
-  LayoutGrid01,
-  LayoutGrid02,
-  XClose,
-  Palette,
-  RefreshCcw02,
+  AqSun,
+  AqMoon02,
+  AqDotsGrid,
+  AqGrid01,
+  AqMonitor01,
+  AqLayoutGrid01,
+  AqLayoutGrid02,
+  AqXClose,
+  AqPalette,
+  AqRefreshCcw02,
 } from '@airqo/icons-react';
 import { Tooltip } from 'flowbite-react';
 import { useTheme } from '../hooks/useTheme';
@@ -90,9 +90,9 @@ export const ThemeSheet = memo(() => {
   ]);
 
   const themeOptions = [
-    { value: THEME_MODES.LIGHT, icon: Sun, label: 'Light' },
-    { value: THEME_MODES.DARK, icon: Moon02, label: 'Dark' },
-    { value: THEME_MODES.SYSTEM, icon: Monitor01, label: 'System' },
+    { value: THEME_MODES.LIGHT, icon: AqSun, label: 'Light' },
+    { value: THEME_MODES.DARK, icon: AqMoon02, label: 'Dark' },
+    { value: THEME_MODES.SYSTEM, icon: AqMonitor01, label: 'System' },
   ];
 
   const skinOptions = [
@@ -100,13 +100,13 @@ export const ThemeSheet = memo(() => {
       value: THEME_SKINS.DEFAULT,
       label: 'Default',
       description: 'Clean, minimal design',
-      icon: LayoutGrid02,
+      icon: AqLayoutGrid02,
     },
     {
       value: THEME_SKINS.BORDERED,
       label: 'Bordered',
       description: 'Enhanced borders',
-      icon: LayoutGrid01,
+      icon: AqLayoutGrid01,
     },
   ];
 
@@ -216,7 +216,7 @@ export const ThemeSheet = memo(() => {
                     }`}
                     aria-label="Reset to organization theme"
                   >
-                    <RefreshCcw02 size={16} />
+                    <AqRefreshCcw02 size={16} />
                     {/* Out-of-sync notification dot in top-right corner */}
                     {!isThemeInSync && (
                       <span
@@ -232,7 +232,7 @@ export const ThemeSheet = memo(() => {
                 className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 aria-label="Close theme settings"
               >
-                <XClose
+                <AqXClose
                   className="text-neutral-600 dark:text-neutral-300"
                   size={16}
                 />
@@ -280,7 +280,7 @@ export const ThemeSheet = memo(() => {
                       }
                     `}
                   >
-                    <Palette
+                    <AqPalette
                       size={16}
                       className="text-neutral-600 dark:text-neutral-300"
                     />
@@ -394,7 +394,7 @@ export const ThemeSheet = memo(() => {
                   `}
                   aria-pressed={layout === THEME_LAYOUT.COMPACT}
                 >
-                  <DotsGrid size={18} />
+                  <AqDotsGrid size={18} />
                   <span className="text-xs mt-1">Compact</span>
                 </button>
 
@@ -410,7 +410,7 @@ export const ThemeSheet = memo(() => {
                   `}
                   aria-pressed={layout === THEME_LAYOUT.WIDE}
                 >
-                  <Grid01 size={18} />
+                  <AqGrid01 size={18} />
                   <span className="text-xs mt-1">Wide</span>
                 </button>
               </div>

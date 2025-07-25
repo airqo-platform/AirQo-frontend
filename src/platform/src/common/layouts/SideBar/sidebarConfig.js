@@ -1,14 +1,14 @@
 import {
-  HomeSmile,
-  User03,
-  BarChartSquare02,
-  Globe05,
-  Users01,
-  Settings02,
-  ShieldTick,
-  File02,
-  Building05,
-  Home01,
+  AqHomeSmile,
+  AqUser03,
+  AqBarChartSquare02,
+  AqGlobe05,
+  AqUsers01,
+  AqSettings02,
+  AqShieldTick,
+  AqFile02,
+  AqBuilding05,
+  AqHome01,
 } from '@airqo/icons-react';
 // import { checkAccess } from '@/core/HOC/authUtils';
 
@@ -47,13 +47,13 @@ export const getUserNavigationItems = () => {
     {
       type: 'item',
       label: 'Home',
-      icon: HomeSmile,
+      icon: AqHomeSmile,
       path: '/user/Home',
     },
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartSquare02,
+      icon: AqBarChartSquare02,
       path: '/user/analytics',
     },
     {
@@ -86,7 +86,7 @@ export const getUserNavigationItems = () => {
   items.push({
     type: 'item',
     label: 'Map',
-    icon: Globe05,
+    icon: AqGlobe05,
     path: '/user/map',
   });
 
@@ -98,7 +98,7 @@ export const getUserNavigationItems = () => {
   items.push({
     type: 'item',
     label: 'Profile',
-    icon: User03,
+    icon: AqUser03,
     path: '/user/profile',
   });
 
@@ -113,7 +113,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: Home01,
+      icon: AqHome01,
       path: '/admin',
     },
     {
@@ -123,13 +123,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Organizations',
-      icon: Building05,
+      icon: AqBuilding05,
       path: '/admin/organizations/requests',
     },
     {
       type: 'item',
       label: 'Users',
-      icon: User03,
+      icon: AqUser03,
       path: '/admin/users',
     },
     {
@@ -139,13 +139,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartSquare02,
+      icon: AqBarChartSquare02,
       path: '/admin/analytics',
     },
     {
       type: 'item',
       label: 'Activity Logs',
-      icon: File02,
+      icon: AqFile02,
       path: '/admin/activity-logs',
     },
     {
@@ -155,13 +155,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: ShieldTick,
+      icon: AqShieldTick,
       path: '/admin/roles',
     },
     {
       type: 'item',
       label: 'Settings',
-      icon: Settings02,
+      icon: AqSettings02,
       path: '/admin/settings',
     },
   ];
@@ -176,13 +176,13 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: HomeSmile,
+      icon: AqHomeSmile,
       path: `/org/${orgSlug}/dashboard`,
     },
     {
       type: 'item',
       label: 'Data Insights',
-      icon: BarChartSquare02,
+      icon: AqBarChartSquare02,
       path: `/org/${orgSlug}/insights`,
     },
 
@@ -193,13 +193,13 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Members',
-      icon: Users01,
+      icon: AqUsers01,
       path: `/org/${orgSlug}/members`,
     },
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: ShieldTick,
+      icon: AqShieldTick,
       path: `/org/${orgSlug}/roles-permissions`,
       matcher: {
         pattern: '/org/{slug}/roles-permissions',
@@ -211,7 +211,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Settings',
-      icon: Settings02,
+      icon: AqSettings02,
       path: `/org/${orgSlug}/settings`,
     },
     // Account section
@@ -222,7 +222,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Profile',
-      icon: User03,
+      icon: AqUser03,
       path: `/org/${orgSlug}/profile`,
     },
   ];

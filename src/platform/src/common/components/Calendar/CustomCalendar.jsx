@@ -15,7 +15,7 @@ import {
   format,
   getYear,
 } from 'date-fns';
-import { Calendar as CalendarIcon } from '@airqo/icons-react';
+import { AqCalendar as CalendarIcon } from '@airqo/icons-react';
 import CustomDropdown from '../Button/CustomDropdown';
 import Calendar from './Calendar';
 import { useOutsideClick } from '@/core/hooks';

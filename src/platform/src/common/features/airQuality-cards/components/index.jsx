@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
 import { useResizeObserver } from '@/core/hooks/useResizeObserver';
 import { AQI_CATEGORY_MAP, IconMap } from '../constants';
-import { ArrowNarrowDown, ArrowNarrowUp } from '@airqo/icons-react';
+import { AqArrowNarrowDown, AqArrowNarrowUp } from '@airqo/icons-react';
 import Card from '@/components/CardWrapper';
 
 const CARD_HEIGHT = 'h-44';
@@ -16,7 +16,7 @@ const getMeasurementValue = (measurement, pollutantType) =>
 
 /** Trend arrow with tooltip */
 const TrendIndicator = memo(({ trendData }) => {
-  const Icon = trendData?.isIncreasing ? ArrowNarrowUp : ArrowNarrowDown;
+  const Icon = trendData?.isIncreasing ? AqArrowNarrowUp : AqArrowNarrowDown;
   const bgClass = trendData
     ? trendData.isIncreasing
       ? 'bg-gray-100 dark:bg-gray-100/10'
