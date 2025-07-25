@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@airqo/icons-react@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@airqo/icons-react/-/icons-react-0.1.3.tgz#19ecda50671f321a941fd577e11717979b46544d"
+  integrity sha512-9x66ELdbzmmVB0v34gaBcvfKEWiid0ueJUoKnkdm8wM+rOphhX3cP4aM/Tp/uq2Zgdg7qWXTf5h+DecRfSxOvw==
+
 "@alloc/quick-lru@^5.2.0":
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/@alloc/quick-lru/-/quick-lru-5.2.0.tgz#7bf68b20c0a350f936915fcae06f58e32007ce30"

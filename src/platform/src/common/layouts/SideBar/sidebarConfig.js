@@ -1,13 +1,16 @@
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import UsersIcon from '@/icons/SideBar/UsersIcon';
-import UserIcon from '@/icons/Topbar/userIcon';
-import { MdBusiness, MdDescription, MdDashboard } from 'react-icons/md';
-import ShieldIcon from '@/icons/SideBar/ShieldIcon';
-import { checkAccess } from '@/core/HOC/authUtils';
+import {
+  HomeSmile,
+  User03,
+  BarChartSquare02,
+  Globe05,
+  Users01,
+  Settings02,
+  ShieldTick,
+  File02,
+  Building05,
+  Home01,
+} from '@airqo/icons-react';
+// import { checkAccess } from '@/core/HOC/authUtils';
 
 /**
  * Centralized sidebar configuration for all user types
@@ -44,13 +47,13 @@ export const getUserNavigationItems = () => {
     {
       type: 'item',
       label: 'Home',
-      icon: HomeIcon,
+      icon: HomeSmile,
       path: '/user/Home',
     },
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartIcon,
+      icon: BarChartSquare02,
       path: '/user/analytics',
     },
     {
@@ -60,30 +63,30 @@ export const getUserNavigationItems = () => {
   ];
 
   // Add collocation section if user has access
-  if (checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
-    items.push({
-      type: 'dropdown',
-      label: 'Collocation',
-      icon: CollocateIcon,
-      dropdown: true,
-      children: [
-        {
-          label: 'Overview',
-          path: '/user/collocation/overview',
-        },
-        {
-          label: 'Collocate',
-          path: '/user/collocation/collocate',
-        },
-      ],
-    });
-  }
+  // if (checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
+  //   items.push({
+  //     type: 'dropdown',
+  //     label: 'Collocation',
+  //     icon: CollocateIcon,
+  //     dropdown: true,
+  //     children: [
+  //       {
+  //         label: 'Overview',
+  //         path: '/user/collocation/overview',
+  //       },
+  //       {
+  //         label: 'Collocate',
+  //         path: '/user/collocation/collocate',
+  //       },
+  //     ],
+  //   });
+  // }
 
   // Add remaining navigation items
   items.push({
     type: 'item',
     label: 'Map',
-    icon: WorldIcon,
+    icon: Globe05,
     path: '/user/map',
   });
 
@@ -95,7 +98,7 @@ export const getUserNavigationItems = () => {
   items.push({
     type: 'item',
     label: 'Profile',
-    icon: UserIcon,
+    icon: User03,
     path: '/user/profile',
   });
 
@@ -110,7 +113,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: MdDashboard,
+      icon: Home01,
       path: '/admin',
     },
     {
@@ -120,13 +123,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Organizations',
-      icon: MdBusiness,
+      icon: Building05,
       path: '/admin/organizations/requests',
     },
     {
       type: 'item',
       label: 'Users',
-      icon: UsersIcon,
+      icon: User03,
       path: '/admin/users',
     },
     {
@@ -136,13 +139,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartIcon,
+      icon: BarChartSquare02,
       path: '/admin/analytics',
     },
     {
       type: 'item',
       label: 'Activity Logs',
-      icon: MdDescription,
+      icon: File02,
       path: '/admin/activity-logs',
     },
     {
@@ -152,13 +155,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: ShieldIcon,
+      icon: ShieldTick,
       path: '/admin/roles',
     },
     {
       type: 'item',
       label: 'Settings',
-      icon: SettingsIcon,
+      icon: Settings02,
       path: '/admin/settings',
     },
   ];
@@ -173,13 +176,13 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: HomeIcon,
+      icon: HomeSmile,
       path: `/org/${orgSlug}/dashboard`,
     },
     {
       type: 'item',
       label: 'Data Insights',
-      icon: BarChartIcon,
+      icon: BarChartSquare02,
       path: `/org/${orgSlug}/insights`,
     },
 
@@ -190,13 +193,13 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Members',
-      icon: UsersIcon,
+      icon: Users01,
       path: `/org/${orgSlug}/members`,
     },
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: ShieldIcon,
+      icon: ShieldTick,
       path: `/org/${orgSlug}/roles-permissions`,
       matcher: {
         pattern: '/org/{slug}/roles-permissions',
@@ -208,7 +211,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Settings',
-      icon: SettingsIcon,
+      icon: Settings02,
       path: `/org/${orgSlug}/settings`,
     },
     // Account section
@@ -219,7 +222,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Profile',
-      icon: UserIcon,
+      icon: User03,
       path: `/org/${orgSlug}/profile`,
     },
   ];
