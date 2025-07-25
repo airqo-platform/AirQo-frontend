@@ -1,5 +1,4 @@
 'use client';
-
 import React, {
   createContext,
   useContext,
@@ -10,10 +9,9 @@ import React, {
   useRef,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
-
 import { getOrganizationBySlugApi } from '@/core/apis/Organizations';
 import {
   setActiveGroup as setActiveGroupAction,
@@ -28,7 +26,6 @@ import {
   setChartSites,
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
-
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
@@ -44,6 +41,7 @@ const ctx = createContext(null);
 /* -------------------------------------------------------------------------- */
 const extractOrgSlug = (pathname) =>
   pathname?.match?.(/\/org\/([^/]+)/)?.[1] ?? null;
+
 const groupRoute = (group) => {
   if (!group || isAirQoGroup(group)) return '/user/Home';
   const slug = group.organization_slug || titleToSlug(group.grp_title);
@@ -70,7 +68,6 @@ const init = () => ({
   error: null,
   isSwitching: false,
   initialGroupSet: false,
-
   organization: null,
   organizationTheme: null,
   organizationLoading: false,
@@ -112,14 +109,14 @@ const reducer = (s, a) => {
 export function UnifiedGroupProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, init);
   const rdxDispatch = useDispatch();
-  const { data: session } = useSession();
+  // --- FIX: Get session status ---
+  const { data: session, status: sessionStatus } = useSession();
   const pathname = usePathname();
   const router = useRouter();
 
   /* ---------------------------- Selectors & refs ---------------------------- */
   const activeGroup = useSelector(selectActiveGroup);
   const userGroups = useSelector(selectUserGroups);
-
   const lock = useRef(false);
   const abortRef = useRef(null);
   const minLoadMs = 400;
@@ -129,9 +126,16 @@ export function UnifiedGroupProvider({ children }) {
   const isOrganizationContext = Boolean(organizationSlug);
 
   /* ---------------------------- Core logic ---------------------------------- */
+  // --- FIX: Stabilize refreshGroups dependencies and use sessionStatus internally ---
   const refreshGroups = useCallback(
     async (force = false) => {
-      if (!session?.user?.id || (!force && state.isLoading) || lock.current)
+      // --- FIX: Explicitly check for authenticated status ---
+      if (
+        sessionStatus !== 'authenticated' || // Prevent if not authenticated
+        !session?.user?.id ||
+        (!force && state.isLoading) ||
+        lock.current
+      )
         return;
       lock.current = true;
       dispatch({ type: 'startGroups' });
@@ -141,12 +145,20 @@ export function UnifiedGroupProvider({ children }) {
       } catch (e) {
         logger.error('refreshGroups', e);
         dispatch({ type: 'endGroups', error: e.message });
+        // If 401, sign out and redirect to login
+        if (
+          e?.status === 401 ||
+          (typeof e?.message === 'string' && e.message.includes('401'))
+        ) {
+          signOut({ callbackUrl: '/user/login' });
+        }
       } finally {
         lock.current = false;
         dispatch({ type: 'endGroups' });
       }
     },
-    [rdxDispatch, session?.user?.id, userGroups.length, state.isLoading],
+    // --- FIX: Remove state.isLoading from deps, add sessionStatus ---
+    [rdxDispatch, sessionStatus, session?.user?.id, userGroups.length],
   );
 
   const setActiveGroupAtomic = useCallback(
@@ -173,21 +185,16 @@ export function UnifiedGroupProvider({ children }) {
         activeGroup?._id === target._id
       )
         return { success: false, error: 'Invalid or duplicate' };
-
       lock.current = true;
       dispatch({ type: 'startSwitch' });
-
       try {
         const isAirQo = isAirQoGroup(target);
         const route = groupRoute(target);
-
         rdxDispatch(setActiveGroupAction(target));
         rdxDispatch(setOrganizationName(target.grp_title));
         rdxDispatch(setChartSites([]));
         if (!isAirQo) rdxDispatch(resetChartStore());
-
         if (navigate) await router.push(route);
-
         await rdxDispatch(
           replaceUserPreferences({
             user_id: session.user.id,
@@ -195,7 +202,6 @@ export function UnifiedGroupProvider({ children }) {
           }),
         );
         if (opts.fetchDetails) await rdxDispatch(fetchGroupDetails(target._id));
-
         return { success: true, targetRoute: route };
       } catch (e) {
         logger.error('switchToGroup', e);
@@ -223,21 +229,26 @@ export function UnifiedGroupProvider({ children }) {
   );
 
   /* -------------------------- Effects -------------------------------------- */
+  // --- FIX: Use sessionStatus in the effect condition ---
   useEffect(() => {
-    if (session?.user?.id && !userGroups.length) refreshGroups();
-  }, [session?.user?.id, userGroups.length, refreshGroups]);
+    // --- FIX: Only fetch if explicitly authenticated ---
+    if (
+      sessionStatus === 'authenticated' &&
+      session?.user?.id &&
+      !userGroups.length
+    ) {
+      refreshGroups();
+    }
+  }, [sessionStatus, session?.user?.id, userGroups.length, refreshGroups]); // --- FIX: Use stable dependencies ---
 
   useEffect(() => {
     if (!userGroups.length || state.initialGroupSet || lock.current) return;
-
     let target = null;
     if (isOrganizationContext && organizationSlug)
       target = findGroupBySlug(userGroups, organizationSlug);
     else if (session?.user?.activeGroup)
       target = userGroups.find((g) => g._id === session.user.activeGroup._id);
-
     if (!target) target = userGroups.find(isAirQoGroup) ?? userGroups[0];
-
     if (target) setActiveGroupAtomic(target, 'auto');
   }, [
     userGroups,
@@ -255,20 +266,16 @@ export function UnifiedGroupProvider({ children }) {
         dispatch({ type: 'endOrg' });
       return;
     }
-
     abortRef.current?.abort?.();
     abortRef.current = new AbortController();
     const { signal } = abortRef.current;
-
     dispatch({ type: 'startOrg' });
-
     const start = Date.now();
     getOrganizationBySlugApi(organizationSlug, { signal })
       .then((res) => {
         if (signal.aborted) return;
         const elapsed = Date.now() - start;
         const wait = Math.max(0, minLoadMs - elapsed);
-
         const org = res.success ? res.data : null;
         const theme = org
           ? {
@@ -279,7 +286,6 @@ export function UnifiedGroupProvider({ children }) {
               font: org.font,
             }
           : null;
-
         setTimeout(
           () =>
             dispatch({
@@ -344,26 +350,22 @@ export function UnifiedGroupProvider({ children }) {
     state.organizationTheme?.primaryColor &&
     state.organizationTheme?.secondaryColor &&
     state.organizationTheme?.logo;
-
   const showLoader =
     isOrganizationContext &&
     (state.organizationLoading ||
       (!themeComplete && !state.organizationError && state.organization));
-
   if (showLoader)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <LoadingSpinner size="lg" text="Loading organization…" />
       </div>
     );
-
   if (
     isOrganizationContext &&
     state.organizationInitialized &&
     (!state.organization || state.organizationError)
   )
     return <OrganizationNotFound orgSlug={organizationSlug} />;
-
   return <ctx.Provider value={value}>{children}</ctx.Provider>;
 }
 
@@ -406,10 +408,8 @@ export const useOrganization = () => {
     secondaryColor,
     logo,
   } = useUnifiedGroup();
-
   if (!isOrganizationContext)
     throw new Error('useOrganization must be used within /org/ context');
-
   return {
     organization,
     theme: organizationTheme,
