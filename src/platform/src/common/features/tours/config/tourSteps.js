@@ -51,6 +51,15 @@ export const globalOnboardingSteps = [
     disableBeacon: true,
     placement: 'auto',
   },
+  // Example step awaiting an action (conceptual)
+  // {
+  //   target: '.some-button',
+  //   title: 'Try It Out',
+  //   content: 'Click the button below to see what happens.',
+  //   disableBeacon: true,
+  //   placement: 'auto',
+  //   awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CLICKED_BUTTON' } // Define awaited action
+  // },
 ];
 
 // --- Route-Based Tour Configurations ---
@@ -64,6 +73,8 @@ export const routeTourConfig = {
       showProgress: true,
       disableOverlayClose: true,
     },
+    // Example: This tour could wait for a specific event before starting or resuming
+    // awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CLICKED_QUICK_ACTION' }
   },
   '/user/analytics': {
     key: 'analyticsTour',
@@ -79,7 +90,6 @@ export const routeTourConfig = {
 };
 
 // --- Global Tour Configurations ---
-// Keyed by a unique identifier for the global tour
 export const globalTourConfig = {
   globalOnboarding: {
     key: 'globalOnboarding',
@@ -89,8 +99,9 @@ export const globalTourConfig = {
       showSkipButton: true,
       showProgress: true,
       disableOverlayClose: true,
-      // You might want different defaults for global tours
-      // spotlightClicks: true, // Example
     },
+    // Example: This global tour could wait for a specific event
+    // awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CHANGED_THEME' }
   },
+  // Add other global tours here
 };

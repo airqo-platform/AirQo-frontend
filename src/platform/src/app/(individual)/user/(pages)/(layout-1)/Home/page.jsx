@@ -36,17 +36,17 @@ const Home = () => {
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
   const reduxUserInfo = useSelector((state) => state.login.userInfo);
 
-  const { startTourForCurrentPath, run } = useTour();
+  const { attemptStartTours, run } = useTour();
 
   useEffect(() => {
     if (!run) {
       const timer = setTimeout(() => {
-        startTourForCurrentPath();
+        attemptStartTours();
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [startTourForCurrentPath, run]);
+  }, [attemptStartTours, run]);
 
   // Get user display name from multiple sources with priority
   const getUserDisplayName = () => {

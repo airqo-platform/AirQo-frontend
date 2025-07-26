@@ -28,7 +28,7 @@ export default function UnifiedPagesLayout({ children }) {
   const pathname = usePathname();
   const params = useParams();
   const { userID } = useGetActiveGroup();
-  const { startGlobalTour, run } = useTour();
+  const { attemptStartTours, run } = useTour();
   const { data: session } = useSession();
 
   // Guarded call to useOrganization to prevent runtime errors on non-/org routes
@@ -49,12 +49,12 @@ export default function UnifiedPagesLayout({ children }) {
   useEffect(() => {
     if (session?.user?.id && !run) {
       const timer = setTimeout(() => {
-        startGlobalTour('globalOnboarding');
+        attemptStartTours();
       }, 1500);
 
       return () => clearTimeout(timer);
     }
-  }, [startGlobalTour, run, session]);
+  }, [attemptStartTours, run, session]);
 
   const getRouteConfig = () => {
     if (isOrganizationContext) {

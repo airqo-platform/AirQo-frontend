@@ -17,7 +17,7 @@ import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
-  const { startTourForCurrentPath, run } = useTour();
+  const { attemptStartTours, run } = useTour();
   const isModalOpen = useSelector((state) => state.modal.openModal);
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const [customise, setCustomise] = useState(false);
@@ -52,12 +52,12 @@ const AuthenticatedHomePage = () => {
   useEffect(() => {
     if (!run) {
       const timer = setTimeout(() => {
-        startTourForCurrentPath();
+        attemptStartTours();
       }, 2000);
 
       return () => clearTimeout(timer);
     }
-  }, [startTourForCurrentPath, run]);
+  }, [attemptStartTours, run]);
 
   /**
    * Sets chart details based on user preferences.

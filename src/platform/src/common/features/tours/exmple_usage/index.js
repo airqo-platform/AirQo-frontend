@@ -1,5 +1,4 @@
 // --- Example 1: Starting a Route-Based Tour Automatically ---
-// File: e.g., src/app/user/analytics/page.jsx or a layout component
 // 'use client';
 // import { useEffect } from 'react';
 // import { useTour } from '@/features/tours/contexts/TourProvider';
@@ -30,7 +29,6 @@
 // }
 
 // --- Example 2: Starting a Global Tour Manually ---
-// File: e.g., src/app/layout.jsx or a global component like a header
 // 'use client';
 // import { useEffect, useState } from 'react';
 // import { useTour } from '@/features/tours/contexts/TourProvider';
@@ -103,4 +101,28 @@
 //   }
 
 //   return <div>Normal content when no tour is running.</div>;
+// }
+
+// Triggering an Action
+// 'use client';
+// import { useEffect } from 'react';
+// import Button from '@/common/components/Button'; // Adjust path
+
+// export default function QuickActionsComponent() {
+
+//   const handleQuickActionClick = () => {
+//     console.log("QuickActionsComponent: Quick action clicked!");
+//     // ... perform the action ...
+
+//     // Dispatch a custom event to signal the action was completed
+//     // This event name should match the `payload` in `awaitedAction`
+//     window.dispatchEvent(new CustomEvent('USER_CLICKED_QUICK_ACTION'));
+//   };
+
+//   return (
+//     <div className="home-quick-actions p-2 border rounded">
+//       <Button onClick={handleQuickActionClick}>Do Quick Action</Button>
+//       {/* Other quick actions... */}
+//     </div>
+//   );
 // }

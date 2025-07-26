@@ -5,6 +5,7 @@ import {
   useReducer,
   useCallback,
   useMemo,
+  useEffect,
 } from 'react';
 import { useSession } from 'next-auth/react';
 import CustomJoyride from '@/features/tours/components/CustomJoyride';
@@ -27,6 +28,9 @@ const tourReducer = (state, action) => {
         currentTourKey: action.payload.tourKey,
         currentTourType: action.payload.tourType || 'route', // 'route' or 'global'
         currentTourConfig: action.payload.tourConfig || null, // Store the full config
+        // --- Action Trigger State ---
+        awaitedAction: action.payload.awaitedAction || null, // { type: 'EVENT', payload: '...' }
+        actionCompleted: false,
       };
     case 'STOP_TOUR':
     case 'TOUR_ENDED':
@@ -36,9 +40,21 @@ const tourReducer = (state, action) => {
         currentTourKey: null,
         currentTourType: null,
         currentTourConfig: null,
+        // --- Reset Action Trigger State ---
+        awaitedAction: null,
+        actionCompleted: false,
       };
     case 'RESET_TOUR':
       return { ...state, run: false };
+    // --- Action Trigger Reducer Case ---
+    case 'ACTION_COMPLETED':
+      // This action is dispatched when the awaited action is detected
+      return {
+        ...state,
+        actionCompleted: true,
+        // Reset awaitedAction so it doesn't trigger again unintentionally
+        awaitedAction: null,
+      };
     default:
       return state;
   }
@@ -49,9 +65,16 @@ const initialTourState = {
   currentTourKey: null,
   currentTourType: null, // 'route' or 'global'
   currentTourConfig: null, // Holds the config for the currently running tour
+  // --- Action Trigger Initial State ---
+  awaitedAction: null,
+  actionCompleted: false,
 };
 
-export const TourProvider = ({ children, allowRestart = false }) => {
+export const TourProvider = ({
+  children,
+  allowRestart = false,
+  prioritizeGlobal = true,
+}) => {
   const [state, dispatch] = useReducer(tourReducer, initialTourState);
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -59,7 +82,6 @@ export const TourProvider = ({ children, allowRestart = false }) => {
 
   // --- START TOUR FUNCTIONS ---
 
-  // Starts a tour based on the current route (existing logic)
   const startTourForCurrentPath = useCallback(
     ({ force = false } = {}) => {
       const config = routeTourConfig[pathname];
@@ -81,7 +103,9 @@ export const TourProvider = ({ children, allowRestart = false }) => {
             payload: {
               tourKey,
               tourType: 'route',
-              tourConfig: config, // Pass the full config
+              tourConfig: config,
+              // Pass action trigger if defined in config
+              awaitedAction: config.awaitedAction || null,
             },
           });
         } else if (seen && !allowRestart) {
@@ -98,7 +122,6 @@ export const TourProvider = ({ children, allowRestart = false }) => {
     [pathname, state.run, userId, allowRestart],
   );
 
-  // Starts a global tour by its key
   const startGlobalTour = useCallback(
     (tourKey, { force = false } = {}) => {
       const config = globalTourConfig[tourKey];
@@ -119,7 +142,9 @@ export const TourProvider = ({ children, allowRestart = false }) => {
             payload: {
               tourKey,
               tourType: 'global',
-              tourConfig: config, // Pass the full config
+              tourConfig: config,
+              // Pass action trigger if defined in config
+              awaitedAction: config.awaitedAction || null,
             },
           });
         } else if (seen && !allowRestart) {
@@ -140,6 +165,81 @@ export const TourProvider = ({ children, allowRestart = false }) => {
     [state.run, userId, allowRestart],
   );
 
+  // --- ENHANCED START LOGIC: Prioritize Global Tours ---
+  const attemptStartTours = useCallback(
+    ({ force = false } = {}) => {
+      if (state.run) {
+        console.log(
+          'TourProvider: A tour is already running, skipping auto-start checks.',
+        );
+        return;
+      }
+
+      if (!userId) {
+        console.warn(
+          'TourProvider: User ID not available, cannot check tours.',
+        );
+        return;
+      }
+
+      const globalOnboardingConfig = globalTourConfig['globalOnboarding'];
+      let globalOnboardingStarted = false;
+
+      // 1. Check and start Global Onboarding if eligible and prioritized
+      if (prioritizeGlobal && globalOnboardingConfig) {
+        const globalKey = globalOnboardingConfig.key;
+        const globalSeen = tourStorage.isTourSeen(globalKey, userId);
+        if (force || (!globalSeen && !state.run)) {
+          console.log(
+            `TourProvider: Prioritizing and starting global onboarding tour '${globalKey}'.`,
+          );
+          dispatch({
+            type: 'START_TOUR',
+            payload: {
+              tourKey: globalKey,
+              tourType: 'global',
+              tourConfig: globalOnboardingConfig,
+              awaitedAction: globalOnboardingConfig.awaitedAction || null,
+            },
+          });
+          globalOnboardingStarted = true; // Mark that global tour was started
+        } else if (globalSeen) {
+          console.log(
+            `TourProvider: Global onboarding tour '${globalKey}' already seen.`,
+          );
+        }
+      }
+
+      // 2. If Global Onboarding wasn't started (or not prioritized), check route tour
+      if (!globalOnboardingStarted) {
+        const routeConfig = routeTourConfig[pathname];
+        if (routeConfig && routeConfig.steps.length > 0) {
+          const routeKey = routeConfig.key;
+          const routeSeen = tourStorage.isTourSeen(routeKey, userId);
+          if (force || (!routeSeen && !state.run)) {
+            console.log(
+              `TourProvider: Starting route tour '${routeKey}' for path '${pathname}'.`,
+            );
+            dispatch({
+              type: 'START_TOUR',
+              payload: {
+                tourKey: routeKey,
+                tourType: 'route',
+                tourConfig: routeConfig,
+                awaitedAction: routeConfig.awaitedAction || null,
+              },
+            });
+          } else if (routeSeen) {
+            console.log(
+              `TourProvider: Route tour '${routeKey}' already seen for path '${pathname}'.`,
+            );
+          }
+        }
+      }
+    },
+    [state.run, userId, pathname, prioritizeGlobal], // Add dependencies
+  );
+
   // --- CONTROL FUNCTIONS ---
 
   const stopTour = useCallback(() => {
@@ -155,7 +255,9 @@ export const TourProvider = ({ children, allowRestart = false }) => {
 
   const handleJoyrideCallback = useCallback(
     (data) => {
-      const { status } = data;
+      const { status, type, step } = data;
+
+      // --- Handle Tour Completion/Skip ---
       if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
         console.log('TourProvider: Tour truly finished or skipped.');
         const finishedTourKey = state.currentTourKey;
@@ -168,23 +270,101 @@ export const TourProvider = ({ children, allowRestart = false }) => {
           );
         }
       }
+
+      // --- Handle Step Changes (for Action Triggers) ---
+      // Example: Pause tour on a step that awaits an action
+      if (
+        type === 'step:before' &&
+        state.awaitedAction &&
+        !state.actionCompleted
+      ) {
+        // Check if the current step requires an action
+        // This assumes the step object has metadata like `awaitedAction`
+        // You might need to define this logic differently, e.g., check step index or a specific property
+        if (
+          step.awaitedAction ||
+          state.currentTourConfig?.steps[step?.index]?.awaitedAction
+        ) {
+          console.log(
+            'TourProvider: Pausing tour for awaited action:',
+            state.awaitedAction,
+          );
+          // Joyride will automatically pause here if `stepBefore` callback doesn't proceed.
+          // You might need to manage Joyride's `run` state or step index manually for complex logic.
+          // For now, rely on external action completion.
+        }
+      }
     },
-    [state.currentTourKey, userId],
+    [
+      state.currentTourKey,
+      userId,
+      state.awaitedAction,
+      state.actionCompleted,
+      state.currentTourConfig,
+    ], // Add dependencies
   );
+
+  // --- ACTION TRIGGER LISTENER LOGIC (Conceptual) ---
+  // This useEffect listens for global events or state changes that might indicate
+  // an awaited action was completed.
+  useEffect(() => {
+    if (!state.run || !state.awaitedAction || state.actionCompleted) {
+      // No tour running, no action awaited, or action already completed
+      return;
+    }
+
+    const handlePotentialAction = (event) => {
+      // --- Example: Listen for a Custom Event ---
+      if (
+        state.awaitedAction.type === 'CUSTOM_EVENT' &&
+        event.type === state.awaitedAction.payload
+      ) {
+        console.log('TourProvider: Detected awaited custom event:', event.type);
+        dispatch({ type: 'ACTION_COMPLETED' });
+        // Optionally, you might want to resume the tour here or let Joyride handle it
+        // based on how you implement the step awaiting logic in the callback.
+      }
+
+      // --- Example: Listen for a Redux/Context State Change (requires subscription logic) ---
+      // This is pseudo-code, actual implementation depends on your state management
+      // if (state.awaitedAction.type === 'STATE_CHANGE' && checkIfStateMatches(state.awaitedAction.payload, currentState)) {
+      //    dispatch({ type: 'ACTION_COMPLETED' });
+      // }
+
+      // Add more conditions for different action types as needed
+    };
+
+    // Attach listeners based on awaitedAction.type
+    if (state.awaitedAction.type === 'CUSTOM_EVENT') {
+      window.addEventListener(
+        state.awaitedAction.payload,
+        handlePotentialAction,
+      );
+    }
+
+    // Add other listener setups here if needed for different action types
+
+    // Cleanup listeners
+    return () => {
+      if (state.awaitedAction?.type === 'CUSTOM_EVENT') {
+        window.removeEventListener(
+          state.awaitedAction.payload,
+          handlePotentialAction,
+        );
+      }
+      // Remove other listeners here
+    };
+  }, [state.run, state.awaitedAction, state.actionCompleted]); // Re-run if awaited action changes
 
   // --- DETERMINE CURRENT TOUR CONFIGURATION ---
 
-  // Get config for route-based tours (used as fallback if one starts automatically)
   const routeBasedTourConfig = useMemo(
     () => routeTourConfig[pathname] || { steps: [], options: {} },
     [pathname],
   );
 
-  // Determine the config for the tour that should be rendered
-  // Priority: 1. Currently running tour (from state), 2. Route-based tour (if auto-started in the future)
   const effectiveTourConfig = state.currentTourConfig || routeBasedTourConfig;
 
-  // Ensure critical options are enforced for the running tour
   const enforcedOptions = useMemo(
     () => ({
       continuous: true,
@@ -192,7 +372,7 @@ export const TourProvider = ({ children, allowRestart = false }) => {
       showProgress: true,
       disableOverlayClose: true,
       ...effectiveTourConfig.options,
-      disableOverlayClose: true, // Always enforce
+      disableOverlayClose: true,
     }),
     [effectiveTourConfig.options],
   );
@@ -200,9 +380,10 @@ export const TourProvider = ({ children, allowRestart = false }) => {
   return (
     <TourContext.Provider
       value={{
-        ...state, // Includes run, currentTourKey, currentTourType, currentTourConfig
+        ...state,
         startTourForCurrentPath,
-        startGlobalTour, // Expose the new function
+        startGlobalTour,
+        attemptStartTours, // Expose the new prioritized starter
         stopTour,
         resetTour,
       }}
@@ -210,7 +391,7 @@ export const TourProvider = ({ children, allowRestart = false }) => {
       {children}
       {state.run && userId && effectiveTourConfig.steps?.length > 0 && (
         <CustomJoyride
-          key={state.currentTourKey} // Force re-mount on tour change
+          key={`${state.currentTourKey}-${state.actionCompleted ? 'resumed' : 'initial'}`} // Force re-render if action state changes
           steps={effectiveTourConfig.steps}
           run={state.run}
           callback={handleJoyrideCallback}
@@ -218,7 +399,6 @@ export const TourProvider = ({ children, allowRestart = false }) => {
           showSkipButton={enforcedOptions.showSkipButton}
           showProgress={enforcedOptions.showProgress}
           disableOverlayClose={enforcedOptions.disableOverlayClose}
-          // Spread any remaining options from the tour config
           {...(() => {
             const { ...restOptions } = enforcedOptions;
             return restOptions;
