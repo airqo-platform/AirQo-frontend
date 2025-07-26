@@ -14,29 +14,89 @@
 export const globalOnboardingSteps = [
   {
     target: 'body',
-    title: 'Welcome to Our App!',
-    content: 'Let us give you a quick tour of the main features.',
+    title: (
+      <div className="text-2xl font-bold text-primary">
+        Welcome to AirQo Analytics
+      </div>
+    ),
+    content: (
+      <div className="mt-3 space-y-3">
+        <p className="text-lg text-gray-700 dark:text-gray-300">
+          Access comprehensive air quality monitoring and analytics to make
+          data-driven environmental decisions.
+        </p>
+        <p className="text-base text-gray-600 dark:text-gray-400">
+          This quick tour will introduce you to the platform&apos;s key features
+          and help you get started with your air quality analysis.
+        </p>
+      </div>
+    ),
     disableBeacon: true,
     placement: 'center',
   },
   {
     target: '.topBarOrganizationSelector',
-    title: 'Getting Started',
-    content: 'Here are some tips to help you get started with our app.',
+    title: (
+      <div className="text-xl font-semibold text-primary">
+        Organization Dashboard
+      </div>
+    ),
+    content: (
+      <div className="mt-2 text-base text-gray-700 dark:text-gray-300">
+        <p>
+          Select your organization to access customized air quality data,
+          monitoring networks, and organizational insights.
+        </p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Each organization has its own data scope and user permissions.
+        </p>
+      </div>
+    ),
     disableBeacon: true,
     placement: 'auto',
   },
   {
     target: '.topBarAppDropdown',
-    title: 'App Navigation',
-    content: 'Switch between different applications using this dropdown.',
+    title: (
+      <div className="text-xl font-semibold text-primary">AirQo Ecosystem</div>
+    ),
+    content: (
+      <div className="mt-2 text-base text-gray-700 dark:text-gray-300">
+        <p>
+          Access AirQo&apos;s complete suite of applications:
+          <span className="font-medium"> Calibrate</span>,
+          <span className="font-medium"> Analytics</span>,
+          <span className="font-medium"> Website</span>,
+          <span className="font-medium"> API Docs</span>, and
+          <span className="font-medium"> Mobile App</span>.
+        </p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Seamlessly switch between different AirQo tools and services.
+        </p>
+      </div>
+    ),
     disableBeacon: true,
     placement: 'auto',
   },
   {
     target: '.theme-customizer-sideButton',
-    title: 'Theme Customization',
-    content: 'Customize the look and feel of the app from here.',
+    title: (
+      <div className="text-xl font-semibold text-primary">
+        Interface Preferences
+      </div>
+    ),
+    content: (
+      <div className="mt-2 text-base text-gray-700 dark:text-gray-300">
+        <p>
+          Customize your workspace with theme options and layout preferences
+          optimized for extended data analysis sessions.
+        </p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Choose between light and dark modes, adjust sidebar settings, and
+          more.
+        </p>
+      </div>
+    ),
     disableBeacon: true,
     placement: 'auto',
   },
