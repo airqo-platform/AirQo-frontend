@@ -12,10 +12,12 @@ import {
 } from '@/features/analytics-overview';
 import AlertBox from '@/components/AlertBox';
 import { useOutsideClick } from '@/core/hooks';
+import { useTour } from '@/features/tours/contexts/TourProvider';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
+  const { startTourForCurrentPath, run } = useTour();
   const isModalOpen = useSelector((state) => state.modal.openModal);
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const [customise, setCustomise] = useState(false);
@@ -46,6 +48,16 @@ const AuthenticatedHomePage = () => {
   const handleCloseModal = useCallback(() => {
     dispatch(setOpenModal(false));
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!run) {
+      const timer = setTimeout(() => {
+        startTourForCurrentPath();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [startTourForCurrentPath, run]);
 
   /**
    * Sets chart details based on user preferences.

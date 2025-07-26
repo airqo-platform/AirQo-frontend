@@ -84,7 +84,7 @@ const AQNumberCard = () => {
       revalidateOnMount: true,
       // Standard deduplication interval
       dedupingInterval: 30000,
-      onError: (_err) => {
+      onError: () => {
         setError('Failed to fetch air quality data. Please try again later.');
       },
     },
@@ -263,7 +263,7 @@ const AQNumberCard = () => {
       )}
 
       <div
-        className={gridClasses}
+        className={`analytics-cards-container-1 ${gridClasses}`}
         aria-busy={isLoadingData ? 'true' : 'false'}
         aria-label="Air quality data grid"
         data-testid="aq-number-card-grid"

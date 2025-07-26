@@ -76,7 +76,7 @@ function CreateOrganizationLayout({ children }) {
       </main>
       <UnifiedSideBarDrawer userType="user" />
       <GlobalSideBarDrawer />
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
     </div>
   );
 }

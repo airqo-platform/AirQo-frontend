@@ -15,7 +15,7 @@ const Card = forwardRef(
       bordered,
       borderColor = 'border-gray-200 dark:border-gray-700',
       rounded = true,
-      radius = 'rounded-xl',
+      radius = 'rounded-lg',
       background = 'bg-white dark:bg-[#1d1f20]',
       shadow = '',
       padding = 'p-4',

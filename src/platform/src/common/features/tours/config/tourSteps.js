@@ -1,75 +1,55 @@
-// --- Dummy Steps for Home Page (/user/Home) ---
+// --- Home Page (/user/Home) ---
 export const homePageSteps = [
-  {
-    target: '.home-welcome-banner',
-    title: 'Welcome!',
-    content: 'This is your personalized dashboard overview.',
-    disableBeacon: true,
-    placement: 'bottom',
-  },
   {
     target: '.home-quick-actions',
     title: 'Quick Actions',
     content: 'Perform common tasks quickly from here.',
     disableBeacon: true,
-    placement: 'bottom',
-  },
-  {
-    target: '.home-recent-data',
-    title: 'Recent Data',
-    content: 'Check the latest updates and information.',
-    disableBeacon: true,
-    placement: 'top',
+    placement: 'auto',
   },
 ];
 
-// --- Dummy Steps for Analytics Page (/user/analytics) ---
+// --- Analytics Page (/user/analytics) ---
 export const analyticsPageSteps = [
   {
-    target: '.analytics-filters',
-    title: 'Filter Your Data',
-    content: 'Use these controls to refine the data displayed.',
+    target: '.analytics-cards-container-1',
+    title: 'Analytics Overview',
+    content:
+      'You can click on any card to view detailed analytics for that location and more.',
     disableBeacon: true,
-    placement: 'bottom',
-  },
-  {
-    target: '.analytics-main-chart',
-    title: 'Data Visualization',
-    content: 'Your data is presented in this main chart area.',
-    disableBeacon: true,
-    placement: 'top',
-  },
-  {
-    target: '.analytics-export-button',
-    title: 'Export Reports',
-    content: 'Download your analytics data in various formats.',
-    disableBeacon: true,
-    placement: 'left',
+    placement: 'auto',
   },
 ];
 
 // --- Global Tour Steps ---
 export const globalOnboardingSteps = [
   {
-    target: 'body', // Start on the whole body
+    target: 'body',
     title: 'Welcome to Our App!',
     content: 'Let us give you a quick tour of the main features.',
     disableBeacon: true,
-    placement: 'center', // Use Joyride's 'center' placement if available, or style manually
+    placement: 'center',
   },
   {
-    target: '.main-navigation',
-    title: 'Navigation',
-    content: 'Find your way around using this main menu.',
+    target: '.topBarOrganizationSelector',
+    title: 'Getting Started',
+    content: 'Here are some tips to help you get started with our app.',
     disableBeacon: true,
-    placement: 'right',
+    placement: 'auto',
   },
   {
-    target: '.user-profile-button',
-    title: 'Your Profile',
-    content: 'Access your profile and settings here.',
+    target: '.topBarAppDropdown',
+    title: 'App Navigation',
+    content: 'Switch between different applications using this dropdown.',
     disableBeacon: true,
-    placement: 'bottom-end', // Example of specific placement
+    placement: 'auto',
+  },
+  {
+    target: '.theme-customizer-sideButton',
+    title: 'Theme Customization',
+    content: 'Customize the look and feel of the app from here.',
+    disableBeacon: true,
+    placement: 'auto',
   },
 ];
 

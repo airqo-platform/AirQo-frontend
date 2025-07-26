@@ -1,8 +1,7 @@
-// src/features/tours/components/CustomJoyride.jsx
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import Joyride from 'react-joyride';
-import CardWrapper from '@/common/components/CardWrapper'; // Adjust path
-import Button from '@/common/components/Button'; // Adjust path
+import CardWrapper from '@/common/components/CardWrapper';
+import Button from '@/common/components/Button';
 
 // --- Internal Custom Components ---
 
@@ -75,8 +74,9 @@ const CustomTooltipInternal = ({
 
   return (
     <CardWrapper
-      className="bg-white dark:bg-[#1d1f20] shadow-lg rounded-xl max-w-md w-full"
+      className="shadow-lg max-w-md w-full"
       padding="p-3"
+      bordered={false}
       style={tooltipProps?.style}
       {...tooltipProps}
     >
