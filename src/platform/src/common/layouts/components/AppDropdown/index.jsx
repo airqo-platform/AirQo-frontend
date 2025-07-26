@@ -12,7 +12,7 @@ import {
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
 
-const AppDropdown = () => {
+const AppDropdown = ({ className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const dropdownRef = useRef(null);
@@ -87,7 +87,7 @@ const AppDropdown = () => {
   };
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
+    <div className={`relative inline-block ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen((o) => !o)}
         className={`p-2 rounded-full transition ${isOpen ? 'bg-gray-100 shadow' : 'hover:bg-gray-100'}`}
