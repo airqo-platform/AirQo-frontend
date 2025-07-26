@@ -22,12 +22,12 @@ export const globalOnboardingSteps = [
     content: (
       <div className="mt-3 space-y-3">
         <p className="text-lg text-gray-700 dark:text-gray-300">
-          Access comprehensive air quality monitoring and analytics to make
-          data-driven environmental decisions.
+          Explore our most recent enhancements in air quality monitoring and
+          analytics.
         </p>
         <p className="text-base text-gray-600 dark:text-gray-400">
-          This quick tour will introduce you to the platform&apos;s key features
-          and help you get started with your air quality analysis.
+          This concise guide highlights new features crafted to deliver deeper,
+          actionable insights.
         </p>
       </div>
     ),
