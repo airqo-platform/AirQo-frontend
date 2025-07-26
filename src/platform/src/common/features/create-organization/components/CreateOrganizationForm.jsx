@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
@@ -10,7 +10,11 @@ import {
   validateStep2,
   validateFile,
 } from '../utils/validation';
-import { generateSlugFromName, getInitialFormData } from '../utils/formUtils';
+import {
+  generateSlugFromName,
+  getInitialFormData,
+  handleInputChange as utilsHandleInputChange,
+} from '../utils/formUtils';
 import { useCreateOrganization } from '../hooks/useCreateOrganization';
 
 const CreateOrganizationForm = ({
@@ -21,9 +25,8 @@ const CreateOrganizationForm = ({
 }) => {
   const router = useRouter();
   const fileInputRef = useRef(null);
-
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState(getInitialFormData());
+  const [formData, setFormData] = useState(getInitialFormData);
   const [errors, setErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
@@ -35,63 +38,61 @@ const CreateOrganizationForm = ({
     isCheckingSlug,
     checkSlugAvailability,
     submitOrganizationRequest,
+    resetSlugCheck, // Import the new reset function
   } = useCreateOrganization();
 
-  // Auto‑generate slug from org name
+  const initialFormData = useMemo(getInitialFormData, []);
+
+  // Auto-generate slug from org name
   useEffect(() => {
     if (
       currentStep === 1 &&
       formData.organizationName &&
       !formData.organizationSlug
     ) {
+      const newSlug = generateSlugFromName(formData.organizationName);
       setFormData((prev) => ({
         ...prev,
-        organizationSlug: generateSlugFromName(prev.organizationName),
+        organizationSlug: newSlug,
       }));
     }
-  }, [formData.organizationName, currentStep]);
+  }, [formData.organizationName, currentStep, formData.organizationSlug]);
 
-  // Debounced slug‑availability check
+  // Debounced slug-availability check
   useEffect(() => {
-    if (formData.organizationSlug.length >= 3) {
-      const id = setTimeout(
-        () => checkSlugAvailability(formData.organizationSlug),
-        500,
-      );
-      return () => clearTimeout(id);
+    // The checkSlugAvailability function now handles short/empty slugs internally
+    if (formData.organizationSlug?.length >= 3) {
+      const handler = setTimeout(() => {
+        checkSlugAvailability(formData.organizationSlug);
+      }, 500);
+      return () => clearTimeout(handler);
+    } else {
+      // If slug is too short or empty, explicitly reset the check state
+      resetSlugCheck();
     }
-  }, [formData.organizationSlug]);
+    // No return needed for the else branch as it doesn't set a timeout
+  }, [formData.organizationSlug, checkSlugAvailability, resetSlugCheck]); // Add resetSlugCheck to dependencies
 
-  // Generic (flat / nested) change handler
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData((prev) => {
-      if (name.includes('.')) {
-        const [parent, child] = name.split('.');
-        return {
-          ...prev,
-          [parent]: { ...prev[parent], [child]: value },
-        };
-      }
-      return { ...prev, [name]: value };
-    });
+    setFormData((prev) => utilsHandleInputChange(prev, name, value));
     setErrors((prev) => {
-      const copy = { ...prev };
-      delete copy[name];
-      return copy;
+      const updated = { ...prev };
+      delete updated[name];
+      return updated;
     });
-  };
+  }, []);
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = useCallback((suggestion) => {
     setFormData((prev) => ({ ...prev, organizationSlug: suggestion }));
     setErrors((prev) => {
-      const copy = { ...prev };
-      delete copy.organizationSlug;
-      return copy;
+      const updated = { ...prev };
+      delete updated.organizationSlug;
+      return updated;
     });
-  };
+  }, []);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -102,75 +103,151 @@ const CreateOrganizationForm = ({
     }
 
     setErrors((prev) => {
-      const copy = { ...prev };
-      delete copy.logoFile;
-      return copy;
+      const updated = { ...prev };
+      delete updated.logoFile;
+      return updated;
     });
 
     setLogoFile(file);
 
     const reader = new FileReader();
-    reader.onload = (ev) => setLogoPreview(ev.target.result);
+    reader.onload = (ev) => {
+      if (ev.target?.result) {
+        setLogoPreview(ev.target.result);
+      }
+    };
+    reader.onerror = () => {
+      CustomToast({
+        message: 'Error reading file for preview.',
+        type: 'error',
+      });
+      setLogoPreview(''); // Clear preview on error
+    };
     reader.readAsDataURL(file);
-  };
+  }, []);
 
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     const { errors: stepErrors, isValid } = validateStep1(
       formData,
       slugAvailability,
     );
-    if (!isValid) return setErrors(stepErrors);
-
-    setErrors({});
-    setCurrentStep(2);
-  };
-
-  const handlePrevStep = () => {
-    setErrors({});
-    setCurrentStep(1);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isSubmitting) return; // Guard double‑submit
-
-    if (currentStep === 1) return handleNextStep();
-
-    const { errors: step2Errors, isValid } = validateStep2(formData);
-    if (!isValid) return setErrors(step2Errors);
-
-    const { success, error } = await submitOrganizationRequest(
-      formData,
-      logoFile,
-    );
-
-    if (success) {
-      setFormData(getInitialFormData());
-      setLogoFile(null);
-      setLogoPreview('');
-      setErrors({});
-      setCurrentStep(1);
-      if (onSuccess) return onSuccess();
-      router.push('/user/Home');
+    if (!isValid) {
+      setErrors(stepErrors);
       return;
     }
-    CustomToast({
-      message:
-        error?.message ||
-        'Failed to submit organization request. Please try again.',
-      type: 'error',
-    });
-  };
+    setErrors({});
+    setCurrentStep(2);
+  }, [formData, slugAvailability]);
 
-  const handleCancel = () => {
-    setFormData(getInitialFormData());
+  const handlePrevStep = useCallback(() => {
+    setErrors({});
+    setCurrentStep(1);
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      if (currentStep === 1) {
+        handleNextStep();
+        return;
+      }
+
+      const { errors: step2Errors, isValid } = validateStep2(formData);
+      if (!isValid) {
+        setErrors(step2Errors);
+        return;
+      }
+
+      const { success, error } = await submitOrganizationRequest(
+        formData,
+        logoFile,
+      );
+
+      if (success) {
+        setFormData(initialFormData);
+        setLogoFile(null);
+        setLogoPreview('');
+        setErrors({});
+        setCurrentStep(1);
+
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push('/user/Home'); // Adjust route as needed
+        }
+        return;
+      }
+
+      CustomToast({
+        message:
+          error?.message ||
+          'Failed to submit organization request. Please try again.',
+        type: 'error',
+      });
+    },
+    [
+      currentStep,
+      formData,
+      handleNextStep,
+      initialFormData,
+      isSubmitting,
+      logoFile,
+      onSuccess,
+      router,
+      submitOrganizationRequest,
+    ],
+  );
+
+  const handleCancel = useCallback(() => {
+    setFormData(initialFormData);
     setErrors({});
     setLogoFile(null);
     setLogoPreview('');
     setCurrentStep(1);
-    if (onCancel) return onCancel();
-    router.back();
-  };
+
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.back();
+    }
+  }, [initialFormData, onCancel, router]);
+
+  const isSubmitDisabled = useMemo(() => {
+    return isSubmitting || (currentStep === 1 && slugAvailability === false);
+  }, [isSubmitting, currentStep, slugAvailability]);
+
+  const submitButtonText = useMemo(() => {
+    if (isSubmitting) {
+      return (
+        <div className="flex items-center">
+          <svg
+            className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          {currentStep === 1 ? 'Checking...' : 'Submitting...'}
+        </div>
+      );
+    }
+    return currentStep === 1 ? 'Continue' : 'Submit Request';
+  }, [isSubmitting, currentStep]);
 
   return (
     <div className={`w-full max-w-4xl mx-auto overflow-x-hidden ${className}`}>
@@ -178,7 +255,6 @@ const CreateOrganizationForm = ({
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-center mb-4 w-full overflow-x-auto">
           <div className="flex items-center w-full max-w-xs mx-auto">
-            {/* step 1 */}
             <div
               className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
                 currentStep >= 1
@@ -188,13 +264,11 @@ const CreateOrganizationForm = ({
             >
               1
             </div>
-            {/* line */}
             <div
               className={`flex-1 h-1 mx-2 ${
                 currentStep >= 2 ? 'bg-primary' : 'bg-gray-300'
               }`}
             />
-            {/* step 2 */}
             <div
               className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
                 currentStep >= 2
@@ -206,8 +280,6 @@ const CreateOrganizationForm = ({
             </div>
           </div>
         </div>
-
-        {/* title + subtitle */}
         <div className="text-center px-2 sm:px-0">
           <h2 className="text-xl sm:text-2xl font-bold text-primary dark:text-primary-light">
             {currentStep === 1 ? 'Organization Details' : 'Branding & Preview'}
@@ -220,11 +292,9 @@ const CreateOrganizationForm = ({
         </div>
       </div>
 
-      {/* FORM */}
       <form onSubmit={handleSubmit} className="space-y-6 px-0 sm:px-1.5">
         {currentStep === 1 ? (
           <div className="space-y-6">
-            {/* Organization Name */}
             <InputField
               label="Organization Name"
               id="organizationName"
@@ -237,7 +307,6 @@ const CreateOrganizationForm = ({
               error={errors.organizationName}
             />
 
-            {/* Organization URL */}
             <div>
               <label
                 htmlFor="organizationSlug"
@@ -246,13 +315,10 @@ const CreateOrganizationForm = ({
                 Organization URL{' '}
                 <span className="text-primary dark:text-primary/40">*</span>
               </label>
-
-              {/* Responsive container: stacks on mobile, row on ≥sm */}
               <div className="flex flex-col sm:flex-row w-full">
-                <span className="flex items-center px-4 py-2.5 border sm:border-r-0 border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300 text-sm break-all rounded-t-xl  sm:rounded-l-xl sm:rounded-r-none">
+                <span className="flex items-center px-4 py-2.5 border sm:border-r-0 border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300 text-sm break-all rounded-t-xl sm:rounded-l-xl sm:rounded-r-none">
                   analytics.airqo.net/org/
                 </span>
-
                 <input
                   type="text"
                   id="organizationSlug"
@@ -269,7 +335,6 @@ const CreateOrganizationForm = ({
                 />
               </div>
 
-              {/* Loader + availability */}
               {isCheckingSlug && (
                 <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
                   <svg
@@ -295,6 +360,7 @@ const CreateOrganizationForm = ({
                   Checking availability...
                 </p>
               )}
+
               {!isCheckingSlug && formData.organizationSlug && (
                 <div
                   className={`mt-1 text-sm flex items-center ${
@@ -341,6 +407,7 @@ const CreateOrganizationForm = ({
                   )}
                 </div>
               )}
+
               {errors.organizationSlug && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                   {errors.organizationSlug}
@@ -366,13 +433,11 @@ const CreateOrganizationForm = ({
                   </div>
                 </div>
               )}
-
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 This will be your unique URL in the AirQo platform
               </p>
             </div>
 
-            {/* Contact Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
                 label="Contact Name"
@@ -385,7 +450,6 @@ const CreateOrganizationForm = ({
                 required
                 error={errors.contactName}
               />
-
               <InputField
                 label="Contact Email"
                 id="contactEmail"
@@ -397,7 +461,6 @@ const CreateOrganizationForm = ({
                 required
                 error={errors.contactEmail}
               />
-
               <InputField
                 label="Contact Phone"
                 id="contactPhone"
@@ -409,7 +472,6 @@ const CreateOrganizationForm = ({
                 required
                 error={errors.contactPhone}
               />
-
               <InputField
                 label="Country"
                 id="country"
@@ -423,7 +485,6 @@ const CreateOrganizationForm = ({
               />
             </div>
 
-            {/* Organization Type */}
             <SelectField
               label="Organization Type"
               id="organizationType"
@@ -443,7 +504,6 @@ const CreateOrganizationForm = ({
               <option value="other">Other</option>
             </SelectField>
 
-            {/* Use Case */}
             <TextInputField
               label="Describe how your organization plans to use AirQo platform"
               id="useCase"
@@ -458,7 +518,6 @@ const CreateOrganizationForm = ({
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Logo Upload */}
             <div>
               <label className="block text-sm font-medium text-text dark:text-text-dark mb-1">
                 Organization Logo
@@ -470,6 +529,13 @@ const CreateOrganizationForm = ({
                     : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-blue-400 dark:hover:border-blue-500'
                 }`}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ')
+                    fileInputRef.current?.click();
+                }}
+                tabIndex="0"
+                role="button"
+                aria-label="Upload organization logo"
               >
                 <input
                   ref={fileInputRef}
@@ -522,7 +588,6 @@ const CreateOrganizationForm = ({
               )}
             </div>
 
-            {/* Logo Preview */}
             {logoPreview && (
               <div className="mt-4 p-4 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -539,9 +604,7 @@ const CreateOrganizationForm = ({
               </div>
             )}
 
-            {/* Brand Colors */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Primary Color */}
               <div>
                 <label
                   htmlFor="primary_color"
@@ -557,6 +620,7 @@ const CreateOrganizationForm = ({
                     value={formData.branding_settings.primary_color}
                     onChange={handleInputChange}
                     className="w-full sm:w-12 h-10 rounded-t-xl sm:rounded-l-xl border border-gray-400 dark:border-gray-600 cursor-pointer"
+                    aria-label="Primary brand color"
                   />
                   <input
                     type="text"
@@ -569,10 +633,18 @@ const CreateOrganizationForm = ({
                         ? 'border-red-500 dark:border-red-400'
                         : 'border-gray-400 dark:border-gray-600'
                     } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
+                    aria-describedby={
+                      errors['branding_settings.primary_color']
+                        ? 'primary-color-error'
+                        : undefined
+                    }
                   />
                 </div>
                 {errors['branding_settings.primary_color'] && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  <p
+                    id="primary-color-error"
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                  >
                     {errors['branding_settings.primary_color']}
                   </p>
                 )}
@@ -581,7 +653,6 @@ const CreateOrganizationForm = ({
                 </p>
               </div>
 
-              {/* Secondary Color */}
               <div>
                 <label
                   htmlFor="secondary_color"
@@ -597,6 +668,7 @@ const CreateOrganizationForm = ({
                     value={formData.branding_settings.secondary_color}
                     onChange={handleInputChange}
                     className="w-full sm:w-12 h-10 rounded-t-xl sm:rounded-l-xl border border-gray-400 dark:border-gray-600 cursor-pointer"
+                    aria-label="Secondary brand color"
                   />
                   <input
                     type="text"
@@ -609,10 +681,18 @@ const CreateOrganizationForm = ({
                         ? 'border-red-500 dark:border-red-400'
                         : 'border-gray-400 dark:border-gray-600'
                     } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
+                    aria-describedby={
+                      errors['branding_settings.secondary_color']
+                        ? 'secondary-color-error'
+                        : undefined
+                    }
                   />
                 </div>
                 {errors['branding_settings.secondary_color'] && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  <p
+                    id="secondary-color-error"
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                  >
                     {errors['branding_settings.secondary_color']}
                   </p>
                 )}
@@ -622,7 +702,6 @@ const CreateOrganizationForm = ({
               </div>
             </div>
 
-            {/* Brand Preview */}
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-600">
               <h3 className="font-medium text-sm text-gray-700 dark:text-gray-200 mb-2">
                 Brand Preview
@@ -674,7 +753,6 @@ const CreateOrganizationForm = ({
               Back
             </Button>
           )}
-
           <div className="flex gap-2 ml-auto">
             {showCancelButton && (
               <Button
@@ -688,41 +766,10 @@ const CreateOrganizationForm = ({
             )}
             <Button
               type="submit"
-              disabled={
-                isSubmitting ||
-                (currentStep === 1 && slugAvailability === false)
-              }
+              disabled={isSubmitDisabled}
               className="text-sm"
             >
-              {isSubmitting ? (
-                <div className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  {currentStep === 1 ? 'Checking...' : 'Submitting...'}
-                </div>
-              ) : currentStep === 1 ? (
-                'Continue'
-              ) : (
-                'Submit Request'
-              )}
+              {submitButtonText}
             </Button>
           </div>
         </div>

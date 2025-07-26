@@ -87,32 +87,44 @@ export const UnclusteredNode = ({
     console.error('feature.properties.aqi is not defined', feature);
     return '';
   }
+
   // Fallback to 'Invalid' icon if needed
   const Icon = images[feature.properties.aqi.icon] || images['Invalid'];
   const isActive =
     selectedNode && selectedNode === feature.properties._id ? 'active' : '';
   const darkClass = isDarkMode ? ' dark-marker' : '';
+
+  // Generate unique key based on all relevant properties to prevent caching issues
+  const nodeKey = `${feature.properties._id}-${NodeType}-${isDarkMode}-${isActive}`;
+
   if (NodeType === 'Number') {
     return `
       <div id="${feature.properties._id}" 
+        key="${nodeKey}"
         class="unClustered-Number shadow-md rounded-full ${isActive}${darkClass}"
-        style="background: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 40px; height: 40px;">
+        style="background: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 40px; height: 40px; z-index: 1;">
         <p class="text-[#000] text-xs font-bold">${Number(feature.properties.pm2_5)?.toFixed(2) || 'N/A'}</p>
         <span class="arrow"></span>
       </div>
     `;
   }
+
   if (NodeType === 'Node') {
     return `
       <div id="${feature.properties._id}" 
+        key="${nodeKey}"
         class="unClustered-Node shadow-md rounded-full ${isActive}${darkClass}"
-        style="background: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px;">
+        style="background: ${feature.properties.aqi.color}; color: ${feature.properties.aqi.color}; width: 30px; height: 30px; z-index: 1;">
         <span class="arrow"></span> 
       </div>
     `;
   }
+
   return `
-    <div id="${feature.properties._id}" class="unClustered shadow-md ${isActive}${darkClass}">
+    <div id="${feature.properties._id}" 
+      key="${nodeKey}"
+      class="unClustered shadow-md ${isActive}${darkClass}"
+      style="z-index: 1;">
       <img src="${Icon}" alt="AQI Icon" class="w-full h-full" />
       <span class="arrow"></span>
     </div>
@@ -135,6 +147,7 @@ export const createClusterNode = ({
     );
     return '';
   }
+
   if (
     !Array.isArray(feature.properties.aqi) ||
     feature.properties.aqi.length < 2
@@ -145,6 +158,7 @@ export const createClusterNode = ({
     );
     return '';
   }
+
   const [firstAQI, secondAQI] = feature.properties.aqi;
   const firstColor = colors[firstAQI?.aqi?.icon] || colors.undefined;
   const secondColor = colors[secondAQI?.aqi?.icon] || colors.undefined;
@@ -160,26 +174,29 @@ export const createClusterNode = ({
   const countDisplay = count > 2 ? `${count - 2} + ` : '';
   const darkClass = isDarkMode ? ' dark-marker' : '';
 
+  // Generate unique key to prevent caching issues
+  const clusterKey = `${feature.properties.cluster_id}-${NodeType}-${isDarkMode}`;
+
   if (NodeType === 'Number' || NodeType === 'Node') {
     return `
-      <div class="flex -space-x-3 rtl:space-x-reverse items-center justify-center${darkClass}">
-          <div class="w-8 h-8 z-20 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}">
+      <div key="${clusterKey}" class="flex -space-x-3 rtl:space-x-reverse items-center justify-center${darkClass}" style="z-index: 1;">
+          <div class="w-8 h-8 rounded-full flex justify-center items-center border border-gray-300 text-[8px] overflow-hidden" style="background:${firstColor}; z-index: 1;">
             ${NodeType !== 'Node' ? formattedFirstAQI : ''}
           </div>
-          <div class="w-8 h-8 z-10 rounded-full flex justify-center border border-gray-300 items-center text-[8px] overflow-hidden" style="background:${secondColor}">
+          <div class="w-8 h-8 rounded-full flex justify-center border border-gray-300 items-center text-[8px] overflow-hidden" style="background:${secondColor}; z-index: 1;">
             ${NodeType !== 'Node' ? formattedSecondAQI : ''}
           </div>
       </div>
-      <div class="text-black text-sm font-bold ml-2">${countDisplay}</div>
+      <div class="text-black text-sm font-bold ml-2" style="z-index: 1;">${countDisplay}</div>
     `;
   }
 
   return `
-    <div class="flex -space-x-3 rtl:space-x-reverse">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-20" src="${FirstIcon}" alt="AQI Icon">
-      <img class="w-8 h-8 border-2 border-white rounded-full z-10" src="${SecondIcon}" alt="AQI Icon">
+    <div key="${clusterKey}" class="flex -space-x-3 rtl:space-x-reverse" style="z-index: 1;">
+      <img class="w-8 h-8 border-2 border-white rounded-full" src="${FirstIcon}" alt="AQI Icon" style="z-index: 1;">
+      <img class="w-8 h-8 border-2 border-white rounded-full" src="${SecondIcon}" alt="AQI Icon" style="z-index: 1;">
     </div>
-    <div class="text-black text-sm font-bold ml-2" style="${countDisplay ? 'display:block' : 'display:none'}">${countDisplay}</div>
+    <div class="text-black text-sm font-bold ml-2" style="${countDisplay ? 'display:block' : 'display:none'}; z-index: 1;">${countDisplay}</div>
   `;
 };
 

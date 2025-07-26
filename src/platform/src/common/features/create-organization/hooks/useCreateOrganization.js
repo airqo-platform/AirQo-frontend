@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   createOrganisationRequestApi,
   getOrganisationSlugAvailabilityApi,
@@ -6,6 +6,7 @@ import {
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import logger from '@/lib/logger';
+import { transformFormDataForAPI } from '../utils/formUtils';
 
 /**
  * Hook to manage org-creation: slug checks, logo upload, payload formatting,
@@ -19,16 +20,25 @@ export const useCreateOrganization = () => {
 
   /**
    * Checks if a slug is available, updates state accordingly.
-   * @returns {Promise<boolean>}
+   * @param {string} slug - The slug to check
+   * @returns {Promise<boolean>} - True if available, false otherwise
    */
-  const checkSlugAvailability = async (slug) => {
+  const checkSlugAvailability = useCallback(async (slug) => {
     const clean = slug.trim();
     if (!clean) {
+      // Reset if slug is empty/whitespace
       setSlugAvailability(null);
       setSlugSuggestions([]);
+      setIsCheckingSlug(false);
       return false;
     }
-
+    if (clean.length < 3) {
+      // Reset if slug is too short
+      setSlugAvailability(null);
+      setSlugSuggestions([]);
+      setIsCheckingSlug(false);
+      return false;
+    }
     setIsCheckingSlug(true);
     try {
       const { available, alternativeSuggestions } =
@@ -40,18 +50,28 @@ export const useCreateOrganization = () => {
       const msg =
         err?.response?.data?.message || err.message || 'Error checking URL';
       CustomToast({ message: msg, type: 'error' });
+      logger.error('Slug availability check error:', err);
       setSlugAvailability(null);
       setSlugSuggestions([]);
       return false;
     } finally {
       setIsCheckingSlug(false);
     }
-  };
+  }, []);
+
+  // Function to explicitly reset slug check state (e.g., when slug becomes too short)
+  const resetSlugCheck = useCallback(() => {
+    setSlugAvailability(null);
+    setSlugSuggestions([]);
+    setIsCheckingSlug(false);
+  }, []);
 
   /**
    * Handles uploading to Cloudinary; returns the secure URL or empty string.
+   * @param {File} file - The file to upload
+   * @returns {Promise<string>} - The secure URL or empty string on failure
    */
-  const uploadLogo = async (file) => {
+  const uploadLogo = useCallback(async (file) => {
     if (!file) return '';
     const fd = new FormData();
     fd.append('file', file);
@@ -59,8 +79,9 @@ export const useCreateOrganization = () => {
     fd.append('folder', 'organization_profiles');
 
     try {
-      const { secure_url } = await cloudinaryImageUpload(fd);
-      return secure_url;
+      // Ensure cloudinaryImageUpload returns a promise that resolves to an object with secure_url
+      const response = await cloudinaryImageUpload(fd);
+      return response?.secure_url || '';
     } catch (err) {
       const msg =
         err?.response?.data?.message || err.message || 'Image upload failed';
@@ -68,58 +89,54 @@ export const useCreateOrganization = () => {
       logger.error('Cloudinary upload error:', err);
       return '';
     }
-  };
+  }, []);
 
   /**
-   * Takes camelCase formData + optional File, builds snake_case payload,
+   * Takes formData + optional File, builds payload,
    * uploads logo if any, then POSTs to the API.
+   * @param {Object} formData - The form data object
+   * @param {File} logoFile - The logo file object
    * @returns {Promise<{success: boolean, error?: any}>}
    */
-  const submitOrganizationRequest = async (formData, logoFile) => {
-    setIsSubmitting(true);
-    try {
-      // 1) upload logo (if provided)
-      const logo_url = logoFile
-        ? await uploadLogo(logoFile)
-        : formData.branding_settings.logo_url || '';
+  const submitOrganizationRequest = useCallback(
+    async (formData, logoFile) => {
+      setIsSubmitting(true);
+      try {
+        // upload logo (if provided)
+        const logo_url = logoFile
+          ? await uploadLogo(logoFile)
+          : formData.branding_settings.logo_url || '';
 
-      // 2) build API payload
-      const payload = {
-        organization_name: formData.organizationName.trim(),
-        organization_slug: formData.organizationSlug.trim(),
-        contact_email: formData.contactEmail.trim(),
-        contact_name: formData.contactName.trim(),
-        contact_phone: formData.contactPhone.trim(),
-        use_case: formData.useCase.trim(),
-        organization_type: formData.organizationType,
-        country: formData.country.trim(),
-        branding_settings: {
-          logo_url,
-          primary_color: formData.branding_settings.primary_color,
-          secondary_color: formData.branding_settings.secondary_color,
-        },
-      };
+        // build API payload with trimmed values
+        const payload = transformFormDataForAPI({
+          ...formData,
+          branding_settings: {
+            ...formData.branding_settings,
+            logo_url, // Override with uploaded URL or existing one
+          },
+        });
 
-      // 3) send it
-      await createOrganisationRequestApi(payload);
-
-      CustomToast({
-        message: 'Organization request submitted successfully!',
-        type: 'success',
-      });
-      return { success: true };
-    } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err.message ||
-        'Failed to submit request';
-      CustomToast({ message: msg, type: 'error' });
-      logger.error('Org creation error:', err);
-      return { success: false, error: err };
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+        // send it
+        await createOrganisationRequestApi(payload);
+        CustomToast({
+          message: 'Organization request submitted successfully!',
+          type: 'success',
+        });
+        return { success: true };
+      } catch (err) {
+        const msg =
+          err?.response?.data?.message ||
+          err.message ||
+          'Failed to submit request';
+        CustomToast({ message: msg, type: 'error' });
+        logger.error('Org creation error:', err);
+        return { success: false, error: err };
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [uploadLogo, transformFormDataForAPI],
+  );
 
   return {
     isSubmitting,
@@ -128,5 +145,6 @@ export const useCreateOrganization = () => {
     isCheckingSlug,
     checkSlugAvailability,
     submitOrganizationRequest,
+    resetSlugCheck,
   };
 };
