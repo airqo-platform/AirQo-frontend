@@ -1,0 +1,119 @@
+/* Mobile styles */
+@media (max-width: 767px) {
+  .walkthrough-tooltip {
+    max-width: 280px;
+    margin: 8px;
+  }
+  .walkthrough-tooltip__header {
+    padding: 12px 12px 6px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .walkthrough-tooltip__title {
+    font-size: 15px;
+  }
+  .walkthrough-tooltip__content {
+    padding: 12px;
+    font-size: 14px;
+  }
+  .walkthrough-controls {
+    padding: 8px 12px 12px 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .walkthrough-controls__left,
+  .walkthrough-controls__right {
+    width: 100%;
+    justify-content: center;
+  }
+  .walkthrough-controls__button {
+    min-width: 80px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  .walkthrough-beacon {
+    width: 40px;
+    height: 40px;
+  }
+  .walkthrough-beacon__inner {
+    width: 20px;
+    height: 20px;
+  }
+  .walkthrough-beacon__pulse {
+    width: 40px;
+    height: 40px;
+  }
+  .walkthrough-progress--bar .walkthrough-progress__track {
+    width: 80px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .walkthrough-tooltip {
+    max-width: 300px;
+  }
+  .walkthrough-tooltip__header {
+    padding: 14px 14px 7px 14px;
+  }
+  .walkthrough-tooltip__content {
+    padding: 14px;
+  }
+  .walkthrough-controls {
+    padding: 10px 14px 14px 14px;
+  }
+}
+@media (min-width: 1024px) {
+  .walkthrough-tooltip {
+    max-width: 320px;
+  }
+  .walkthrough-controls__button {
+    transition:
+      all 0.2s ease,
+      transform 0.1s ease;
+  }
+  .walkthrough-controls__button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .walkthrough-controls__button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+}
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .walkthrough-tooltip {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  }
+  .walkthrough-beacon__inner {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+}
+@media (max-width: 767px) and (orientation: landscape) {
+  .walkthrough-tooltip {
+    max-width: 320px;
+  }
+  .walkthrough-controls {
+    flex-direction: row;
+  }
+  .walkthrough-controls__left,
+  .walkthrough-controls__right {
+    width: auto;
+  }
+}
+@media (min-width: 1440px) {
+  .walkthrough-tooltip {
+    max-width: 360px;
+  }
+  .walkthrough-tooltip__content {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+}
+@media print {
+  .walkthrough-overlay,
+  .walkthrough-tooltip,
+  .walkthrough-beacon,
+  .walkthrough-portal {
+    display: none !important;
+  }
+}
