@@ -224,10 +224,20 @@ const LogoutUser = async (dispatch) => {
         'timezone',
       ];
 
+      // Preserve explicit settings
       settingsToPreserve.forEach((key) => {
         const value = localStorage.getItem(key);
         if (value !== null) preservedSettings[key] = value;
       });
+
+      // Preserve all keys starting with 'user_tour_status_'
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('user_tour_status_')) {
+          const value = localStorage.getItem(key);
+          if (value !== null) preservedSettings[key] = value;
+        }
+      }
 
       localStorage.clear();
       if (window.sessionStorage) window.sessionStorage.clear();
