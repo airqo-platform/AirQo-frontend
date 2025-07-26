@@ -1,29 +1,42 @@
 'use client';
-
 import React, {
   createContext,
   useContext,
   useReducer,
   useCallback,
+  useMemo,
 } from 'react';
 import { useSession } from 'next-auth/react';
 import CustomJoyride from '@/features/tours/components/CustomJoyride';
 import { usePathname } from 'next/navigation';
-import { tourConfig } from '@/features/tours/config/tourSteps';
+import {
+  routeTourConfig,
+  globalTourConfig,
+} from '@/features/tours/config/tourSteps';
 import { STATUS } from 'react-joyride';
 import * as tourStorage from '@/features/tours/utils/tourStorage';
 
-// --- Context Setup ---
 export const TourContext = createContext(undefined);
 
-// --- Reducer for Tour State ---
 const tourReducer = (state, action) => {
   switch (action.type) {
     case 'START_TOUR':
-      return { ...state, run: true, currentTourKey: action.payload.tourKey };
+      return {
+        ...state,
+        run: true,
+        currentTourKey: action.payload.tourKey,
+        currentTourType: action.payload.tourType || 'route', // 'route' or 'global'
+        currentTourConfig: action.payload.tourConfig || null, // Store the full config
+      };
     case 'STOP_TOUR':
     case 'TOUR_ENDED':
-      return { ...state, run: false, currentTourKey: null };
+      return {
+        ...state,
+        run: false,
+        currentTourKey: null,
+        currentTourType: null,
+        currentTourConfig: null,
+      };
     case 'RESET_TOUR':
       return { ...state, run: false };
     default:
@@ -34,49 +47,100 @@ const tourReducer = (state, action) => {
 const initialTourState = {
   run: false,
   currentTourKey: null,
+  currentTourType: null, // 'route' or 'global'
+  currentTourConfig: null, // Holds the config for the currently running tour
 };
 
-// --- Provider Component ---
 export const TourProvider = ({ children, allowRestart = false }) => {
   const [state, dispatch] = useReducer(tourReducer, initialTourState);
   const pathname = usePathname();
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
+  // --- START TOUR FUNCTIONS ---
+
+  // Starts a tour based on the current route (existing logic)
   const startTourForCurrentPath = useCallback(
     ({ force = false } = {}) => {
-      const config = tourConfig[pathname];
-
+      const config = routeTourConfig[pathname];
       if (config && config.steps.length > 0) {
         const tourKey = config.key;
-
         if (!userId) {
           console.warn(
-            `TourProvider: User ID not available. Cannot check if tour '${tourKey}' was seen.`,
+            `TourProvider: User ID not available for route tour '${tourKey}'.`,
           );
           return;
         }
-
         const seen = tourStorage.isTourSeen(tourKey, userId);
-
         if (force || (!seen && !state.run)) {
           console.log(
-            `TourProvider: Starting tour '${tourKey}' for path '${pathname}' for user '${userId}'.`,
+            `TourProvider: Starting route tour '${tourKey}' for path '${pathname}' for user '${userId}'.`,
           );
-          dispatch({ type: 'START_TOUR', payload: { tourKey } });
+          dispatch({
+            type: 'START_TOUR',
+            payload: {
+              tourKey,
+              tourType: 'route',
+              tourConfig: config, // Pass the full config
+            },
+          });
         } else if (seen && !allowRestart) {
           console.log(
-            `TourProvider: Tour '${tourKey}' already seen for user '${userId}'. Not starting.`,
+            `TourProvider: Route tour '${tourKey}' already seen for user '${userId}'.`,
           );
         } else if (state.run) {
           console.log(
-            `TourProvider: Tour '${tourKey}' already running for user '${userId}'.`,
+            `TourProvider: A tour is already running for user '${userId}'.`,
           );
         }
       }
     },
     [pathname, state.run, userId, allowRestart],
   );
+
+  // Starts a global tour by its key
+  const startGlobalTour = useCallback(
+    (tourKey, { force = false } = {}) => {
+      const config = globalTourConfig[tourKey];
+      if (config && config.steps.length > 0) {
+        if (!userId) {
+          console.warn(
+            `TourProvider: User ID not available for global tour '${tourKey}'.`,
+          );
+          return;
+        }
+        const seen = tourStorage.isTourSeen(tourKey, userId);
+        if (force || (!seen && !state.run)) {
+          console.log(
+            `TourProvider: Starting global tour '${tourKey}' for user '${userId}'.`,
+          );
+          dispatch({
+            type: 'START_TOUR',
+            payload: {
+              tourKey,
+              tourType: 'global',
+              tourConfig: config, // Pass the full config
+            },
+          });
+        } else if (seen && !allowRestart) {
+          console.log(
+            `TourProvider: Global tour '${tourKey}' already seen for user '${userId}'.`,
+          );
+        } else if (state.run) {
+          console.log(
+            `TourProvider: A tour is already running for user '${userId}'.`,
+          );
+        }
+      } else {
+        console.warn(
+          `TourProvider: Global tour '${tourKey}' not found or has no steps.`,
+        );
+      }
+    },
+    [state.run, userId, allowRestart],
+  );
+
+  // --- CONTROL FUNCTIONS ---
 
   const stopTour = useCallback(() => {
     console.log('TourProvider: stopTour called');
@@ -87,60 +151,74 @@ export const TourProvider = ({ children, allowRestart = false }) => {
     dispatch({ type: 'RESET_TOUR' });
   }, []);
 
-  // Internal handler for Joyride lifecycle events
+  // --- JOYRIDE CALLBACK ---
+
   const handleJoyrideCallback = useCallback(
     (data) => {
       const { status } = data;
-
       if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
         console.log('TourProvider: Tour truly finished or skipped.');
         const finishedTourKey = state.currentTourKey;
         dispatch({ type: 'TOUR_ENDED' });
-
         if (finishedTourKey && userId) {
           tourStorage.markTourAsSeen(finishedTourKey, userId);
         } else if (finishedTourKey && !userId) {
           console.warn(
-            `TourProvider: Tour '${finishedTourKey}' finished, but user ID not available. Not marking as seen.`,
+            `TourProvider: Tour '${finishedTourKey}' finished, but user ID not available.`,
           );
         }
       }
-      // If you need to handle other events like STEP_AFTER in the future,
-      // you can destructure 'type' here:
-      // const { status, type } = data;
-      // if (type === 'step:after') { ... }
     },
     [state.currentTourKey, userId],
   );
 
-  // Get steps and options for the current path
-  const currentTourConfig = tourConfig[pathname] || { steps: [], options: {} };
+  // --- DETERMINE CURRENT TOUR CONFIGURATION ---
 
-  // Ensure disableOverlayClose is always true for tours started by this provider
-  // Use defaults from tourConfig if they exist, then enforce disableOverlayClose
-  const enforcedOptions = {
-    continuous: true,
-    showSkipButton: true,
-    showProgress: true,
-    disableOverlayClose: true,
-    ...currentTourConfig.options,
-    disableOverlayClose: true,
-  };
+  // Get config for route-based tours (used as fallback if one starts automatically)
+  const routeBasedTourConfig = useMemo(
+    () => routeTourConfig[pathname] || { steps: [], options: {} },
+    [pathname],
+  );
+
+  // Determine the config for the tour that should be rendered
+  // Priority: 1. Currently running tour (from state), 2. Route-based tour (if auto-started in the future)
+  const effectiveTourConfig = state.currentTourConfig || routeBasedTourConfig;
+
+  // Ensure critical options are enforced for the running tour
+  const enforcedOptions = useMemo(
+    () => ({
+      continuous: true,
+      showSkipButton: true,
+      showProgress: true,
+      disableOverlayClose: true,
+      ...effectiveTourConfig.options,
+      disableOverlayClose: true, // Always enforce
+    }),
+    [effectiveTourConfig.options],
+  );
 
   return (
     <TourContext.Provider
-      value={{ ...state, startTourForCurrentPath, stopTour, resetTour }}
+      value={{
+        ...state, // Includes run, currentTourKey, currentTourType, currentTourConfig
+        startTourForCurrentPath,
+        startGlobalTour, // Expose the new function
+        stopTour,
+        resetTour,
+      }}
     >
       {children}
-      {state.run && userId && currentTourConfig.steps.length > 0 && (
+      {state.run && userId && effectiveTourConfig.steps?.length > 0 && (
         <CustomJoyride
-          steps={currentTourConfig.steps}
+          key={state.currentTourKey} // Force re-mount on tour change
+          steps={effectiveTourConfig.steps}
           run={state.run}
           callback={handleJoyrideCallback}
           continuous={enforcedOptions.continuous}
           showSkipButton={enforcedOptions.showSkipButton}
           showProgress={enforcedOptions.showProgress}
           disableOverlayClose={enforcedOptions.disableOverlayClose}
+          // Spread any remaining options from the tour config
           {...(() => {
             const { ...restOptions } = enforcedOptions;
             return restOptions;
@@ -151,7 +229,6 @@ export const TourProvider = ({ children, allowRestart = false }) => {
   );
 };
 
-// --- Hook to use the Tour Context ---
 export const useTour = () => {
   const context = useContext(TourContext);
   if (!context) {
@@ -159,44 +236,3 @@ export const useTour = () => {
   }
   return context;
 };
-
-/* Usage Example */
-// Destructure the functions you need from the tour context
-/*
-  import { useTour } from '@/features/tours/contexts/TourProvider';
-
-  const { startTourForCurrentPath, run } = useTour();
-
-  useEffect(() => {
-    // Check if the tour is not already running to prevent conflicts
-    if (!run) {
-      // Optional: Add a small delay to ensure the page content (targets) is fully rendered
-      const timer = setTimeout(() => {
-        console.log("AnalyticsPage: Attempting to start tour for /user/analytics");
-        
-        // Call startTourForCurrentPath. It will automatically:
-        // 1. Check the current pathname (/user/analytics)
-        // 2. Find the corresponding tour config in tourSteps.js (analyticsTour)
-        // 3. Get the user ID from the session
-        // 4. Check localStorage to see if this user has already seen this tour
-        // 5. If not seen (and conditions are met), it will start the tour
-        
-        // Use { force: true } if you want to start the tour regardless of localStorage
-        // (useful for testing or resetting)
-        startTourForCurrentPath(); // Default: respects localStorage check
-        // startTourForCurrentPath({ force: true }); // Forces start, ignores localStorage
-
-      }, 1500); // 1.5 second delay, adjust as needed
-
-      // Cleanup function to clear the timeout if the component unmounts
-      // before the timer finishes (e.g., user navigates away quickly)
-      return () => {
-        console.log("AnalyticsPage: Cleaning up tour start timer");
-        clearTimeout(timer);
-      };
-    } else {
-      console.log("AnalyticsPage: Tour is already running, skipping auto-start.");
-    }
-  }, [startTourForCurrentPath, run]); 
-
-*/
