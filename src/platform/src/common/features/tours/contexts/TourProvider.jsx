@@ -1,6 +1,11 @@
 'use client';
 
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+} from 'react';
 import { useSession } from 'next-auth/react';
 import CustomJoyride from '@/features/tours/components/CustomJoyride';
 import { usePathname } from 'next/navigation';
@@ -82,6 +87,7 @@ export const TourProvider = ({ children, allowRestart = false }) => {
     dispatch({ type: 'RESET_TOUR' });
   }, []);
 
+  // Internal handler for Joyride lifecycle events
   const handleJoyrideCallback = useCallback(
     (data) => {
       const { status } = data;
@@ -99,11 +105,27 @@ export const TourProvider = ({ children, allowRestart = false }) => {
           );
         }
       }
+      // If you need to handle other events like STEP_AFTER in the future,
+      // you can destructure 'type' here:
+      // const { status, type } = data;
+      // if (type === 'step:after') { ... }
     },
     [state.currentTourKey, userId],
   );
 
+  // Get steps and options for the current path
   const currentTourConfig = tourConfig[pathname] || { steps: [], options: {} };
+
+  // Ensure disableOverlayClose is always true for tours started by this provider
+  // Use defaults from tourConfig if they exist, then enforce disableOverlayClose
+  const enforcedOptions = {
+    continuous: true,
+    showSkipButton: true,
+    showProgress: true,
+    disableOverlayClose: true,
+    ...currentTourConfig.options,
+    disableOverlayClose: true,
+  };
 
   return (
     <TourContext.Provider
@@ -115,7 +137,14 @@ export const TourProvider = ({ children, allowRestart = false }) => {
           steps={currentTourConfig.steps}
           run={state.run}
           callback={handleJoyrideCallback}
-          {...currentTourConfig.options}
+          continuous={enforcedOptions.continuous}
+          showSkipButton={enforcedOptions.showSkipButton}
+          showProgress={enforcedOptions.showProgress}
+          disableOverlayClose={enforcedOptions.disableOverlayClose}
+          {...(() => {
+            const { ...restOptions } = enforcedOptions;
+            return restOptions;
+          })()}
         />
       )}
     </TourContext.Provider>
@@ -131,17 +160,43 @@ export const useTour = () => {
   return context;
 };
 
-// Example on how we shall use this custom tool
-// const { startTourForCurrentPath, run } = useTour();
+/* Usage Example */
+// Destructure the functions you need from the tour context
+/*
+  import { useTour } from '@/features/tours/contexts/TourProvider';
 
-//   useEffect(() => {
-//     if (!run) {
-//       const timer = setTimeout(() => {
-//         console.log('HomePage: Requesting tour start for /user/Home');
-//         // Call without force to respect localStorage check
-//         startTourForCurrentPath(); // { force: true } to override seen check (e.g., for dev/testing)
-//       }, 1000); // Adjust delay as needed
+  const { startTourForCurrentPath, run } = useTour();
 
-//       return () => clearTimeout(timer);
-//     }
-//   }, [startTourForCurrentPath, run]);
+  useEffect(() => {
+    // Check if the tour is not already running to prevent conflicts
+    if (!run) {
+      // Optional: Add a small delay to ensure the page content (targets) is fully rendered
+      const timer = setTimeout(() => {
+        console.log("AnalyticsPage: Attempting to start tour for /user/analytics");
+        
+        // Call startTourForCurrentPath. It will automatically:
+        // 1. Check the current pathname (/user/analytics)
+        // 2. Find the corresponding tour config in tourSteps.js (analyticsTour)
+        // 3. Get the user ID from the session
+        // 4. Check localStorage to see if this user has already seen this tour
+        // 5. If not seen (and conditions are met), it will start the tour
+        
+        // Use { force: true } if you want to start the tour regardless of localStorage
+        // (useful for testing or resetting)
+        startTourForCurrentPath(); // Default: respects localStorage check
+        // startTourForCurrentPath({ force: true }); // Forces start, ignores localStorage
+
+      }, 1500); // 1.5 second delay, adjust as needed
+
+      // Cleanup function to clear the timeout if the component unmounts
+      // before the timer finishes (e.g., user navigates away quickly)
+      return () => {
+        console.log("AnalyticsPage: Cleaning up tour start timer");
+        clearTimeout(timer);
+      };
+    } else {
+      console.log("AnalyticsPage: Tour is already running, skipping auto-start.");
+    }
+  }, [startTourForCurrentPath, run]); 
+
+*/

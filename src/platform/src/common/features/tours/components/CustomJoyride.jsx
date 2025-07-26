@@ -1,7 +1,8 @@
+// src/features/tours/components/CustomJoyride.jsx
 import React, { useMemo } from 'react';
 import Joyride from 'react-joyride';
-import CardWrapper from '@/common/components/CardWrapper';
-import Button from '@/common/components/Button';
+import CardWrapper from '@/common/components/CardWrapper'; // Adjust path
+import Button from '@/common/components/Button'; // Adjust path
 
 // --- Internal Custom Components ---
 
@@ -127,7 +128,8 @@ const CustomJoyride = ({
   styles = {},
   callback = noopCallback,
   spotlightClicks = false,
-  disableOverlayClose = false,
+  // Explicitly default disableOverlayClose to true
+  disableOverlayClose = true,
   locale = {},
   scrollOffset = 100,
   showSkipButton = true,
@@ -145,8 +147,7 @@ const CustomJoyride = ({
   // Default floater props for better auto-placement behavior
   const defaultFloaterProps = {
     disableAnimation: true, // Often helps with smoother initial appearance
-    // Joyride's floater usually handles placement='auto' or specific placements well
-    // You can override these defaults by passing floaterProps
+    // Joyride's floater handles placement='auto' or specific placements
   };
 
   const finalFloaterProps = { ...defaultFloaterProps, ...floaterProps };
@@ -160,12 +161,13 @@ const CustomJoyride = ({
       showProgress={showProgress}
       disableBeacon={disableBeacon}
       styles={mergedStyles}
-      callback={callback}
+      callback={callback} // Pass the callback directly to Joyride
       spotlightClicks={spotlightClicks}
+      // Pass the disableOverlayClose prop, defaulting to true
       disableOverlayClose={disableOverlayClose}
       locale={locale}
       scrollOffset={scrollOffset}
-      floaterProps={finalFloaterProps}
+      floaterProps={finalFloaterProps} // Pass floater props for auto-placement
       tooltipComponent={CustomTooltipInternal}
       {...restProps}
     />

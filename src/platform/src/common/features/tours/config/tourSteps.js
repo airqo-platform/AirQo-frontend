@@ -1,3 +1,5 @@
+// src/features/tours/config/tourSteps.js
+
 // --- Dummy Steps for Home Page (/user/Home) ---
 export const homePageSteps = [
   {
@@ -57,7 +59,7 @@ export const tourConfig = {
       continuous: true,
       showSkipButton: true,
       showProgress: true,
-      disableOverlayClose: false,
+      disableOverlayClose: true, // Ensure it's true here too
       // floaterProps for auto-placement can be added here if needed per tour
       // floaterProps: { disableAnimation: true }
     },
@@ -69,7 +71,7 @@ export const tourConfig = {
       continuous: true,
       showSkipButton: true,
       showProgress: true,
-      disableOverlayClose: false,
+      disableOverlayClose: true, // Ensure it's true here too
       // floaterProps: { disableAnimation: true }
     },
   },
