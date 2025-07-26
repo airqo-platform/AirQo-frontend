@@ -15,7 +15,6 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
-import { useTour } from '@/features/tours/contexts/TourProvider';
 import { useRouter } from 'next/navigation';
 import { AqDownload01, AqBarChart01, AqBuilding07 } from '@airqo/icons-react';
 
@@ -35,18 +34,6 @@ const Home = () => {
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
   const reduxUserInfo = useSelector((state) => state.login.userInfo);
-
-  const { attemptStartTours, run } = useTour();
-
-  useEffect(() => {
-    if (!run) {
-      const timer = setTimeout(() => {
-        attemptStartTours();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [attemptStartTours, run]);
 
   // Get user display name from multiple sources with priority
   const getUserDisplayName = () => {
@@ -207,7 +194,7 @@ const Home = () => {
         </div>
 
         {/* Quick Access Section */}
-        <div className="mb-8 home-quick-actions">
+        <div className="mb-8">
           <div className="flex items-center mb-3">
             <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mr-2">
               Quick Access

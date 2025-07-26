@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation';
 import {
   routeTourConfig,
   globalTourConfig,
+  standalonePopupConfig,
 } from '@/features/tours/config/tourSteps';
 import { STATUS } from 'react-joyride';
 import * as tourStorage from '@/features/tours/utils/tourStorage';
@@ -26,10 +27,9 @@ const tourReducer = (state, action) => {
         ...state,
         run: true,
         currentTourKey: action.payload.tourKey,
-        currentTourType: action.payload.tourType || 'route', // 'route' or 'global'
-        currentTourConfig: action.payload.tourConfig || null, // Store the full config
-        // --- Action Trigger State ---
-        awaitedAction: action.payload.awaitedAction || null, // { type: 'EVENT', payload: '...' }
+        currentTourType: action.payload.tourType || 'route', // 'route', 'global', or 'standalone'
+        currentTourConfig: action.payload.tourConfig || null,
+        awaitedAction: action.payload.awaitedAction || null,
         actionCompleted: false,
       };
     case 'STOP_TOUR':
@@ -40,19 +40,15 @@ const tourReducer = (state, action) => {
         currentTourKey: null,
         currentTourType: null,
         currentTourConfig: null,
-        // --- Reset Action Trigger State ---
         awaitedAction: null,
         actionCompleted: false,
       };
     case 'RESET_TOUR':
       return { ...state, run: false };
-    // --- Action Trigger Reducer Case ---
     case 'ACTION_COMPLETED':
-      // This action is dispatched when the awaited action is detected
       return {
         ...state,
         actionCompleted: true,
-        // Reset awaitedAction so it doesn't trigger again unintentionally
         awaitedAction: null,
       };
     default:
@@ -63,9 +59,8 @@ const tourReducer = (state, action) => {
 const initialTourState = {
   run: false,
   currentTourKey: null,
-  currentTourType: null, // 'route' or 'global'
-  currentTourConfig: null, // Holds the config for the currently running tour
-  // --- Action Trigger Initial State ---
+  currentTourType: null, // 'route', 'global', or 'standalone'
+  currentTourConfig: null,
   awaitedAction: null,
   actionCompleted: false,
 };
@@ -85,7 +80,8 @@ export const TourProvider = ({
   const startTourForCurrentPath = useCallback(
     ({ force = false } = {}) => {
       const config = routeTourConfig[pathname];
-      if (config && config.steps.length > 0) {
+      if (config && config.steps?.length > 0) {
+        // Check steps array
         const tourKey = config.key;
         if (!userId) {
           console.warn(
@@ -104,7 +100,6 @@ export const TourProvider = ({
               tourKey,
               tourType: 'route',
               tourConfig: config,
-              // Pass action trigger if defined in config
               awaitedAction: config.awaitedAction || null,
             },
           });
@@ -125,7 +120,8 @@ export const TourProvider = ({
   const startGlobalTour = useCallback(
     (tourKey, { force = false } = {}) => {
       const config = globalTourConfig[tourKey];
-      if (config && config.steps.length > 0) {
+      if (config && config.steps?.length > 0) {
+        // Check steps array
         if (!userId) {
           console.warn(
             `TourProvider: User ID not available for global tour '${tourKey}'.`,
@@ -143,7 +139,6 @@ export const TourProvider = ({
               tourKey,
               tourType: 'global',
               tourConfig: config,
-              // Pass action trigger if defined in config
               awaitedAction: config.awaitedAction || null,
             },
           });
@@ -163,6 +158,57 @@ export const TourProvider = ({
       }
     },
     [state.run, userId, allowRestart],
+  );
+
+  // --- NEW: START STANDALONE POPUP ---
+  const startStandalonePopup = useCallback(
+    (popupKey, { force = false } = {}) => {
+      const config = standalonePopupConfig[popupKey];
+      if (config && config.step) {
+        // Check for single step object
+        if (!userId) {
+          console.warn(
+            `TourProvider: User ID not available for standalone popup '${popupKey}'.`,
+          );
+          return;
+        }
+        // Use a different storage key prefix for popups to separate them from tours
+        const popupSeenKey = `popup_${popupKey}`;
+        const seen = tourStorage.isTourSeen(popupSeenKey, userId); // Reuse storage function
+        if (force || (!seen && !state.run)) {
+          console.log(
+            `TourProvider: Showing standalone popup '${popupKey}' for user '${userId}'.`,
+          );
+          // Wrap the single step in an array for CustomJoyride
+          const popupConfig = {
+            ...config,
+            steps: [config.step], // Convert single step to steps array
+          };
+          dispatch({
+            type: 'START_TOUR',
+            payload: {
+              tourKey: popupKey,
+              tourType: 'standalone', // New type
+              tourConfig: popupConfig,
+              awaitedAction: config.step.awaitedAction || null, // Check step for action
+            },
+          });
+        } else if (seen) {
+          console.log(
+            `TourProvider: Standalone popup '${popupKey}' already shown for user '${userId}'.`,
+          );
+        } else if (state.run) {
+          console.log(
+            `TourProvider: A tour/popup is already running for user '${userId}'.`,
+          );
+        }
+      } else {
+        console.warn(
+          `TourProvider: Standalone popup '${popupKey}' not found or has no step.`,
+        );
+      }
+    },
+    [state.run, userId],
   );
 
   // --- ENHANCED START LOGIC: Prioritize Global Tours ---
@@ -202,7 +248,7 @@ export const TourProvider = ({
               awaitedAction: globalOnboardingConfig.awaitedAction || null,
             },
           });
-          globalOnboardingStarted = true; // Mark that global tour was started
+          globalOnboardingStarted = true;
         } else if (globalSeen) {
           console.log(
             `TourProvider: Global onboarding tour '${globalKey}' already seen.`,
@@ -210,10 +256,10 @@ export const TourProvider = ({
         }
       }
 
-      // 2. If Global Onboarding wasn't started (or not prioritized), check route tour
+      // 2. If Global Onboarding wasn't started, check route tour
       if (!globalOnboardingStarted) {
         const routeConfig = routeTourConfig[pathname];
-        if (routeConfig && routeConfig.steps.length > 0) {
+        if (routeConfig && routeConfig.steps?.length > 0) {
           const routeKey = routeConfig.key;
           const routeSeen = tourStorage.isTourSeen(routeKey, userId);
           if (force || (!routeSeen && !state.run)) {
@@ -237,7 +283,7 @@ export const TourProvider = ({
         }
       }
     },
-    [state.run, userId, pathname, prioritizeGlobal], // Add dependencies
+    [state.run, userId, pathname, prioritizeGlobal],
   );
 
   // --- CONTROL FUNCTIONS ---
@@ -257,41 +303,41 @@ export const TourProvider = ({
     (data) => {
       const { status, type, step } = data;
 
-      // --- Handle Tour Completion/Skip ---
       if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-        console.log('TourProvider: Tour truly finished or skipped.');
+        console.log('TourProvider: Tour/Popup truly finished or skipped.');
         const finishedTourKey = state.currentTourKey;
+        const finishedTourType = state.currentTourType; // Get the type
         dispatch({ type: 'TOUR_ENDED' });
         if (finishedTourKey && userId) {
-          tourStorage.markTourAsSeen(finishedTourKey, userId);
+          // If it was a standalone popup, mark it with a different key
+          if (finishedTourType === 'standalone') {
+            const popupSeenKey = `popup_${finishedTourKey}`;
+            tourStorage.markTourAsSeen(popupSeenKey, userId);
+          } else {
+            // Standard tour
+            tourStorage.markTourAsSeen(finishedTourKey, userId);
+          }
         } else if (finishedTourKey && !userId) {
           console.warn(
-            `TourProvider: Tour '${finishedTourKey}' finished, but user ID not available.`,
+            `TourProvider: Tour/Popup '${finishedTourKey}' finished, but user ID not available.`,
           );
         }
       }
 
       // --- Handle Step Changes (for Action Triggers) ---
-      // Example: Pause tour on a step that awaits an action
       if (
         type === 'step:before' &&
         state.awaitedAction &&
         !state.actionCompleted
       ) {
-        // Check if the current step requires an action
-        // This assumes the step object has metadata like `awaitedAction`
-        // You might need to define this logic differently, e.g., check step index or a specific property
         if (
           step.awaitedAction ||
-          state.currentTourConfig?.steps[step?.index]?.awaitedAction
+          state.currentTourConfig?.steps?.[step?.index]?.awaitedAction
         ) {
           console.log(
-            'TourProvider: Pausing tour for awaited action:',
+            'TourProvider: Current step awaits an action:',
             state.awaitedAction,
           );
-          // Joyride will automatically pause here if `stepBefore` callback doesn't proceed.
-          // You might need to manage Joyride's `run` state or step index manually for complex logic.
-          // For now, rely on external action completion.
         }
       }
     },
@@ -301,40 +347,26 @@ export const TourProvider = ({
       state.awaitedAction,
       state.actionCompleted,
       state.currentTourConfig,
-    ], // Add dependencies
+      state.currentTourType,
+    ], // Add type dependency
   );
 
-  // --- ACTION TRIGGER LISTENER LOGIC (Conceptual) ---
-  // This useEffect listens for global events or state changes that might indicate
-  // an awaited action was completed.
+  // --- ACTION TRIGGER LISTENER LOGIC ---
   useEffect(() => {
     if (!state.run || !state.awaitedAction || state.actionCompleted) {
-      // No tour running, no action awaited, or action already completed
       return;
     }
 
     const handlePotentialAction = (event) => {
-      // --- Example: Listen for a Custom Event ---
       if (
         state.awaitedAction.type === 'CUSTOM_EVENT' &&
         event.type === state.awaitedAction.payload
       ) {
         console.log('TourProvider: Detected awaited custom event:', event.type);
         dispatch({ type: 'ACTION_COMPLETED' });
-        // Optionally, you might want to resume the tour here or let Joyride handle it
-        // based on how you implement the step awaiting logic in the callback.
       }
-
-      // --- Example: Listen for a Redux/Context State Change (requires subscription logic) ---
-      // This is pseudo-code, actual implementation depends on your state management
-      // if (state.awaitedAction.type === 'STATE_CHANGE' && checkIfStateMatches(state.awaitedAction.payload, currentState)) {
-      //    dispatch({ type: 'ACTION_COMPLETED' });
-      // }
-
-      // Add more conditions for different action types as needed
     };
 
-    // Attach listeners based on awaitedAction.type
     if (state.awaitedAction.type === 'CUSTOM_EVENT') {
       window.addEventListener(
         state.awaitedAction.payload,
@@ -342,9 +374,6 @@ export const TourProvider = ({
       );
     }
 
-    // Add other listener setups here if needed for different action types
-
-    // Cleanup listeners
     return () => {
       if (state.awaitedAction?.type === 'CUSTOM_EVENT') {
         window.removeEventListener(
@@ -352,9 +381,8 @@ export const TourProvider = ({
           handlePotentialAction,
         );
       }
-      // Remove other listeners here
     };
-  }, [state.run, state.awaitedAction, state.actionCompleted]); // Re-run if awaited action changes
+  }, [state.run, state.awaitedAction, state.actionCompleted]);
 
   // --- DETERMINE CURRENT TOUR CONFIGURATION ---
 
@@ -372,7 +400,7 @@ export const TourProvider = ({
       showProgress: true,
       disableOverlayClose: true,
       ...effectiveTourConfig.options,
-      disableOverlayClose: true,
+      disableOverlayClose: true, // Always enforce
     }),
     [effectiveTourConfig.options],
   );
@@ -383,7 +411,8 @@ export const TourProvider = ({
         ...state,
         startTourForCurrentPath,
         startGlobalTour,
-        attemptStartTours, // Expose the new prioritized starter
+        startStandalonePopup, // Expose new function
+        attemptStartTours,
         stopTour,
         resetTour,
       }}
@@ -391,7 +420,7 @@ export const TourProvider = ({
       {children}
       {state.run && userId && effectiveTourConfig.steps?.length > 0 && (
         <CustomJoyride
-          key={`${state.currentTourKey}-${state.actionCompleted ? 'resumed' : 'initial'}`} // Force re-render if action state changes
+          key={`${state.currentTourKey}-${state.actionCompleted ? 'resumed' : 'initial'}`}
           steps={effectiveTourConfig.steps}
           run={state.run}
           callback={handleJoyrideCallback}

@@ -1,25 +1,14 @@
-// --- Home Page (/user/Home) ---
-export const homePageSteps = [
-  {
-    target: '.home-quick-actions',
-    title: 'Quick Actions',
-    content: 'Perform common tasks quickly from here.',
-    disableBeacon: true,
-    placement: 'auto',
-  },
-];
-
-// --- Analytics Page (/user/analytics) ---
-export const analyticsPageSteps = [
-  {
-    target: '.analytics-cards-container-1',
-    title: 'Analytics Overview',
-    content:
-      'You can click on any card to view detailed analytics for that location and more.',
-    disableBeacon: true,
-    placement: 'auto',
-  },
-];
+// // --- Analytics Page (/user/analytics) ---
+// export const analyticsPageSteps = [
+//   {
+//     target: '.show-view-more-data-button',
+//     title: 'View More Data',
+//     content: 'Click this button to see more detailed analytics.',
+//     disableBeacon: true,
+//     placement: 'auto',
+//     awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CLICKED_BUTTON' },
+//   },
+// ];
 
 // --- Global Tour Steps ---
 export const globalOnboardingSteps = [
@@ -51,41 +40,30 @@ export const globalOnboardingSteps = [
     disableBeacon: true,
     placement: 'auto',
   },
-  // Example step awaiting an action (conceptual)
-  // {
-  //   target: '.some-button',
-  //   title: 'Try It Out',
-  //   content: 'Click the button below to see what happens.',
-  //   disableBeacon: true,
-  //   placement: 'auto',
-  //   awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CLICKED_BUTTON' } // Define awaited action
-  // },
 ];
+
+// --- Standalone Info Popup (Not a tour step) ---
+// export const standaloneInfoPopup = {
+//   target: '.view-more-data-button',
+//   title: 'View More Data',
+//   content: 'Click this button to view more detailed data insights.',
+//   disableBeacon: true,
+//   placement: 'auto',
+//   isStandalone: true,
+// };
 
 // --- Route-Based Tour Configurations ---
 export const routeTourConfig = {
-  '/user/Home': {
-    key: 'homeTour',
-    steps: homePageSteps,
-    options: {
-      continuous: true,
-      showSkipButton: true,
-      showProgress: true,
-      disableOverlayClose: true,
-    },
-    // Example: This tour could wait for a specific event before starting or resuming
-    // awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CLICKED_QUICK_ACTION' }
-  },
-  '/user/analytics': {
-    key: 'analyticsTour',
-    steps: analyticsPageSteps,
-    options: {
-      continuous: true,
-      showSkipButton: true,
-      showProgress: true,
-      disableOverlayClose: true,
-    },
-  },
+  // '/user/analytics': {
+  //   key: 'analyticsTour',
+  //   steps: analyticsPageSteps,
+  //   options: {
+  //     continuous: true,
+  //     showSkipButton: true,
+  //     showProgress: true,
+  //     disableOverlayClose: true,
+  //   },
+  // },
   // Add configurations for other paths here
 };
 
@@ -100,8 +78,23 @@ export const globalTourConfig = {
       showProgress: true,
       disableOverlayClose: true,
     },
-    // Example: This global tour could wait for a specific event
-    // awaitedAction: { type: 'CUSTOM_EVENT', payload: 'USER_CHANGED_THEME' }
   },
   // Add other global tours here
 };
+
+// --- Standalone Popups Configurations ---
+// Keyed by a unique identifier for the popup
+// export const standalonePopupConfig = {
+//   viewMoreDataButton: {
+//     key: 'viewMoreDataButton',
+//     step: standaloneInfoPopup,
+//     options: {
+//       continuous: false,
+//       showSkipButton: false,
+//       showProgress: false,
+//       disableOverlayClose: true,
+//     },
+//   },
+//   // Add other standalone popups here
+//   // 'anotherInfoPopup': { ... }
+// };

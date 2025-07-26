@@ -1,128 +1,116 @@
-// --- Example 1: Starting a Route-Based Tour Automatically ---
+// Example 1: Prioritized Auto-Start (Layout)
+// Trigger global tours before route tours automatically when a user logs in.
 // 'use client';
 // import { useEffect } from 'react';
 // import { useTour } from '@/features/tours/contexts/TourProvider';
+// import { useSession } from 'next-auth/react';
+
+// export default function RootLayout({ children }) {
+//   const { attemptStartTours, run } = useTour();
+//   const {  session } = useSession();
+//   const userId = session?.user?.id;
+
+//   useEffect(() => {
+//     // Attempt to start tours (prioritizing global) once the user is logged in and no tour is running
+//     if (userId && !run) {
+//       console.log("RootLayout: User logged in. Attempting to start tours.");
+//       const timer = setTimeout(() => {
+//         attemptStartTours(); // This will check globalOnboarding first
+//       }, 1500); // Delay to ensure page content loads
+
+//       return () => clearTimeout(timer);
+//     }
+//   }, [userId, run, attemptStartTours]); // Re-run if user logs in/out or tour stops
+
+//   return (
+//     <html lang="en">
+//       <body>
+//         {children}
+//       </body>
+//     </html>
+//   );
+// }
+
+// Example 2: Manual Start (Global Tour, Route Tour, Standalone Popup)
+// Trigger tours or popups manually, for example, via a "Help" button or after a specific user action.
+// 'use client';
+// import { useTour } from '@/features/tours/contexts/TourProvider';
+// import Button from '@/common/components/Button'; // Adjust path
+
+// export default function DashboardHeader() {
+//   const { startGlobalTour, startTourForCurrentPath, startStandalonePopup, run } = useTour();
+
+//   const handleStartGlobalOnboarding = () => {
+//     if (!run) startGlobalTour('globalOnboarding');
+//   };
+
+//   const handleStartCurrentPageRouteTour = () => {
+//     if (!run) startTourForCurrentPath();
+//   };
+
+//   const handleShowNewFeaturePopup = () => {
+//     if (!run) startStandalonePopup('newFeatureInfo');
+//     // To force show even if seen: startStandalonePopup('newFeatureInfo', { force: true });
+//   };
+
+//   return (
+//     <header className="dashboard-header p-4 bg-gray-100 flex justify-between items-center">
+//       <h1 className="text-xl font-bold">Dashboard</h1>
+//       <div className="flex space-x-2">
+//         <Button onClick={handleStartGlobalOnboarding}>Start Global Tour</Button>
+//         <Button onClick={handleStartCurrentPageRouteTour}>Start Page Tour</Button>
+//         <Button onClick={handleShowNewFeaturePopup}>Show Info Popup</Button>
+//       </div>
+//     </header>
+//   );
+// }
+
+// Example 3: Action-Triggered Step (Analytics Page)
+// Show a tour step that waits for the user to perform an action.
+// 'use client';
+// import { useEffect, useCallback } from 'react';
+// import { useTour } from '@/features/tours/contexts/TourProvider';
+// import Button from '@/common/components/Button'; // Adjust path
 
 // export default function AnalyticsPage() {
 //   const { startTourForCurrentPath, run } = useTour();
 
+//   // Auto-start the analytics tour when the page loads
 //   useEffect(() => {
-//     if (!run) { // Prevent conflicts if a tour is already running
+//     if (!run) {
 //       const timer = setTimeout(() => {
-//         console.log("AnalyticsPage: Attempting to start tour for /user/analytics");
-//         startTourForCurrentPath(); // Starts the tour defined for '/user/analytics' if not seen
-//         // startTourForCurrentPath({ force: true }); // For testing/resetting
+//         console.log("AnalyticsPage: Starting tour for /user/analytics");
+//         startTourForCurrentPath();
 //       }, 1000);
 
 //       return () => clearTimeout(timer);
 //     }
 //   }, [startTourForCurrentPath, run]);
 
-//   return (
-//     <div className="analytics-page">
-//       {/* Your page content */}
-//       <div className="analytics-filters">Filters</div>
-//       <div className="analytics-main-chart">Chart</div>
-//       <button className="analytics-export-button">Export</button>
-//     </div>
-//   );
-// }
+//   // Handler for the button that triggers the tour action
+//   const handleViewMoreDataClick = useCallback(() => {
+//     console.log("AnalyticsPage: 'View More Data' button clicked.");
+//     // ... perform the actual action (e.g., navigate, open modal) ...
 
-// --- Example 2: Starting a Global Tour Manually ---
-// 'use client';
-// import { useEffect, useState } from 'react';
-// import { useTour } from '@/features/tours/contexts/TourProvider';
-// import { useSession } from 'next-auth/react'; // Assuming you use next-auth
-// import Button from '@/common/components/Button'; // Your button component
-
-// export default function GlobalHeader() {
-//   const { startGlobalTour, run } = useTour();
-//   const { data: session } = useSession();
-//   const [showTourButton, setShowTourButton] = useState(false);
-
-//   // Show the tour button only if the user is logged in and no tour is running
-//   useEffect(() => {
-//     if (session?.user?.id && !run) {
-//        // Check if the global onboarding tour has been seen
-//        // You might need to import tourStorage or create a helper in the context
-//        // For simplicity, let's just show the button if logged in and no tour runs
-//        // A more robust check would be:
-//        // const seen = tourStorage.isTourSeen('globalOnboarding', session.user.id);
-//        // setShowTourButton(!seen);
-//        setShowTourButton(true);
-//     } else {
-//        setShowTourButton(false);
-//     }
-//   }, [session, run]);
-
-//   const handleStartOnboarding = () => {
-//      console.log("GlobalHeader: User clicked 'Start Tour'");
-//      startGlobalTour('globalOnboarding'); // Starts the global tour by its key
-//      // startGlobalTour('globalOnboarding', { force: true }); // Force start
-//   };
+//     // Dispatch the custom event to signal the tour provider
+//     // This event name MUST match the `payload` in `awaitedAction`
+//     window.dispatchEvent(new CustomEvent('USER_CLICKED_BUTTON'));
+//   }, []);
 
 //   return (
-//     <header className="main-header">
-//       {/* ... other header content ... */}
-//       <nav className="main-navigation">
-//         {/* ... navigation items ... */}
-//       </nav>
-//       {showTourButton && (
+//     <div className="analytics-page p-4">
+//       <h1 className="text-2xl font-bold mb-4">Analytics Dashboard</h1>
+//       <div className="mt-8 p-4 border rounded">
+//         <h2 className="text-xl mb-2">Reports</h2>
+//         <p>Summary of key metrics...</p>
+//         {/* The button the tour step points to */}
 //         <Button
-//           variant="filled"
-//           onClick={handleStartOnboarding}
-//           className="ml-4"
+//           onClick={handleViewMoreDataClick}
+//           className="show-view-more-data-button mt-2"
 //         >
-//           Start Tour
+//           View Detailed Report
 //         </Button>
-//       )}
-//       <div className="user-profile-button"> {/* Target for tour step */ }
-//          Profile
 //       </div>
-//     </header>
-//   );
-// }
-
-// --- Example 3: Using Tour State in Components ---
-// File: Any component that needs to know tour status
-// 'use client';
-// import { useTour } from '@/features/tours/contexts/TourProvider';
-
-// export default function SomeComponent() {
-//   const { run, currentTourKey, currentTourType } = useTour();
-
-//   if (run) {
-//     return (
-//       <div>
-//         A {currentTourType} tour ('{currentTourKey}') is currently active.
-//         {/* Maybe disable certain interactions or show a different UI state */}
-//       </div>
-//     );
-//   }
-
-//   return <div>Normal content when no tour is running.</div>;
-// }
-
-// Triggering an Action
-// 'use client';
-// import { useEffect } from 'react';
-// import Button from '@/common/components/Button'; // Adjust path
-
-// export default function QuickActionsComponent() {
-
-//   const handleQuickActionClick = () => {
-//     console.log("QuickActionsComponent: Quick action clicked!");
-//     // ... perform the action ...
-
-//     // Dispatch a custom event to signal the action was completed
-//     // This event name should match the `payload` in `awaitedAction`
-//     window.dispatchEvent(new CustomEvent('USER_CLICKED_QUICK_ACTION'));
-//   };
-
-//   return (
-//     <div className="home-quick-actions p-2 border rounded">
-//       <Button onClick={handleQuickActionClick}>Do Quick Action</Button>
-//       {/* Other quick actions... */}
 //     </div>
 //   );
 // }

@@ -263,7 +263,7 @@ const AQNumberCard = () => {
       )}
 
       <div
-        className={`analytics-cards-container-1 ${gridClasses}`}
+        className={`${gridClasses}`}
         aria-busy={isLoadingData ? 'true' : 'false'}
         aria-label="Air quality data grid"
         data-testid="aq-number-card-grid"
