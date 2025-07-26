@@ -103,14 +103,7 @@ export const globalOnboardingSteps = [
 ];
 
 // --- Standalone Info Popup (Not a tour step) ---
-// export const standaloneInfoPopup = {
-//   target: '.view-more-data-button',
-//   title: 'View More Data',
-//   content: 'Click this button to view more detailed data insights.',
-//   disableBeacon: true,
-//   placement: 'auto',
-//   isStandalone: true,
-// };
+export const standaloneInfoPopup = {};
 
 // --- Route-Based Tour Configurations ---
 export const routeTourConfig = {
