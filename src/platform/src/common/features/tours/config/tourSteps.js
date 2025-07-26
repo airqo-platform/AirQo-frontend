@@ -144,17 +144,17 @@ export const globalTourConfig = {
 
 // --- Standalone Popups Configurations ---
 // Keyed by a unique identifier for the popup
-// export const standalonePopupConfig = {
-//   viewMoreDataButton: {
-//     key: 'viewMoreDataButton',
-//     step: standaloneInfoPopup,
-//     options: {
-//       continuous: false,
-//       showSkipButton: false,
-//       showProgress: false,
-//       disableOverlayClose: true,
-//     },
-//   },
-//   // Add other standalone popups here
-//   // 'anotherInfoPopup': { ... }
-// };
+export const standalonePopupConfig = {
+  viewMoreDataButton: {
+    key: 'viewMoreDataButton',
+    step: standaloneInfoPopup,
+    options: {
+      continuous: false,
+      showSkipButton: false,
+      showProgress: false,
+      disableOverlayClose: true,
+    },
+  },
+  // Add other standalone popups here
+  // 'anotherInfoPopup': { ... }
+};
