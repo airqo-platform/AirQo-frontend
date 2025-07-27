@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import ChevronDownIcon from '@/icons/Common/chevron_down.svg';
+import { AqChevronDown } from '@airqo/icons-react';
 import { getAQICategory, getAQIMessage } from '../../MapNodes';
 import {
   isToday,
@@ -138,7 +138,7 @@ const LocationAlertCard = ({
           collapsed ? 'rotate-0' : 'rotate-180'
         }`}
       >
-        <ChevronDownIcon />
+        <AqChevronDown size={16} />
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Fuse from 'fuse.js';
-import SearchIcon from '@/icons/Common/search_md.svg';
-import CloseIcon from '@/icons/close_icon';
+import { AqXClose, AqSearchSm } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 
 /**
@@ -67,7 +66,7 @@ const TopBarSearch = React.memo(
         className={`relative flex w-full ${customWidth} items-center ${className}`}
       >
         {/* Floating Search Icon */}
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+        <AqSearchSm className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
 
         {/* Input Field */}
         <input
@@ -91,7 +90,7 @@ const TopBarSearch = React.memo(
             aria-label="Clear search"
             className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 p-1 rounded-full text-primary hover:bg-primary/10 focus:outline-none"
           >
-            <CloseIcon className="w-full h-full" />
+            <AqXClose className="w-full h-full" />
           </button>
         )}
       </div>

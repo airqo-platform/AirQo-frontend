@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { FaSpinner } from 'react-icons/fa';
+import Spinner from '@/common/components/Spinner';
 import * as Yup from 'yup';
 import AlertBox from '@/components/AlertBox';
 import Button from '@/components/Button';
@@ -459,8 +459,8 @@ export default function Profile() {
                     <div className="flex items-center justify-between mt-1">
                       {profileUploading && (
                         <div className="flex items-center text-sm text-gray-600">
-                          <FaSpinner className="animate-spin mr-1" />
-                          Uploading…
+                          <Spinner size={16} />
+                          <span className="ml-1">Uploading…</span>
                         </div>
                       )}
                       {/* Reset button: only show if user has changed/uploaded a new image before saving */}
@@ -546,7 +546,8 @@ export default function Profile() {
                   <Button type="submit" disabled={isSaving || !hasChanges}>
                     {isSaving ? (
                       <>
-                        <FaSpinner className="animate-spin mr-2" /> Saving…
+                        <Spinner size={16} />
+                        <span className="ml-2">Saving…</span>
                       </>
                     ) : (
                       'Save'

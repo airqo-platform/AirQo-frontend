@@ -6,8 +6,7 @@ import { useDispatch } from 'react-redux';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import PropTypes from 'prop-types';
 import Button from '@/common/components/Button';
-import MenuBarIcon from '@/icons/menu_bar';
-import MenuIcon from '@/icons/Actions/menu';
+import { AqMenu02, AqMenu04 } from '@airqo/icons-react';
 import MyProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
 import AppDropdown from '../components/AppDropdown';
@@ -144,18 +143,14 @@ const GlobalTopbar = ({
         <span
           className={
             isMobile
-              ? 'p-1 inline-flex items-center justify-center'
-              : 'p-2 m-0 inline-flex items-center justify-center'
+              ? 'p-1 inline-flex items-center focus:outline-none justify-center'
+              : 'p-2 m-0 inline-flex items-center focus:outline-none justify-center'
           }
         >
           {isMobile ? (
-            <MenuBarIcon
-              fill={isDarkMode ? '#fff' : '#1C1D20'}
-              width={18}
-              height={18}
-            />
+            <AqMenu04 color={isDarkMode ? '#fff' : '#1C1D20'} size={20} />
           ) : (
-            <MenuIcon width={20} height={20} />
+            <AqMenu02 size={20} />
           )}
         </span>
       </Button>
@@ -240,9 +235,9 @@ const GlobalTopbar = ({
             {/* Desktop Right: Org dropdown, app dropdown, custom actions, profile */}
             <div className="hidden lg:flex gap-2 items-center justify-center h-full">
               {!isCreateOrganizationRoute && !isAdminRoute && (
-                <TopbarOrganizationDropdown className="mr-2" />
+                <TopbarOrganizationDropdown className="topBarOrganizationSelector" />
               )}
-              <AppDropdown />
+              <AppDropdown className="topBarAppDropdown" />
               {customActions && (
                 <div className="flex items-center">{customActions}</div>
               )}

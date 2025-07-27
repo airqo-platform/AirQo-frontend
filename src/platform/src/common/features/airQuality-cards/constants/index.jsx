@@ -1,25 +1,27 @@
-import GoodAir from '@/icons/Charts/GoodAir';
-import Hazardous from '@/icons/Charts/Hazardous';
-import Moderate from '@/icons/Charts/Moderate';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import UnhealthySG from '@/icons/Charts/UnhealthySG';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import UnknownAQ from '@/icons/Charts/Invalid';
-import WindIcon from '@/icons/Common/wind.svg';
-import TrendDownIcon from '@/icons/Analytics/trendDownIcon';
-import TrendUpIcon from '@/icons/Analytics/trendUpIcon';
+import {
+  AqGood,
+  AqModerate,
+  AqUnhealthyForSensitiveGroups,
+  AqVeryUnhealthy,
+  AqUnhealthy,
+  AqHazardous,
+  AqNoValue,
+  AqTrendDown01,
+  AqTrendUp01,
+  AqWind01,
+} from '@airqo/icons-react';
 
 export const IconMap = {
-  good: GoodAir,
-  moderate: Moderate,
-  'unhealthy-sensitive': UnhealthySG,
-  unhealthy: Unhealthy,
-  'very-unhealthy': VeryUnhealthy,
-  hazardous: Hazardous,
-  unknown: UnknownAQ,
-  wind: WindIcon,
-  trend1: TrendDownIcon,
-  trend2: TrendUpIcon,
+  good: AqGood,
+  moderate: AqModerate,
+  'unhealthy-sensitive': AqUnhealthyForSensitiveGroups,
+  unhealthy: AqUnhealthy,
+  'very-unhealthy': AqVeryUnhealthy,
+  hazardous: AqHazardous,
+  unknown: AqNoValue,
+  wind: AqWind01,
+  trend1: AqTrendDown01,
+  trend2: AqTrendUp01,
 };
 
 export const AQI_CATEGORY_MAP = {

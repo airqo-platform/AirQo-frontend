@@ -31,6 +31,14 @@ export const getSiteSummaryDetails = () =>
     })
     .then((response) => response.data);
 
+// Get site summary details with API token auth
+export const getSiteSummaryDetailsWithToken = () =>
+  secureApiProxy
+    .get(`${SITES_URL}/summary`, {
+      authType: AUTH_TYPES.API_TOKEN,
+    })
+    .then((response) => response.data);
+
 export const getGirdsSummaryDetails = () =>
   secureApiProxy
     .get(GRIDS_SUMMARY_URL, {

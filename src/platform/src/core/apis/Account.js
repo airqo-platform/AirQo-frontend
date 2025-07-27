@@ -60,6 +60,13 @@ export const updateUserCreationDetails = (data, identifier) =>
     })
     .then((response) => response.data);
 
+export const updateUserCreationDetailsWithToken = (data, identifier) =>
+  secureApiProxy
+    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
+    })
+    .then((response) => response.data);
+
 // Group Management
 export const getAssignedGroupMembers = (groupID) =>
   secureApiProxy
@@ -202,6 +209,11 @@ export const postUserPreferencesApi = (data) =>
     .post(`${USER_PREFERENCES_URL}`, data, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
 
+export const postUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .post(`${USER_PREFERENCES_URL}`, data, { authType: AUTH_TYPES.API_TOKEN })
+    .then((response) => response.data);
+
 export const updateUserPreferencesApi = (data) =>
   secureApiProxy
     .post(`${USER_PREFERENCES_URL}/upsert`, data, {
@@ -223,6 +235,13 @@ export const patchUserPreferencesApi = (data) =>
   secureApiProxy
     .patch(`${USER_PREFERENCES_URL}/replace`, data, {
       authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const patchUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .patch(`${USER_PREFERENCES_URL}/replace`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);
 

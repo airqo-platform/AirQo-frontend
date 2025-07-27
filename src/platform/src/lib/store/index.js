@@ -7,13 +7,13 @@ import thunk from 'redux-thunk';
 // Create noop storage for SSR
 const createNoopStorage = () => {
   return {
-    getItem(_key) {
+    getItem() {
       return Promise.resolve(null);
     },
-    setItem(_key, value) {
-      return Promise.resolve(value);
+    setItem(_value) {
+      return Promise.resolve(_value);
     },
-    removeItem(_key) {
+    removeItem() {
       return Promise.resolve();
     },
   };
@@ -48,6 +48,7 @@ import modalSlice from './services/downloadModal';
 import sitesSummaryReducer from './services/sitesSummarySlice';
 import { organisationRequestsSlice } from './services/admin/OrgRequestsSlice';
 import organizationThemeReducer from './services/organizationTheme/OrganizationThemeSlice';
+import moreInsightsReducer from './services/moreInsights';
 
 // Combine all the reducers
 const rootReducer = combineReducers({
@@ -73,6 +74,7 @@ const rootReducer = combineReducers({
   sites: sitesSummaryReducer,
   organisationRequests: organisationRequestsSlice.reducer,
   organizationTheme: organizationThemeReducer,
+  moreInsights: moreInsightsReducer,
 });
 
 // Root reducer wrapper to handle state reset on logout
@@ -88,7 +90,7 @@ const appReducer = (state, action) => {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'checklists', 'groups', 'organizationTheme'],
+  whitelist: ['login', 'checklists', 'groups', 'organizationTheme'], // DO NOT persist moreInsights
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);

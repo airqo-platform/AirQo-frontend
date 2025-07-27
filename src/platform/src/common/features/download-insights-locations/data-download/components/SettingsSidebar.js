@@ -1,7 +1,10 @@
-import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
-import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
-import WindIcon from '@/icons/Analytics/windIcon';
+import {
+  AqSliders02,
+  AqWind01,
+  AqClockFastForward,
+  AqFileCheck02,
+} from '@airqo/icons-react';
+
 import CustomFields from './CustomFields';
 import { motion } from 'framer-motion';
 
@@ -20,7 +23,6 @@ const SettingsSidebar = ({
   edit,
   filteredDataTypeOptions,
   durationGuidance,
-  handleSubmit,
   handleTitleChange,
   sidebarBg = '#f6f6f7',
 }) => {
@@ -42,15 +44,14 @@ const SettingsSidebar = ({
   };
 
   return (
-    <motion.form
+    <motion.div
       className="w-[240px] h-full relative space-y-3 px-5 pt-5 pb-14 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
-      onSubmit={handleSubmit}
       variants={sidebarVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Form Fields */}
+      {/* Form Fields - Remove form wrapper to prevent auto-submission */}
       <motion.div className="space-y-4">
         <motion.div variants={formItemVariants}>
           <div className="mb-2">
@@ -64,6 +65,13 @@ const SettingsSidebar = ({
               onChange={handleTitleChange}
               autoFocus
               disabled={edit}
+              onKeyDown={(e) => {
+                // Prevent Enter key from triggering form submission
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             />
           </div>
         </motion.div>
@@ -73,7 +81,7 @@ const SettingsSidebar = ({
             title="Data type"
             options={filteredDataTypeOptions}
             id="dataType"
-            icon={<CalibrateIcon />}
+            icon={<AqSliders02 size={16} />}
             defaultOption={formData.dataType}
             handleOptionSelect={handleOptionSelect}
           />
@@ -84,7 +92,7 @@ const SettingsSidebar = ({
             title="Pollutants (multi-select)"
             options={POLLUTANT_OPTIONS}
             id="pollutant"
-            icon={<WindIcon />}
+            icon={<AqWind01 size={16} />}
             defaultOption={formData.pollutant}
             multiSelect={true}
             textFormat="capitalize"
@@ -104,7 +112,7 @@ const SettingsSidebar = ({
           />
 
           {durationGuidance && (
-            <div className="text-xs text-blue-600 -mt-2 ml-1">
+            <div className="text-xs text-blue-600 mt-2 ">
               {durationGuidance}
             </div>
           )}
@@ -115,7 +123,7 @@ const SettingsSidebar = ({
             title="Frequency"
             options={FREQUENCY_OPTIONS}
             id="frequency"
-            icon={<FrequencyIcon />}
+            icon={<AqClockFastForward size={16} />}
             defaultOption={formData.frequency}
             handleOptionSelect={handleOptionSelect}
           />
@@ -126,13 +134,13 @@ const SettingsSidebar = ({
             title="File type"
             options={FILE_TYPE_OPTIONS}
             id="fileType"
-            icon={<FileTypeIcon />}
+            icon={<AqFileCheck02 size={16} />}
             defaultOption={formData.fileType}
             handleOptionSelect={handleOptionSelect}
           />
         </motion.div>
       </motion.div>
-    </motion.form>
+    </motion.div>
   );
 };
 

@@ -4,14 +4,16 @@ import { Tooltip } from 'flowbite-react';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 
 // Icons
-import GoodAir from '@/icons/Charts/GoodAir';
-import ModerateAir from '@/icons/Charts/Moderate';
-import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import Hazardous from '@/icons/Charts/Hazardous';
-import UpArrow from '@/icons/map/upArrow';
-import DownArrow from '@/icons/map/downArrow';
+import {
+  AqGood,
+  AqModerate,
+  AqUnhealthyForSensitiveGroups,
+  AqVeryUnhealthy,
+  AqUnhealthy,
+  AqHazardous,
+  AqChevronDown,
+  AqChevronUp,
+} from '@airqo/icons-react';
 
 // Import Card wrapper component
 import Card from '@/components/CardWrapper';
@@ -47,32 +49,32 @@ const AirQualityLegend = ({ pollutant }) => {
         {
           range: '0.0μg/m3 - 9.0μg/m3',
           label: 'Air Quality is Good',
-          icon: <GoodAir width={size} height={size} />,
+          icon: <AqGood size={size} />,
         },
         {
           range: '9.1μg/m3 - 35.4μg/m3',
           label: 'Air Quality is Moderate',
-          icon: <ModerateAir width={size} height={size} />,
+          icon: <AqModerate size={size} />,
         },
         {
           range: '35.5μg/m3 - 55.4μg/m3',
           label: 'Air Quality is Unhealthy for Sensitive Groups',
-          icon: <UnhealthyForSensitiveGroups width={size} height={size} />,
+          icon: <AqUnhealthyForSensitiveGroups size={size} />,
         },
         {
           range: '55.5μg/m3 - 125.4μg/m3',
           label: 'Air Quality is Unhealthy',
-          icon: <Unhealthy width={size} height={size} />,
+          icon: <AqUnhealthy size={size} />,
         },
         {
           range: '125.5μg/m3 - 225.4μg/m3',
           label: 'Air Quality is Very Unhealthy',
-          icon: <VeryUnhealthy width={size} height={size} />,
+          icon: <AqVeryUnhealthy size={size} />,
         },
         {
           range: '225.5μg/m3 +',
           label: 'Air Quality is Hazardous',
-          icon: <Hazardous width={size} height={size} />,
+          icon: <AqHazardous size={size} />,
         },
       ],
       // Additional pollutant levels can go here
@@ -97,7 +99,7 @@ const AirQualityLegend = ({ pollutant }) => {
         className="rounded-full p-2 transition-transform duration-300"
         aria-label="Toggle Air Quality Legend"
       >
-        {show ? <DownArrow /> : <UpArrow />}
+        {show ? <AqChevronDown /> : <AqChevronUp />}
       </button>
 
       <div

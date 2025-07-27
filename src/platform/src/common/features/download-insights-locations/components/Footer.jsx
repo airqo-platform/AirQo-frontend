@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import Spinner from '@/components/Spinner';
@@ -127,7 +127,7 @@ const EnhancedFooter = ({
           {loading ? (
             <span className="flex items-center justify-center">
               <span className="mr-2">
-                <Spinner width={12} height={12} />
+                <Spinner size={12} />
               </span>
               {btnText}
             </span>

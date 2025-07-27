@@ -28,7 +28,7 @@ export const createSteps = (handleStepClick) => [
     description:
       'Customize your profile settings for a personalized experience',
     time: '4 min',
-    link: '/user/settings',
+    link: '/user/profile',
     func: () => handleStepClick(3),
     icon: 'profile',
   },

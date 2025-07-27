@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import { isSameDay } from 'date-fns';
-import WindIcon from '@/icons/Common/wind.svg';
+import { AqWind01 } from '@airqo/icons-react';
 import { getAQIcon } from '../../MapNodes';
 import { images } from '../../../constants/mapConstants';
 import { useSelector } from 'react-redux';
@@ -70,7 +70,7 @@ const PollutantCard = ({ selectedSite, selectedWeeklyPrediction }) => {
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-secondary-neutral-dark-50 flex items-center justify-center">
-            <WindIcon />
+            <AqWind01 />
           </div>
           <p className="text-sm font-medium text-gray-400 dark:text-gray-300">
             PM2.5

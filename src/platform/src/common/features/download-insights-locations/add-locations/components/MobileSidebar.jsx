@@ -1,7 +1,6 @@
-import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SidebarContent } from './SidebarContent';
-import Close from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 
 export const MobileSidebar = ({ isVisible, close, ...sidebarContentProps }) => (
   <AnimatePresence>
@@ -20,7 +19,7 @@ export const MobileSidebar = ({ isVisible, close, ...sidebarContentProps }) => (
         >
           <div className="p-2 flex justify-end">
             <button onClick={close} aria-label="Close sidebar menu">
-              <Close />
+              <AqXClose />
             </button>
           </div>
           <div className="px-2">

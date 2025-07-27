@@ -6,10 +6,12 @@ import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
 import Button from '@/components/Button';
-import PlusIcon from '@/icons/map/plusIcon';
-import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
+import {
+  AqDownload02,
+  AqPlus,
+  AqSettings02,
+  AqClockFastForward,
+} from '@airqo/icons-react';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
@@ -80,7 +82,7 @@ const OrganizationAnalyticsControls = ({
         <div className="flex flex-wrap gap-2">
           {/* Time Frame Dropdown */}
           <CustomDropdown
-            icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
+            icon={window.innerWidth < 640 ? <AqClockFastForward /> : undefined}
             text={<span className="capitalize">{chartData.timeFrame}</span>}
             dropdownWidth="150px"
           >
@@ -111,7 +113,7 @@ const OrganizationAnalyticsControls = ({
           {/* Pollutant Dropdown */}
           <CustomDropdown
             text="Pollutant"
-            icon={<SettingsIcon />}
+            icon={<AqSettings02 />}
             iconPosition="left"
           >
             <div className="py-1">
@@ -132,7 +134,7 @@ const OrganizationAnalyticsControls = ({
           {/* Add Location Button */}
           <CustomDropdown
             text="Add location"
-            icon={<PlusIcon width={16} height={16} />}
+            icon={<AqPlus width={16} height={16} />}
             iconPosition="left"
             isButton
             onClick={() => handleOpenModal('addLocation')}
@@ -144,7 +146,7 @@ const OrganizationAnalyticsControls = ({
             trigger={
               <Button
                 onClick={() => handleOpenModal('download')}
-                Icon={DownloadIcon}
+                Icon={AqDownload02}
               >
                 Download Data
               </Button>

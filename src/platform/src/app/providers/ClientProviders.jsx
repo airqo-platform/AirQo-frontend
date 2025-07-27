@@ -18,6 +18,7 @@ import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeC
 import UnifiedGroupProvider from './UnifiedGroupProvider';
 import LogoutProvider from './LogoutProvider';
 import { useThemeInitialization } from '@/core/hooks';
+import { TourProvider } from '@/features/tours/contexts/TourProvider';
 // Import environment validation
 import { validateEnvironment } from '@/lib/envConstants';
 
@@ -171,7 +172,9 @@ export default function ClientProviders({ children }) {
           <ThemeProvider>
             <ThemeInitializer />
             <LogoutProvider>
-              <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
+              <UnifiedGroupProvider>
+                <TourProvider>{children}</TourProvider>
+              </UnifiedGroupProvider>
             </LogoutProvider>
           </ThemeProvider>
         </ReduxProviders>
