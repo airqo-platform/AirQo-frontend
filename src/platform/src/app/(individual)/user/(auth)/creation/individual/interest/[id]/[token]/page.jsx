@@ -8,6 +8,7 @@ import {
   verifyUserEmailApi,
   postUserDefaultsApi,
 } from '@/core/apis/Account';
+import { getSiteSummaryDetailsWithToken } from '@/core/apis/DeviceRegistry';
 import { useRouter, useParams } from 'next/navigation';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import { postUserDefaults } from '@/lib/store/services/account/UserDefaultsSlice';
