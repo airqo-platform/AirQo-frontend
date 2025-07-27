@@ -1,4 +1,3 @@
-// components/Account/IndividualAccountInterest.jsx
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -8,7 +7,7 @@ import CustomToast from '@/common/components/Toast/CustomToast';
 import {
   verifyUserEmailApi,
   updateUserCreationDetailsWithToken,
-  patchUserPreferencesApiWithToken, // Changed to patch
+  patchUserPreferencesApiWithToken,
 } from '@/core/apis/Account';
 import { getSiteSummaryDetailsWithToken } from '@/core/apis/DeviceRegistry';
 import Button from '@/common/components/Button';
@@ -460,7 +459,7 @@ export default function IndividualAccountInterest() {
                 onChange={(e) => setInterestDetails(e.target.value)}
                 rows={3}
                 placeholder="E.g., I'm a researcher focusing on PM2.5 trends..."
-                className="w-full"
+                className="w-full rounded-lg"
               />
             </div>
 
