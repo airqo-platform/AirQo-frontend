@@ -6,6 +6,7 @@ import RadioComponent from '@/components/Account/RadioComponent';
 import {
   updateUserCreationDetails,
   verifyUserEmailApi,
+  postUserDefaultsApi,
 } from '@/core/apis/Account';
 import { useRouter, useParams } from 'next/navigation';
 import CustomToast from '@/common/components/Toast/CustomToast';
