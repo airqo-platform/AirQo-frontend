@@ -238,6 +238,13 @@ export const patchUserPreferencesApi = (data) =>
     })
     .then((response) => response.data);
 
+export const patchUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .patch(`${USER_PREFERENCES_URL}/replace`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
+    })
+    .then((response) => response.data);
+
 export const recentUserPreferencesAPI = (identifier) =>
   secureApiProxy
     .get(`${USER_PREFERENCES_URL}/recent/${identifier}`, {

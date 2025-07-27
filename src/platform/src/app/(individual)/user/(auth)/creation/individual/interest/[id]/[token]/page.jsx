@@ -7,7 +7,7 @@ import CustomToast from '@/common/components/Toast/CustomToast';
 import {
   verifyUserEmailApi,
   updateUserCreationDetailsWithToken,
-  postUserPreferencesApiWithToken,
+  patchUserPreferencesApiWithToken,
 } from '@/core/apis/Account';
 import { getSiteSummaryDetailsWithToken } from '@/core/apis/DeviceRegistry';
 import Button from '@/common/components/Button';
@@ -169,10 +169,11 @@ export default function IndividualAccountInterest() {
           name: site.name,
           search_name: site.search_name,
         })),
+        group_id: '',
         user_id: userId,
       };
 
-      const response = await postUserPreferencesApiWithToken(payload);
+      const response = await patchUserPreferencesApiWithToken(payload);
       if (response?.success) {
         setCurrentStep(2);
       } else {
