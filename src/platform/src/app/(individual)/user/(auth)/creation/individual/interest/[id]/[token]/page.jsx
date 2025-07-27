@@ -13,6 +13,8 @@ import { getSiteSummaryDetailsWithToken } from '@/core/apis/DeviceRegistry';
 import Button from '@/common/components/Button';
 import SearchField from '@/common/components/search/SearchField';
 import TextField from '@/common/components/TextInputField';
+import Spinner from '@/common/components/Spinner';
+import { AqFaceFrown } from '@airqo/icons-react';
 
 const radioOptions = [
   'Health Professional',
@@ -175,6 +177,10 @@ export default function IndividualAccountInterest() {
 
       const response = await patchUserPreferencesApiWithToken(payload);
       if (response?.success) {
+        CustomToast({
+          message: 'Locations saved successfully!',
+          type: 'success',
+        });
         setCurrentStep(2);
       } else {
         const errorMsg =
@@ -260,6 +266,7 @@ export default function IndividualAccountInterest() {
                 <SearchField
                   placeholder="Search locations..."
                   onSearch={(e) => setSearchTerm(e.target.value)}
+                  onClearSearch={() => setSearchTerm('')}
                   showSearchResultsNumber={false}
                   inputClassName="w-full"
                   wrapperClassName=""
@@ -271,8 +278,8 @@ export default function IndividualAccountInterest() {
             <div className="mt-2">
               {loading.sites ? (
                 <div className="flex flex-col items-center justify-center py-10">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-3"></div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <Spinner size={32} />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
                     Loading locations...
                   </p>
                 </div>
@@ -293,20 +300,7 @@ export default function IndividualAccountInterest() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center rounded-md border border-dashed border-gray-300 dark:border-gray-700">
-                  <svg
-                    className="mx-auto h-10 w-10 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <AqFaceFrown className="h-12 w-12 text-gray-400 dark:text-gray-500" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                     No locations found
                   </h3>
