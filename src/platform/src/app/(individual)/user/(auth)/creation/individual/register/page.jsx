@@ -308,7 +308,6 @@ const IndividualAccountRegistration = () => {
               <button
                 type="submit"
                 style={{ textTransform: 'none' }}
-                // Use primary color classes consistently (adjust if needed)
                 className={`w-full btn dark:text-white rounded-[12px] text-sm outline-none border-none transition-colors duration-200 ${
                   isFormValid
                     ? 'text-white bg-primary hover:bg-primary/90'
