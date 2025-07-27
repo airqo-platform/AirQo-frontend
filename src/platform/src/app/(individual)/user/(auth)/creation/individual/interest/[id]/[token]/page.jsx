@@ -1,3 +1,4 @@
+// components/Account/IndividualAccountInterest.jsx
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -7,7 +8,7 @@ import CustomToast from '@/common/components/Toast/CustomToast';
 import {
   verifyUserEmailApi,
   updateUserCreationDetailsWithToken,
-  patchUserPreferencesApiWithToken,
+  patchUserPreferencesApiWithToken, // Changed to patch
 } from '@/core/apis/Account';
 import { getSiteSummaryDetailsWithToken } from '@/core/apis/DeviceRegistry';
 import Button from '@/common/components/Button';
@@ -27,6 +28,7 @@ const radioOptions = [
   'Air Quality Partner',
 ];
 
+// --- Enhanced Site Card ---
 const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => (
   <div
     onClick={() => !isDisabled && onSelect(site)}
@@ -47,8 +49,8 @@ const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => (
         <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
           {site.name}
         </h3>
+        {/* Removed city for cleaner look as requested */}
         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-          {site.city ? `${site.city}, ` : ''}
           {site.country}
         </p>
       </div>
@@ -63,7 +65,9 @@ export default function IndividualAccountInterest() {
   const token = params?.token;
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [sites, setSites] = useState([]);
+  const [sites, setSites] = useState([]); // Raw list of all sites
+  const [countries, setCountries] = useState([]); // List of unique countries
+  const [selectedCountry, setSelectedCountry] = useState('Uganda'); // Default to Uganda
   const [selectedSites, setSelectedSites] = useState([]);
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [interestDetails, setInterestDetails] = useState('');
@@ -74,19 +78,37 @@ export default function IndividualAccountInterest() {
   });
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredSites = useMemo(() => {
-    if (!searchTerm.trim()) return sites;
-    const term = searchTerm.toLowerCase().trim();
-    return sites.filter((site) => {
-      const name = site.name ? site.name.toLowerCase() : '';
-      const country = site.country ? site.country.toLowerCase() : '';
-      const city = site.city ? site.city.toLowerCase() : '';
-      return (
-        name.includes(term) || country.includes(term) || city.includes(term)
-      );
-    });
-  }, [sites, searchTerm]);
+  // --- 1. Process sites data to extract countries and group sites ---
+  useEffect(() => {
+    if (sites.length > 0) {
+      const uniqueCountries = [
+        ...new Set(sites.map((site) => site.country).filter(Boolean)),
+      ];
+      setCountries(uniqueCountries);
 
+      // If 'Uganda' is not in the list, default to the first available country
+      if (!uniqueCountries.includes('Uganda') && uniqueCountries.length > 0) {
+        setSelectedCountry(uniqueCountries[0]);
+      }
+      // If 'Uganda' is present, setSelectedCountry('Uganda') is already the default state
+    }
+  }, [sites]);
+
+  // --- 2. Filter sites by selected country and search term ---
+  const filteredSites = useMemo(() => {
+    return sites
+      .filter((site) => site.country === selectedCountry) // Filter by selected country first
+      .filter((site) => {
+        if (!searchTerm.trim()) return true;
+        const term = searchTerm.toLowerCase().trim();
+        const name = site.name ? site.name.toLowerCase() : '';
+        const country = site.country ? site.country.toLowerCase() : ''; // Redundant filter now, but safe
+        // Removed city filter as per UI simplification request
+        return name.includes(term) || country.includes(term);
+      });
+  }, [sites, selectedCountry, searchTerm]);
+
+  // --- 3. Fetch initial data ---
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
@@ -95,27 +117,19 @@ export default function IndividualAccountInterest() {
       verifyUserEmailApi(userId, token)
         .then((response) => {
           if (isMounted && response?.success === true) {
-            CustomToast({
-              message: 'Email verified successfully!',
-              type: 'success',
-            });
+            // CustomToast({ message: 'Email verified successfully!', type: 'success' });
+            // Optionally provide less intrusive feedback or none
           }
         })
         .catch((err) => {
-          console.warn(
-            'Email verification check completed (may have been already verified).',
-            err,
-          );
+          console.warn('Email verification check completed.', err);
           if (isMounted) {
-            CustomToast({
-              message: 'Email verification check completed.',
-              type: 'info',
-            });
+            // CustomToast({ message: 'Email verification check completed.', type: 'info' });
           }
         });
 
       try {
-        const siteResponse = await getSiteSummaryDetailsWithToken();
+        const siteResponse = await getSiteSummaryDetailsWithToken(token);
         if (isMounted && siteResponse?.success) {
           setSites(siteResponse.sites || []);
         } else if (isMounted) {
@@ -156,31 +170,22 @@ export default function IndividualAccountInterest() {
     setSelectedIndustry(industry);
   };
 
+  // --- Updated to use patchUserPreferencesApiWithToken ---
   const handleSavePreferences = async () => {
     if (loading.step1 || !userId || !token || selectedSites.length === 0)
       return;
     setLoading((prev) => ({ ...prev, step1: true }));
 
     try {
+      // Prepare payload for PATCH request
       const payload = {
-        selected_sites: selectedSites.map((site) => ({
-          _id: site._id,
-          latitude: site.latitude,
-          longitude: site.longitude,
-          country: site.country,
-          name: site.name,
-          search_name: site.search_name,
-        })),
-        group_id: '',
+        selected_sites: selectedSites.map((site) => site._id), // Send only IDs
         user_id: userId,
       };
 
-      const response = await patchUserPreferencesApiWithToken(payload);
+      // Use PATCH instead of POST
+      const response = await patchUserPreferencesApiWithToken(payload, token);
       if (response?.success) {
-        CustomToast({
-          message: 'Locations saved successfully!',
-          type: 'success',
-        });
         setCurrentStep(2);
       } else {
         const errorMsg =
@@ -218,6 +223,7 @@ export default function IndividualAccountInterest() {
       const response = await updateUserCreationDetailsWithToken(
         payload,
         userId,
+        token,
       );
 
       if (response?.success) {
@@ -261,6 +267,34 @@ export default function IndividualAccountInterest() {
               </p>
             </div>
 
+            {/* Country Selector */}
+            <div className="mb-4">
+              <label
+                htmlFor="country-select"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Filter by Country
+              </label>
+              <select
+                id="country-select"
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                disabled={loading.sites || countries.length === 0}
+              >
+                {countries.length > 0 ? (
+                  countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No countries available</option>
+                )}
+              </select>
+            </div>
+
+            {/* Search Input */}
             <div className="mb-4">
               <div className="relative">
                 <SearchField
@@ -271,10 +305,12 @@ export default function IndividualAccountInterest() {
                   inputClassName="w-full"
                   wrapperClassName=""
                   focus={!loading.sites}
+                  disabled={loading.sites}
                 />
               </div>
             </div>
 
+            {/* Location Grid */}
             <div className="mt-2">
               {loading.sites ? (
                 <div className="flex flex-col items-center justify-center py-10">
@@ -306,13 +342,14 @@ export default function IndividualAccountInterest() {
                   </h3>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {searchTerm
-                      ? 'Try a different search term.'
-                      : 'No locations match your criteria.'}
+                      ? `No locations found in ${selectedCountry} matching "${searchTerm}".`
+                      : `No locations available in ${selectedCountry}.`}
                   </p>
                 </div>
               )}
             </div>
 
+            {/* Footer with Counter and Button */}
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
                 <span
@@ -419,26 +456,33 @@ export default function IndividualAccountInterest() {
               </label>
               <TextField
                 id="interestDetails"
-                name="interestDetails"
                 value={interestDetails}
                 onChange={(e) => setInterestDetails(e.target.value)}
-                label={null}
                 rows={3}
                 placeholder="E.g., I'm a researcher focusing on PM2.5 trends..."
-                inputClassName="w-full"
-                required
-                disabled={loading.step2}
+                className="w-full"
               />
             </div>
 
             <div className="mt-8 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button
+              <button
                 onClick={() => setCurrentStep(1)}
-                variant="outlined"
-                className="w-full sm:w-auto px-4 py-2 text-sm font-medium flex items-center justify-center"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary flex items-center justify-center"
               >
+                <svg
+                  className="h-4 w-4 mr-1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 Back
-              </Button>
+              </button>
               <Button
                 onClick={handleSaveDetails}
                 disabled={
