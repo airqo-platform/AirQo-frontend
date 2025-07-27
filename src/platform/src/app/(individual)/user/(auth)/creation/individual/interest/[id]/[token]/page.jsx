@@ -15,6 +15,7 @@ import SearchField from '@/common/components/search/SearchField';
 import TextField from '@/common/components/TextInputField';
 import Spinner from '@/common/components/Spinner';
 import { AqFaceFrown } from '@airqo/icons-react';
+import SelectField from '@/common/components/SelectField';
 
 const radioOptions = [
   'Health Professional',
@@ -268,18 +269,15 @@ export default function IndividualAccountInterest() {
 
             {/* Country Selector */}
             <div className="mb-4">
-              <label
-                htmlFor="country-select"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Filter by Country
-              </label>
-              <select
-                id="country-select"
+              <SelectField
+                label="Filter by Country"
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 disabled={loading.sites || countries.length === 0}
+                placeholder="Select country"
+                required
+                containerClassName=""
+                className=""
               >
                 {countries.length > 0 ? (
                   countries.map((country) => (
@@ -288,9 +286,11 @@ export default function IndividualAccountInterest() {
                     </option>
                   ))
                 ) : (
-                  <option value="">No countries available</option>
+                  <option value="" disabled>
+                    No countries available
+                  </option>
                 )}
-              </select>
+              </SelectField>
             </div>
 
             {/* Search Input */}
