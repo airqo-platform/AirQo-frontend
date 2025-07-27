@@ -8,8 +8,9 @@ import * as Yup from 'yup';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
 
 import AccountPageLayout from '@/components/Account/Layout';
-import Toast from '@/components/Toast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import InputField from '@/common/components/InputField';
+import Button from '@/common/components/Button';
 
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -145,7 +146,14 @@ const UserLogin = () => {
           <p className="text-xl font-normal mt-3 text-gray-700 dark:text-gray-300">
             Get access to air quality analytics across Africa
           </p>
-          {error && <Toast type="error" timeout={8000} message={error} />}
+          {error && (
+            <CustomToast
+              type="error"
+              timeout={8000}
+              message={error}
+              clearData={() => setErrorState('')}
+            />
+          )}
           <form onSubmit={handleLogin} noValidate>
             <div className="mt-6">
               <InputField
@@ -178,13 +186,15 @@ const UserLogin = () => {
               </div>
             </div>
             <div className="mt-10">
-              <button
-                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
+              <Button
+                className="w-full rounded-lg text-sm"
                 disabled={loading}
+                loading={loading}
                 type="submit"
+                variant={loading ? 'disabled' : 'filled'}
               >
                 {loading ? 'Logging in...' : 'Login'}
-              </button>
+              </Button>
             </div>
           </form>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
-import Toast from '@/components/Toast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { resetPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
+import Button from '@/common/components/Button';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -106,23 +107,25 @@ const ResetPassword = () => {
               />
             </div>
             <div className="mt-10">
-              <button
-                style={{ textTransform: 'none' }}
-                className="w-full btn rounded-[12px] bg-blue-600 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
+              <Button
                 type="submit"
+                loading={loading}
                 disabled={loading}
+                variant={loading ? 'disabled' : 'filled'}
+                className="w-full text-sm"
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
 
         {toastMessage.message && (
-          <Toast
+          <CustomToast
             type={toastMessage.type}
-            timeout={8000}
             message={toastMessage.message}
+            timeout={8000}
+            clearData={() => setToastMessage({ message: '', type: '' })}
           />
         )}
       </AccountPageLayout>

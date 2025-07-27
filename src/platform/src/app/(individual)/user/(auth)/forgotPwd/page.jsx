@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import AccountPageLayout from '@/components/Account/Layout';
-import Toast from '@/components/Toast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import { forgotPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
+import Button from '@/common/components/Button';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -89,14 +90,15 @@ const ForgotPassword = () => {
               />
             </div>
             <div className="mt-10">
-              <button
-                style={{ textTransform: 'none' }}
-                className="w-full btn rounded-[12px] bg-blue-600 dark:bg-blue-700 text-white text-sm outline-none border-none hover:bg-blue-950 dark:hover:bg-blue-600"
+              <Button
                 type="submit"
+                loading={loading}
                 disabled={loading}
+                variant={loading ? 'disabled' : 'filled'}
+                className="w-full rounded-[12px] text-sm"
               >
-                {loading ? 'Sending... ' : 'Submit'}
-              </button>
+                {loading ? 'Sending...' : 'Submit'}
+              </Button>
             </div>
           </form>
           <div className="mt-8 w-full flex justify-center">
@@ -104,7 +106,7 @@ const ForgotPassword = () => {
               <span className="text-sm text-gray-500 dark:text-gray-300">
                 Don&apos;t have an account?{' '}
               </span>
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              <span className="text-sm font-medium text-primary dark:text-primary">
                 <Link href="/user/login">Login</Link>
               </span>
             </div>
@@ -112,10 +114,10 @@ const ForgotPassword = () => {
         </div>
 
         {toastMessage.message && (
-          <Toast
+          <CustomToast
             type={toastMessage.type}
-            timeout={8000}
             message={toastMessage.message}
+            timeout={8000}
             clearData={() => setToastMessage({ message: '', type: '' })}
           />
         )}
