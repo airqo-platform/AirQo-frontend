@@ -1,9 +1,5 @@
-import {
-  AqSave01,
-  AqEdit05,
-  AqRefreshCcw01,
-  AqLoading02,
-} from '@airqo/icons-react';
+import { AqSave01, AqEdit05, AqRefreshCcw01 } from '@airqo/icons-react';
+import Spinner from '@/common/components/Spinner';
 import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -39,9 +35,16 @@ const SettingsSidebar = ({
             <Button
               onClick={onSave}
               disabled={isSaving || !hasUnsavedChanges}
-              variant="filled"
-              Icon={!isSaving ? AqLoading02 : AqSave01}
-              className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isSaving ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
+              variant={isSaving || !hasUnsavedChanges ? 'disabled' : 'filled'}
+              Icon={
+                !isSaving
+                  ? AqSave01
+                  : () => (
+                      <span className="mr-1">
+                        <Spinner size={18} />
+                      </span>
+                    )
+              }
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
@@ -55,9 +58,10 @@ const SettingsSidebar = ({
                 }
               }}
               disabled={isDomainUpdating || !hasUnsavedChanges}
-              variant="filled"
-              Icon={isDomainUpdating ? AqLoading02 : AqEdit05}
-              className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isDomainUpdating ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
+              variant={
+                isDomainUpdating || !hasUnsavedChanges ? 'disabled' : 'filled'
+              }
+              Icon={isDomainUpdating ? () => <Spinner size={18} /> : AqEdit05}
             >
               {isDomainUpdating ? 'Updating URL...' : 'Update URL'}
             </Button>

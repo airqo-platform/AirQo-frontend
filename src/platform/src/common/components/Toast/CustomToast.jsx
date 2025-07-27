@@ -60,7 +60,11 @@ const CustomToast = ({
       break;
     case TOAST_TYPES.SUCCESS:
     default: // Defaults to success
-      icon = <AqCheck size={20} className="text-white flex-shrink-0" />;
+      icon = (
+        <span className="inline-flex mr-2 items-center justify-center rounded-full bg-green-600 p-1">
+          <AqCheck size={12} className="text-white flex-shrink-0" />
+        </span>
+      );
       className += ` ${SUCCESS_CLASSES}`;
       break;
   }
