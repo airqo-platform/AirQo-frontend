@@ -1,4 +1,3 @@
-import React from 'react';
 import Card from '@/components/CardWrapper';
 import { Skeleton } from '@/common/components/Skeleton';
 

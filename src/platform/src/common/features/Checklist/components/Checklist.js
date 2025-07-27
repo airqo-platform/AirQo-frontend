@@ -44,6 +44,7 @@ const Checklist = ({ openVideoModal }) => {
       setUserId(session.user.id);
     }
   }, [session]);
+
   // Fetch checklist data when component mounts or userId changes
   useEffect(() => {
     let isMounted = true;
@@ -51,11 +52,6 @@ const Checklist = ({ openVideoModal }) => {
     const fetchData = async () => {
       if (userId && isMounted) {
         try {
-          // Log for debugging
-          if (process.env.NODE_ENV !== 'production') {
-            logger.info('Fetching checklist data for user:', userId);
-          }
-
           await dispatch(fetchUserChecklists(userId));
 
           if (isMounted) {
@@ -77,15 +73,12 @@ const Checklist = ({ openVideoModal }) => {
     };
   }, [userId, dispatch]);
 
-  // Merge static steps with API data - using useMemo to avoid recalculating on every render
+  // Merge static steps with API data
   const mergedSteps = useMemo(() => {
     const safeChecklist = Array.isArray(reduxChecklist) ? reduxChecklist : [];
     return mergeStepsWithChecklist(staticSteps, safeChecklist);
-  }, [staticSteps, reduxChecklist]); // Monitor checklist completion state
-  useEffect(() => {
-    // Note: We removed localStorage dependency as we're now using NextAuth and persistent server-side state
-    // No side effects needed as state is persisted in the database
-  }, [reduxChecklist, allCompleted]); // Handle step click with useCallback to avoid recreation on every render
+  }, [staticSteps, reduxChecklist]);
+
   const handleStepClick = useCallback(
     async (stepItem) => {
       if (!stepItem._id || !userId) return;
@@ -99,7 +92,7 @@ const Checklist = ({ openVideoModal }) => {
               status: 'completed',
               completed: true,
               completionDate: new Date().toISOString(),
-              userId: userId, // Include userId in updates
+              userId: userId,
             }),
           ).unwrap();
           return;
@@ -117,7 +110,7 @@ const Checklist = ({ openVideoModal }) => {
               updateTaskProgress({
                 _id: stepItem._id,
                 status: 'inProgress',
-                userId: userId, // Include userId in updates
+                userId: userId,
               }),
             ).unwrap();
           }
@@ -127,7 +120,7 @@ const Checklist = ({ openVideoModal }) => {
             updateTaskProgress({
               _id: stepItem._id,
               status: 'inProgress',
-              userId: userId, // Include userId in updates
+              userId: userId,
             }),
           ).unwrap();
         }
