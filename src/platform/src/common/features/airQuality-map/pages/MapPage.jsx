@@ -106,7 +106,7 @@ const MapPage = () => {
           {/* Loading indicator for additional data */}
           {loadingOthers && (
             <div className="absolute bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md p-2 top-4 right-16 flex items-center z-50">
-              <Loader width={20} height={20} />
+              <Loader size={14} />
               <span className="ml-2 text-sm">
                 Loading global AQI data from 80+ cities...
               </span>

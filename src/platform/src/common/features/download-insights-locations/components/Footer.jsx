@@ -127,7 +127,7 @@ const EnhancedFooter = ({
           {loading ? (
             <span className="flex items-center justify-center">
               <span className="mr-2">
-                <Spinner width={12} height={12} />
+                <Spinner size={12} />
               </span>
               {btnText}
             </span>

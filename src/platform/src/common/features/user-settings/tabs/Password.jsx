@@ -202,7 +202,7 @@ const Password = () => {
               >
                 {isDisabled ? (
                   <div className="flex items-center gap-1">
-                    <Spinner width={16} height={16} />
+                    <Spinner size={16} />
                     <span>Saving...</span>
                   </div>
                 ) : (

@@ -224,7 +224,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
                   style={{ textTransform: 'none' }}
                 >
                   {loading ? (
-                    <Spinner data-testid="spinner" width={25} height={25} />
+                    <Spinner data-testid="spinner" size={24} />
                   ) : (
                     'Continue'
                   )}
@@ -483,7 +483,7 @@ const CreateOrganisationDetailsPageTwo = ({ handleComponentSwitch }) => {
                 style={{ textTransform: 'none' }}
               >
                 {loading ? (
-                  <Spinner data-testid="spinner" width={25} height={25} />
+                  <Spinner data-testid="spinner" size={24} />
                 ) : (
                   'Continue'
                 )}
@@ -691,7 +691,7 @@ const CreateOrganisationDetailsPageThree = () => {
                     className="w-full btn bg-blue-900 rounded-[12px] text-sm outline-none border-none hover:bg-blue-950"
                   >
                     {loading ? (
-                      <Spinner data-testid="spinner" width={25} height={25} />
+                      <Spinner data-testid="spinner" size={24} />
                     ) : (
                       'Continue'
                     )}

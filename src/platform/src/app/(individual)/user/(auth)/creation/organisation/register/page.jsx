@@ -266,7 +266,7 @@ const OrganisationIndividualAccountCreation = () => {
                   password !== '' &&
                   !passwordWordErrors &&
                   checked ? (
-                    <Spinner data-testid="spinner" width={25} height={25} />
+                    <Spinner data-testid="spinner" size={24} />
                   ) : (
                     'Continue'
                   )}

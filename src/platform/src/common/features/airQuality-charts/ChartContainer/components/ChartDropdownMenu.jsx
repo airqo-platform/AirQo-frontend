@@ -6,11 +6,18 @@ import React, {
   useEffect,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AqCheck } from '@airqo/icons-react';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { ChartExportUtils } from '../utils/chartExportUtils';
 import CustomToast from '@/components/Toast/CustomToast';
 import StandardsMenu from './StandardsMenu';
+import {
+  AqRefreshCcw02,
+  AqFileDownload03,
+  AqBarChart12,
+  AqCheck,
+  AqAlertCircle,
+  AqLoading01,
+} from '@airqo/icons-react';
 
 const ChartDropdownMenu = ({
   chartContentRef,
@@ -224,12 +231,7 @@ const ChartDropdownMenu = ({
 
   // Loading spinner component
   const LoadingSpinner = useMemo(
-    () => (
-      <div
-        className="animate-spin h-4 w-4 border-2 border-t-blue-500 border-gray-300 rounded-full"
-        aria-hidden="true"
-      />
-    ),
+    () => <AqLoading01 className="h-4 w-4 animate-spin" />,
     [],
   );
 
@@ -254,19 +256,7 @@ const ChartDropdownMenu = ({
       role="menuitem"
     >
       <span className="flex items-center space-x-2">
-        <svg
-          className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
+        <AqRefreshCcw02 className="h-4 w-4" />
         <span>Refresh Data</span>
       </span>
     </button>
@@ -290,19 +280,7 @@ const ChartDropdownMenu = ({
             role="menuitem"
           >
             <span className="flex items-center space-x-2">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+              <AqFileDownload03 className="h-4 w-4" />
               <span>Export as {format.toUpperCase()}</span>
             </span>
             <span className="flex items-center -mr-1">
@@ -332,19 +310,7 @@ const ChartDropdownMenu = ({
       role="menuitem"
     >
       <span className="flex items-center space-x-2">
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
+        <AqBarChart12 className="h-4 w-4" />
         <span>More Insights</span>
       </span>
     </button>
@@ -367,19 +333,7 @@ const ChartDropdownMenu = ({
         role="alert"
       >
         <div className="flex items-start space-x-2">
-          <svg
-            className="h-4 w-4 flex-shrink-0 mt-0.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <AqAlertCircle className="h-4 w-4" />
           <span>{error}</span>
         </div>
       </div>

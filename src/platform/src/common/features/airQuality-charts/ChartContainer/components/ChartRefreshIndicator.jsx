@@ -39,7 +39,7 @@ const ChartRefreshIndicator = ({
       aria-live="polite"
       aria-label={message}
     >
-      <Spinner width={12} height={12} className="text-current" />
+      <Spinner size={14} className="text-current" />
       <span className="text-sm font-medium ml-2">{message}</span>
     </div>
   );
