@@ -203,7 +203,7 @@ const GlobalTopbar = ({
   return (
     <div className="fixed top-0 left-0 right-0 z-[999]">
       {/* Main Topbar */}
-      <div className="px-2 py-1">
+      <div className="px-1 md:px-2 py-1">
         <CardWrapper
           className={`w-full ${styles.background}`}
           padding="py-1 px-4"
