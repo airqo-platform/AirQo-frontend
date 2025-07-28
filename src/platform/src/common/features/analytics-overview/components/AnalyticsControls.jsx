@@ -8,8 +8,8 @@ import Button from '@/components/Button';
 import {
   AqPlus,
   AqDownload02,
-  AqSettings02,
   AqClockFastForward,
+  AqSliders04,
 } from '@airqo/icons-react';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
@@ -73,7 +73,7 @@ const AnalyticsControls = ({
         {/* Pollutant Dropdown */}
         <CustomDropdown
           text="Pollutant"
-          icon={<AqSettings02 size={16} />}
+          icon={<AqSliders04 size={16} />}
           iconPosition="left"
         >
           <div className="py-1">
