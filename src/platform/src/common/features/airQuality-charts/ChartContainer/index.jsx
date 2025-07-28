@@ -146,17 +146,6 @@ const ChartContainer = ({
     [error, chartSites.length, chartLoading],
   );
 
-  // Memoized class names for performance
-  const cardClasses = useMemo(
-    () =>
-      `
-      relative border rounded-lg shadow-sm transition-colors duration-200
-      ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}
-      ${className}
-    `.trim(),
-    [isDark, className],
-  );
-
   const headerProps = useMemo(
     () => ({
       className: `
@@ -218,7 +207,7 @@ const ChartContainer = ({
         padding="p-0"
         width="w-full"
         overflow={false}
-        className={cardClasses}
+        className={`${className}`}
         contentClassName={contentClassName}
         headerProps={headerProps}
       >

@@ -50,7 +50,7 @@ const Card = forwardRef(
       bordered !== undefined ? bordered : skin === 'bordered';
 
     // Determine shadow based on skin if not explicitly set
-    const appliedShadow = shadow || (skin === 'default' ? 'shadow-sm' : '');
+    const appliedShadow = shadow || (skin === 'default' ? 'shadow' : '');
 
     // Determine if we need to apply semi-dark styles
     const isSidebarCard = className?.includes('sidebar') || false;
