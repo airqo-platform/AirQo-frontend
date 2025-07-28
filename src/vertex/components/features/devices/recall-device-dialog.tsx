@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -49,7 +40,6 @@ export default function RecallDeviceDialog({
   deviceDisplayName,
 }: RecallDeviceDialogProps) {
   const [recallType, setRecallType] = useState<string>("");
-  const [recallDate, setRecallDate] = useState<Date>();
   const recallDevice = useRecallDevice();
   const { userDetails } = useUserContext();
 
@@ -70,7 +60,6 @@ export default function RecallDeviceDialog({
       
       // Reset form and close dialog
       setRecallType("");
-      setRecallDate(undefined);
       onOpenChange(false);
     } catch (error) {
       // Error handling is done in the hook
