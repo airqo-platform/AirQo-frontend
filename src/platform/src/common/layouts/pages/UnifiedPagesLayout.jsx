@@ -79,8 +79,8 @@ export default function UnifiedPagesLayout({ children }) {
   const containerClasses = isMapPage
     ? ''
     : layout === THEME_LAYOUT.COMPACT
-      ? 'max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-6 lg:py-8 lg:px-8'
-      : 'w-full flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-6 lg:py-8 lg:px-8';
+      ? 'max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-1 py-3 md:px-2 lg:py-8 lg:px-8'
+      : 'w-full flex flex-col gap-4 md:gap-8 px-1 py-3 md:px-2 lg:py-8 lg:px-8';
 
   const logoComponent =
     isOrganizationContext && organization?.logo ? (

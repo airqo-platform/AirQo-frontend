@@ -84,7 +84,7 @@ export default function MapLayout({ children }) {
       {/* Main Content - Account for both topbar and sidebar */}
       <main
         className="flex-1 transition-all duration-300 overflow-hidden 
-        pt-[120px] sm:pt-[130px] md:pt-[140px] lg:pt-[60px] 
+        pt-[120px] sm:pt-[130px] md:pt-[125px] lg:pt-[60px] 
         lg:ml-[86px]"
       >
         <div className="h-[calc(100vh-120px)] sm:h-[calc(100vh-130px)] md:h-[calc(100vh-140px)] lg:h-[calc(100vh-60px)] overflow-hidden">
