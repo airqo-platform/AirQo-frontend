@@ -9,11 +9,13 @@ import React, {
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { IoIosMenu } from 'react-icons/io';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
-import DeviceIcon from '@/icons/Analytics/deviceIcon';
-import Close from '@/icons/close_icon';
+import {
+  AqXClose,
+  AqGlobe05,
+  AqMarkerPin01,
+  AqMonitor03,
+  AqMenu01,
+} from '@airqo/icons-react';
 import Footer from '../components/Footer';
 
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -41,6 +43,8 @@ import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 import SettingsSidebar from './components/SettingsSidebar';
 import DataContent, { FILTER_TYPES } from './components/DataContent';
+import { useDispatch } from 'react-redux';
+import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { getMimeType } from './utils';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -74,6 +78,7 @@ const MESSAGE_TYPES = {
  * @param {string} props.sidebarBg - Background color for sidebar
  */
 const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
+  const dispatch = useDispatch();
   // Consolidate refs for better cleanup management
   const refs = useRef({
     abortController: null,
@@ -167,7 +172,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
     isError: citiesError,
     error: citiesErrorMsg,
     refresh: refreshCities,
-  } = useGridSummary('city');
+  } = useGridSummary('city,state,county,district,region,province');
 
   // Enhanced error handling with automatic clearing
   const resetErrorAfterDelay = useCallback((error) => {
@@ -704,14 +709,26 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         {
           key: 'name',
           label: 'Country',
-          render: (item) => (
-            <div className="flex items-center capitalize">
-              <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <WorldIcon width={16} height={16} />
-              </span>
-              <span>{item.name || item.long_name || 'N/A'}</span>
-            </div>
-          ),
+          render: (item) => {
+            // Replace underscores and hyphens with spaces, then capitalize each word
+            const rawName = item.name || item.long_name || '';
+            const formattedName = rawName
+              .replace(/[_-]/g, ' ')
+              .split(' ')
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+              )
+              .join(' ');
+            return (
+              <div className="flex items-center capitalize">
+                <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
+                  <AqGlobe05 size={16} />
+                </span>
+                <span>{formattedName || 'N/A'}</span>
+              </div>
+            );
+          },
         },
         {
           key: 'numberOfSites',
@@ -726,7 +743,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <LocationIcon width={16} height={16} />
+                <AqGlobe05 size={16} />
               </span>
               <span>
                 {(item.name || item.long_name || '')
@@ -756,14 +773,16 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       ],
       sites: [
         {
-          key: 'search_name',
+          key: 'name',
           label: 'Location',
           render: (item) => (
             <div className="flex items-center">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <LocationIcon width={16} height={16} />
+                <AqMarkerPin01 size={16} />
               </span>
-              <span>{item.search_name || 'N/A'}</span>
+              <span>
+                {item.name || item.search_name || item.location_name || 'N/A'}
+              </span>
             </div>
           ),
         },
@@ -778,7 +797,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           render: (item) => (
             <div className="flex items-center capitalize">
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-                <DeviceIcon width={16} height={16} />
+                <AqMonitor03 size={16} />
               </span>
               <span>{item.name || item.long_name || 'N/A'}</span>
             </div>
@@ -983,6 +1002,25 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       );
     }
 
+    // Only enable View Data for Sites
+    const showViewDataButton =
+      activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0;
+
+    // Handler for View Data button click (Sites only)
+    const onViewDataClick = () => {
+      if (activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0) {
+        dispatch(
+          setModalType({
+            type: 'inSights',
+            ids: null,
+            data: selectedItems,
+            backToDownload: true,
+          }),
+        );
+        dispatch(setOpenModal(true));
+      }
+    };
+
     return (
       <motion.div variants={animations.itemVariants}>
         <DataContent
@@ -1001,6 +1039,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           handleFilter={handleFilter}
           searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
           handleRetryLoad={handleRetryLoad}
+          showViewDataButton={showViewDataButton}
+          onViewDataClick={onViewDataClick}
         />
       </motion.div>
     );
@@ -1035,7 +1075,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
             aria-label="Open settings menu"
             className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            <IoIosMenu size={24} className="mr-1" />
+            <AqMenu01 size={24} className="mr-1" />
             <span>Settings</span>
           </button>
         </div>
@@ -1059,7 +1099,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
                     onClick={() => setMobileSidebarVisible(false)}
                     aria-label="Close sidebar menu"
                   >
-                    <Close />
+                    <AqXClose size={16} />
                   </button>
                 </div>
                 {renderSidebarContent()}

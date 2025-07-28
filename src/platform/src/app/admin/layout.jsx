@@ -86,7 +86,7 @@ function AdminLayout({ children }) {
       </main>
 
       {/* Theme Customizer */}
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
 
       {/* Admin SideBar Drawer */}
       <UnifiedSideBarDrawer userType="admin" />

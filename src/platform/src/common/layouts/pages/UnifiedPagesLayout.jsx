@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import { usePathname, useParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
@@ -20,12 +21,15 @@ import { ThemeCustomizer } from '@/common/features/theme-customizer/components/T
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
+import { useTour } from '@/features/tours/contexts/TourProvider';
 
 export default function UnifiedPagesLayout({ children }) {
-  'use client';
   const pathname = usePathname();
   const params = useParams();
   const { userID } = useGetActiveGroup();
+  const { attemptStartTours, run } = useTour();
+  const { data: session } = useSession();
 
   // Guarded call to useOrganization to prevent runtime errors on non-/org routes
   let organization = null;
@@ -41,6 +45,16 @@ export default function UnifiedPagesLayout({ children }) {
   const isMapPage = ['/user/map', '/map'].includes(pathname);
   const isOrganizationContext = pathname.startsWith('/org/');
   const orgSlug = params?.org_slug || '';
+
+  useEffect(() => {
+    if (session?.user?.id && !run) {
+      const timer = setTimeout(() => {
+        attemptStartTours();
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [attemptStartTours, run, session]);
 
   const getRouteConfig = () => {
     if (isOrganizationContext) {
@@ -141,7 +155,7 @@ export default function UnifiedPagesLayout({ children }) {
         userType={isOrganizationContext ? 'organization' : 'user'}
       />
       <GlobalSideBarDrawer />
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
     </div>
   );
 }

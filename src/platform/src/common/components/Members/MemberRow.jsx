@@ -1,12 +1,11 @@
-import React from 'react';
 import Button from '@/common/components/Button';
+import { FaEllipsisV } from 'react-icons/fa';
 import {
-  FaEnvelope,
-  FaEllipsisV,
-  FaTrash,
-  FaUserCheck,
-  FaUserTimes,
-} from 'react-icons/fa';
+  AqMail01,
+  AqTrash03,
+  AqUserX02,
+  AqUserCheck02,
+} from '@airqo/icons-react';
 
 const MemberRow = ({
   member,
@@ -23,8 +22,8 @@ const MemberRow = ({
     };
 
     const icons = {
-      active: <FaUserCheck className="w-3 h-3" />,
-      inactive: <FaUserTimes className="w-3 h-3" />,
+      active: <AqUserCheck02 className="w-3 h-3" />,
+      inactive: <AqUserX02 className="w-3 h-3" />,
     };
 
     return (
@@ -63,7 +62,7 @@ const MemberRow = ({
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-900 dark:text-white flex items-center">
-          <FaEnvelope className="w-4 h-4 text-gray-400 mr-2" />
+          <AqMail01 className="w-4 h-4 text-gray-400 mr-2" />
           {member.email}
         </div>
         {member.description && (
@@ -102,7 +101,7 @@ const MemberRow = ({
                       setShowActionMenu(null);
                     }}
                   >
-                    <FaTrash className="w-4 h-4 mr-2" />
+                    <AqTrash03 className="w-4 h-4 mr-2" />
                     Remove from group
                   </button>
                 )}

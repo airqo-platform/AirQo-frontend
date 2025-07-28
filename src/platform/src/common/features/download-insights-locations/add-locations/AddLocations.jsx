@@ -22,15 +22,6 @@ import { MobileSidebar } from './components/MobileSidebar';
 import { pageVariants, sidebarVariants } from './animations';
 import { MAX_LOCATIONS, MESSAGE_TYPES } from './constants';
 
-export const AddLocationHeader = () => (
-  <h3
-    className="flex text-lg leading-6 font-medium dark:text-white"
-    id="modal-title"
-  >
-    Add Location
-  </h3>
-);
-
 export const AddLocations = ({ onClose }) => {
   const dispatch = useDispatch();
   const { completeStep } = useChecklistSteps();

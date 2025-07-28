@@ -16,6 +16,7 @@ const ChartContentWrapper = ({
   error,
   showSkeleton,
   chartStyle,
+  isDark = false,
   className = '',
 }) => {
   const renderContent = () => {
@@ -28,7 +29,7 @@ const ChartContentWrapper = ({
     return (
       <div
         ref={chartContentRef}
-        className="w-full h-full chart-content"
+        className="w-full h-full chart-content dark:bg-gray-800"
         style={chartStyle}
       >
         <MoreInsightsChart
@@ -49,11 +50,7 @@ const ChartContentWrapper = ({
 
   return (
     <div className={`relative w-full h-full ${className}`}>
-      <ChartErrorOverlay
-        error={error}
-        onRetry={onRefresh}
-        isDark={false} // This should be passed as prop
-      />
+      <ChartErrorOverlay error={error} onRetry={onRefresh} isDark={isDark} />
       {renderContent()}
     </div>
   );

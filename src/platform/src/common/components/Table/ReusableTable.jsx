@@ -1,18 +1,24 @@
 'use client';
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from 'react';
 import Fuse from 'fuse.js';
 import CardWrapper from '@/components/CardWrapper';
+import { FaSort, FaTimes } from 'react-icons/fa';
 import {
-  FaSearch,
-  FaChevronLeft,
-  FaChevronRight,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-} from 'react-icons/fa';
+  AqSearchSm,
+  AqChevronDown,
+  AqChevronUp,
+  AqChevronLeft,
+  AqChevronRight,
+} from '@airqo/icons-react';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 
-// Custom Filter Component with outside click close
+// --- CustomFilter Component ---
 const CustomFilter = ({
   options,
   value,
@@ -38,29 +44,36 @@ const CustomFilter = ({
     };
   }, [isOpen]);
 
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredOptions = useMemo(
+    () =>
+      options.filter((option) =>
+        option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [options, searchTerm],
   );
 
-  const handleSelect = (option) => {
-    if (isMulti) {
-      const newValue = value.includes(option.value)
-        ? value.filter((v) => v !== option.value)
-        : [...value, option.value];
-      onChange(newValue);
-    } else {
-      onChange(option.value);
-      setIsOpen(false);
-    }
-  };
+  const handleSelect = useCallback(
+    (option) => {
+      if (isMulti) {
+        const newValue = value.includes(option.value)
+          ? value.filter((v) => v !== option.value)
+          : [...value, option.value];
+        onChange(newValue);
+      } else {
+        onChange(option.value);
+        setIsOpen(false);
+      }
+    },
+    [isMulti, value, onChange],
+  );
 
-  const getDisplayValue = () => {
+  const getDisplayValue = useCallback(() => {
     if (isMulti) {
       return value.length > 0 ? `${value.length} selected` : placeholder;
     }
     const selected = options.find((opt) => opt.value === value);
     return selected ? selected.label : placeholder;
-  };
+  }, [isMulti, value, options, placeholder]);
 
   return (
     <div className="relative" ref={filterRef}>
@@ -85,7 +98,6 @@ const CustomFilter = ({
           </svg>
         </span>
       </button>
-
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#1d1f20] border border-gray-300 dark:border-gray-700 rounded-md shadow-lg">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
@@ -116,8 +128,8 @@ const CustomFilter = ({
                   <input
                     type="checkbox"
                     checked={value.includes(option.value)}
-                    onChange={() => {}}
-                    className="mr-2"
+                    onChange={() => {}} // Handled by parent div click
+                    className="mr-2 text-primary focus:ring-primary"
                   />
                 )}
                 {option.label}
@@ -130,19 +142,19 @@ const CustomFilter = ({
   );
 };
 
-// Page Size Selector Component
+// --- PageSizeSelector Component ---
 const PageSizeSelector = ({
   pageSize,
   onPageSizeChange,
   options = [5, 10, 20, 50, 100],
 }) => {
   return (
-    <div className="flex items-center space-x-2 text-sm text-gray-700">
+    <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
       <span>Show</span>
       <select
         value={pageSize}
         onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-        className="border border-primary/30 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+        className="border border-primary/30 dark:border-primary/40 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
       >
         {options.map((size) => (
           <option key={size} value={size}>
@@ -155,7 +167,7 @@ const PageSizeSelector = ({
   );
 };
 
-// Main Reusable Table Component
+// --- Main ReusableTable Component ---
 const ReusableTable = ({
   title = 'Table',
   data = [],
@@ -172,17 +184,22 @@ const ReusableTable = ({
   loading = false,
   loadingComponent = null,
   headerComponent = null,
+  // --- New Props for Multi-Select ---
+  multiSelect = false,
+  actions = [], // Array of { label, value, handler }
+  onSelectedItemsChange, // Callback for parent to know selected items
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [filterValues, setFilterValues] = useState({});
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
-
+  const [selectedItems, setSelectedItems] = useState([]); // State for selected item IDs
+  const [selectedAction, setSelectedAction] = useState('');
   const { primaryColor } = useThemeSafe();
 
-  // Initialize filter values
-  React.useEffect(() => {
+  // --- Initialize filter values ---
+  useEffect(() => {
     const initialFilters = {};
     filters.forEach((filter) => {
       initialFilters[filter.key] = filter.isMulti ? [] : '';
@@ -190,11 +207,11 @@ const ReusableTable = ({
     setFilterValues(initialFilters);
   }, [filters]);
 
-  // Filter and search data using fuse.js and improved filter logic
+  // --- Filter and search data with improved Fuse.js ---
   const filteredData = useMemo(() => {
-    let filtered = [...data];
+    let result = [...data]; // Start with a copy of the original data
 
-    // Apply filters first
+    // Apply filters FIRST
     Object.entries(filterValues).forEach(([key, value]) => {
       if (
         value !== undefined &&
@@ -202,11 +219,10 @@ const ReusableTable = ({
         value !== '' &&
         !(Array.isArray(value) && value.length === 0)
       ) {
-        filtered = filtered.filter((item) => {
+        result = result.filter((item) => {
           if (Array.isArray(value)) {
             return value.includes(item[key]);
           }
-          // For boolean filters, handle string/boolean conversion
           if (
             typeof value === 'boolean' ||
             value === 'true' ||
@@ -219,15 +235,14 @@ const ReusableTable = ({
       }
     });
 
-    // Determine which columns to search
+    // Determine searchable keys AFTER filtering, based on potentially filtered data
     let fuseKeys;
     if (Array.isArray(searchableColumns) && searchableColumns.length > 0) {
       fuseKeys = searchableColumns;
     } else {
-      // Default: all columns that have at least one non-null/non-undefined value in data
       const allKeys = columns.map((col) => col.key);
       const keysWithData = allKeys.filter((key) =>
-        filtered.some(
+        result.some(
           (item) =>
             item[key] !== null &&
             item[key] !== undefined &&
@@ -237,79 +252,96 @@ const ReusableTable = ({
       fuseKeys = keysWithData.length > 0 ? keysWithData : allKeys;
     }
 
-    // Prepare data for Fuse.js: flatten values for custom renderers and nested objects
-    const getSearchableString = (item, key) => {
-      const col = columns.find((c) => c.key === key);
-      let value = item[key];
-      // If column has a custom render, try to extract text
-      if (col && typeof col.render === 'function') {
-        // Try to get a string representation from the rendered value
-        try {
-          const rendered = col.render(item[key], item);
-          if (typeof rendered === 'string') return rendered;
-          if (typeof rendered === 'number') return String(rendered);
-          // If it's a React element, try to extract text
-          if (rendered && rendered.props && rendered.props.children) {
-            if (typeof rendered.props.children === 'string')
-              return rendered.props.children;
-            if (Array.isArray(rendered.props.children)) {
-              return rendered.props.children
-                .map((child) => (typeof child === 'string' ? child : ''))
-                .join(' ');
-            }
-          }
-        } catch {
-          // fallback to value
-        }
-      }
-      // If value is an object, flatten to string
-      if (value && typeof value === 'object') {
-        return JSON.stringify(value);
-      }
-      return value === null || value === undefined ? '' : String(value);
-    };
-
-    // Build a new array for Fuse.js with only searchable keys as strings
-    const fuseData = filtered.map((item) => {
-      const obj = {};
-      fuseKeys.forEach((key) => {
-        obj[key] = getSearchableString(item, key);
-      });
-      return obj;
-    });
-
-    // Apply fuzzy search using fuse.js
+    // Process data for Fuse.js search ONLY if there's a search term
     if (searchTerm && searchTerm.trim() && fuseKeys.length > 0) {
-      const fuse = new Fuse(fuseData, {
-        keys: fuseKeys,
-        threshold: 0.4,
-        ignoreLocation: true,
-        minMatchCharLength: 2,
+      const getSearchableString = (item, key) => {
+        const col = columns.find((c) => c.key === key);
+        let value = item[key];
+        // If column has a render function, attempt to get a searchable string from it
+        if (col && typeof col.render === 'function') {
+          try {
+            const rendered = col.render(item[key], item);
+            // If render returns a simple string or number, use it
+            if (typeof rendered === 'string') return rendered;
+            if (typeof rendered === 'number') return String(rendered);
+            // If it returns JSX, try to extract text content
+            // This is a simplified extraction, might need adjustment based on render complexity
+            if (rendered && typeof rendered === 'object' && rendered.props) {
+              if (typeof rendered.props.children === 'string') {
+                return rendered.props.children;
+              }
+              if (Array.isArray(rendered.props.children)) {
+                return rendered.props.children
+                  .map((child) => (typeof child === 'string' ? child : ''))
+                  .join(' ');
+              }
+              // Add more checks if needed for nested structures
+              // Fallback to raw value if complex JSX
+              return value === null || value === undefined ? '' : String(value);
+            }
+          } catch (e) {
+            // If render throws or is complex, fallback to raw value stringification
+            console.warn(
+              `Error rendering column ${key} for search indexing:`,
+              e,
+            );
+          }
+        }
+        // Default stringification for non-rendered or failed render cases
+        if (value && typeof value === 'object') {
+          return JSON.stringify(value);
+        }
+        return value === null || value === undefined ? '' : String(value);
+      };
+
+      // Prepare the data specifically for Fuse.js (array of objects with string values)
+      const fuseData = result.map((item) => {
+        const obj = {};
+        fuseKeys.forEach((key) => {
+          obj[key] = getSearchableString(item, key);
+        });
+        return obj;
       });
+
+      // Configure and execute Fuse.js search
+      const fuseOptions = {
+        keys: fuseKeys,
+        threshold: searchTerm.length === 1 ? 0.8 : 0.4,
+        ignoreLocation: true,
+        minMatchCharLength: 1,
+        isCaseSensitive: false,
+        includeScore: true,
+      };
+      const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
-      // Map back to original filtered data by index
-      filtered = fuseResults.map((result) => filtered[result.refIndex]);
+
+      // --- KEY FIX: Map search results back to ORIGINAL data items ---
+      // Use result.refIndex provided by Fuse.js to get the original item
+      if (searchTerm.length === 1) {
+        // For single character searches, filter by score for relevance if needed
+        result = fuseResults
+          .filter((res) => res.score <= 0.8) // Adjust threshold as needed
+          .map((result) => data[result.refIndex]); // Map back using refIndex
+      } else {
+        result = fuseResults.map((result) => data[result.refIndex]); // Map back using refIndex
+      }
+      // --- END KEY FIX ---
     }
 
-    return filtered;
-  }, [data, searchTerm, filterValues, columns, searchableColumns]);
+    // Return the filtered (and searched) list of ORIGINAL data items
+    return result;
+  }, [data, searchTerm, filterValues, columns, searchableColumns]); // Dependencies
 
-  // Sort data
+  // --- Sort data ---
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
-
     return [...filteredData].sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
-
-      // Handle null/undefined values
       if (aValue === null || aValue === undefined) return 1;
       if (bValue === null || bValue === undefined) return -1;
-
-      // Convert to strings for comparison if needed
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
-
       if (aStr < bStr) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
@@ -320,7 +352,7 @@ const ReusableTable = ({
     });
   }, [filteredData, sortConfig]);
 
-  // Paginate data
+  // --- Paginate data ---
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * currentPageSize;
     const end = start + currentPageSize;
@@ -329,56 +361,61 @@ const ReusableTable = ({
 
   const totalPages = Math.ceil(sortedData.length / currentPageSize);
 
-  // Reset to first page when search term changes
-  React.useEffect(() => {
+  // --- Reset to first page when search or filters change ---
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterValues]);
 
-  // Reset to first page when page size changes
-  const handlePageSizeChange = (newPageSize) => {
+  // --- Reset to first page when page size changes ---
+  const handlePageSizeChange = useCallback((newPageSize) => {
     setCurrentPageSize(newPageSize);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleSort = (key) => {
-    if (!sortable) return;
+  const handleSort = useCallback(
+    (key) => {
+      if (!sortable) return;
+      setSortConfig((prev) => ({
+        key,
+        direction:
+          prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+      }));
+    },
+    [sortable],
+  );
 
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
-    }));
-  };
-
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = useCallback((key, value) => {
     setFilterValues((prev) => ({
       ...prev,
       [key]: value,
     }));
     setCurrentPage(1);
-  };
+  }, []);
 
-  const getSortIcon = (key) => {
-    if (sortConfig.key !== key)
-      return <FaSort className="w-3 h-3 text-gray-400" />;
-    return sortConfig.direction === 'asc' ? (
-      <FaSortUp className="w-3 h-3 text-primary" />
-    ) : (
-      <FaSortDown className="w-3 h-3 text-primary" />
-    );
-  };
+  const getSortIcon = useCallback(
+    (key) => {
+      if (sortConfig.key !== key)
+        return <FaSort className="w-3 h-3 text-gray-400 dark:text-gray-300" />;
+      return sortConfig.direction === 'asc' ? (
+        <AqChevronUp className="w-3 h-3 text-primary" />
+      ) : (
+        <AqChevronDown className="w-3 h-3 text-primary" />
+      );
+    },
+    [sortConfig],
+  );
 
-  const renderCell = (item, column) => {
+  const renderCell = useCallback((item, column) => {
     if (column.render) {
       return column.render(item[column.key], item);
     }
     const value = item[column.key];
     return value === null || value === undefined ? '' : String(value);
-  };
+  }, []);
 
-  const generatePageNumbers = () => {
+  const generatePageNumbers = useCallback(() => {
     const pages = [];
     const maxVisible = 5;
-
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -407,9 +444,117 @@ const ReusableTable = ({
         );
       }
     }
-
     return pages;
-  };
+  }, [totalPages, currentPage]);
+
+  // --- Multi-Select Logic ---
+  const handleSelectAll = useCallback(
+    (isChecked) => {
+      if (isChecked) {
+        const currentPageIds = paginatedData.map((item) => item.id);
+        setSelectedItems((prevSelected) => {
+          const newItems = currentPageIds.filter(
+            (id) => !prevSelected.includes(id),
+          );
+          const updatedSelected = [...prevSelected, ...newItems];
+          onSelectedItemsChange?.(updatedSelected);
+          return updatedSelected;
+        });
+      } else {
+        const currentPageIds = paginatedData.map((item) => item.id);
+        setSelectedItems((prevSelected) => {
+          const updatedSelected = prevSelected.filter(
+            (id) => !currentPageIds.includes(id),
+          );
+          onSelectedItemsChange?.(updatedSelected);
+          return updatedSelected;
+        });
+      }
+    },
+    [paginatedData, onSelectedItemsChange],
+  );
+
+  const handleSelectItem = useCallback(
+    (itemId, isChecked) => {
+      if (isChecked) {
+        setSelectedItems((prevSelected) => {
+          const updatedSelected = [...prevSelected, itemId];
+          onSelectedItemsChange?.(updatedSelected);
+          return updatedSelected;
+        });
+      } else {
+        setSelectedItems((prevSelected) => {
+          const updatedSelected = prevSelected.filter((id) => id !== itemId);
+          onSelectedItemsChange?.(updatedSelected);
+          return updatedSelected;
+        });
+      }
+    },
+    [onSelectedItemsChange],
+  );
+
+  const isAllSelectedOnPage = useMemo(
+    () =>
+      paginatedData.length > 0 &&
+      paginatedData.every((item) => selectedItems.includes(item.id)),
+    [paginatedData, selectedItems],
+  );
+
+  const isAnySelected = selectedItems.length > 0;
+
+  const handleActionChange = useCallback((e) => {
+    setSelectedAction(e.target.value);
+  }, []);
+
+  const handleActionSubmit = useCallback(() => {
+    if (selectedAction && actions.length > 0) {
+      const action = actions.find((a) => a.value === selectedAction);
+      if (action && typeof action.handler === 'function') {
+        action.handler(selectedItems);
+      }
+    }
+    setSelectedAction('');
+  }, [selectedAction, actions, selectedItems]);
+
+  // --- Clear search ---
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
+
+  // --- Determine columns to display ---
+  const displayColumns = useMemo(() => {
+    const cols = [...columns];
+    if (multiSelect) {
+      cols.unshift({
+        key: 'checkbox',
+        label: (
+          <input
+            type="checkbox"
+            checked={isAllSelectedOnPage}
+            onChange={(e) => handleSelectAll(e.target.checked)}
+            className="rounded text-primary focus:ring-primary"
+          />
+        ),
+        render: (value, item) => (
+          <input
+            type="checkbox"
+            checked={selectedItems.includes(item.id)}
+            onChange={(e) => handleSelectItem(item.id, e.target.checked)}
+            className="rounded text-primary focus:ring-primary"
+          />
+        ),
+        sortable: false,
+      });
+    }
+    return cols;
+  }, [
+    columns,
+    multiSelect,
+    isAllSelectedOnPage,
+    selectedItems,
+    handleSelectAll,
+    handleSelectItem,
+  ]);
 
   return (
     <CardWrapper
@@ -423,23 +568,27 @@ const ReusableTable = ({
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {title}
           </h2>
-
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-            {/* Search */}
             {searchable && (
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 dark:text-primary/80 w-4 h-4" />
+                <AqSearchSm className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 dark:text-primary/80 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-primary/30 dark:border-primary/40 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm w-full sm:w-64 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                  className="pl-10 pr-10 py-2 border border-primary/30 dark:border-primary/40 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm w-full sm:w-64 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100"
+                  >
+                    <FaTimes className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             )}
-
-            {/* Filters */}
             {filterable && filters.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {filters.map((filter) => (
@@ -463,6 +612,40 @@ const ReusableTable = ({
         </div>
       </div>
 
+      {/* Multi-Select Action Bar */}
+      {multiSelect && isAnySelected && (
+        <div className="px-6 py-3 bg-primary/10 dark:bg-primary/20 border-b border-primary/20 dark:border-primary/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-sm text-primary dark:text-primary">
+            {selectedItems.length} item(s) selected
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <select
+              value={selectedAction}
+              onChange={handleActionChange}
+              className="border border-primary/30 dark:border-primary/40 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+            >
+              <option value="">Select Action</option>
+              {actions.map((action) => (
+                <option key={action.value} value={action.value}>
+                  {action.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleActionSubmit}
+              disabled={!selectedAction}
+              className={`px-3 py-1 text-sm rounded-md border transition-colors ${
+                selectedAction
+                  ? 'bg-primary text-white border-primary hover:bg-primary/90'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+              }`}
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table or Loading */}
       <div className="overflow-x-auto">
         {loading ? (
@@ -473,9 +656,7 @@ const ReusableTable = ({
               <div
                 className="SecondaryMainloader"
                 aria-label="Loading"
-                style={{
-                  '--color-primary': primaryColor,
-                }}
+                style={{ '--color-primary': primaryColor }}
               ></div>
             </div>
           )
@@ -483,7 +664,7 @@ const ReusableTable = ({
           <table className="w-full">
             <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
               <tr>
-                {columns.map((column) => (
+                {displayColumns.map((column) => (
                   <th
                     key={column.key}
                     className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${
@@ -511,10 +692,10 @@ const ReusableTable = ({
               {paginatedData.length > 0 ? (
                 paginatedData.map((item, index) => (
                   <tr
-                    key={index}
+                    key={item.id ?? index}
                     className="hover:bg-primary/5 dark:hover:bg-primary/20"
                   >
-                    {columns.map((column) => (
+                    {displayColumns.map((column) => (
                       <td
                         key={column.key}
                         className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
@@ -527,7 +708,7 @@ const ReusableTable = ({
               ) : (
                 <tr>
                   <td
-                    colSpan={columns.length}
+                    colSpan={displayColumns.length}
                     className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                   >
                     {searchTerm ||
@@ -564,7 +745,6 @@ const ReusableTable = ({
                 of {sortedData.length} results
               </div>
             </div>
-
             {totalPages > 1 && (
               <div className="flex items-center space-x-2">
                 <button
@@ -574,10 +754,9 @@ const ReusableTable = ({
                   disabled={currentPage === 1}
                   className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 >
-                  <FaChevronLeft className="w-3 h-3" />
+                  <AqChevronLeft className="w-3 h-3" />
                   <span className="hidden sm:inline">Previous</span>
                 </button>
-
                 <div className="flex items-center space-x-1">
                   {generatePageNumbers().map((page, index) => (
                     <button
@@ -598,7 +777,6 @@ const ReusableTable = ({
                     </button>
                   ))}
                 </div>
-
                 <button
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
@@ -607,7 +785,7 @@ const ReusableTable = ({
                   className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 >
                   <span className="hidden sm:inline">Next</span>
-                  <FaChevronRight className="w-3 h-3" />
+                  <AqChevronRight className="w-3 h-3" />
                 </button>
               </div>
             )}

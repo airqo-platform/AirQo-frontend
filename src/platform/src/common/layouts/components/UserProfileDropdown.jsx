@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import LogoutUser from '@/core/HOC/LogoutUser';
-import UserIcon from '@/icons/Topbar/userIcon';
+import { AqUser02 } from '@airqo/icons-react';
 
 /**
  * My Profile Dropdown Component
@@ -153,7 +153,7 @@ const MyProfileDropdown = ({
             className="flex items-center cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             <span className="mr-3">
-              <UserIcon
+              <AqUser02
                 size={16}
                 className="text-gray-500 dark:text-gray-400"
               />

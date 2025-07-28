@@ -1,10 +1,10 @@
-import SearchIcon from '@/icons/Actions/search.svg';
+import { AqSearchSm } from '@airqo/icons-react';
 
 const SearchBar = ({ value, onChange, placeholder = 'Search' }) => {
   return (
     <div className="relative mb-2 xl:mb-0 h-9 w-full xl:max-w-[280px]">
       <span className="absolute my-2 mx-3 dark:text-[#1f2937]">
-        <SearchIcon />
+        <AqSearchSm />
       </span>
       <input
         type="search"

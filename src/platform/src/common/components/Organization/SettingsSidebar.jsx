@@ -1,5 +1,5 @@
-import React from 'react';
-import { FaSave, FaSpinner, FaEdit, FaUndo } from 'react-icons/fa';
+import { AqSave01, AqEdit05, AqRefreshCcw01 } from '@airqo/icons-react';
+import Spinner from '@/common/components/Spinner';
 import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -25,7 +25,7 @@ const SettingsSidebar = ({
     <CardWrapper>
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-          <FaSave className="mr-2 text-primary" />
+          <AqSave01 className="mr-2 text-primary" />
           Actions
         </h3>
         {/* Action Buttons Section */}
@@ -35,9 +35,16 @@ const SettingsSidebar = ({
             <Button
               onClick={onSave}
               disabled={isSaving || !hasUnsavedChanges}
-              variant="filled"
-              Icon={isSaving ? FaSpinner : FaSave}
-              className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isSaving ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
+              variant={isSaving || !hasUnsavedChanges ? 'disabled' : 'filled'}
+              Icon={
+                !isSaving
+                  ? AqSave01
+                  : () => (
+                      <span className="mr-1">
+                        <Spinner size={18} />
+                      </span>
+                    )
+              }
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
@@ -51,9 +58,10 @@ const SettingsSidebar = ({
                 }
               }}
               disabled={isDomainUpdating || !hasUnsavedChanges}
-              variant="filled"
-              Icon={isDomainUpdating ? FaSpinner : FaEdit}
-              className={`w-full py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 shadow-lg shadow-primary/25 ${isDomainUpdating ? 'bg-primary/40 text-primary/70 cursor-wait' : 'bg-primary hover:bg-primary/90 text-white'}`}
+              variant={
+                isDomainUpdating || !hasUnsavedChanges ? 'disabled' : 'filled'
+              }
+              Icon={isDomainUpdating ? () => <Spinner size={18} /> : AqEdit05}
             >
               {isDomainUpdating ? 'Updating URL...' : 'Update URL'}
             </Button>
@@ -68,7 +76,7 @@ const SettingsSidebar = ({
                 variant="outlined"
                 className="w-full py-3 px-4 flex items-center justify-center rounded-lg font-semibold transition-all duration-200 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                <FaUndo className="mr-2 h-4 w-4" />
+                <AqRefreshCcw01 className="mr-2 h-4 w-4" />
                 Discard Changes
               </Button>
             )}

@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * InputField Component
  * Renders an input field with an optional label, icon, and error message.

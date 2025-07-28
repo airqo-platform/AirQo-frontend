@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { FaUser, FaLock, FaKey, FaBuilding, FaUsers } from 'react-icons/fa';
+import { AqUser02, AqKey01, AqLock02 } from '@airqo/icons-react';
 import { SettingsTabNavigation } from '@/common/components/Tabs';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
 import { useSessionAwarePermissions } from '@/core/HOC';
@@ -26,7 +26,6 @@ export const checkAccess = (requiredPermission, rolePermissions) => {
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [userPermissions, setUserPermissions] = useState([]);
-  const [userGroup, setUserGroup] = useState({});
 
   const { theme, primaryColor, systemTheme } = useThemeSafe();
   const preferences = useSelector(
@@ -34,8 +33,7 @@ const Settings = () => {
   );
 
   const { data: session } = useSession();
-  const { hasPermission, isLoading: permissionsLoading } =
-    useSessionAwarePermissions();
+  const { isLoading: permissionsLoading } = useSessionAwarePermissions();
 
   // Determine if we're in dark mode
   const isDarkMode =
@@ -48,44 +46,22 @@ const Settings = () => {
       {
         id: 'profile',
         name: 'My Profile',
-        icon: FaUser,
+        icon: AqUser02,
         description: 'Manage your personal information and preferences',
       },
       {
         id: 'password',
         name: 'Password',
-        icon: FaLock,
+        icon: AqLock02,
         description: 'Change your account password',
       },
       {
         id: 'api',
         name: 'API',
-        icon: FaKey,
+        icon: AqKey01,
         description: 'Manage API keys and access tokens',
       },
     ];
-
-    // Add organization and team tabs based on permissions
-    if (
-      userPermissions &&
-      hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS')
-    ) {
-      baseTabs.push({
-        id: 'organization',
-        name: 'Organization',
-        icon: FaBuilding,
-        description: 'Manage organization settings',
-      });
-
-      if (userGroup) {
-        baseTabs.push({
-          id: 'team',
-          name: 'Team',
-          icon: FaUsers,
-          description: 'Manage team members and invitations',
-        });
-      }
-    }
 
     return baseTabs;
   };

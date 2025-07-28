@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   MdIndeterminateCheckBox,
   MdErrorOutline,
   MdRefresh,
 } from 'react-icons/md';
-import ShortLeftArrow from '@/icons/Analytics/shortLeftArrow';
-import ShortRightArrow from '@/icons/Analytics/shortRightArrow';
+import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -50,6 +49,8 @@ function DataTable({
   clearSelectionTrigger,
   onToggleRow,
   searchKeys = ['name'],
+  showViewDataButton = false,
+  onViewDataClick = () => {},
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -467,27 +468,34 @@ function DataTable({
         )}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination with View Data Button on the extreme left */}
       {!loading && totalPages > 1 && (
-        <div className="flex justify-end items-center gap-2 mt-2">
-          <Button
-            variant="outlined"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            aria-label="Previous page"
-            padding="p-2"
-          >
-            <ShortLeftArrow />
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            aria-label="Next page"
-            padding="p-2"
-          >
-            <ShortRightArrow />
-          </Button>
+        <div className="flex items-center gap-2 mt-2">
+          {showViewDataButton && (
+            <Button variant="text" onClick={onViewDataClick}>
+              View Data
+            </Button>
+          )}
+          <div className="flex-1 flex justify-end items-center gap-2">
+            <Button
+              variant="outlined"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              aria-label="Previous page"
+              padding="p-2"
+            >
+              <AqChevronLeft size={16} />
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              aria-label="Next page"
+              padding="p-2"
+            >
+              <AqChevronRight size={16} />
+            </Button>
+          </div>
         </div>
       )}
     </div>

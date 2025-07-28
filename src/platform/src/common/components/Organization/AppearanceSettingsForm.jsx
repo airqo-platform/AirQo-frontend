@@ -5,13 +5,13 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
-  FaPalette,
-  FaSun,
-  FaMoon,
-  FaDesktop,
-  FaExpandArrowsAlt,
-  FaCompress,
-} from 'react-icons/fa';
+  AqPalette,
+  AqSun,
+  AqMoon02,
+  AqExpand06,
+  AqMonitor01,
+  AqMinimize02,
+} from '@airqo/icons-react';
 import { useDispatch } from 'react-redux';
 import CardWrapper from '@/common/components/CardWrapper';
 import CustomToast from '@/common/components/Toast/CustomToast';
@@ -24,19 +24,19 @@ const themeOptions = [
   {
     value: 'light',
     label: 'Light',
-    icon: FaSun,
+    icon: AqSun,
     description: 'Clean, bright interface',
   },
   {
     value: 'dark',
     label: 'Dark',
-    icon: FaMoon,
+    icon: AqMoon02,
     description: 'Easy on the eyes',
   },
   {
     value: 'system',
     label: 'System',
-    icon: FaDesktop,
+    icon: AqMonitor01,
     description: 'Follows device settings',
   },
 ];
@@ -257,7 +257,7 @@ const AppearanceSettingsForm = forwardRef(
                     className="p-2 rounded-lg mr-3"
                     style={{ backgroundColor: `${formData.primaryColor}20` }}
                   >
-                    <FaPalette
+                    <AqPalette
                       className="text-lg"
                       style={{ color: formData.primaryColor }}
                     />
@@ -423,11 +423,11 @@ const AppearanceSettingsForm = forwardRef(
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'compact', label: 'Compact', icon: FaCompress },
+                    { value: 'compact', label: 'Compact', icon: AqMinimize02 },
                     {
                       value: 'wide',
                       label: 'Wide',
-                      icon: FaExpandArrowsAlt,
+                      icon: AqExpand06,
                     },
                   ].map((layout) => (
                     <button
@@ -702,7 +702,7 @@ const AppearanceSettingsForm = forwardRef(
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
                   style={{ backgroundColor: `${formData.primaryColor}20` }}
                 >
-                  <FaPalette
+                  <AqPalette
                     className="text-sm"
                     style={{ color: formData.primaryColor }}
                   />

@@ -321,9 +321,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       if (response['success'] == true) {
         loggy.info('Successfully updated preferences');
+        // Wait briefly for backend persistence before reloading
+        await Future.delayed(Duration(milliseconds: 500));
         add(LoadUserPreferences());
       } else {
         loggy.warning('Failed to update preferences: ${response["message"]}');
+        // Even on failure, reload to show current state (may include rollback)
+        if (response['rolled_back'] == true) {
+          loggy.info('Preferences were rolled back, reloading to show current state');
+          await Future.delayed(Duration(milliseconds: 300));
+          add(LoadUserPreferences());
+        }
       }
     } catch (e) {
       loggy.error('Error updating preferences: $e');

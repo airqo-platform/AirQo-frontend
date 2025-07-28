@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   AiOutlinePlus as Plus,
   AiOutlineFileText as FileText,

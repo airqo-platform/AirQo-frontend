@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import CardWrapper from '@/common/components/CardWrapper';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import PropTypes from 'prop-types';

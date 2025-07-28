@@ -4,6 +4,7 @@ import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
 import DatePicker from '@/components/Calendar/DatePicker';
+import Calendar from '@/components/Calendar/Calendar';
 
 const formatName = (name, textFormat = 'lowercase') => {
   if (typeof name !== 'string' || !name) return '';
@@ -79,6 +80,12 @@ const CustomFields = ({
         setSelected((prev) => {
           const list = Array.isArray(prev) ? prev : [];
           const exists = list.find((p) => p.id === option.id);
+
+          // Prevent deselecting if it's the last selected item
+          if (exists && list.length === 1) {
+            return list;
+          }
+
           const next = exists
             ? list.filter((p) => p.id !== option.id)
             : [...list, option];
@@ -114,6 +121,66 @@ const CustomFields = ({
       ? Array.isArray(selected) && selected.some((p) => p.id === opt.id)
       : selected?.id === opt.id;
 
+  const CheckboxIcon = ({ checked, disabled }) => (
+    <div
+      className={`
+      w-4 h-4 border-2 rounded flex items-center justify-center transition-colors
+      ${checked ? 'bg-primary border-primary' : 'border-gray-300 bg-white'}
+      ${disabled ? 'opacity-50' : ''}
+    `}
+    >
+      {checked && (
+        <svg
+          className="w-3 h-3 text-white"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      )}
+    </div>
+  );
+
+  // Responsive calendar logic
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [showCalendarDialog, setShowCalendarDialog] = useState(false);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsLargeScreen(window.innerWidth >= 768); // md breakpoint
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
+  // Fix: Prevent event bubbling for calendar actions
+  const handleCalendarButtonClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowCalendarDialog(true);
+  }, []);
+
+  const handleCalendarChange = useCallback(
+    (range) => {
+      setSelected({ id: 'calendar', name: range });
+      handleOptionSelect(id, { id: 'calendar', name: range });
+      // Only close if both start and end dates are selected
+      if (range.start && range.end) {
+        setShowCalendarDialog(false);
+      }
+    },
+    [handleOptionSelect, id],
+  );
+
+  const handleCalendarClose = useCallback(() => {
+    setShowCalendarDialog(false);
+  }, []);
+
   return (
     <div className={`w-full flex flex-col gap-2 ${className}`}>
       <div className="flex flex-col">
@@ -140,15 +207,62 @@ const CustomFields = ({
           aria-required={required}
         />
       ) : useCalendar ? (
-        <DatePicker
-          onChange={handleSelect}
-          mobileCollapse
-          calendarXPosition="relative right-[18px]"
-          initialValue={selected}
-          required={required}
-          aria-required={required}
-          className={required && !selected?.name ? 'border-red-300' : ''}
-        />
+        isLargeScreen ? (
+          <>
+            <button
+              type="button"
+              className="w-full px-3 py-2 shadow text-left border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500"
+              onClick={handleCalendarButtonClick}
+            >
+              {selected?.name?.start && selected?.name?.end
+                ? `${selected.name.start ? new Date(selected.name.start).toLocaleDateString() : ''} - ${selected.name.end ? new Date(selected.name.end).toLocaleDateString() : ''}`
+                : 'Select Date Range'}
+            </button>
+            {showCalendarDialog && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10"
+                onClick={(e) => {
+                  // Only close if clicking the backdrop, not the calendar
+                  if (e.target === e.currentTarget) {
+                    handleCalendarClose();
+                  }
+                }}
+              >
+                <div
+                  className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Calendar
+                    showTwoCalendars={true}
+                    handleValueChange={handleCalendarChange}
+                    closeDatePicker={handleCalendarClose}
+                    enableTimePicker
+                    initialMonth1={
+                      selected?.name?.start
+                        ? new Date(selected.name.start)
+                        : null
+                    }
+                    // initialMonth2={
+                    //   selected?.name?.end ? new Date(selected.name.end) : null
+                    // }
+                    initialValue={selected?.name}
+                    showTimePickerToggle
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <DatePicker
+            onChange={handleSelect}
+            mobileCollapse
+            calendarXPosition="relative"
+            initialValue={selected}
+            required={required}
+            aria-required={required}
+            className={required && !selected?.name ? 'border-red-300' : ''}
+          />
+        )
       ) : (
         <div className="w-full relative">
           <CustomDropdown
@@ -172,15 +286,45 @@ const CustomFields = ({
               ].includes(id)
             }
           >
-            {options.map((opt) => (
-              <DropdownItem
-                key={opt.id}
-                onClick={() => handleSelect(opt)}
-                active={isActive(opt)}
-              >
-                {formatName(opt.name, textFormat)}
-              </DropdownItem>
-            ))}
+            {options.map((opt) => {
+              const checked = isActive(opt);
+              const isOnlySelected =
+                multiSelect &&
+                Array.isArray(selected) &&
+                selected.length === 1 &&
+                checked;
+              return (
+                <DropdownItem
+                  key={opt.id}
+                  onClick={() => handleSelect(opt)}
+                  active={!multiSelect && checked}
+                  className={multiSelect ? 'hover:bg-transparent' : ''}
+                >
+                  <div
+                    className={`
+                    flex items-center gap-3 w-full py-1
+                    ${multiSelect ? 'cursor-pointer' : ''}
+                  `}
+                  >
+                    {multiSelect && (
+                      <CheckboxIcon
+                        checked={checked}
+                        disabled={isOnlySelected}
+                      />
+                    )}
+                    <span
+                      className={`
+                      flex-1 text-sm
+                      ${checked && multiSelect ? 'font-medium' : 'text-gray-700'}
+                      ${isOnlySelected ? 'opacity-50' : ''}
+                    `}
+                    >
+                      {formatName(opt.name, textFormat)}
+                    </span>
+                  </div>
+                </DropdownItem>
+              );
+            })}
           </CustomDropdown>
         </div>
       )}

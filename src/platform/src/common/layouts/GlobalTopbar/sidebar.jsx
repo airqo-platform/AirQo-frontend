@@ -1,20 +1,19 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { usePathname, useParams } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
-import CloseIcon from '@/icons/close_icon';
-import LineChartIcon from '@/icons/Charts/LineChartIcon';
+import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setGlobalSidebarOpen,
   setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import Card from '@/components/CardWrapper';
-import { MdAdminPanelSettings } from 'react-icons/md';
+// import { MdAdminPanelSettings } from 'react-icons/md';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-import {
-  getNavigationItems,
-  USER_TYPES,
-} from '../../layouts/SideBar/sidebarConfig';
+// import {
+//   getNavigationItems,
+//   USER_TYPES,
+// } from '../../layouts/SideBar/sidebarConfig';
 
 /**
  * GlobalSideBarDrawer - Enhanced with stable subroute hover functionality
@@ -77,75 +76,75 @@ const GlobalSideBarDrawer = () => {
   }, [pathname, params]);
 
   // Enhanced subroute click handler with better UX
-  const handleSubrouteClick = useCallback(
-    (event, subroute) => {
-      event.preventDefault();
-      event.stopPropagation();
+  // const handleSubrouteClick = useCallback(
+  //   (event, subroute) => {
+  //     event.preventDefault();
+  //     event.stopPropagation();
 
-      // Validate subroute before navigation
-      if (!subroute || !subroute.path) {
-        return;
-      }
+  //     // Validate subroute before navigation
+  //     if (!subroute || !subroute.path) {
+  //       return;
+  //     }
 
-      try {
-        // Enhanced navigation logic
-        if (subroute.path.startsWith('http')) {
-          // External links
-          window.open(subroute.path, '_blank', 'noopener,noreferrer');
-        } else if (subroute.path.includes('/admin')) {
-          // Admin routes - use direct navigation for better performance
-          window.location.href = subroute.path;
-        } else {
-          // Internal routes
-          window.location.href = subroute.path;
-        }
+  //     try {
+  //       // Enhanced navigation logic
+  //       if (subroute.path.startsWith('http')) {
+  //         // External links
+  //         window.open(subroute.path, '_blank', 'noopener,noreferrer');
+  //       } else if (subroute.path.includes('/admin')) {
+  //         // Admin routes - use direct navigation for better performance
+  //         window.location.href = subroute.path;
+  //       } else {
+  //         // Internal routes
+  //         window.location.href = subroute.path;
+  //       }
 
-        // Close drawer immediately after starting navigation
-        closeDrawer();
-      } catch {
-        // Fallback: still close the drawer
-        closeDrawer();
-      }
-    },
-    [closeDrawer],
-  );
+  //       // Close drawer immediately after starting navigation
+  //       closeDrawer();
+  //     } catch {
+  //       // Fallback: still close the drawer
+  //       closeDrawer();
+  //     }
+  //   },
+  //   [closeDrawer],
+  // );
 
   // Enhanced admin panel subroutes with better caching and error handling
-  const adminSubroutes = useMemo(() => {
-    try {
-      const adminItems = getNavigationItems(USER_TYPES.ADMIN);
+  // const adminSubroutes = useMemo(() => {
+  //   try {
+  //     const adminItems = getNavigationItems(USER_TYPES.ADMIN);
 
-      if (!Array.isArray(adminItems)) {
-        return [];
-      }
+  //     if (!Array.isArray(adminItems)) {
+  //       return [];
+  //     }
 
-      // Enhanced filtering and mapping with better validation
-      const subroutes = adminItems
-        .filter((item) => {
-          return (
-            item &&
-            typeof item === 'object' &&
-            item.type === 'item' &&
-            item.path &&
-            typeof item.path === 'string' &&
-            item.label &&
-            typeof item.label === 'string' &&
-            item.path !== '/admin' // Exclude main admin path
-          );
-        })
-        .map((item) => ({
-          label: item.label.trim(),
-          path: item.path.trim(),
-          icon: item.icon || null,
-        }))
-        .slice(0, 10); // Increased limit for better functionality
+  //     // Enhanced filtering and mapping with better validation
+  //     const subroutes = adminItems
+  //       .filter((item) => {
+  //         return (
+  //           item &&
+  //           typeof item === 'object' &&
+  //           item.type === 'item' &&
+  //           item.path &&
+  //           typeof item.path === 'string' &&
+  //           item.label &&
+  //           typeof item.label === 'string' &&
+  //           item.path !== '/admin' // Exclude main admin path
+  //         );
+  //       })
+  //       .map((item) => ({
+  //         label: item.label.trim(),
+  //         path: item.path.trim(),
+  //         icon: item.icon || null,
+  //       }))
+  //       .slice(0, 10); // Increased limit for better functionality
 
-      return subroutes;
-    } catch {
-      // Return empty array as fallback
-      return [];
-    }
-  }, []);
+  //     return subroutes;
+  //   } catch {
+  //     // Return empty array as fallback
+  //     return [];
+  //   }
+  // }, []);
 
   // Enhanced body scroll management
   useEffect(() => {
@@ -218,10 +217,10 @@ const GlobalSideBarDrawer = () => {
           </div>
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+            className="relative w-auto focus:outline-none p-2"
             onClick={closeDrawer}
           >
-            <CloseIcon />
+            <AqXClose />
           </button>
         </div>
 
@@ -229,7 +228,7 @@ const GlobalSideBarDrawer = () => {
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
             {/* Enhanced Admin Panel with improved subroute functionality */}
-            <SideBarItem
+            {/* <SideBarItem
               label="Admin Panel"
               Icon={MdAdminPanelSettings}
               navPath="/admin"
@@ -237,12 +236,12 @@ const GlobalSideBarDrawer = () => {
               subroutes={adminSubroutes}
               onSubrouteClick={handleSubrouteClick}
               key="admin-panel-enhanced"
-            />
+            /> */}
 
             {/* Data Analytics */}
             <SideBarItem
               label="Data Analytics"
-              Icon={LineChartIcon}
+              Icon={AqBarChart07}
               navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"

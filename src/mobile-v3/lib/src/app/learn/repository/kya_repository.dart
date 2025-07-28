@@ -130,7 +130,7 @@ class KyaImpl extends KyaRepository with UiLoggy {
       }
 
       throw Exception(
-          'No internet connection and no cached lessons data available');
+          'Unable to load lessons. Please check your connection and try again.');
     }
   }
 

@@ -1,0 +1,44 @@
+replicaCount: 2
+image:
+  repository: eu.gcr.io/airqo-250220/airqo-beacon
+  tag: prod-ca4b5fe4-1749797209
+  pullPolicy: Always
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+service:
+  type: NodePort
+  nodePort: 30193
+  targetPort: 3000
+  port: 3000
+ingress:
+  enabled: false
+nodeSelector:
+  role: high-mem
+tolerations: {}
+resources:
+  requests:
+    cpu: 10m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 150Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 70
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:
+          matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - moderate-usage
+        weight: 1
+app:
+  name: airqo-beacon
+  label: beacon
+  namespace: production
+  configmap: env-beacon-production

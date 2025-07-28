@@ -1,19 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MdApps,
-  MdAnalytics,
-  MdLanguage,
-  MdDescription,
-  MdTune,
-  MdPhoneAndroid,
-  MdClose,
-  MdArrowBack,
-} from 'react-icons/md';
+  AqDotsGrid,
+  AqSliders02,
+  AqBarChartSquarePlus,
+  AqGlobe02Maps_Travel,
+  AqFile07,
+  AqPhone01,
+  AqArrowNarrowLeft,
+} from '@airqo/icons-react';
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
 
-const AppDropdown = () => {
+const AppDropdown = ({ className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const dropdownRef = useRef(null);
@@ -44,31 +43,31 @@ const AppDropdown = () => {
   const apps = [
     {
       name: 'Calibrate',
-      icon: MdTune,
+      icon: AqSliders02,
       href: getUrl('https://airqalibrate.airqo.net/'),
       color: 'bg-blue-500',
     },
     {
       name: 'Analytics',
-      icon: MdAnalytics,
+      icon: AqBarChartSquarePlus,
       href: getUrl('https://analytics.airqo.net/'),
       color: 'bg-green-500',
     },
     {
       name: 'Website',
-      icon: MdLanguage,
+      icon: AqGlobe02Maps_Travel,
       href: 'https://airqo.net/',
       color: 'bg-purple-500',
     },
     {
       name: 'API Docs',
-      icon: MdDescription,
+      icon: AqFile07,
       href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
       color: 'bg-orange-500',
     },
     {
       name: 'Mobile App',
-      icon: MdPhoneAndroid,
+      icon: AqPhone01,
       type: 'qr',
       color: 'bg-indigo-500',
     },
@@ -88,13 +87,13 @@ const AppDropdown = () => {
   };
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
+    <div className={`relative inline-block ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen((o) => !o)}
         className={`p-2 rounded-full transition ${isOpen ? 'bg-gray-100 shadow' : 'hover:bg-gray-100'}`}
         aria-label="Applications"
       >
-        <MdApps className="w-6 h-6 text-gray-600" />
+        <AqDotsGrid className="w-6 h-6 text-gray-600" />
       </button>
 
       <AnimatePresence>
@@ -158,18 +157,12 @@ const AppDropdown = () => {
                         className="p-2 rounded-full hover:bg-gray-100"
                         aria-label="Back"
                       >
-                        <MdArrowBack className="w-5 h-5 text-gray-600" />
+                        <AqArrowNarrowLeft className="w-5 h-5 text-gray-600" />
                       </button>
                       <h3 className="text-lg font-semibold text-gray-900">
                         Get AirQo Mobile App
                       </h3>
-                      <button
-                        onClick={closeModal}
-                        className="p-2 rounded-full hover:bg-gray-100"
-                        aria-label="Close"
-                      >
-                        <MdClose className="w-5 h-5 text-gray-600" />
-                      </button>
+                      <span></span>
                     </div>
                     <div className="flex justify-center mb-6">
                       <div className="w-56 h-56 bg-white rounded-2xl border-2 border-blue-300 shadow-sm overflow-hidden">

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
+import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -123,9 +123,9 @@ const AuthenticatedSideBar = ({
               aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? (
-                <IoChevronForward size={14} />
+                <AqChevronRight size={14} />
               ) : (
-                <IoChevronBack size={14} />
+                <AqChevronLeft size={14} />
               )}
             </button>
           </div>

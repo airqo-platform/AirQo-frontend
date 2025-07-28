@@ -11,13 +11,15 @@ import StreetsMode from '@/images/map/street.webp';
 import { renderToString } from 'react-dom/server';
 
 // Import icon components
-import GoodAir from '@/icons/Charts/GoodAir';
-import ModerateAir from '@/icons/Charts/Moderate';
-import UnhealthyForSensitiveGroups from '@/icons/Charts/UnhealthySG';
-import Unhealthy from '@/icons/Charts/Unhealthy';
-import VeryUnhealthy from '@/icons/Charts/VeryUnhealthy';
-import Hazardous from '@/icons/Charts/Hazardous';
-import Invalid from '@/icons/Charts/Invalid';
+import {
+  AqGood,
+  AqModerate,
+  AqUnhealthyForSensitiveGroups,
+  AqVeryUnhealthy,
+  AqUnhealthy,
+  AqHazardous,
+  AqNoValue,
+} from '@airqo/icons-react';
 
 export const BOUNDARY_URL = 'https://nominatim.openstreetmap.org/search';
 
@@ -104,14 +106,14 @@ export const LAYOUT_CONFIG = {
 // Icon Images: Encoded SVG images for use in markers/popups
 // -------------------------------------------------------------------
 export const images = {
-  GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<GoodAir />))}`,
-  ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<ModerateAir />))}`,
-  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(renderToString(<UnhealthyForSensitiveGroups />))}`,
-  Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<Unhealthy />))}`,
-  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<VeryUnhealthy />))}`,
-  Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<Hazardous />))}`,
-  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
-  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<Invalid />))}`,
+  GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqGood />))}`,
+  ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqModerate />))}`,
+  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqUnhealthyForSensitiveGroups />))}`,
+  Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqUnhealthy />))}`,
+  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqVeryUnhealthy />))}`,
+  Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqHazardous />))}`,
+  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqNoValue />))}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqNoValue />))}`,
 };
 
 // -------------------------------------------------------------------
