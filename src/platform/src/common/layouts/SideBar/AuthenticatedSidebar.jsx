@@ -75,9 +75,9 @@ const AuthenticatedSideBar = ({
 
   // Render sidebar when session ready or unauthenticated fallback
   return (
-    <div className="hidden lg:block relative z-50 p-1">
+    <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
       <div
-        className={`transition-all duration-200 ease-in-out relative z-50 p-1
+        className={`transition-all duration-300 ease-in-out relative z-50 p-1
           ${isCollapsed ? 'w-[75px]' : 'w-[256px]'} h-[calc(100vh-4rem)]`}
       >
         <Card
@@ -131,7 +131,7 @@ const AuthenticatedSideBar = ({
           </div>
         )}
       </div>
-    </div>
+    </aside>
   );
 };
 

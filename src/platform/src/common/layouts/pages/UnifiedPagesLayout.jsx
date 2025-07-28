@@ -116,14 +116,12 @@ export default function UnifiedPagesLayout({ children }) {
       />
 
       {/* Sidebar - Hidden on mobile, shown on desktop */}
-      <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out">
-        <AuthenticatedSideBar>
-          <UnifiedSidebarContent
-            userType={isOrganizationContext ? 'organization' : 'user'}
-            isCollapsed={isCollapsed}
-          />
-        </AuthenticatedSideBar>
-      </aside>
+      <AuthenticatedSideBar>
+        <UnifiedSidebarContent
+          userType={isOrganizationContext ? 'organization' : 'user'}
+          isCollapsed={isCollapsed}
+        />
+      </AuthenticatedSideBar>
 
       <main
         className={`flex-1 transition-all duration-300 ease-in-out bg-background w-full flex flex-col
