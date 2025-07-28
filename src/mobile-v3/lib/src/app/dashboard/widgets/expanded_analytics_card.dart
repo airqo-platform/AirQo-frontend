@@ -8,8 +8,9 @@ import 'package:airqo/src/meta/utils/utils.dart';
 
 class ExpandedAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
+  final String? fallbackLocationName;
 
-  const ExpandedAnalyticsCard(this.measurement, {super.key});
+  const ExpandedAnalyticsCard(this.measurement, {super.key, this.fallbackLocationName});
 
   @override
   State<ExpandedAnalyticsCard> createState() => _ExpandedAnalyticsCardState();
@@ -24,6 +25,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
       builder: (context) {
         return AnalyticsDetails(
           measurement: measurement,
+          fallbackLocationName: widget.fallbackLocationName,
         );
       },
     );

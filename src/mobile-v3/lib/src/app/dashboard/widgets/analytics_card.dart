@@ -8,8 +8,9 @@ import 'package:airqo/src/meta/utils/utils.dart';
 
 class AnalyticsCard extends StatelessWidget with UiLoggy {
   final Measurement measurement;
+  final String? fallbackLocationName;
 
-  const AnalyticsCard(this.measurement, {super.key});
+  const AnalyticsCard(this.measurement, {super.key, this.fallbackLocationName});
 
   void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
     showBottomSheet(
@@ -18,6 +19,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
         builder: (context) {
           return AnalyticsDetails(
             measurement: measurement,
+            fallbackLocationName: fallbackLocationName,
           );
         });
   }
@@ -50,6 +52,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
             siteDetails.formattedName ??
             "Unknown location";
   }
+
 
   Color _getAqiColor(Measurement measurement) {
     if (measurement.aqiColor != null) {
@@ -115,7 +118,9 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                           children: [
                             Text(
                               measurement.siteDetails?.searchName ??
-                                  "Unknown Location",
+                                  measurement.siteDetails?.name ??
+                                  fallbackLocationName ??
+                                  "---",
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
@@ -158,21 +163,6 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
                       ),
                     ],
                   ),
-                  // if (widget.measurement.healthTips != null &&
-                  //     widget.measurement.healthTips!.isNotEmpty) ...[
-                  //   SizedBox(height: 12),
-                  //   Text(
-                  //     widget.measurement.healthTips![0].description ??
-                  //         "No health tips available",
-                  //     style: TextStyle(
-                  //       fontSize: 14,
-                  //       color:
-                  //           Theme.of(context).textTheme.bodyMedium?.color,
-                  //     ),
-                  //     maxLines: 2,
-                  //     overflow: TextOverflow.ellipsis,
-                  //   ),
-                  // ],
                 ],
               ),
             ),
