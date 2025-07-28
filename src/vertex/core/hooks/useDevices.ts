@@ -245,3 +245,40 @@ export const useDeviceStatusFeed = (deviceNumber?: number) => {
     refetchOnWindowFocus: false,
   });
 }; 
+
+export const useDeployDevice = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (deviceData: {
+      deviceName: string;
+      height: string;
+      mountType: string;
+      powerType: string;
+      isPrimaryInLocation: boolean;
+      latitude: string;
+      longitude: string;
+      site_name: string;
+      network: string;
+      user_id: string;
+    }) => devices.deployDevice(deviceData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Device Deployed Successfully!",
+        description: `${variables.deviceName} has been deployed.`,
+      });
+      // Invalidate and refetch devices
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["claimedDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Deployment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}

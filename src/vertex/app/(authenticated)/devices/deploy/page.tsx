@@ -26,6 +26,11 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
+import { ComboBox } from "@/components/ui/combobox";
+import { MiniMap } from "@/components/features/mini-map/mini-map";
+import { useAppSelector } from "@/core/redux/hooks";
 
 interface MountTypeOption {
   value: string;
@@ -54,7 +59,7 @@ interface DeviceDetailsStepProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: string) => (value: string) => void;
   onCheckboxChange: (checked: boolean) => void;
-  claimedDevices: DeviceData[];
+  availableDevices: DeviceData[];
   onDeviceSelect: (deviceName: string) => void;
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
@@ -62,7 +67,10 @@ interface DeviceDetailsStepProps {
 
 interface LocationStepProps {
   deviceData: DeviceData;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onCoordinateChange: (lat: string, lng: string) => void;
+  onSiteNameChange: (name: string) => void;
+  inputMode: 'siteName' | 'coordinates';
+  onToggleInputMode: () => void;
 }
 
 interface PreviewStepProps {
@@ -95,7 +103,7 @@ const DeviceDetailsStep = ({
   onInputChange,
   onSelectChange,
   onCheckboxChange,
-  claimedDevices,
+  availableDevices,
   onDeviceSelect,
   onClaimDevice,
   isLoadingDevices
@@ -105,28 +113,22 @@ const DeviceDetailsStep = ({
       <div className="space-y-4">
         <div className="grid gap-2">
           <Label htmlFor="deviceName">Device to Deploy</Label>
-          <Select
-            onValueChange={val => {
-              if (val === '__claim__') onClaimDevice();
-              else onDeviceSelect(val);
-            }}
+          <ComboBox
+            options={availableDevices.map((dev) => ({
+              value: dev.long_name || dev.name,
+              label: dev.long_name || dev.name
+            }))}
             value={deviceData.deviceName}
+            onValueChange={onDeviceSelect}
+            placeholder={isLoadingDevices ? 'Loading devices...' : 'Select or type device name'}
+            searchPlaceholder="Search or type device name..."
+            emptyMessage="No devices found"
             disabled={isLoadingDevices}
-          >
-            <SelectTrigger id="deviceName">
-              <SelectValue placeholder={isLoadingDevices ? 'Loading devices...' : 'Select a device'} />
-            </SelectTrigger>
-            <SelectContent>
-              {claimedDevices.map((dev) => (
-                <SelectItem key={dev.deviceName} value={dev.deviceName}>
-                  {dev.deviceName}
-                </SelectItem>
-              ))}
-              <SelectItem value="__claim__" className="text-primary font-semibold border-t mt-2 pt-2">
-                Device not listed? Claim a new device
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            allowCustomInput={true}
+            onCustomAction={onClaimDevice}
+            customActionLabel="Device not listed? Claim a new device"
+            className="w-full"
+          />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="height">Height (meters)</Label>
@@ -188,39 +190,83 @@ const DeviceDetailsStep = ({
   );
 };
 
-const LocationStep = ({ deviceData, onInputChange }: LocationStepProps) => {
+const LocationStep = ({ 
+  deviceData, 
+  onCoordinateChange, 
+  onSiteNameChange, 
+  inputMode, 
+  onToggleInputMode 
+}: LocationStepProps) => {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="latitude">Latitude</Label>
-          <Input
-            id="latitude"
-            name="latitude"
-            placeholder="Enter latitude"
-            value={deviceData.latitude}
-            onChange={onInputChange}
-          />
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Label className="text-sm font-medium">Location Input Mode</Label>
+          <button
+            type="button"
+            onClick={onToggleInputMode}
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            Switch to {inputMode === 'siteName' ? 'Coordinates' : 'Site Name'}
+          </button>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="longitude">Longitude</Label>
-          <Input
-            id="longitude"
-            name="longitude"
-            placeholder="Enter longitude"
-            value={deviceData.longitude}
-            onChange={onInputChange}
-          />
-        </div>
+
+        {inputMode === 'siteName' ? (
+          <div className="grid gap-2">
+            <Label htmlFor="siteName">Site Name</Label>
+            <Input
+              id="siteName"
+              name="siteName"
+              placeholder="Enter site name"
+              value={deviceData.siteName}
+              onChange={(e) => onSiteNameChange(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter a site name to search and set coordinates automatically
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="latitude">Latitude</Label>
+              <Input
+                id="latitude"
+                name="latitude"
+                placeholder="Enter latitude"
+                value={deviceData.latitude}
+                onChange={(e) => onCoordinateChange(e.target.value, deviceData.longitude)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="longitude">Longitude</Label>
+              <Input
+                id="longitude"
+                name="longitude"
+                placeholder="Enter longitude"
+                value={deviceData.longitude}
+                onChange={(e) => onCoordinateChange(deviceData.latitude, e.target.value)}
+              />
+            </div>
+          </div>
+        )}
       </div>
-      <div className="relative aspect-video bg-muted rounded-md">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <MapPin className="h-8 w-8 text-muted-foreground" />
-        </div>
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="search">Search Location</Label>
-        <Input id="search" placeholder="Search for a location" />
+      
+      <div className="space-y-2">
+        <Label>Interactive Map</Label>
+        <p className="text-sm text-muted-foreground">
+          Click on the map to set location or drag the marker. 
+          {inputMode === 'siteName' 
+            ? 'Map will show location based on site name.' 
+            : 'Coordinates will be updated as you interact with the map.'}
+        </p>
+        <MiniMap
+          latitude={deviceData.latitude}
+          longitude={deviceData.longitude}
+          siteName={deviceData.siteName}
+          onCoordinateChange={onCoordinateChange}
+          onSiteNameChange={onSiteNameChange}
+          inputMode={inputMode}
+        />
       </div>
     </div>
   );
@@ -263,11 +309,13 @@ const SummaryItem = ({ label, value }: { label: string; value: React.ReactNode }
 );
 
 const DeployDevicePage = () => {
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const router = useRouter();
   const searchParams = useSearchParams();
   const deviceIdFromUrl = searchParams.get('deviceId');
 
   const [currentStep, setCurrentStep] = React.useState<number>(0);
+  const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
     deviceName: deviceIdFromUrl || "",
     height: "",
@@ -277,16 +325,34 @@ const DeployDevicePage = () => {
     latitude: "",
     longitude: "",
     siteName: "",
-    network: "Network A", // This comes from Redux state
+    network: activeNetwork?.net_name || "Network A", // Get network from Redux state
   });
   const { toast } = useToast();
+  const { isPersonalContext, userDetails } = useUserContext();
+  const { devices: allDevices, isLoading: isLoadingAllDevices } = useDevices();
+  const deployDevice = useDeployDevice();
 
-  // Fetch claimed devices
-  const { data: claimedDevices = [], isLoading: isLoadingDevices, refetch: refetchDevices } = useQuery({
+  // Filter AirQo devices for internal context: not deployed or recalled
+  const filteredAirQoDevices = React.useMemo(() => {
+    if (isPersonalContext) return [];
+    return allDevices.filter(
+      (dev) =>
+        dev.status === "not deployed" ||
+        dev.status === "recalled"
+    );
+  }, [isPersonalContext, allDevices]);
+
+  // Fetch claimed devices for personal context
+  const { data: claimedDevices = [], isLoading: isLoadingClaimedDevices, refetch: refetchDevices } = useQuery({
     queryKey: ['claimedDevices'],
     queryFn: fetchClaimedDevices,
+    enabled: isPersonalContext, // Only fetch when in personal context
     refetchOnWindowFocus: true,
   });
+
+  // Choose which devices to show based on context
+  const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
+  const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : isLoadingAllDevices;
 
   // If deviceIdFromUrl changes (e.g., on client navigation), update deviceName if not already set
   React.useEffect(() => {
@@ -295,10 +361,12 @@ const DeployDevicePage = () => {
     }
   }, [deviceIdFromUrl]);
 
-  // When returning from claim page, refresh device list
+  // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {
-    refetchDevices();
-  }, []);
+    if (isPersonalContext) {
+      refetchDevices();
+    }
+  }, [isPersonalContext, refetchDevices]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -321,6 +389,18 @@ const DeployDevicePage = () => {
 
   const handleCheckboxChange = (checked: boolean): void => {
     setDeviceData((prev) => ({ ...prev, isPrimarySite: checked }));
+  };
+
+  const handleCoordinateChange = (lat: string, lng: string): void => {
+    setDeviceData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+  };
+
+  const handleSiteNameChange = (name: string): void => {
+    setDeviceData((prev) => ({ ...prev, siteName: name }));
+  };
+
+  const toggleInputMode = (): void => {
+    setInputMode((prev) => prev === 'siteName' ? 'coordinates' : 'siteName');
   };
 
   const handleNext = (): void => {
@@ -352,14 +432,36 @@ const DeployDevicePage = () => {
     return Boolean(deviceData.latitude && deviceData.longitude);
   };
 
-  const handleDeploy = (): void => {
-    // Add API call to deploy the device
-    console.log("Deploying device:", deviceData);
-    setCurrentStep(2); // Move to review step
-    toast({
-      title: "Device Deployed",
-      description: "Your device has been successfully deployed.",
-    });
+  const handleDeploy = async (): Promise<void> => {
+    if (!userDetails?._id) {
+      toast({
+        title: "Error",
+        description: "User information not available. Please reload the page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await deployDevice.mutateAsync({
+        deviceName: deviceData.deviceName,
+        height: deviceData.height,
+        mountType: deviceData.mountType,
+        powerType: deviceData.powerType,
+        isPrimaryInLocation: deviceData.isPrimarySite,
+        latitude: deviceData.latitude,
+        longitude: deviceData.longitude,
+        site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
+network: activeNetwork?.net_name || "airqo",
+        user_id: userDetails._id,
+      });
+      
+      // On successful deployment, redirect to devices page
+      router.push('/devices');
+    } catch (error) {
+      console.error('Deployment failed:', error);
+      // Error handling is already done in the useDeployDevice hook
+    }
   };
 
   // Update handleSectionClick to toggle open/close
@@ -377,7 +479,7 @@ const DeployDevicePage = () => {
           onInputChange={handleInputChange}
           onSelectChange={handleSelectChange}
           onCheckboxChange={handleCheckboxChange}
-          claimedDevices={claimedDevices}
+          availableDevices={availableDevices}
           onDeviceSelect={handleDeviceSelect}
           onClaimDevice={handleClaimDevice}
           isLoadingDevices={isLoadingDevices}
@@ -392,7 +494,10 @@ const DeployDevicePage = () => {
       content: (
         <LocationStep
           deviceData={deviceData}
-          onInputChange={handleInputChange}
+          onCoordinateChange={handleCoordinateChange}
+          onSiteNameChange={handleSiteNameChange}
+          inputMode={inputMode}
+          onToggleInputMode={toggleInputMode}
         />
       ),
       footer: (

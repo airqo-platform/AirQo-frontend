@@ -240,4 +240,45 @@ export const devices = {
       );
     }
   },
+
+  deployDevice: async (deviceData: {
+    deviceName: string;
+    height: string;
+    mountType: string;
+    powerType: string;
+    isPrimaryInLocation: boolean;
+    latitude: string;
+    longitude: string;
+    site_name: string;
+    network: string;
+    user_id: string;
+  }) => {
+    try {
+      // Transform data to match expected API format
+      const deploymentPayload = [{
+        date: new Date().toISOString(),
+        mountType: deviceData.mountType,
+        powerType: deviceData.powerType,
+        isPrimaryInLocation: deviceData.isPrimaryInLocation,
+        latitude: parseFloat(deviceData.latitude),
+        longitude: parseFloat(deviceData.longitude),
+        site_name: deviceData.site_name,
+        network: deviceData.network,
+        deviceName: deviceData.deviceName,
+        height: parseFloat(deviceData.height),
+        user_id: deviceData.user_id
+      }];
+
+      const response = await axiosInstance.post(
+        `${DEVICES_MGT_URL}/activities/deploy/batch`,
+        deploymentPayload
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to deploy device"
+      );
+    }
+  }
 };
