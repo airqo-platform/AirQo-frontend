@@ -227,26 +227,41 @@ const LocationStep = ({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="latitude">Latitude</Label>
-              <Input
-                id="latitude"
-                name="latitude"
-                placeholder="Enter latitude"
-                value={deviceData.latitude}
-                onChange={(e) => onCoordinateChange(e.target.value, deviceData.longitude)}
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="latitude">Latitude</Label>
+                <Input
+                  id="latitude"
+                  name="latitude"
+                  placeholder="Enter latitude"
+                  value={deviceData.latitude}
+                  onChange={(e) => onCoordinateChange(e.target.value, deviceData.longitude)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="longitude">Longitude</Label>
+                <Input
+                  id="longitude"
+                  name="longitude"
+                  placeholder="Enter longitude"
+                  value={deviceData.longitude}
+                  onChange={(e) => onCoordinateChange(deviceData.latitude, e.target.value)}
+                />
+              </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="longitude">Longitude</Label>
+              <Label htmlFor="customSiteName">Custom Site Name</Label>
               <Input
-                id="longitude"
-                name="longitude"
-                placeholder="Enter longitude"
-                value={deviceData.longitude}
-                onChange={(e) => onCoordinateChange(deviceData.latitude, e.target.value)}
+                id="customSiteName"
+                name="customSiteName"
+                placeholder="Enter custom site name"
+                value={deviceData.siteName}
+                onChange={(e) => onSiteNameChange(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Enter a custom name for this site location. This will be used as a fallback if the map cannot determine a location name automatically.
+              </p>
             </div>
           </div>
         )}
@@ -267,6 +282,7 @@ const LocationStep = ({
           onCoordinateChange={onCoordinateChange}
           onSiteNameChange={onSiteNameChange}
           inputMode={inputMode}
+          customSiteName={inputMode === 'coordinates' ? deviceData.siteName : undefined}
         />
       </div>
     </div>

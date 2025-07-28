@@ -12,6 +12,7 @@ interface MiniMapProps {
   onCoordinateChange: (lat: string, lng: string) => void;
   onSiteNameChange: (name: string) => void;
   inputMode: 'siteName' | 'coordinates';
+  customSiteName?: string; // Add custom site name as fallback
 }
 
 const DEFAULT_CENTER: [number, number] = [32.2903, 1.3733];
@@ -81,6 +82,7 @@ export function MiniMap({
   onCoordinateChange, 
   onSiteNameChange, 
   inputMode,
+  customSiteName,
 }: MiniMapProps) {
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -91,19 +93,35 @@ export function MiniMap({
   const handleCoordinateUpdate = useCallback(async (lat: number, lng: number) => {
     onCoordinateChange(lat.toString(), lng.toString());
     
-    // Always reverse geocode to get place name when coordinates change via map interaction
+    // Always try to reverse geocode to get place name from Mapbox
     setIsGeocoding(true);
     try {
       const placeName = await reverseGeocode(lng, lat);
-      onSiteNameChange(placeName);
+      // Check if we got a meaningful place name (not the generic fallback)
+      if (placeName && !placeName.startsWith('Location at ')) {
+        onSiteNameChange(placeName);
+      } else {
+        // If reverse geocoding failed, use custom site name if available
+        if (customSiteName && customSiteName.trim()) {
+          onSiteNameChange(customSiteName);
+        } else {
+          // Final fallback to generic location name
+          onSiteNameChange(`Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        }
+      }
     } catch (error) {
-      console.error('❌ Failed to get place name:', error);
-      // Fallback to generic location name
-      onSiteNameChange(`Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      console.error('Failed to get place name:', error);
+      // If reverse geocoding failed, use custom site name if available
+      if (customSiteName && customSiteName.trim()) {
+        onSiteNameChange(customSiteName);
+      } else {
+        // Final fallback to generic location name
+        onSiteNameChange(`Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      }
     } finally {
       setIsGeocoding(false);
     }
-  }, [onCoordinateChange, onSiteNameChange]);
+  }, [onCoordinateChange, onSiteNameChange, customSiteName]);
 
   useEffect(() => {
     if (!mapContainerRef.current || !mapboxgl.accessToken) return;
