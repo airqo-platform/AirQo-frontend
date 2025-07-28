@@ -14,6 +14,7 @@ import DeviceDetailsCard from "@/components/features/devices/device-details-card
 import DeviceMeasurementsApiCard from "@/components/features/devices/device-measurements-api-card";
 import OnlineStatusCard from "@/components/features/devices/online-status-card";
 import RunDeviceTestCard from "@/components/features/devices/run-device-test-card";
+import RecallDeviceDialog from "@/components/features/devices/recall-device-dialog";
 
 export default function DeviceDetailsPage() {
     const params = useParams();
@@ -47,6 +48,7 @@ export default function DeviceDetailsPage() {
     }
 
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showRecallDialog, setShowRecallDialog] = useState(false);
 
     if (isLoading) {
         return (
@@ -85,6 +87,7 @@ export default function DeviceDetailsPage() {
                                             disabled={!canRecall}
                                             size="sm"
                                             className="bg-yellow-800 hover:bg-yellow-700"
+                                            onClick={() => setShowRecallDialog(true)}
                                         >
                                             Recall Device
                                         </Button>
@@ -140,6 +143,12 @@ export default function DeviceDetailsPage() {
                 onOpenChange={setShowDetailsModal}
                 device={device}
                 onClose={() => setShowDetailsModal(false)}
+            />
+            <RecallDeviceDialog
+                open={showRecallDialog}
+                onOpenChange={setShowRecallDialog}
+                deviceName={device.name}
+                deviceDisplayName={device.long_name || device.name}
             />
         </div>
     );

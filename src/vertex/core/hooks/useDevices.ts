@@ -282,3 +282,36 @@ export const useDeployDevice = () => {
     },
   });
 }
+
+export const useRecallDevice = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ deviceName, recallData }: {
+      deviceName: string;
+      recallData: {
+        recallType: string;
+        user_id: string;
+        date: string;
+      }
+    }) => devices.recallDevice(deviceName, recallData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Device Recalled Successfully!",
+        description: `${variables.deviceName} has been recalled.`,
+      });
+      // Invalidate and refetch devices
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["device-details"] });
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Recall Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}

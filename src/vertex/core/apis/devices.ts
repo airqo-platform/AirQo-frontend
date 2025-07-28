@@ -280,5 +280,24 @@ export const devices = {
         axiosError.response?.data?.message || "Failed to deploy device"
       );
     }
+  },
+
+  recallDevice: async (deviceName: string, recallData: {
+    recallType: string;
+    user_id: string;
+    date: string;
+  }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${DEVICES_MGT_URL}/activities/recall?deviceName=${deviceName}`,
+        recallData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to recall device"
+      );
+    }
   }
 };
