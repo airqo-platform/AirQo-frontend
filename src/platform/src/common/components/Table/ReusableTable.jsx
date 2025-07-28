@@ -1,11 +1,5 @@
 'use client';
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useEffect,
-  useCallback,
-} from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Fuse from 'fuse.js';
 import CardWrapper from '@/components/CardWrapper';
 import { FaSort, FaTimes } from 'react-icons/fa';
@@ -16,7 +10,7 @@ import {
   AqChevronLeft,
   AqChevronRight,
 } from '@airqo/icons-react';
-import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
+import Spinner from '@/components/Spinner';
 
 // --- CustomFilter Component ---
 const CustomFilter = ({
@@ -196,7 +190,6 @@ const ReusableTable = ({
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   const [selectedItems, setSelectedItems] = useState([]); // State for selected item IDs
   const [selectedAction, setSelectedAction] = useState('');
-  const { primaryColor } = useThemeSafe();
 
   // --- Initialize filter values ---
   useEffect(() => {
@@ -653,11 +646,7 @@ const ReusableTable = ({
             loadingComponent
           ) : (
             <div className="w-full py-12 flex justify-center items-center">
-              <div
-                className="SecondaryMainloader"
-                aria-label="Loading"
-                style={{ '--color-primary': primaryColor }}
-              ></div>
+              <Spinner size={30} />
             </div>
           )
         ) : (
