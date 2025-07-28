@@ -73,15 +73,13 @@ export default function MapLayout({ children }) {
       />
 
       {/* Sidebar - Hidden on mobile, collapsed on desktop for map */}
-      <aside className="hidden lg:block fixed left-0 top-[60px] z-40 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar forceCollapse={true}>
-          <UnifiedSidebarContent
-            userType="user"
-            isCollapsed={true}
-            isDarkMode={isDarkMode}
-          />
-        </AuthenticatedSideBar>
-      </aside>
+      <AuthenticatedSideBar forceCollapse={true}>
+        <UnifiedSidebarContent
+          userType="user"
+          isCollapsed={true}
+          isDarkMode={isDarkMode}
+        />
+      </AuthenticatedSideBar>
 
       {/* Main Content - Account for both topbar and sidebar */}
       <main
