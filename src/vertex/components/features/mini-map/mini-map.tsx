@@ -2,20 +2,16 @@
 
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 
 interface MiniMapProps {
   latitude: string;
   longitude: string;
-  siteName: string;
   onCoordinateChange: (lat: string, lng: string) => void;
   onSiteNameChange: (name: string) => void;
   inputMode: 'siteName' | 'coordinates';
-  onToggleInputMode: () => void;
 }
 
 const DEFAULT_CENTER: [number, number] = [32.2903, 1.3733];
@@ -23,49 +19,68 @@ const DEFAULT_ZOOM = 12;
 
 // Reverse geocoding function
 const reverseGeocode = async (lng: number, lat: number): Promise<string> => {
+  if (!mapboxgl.accessToken) {
+    console.error('❌ No Mapbox access token found!');
+    return `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+  
   try {
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=place,locality,neighborhood,address`
-    );
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=place,locality,neighborhood,address,poi`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('❌ Response not ok:', response.status, response.statusText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
     if (data.features && data.features.length > 0) {
-      // Try to get a meaningful place name
-      const feature = data.features[0];
-      return feature.place_name || feature.text || `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      // Priority order: place > locality > neighborhood > poi > address
+      const featuresByType = {
+        place: data.features.find((f: any) => f.place_type?.includes('place')),
+        locality: data.features.find((f: any) => f.place_type?.includes('locality')),
+        neighborhood: data.features.find((f: any) => f.place_type?.includes('neighborhood')),
+        poi: data.features.find((f: any) => f.place_type?.includes('poi')),
+        address: data.features.find((f: any) => f.place_type?.includes('address'))
+      };
+      
+      // Get the best available feature
+      const bestFeature = featuresByType.place || 
+                         featuresByType.locality || 
+                         featuresByType.neighborhood || 
+                         featuresByType.poi || 
+                         featuresByType.address || 
+                         data.features[0];
+      
+      if (bestFeature) {
+        let placeName;
+        // For better naming, prefer text over place_name for certain types
+        if (bestFeature.place_type?.includes('place') || bestFeature.place_type?.includes('locality')) {
+          placeName = bestFeature.text || bestFeature.place_name;
+        } else {
+          placeName = bestFeature.place_name || bestFeature.text;
+        }
+        
+        return placeName || `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      }
+    } else {
+      console.log('⚠️ No features found in response');
     }
   } catch (error) {
-    console.error('Reverse geocoding failed:', error);
+    console.error('❌ Reverse geocoding failed:', error);
   }
-  return `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-};
-
-// Forward geocoding function
-const geocode = async (query: string): Promise<{ lat: number; lng: number } | null> => {
-  try {
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&limit=1`
-    );
-    const data = await response.json();
-    
-    if (data.features && data.features.length > 0) {
-      const [lng, lat] = data.features[0].center;
-      return { lat, lng };
-    }
-  } catch (error) {
-    console.error('Geocoding failed:', error);
-  }
-  return null;
+  
+  const fallbackName = `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  return fallbackName;
 };
 
 export function MiniMap({ 
   latitude, 
   longitude, 
-  siteName, 
   onCoordinateChange, 
   onSiteNameChange, 
-  inputMode, 
-  onToggleInputMode 
+  inputMode,
 }: MiniMapProps) {
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -73,33 +88,22 @@ export function MiniMap({
   const [isGeocoding, setIsGeocoding] = useState(false);
 
   // Handle coordinate updates from map interaction
-  const handleCoordinateUpdate = async (lat: number, lng: number) => {
+  const handleCoordinateUpdate = useCallback(async (lat: number, lng: number) => {
     onCoordinateChange(lat.toString(), lng.toString());
     
-    // If in siteName mode, reverse geocode to get place name
-    if (inputMode === 'siteName') {
-      setIsGeocoding(true);
+    // Always reverse geocode to get place name when coordinates change via map interaction
+    setIsGeocoding(true);
+    try {
       const placeName = await reverseGeocode(lng, lat);
       onSiteNameChange(placeName);
+    } catch (error) {
+      console.error('❌ Failed to get place name:', error);
+      // Fallback to generic location name
+      onSiteNameChange(`Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    } finally {
       setIsGeocoding(false);
     }
-  };
-
-  // Handle site name search
-  const handleSiteNameSearch = async (name: string) => {
-    onSiteNameChange(name);
-    
-    if (name.trim() && inputMode === 'siteName') {
-      setIsGeocoding(true);
-      const result = await geocode(name);
-      if (result && mapInstance && markerRef.current) {
-        onCoordinateChange(result.lat.toString(), result.lng.toString());
-        markerRef.current.setLngLat([result.lng, result.lat]);
-        mapInstance.setCenter([result.lng, result.lat]);
-      }
-      setIsGeocoding(false);
-    }
-  };
+  }, [onCoordinateChange, onSiteNameChange]);
 
   useEffect(() => {
     if (!mapContainerRef.current || !mapboxgl.accessToken) return;

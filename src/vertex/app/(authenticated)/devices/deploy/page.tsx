@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { MapPin } from "lucide-react";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -10,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   CardFooter,
@@ -257,15 +255,15 @@ const LocationStep = ({
       <div className="space-y-2">
         <Label>Interactive Map</Label>
         <p className="text-sm text-muted-foreground">
-          Click on the map to set location or drag the marker. 
+          Click on the map to set location or drag the marker. The site name will be automatically 
+          updated with the location name from Mapbox when you interact with the map.
           {inputMode === 'siteName' 
-            ? 'Map will show location based on site name.' 
-            : 'Coordinates will be updated as you interact with the map.'}
+            ? ' You can also search for locations by name.' 
+            : ' Switch to Site Name mode to search by location name.'}
         </p>
         <MiniMap
           latitude={deviceData.latitude}
           longitude={deviceData.longitude}
-          siteName={deviceData.siteName}
           onCoordinateChange={onCoordinateChange}
           onSiteNameChange={onSiteNameChange}
           inputMode={inputMode}
@@ -328,7 +326,7 @@ const DeployDevicePage = () => {
     latitude: "",
     longitude: "",
     siteName: "",
-    network: activeNetwork?.net_name || "Network A", // Get network from Redux state
+    network: activeNetwork?.net_name || "-",
   });
   const { toast } = useToast();
   const { isPersonalContext, userDetails } = useUserContext();
@@ -505,13 +503,13 @@ network: activeNetwork?.net_name || "airqo",
       ),
       footer: (
         <>
-          <Button variant="outline" onClick={handleBack} className="w-32">Back</Button>
+          <Button variant="outline" onClick={handleBack} className="w-32 mr-3">Back</Button>
           <Button 
             onClick={handleDeploy} 
             className="w-32" 
-            disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isLoading}
+            disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isPending}
           >
-            {deployDevice.isLoading ? "Deploying..." : "Deploy"}
+            {deployDevice.isPending ? "Deploying..." : "Deploy"}
           </Button>
         </>
       ),
@@ -577,9 +575,9 @@ network: activeNetwork?.net_name || "airqo",
                   type="submit"
                   onClick={handleDeploy}
                   className="w-full"
-                  disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isLoading}
+                  disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isPending}
                 >
-                  {deployDevice.isLoading ? "Deploying..." : "Deploy"}
+                  {deployDevice.isPending ? "Deploying..." : "Deploy"}
                 </Button>
               </CardFooter>
             </Collapsible>
