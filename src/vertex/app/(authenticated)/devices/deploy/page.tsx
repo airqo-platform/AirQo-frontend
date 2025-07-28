@@ -31,6 +31,7 @@ import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { MiniMap } from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
 
 interface MountTypeOption {
   value: string;
@@ -214,15 +215,17 @@ const LocationStep = ({
         {inputMode === 'siteName' ? (
           <div className="grid gap-2">
             <Label htmlFor="siteName">Site Name</Label>
-            <Input
-              id="siteName"
-              name="siteName"
-              placeholder="Enter site name"
+            <LocationAutocomplete
               value={deviceData.siteName}
-              onChange={(e) => onSiteNameChange(e.target.value)}
+              onChange={onSiteNameChange}
+              onLocationSelect={(location) => {
+                onSiteNameChange(location.name);
+                onCoordinateChange(location.latitude.toString(), location.longitude.toString());
+              }}
+              placeholder="Search for a location"
             />
             <p className="text-xs text-muted-foreground">
-              Enter a site name to search and set coordinates automatically
+              Search and select a location to automatically set coordinates
             </p>
           </div>
         ) : (
@@ -457,7 +460,7 @@ network: activeNetwork?.net_name || "airqo",
       });
       
       // On successful deployment, redirect to devices page
-      router.push('/devices');
+      
     } catch (error) {
       console.error('Deployment failed:', error);
       // Error handling is already done in the useDeployDevice hook
@@ -503,7 +506,13 @@ network: activeNetwork?.net_name || "airqo",
       footer: (
         <>
           <Button variant="outline" onClick={handleBack} className="w-32">Back</Button>
-          <Button onClick={handleDeploy} className="w-32" disabled={!(validateDeviceDetails() && validateLocation())}>Deploy</Button>
+          <Button 
+            onClick={handleDeploy} 
+            className="w-32" 
+            disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isLoading}
+          >
+            {deployDevice.isLoading ? "Deploying..." : "Deploy"}
+          </Button>
         </>
       ),
     },
@@ -515,6 +524,7 @@ network: activeNetwork?.net_name || "airqo",
     { label: "Height", value: `${deviceData.height || "-"} m` },
     { label: "Mount", value: deviceData.mountType || "-" },
     { label: "Power", value: deviceData.powerType || "-" },
+    { label: "Site Name", value: deviceData.siteName || "-" },
     { label: "Lat", value: deviceData.latitude || "-" },
     { label: "Lng", value: deviceData.longitude || "-" },
     { label: "Primary", value: deviceData.isPrimarySite ? "Yes" : "No" },
@@ -567,9 +577,9 @@ network: activeNetwork?.net_name || "airqo",
                   type="submit"
                   onClick={handleDeploy}
                   className="w-full"
-                  disabled={!(validateDeviceDetails() && validateLocation())}
+                  disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isLoading}
                 >
-                  Deploy
+                  {deployDevice.isLoading ? "Deploying..." : "Deploy"}
                 </Button>
               </CardFooter>
             </Collapsible>
