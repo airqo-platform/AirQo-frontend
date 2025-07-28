@@ -67,6 +67,20 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
   String _getForecastCacheKey(String siteId) => 'forecast_$siteId';
 
+  Future<bool> _testRealConnectivity() async {
+    try {
+      // Test with a simple HTTP request to a reliable endpoint
+      final response = await _httpClient.get(
+        Uri.parse('https://www.google.com'),
+        headers: {'Content-Type': 'application/json'}
+      ).timeout(Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (e) {
+      loggy.warning('🌐 Real connectivity test failed: $e');
+      return false;
+    }
+  }
+
   @override
   Future<ForecastResponse> loadForecasts(String siteId,
       {bool forceRefresh = false}) async {
@@ -102,19 +116,22 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
     if (_cacheManager.isConnected) {
       try {
-        loggy
-            .info('Fetching fresh forecast data for site $siteId from network');
+        final apiUrl = '${ApiUtils.baseUrl}${ApiUtils.fetchForecasts}';
+        final fullUrl = Uri.parse(apiUrl).replace(
+            queryParameters: {
+              "token": dotenv.env['AIRQO_API_TOKEN']!,
+              "site_id": siteId
+            });
+        
+        loggy.info('Fetching fresh forecast data for site $siteId from network');
 
         Response forecastResponse = await _httpClient.get(
-          Uri.parse('${ApiUtils.baseUrl}${ApiUtils.fetchForecasts}').replace(
-              queryParameters: {
-                "token": dotenv.env['AIRQO_API_TOKEN']!,
-                "site_id": siteId
-              }),
+          fullUrl,
           headers: {
             'Content-Type': 'application/json',
           },
         ).timeout(const Duration(seconds: 15), onTimeout: () {
+          loggy.error('🌐 Request timed out after 15 seconds to: $fullUrl');
           throw ForecastException(
               'Request timed out. Server might be slow or unreachable.',
               isNetworkError: true);
@@ -157,7 +174,7 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
         _notifyListeners(siteId, response);
 
         loggy.info(
-            'Successfully fetched and cached forecast data for site $siteId');
+            '✅ Successfully fetched and cached forecast data for site $siteId');
         return response;
       } catch (e) {
         loggy.error('Error fetching forecast data: $e');
@@ -165,6 +182,9 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
         bool isNetworkError = e.toString().toLowerCase().contains('socket') ||
             e.toString().toLowerCase().contains('network') ||
             e.toString().toLowerCase().contains('connection') ||
+            e.toString().toLowerCase().contains('handshake') ||
+            e.toString().toLowerCase().contains('dns') ||
+            e.toString().toLowerCase().contains('host') ||
             (e is ForecastException && e.isNetworkError);
 
         if (cachedData != null) {
@@ -185,7 +205,7 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
       }
 
       throw ForecastException(
-          'No internet connection and no cached forecast data available',
+          'Unable to load forecast data. Please check your connection and try again.',
           isNetworkError: true);
     }
   }

@@ -143,7 +143,7 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
         return cachedData.data;
       }
 
-      throw Exception('No internet connection and no cached data available');
+      throw Exception('Unable to load data. Please check your connection and try again.');
     }
   }
   
