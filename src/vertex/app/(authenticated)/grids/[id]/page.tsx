@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import logger from "@/lib/logger";
 
 export default function GridDetailsPage() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function GridDetailsPage() {
       await updateGridDetails(updatedFields);
       toast("Grid details updated successfully");
     } catch (error) {
-      console.error(error);
+      logger.error('Failed to update grid details', error);
       toast("Failed to update grid details");
     }
   };
