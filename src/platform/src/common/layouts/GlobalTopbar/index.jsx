@@ -201,7 +201,7 @@ const GlobalTopbar = ({
   }
 
   return (
-    <div className="fixed flex flex-col gap-2 px-1 py-1 top-0 left-0 right-0 z-[999]">
+    <div className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-0 left-0 right-0 z-[999]">
       {/* Main Topbar */}
       <CardWrapper
         className={`w-full ${styles.background}`}
