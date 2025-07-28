@@ -264,7 +264,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
               />
             )}
 
-            {sidebarConfig.showGrids && contextPermissions.canViewSites && (
+            {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem
                 href="/grids"
                 icon={Grid}
@@ -282,7 +282,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                 isCollapsed={isCollapsed}
                 disabled={false}
               />
-            )}
+            )} */}
           </>
         )}
 
