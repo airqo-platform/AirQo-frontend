@@ -425,7 +425,6 @@ const DeployDevicePage = () => {
       toast({
         title: "Incomplete Details",
         description: "Please fill in all required device details.",
-        variant: "destructive",
       });
       return;
     }
@@ -454,7 +453,6 @@ const DeployDevicePage = () => {
       toast({
         title: "Error",
         description: "User information not available. Please reload the page.",
-        variant: "destructive",
       });
       return;
     }
@@ -469,11 +467,32 @@ const DeployDevicePage = () => {
         latitude: deviceData.latitude,
         longitude: deviceData.longitude,
         site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
-network: activeNetwork?.net_name || "airqo",
+        network: activeNetwork?.net_name || "airqo",
         user_id: userDetails._id,
       });
       
-      // On successful deployment, redirect to devices page
+      // Show success message
+      toast({
+        title: "Deployment Successful",
+        description: "Device has been successfully deployed.",
+      });
+
+      // On successful deployment, reset form fields
+      setDeviceData({
+        deviceName: "",
+        height: "",
+        mountType: "",
+        powerType: "",
+        isPrimarySite: false,
+        latitude: "",
+        longitude: "",
+        siteName: "",
+        network: activeNetwork?.net_name || "-",
+      });
+      
+      // Reset to first step and siteName input mode
+      setCurrentStep(0);
+      setInputMode('siteName');
       
     } catch (error) {
       console.error('Deployment failed:', error);
