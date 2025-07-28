@@ -67,19 +67,6 @@ class ForecastImpl extends ForecastRepository with UiLoggy {
 
   String _getForecastCacheKey(String siteId) => 'forecast_$siteId';
 
-  Future<bool> _testRealConnectivity() async {
-    try {
-      // Test with a simple HTTP request to a reliable endpoint
-      final response = await _httpClient.get(
-        Uri.parse('https://www.google.com'),
-        headers: {'Content-Type': 'application/json'}
-      ).timeout(Duration(seconds: 5));
-      return response.statusCode == 200;
-    } catch (e) {
-      loggy.warning('🌐 Real connectivity test failed: $e');
-      return false;
-    }
-  }
 
   @override
   Future<ForecastResponse> loadForecasts(String siteId,
