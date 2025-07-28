@@ -179,16 +179,34 @@ class CacheManager with UiLoggy {
   void _updateConnectionType(List<ConnectivityResult> connectivityResults) {
     ConnectionType prevConnectionType = _connectionType;
 
-    if (connectivityResults.contains(ConnectivityResult.wifi)) {
-      _connectionType = ConnectionType.wifi;
-    } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
-      _connectionType = ConnectionType.mobile;
-    } else {
+    // Handle both single result and list of results properly
+    bool hasConnection = false;
+    
+    for (var result in connectivityResults) {
+      if (result == ConnectivityResult.wifi) {
+        _connectionType = ConnectionType.wifi;
+        hasConnection = true;
+        break;
+      } else if (result == ConnectivityResult.mobile) {
+        _connectionType = ConnectionType.mobile;
+        hasConnection = true;
+        break;
+      } else if (result == ConnectivityResult.ethernet || 
+                 result == ConnectivityResult.vpn ||
+                 result == ConnectivityResult.other) {
+        // Treat other connection types as available connectivity
+        _connectionType = ConnectionType.wifi; // Treat as wifi-level for caching purposes
+        hasConnection = true;
+        break;
+      }
+    }
+    
+    if (!hasConnection) {
       _connectionType = ConnectionType.none;
     }
 
     if (prevConnectionType != _connectionType) {
-      loggy.info('Connection type changed: $_connectionType');
+      loggy.info('Connection type changed from $prevConnectionType to $_connectionType (results: $connectivityResults)');
       _connectionChangeController.add(_connectionType);
     }
   }
