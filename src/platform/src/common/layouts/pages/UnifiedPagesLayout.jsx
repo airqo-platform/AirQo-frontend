@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { usePathname, useParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
@@ -23,6 +23,9 @@ import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useTour } from '@/features/tours/contexts/TourProvider';
+import MobileBottomNavigation from '../components/MobileBottomNavigation';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
+import { getMobileNavigationItems } from '../SideBar/sidebarConfig';
 
 export default function UnifiedPagesLayout({ children }) {
   const pathname = usePathname();
@@ -30,6 +33,7 @@ export default function UnifiedPagesLayout({ children }) {
   const { userID } = useGetActiveGroup();
   const { attemptStartTours, run } = useTour();
   const { data: session } = useSession();
+  const { width } = useWindowSize();
 
   // Guarded call to useOrganization to prevent runtime errors on non-/org routes
   let organization = null;
@@ -76,6 +80,23 @@ export default function UnifiedPagesLayout({ children }) {
   useInactivityLogout(userID);
 
   const { layout } = useTheme();
+
+  // Check if there are navigation items for the drawer (excluding bottom nav items)
+  const hasDrawerNavItems = useMemo(() => {
+    const userType = isOrganizationContext ? 'organization' : 'user';
+    const options = isOrganizationContext ? { orgSlug } : {};
+    const isMobile = width < 768;
+
+    // On mobile, exclude bottom nav items. On tablet+, include all items
+    const drawerItems = getMobileNavigationItems(userType, options, isMobile);
+
+    // Filter to actual navigation items (not dividers)
+    const navItems = drawerItems.filter(
+      (item) => item.type === 'item' && item.path,
+    );
+    return navItems.length > 0;
+  }, [isOrganizationContext, orgSlug, width]);
+
   const containerClasses = isMapPage
     ? ''
     : layout === THEME_LAYOUT.COMPACT
@@ -113,6 +134,8 @@ export default function UnifiedPagesLayout({ children }) {
         topbarTitle={routeConfig.topbarTitle}
         logoComponent={logoComponent}
         homeNavPath={homeNavPath}
+        hideMobileNav={false} // Show mobile nav for access to org dropdown and menu
+        hideMenuButton={!hasDrawerNavItems} // Hide menu button if no drawer items
       />
 
       {/* Sidebar - Hidden on mobile, shown on desktop */}
@@ -126,8 +149,10 @@ export default function UnifiedPagesLayout({ children }) {
       <main
         className={`flex-1 transition-all duration-300 ease-in-out bg-background w-full flex flex-col
           ${isMapPage ? 'overflow-hidden' : 'overflow-y-auto'}
-          ${/* Mobile: account for topbar */ ''}
+          ${/* Mobile: account for topbar + mobile nav bar */ ''}
           pt-[120px] sm:pt-[130px] md:pt-[140px] lg:pt-16
+          ${/* Mobile: account for bottom nav on mobile only */ ''}
+          ${!isMapPage ? 'pb-20 md:pb-0' : ''}
           ${/* Desktop: account for sidebar */ ''}
           lg:${isCollapsed ? 'ml-[88px]' : 'ml-[256px]'}`}
       >
@@ -153,6 +178,14 @@ export default function UnifiedPagesLayout({ children }) {
         userType={isOrganizationContext ? 'organization' : 'user'}
       />
       <GlobalSideBarDrawer />
+
+      {/* Mobile Bottom Navigation - Only show on mobile and not for map pages */}
+      {!isMapPage && (
+        <MobileBottomNavigation
+          userType={isOrganizationContext ? 'organization' : 'user'}
+        />
+      )}
+
       <ThemeCustomizer className="theme-customizer-sideButton" />
     </div>
   );

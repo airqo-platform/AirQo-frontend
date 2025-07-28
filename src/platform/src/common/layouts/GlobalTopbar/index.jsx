@@ -30,6 +30,8 @@ const GlobalTopbar = ({
   onLogoClick,
   homeNavPath = '/user/Home',
   customActions,
+  hideMobileNav = false, // Hide mobile nav when bottom navigation is present
+  hideMenuButton = false, // Hide menu button when no drawer items
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -263,25 +265,27 @@ const GlobalTopbar = ({
       </CardWrapper>
 
       {/* Mobile Nav Bar */}
-      <CardWrapper
-        className={`w-full lg:hidden ${styles.background} ${styles.border} border-t`}
-        padding="py-1 px-2"
-      >
-        <div className="flex justify-between items-center min-h-[40px] h-full">
-          <MenuButton isMobile={true} />
-          {topbarTitle && (
-            <div
-              className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate flex items-center`}
-            >
-              {topbarTitle}
-            </div>
-          )}
-          {!isCreateOrganizationRoute && !isAdminRoute && (
-            <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
-          )}
-          {customActions && <div className="flex gap-1">{customActions}</div>}
-        </div>
-      </CardWrapper>
+      {!hideMobileNav && (
+        <CardWrapper
+          className={`w-full md:block lg:hidden ${styles.background} ${styles.border} border-t`}
+          padding="py-1 px-2"
+        >
+          <div className="flex justify-between items-center min-h-[40px] h-full">
+            {!hideMenuButton && <MenuButton isMobile={true} />}
+            {topbarTitle && (
+              <div
+                className={`${!hideMenuButton ? 'ml-3' : ''} text-sm font-medium ${styles.text} flex-1 truncate flex items-center`}
+              >
+                {topbarTitle}
+              </div>
+            )}
+            {!isCreateOrganizationRoute && !isAdminRoute && (
+              <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
+            )}
+            {customActions && <div className="flex gap-1">{customActions}</div>}
+          </div>
+        </CardWrapper>
+      )}
     </div>
   );
 };
@@ -291,6 +295,8 @@ GlobalTopbar.propTypes = {
   onLogoClick: PropTypes.func,
   homeNavPath: PropTypes.string,
   customActions: PropTypes.node,
+  hideMobileNav: PropTypes.bool,
+  hideMenuButton: PropTypes.bool,
 };
 
 export default React.memo(GlobalTopbar);

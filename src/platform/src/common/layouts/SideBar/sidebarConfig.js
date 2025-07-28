@@ -250,9 +250,61 @@ export const getNavigationItems = (userType, options = {}) => {
  * @param {string} userType - Type of user
  * @param {Object} options - Additional options
  */
-export const getMobileNavigationItems = (userType, options = {}) => {
-  // For now, same as desktop navigation
-  return getNavigationItems(userType, options);
+export const getMobileNavigationItems = (
+  userType,
+  options = {},
+  excludeBottomNavItems = true,
+) => {
+  const allItems = getNavigationItems(userType, options);
+
+  if (!excludeBottomNavItems) {
+    return allItems;
+  }
+
+  // Get the first 4 navigation items (shown in bottom nav)
+  const bottomNavItems = allItems
+    .filter((item) => item.type === 'item' && item.path)
+    .slice(0, 4);
+
+  const bottomNavPaths = new Set(bottomNavItems.map((item) => item.path));
+
+  // Filter out items that are in bottom navigation
+  const filteredItems = allItems.filter((item) => {
+    if (item.type !== 'item' || !item.path) {
+      return true; // Keep dividers and non-navigation items for now
+    }
+    return !bottomNavPaths.has(item.path);
+  });
+
+  // Remove dividers that have no following navigation items
+  const cleanedItems = [];
+  for (let i = 0; i < filteredItems.length; i++) {
+    const item = filteredItems[i];
+
+    if (item.type === 'divider') {
+      // Check if there are any navigation items after this divider
+      let hasFollowingNavItems = false;
+      for (let j = i + 1; j < filteredItems.length; j++) {
+        const nextItem = filteredItems[j];
+        if (nextItem.type === 'divider') {
+          break; // Reached next divider, stop checking
+        }
+        if (nextItem.type === 'item' && nextItem.path) {
+          hasFollowingNavItems = true;
+          break;
+        }
+      }
+
+      // Only include divider if it has following nav items
+      if (hasFollowingNavItems) {
+        cleanedItems.push(item);
+      }
+    } else {
+      cleanedItems.push(item);
+    }
+  }
+
+  return cleanedItems;
 };
 
 /**
@@ -278,6 +330,10 @@ export const getUserTypeFromPath = (pathname) => {
   }
   if (pathname.startsWith('/org/')) {
     return USER_TYPES.ORGANIZATION;
+  }
+  // create-organization route should use user navigation
+  if (pathname === '/create-organization') {
+    return USER_TYPES.USER;
   }
   return USER_TYPES.USER;
 };
