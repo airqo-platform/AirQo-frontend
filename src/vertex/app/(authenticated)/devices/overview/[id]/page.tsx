@@ -10,6 +10,7 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 import { getElapsedDurationMapper } from "@/lib/utils";
 import { useState } from "react";
 import DeviceDetailsModal from "@/components/features/devices/device-details-modal";
+import DeployDeviceModal from "@/components/features/devices/deploy-device-modal";
 import DeviceDetailsCard from "@/components/features/devices/device-details-card";
 import DeviceMeasurementsApiCard from "@/components/features/devices/device-measurements-api-card";
 import OnlineStatusCard from "@/components/features/devices/online-status-card";
@@ -46,9 +47,10 @@ export default function DeviceDetailsPage() {
         statusText = "Not Deployed";
         statusColor = "bg-red-100 text-red-800";
     }
-
+    
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);
+    const [showDeployModal, setShowDeployModal] = useState(false);
 
     if (isLoading) {
         return (
@@ -107,6 +109,7 @@ export default function DeviceDetailsPage() {
                                             disabled={!canDeploy}
                                             size="sm"
                                             className="bg-green-900 hover:bg-green-700"
+                                            onClick={() => setShowDeployModal(true)}
                                         >
                                             Deploy Device
                                         </Button>
@@ -143,6 +146,11 @@ export default function DeviceDetailsPage() {
                 onOpenChange={setShowDetailsModal}
                 device={device}
                 onClose={() => setShowDetailsModal(false)}
+            />
+            <DeployDeviceModal
+                open={showDeployModal}
+                onOpenChange={setShowDeployModal}
+                device={device}
             />
             <RecallDeviceDialog
                 open={showRecallDialog}

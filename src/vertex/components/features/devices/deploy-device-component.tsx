@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams, useRouter } from 'next/navigation';
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 import { Button } from "@/components/ui/button";
@@ -72,8 +71,9 @@ interface LocationStepProps {
   onToggleInputMode: () => void;
 }
 
-interface PreviewStepProps {
-  deviceData: DeviceData;
+interface DeployDeviceComponentProps {
+  prefilledDevice?: Record<string, any>;
+  onClose?: () => void;
 }
 
 const mountTypeOptions: MountTypeOption[] = [
@@ -325,25 +325,20 @@ const SummaryItem = ({ label, value }: { label: string; value: React.ReactNode }
   </div>
 );
 
-const queryClient = new QueryClient();
-
-const DeployDevicePage = () => {
+const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceComponentProps) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const deviceIdFromUrl = searchParams.get('deviceId');
 
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
-    deviceName: deviceIdFromUrl || "",
-    height: "",
-    mountType: "",
-    powerType: "",
-    isPrimarySite: false,
-    latitude: "",
-    longitude: "",
-    siteName: "",
+    deviceName: prefilledDevice?.long_name || prefilledDevice?.name || "",
+    height: prefilledDevice?.height?.toString() || "",
+    mountType: prefilledDevice?.mountType || "",
+    powerType: prefilledDevice?.powerType || "",
+    isPrimarySite: prefilledDevice?.isPrimaryInLocation || false,
+    latitude: prefilledDevice?.latitude?.toString() || "",
+    longitude: prefilledDevice?.longitude?.toString() || "",
+    siteName: prefilledDevice?.site_name || "",
     network: activeNetwork?.net_name || "-",
   });
   const { toast } = useToast();
@@ -373,13 +368,6 @@ const DeployDevicePage = () => {
   const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
   const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : isLoadingAllDevices;
 
-  // If deviceIdFromUrl changes (e.g., on client navigation), update deviceName if not already set
-  React.useEffect(() => {
-    if (deviceIdFromUrl && !deviceData.deviceName) {
-      setDeviceData((prev) => ({ ...prev, deviceName: deviceIdFromUrl }));
-    }
-  }, [deviceIdFromUrl]);
-
   // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {
     if (isPersonalContext) {
@@ -403,7 +391,11 @@ const DeployDevicePage = () => {
   };
 
   const handleClaimDevice = () => {
-    router.push('/devices/claim');
+    // In modal context, we might want to handle this differently
+    if (onClose) {
+      onClose();
+    }
+    window.location.href = '/devices/claim';
   };
 
   const handleCheckboxChange = (checked: boolean): void => {
@@ -479,25 +471,10 @@ const DeployDevicePage = () => {
         description: "Device has been successfully deployed.",
       });
 
-      // Invalidate device queries
-      await queryClient.invalidateQueries({ queryKey: ["device-details", deviceIdFromUrl] });
-
-      // On successful deployment, reset form fields
-      setDeviceData({
-        deviceName: "",
-        height: "",
-        mountType: "",
-        powerType: "",
-        isPrimarySite: false,
-        latitude: "",
-        longitude: "",
-        siteName: "",
-        network: activeNetwork?.net_name || "-",
-      });
-      
-      // Reset to first step and siteName input mode
-      setCurrentStep(0);
-      setInputMode('siteName');
+      // On successful deployment, close modal
+      if (onClose) {
+        onClose();
+      }
       
     } catch (error) {
       console.error('Deployment failed:', error);
@@ -510,7 +487,7 @@ const DeployDevicePage = () => {
     setCurrentStep((prev) => (prev === stepIndex ? -1 : stepIndex));
   };
 
-  // In DeployDevicePage, define steps array and map over it
+  // In DeployDeviceComponent, define steps array and map over it
   const steps = [
     {
       title: "Enter Device Details",
@@ -570,7 +547,7 @@ const DeployDevicePage = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6 flex flex-col md:flex-row gap-8">
+    <div className="container mx-auto p-6 flex flex-col md:flex-row gap-8 h-full">
       {/* Main Steps Column */}
       <div className="flex-1 min-w-0">
         <h1 className="text-2xl font-semibold mb-4">Deploy Device</h1>
@@ -628,4 +605,4 @@ const DeployDevicePage = () => {
   );
 };
 
-export default DeployDevicePage;
+export default DeployDeviceComponent;
