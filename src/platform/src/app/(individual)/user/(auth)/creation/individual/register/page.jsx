@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Button from '@/common/components/Button';
 import AccountPageLayout from '@/components/Account/Layout';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -305,18 +306,14 @@ const IndividualAccountRegistration = () => {
 
             {/* Submit Button */}
             <div className="mt-10 mb-3">
-              <button
+              <Button
                 type="submit"
-                style={{ textTransform: 'none' }}
-                className={`w-full btn dark:text-white rounded-[12px] text-sm outline-none border-none transition-colors duration-200 ${
-                  isFormValid
-                    ? 'text-white bg-primary hover:bg-primary/90'
-                    : 'btn-disabled bg-white cursor-not-allowed text-gray-500 dark:text-gray-400'
-                }`}
+                className="w-full rounded-[12px] text-sm"
                 disabled={loading || !isFormValid}
+                loading={loading}
               >
                 {loading ? 'Registering...' : 'Continue'}
-              </button>
+              </Button>
             </div>
 
             {/* Already have an account */}

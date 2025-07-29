@@ -147,7 +147,9 @@ const Checklist = ({ openVideoModal }) => {
 
   return (
     <ErrorBoundary name="Checklist" feature="Onboarding">
-      <div className={reduxStatus === 'loading' ? 'opacity-70' : ''}>
+      <div
+      // className={reduxStatus === 'loading' ? 'opacity-70' : ''}
+      >
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <div className="w-full md:w-1/2 flex flex-col">
@@ -170,7 +172,7 @@ const Checklist = ({ openVideoModal }) => {
         </div>
 
         {/* Checklist Grid */}
-        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
           {mergedSteps.map((stepItem) => (
             <ChecklistStepCard
               key={`step-${stepItem.id}-${stepItem._id || 'new'}`}

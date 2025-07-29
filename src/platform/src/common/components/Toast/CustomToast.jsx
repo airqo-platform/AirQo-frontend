@@ -6,7 +6,7 @@ import { IoInformationCircle } from 'react-icons/io5';
 
 // --- Define Constants for Classes ---
 const BASE_CLASSES = 'p-4 rounded-xl border-none flex items-center gap-2';
-const SUCCESS_CLASSES = 'bg-primary text-white';
+const SUCCESS_CLASSES = 'bg-green-600 text-white';
 const ERROR_CLASSES = 'bg-red-600 text-white';
 const WARNING_CLASSES = 'bg-orange-600 text-white';
 const INFO_CLASSES =
@@ -60,11 +60,7 @@ const CustomToast = ({
       break;
     case TOAST_TYPES.SUCCESS:
     default: // Defaults to success
-      icon = (
-        <span className="inline-flex mr-2 items-center justify-center rounded-full bg-green-600 p-1">
-          <AqCheck size={12} className="text-white flex-shrink-0" />
-        </span>
-      );
+      icon = <AqCheck size={20} className="text-white flex-shrink-0" />;
       className += ` ${SUCCESS_CLASSES}`;
       break;
   }

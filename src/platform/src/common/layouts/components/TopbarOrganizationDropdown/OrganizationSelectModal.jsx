@@ -55,6 +55,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       to: group.grp_title,
     });
     try {
+      // Show loading immediately for smooth transition
       const result = await switchToGroup(group, { navigate: true });
       if (result.success) onClose();
       else logger.error('Switch failed:', result.error);

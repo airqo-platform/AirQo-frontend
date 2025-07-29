@@ -30,6 +30,7 @@ import {
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
+import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
 import logger from '@/lib/logger';
 
 const ctx = createContext(null);
@@ -189,7 +190,6 @@ export function UnifiedGroupProvider({ children }) {
 
       try {
         const isAirQo = isAirQoGroup(target);
-        const route = groupRoute(target);
 
         rdxDispatch(setActiveGroupAction(target));
         rdxDispatch(setOrganizationName(target.grp_title));
@@ -197,7 +197,25 @@ export function UnifiedGroupProvider({ children }) {
         if (!isAirQo) rdxDispatch(resetChartStore());
 
         if (navigate) {
-          router.push(route); // Using push for navigation
+          // Force navigation to ensure proper layout loading
+          const currentPath = pathname;
+          const targetRoute = groupRoute(target);
+
+          // Only navigate if we're actually changing routes
+          if (currentPath !== targetRoute) {
+            // Add a delay to allow UI to update before navigation
+            await new Promise((resolve) => setTimeout(resolve, 150));
+            router.push(targetRoute);
+            // Don't clear loading immediately - let route change effect handle it
+          } else {
+            // Same route, just clear switching state
+            lock.current = false;
+            dispatch({ type: 'SET_SWITCHING', payload: false });
+          }
+        } else {
+          // If not navigating, clear switching state immediately
+          lock.current = false;
+          dispatch({ type: 'SET_SWITCHING', payload: false });
         }
 
         await rdxDispatch(
@@ -211,16 +229,22 @@ export function UnifiedGroupProvider({ children }) {
           await rdxDispatch(fetchGroupDetails(target._id));
         }
 
-        return { success: true, targetRoute: route };
+        return { success: true, targetRoute: targetRoute };
       } catch (error) {
         logger.error('switchToGroup error:', error);
-        return { success: false, error: error.message };
-      } finally {
         lock.current = false;
         dispatch({ type: 'SET_SWITCHING', payload: false });
+        return { success: false, error: error.message };
       }
     },
-    [rdxDispatch, session?.user?.id, activeGroup, state.isSwitching, router],
+    [
+      rdxDispatch,
+      session?.user?.id,
+      activeGroup,
+      state.isSwitching,
+      router,
+      pathname,
+    ],
   );
 
   const setActiveGroupById = useCallback(
@@ -320,7 +344,20 @@ export function UnifiedGroupProvider({ children }) {
       });
 
     return () => abortRef.current?.abort?.(); // Cleanup on unmount/change
-  }, [organizationSlug, isOrganizationContext]);
+  }, [organizationSlug, isOrganizationContext]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear switching state when route changes (organization switch complete)
+  useEffect(() => {
+    if (state.isSwitching) {
+      // Use setTimeout to ensure route change is complete
+      const timer = setTimeout(() => {
+        lock.current = false;
+        dispatch({ type: 'SET_SWITCHING', payload: false });
+      }, 1000); // Longer delay to ensure complete transition and avoid loader conflicts
+
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, state.isSwitching]);
 
   // --- Render ---
   const value = useMemo(
@@ -370,9 +407,25 @@ export function UnifiedGroupProvider({ children }) {
     state.organizationTheme?.logo;
   const showLoader =
     isOrganizationContext &&
+    !state.isSwitching && // Don't show loader if switching (switching loader has priority)
     (state.organizationLoading ||
       (!themeComplete && !state.organizationError && state.organization));
 
+  // Show organization switch loader when switching groups (highest priority)
+  if (state.isSwitching && activeGroup) {
+    return (
+      <OrganizationSwitchLoader
+        organizationName={activeGroup.grp_title || 'Organization'}
+        primaryColor={
+          state.organizationTheme?.primaryColor ||
+          state.organization?.primaryColor ||
+          '#135DFF'
+        }
+      />
+    );
+  }
+
+  // Show organization data loader when not switching
   if (showLoader) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
