@@ -151,7 +151,7 @@ const Checklist = ({ openVideoModal }) => {
       // className={reduxStatus === 'loading' ? 'opacity-70' : ''}
       >
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+        <div className="flex flex-row justify-between items-center md:items-center mb-4">
           <div className="w-full md:w-1/2 flex flex-col">
             <h2 className="text-xl md:text-2xl font-medium text-gray-900 dark:text-white">
               Onboarding Checklist
