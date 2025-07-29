@@ -64,7 +64,7 @@ function CreateOrganizationLayout({ children }) {
         showBreadcrumb={false}
       />
       {/* Main Content - Full width without sidebar */}
-      <main className="flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto pb-20 md:pb-0">
+      <main className="flex-1 transition-all pb-20 mb-[84px] md:mb-0 md:pb-0 duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto">
         <div className={`h-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
