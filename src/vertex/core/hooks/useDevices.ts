@@ -246,6 +246,68 @@ export const useDeviceStatusFeed = (deviceNumber?: number) => {
   });
 }; 
 
+export const useCreateDevice = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (deviceData: {
+      long_name: string;
+      category: string;
+      description?: string;
+      network: string;
+    }) => devices.createDevice(deviceData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Device Created Successfully!",
+        description: `${variables.long_name} has been created.`,
+      });
+      // Invalidate and refetch devices
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Creation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+export const useImportDevice = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (deviceData: {
+      long_name: string;
+      category: string;
+      network: string;
+      device_number?: string;
+      writeKey?: string;
+      readKey?: string;
+      description?: string;
+      serial_number: string;
+    }) => devices.importDevice(deviceData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Device Imported Successfully!",
+        description: `${variables.long_name} has been imported.`,
+      });
+      // Invalidate and refetch devices
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Import Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
 export const useDeployDevice = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();

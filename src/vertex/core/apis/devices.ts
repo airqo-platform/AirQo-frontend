@@ -299,5 +299,49 @@ export const devices = {
         axiosError.response?.data?.message || "Failed to recall device"
       );
     }
+  },
+
+  createDevice: async (deviceData: {
+    long_name: string;
+    category: string;
+    description?: string;
+    network: string;
+  }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${DEVICES_MGT_URL}`,
+        deviceData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to create device"
+      );
+    }
+  },
+
+  importDevice: async (deviceData: {
+    long_name: string;
+    category: string;
+    network: string;
+    device_number?: string;
+    writeKey?: string;
+    readKey?: string;
+    description?: string;
+    serial_number: string;
+  }) => {
+    try {
+      const response = await axiosInstance.post(
+        `${DEVICES_MGT_URL}/soft`,
+        deviceData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to import device"
+      );
+    }
   }
 };

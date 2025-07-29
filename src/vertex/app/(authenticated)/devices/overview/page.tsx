@@ -42,6 +42,8 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useRouter } from "next/navigation";
+import ImportDeviceModal from "@/components/features/devices/import-device-modal";
+import CreateDeviceModal from "@/components/features/devices/create-device-modal";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -57,6 +59,8 @@ export default function DevicesPage() {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { isAirQoInternal } = useUserContext();
   const router = useRouter();
+  const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
+  const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -173,11 +177,11 @@ export default function DevicesPage() {
           <div className="flex gap-2">
             {isAirQoInternal && (
               <>
-                <Button variant="outline" disabled={isLoading || !!error}>
+                <Button variant="outline" disabled={isLoading || !!error} onClick={() => setImportDeviceOpen(true)}>
                   <Upload className="mr-2 h-4 w-4" />
                   Import Device
                 </Button>
-                <Button disabled={isLoading || !!error}>
+                <Button disabled={isLoading || !!error} onClick={() => setCreateDeviceOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Device
                 </Button>
@@ -185,6 +189,16 @@ export default function DevicesPage() {
             )}
           </div>
         </div>
+
+        {/* Modal Components */}
+        <ImportDeviceModal
+          open={isImportDeviceOpen}
+          onOpenChange={setImportDeviceOpen}
+        />
+        <CreateDeviceModal
+          open={isCreateDeviceOpen}
+          onOpenChange={setCreateDeviceOpen}
+        />
 
         <div className="flex items-center gap-2 mb-4">
           <div className="relative flex-1 max-w-sm">
