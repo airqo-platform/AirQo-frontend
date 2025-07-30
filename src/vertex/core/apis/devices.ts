@@ -377,5 +377,20 @@ export const devices = {
         axiosError.response?.data?.message || "Failed to update device globally"
       );
     }
-  }
+  },
+
+  addMaintenanceLog: async (deviceName: string, logData: any) => {
+    try {
+      const response = await axiosInstance.post(
+        `${DEVICES_MGT_URL}/activities/maintain?deviceName=${deviceName}`,
+        logData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to add maintenance log"
+      );
+    }
+  },
 };

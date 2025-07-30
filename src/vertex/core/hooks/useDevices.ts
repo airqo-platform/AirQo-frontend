@@ -433,3 +433,32 @@ export const useRecallDevice = () => {
     },
   });
 }
+
+export const useAddMaintenanceLog = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ deviceName, logData }: {
+      deviceName: string;
+      logData: any;
+    }) => devices.addMaintenanceLog(deviceName, logData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Maintenance Log Added Successfully!",
+        description: `Maintenance log has been added for ${variables.deviceName}.`,
+      });
+      // Invalidate and refetch devices to update maintenance status
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["device-details"] });
+      queryClient.invalidateQueries({ queryKey: ["deviceStatus"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Failed to Add Maintenance Log",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
