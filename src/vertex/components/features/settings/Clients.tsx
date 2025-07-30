@@ -16,7 +16,6 @@ import {
   DeactivateClientDialog,
 } from "@/components/features/clients/dialogs";
 import { settings } from "@/core/apis/settings";
-import { useToast } from "@/components/ui/use-toast";
 import type { Client } from "@/app/types/clients";
 import { Search, ArrowUpDown, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -37,6 +36,7 @@ import {
 } from "@/components/ui/pagination";
 
 import { useClients } from "@/core/hooks/useClients";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -63,7 +63,6 @@ const ClientManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof Client>("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const { toast } = useToast();
   const { clients, isLoading } = useClients();
   const queryClient = useQueryClient();
 
@@ -78,18 +77,9 @@ const ClientManagement = () => {
     try {
       await settings.activateUserClientApi(data);
       await queryClient.invalidateQueries({ queryKey: ["clients"] });
-      toast({
-        title: "Success",
-        description: `Client ${
-          activate ? "activated" : "deactivated"
-        } successfully`,
-      });
+      toast.success(`Client ${activate ? "activated" : "deactivated"} successfully`);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to ${activate ? "activate" : "deactivate"} client: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to update client");
     } finally {
       setActivateDialogOpen(false);
       setDeactivateDialogOpen(false);

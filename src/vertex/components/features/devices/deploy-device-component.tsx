@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
@@ -30,6 +29,7 @@ import { MiniMap } from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 import { Device } from "@/app/types/devices";
+import { toast } from "sonner";
 
 interface MountTypeOption {
   value: string;
@@ -342,7 +342,6 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
     siteName: prefilledDevice?.site_name || "",
     network: activeNetwork?.net_name || "-",
   });
-  const { toast } = useToast();
   const { isPersonalContext, userDetails } = useUserContext();
   const { devices: allDevices, isLoading: isLoadingAllDevices } = useDevices();
   const deployDevice = useDeployDevice();
@@ -417,8 +416,7 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
 
   const handleNext = (): void => {
     if (currentStep === 0 && !validateDeviceDetails()) {
-      toast({
-        title: "Incomplete Details",
+      toast.error("Incomplete Details", {
         description: "Please fill in all required device details.",
       });
       return;
@@ -445,10 +443,7 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
 
   const handleDeploy = async (): Promise<void> => {
     if (!userDetails?._id) {
-      toast({
-        title: "Error",
-        description: "User information not available. Please reload the page.",
-      });
+      toast.error("User information not available. Please reload the page.");
       return;
     }
 
@@ -464,12 +459,6 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
         site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
         network: activeNetwork?.net_name || "airqo",
         user_id: userDetails._id,
-      });
-      
-      // Show success message
-      toast({
-        title: "Deployment Successful",
-        description: "Device has been successfully deployed.",
       });
 
       // On successful deployment, close modal

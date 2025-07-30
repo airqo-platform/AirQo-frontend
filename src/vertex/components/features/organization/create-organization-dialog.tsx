@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/components/ui/use-toast"
 import { Plus, Loader2, Check, Building2, Globe, Briefcase, Clock, FileText, LinkIcon, ImageIcon } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -16,6 +15,7 @@ import countryList from "react-select-country-list"
 import { Textarea } from "@/components/ui/textarea"
 import { useCreateGroup } from "@/core/hooks/useGroups"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 const createOrgSchema = z.object({
   grp_title: z.string().min(2, { message: "Organization name must be at least 2 characters." }),
@@ -43,7 +43,6 @@ const industries = [
 
 export function CreateOrganizationDialog() {
   const [open, setOpen] = useState(false)
-  const { toast } = useToast()
   const router = useRouter()
   const countries = countryList().getData()
 
@@ -68,10 +67,7 @@ export function CreateOrganizationDialog() {
     try {
       const result = await createGroup(data)
 
-      toast({
-        title: "Organization created",
-        description: `Successfully created organization: ${data.grp_title}. Please complete the setup by assigning sites, devices, and inviting team members.`,
-      })
+      toast.success(`Successfully created organization: ${data.grp_title}. Please complete the setup by assigning sites, devices, and inviting team members.`)
 
       setOpen(false)
       form.reset()
@@ -80,11 +76,7 @@ export function CreateOrganizationDialog() {
         router.push(`/organizations/${result._id}`)
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to create organization: ${(error as Error).message}`,
-        variant: "destructive",
-      })
+      toast.error(`Failed to create organization: ${(error as Error).message}`)
     }
   }
 

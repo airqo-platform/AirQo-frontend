@@ -8,14 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAppSelector } from "@/core/redux/hooks"
 import { settings } from "@/core/apis/settings"
-import { useToast } from "@/components/ui/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Eye, EyeOff, CheckCircle, XCircle, Lock, ShieldCheck } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { toast } from "sonner"
 
 export default function PasswordEdit() {
   const currentUser = useAppSelector((state) => state.user.userDetails)
-  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState({
     current: false,
@@ -79,11 +78,7 @@ export default function PasswordEdit() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!currentUser) {
-      toast({
-        title: "Error",
-        description: "User not found.",
-        variant: "destructive",
-      })
+      toast.error("User not found.")
       return
     }
 
@@ -93,11 +88,7 @@ export default function PasswordEdit() {
     Object.entries(passwords).forEach(([key, value]) => validateField(key, value))
 
     if (Object.values(errors).some((error) => error)) {
-      toast({
-        title: "Error",
-        description: "Please correct the errors in the form.",
-        variant: "destructive",
-      })
+      toast.error("Please correct the errors in the form.")
       return
     }
 
@@ -119,16 +110,9 @@ export default function PasswordEdit() {
         newPassword: "",
         confirmNewPassword: "",
       })
-      toast({
-        title: "Success",
-        description: "Password updated successfully.",
-      })
+      toast.success("Password updated successfully.")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: (error as Error).message || "An error occurred.",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to update password")
     } finally {
       setIsLoading(false)
     }

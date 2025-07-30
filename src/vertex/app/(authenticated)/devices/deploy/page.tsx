@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
@@ -31,6 +30,7 @@ import { ComboBox } from "@/components/ui/combobox";
 import { MiniMap } from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { toast } from "sonner";
 
 interface MountTypeOption {
   value: string;
@@ -344,7 +344,6 @@ const DeployDevicePage = () => {
     siteName: "",
     network: activeNetwork?.net_name || "-",
   });
-  const { toast } = useToast();
   const { isPersonalContext, userDetails } = useUserContext();
   const { devices: allDevices, isLoading: isLoadingAllDevices } = useDevices();
   const deployDevice = useDeployDevice();
@@ -422,8 +421,7 @@ const DeployDevicePage = () => {
 
   const handleNext = (): void => {
     if (currentStep === 0 && !validateDeviceDetails()) {
-      toast({
-        title: "Incomplete Details",
+      toast("Incomplete Details", {
         description: "Please fill in all required device details.",
       });
       return;
@@ -450,10 +448,7 @@ const DeployDevicePage = () => {
 
   const handleDeploy = async (): Promise<void> => {
     if (!userDetails?._id) {
-      toast({
-        title: "Error",
-        description: "User information not available. Please reload the page.",
-      });
+      toast.error("User information not available. Please reload the page.");
       return;
     }
 
@@ -472,8 +467,7 @@ const DeployDevicePage = () => {
       });
       
       // Show success message
-      toast({
-        title: "Deployment Successful",
+      toast("Deployment Successful", {
         description: "Device has been successfully deployed.",
       });
 
@@ -498,7 +492,9 @@ const DeployDevicePage = () => {
       setInputMode('siteName');
       
     } catch (error) {
-      console.error('Deployment failed:', error);
+      toast.error("Deployment Failed", {
+        description: "An error occurred while deploying the device. Please try again.",
+      });
       // Error handling is already done in the useDeployDevice hook
     }
   };

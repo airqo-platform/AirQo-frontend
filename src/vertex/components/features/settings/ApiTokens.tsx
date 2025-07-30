@@ -3,7 +3,6 @@
 import { useState } from "react"
 import moment from "moment"
 import { useAppDispatch } from "@/core/redux/hooks"
-import { useToast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
 import { performRefresh } from "@/core/redux/slices/clientsSlice"
 import EditClientForm from "./EditClientForm"
@@ -29,6 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { useQueryClient } from "@tanstack/react-query"
 import { AxiosError } from "axios"
+import { toast } from "sonner"
 
 interface ErrorResponse {
   message: string;
@@ -42,7 +42,6 @@ type SortOrder = "asc" | "desc"
 const UserClientsTable = () => {
   const queryClient = useQueryClient()
   const dispatch = useAppDispatch()
-  const { toast } = useToast()
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [isLoadingToken, setIsLoadingToken] = useState(false)
   const [isLoadingActivationRequest, setIsLoadingActivationRequest] = useState(false)
@@ -171,19 +170,13 @@ const UserClientsTable = () => {
         const response = await settings.generateTokenApi(res)
         await queryClient.invalidateQueries({ queryKey: ["clients"] })
         if (response) {
-          toast({
-            title: "Success",
-            description: "Token generated successfully",
-          })
+          toast.success("Token generated successfully")
         }
         dispatch(performRefresh())
       } catch (error: unknown) {
         const axiosError = error as AxiosError<ErrorResponse>;
         const errorMessage = axiosError?.response?.data?.message || "Failed to generate token"
-        toast({
-          title: "Error",
-          description: errorMessage,
-        })
+        toast.error(errorMessage)
       } finally {
         setIsLoadingToken(false)
       }
@@ -198,21 +191,14 @@ const UserClientsTable = () => {
       if (response) {
         setShowInfoModal(false)
         setTimeout(() => {
-          toast({
-            title: "Success",
-            description: "Activation request sent successfully",
-          })
+          toast.success("Activation request sent successfully")
         }, 3000)
       }
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
       setShowInfoModal(false)
       setTimeout(() => {
-        toast({
-          title: "Error",
-          description: axiosError.message || "Failed to send activation request",
-          variant: "destructive",
-        })
+        toast.error(axiosError.message || "Failed to send activation request")
       }, 3000)
     } finally {
       setIsLoadingActivationRequest(false)
@@ -331,11 +317,7 @@ const UserClientsTable = () => {
                           const token = await getClientToken(client._id)
                           if (token) {
                             navigator.clipboard.writeText(token)
-                            toast({
-                              title: "Success",
-                              description: "API token copied to clipboard",
-                              variant: "default",
-                            })
+                            toast.success("API token copied to clipboard")
                           }
                         }}
                       >

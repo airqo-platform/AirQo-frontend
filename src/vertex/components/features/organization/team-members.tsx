@@ -30,7 +30,6 @@ import {
 import { useGroupRoles } from "@/core/hooks/useRoles";
 import type { GroupMember } from "@/app/types/groups";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/components/ui/use-toast";
 import { useTeamMembers, useInviteUserToGroup } from "@/core/hooks/useGroups";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
@@ -51,6 +50,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Role } from "@/app/types/roles";
+import { toast } from "sonner";
 
 type TeamMembersProps = {
   organizationId: string;
@@ -62,7 +62,6 @@ type SortField = "firstName" | "lastName" | "email" | "role_name";
 type SortOrder = "asc" | "desc";
 
 export function TeamMembers({ organizationId }: TeamMembersProps) {
-  const { toast } = useToast();
   const { team, isLoading, error } = useTeamMembers(organizationId);
   const {
     grproles,
@@ -86,20 +85,12 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
     e.preventDefault();
     inviteUserMutation.mutate(newMemberEmail, {
       onSuccess: () => {
-        toast({
-          title: "Invitation sent",
-          description: `An invitation has been sent to ${newMemberEmail}`,
-        });
+        toast.success(`An invitation has been sent to ${newMemberEmail}`);
         setNewMemberEmail("");
         setIsInviteDialogOpen(false);
       },
       onError: (error: Error) => {
-        toast({
-          title: "Invitation Failed",
-          description:
-            error.message || "Failed to invite member. Please try again.",
-          variant: "destructive",
-        });
+        toast.error(error.message || "Failed to invite member. Please try again.");
       },
     });
   };
@@ -108,17 +99,10 @@ export function TeamMembers({ organizationId }: TeamMembersProps) {
     if (!selectedMember || !newRoleId) return;
 
     try {
-      toast({
-        title: "Role updated",
-        description: "The member's role has been successfully updated.",
-      });
+      toast.success("The member's role has been successfully updated.");
       setIsDialogOpen(false);
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to update role. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to update role. Please try again.");
     }
   };
 

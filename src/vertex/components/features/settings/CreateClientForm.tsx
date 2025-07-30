@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, X } from 'lucide-react'
 import { settings } from "@/core/apis/settings"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from 'sonner'
 
 interface CreateClientFormProps {
   open: boolean
@@ -14,7 +14,6 @@ interface CreateClientFormProps {
 }
 
 const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose }) => {
-  const { toast } = useToast()
   const userInfo = useAppSelector((state) => state.user.userDetails)
   const [clientName, setClientName] = useState('')
   const [ipAddresses, setIpAddresses] = useState([''])
@@ -60,18 +59,11 @@ const CreateClientForm: React.FC<CreateClientFormProps> = ({ open, onClose }) =>
 
       const response = await settings.createClientApi(data)
       if (response) {
-        toast({
-          title: "Success",
-          description: "Client created successfully",
-        })
+        toast.success("Client created successfully")
         onClose()
       }
     } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create client",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to create client")
     } finally {
       setIsLoading(false)
     }

@@ -14,11 +14,11 @@ import { getCountries } from "@/utils/countries"
 import { getTimezones } from "@/utils/timezones"
 import { users } from "@/core/apis/users"
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks"
-import { useToast } from "@/components/ui/use-toast"
 import { Loader2, Upload, Trash2, User } from "lucide-react"
 import { cloudinaryImageUpload } from "@/core/apis/cloudinary"
 import { setUserDetails } from "@/core/redux/slices/userSlice"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { toast } from "sonner"
 
 interface Profile {
   firstName: string
@@ -33,7 +33,6 @@ interface Profile {
 
 export default function MyProfile() {
   const currentUser = useAppSelector((state) => state.user.userDetails)
-  const { toast } = useToast()
   const dispatch = useAppDispatch()
 
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -69,15 +68,11 @@ export default function MyProfile() {
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to fetch user data")
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch user data",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to fetch user data")
     } finally {
       setIsLoading(false)
     }
-  }, [currentUser, toast])
+  }, [currentUser])
 
   useEffect(() => {
     fetchUserData()
@@ -127,17 +122,10 @@ export default function MyProfile() {
             groups: currentUser.groups || [],
           }),
         )
-        toast({
-          title: "Success",
-          description: "Profile picture updated successfully",
-        })
+        toast.success("Profile picture updated successfully")
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update profile picture",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to update profile picture")
     } finally {
       setProfileUploading(false)
     }
@@ -156,16 +144,9 @@ export default function MyProfile() {
         networks: currentUser.networks || [],
         groups: currentUser.groups || [],
       }))
-      toast({
-        title: "Success",
-        description: "Profile picture deleted successfully",
-      })
+      toast.success("Profile picture deleted successfully")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete profile picture",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to delete profile picture")
     }
   }
 
@@ -189,17 +170,10 @@ export default function MyProfile() {
         networks: updatedUser.networks || currentUser.networks || [],
         groups: updatedUser.groups || currentUser.groups || [],
       }))
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      })
+      toast.success("Profile updated successfully")
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to update profile")
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update profile",
-        variant: "destructive",
-      })
+      toast.error(error instanceof Error ? error.message : "Failed to update profile")
     } finally {
       setIsLoading(false)
     }
