@@ -40,8 +40,8 @@ const AirQoMap = forwardRef(
       mapboxApiAccessToken,
       pollutant,
       onToastMessage,
-      onMainLoadingChange,
-      onOthersLoadingChange,
+      onMapReadingLoadingChange,
+      onWaqiLoadingChange,
     },
     ref,
   ) => {
@@ -83,24 +83,8 @@ const AirQoMap = forwardRef(
     // Custom hooks with memoization
     const { styleUrl, setStyleUrl, isDarkMode } = useMapStyles(mapStyles);
     const { initialCenter, initialZoom } = useMapViewport();
-    // Memoized loading callbacks to prevent unnecessary re-renders
-    const handleMainLoading = useCallback(
-      (loading) => {
-        if (!isUnmountingRef.current) {
-          onMainLoadingChange?.(loading);
-        }
-      },
-      [onMainLoadingChange],
-    );
-    const handleOthersLoading = useCallback(
-      (loading) => {
-        if (!isUnmountingRef.current) {
-          onOthersLoadingChange?.(loading);
-        }
-      },
-      [onOthersLoadingChange],
-    );
-    // Data management hook - Pass the new loading setters
+
+    // Data management hook - Pass the loading callbacks to parent
     const {
       mapRef,
       fetchAndProcessData,
@@ -110,9 +94,9 @@ const AirQoMap = forwardRef(
     } = useMapData({
       NodeType: nodeType,
       pollutant,
-      onMainLoadingChange: handleMainLoading,
-      onOthersLoadingChange: handleOthersLoading,
       isDarkMode,
+      onMapReadingLoadingChange,
+      onWaqiLoadingChange,
     });
     // Controls management
     const {
@@ -140,7 +124,6 @@ const AirQoMap = forwardRef(
       clusterUpdate,
       addControls,
       ensureControls,
-      handleMainLoading,
       onToastMessage,
     });
     // Memoized combined map data to prevent unnecessary recalculations
@@ -196,7 +179,6 @@ const AirQoMap = forwardRef(
         const zoom = map.getZoom();
         isReloadingRef.current = true;
         resetControlsState();
-        handleMainLoading(true);
         setStyleUrl(url);
         map.setStyle(url);
         // Handle style load with error handling
@@ -220,12 +202,10 @@ const AirQoMap = forwardRef(
             }, CONSTANTS.STYLE_LOAD_FALLBACK_TIMEOUT);
             // Store timeout for cleanup
             timeoutRef.current = fallbackTimeout;
-            handleMainLoading(false);
             isReloadingRef.current = false;
             prevStyleUrlRef.current = url;
           } catch (error) {
             console.error('Error handling style load:', error);
-            handleMainLoading(false);
             isReloadingRef.current = false;
           }
         };
@@ -233,7 +213,6 @@ const AirQoMap = forwardRef(
         map.once('style.load', handleStyleLoad);
         map.once('error', () => {
           console.error('Error loading map style');
-          handleMainLoading(false);
           isReloadingRef.current = false;
         });
       },
@@ -242,7 +221,6 @@ const AirQoMap = forwardRef(
         combinedMapData,
         updateMapData,
         addControls,
-        handleMainLoading,
         resetControlsState,
         controlsAddedRef,
       ],
@@ -439,8 +417,8 @@ AirQoMap.propTypes = {
   mapboxApiAccessToken: PropTypes.string.isRequired,
   pollutant: PropTypes.string.isRequired,
   onToastMessage: PropTypes.func,
-  onMainLoadingChange: PropTypes.func,
-  onOthersLoadingChange: PropTypes.func,
+  onMapReadingLoadingChange: PropTypes.func,
+  onWaqiLoadingChange: PropTypes.func,
 };
 
 export default React.memo(AirQoMap);

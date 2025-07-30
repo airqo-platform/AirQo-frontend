@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { useMapPageState } from '../hooks/useMapPageState';
 import AirQoMap from '../components/AirQoMap';
@@ -16,11 +16,12 @@ const MapPage = () => {
   const { width } = useWindowSize();
   const airqoMapRef = useRef(null);
 
+  // State for loading states from AirQoMap
+  const [mapReadingLoading, setMapReadingLoading] = useState(false);
+  const [waqiLoading, setWaqiLoading] = useState(false);
+
   const {
-    loading, // This is now the main loading state (map readings)
-    setLoading, // Setter for main loading
-    loadingOthers, // This is the loading state for WAQI data
-    setLoadingOthers, // Setter for WAQI loading
+    loading: sidebarLoading, // Rename for clarity - this is for sidebar data loading
     toastMessage,
     setToastMessage,
     clearToastMessage,
@@ -65,7 +66,11 @@ const MapPage = () => {
   return (
     <div className={containerClassName}>
       <div className={`md:overflow-hidden md:rounded-l-xl ${sidebarClassName}`}>
-        <MapSidebar siteDetails={siteDetails} isAdmin={true} />
+        <MapSidebar
+          siteDetails={siteDetails}
+          isLoading={sidebarLoading}
+          isAdmin={true}
+        />
       </div>
       <div className={mapClassName}>
         <div className="relative w-full h-full md:overflow-hidden md:rounded-r-xl">
@@ -75,11 +80,11 @@ const MapPage = () => {
             customStyle="flex-grow h-full w-full relative dark:text-black-900"
             pollutant={pollutant}
             onToastMessage={setToastMessage}
-            onMainLoadingChange={setLoading}
-            onOthersLoadingChange={setLoadingOthers}
+            onMapReadingLoadingChange={setMapReadingLoading}
+            onWaqiLoadingChange={setWaqiLoading}
           />
           {/* Loading overlay for main data */}
-          {loading && <LoadingOverlay />}
+          {mapReadingLoading && <LoadingOverlay />}
           {/* Legend */}
           {showLegendAndControls && (
             <div className="absolute left-4 bottom-2 z-50">
@@ -95,11 +100,14 @@ const MapPage = () => {
             show={showLegendAndControls}
           />
           {/* Loading indicator for additional data (WAQI) */}
-          {loadingOthers && (
-            <div className="absolute bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md p-2 top-4 right-16 flex items-center z-50">
+          {waqiLoading && (
+            <div className="absolute bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md p-2 top-4 right-4 md:right-16 flex items-center z-50 w-[90vw] max-w-xs md:max-w-md md:w-auto">
               <Loader size={14} />
-              <span className="ml-2 text-sm">
-                Loading global AQI data from 80+ cities...
+              <span className="ml-2 text-xs md:text-sm truncate">
+                <span className="hidden sm:inline">
+                  Loading global AQI data from 80+ cities...
+                </span>
+                <span className="inline sm:hidden">Loading AQI data...</span>
               </span>
             </div>
           )}
