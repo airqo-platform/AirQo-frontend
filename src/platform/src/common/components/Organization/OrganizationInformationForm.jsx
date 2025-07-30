@@ -191,9 +191,7 @@ const OrganizationInformationForm = ({
         .map((word) => word.charAt(0))
         .join('')
         .toUpperCase();
-    } // Debug: Check if grp_status is in formData
-    // console.log('formData:', formData);
-    // console.log('grp_status:', formData.grp_status);
+    }
 
     // Generate consistent color based on organization name
     const generateColor = (str) => {

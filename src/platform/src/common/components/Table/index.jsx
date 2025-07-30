@@ -15,5 +15,3 @@ export { useTableMultiSelect } from './hooks/useTableMultiSelect';
 
 // Export utilities
 export * from './utils/tableUtils';
-
-export { default as CustomTable } from './LegacyCustomTable';

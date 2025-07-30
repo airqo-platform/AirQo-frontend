@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 
 /**
  * Custom hook for handling table pagination functionality
@@ -9,11 +9,18 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 export const useTablePagination = (data, initialPageSize = 10) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentPageSize, setCurrentPageSize] = useState(initialPageSize);
+  const previousDataLength = useRef(data.length);
 
-  // Reset to first page when data changes
+  // Only reset to first page when data length changes significantly or is filtered
+  // This prevents pagination reset during multi-select operations
   useEffect(() => {
-    setCurrentPage(1);
-  }, [data]);
+    const dataLengthChanged =
+      Math.abs(data.length - previousDataLength.current) > 1;
+    if (dataLengthChanged) {
+      setCurrentPage(1);
+      previousDataLength.current = data.length;
+    }
+  }, [data.length]);
 
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * currentPageSize;

@@ -55,10 +55,19 @@ export const useTableMultiSelect = (data, onSelectedItemsChange) => {
     [onSelectedItemsChange],
   );
 
+  // Enhanced logic for header checkbox state
   const isAllSelectedOnPage = useMemo(
     () =>
       data.length > 0 && data.every((item) => selectedItems.includes(item.id)),
     [data, selectedItems],
+  );
+
+  const isIndeterminate = useMemo(
+    () =>
+      data.length > 0 &&
+      data.some((item) => selectedItems.includes(item.id)) &&
+      !isAllSelectedOnPage,
+    [data, selectedItems, isAllSelectedOnPage],
   );
 
   const isAnySelected = selectedItems.length > 0;
@@ -84,6 +93,7 @@ export const useTableMultiSelect = (data, onSelectedItemsChange) => {
     selectedItems,
     selectedAction,
     isAllSelectedOnPage,
+    isIndeterminate,
     isAnySelected,
     handleSelectAll,
     handleSelectItem,

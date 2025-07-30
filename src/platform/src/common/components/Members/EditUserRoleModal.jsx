@@ -12,7 +12,6 @@ const EditUserRoleModal = ({
   onSave,
   isLoading,
 }) => {
-  console.log(user);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(user?.role || '');
   const [loadingRoles, setLoadingRoles] = useState(false);

@@ -81,13 +81,14 @@ const ReusableTable = ({
     selectedItems,
     selectedAction,
     isAllSelectedOnPage,
+    isIndeterminate,
     handleSelectAll,
     handleSelectItem,
     handleActionChange,
     handleActionSubmit,
   } = useTableMultiSelect(paginatedData, onSelectedItemsChange);
 
-  // Reset to first page when search or filters change
+  // Reset to first page when search or filters change (but not on multi-select)
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterValues, setCurrentPage]);
@@ -114,6 +115,9 @@ const ReusableTable = ({
           <input
             type="checkbox"
             checked={isAllSelectedOnPage}
+            ref={(input) => {
+              if (input) input.indeterminate = isIndeterminate;
+            }}
             onChange={(e) => handleSelectAll(e.target.checked)}
             className="rounded text-primary focus:ring-primary"
           />
@@ -134,6 +138,7 @@ const ReusableTable = ({
     columns,
     multiSelect,
     isAllSelectedOnPage,
+    isIndeterminate,
     selectedItems,
     handleSelectAll,
     handleSelectItem,
