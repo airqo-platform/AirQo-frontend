@@ -1,6 +1,7 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { PERMISSIONS } from '../../constants/permissions';
 
 export const withPermission = (Component, requiredPermission) => {
   const WithPermission = (props) => {

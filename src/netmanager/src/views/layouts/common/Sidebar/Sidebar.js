@@ -30,6 +30,7 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import AppsIcon from '@material-ui/icons/Apps';
 import DeviceHubIcon from '@material-ui/icons/DeviceHub';
+import { PERMISSIONS } from '../../../../constants/permissions';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -76,41 +77,45 @@ const allMainPages = [
   {
     title: 'Overview',
     href: '/overview',
-    icon: <AspectRatioIcon />
+    icon: <AspectRatioIcon />,
+    permission: PERMISSIONS.ANALYTICS.DASHBOARD_VIEW
   },
   {
     title: 'Analytics',
     href: '/analytics',
     icon: <TimelineIcon />,
+    permission: PERMISSIONS.ANALYTICS.ANALYTICS_VIEW,
     isNew: true
   },
   {
     title: 'Map',
     href: '/map',
-    icon: <MapIcon />
+    icon: <MapIcon />,
+    permission: PERMISSIONS.ANALYTICS.DASHBOARD_VIEW
   },
   {
     title: 'Export data',
     href: '/export-data/options',
-    icon: <CloudDownloadIcon />
+    icon: <CloudDownloadIcon />,
+    permission: PERMISSIONS.ANALYTICS.DATA_EXPORT
   },
   {
     title: 'Deploy Device',
     href: '/deploy-device',
     icon: <DeviceHubIcon />,
-    permission: 'DEPLOY_AIRQO_DEVICES'
+    permission: PERMISSIONS.DEVICE.DEPLOY
   },
   {
     title: 'Locate',
     href: '/locate',
     icon: <LocateIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+    permission: PERMISSIONS.SITE.CREATE
   },
   {
     title: 'Network Monitoring',
     href: '/manager',
     icon: <ManageIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    permission: PERMISSIONS.DEVICE.VIEW,
     collapse: true,
     nested: true,
     nestItems: [
@@ -124,27 +129,27 @@ const allMainPages = [
     title: 'Device Registry',
     href: '/registry',
     icon: <AddIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: PERMISSIONS.DEVICE.VIEW
   },
 
   {
     title: 'Site Registry',
     href: '/sites',
     icon: <EditLocationIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+    permission: PERMISSIONS.SITE.VIEW
   },
   {
     title: 'Host Registry',
     href: '/hosts',
     icon: <PeopleOutline />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    permission: PERMISSIONS.SITE.VIEW,
     isNew: true
   },
   {
     title: 'SIM Registry',
     href: '/sim',
     icon: <SimCardIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
+    permission: PERMISSIONS.DEVICE.VIEW,
     isNew: true
   },
 
@@ -152,14 +157,14 @@ const allMainPages = [
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <GroupWorkIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    permission: PERMISSIONS.GROUP.VIEW,
     isNew: true
   },
   {
     title: 'Grids Registry',
     href: '/grids',
     icon: <GrainIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    permission: PERMISSIONS.GROUP.VIEW,
     isNew: true
   }
 ];
@@ -169,25 +174,27 @@ const allUserManagementPages = [
     title: 'Logs',
     href: '/logs',
     icon: <DataUsageIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
+    permission: PERMISSIONS.USER.VIEW
   },
   {
     title: 'Networks',
     href: '/networks',
     icon: <TapAndPlayIcon />,
+    permission: PERMISSIONS.ORGANIZATION.VIEW,
     disabled: true
   },
   {
     title: 'Teams',
     href: '/teams',
     icon: <GroupAddIcon />,
+    permission: PERMISSIONS.GROUP.VIEW,
     isNew: true
   },
   {
     title: 'Users',
     href: '/admin/users',
     icon: <PeopleIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+    permission: PERMISSIONS.USER.VIEW,
     collapse: true,
     nested: true,
     nestItems: [
@@ -201,13 +208,13 @@ const allUserManagementPages = [
     title: 'Roles',
     href: '/roles',
     icon: <AssignmentIndIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
+    permission: PERMISSIONS.ROLE.VIEW
   },
   {
     title: 'Clients',
     href: '/clients-activation',
     icon: <AppsIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
+    permission: PERMISSIONS.USER.VIEW
   },
   {
     title: 'Account',
@@ -217,7 +224,8 @@ const allUserManagementPages = [
   {
     title: 'Settings',
     href: '/settings',
-    icon: <SettingsIcon />
+    icon: <SettingsIcon />,
+    permission: PERMISSIONS.SETTINGS.VIEW
   }
 ];
 
