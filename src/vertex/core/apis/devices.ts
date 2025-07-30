@@ -9,7 +9,8 @@ import type {
   MyDevicesResponse,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
-  Device
+  Device,
+  DeviceCreationResponse
 } from "@/app/types/devices";
 
 const axiosInstance = createAxiosInstance();
@@ -306,7 +307,7 @@ export const devices = {
     category: string;
     description?: string;
     network: string;
-  }) => {
+  }): Promise<DeviceCreationResponse> => {
     try {
       const response = await axiosInstance.post(
         `${DEVICES_MGT_URL}`,
@@ -330,7 +331,7 @@ export const devices = {
     readKey?: string;
     description?: string;
     serial_number: string;
-  }) => {
+  }): Promise<DeviceCreationResponse> => {
     try {
       const response = await axiosInstance.post(
         `${DEVICES_MGT_URL}/soft`,
@@ -390,6 +391,30 @@ export const devices = {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
         axiosError.response?.data?.message || "Failed to add maintenance log"
+      );
+    }
+  },
+
+  updateDeviceGroup: async (
+    deviceId: string,
+    groupName: string
+  ): Promise<any> => {
+    try {
+      const requestBody = {
+        deviceIds: [deviceId],
+        updateData: {
+          groups: [groupName],
+        },
+      };
+      const response = await axiosInstance.put(
+        `${DEVICES_MGT_URL}/bulk`,
+        requestBody
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update device group"
       );
     }
   },

@@ -196,3 +196,9 @@ export interface DeviceAssignmentResponse {
   message: string;
   device: Device;
 }
+
+export interface DeviceCreationResponse {
+  success: boolean;
+  message: string;
+  created_device: Device;
+}
