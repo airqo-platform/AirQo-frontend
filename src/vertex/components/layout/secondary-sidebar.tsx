@@ -254,7 +254,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
             )}
 
             {/* Sites - only for non-personal contexts */}
-            {sidebarConfig.showSites && contextPermissions.canViewSites && (
+            {/* {sidebarConfig.showSites && contextPermissions.canViewSites && (
               <NavItem
                 href="/sites"
                 icon={MapPin}
@@ -262,7 +262,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                 isCollapsed={isCollapsed}
                 disabled={false}
               />
-            )}
+            )} */}
 
             {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem

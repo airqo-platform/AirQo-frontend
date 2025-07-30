@@ -16,7 +16,8 @@ export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
   [PERMISSIONS.SITE.CREATE]: false,
   [PERMISSIONS.SITE.VIEW]: true,
   [PERMISSIONS.DEVICE.VIEW]: true,
-  [PERMISSIONS.DEVICE.RECALL]: true
+  [PERMISSIONS.DEVICE.RECALL]: true,
+  [PERMISSIONS.DEVICE.MAINTAIN]: true,
   // Add more as needed for your test scenarios
 };
 

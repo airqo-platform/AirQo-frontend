@@ -1,112 +1,163 @@
+"use client"
+
 import * as React from "react"
-import { X } from 'lucide-react'
+import { X, PlusCircle } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
-import { Command as CommandPrimitive } from "cmdk"
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandInput,
+} from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-export type Option = {
-  label: string
+interface Option {
   value: string
+  label: string
 }
 
-type MultiSelectProps = {
+interface MultiSelectComboboxProps {
   options: Option[]
-  selected: Option[]
-  onChange: (options: Option[]) => void
   placeholder?: string
+  value: string[]
+  onValueChange: (values: string[]) => void
 }
 
-export function MultiSelect({ options, selected = [], onChange, placeholder = "Select items..." }: MultiSelectProps) {
-  const inputRef = React.useRef<HTMLInputElement>(null)
+export function MultiSelectCombobox({
+  options,
+  placeholder = "Select tags...",
+  value,
+  onValueChange,
+}: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
 
-  const handleUnselect = (option: Option) => {
-    onChange(selected.filter((s) => s.value !== option.value))
-  }
+  const selectedValues = new Set(value)
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const input = inputRef.current
-    if (input) {
-      if (e.key === "Delete" || e.key === "Backspace") {
-        if (input.value === "") {
-          const newSelected = [...selected]
-          newSelected.pop()
-          onChange(newSelected)
-        }
-      }
-      if (e.key === "Escape") {
-        input.blur()
-      }
+  const handleSelect = (itemValue: string) => {
+    const newSet = new Set(value)
+    if (newSet.has(itemValue)) {
+      newSet.delete(itemValue)
+    } else {
+      newSet.add(itemValue)
     }
+    onValueChange(Array.from(newSet).sort())
+    setInputValue("")
   }
 
-  const selectables = options.filter((option) => !selected.some(s => s.value === option.value))
+  const handleRemove = (itemValue: string) => {
+    const newSet = new Set(value)
+    newSet.delete(itemValue)
+    onValueChange(Array.from(newSet).sort())
+  }
+
+  const handleCreateNew = () => {
+    const normalized = inputValue.trim().toLowerCase()
+    if (!normalized) return
+
+    const newSet = new Set(value)
+    newSet.add(normalized)
+    onValueChange(Array.from(newSet).sort())
+    setInputValue("")
+    setOpen(false)
+  }
+
+  const filteredOptions = options.filter(
+    (option) =>
+      option.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+      !selectedValues.has(option.value)
+  )
+
+  const canCreateNew =
+    inputValue.trim() !== "" &&
+    !options.some(
+      (option) =>
+        option.label.toLowerCase() === inputValue.toLowerCase() ||
+        option.value === inputValue.toLowerCase()
+    ) &&
+    !selectedValues.has(inputValue.toLowerCase())
 
   return (
-    <Command onKeyDown={handleKeyDown} className="overflow-visible bg-transparent">
-      <div className="group border border-input px-3 py-2 text-sm ring-offset-background rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-        <div className="flex gap-1 flex-wrap">
-          {selected.map((option) => {
-            return (
-              <Badge key={option.value} variant="secondary">
-                {option.label}
-                <button
-                  className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleUnselect(option)
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                  }}
-                  onClick={() => handleUnselect(option)}
-                >
-                  <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                </button>
-              </Badge>
-            )
-          })}
-          <CommandPrimitive.Input
-            ref={inputRef}
-            value={inputValue}
-            onValueChange={setInputValue}
-            onBlur={() => setOpen(false)}
-            onFocus={() => setOpen(true)}
-            placeholder={placeholder}
-            className="ml-2 bg-transparent outline-none placeholder:text-muted-foreground flex-1"
-          />
-        </div>
-      </div>
-      <div className="relative mt-2">
-        {open && selectables.length > 0 ? (
-          <div className="absolute w-full z-10 top-0 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
-            <CommandGroup className="h-full overflow-auto">
-              {selectables.map((option) => {
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between h-auto min-h-[40px] flex-wrap bg-transparent"
+        >
+          <div className="flex flex-wrap gap-1">
+            {value.length === 0 ? (
+              <span className="text-muted-foreground">{placeholder}</span>
+            ) : (
+              value.map((val) => {
+                const option = options.find((o) => o.value === val)
+                const label = option ? option.label : val
                 return (
+                  <Badge key={val} variant="secondary" className="flex items-center gap-1">
+                    {label}
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={() => handleRemove(val)}
+                      className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                      <span className="sr-only">Remove {label}</span>
+                    </button>
+                  </Badge>
+                )
+              })
+            )}
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Search or add new tag..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && canCreateNew) {
+                e.preventDefault()
+                handleCreateNew()
+              }
+            }}
+            className="h-9"
+          />
+          <CommandList>
+            <ScrollArea className="h-48">
+              <CommandGroup>
+                {filteredOptions.map((option) => (
                   <CommandItem
                     key={option.value}
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                    }}
-                    onSelect={() => {
-                      setInputValue("")
-                      onChange([...selected, option])
-                    }}
-                    className={"cursor-pointer"}
+                    value={option.value}
+                    onSelect={() => handleSelect(option.value)}
+                    className="cursor-pointer"
                   >
                     {option.label}
                   </CommandItem>
-                )
-              })}
-            </CommandGroup>
-          </div>
-        ) : null}
-      </div>
-    </Command>
+                ))}
+                {canCreateNew && (
+                  <CommandItem
+                    onSelect={handleCreateNew}
+                    value={`create-new-${inputValue.toLowerCase()}`}
+                    className="cursor-pointer flex items-center justify-between"
+                  >
+                    <span>Create "{inputValue}"</span>
+                    <PlusCircle className="ml-2 h-4 w-4" />
+                  </CommandItem>
+                )}
+              </CommandGroup>
+            </ScrollArea>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }
-

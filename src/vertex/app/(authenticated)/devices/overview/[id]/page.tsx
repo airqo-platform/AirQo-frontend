@@ -16,6 +16,7 @@ import DeviceMeasurementsApiCard from "@/components/features/devices/device-meas
 import OnlineStatusCard from "@/components/features/devices/online-status-card";
 import RunDeviceTestCard from "@/components/features/devices/run-device-test-card";
 import RecallDeviceDialog from "@/components/features/devices/recall-device-dialog";
+import AddMaintenanceLogModal from "@/components/features/devices/add-maintenance-log-modal";
 
 export default function DeviceDetailsPage() {
     const params = useParams();
@@ -51,6 +52,7 @@ export default function DeviceDetailsPage() {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);
     const [showDeployModal, setShowDeployModal] = useState(false);
+    const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
 
     if (isLoading) {
         return (
@@ -123,7 +125,7 @@ export default function DeviceDetailsPage() {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <span>
-                                    <Button variant="outline" disabled={!canAddLog} size="sm">
+                                    <Button variant="outline" disabled={!canAddLog} size="sm" onClick={() => setShowMaintenanceLogModal(true)}>
                                         Add Maintenance Log
                                     </Button>
                                 </span>
@@ -158,6 +160,11 @@ export default function DeviceDetailsPage() {
                 deviceName={device.name}
                 deviceDisplayName={device.long_name || device.name}
             />
+            <AddMaintenanceLogModal
+                open={showMaintenanceLogModal}
+                onOpenChange={setShowMaintenanceLogModal}
+                deviceName={device.name}
+            />
         </div>
     );
-} 
+}
