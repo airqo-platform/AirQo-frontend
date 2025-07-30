@@ -1,21 +1,19 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { usePathname, useParams } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
-import CloseIcon from '@/icons/close_icon';
-import LineChartIcon from '@/icons/Charts/LineChartIcon';
+import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  setTogglingGlobalDrawer,
-  setSidebar,
+  setGlobalSidebarOpen,
+  setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import Card from '@/components/CardWrapper';
-import { MdAdminPanelSettings } from 'react-icons/md';
-import { FiExternalLink } from 'react-icons/fi';
+// import { MdAdminPanelSettings } from 'react-icons/md';
 import AirqoLogo from '@/icons/airqo_logo.svg';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import {
-  getNavigationItems,
-  USER_TYPES,
-} from '../../layouts/SideBar/sidebarConfig';
+// import {
+//   getNavigationItems,
+//   USER_TYPES,
+// } from '../../layouts/SideBar/sidebarConfig';
 
 /**
  * GlobalSideBarDrawer - Enhanced with stable subroute hover functionality
@@ -31,105 +29,122 @@ import {
 
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
-  const togglingGlobalDrawer = useSelector(
-    (state) => state.sidebar.toggleGlobalDrawer,
-  );
+  const pathname = usePathname();
+  const params = useParams(); // Use the new separate global sidebar states
+  const isGlobalSidebarOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalSidebarOpen || false;
+    } catch {
+      return false;
+    }
+  });
+
+  const isGlobalDrawerOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalDrawerOpen || false;
+    } catch {
+      return false;
+    }
+  });
+  // Show global sidebar if either desktop or mobile state is open
+  const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
 
   // Optimized drawer width calculation
   const drawerWidth = useMemo(
-    () => (togglingGlobalDrawer ? 'w-64' : 'w-0'),
+    () => (togglingGlobalDrawer ? 'w-72' : 'w-0'),
     [togglingGlobalDrawer],
   );
-
   // Enhanced drawer close handler
   const closeDrawer = useCallback(() => {
-    // Batch state updates for better performance
-    dispatch(setTogglingGlobalDrawer(false));
-    dispatch(setSidebar(false));
+    // Close both global sidebar states
+    dispatch(setGlobalSidebarOpen(false));
+    dispatch(setGlobalDrawerOpen(false));
   }, [dispatch]);
 
+  // Route context detection and analytics path generation
+  const getAnalyticsPath = useMemo(() => {
+    const isOrganizationRoute = pathname?.startsWith('/org/');
+    const orgSlug = params?.org_slug;
+
+    if (isOrganizationRoute && orgSlug) {
+      // Organization flow - redirect to org-specific routes
+      return `/org/${orgSlug}/insights`;
+    } else {
+      // User flow - redirect to user-specific routes
+      return '/user/analytics';
+    }
+  }, [pathname, params]);
+
   // Enhanced subroute click handler with better UX
-  const handleSubrouteClick = useCallback(
-    (event, subroute) => {
-      event.preventDefault();
-      event.stopPropagation();
+  // const handleSubrouteClick = useCallback(
+  //   (event, subroute) => {
+  //     event.preventDefault();
+  //     event.stopPropagation();
 
-      // Validate subroute before navigation
-      if (!subroute || !subroute.path) {
-        console.warn('Invalid subroute:', subroute);
-        return;
-      }
+  //     // Validate subroute before navigation
+  //     if (!subroute || !subroute.path) {
+  //       return;
+  //     }
 
-      try {
-        // Enhanced navigation logic
-        if (subroute.path.startsWith('http')) {
-          // External links
-          window.open(subroute.path, '_blank', 'noopener,noreferrer');
-        } else if (subroute.path.includes('/admin')) {
-          // Admin routes - use direct navigation for better performance
-          window.location.href = subroute.path;
-        } else {
-          // Internal routes
-          window.location.href = subroute.path;
-        }
+  //     try {
+  //       // Enhanced navigation logic
+  //       if (subroute.path.startsWith('http')) {
+  //         // External links
+  //         window.open(subroute.path, '_blank', 'noopener,noreferrer');
+  //       } else if (subroute.path.includes('/admin')) {
+  //         // Admin routes - use direct navigation for better performance
+  //         window.location.href = subroute.path;
+  //       } else {
+  //         // Internal routes
+  //         window.location.href = subroute.path;
+  //       }
 
-        // Close drawer immediately after starting navigation
-        closeDrawer();
-      } catch (error) {
-        console.error('Navigation error:', error);
-        // Fallback: still close the drawer
-        closeDrawer();
-      }
-    },
-    [closeDrawer],
-  );
+  //       // Close drawer immediately after starting navigation
+  //       closeDrawer();
+  //     } catch {
+  //       // Fallback: still close the drawer
+  //       closeDrawer();
+  //     }
+  //   },
+  //   [closeDrawer],
+  // );
 
   // Enhanced admin panel subroutes with better caching and error handling
-  const adminSubroutes = useMemo(() => {
-    try {
-      const adminItems = getNavigationItems(USER_TYPES.ADMIN);
+  // const adminSubroutes = useMemo(() => {
+  //   try {
+  //     const adminItems = getNavigationItems(USER_TYPES.ADMIN);
 
-      if (!Array.isArray(adminItems)) {
-        console.warn('Admin items not found or invalid');
-        return [];
-      }
+  //     if (!Array.isArray(adminItems)) {
+  //       return [];
+  //     }
 
-      // Enhanced filtering and mapping with better validation
-      const subroutes = adminItems
-        .filter((item) => {
-          return (
-            item &&
-            typeof item === 'object' &&
-            item.type === 'item' &&
-            item.path &&
-            typeof item.path === 'string' &&
-            item.label &&
-            typeof item.label === 'string' &&
-            item.path !== '/admin' // Exclude main admin path
-          );
-        })
-        .map((item) => ({
-          label: item.label.trim(),
-          path: item.path.trim(),
-          icon: item.icon || null,
-        }))
-        .slice(0, 10); // Increased limit for better functionality
+  //     // Enhanced filtering and mapping with better validation
+  //     const subroutes = adminItems
+  //       .filter((item) => {
+  //         return (
+  //           item &&
+  //           typeof item === 'object' &&
+  //           item.type === 'item' &&
+  //           item.path &&
+  //           typeof item.path === 'string' &&
+  //           item.label &&
+  //           typeof item.label === 'string' &&
+  //           item.path !== '/admin' // Exclude main admin path
+  //         );
+  //       })
+  //       .map((item) => ({
+  //         label: item.label.trim(),
+  //         path: item.path.trim(),
+  //         icon: item.icon || null,
+  //       }))
+  //       .slice(0, 10); // Increased limit for better functionality
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(
-          `✅ Loaded ${subroutes.length} admin subroutes:`,
-          subroutes.map((s) => s.label),
-        );
-      }
-
-      return subroutes;
-    } catch (error) {
-      console.error('Error loading admin subroutes:', error);
-      // Return empty array as fallback
-      return [];
-    }
-  }, []);
+  //     return subroutes;
+  //   } catch {
+  //     // Return empty array as fallback
+  //     return [];
+  //   }
+  // }, []);
 
   // Enhanced body scroll management
   useEffect(() => {
@@ -187,6 +202,7 @@ const GlobalSideBarDrawer = () => {
       <Card
         width={drawerWidth}
         padding="p-0 m-0"
+        radius="rounded-none"
         className="fixed left-0 top-0 h-full z-[10001] border-r-gray-200 dark:border-r-gray-700 border-r transition-all duration-200 ease-in-out"
         contentClassName="flex h-full flex-col overflow-y-auto border-t-0 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800"
         style={{
@@ -201,26 +217,18 @@ const GlobalSideBarDrawer = () => {
           </div>
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+            className="relative w-auto focus:outline-none p-2"
             onClick={closeDrawer}
           >
-            <CloseIcon />
+            <AqXClose />
           </button>
         </div>
 
         {/* Enhanced navigation section with better dark mode */}
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
-            <SideBarItem
-              label="Home"
-              Icon={HomeIcon}
-              navPath="/user/Home"
-              onClick={closeDrawer}
-              key="home"
-            />
-
             {/* Enhanced Admin Panel with improved subroute functionality */}
-            <SideBarItem
+            {/* <SideBarItem
               label="Admin Panel"
               Icon={MdAdminPanelSettings}
               navPath="/admin"
@@ -228,25 +236,15 @@ const GlobalSideBarDrawer = () => {
               subroutes={adminSubroutes}
               onSubrouteClick={handleSubrouteClick}
               key="admin-panel-enhanced"
-            />
+            /> */}
 
             {/* Data Analytics */}
             <SideBarItem
               label="Data Analytics"
-              Icon={LineChartIcon}
-              navPath="/user/analytics"
+              Icon={AqBarChart07}
+              navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"
-            />
-
-            {/* External link */}
-            <SideBarItem
-              label="AirQo Website"
-              Icon={FiExternalLink}
-              navPath="https://airqo.africa"
-              isExternal={true}
-              onClick={closeDrawer}
-              key="airqo-website"
             />
           </div>
         </div>

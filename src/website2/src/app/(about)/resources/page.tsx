@@ -18,7 +18,23 @@ export const metadata: Metadata = {
     title: 'Air Quality Resources & Publications | AirQo',
     description:
       'Access comprehensive air quality resources including research papers, datasets, reports, and tools developed by AirQo for African cities.',
+    images: [
+      {
+        url: 'https://airqo.net/icon.png',
+        width: 1200,
+        height: 630,
+        alt: 'AirQo Resources and Publications',
+      },
+    ],
     siteName: 'AirQo',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@AirQoProject',
+    title: 'Air Quality Resources & Publications | AirQo',
+    description:
+      'Access comprehensive air quality resources including research papers, datasets, and tools for African cities.',
+    images: ['https://airqo.net/icon.png'],
   },
   robots: {
     index: true,

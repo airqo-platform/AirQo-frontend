@@ -1,22 +1,20 @@
 'use client';
 
-import Tabs from '@/components/Tabs';
-import Password from './tabs/Password';
-// Remove unused import since middleware handles auth
-import Team from './tabs/Team';
-import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import { AqUser02, AqKey01, AqLock02 } from '@airqo/icons-react';
+import { SettingsTabNavigation } from '@/common/components/Tabs';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
-import Profile from './tabs/Profile';
-import OrganizationProfile from './tabs/OrganizationProfile';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { setChartTab } from '@/lib/store/services/charts/ChartSlice';
-import API from './tabs/API';
-import { withUserAuth } from '@/core/HOC';
 import { useSessionAwarePermissions } from '@/core/HOC';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+// Tab Components
+import Profile from './tabs/Profile';
+import Password from './tabs/Password';
+import API from './tabs/API';
 
 export const checkAccess = (requiredPermission, rolePermissions) => {
   const permissions =
@@ -26,30 +24,50 @@ export const checkAccess = (requiredPermission, rolePermissions) => {
 };
 
 const Settings = () => {
-  const dispatch = useDispatch();
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
   const [userPermissions, setUserPermissions] = useState([]);
-  const [userGroup, setUserGroup] = useState({});
+
   const { theme, primaryColor, systemTheme } = useThemeSafe();
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences,
   );
 
   const { data: session } = useSession();
-  const { hasPermission, isLoading: permissionsLoading } =
-    useSessionAwarePermissions();
+  const { isLoading: permissionsLoading } = useSessionAwarePermissions();
 
   // Determine if we're in dark mode
   const isDarkMode =
     theme === THEME_MODES.DARK ||
     (theme === THEME_MODES.SYSTEM && systemTheme === 'dark');
 
-  useEffect(() => {
-    setLoading(true);
+  // Define user settings tabs
+  const getUserTabs = () => {
+    const baseTabs = [
+      {
+        id: 'profile',
+        name: 'My Profile',
+        icon: AqUser02,
+        description: 'Manage your personal information and preferences',
+      },
+      {
+        id: 'password',
+        name: 'Password',
+        icon: AqLock02,
+        description: 'Change your account password',
+      },
+      {
+        id: 'api',
+        name: 'API',
+        icon: AqKey01,
+        description: 'Manage API keys and access tokens',
+      },
+    ];
 
+    return baseTabs;
+  };
+
+  useEffect(() => {
     if (!session?.user?.activeGroup) {
-      setLoading(false);
       return;
     }
 
@@ -69,14 +87,24 @@ const Settings = () => {
       dispatch(setChartTab(0));
     }
 
-    getAssignedGroupMembers(activeGroupId)
-      .then((response) => {
-        setTeamMembers(response.group_members);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [session, preferences, dispatch]);
+    getAssignedGroupMembers(activeGroupId).then((response) => {
+      setTeamMembers(response.group_members);
+    });
+  }, [session, preferences]);
+
+  // Function to render active tab content
+  const renderActiveTabContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return <Profile />;
+      case 'password':
+        return <Password />;
+      case 'api':
+        return <API userPermissions={userPermissions} />;
+      default:
+        return <Profile />;
+    }
+  };
   // Show loading state while checking permissions
   if (permissionsLoading) {
     return (
@@ -106,32 +134,31 @@ const Settings = () => {
 
   return (
     <ErrorBoundary name="Settings" feature="User Account Settings">
-      <Tabs>
-        <div label="My profile">
-          <Profile />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+              Account Settings
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Manage your account settings and preferences
+            </p>
+          </div>
         </div>
-        <div label="Password">
-          <Password />
-        </div>
-        <div label="API">
-          <API userPermissions={userPermissions} />
-        </div>
-        {userPermissions &&
-          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') && (
-            <div label="Organisation">
-              <OrganizationProfile />
-            </div>
-          )}
-        {userGroup &&
-          userPermissions &&
-          hasPermission('CREATE_UPDATE_AND_DELETE_NETWORK_USERS') && (
-            <div label="Team">
-              <Team users={teamMembers} loading={loading} />
-            </div>
-          )}
-      </Tabs>
+
+        {/* Tab Navigation */}
+        <SettingsTabNavigation
+          tabs={getUserTabs()}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {/* Main Content */}
+        <div className="min-h-96">{renderActiveTabContent()}</div>
+      </div>
     </ErrorBoundary>
   );
 };
 
-export default withUserAuth(Settings);
+export default Settings;

@@ -1,7 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import CheckIcon from '@/icons/tickIcon';
-
+import { AqCheck } from '@airqo/icons-react';
 const CheckComponent = ({
   text,
   width,
@@ -29,7 +27,7 @@ const CheckComponent = ({
       <div className="flex flex-col justify-start">
         {checked ? (
           <div className="w-8 h-8 mb-3 flex justify-center items-center rounded-full bg-blue-600">
-            <CheckIcon fill="#FFFFFF" />
+            <AqCheck color="#FFFFFF" />
           </div>
         ) : (
           <div className="text-base border w-8 h-8 mb-3 flex justify-center items-center font-medium rounded-full"></div>

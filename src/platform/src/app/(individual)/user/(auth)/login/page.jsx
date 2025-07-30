@@ -1,21 +1,21 @@
+// app/(individual)/user/(auth)/login/page.jsx
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signIn as _signIn, getSession as _getSession } from 'next-auth/react';
+import { signIn as _signIn } from 'next-auth/react';
 import Link from 'next/link';
 import * as Yup from 'yup';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { AqEye, AqEyeOff } from '@airqo/icons-react';
 
 import AccountPageLayout from '@/components/Account/Layout';
-import Spinner from '@/components/Spinner';
-import Toast from '@/components/Toast';
+import CustomToast, {
+  TOAST_TYPES,
+} from '@/common/components/Toast/CustomToast';
 import InputField from '@/common/components/InputField';
-
+import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { withAuthRoute } from '@/core/HOC';
-import logger from '@/lib/logger';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -25,103 +25,96 @@ const loginSchema = Yup.object().shape({
 });
 
 const UserLogin = () => {
-  const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const { userData } = useSelector((state) => state.login);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const handleLogin = useCallback(
     async (e) => {
       e.preventDefault();
-      setLoading(true);
-      setErrorState('');
 
-      // Get form data
+      if (loading || !isMountedRef.current) return;
+
+      setLoading(true);
+
       const formData = {
         userName: userData.userName?.trim() || '',
         password: userData.password || '',
       };
 
-      // Validate credentials
       try {
         await loginSchema.validate(formData, { abortEarly: false });
       } catch (validationError) {
-        const messages = validationError.inner
-          .map((err) => err.message)
-          .join(', ');
-        setLoading(false);
-        return setErrorState(messages);
+        if (isMountedRef.current) {
+          setLoading(false);
+          const messages = validationError.inner
+            .map((err) => err.message)
+            .join(' ');
+          CustomToast({
+            message: messages,
+            type: TOAST_TYPES.ERROR,
+            duration: 8000,
+          });
+        }
+        return;
       }
 
       try {
-        logger.info('Attempting login with NextAuth...');
-
-        // Use NextAuth signIn
         const result = await _signIn('credentials', {
           userName: formData.userName,
           password: formData.password,
           redirect: false,
         });
 
-        logger.info('NextAuth signIn result:', result);
+        if (!isMountedRef.current) return;
 
         if (result?.error) {
-          throw new Error(result.error);
-        }
-
-        if (result?.ok) {
-          logger.info('Login successful, waiting for session...');
-
-          // Force session refresh after successful login
-          const session = await _getSession();
-          logger.info('Session after login:', session);
-
-          if (session?.user && session?.accessToken) {
-            logger.info(
-              'Session validated, HOC will handle setup and redirect',
-            );
-
-            // Force NextAuth to update the session context immediately
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new window.Event('focus'));
-            }
-          } else {
-            throw new Error('Session data is incomplete');
-          }
-        } else {
-          throw new Error('Login failed without specific error');
-        }
-      } catch (err) {
-        logger.error('Login error:', err);
-
-        let errorMessage = 'Something went wrong, please try again';
-
-        if (err.message) {
-          // Handle specific error messages
+          let errorMessage = 'Login failed. Please try again.';
           if (
-            err.message.includes('Invalid credentials') ||
-            err.message.includes('Authentication failed') ||
-            err.message.includes('HTTP 401')
+            result.error.includes('Invalid credentials') ||
+            result.error.includes('Authentication failed')
           ) {
             errorMessage =
               'Invalid email or password. Please check your credentials.';
-          } else if (
-            err.message.includes('Network Error') ||
-            err.message.includes('fetch')
-          ) {
+          } else if (result.error.includes('Network')) {
             errorMessage =
               'Network error. Please check your connection and try again.';
           } else {
-            errorMessage = err.message;
+            errorMessage = result.error;
           }
+          throw new Error(errorMessage);
         }
 
-        setErrorState(errorMessage);
+        if (result?.ok) {
+          // Success. Redirect handled by HOC or session management.
+          // CustomToast({ message: 'Login successful!', type: TOAST_TYPES.SUCCESS });
+        } else {
+          throw new Error('Login failed. Please try again.');
+        }
+      } catch (err) {
+        if (!isMountedRef.current) return;
+
+        CustomToast({
+          message:
+            err.message || 'An unexpected error occurred. Please try again.',
+          type: TOAST_TYPES.ERROR,
+          duration: 8000,
+        });
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     },
-    [userData],
+    [userData, loading],
   );
 
   const handleInputChange = useCallback(
@@ -130,9 +123,12 @@ const UserLogin = () => {
     },
     [dispatch],
   );
+
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    setShowPassword((prev) => !prev);
   };
+
+  const isFormValid = userData.userName?.trim() && userData.password;
 
   return (
     <ErrorBoundary name="UserLogin" feature="User Authentication">
@@ -147,50 +143,51 @@ const UserLogin = () => {
           <p className="text-xl font-normal mt-3 text-gray-700 dark:text-gray-300">
             Get access to air quality analytics across Africa
           </p>
-          {error && <Toast type="error" timeout={8000} message={error} />}
           <form onSubmit={handleLogin} noValidate>
             <div className="mt-6">
               <InputField
+                id="login-email"
                 label="Email Address"
                 type="email"
                 placeholder="e.g. greta.nagawa@gmail.com"
                 value={userData.userName || ''}
-                onChange={(value) => handleInputChange('userName', value)}
+                onChange={(e) => handleInputChange('userName', e.target.value)}
                 required
               />
             </div>
             <div className="mt-6">
               <div className="relative">
                 <InputField
+                  id="login-password"
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="******"
                   value={userData.password || ''}
-                  onChange={(value) => handleInputChange('password', value)}
+                  onChange={(e) =>
+                    handleInputChange('password', e.target.value)
+                  }
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
+                  className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
                   onClick={togglePasswordVisibility}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <FaEyeSlash size={20} />
-                  ) : (
-                    <FaEye size={20} />
-                  )}
+                  {showPassword ? <AqEyeOff size={20} /> : <AqEye size={20} />}
                 </button>
               </div>
             </div>
             <div className="mt-10">
-              <button
-                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
-                disabled={loading}
+              <Button
+                className="w-full rounded-lg text-sm"
+                disabled={!isFormValid || loading}
+                loading={loading}
                 type="submit"
+                variant={isFormValid && !loading ? 'filled' : 'disabled'}
               >
-                {loading ? <Spinner width={25} height={25} /> : 'Login'}
-              </button>
+                {loading ? 'Logging in...' : 'Login'}
+              </Button>
             </div>
           </form>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
@@ -216,4 +213,4 @@ const UserLogin = () => {
   );
 };
 
-export default withAuthRoute(UserLogin);
+export default UserLogin;

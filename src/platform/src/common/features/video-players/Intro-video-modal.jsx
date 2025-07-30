@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { updateTaskProgress } from '@/lib/store/services/checklists/CheckList';
-import CloseIcon from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 import Spinner from '@/components/Spinner';
-import Card from '@/components/CardWrapper';
+import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const VideoModal = ({ open, setOpen, videoUrl }) => {
@@ -63,17 +63,13 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
     }
   }, [videoChecklistItem]);
 
-  // Close handlers
-  const handleClickOutside = useCallback(
-    (event) => {
-      if (backdropRef.current && !backdropRef.current.contains(event.target)) {
-        handleCloseModal();
-      }
-    },
-    [
-      /* handleCloseModal defined below */
-    ],
-  );
+  // Close handlers - simplified since we have dedicated backdrop
+  const handleClickOutside = useCallback((event) => {
+    // Only check if clicking on the modal content area, not the backdrop
+    if (backdropRef.current && !backdropRef.current.contains(event.target)) {
+      event.stopPropagation();
+    }
+  }, []);
 
   // Update progress and close modal
   const handleCloseModal = useCallback(() => {
@@ -86,12 +82,21 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
     if (open) {
       modalRef.current?.focus();
       document.addEventListener('mousedown', handleClickOutside);
-    }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [open, handleClickOutside]);
+      // Add keyboard ESC support
+      const handleEscapeKey = (event) => {
+        if (event.key === 'Escape') {
+          handleCloseModal();
+        }
+      };
+      document.addEventListener('keydown', handleEscapeKey);
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleEscapeKey);
+      };
+    }
+  }, [open, handleClickOutside, handleCloseModal]);
 
   // Handle video pause event - update progress
   const handleVideoPause = useCallback(() => {
@@ -126,67 +131,62 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   if (!open) return null;
   return (
     <ErrorBoundary name="VideoModal" feature="Video Player">
-      <div
-        ref={modalRef}
-        id="custom-modal"
-        tabIndex="-1"
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-800/50 backdrop-blur-sm"
+      <ReusableDialog
+        isOpen={open}
+        onClose={handleCloseModal}
+        ariaLabel="Intro Video Modal"
+        className="z-[9999]"
+        size="max-w-2xl w-full"
+        maxHeight="h-auto"
+        contentClassName="flex flex-col"
+        contentAreaClassName="px-0 flex-1"
+        hideCloseIcon={true}
+        customHeader={
+          <div>
+            <h1 className="text-base md:text-xl text-center font-semibold text-gray-900 dark:text-white">
+              Introducing AirQo Analytics
+            </h1>
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="absolute top-3 right-4 z-20 bg-primary hover:bg-primary/70 transition-colors duration-200 rounded-full text-sm w-8 h-8 flex justify-center items-center shadow-md"
+              data-modal-hide="custom-modal"
+              tabIndex={0}
+            >
+              <AqXClose color="#FFFFFF" className="w-4 h-4" />
+              <span className="sr-only">Close modal</span>
+            </button>
+          </div>
+        }
       >
-        <div className="relative w-full max-w-2xl mx-4 md:mx-0">
-          <button
-            type="button"
-            onClick={handleCloseModal}
-            className="absolute -top-4 -right-2 z-10 bg-primary hover:bg-primary/70 transition-colors duration-200 rounded-full text-sm w-8 h-8 flex justify-center items-center shadow-md"
-            data-modal-hide="custom-modal"
-          >
-            <CloseIcon fill="#FFFFFF" className="w-4 h-4" />
-            <span className="sr-only">Close modal</span>
-          </button>
-
-          <Card
-            ref={backdropRef}
-            width="w-full"
-            height="h-[520px]"
-            className="animate-slide-in relative transition-all duration-300"
-            contentClassName="flex flex-col h-full"
-            shadow="shadow-lg"
-          >
-            <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
-              <h1 className="text-base md:text-xl text-center font-semibold text-gray-900 dark:text-white">
-                Introducing AirQo Analytics
-              </h1>
+        <div className="flex-grow relative w-full">
+          {loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-50 dark:bg-gray-800 transition-opacity duration-300 z-10">
+              <Spinner className="w-8 h-8" />
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Loading video...
+              </p>
             </div>
-
-            <div className="flex-grow relative w-full bg-gray-100 dark:bg-gray-800">
-              {loading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-100 dark:bg-gray-800 transition-opacity duration-300">
-                  <Spinner className="w-8 h-8" />
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Loading video...
-                  </p>
-                </div>
-              )}
-
-              <div className="w-full h-[432px]">
-                <video
-                  ref={videoRef}
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onCanPlayThrough={handleVideoLoad}
-                  onPause={handleVideoPause}
-                  onEnded={handleVideoEnd}
-                  className={`w-full h-full object-contain ${
-                    loading ? 'opacity-0' : 'opacity-100'
-                  } transition-opacity duration-300`}
-                  src={videoUrl}
-                  controls
-                  autoPlay
-                  playsInline
-                />
-              </div>
-            </div>
-          </Card>
+          )}
+          <div className="w-full h-[432px] rounded-b-lg overflow-hidden">
+            <video
+              ref={videoRef}
+              onLoadedMetadata={handleLoadedMetadata}
+              onCanPlayThrough={handleVideoLoad}
+              onPause={handleVideoPause}
+              onEnded={handleVideoEnd}
+              className={`w-full h-full object-contain bg-black ${
+                loading ? 'opacity-0' : 'opacity-100'
+              } transition-opacity duration-300`}
+              src={videoUrl}
+              controls
+              autoPlay
+              playsInline
+              preload="metadata"
+            />
+          </div>
         </div>
-      </div>
+      </ReusableDialog>
     </ErrorBoundary>
   );
 };

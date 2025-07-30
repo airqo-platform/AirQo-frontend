@@ -8,8 +8,9 @@ import 'package:airqo/src/meta/utils/utils.dart';
 
 class ExpandedAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
+  final String? fallbackLocationName;
 
-  const ExpandedAnalyticsCard(this.measurement, {super.key});
+  const ExpandedAnalyticsCard(this.measurement, {super.key, this.fallbackLocationName});
 
   @override
   State<ExpandedAnalyticsCard> createState() => _ExpandedAnalyticsCardState();
@@ -24,6 +25,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
       builder: (context) {
         return AnalyticsDetails(
           measurement: measurement,
+          fallbackLocationName: widget.fallbackLocationName,
         );
       },
     );
@@ -106,7 +108,7 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(context).highlightColor,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -237,11 +239,10 @@ class _ExpandedAnalyticsCardState extends State<ExpandedAnalyticsCard>
                   ),
                 ),
                 Divider(
-                  thickness: 0.5,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white.withOpacity(0.2)
-                      : Colors.black.withOpacity(0.1),
-                ),
+                    thickness: 0.5,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.dividerColordark
+                        : AppColors.dividerColorlight),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,

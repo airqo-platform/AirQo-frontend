@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * TextField Component
  *
@@ -47,18 +45,12 @@ const TextField = ({
         </label>
       )}
 
-      <div
-        className={`
-          flex items-start rounded-xl transition-colors duration-150 ease-in-out
-          ${disabled ? 'bg-gray-100 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}
-          focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-[var(--org-primary,var(--color-primary,#145fff))]
-        `}
-      >
+      <div className="relative flex items-start">
         {Icon && (
-          <div className="pt-3 pl-3 flex items-start justify-center text-gray-500 dark:text-gray-400">
+          <div className="absolute left-0 top-0 pt-3 pl-3 flex items-start justify-center text-gray-500 dark:text-gray-400">
             <Icon className="w-5 h-5" />
           </div>
-        )}{' '}
+        )}
         <textarea
           id={id}
           name={name}
@@ -67,10 +59,20 @@ const TextField = ({
           disabled={disabled}
           required={required}
           className={`
-            w-full px-4 py-2.5 rounded-xl border-gray-400 bg-transparent outline-none text-sm
+            w-full px-4 py-2.5 rounded-xl border bg-white outline-none text-sm
             text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
-            disabled:text-gray-500 disabled:cursor-not-allowed
-            ${inputClassName}          `}
+            border-gray-300 transition-colors duration-150 ease-in-out
+            dark:border-gray-600 dark:bg-gray-800
+            ${Icon ? 'pl-10' : ''}
+            
+            hover:border-[var(--org-primary,var(--color-primary,#145fff))]/50
+
+            focus:border-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-1 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:outline-none
+
+            disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500
+            dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400
+            ${inputClassName}
+          `}
           style={{
             minHeight: '100px',
             maxHeight: '200px',

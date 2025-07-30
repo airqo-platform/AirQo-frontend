@@ -1,17 +1,16 @@
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import UsersIcon from '@/icons/SideBar/UsersIcon';
-import PersonIcon from '@/icons/Settings/PersonIcon';
 import {
-  MdBusiness,
-  MdSecurity,
-  MdDescription,
-  MdDashboard,
-} from 'react-icons/md';
-import { checkAccess } from '@/core/HOC/authUtils';
+  AqHomeSmile,
+  AqUser03,
+  AqBarChartSquare02,
+  AqGlobe05,
+  AqUsers01,
+  AqSettings02,
+  AqShieldTick,
+  AqFile02,
+  AqBuilding05,
+  AqHome01,
+} from '@airqo/icons-react';
+// import { checkAccess } from '@/core/HOC/authUtils';
 
 /**
  * Centralized sidebar configuration for all user types
@@ -48,13 +47,13 @@ export const getUserNavigationItems = () => {
     {
       type: 'item',
       label: 'Home',
-      icon: HomeIcon,
+      icon: AqHomeSmile,
       path: '/user/Home',
     },
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartIcon,
+      icon: AqBarChartSquare02,
       path: '/user/analytics',
     },
     {
@@ -64,40 +63,44 @@ export const getUserNavigationItems = () => {
   ];
 
   // Add collocation section if user has access
-  if (checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
-    items.push({
-      type: 'dropdown',
-      label: 'Collocation',
-      icon: CollocateIcon,
-      dropdown: true,
-      children: [
-        {
-          label: 'Overview',
-          path: '/user/collocation/overview',
-        },
-        {
-          label: 'Collocate',
-          path: '/user/collocation/collocate',
-        },
-      ],
-    });
-  }
+  // if (checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
+  //   items.push({
+  //     type: 'dropdown',
+  //     label: 'Collocation',
+  //     icon: CollocateIcon,
+  //     dropdown: true,
+  //     children: [
+  //       {
+  //         label: 'Overview',
+  //         path: '/user/collocation/overview',
+  //       },
+  //       {
+  //         label: 'Collocate',
+  //         path: '/user/collocation/collocate',
+  //       },
+  //     ],
+  //   });
+  // }
 
   // Add remaining navigation items
-  items.push(
-    {
-      type: 'item',
-      label: 'Map',
-      icon: WorldIcon,
-      path: '/user/map',
-    },
-    {
-      type: 'item',
-      label: 'Settings',
-      icon: SettingsIcon,
-      path: '/user/settings',
-    },
-  );
+  items.push({
+    type: 'item',
+    label: 'Map',
+    icon: AqGlobe05,
+    path: '/user/map',
+  });
+
+  // divider for Account section
+  items.push({
+    type: 'divider',
+    label: 'Account',
+  });
+  items.push({
+    type: 'item',
+    label: 'Profile',
+    icon: AqUser03,
+    path: '/user/profile',
+  });
 
   return items;
 };
@@ -110,7 +113,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: MdDashboard,
+      icon: AqHome01,
       path: '/admin',
     },
     {
@@ -120,13 +123,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Organizations',
-      icon: MdBusiness,
+      icon: AqBuilding05,
       path: '/admin/organizations/requests',
     },
     {
       type: 'item',
       label: 'Users',
-      icon: UsersIcon,
+      icon: AqUser03,
       path: '/admin/users',
     },
     {
@@ -136,13 +139,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartIcon,
+      icon: AqBarChartSquare02,
       path: '/admin/analytics',
     },
     {
       type: 'item',
       label: 'Activity Logs',
-      icon: MdDescription,
+      icon: AqFile02,
       path: '/admin/activity-logs',
     },
     {
@@ -152,13 +155,13 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: MdSecurity,
+      icon: AqShieldTick,
       path: '/admin/roles',
     },
     {
       type: 'item',
       label: 'Settings',
-      icon: SettingsIcon,
+      icon: AqSettings02,
       path: '/admin/settings',
     },
   ];
@@ -173,31 +176,55 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: HomeIcon,
+      icon: AqHomeSmile,
       path: `/org/${orgSlug}/dashboard`,
     },
     {
       type: 'item',
       label: 'Data Insights',
-      icon: BarChartIcon,
+      icon: AqBarChartSquare02,
       path: `/org/${orgSlug}/insights`,
     },
+
+    {
+      type: 'divider',
+      label: 'Management',
+    },
+    {
+      type: 'item',
+      label: 'Members',
+      icon: AqUsers01,
+      path: `/org/${orgSlug}/members`,
+    },
+    {
+      type: 'item',
+      label: 'Roles & Permissions',
+      icon: AqShieldTick,
+      path: `/org/${orgSlug}/roles-permissions`,
+      matcher: {
+        pattern: '/org/{slug}/roles-permissions',
+        orgSlug: orgSlug,
+        includeSubroutes: true,
+        exact: false,
+      },
+    },
+    {
+      type: 'item',
+      label: 'Settings',
+      icon: AqSettings02,
+      path: `/org/${orgSlug}/settings`,
+    },
+    // Account section
     {
       type: 'divider',
       label: 'Account',
     },
     {
       type: 'item',
-      label: 'My Profile',
-      icon: PersonIcon,
+      label: 'Profile',
+      icon: AqUser03,
       path: `/org/${orgSlug}/profile`,
     },
-    // {
-    //   type: 'item',
-    //   label: 'Settings',
-    //   icon: SettingsIcon,
-    //   path: `/org/${orgSlug}/settings`,
-    // },
   ];
 };
 
@@ -223,9 +250,61 @@ export const getNavigationItems = (userType, options = {}) => {
  * @param {string} userType - Type of user
  * @param {Object} options - Additional options
  */
-export const getMobileNavigationItems = (userType, options = {}) => {
-  // For now, same as desktop navigation
-  return getNavigationItems(userType, options);
+export const getMobileNavigationItems = (
+  userType,
+  options = {},
+  excludeBottomNavItems = true,
+) => {
+  const allItems = getNavigationItems(userType, options);
+
+  if (!excludeBottomNavItems) {
+    return allItems;
+  }
+
+  // Get the first 4 navigation items (shown in bottom nav)
+  const bottomNavItems = allItems
+    .filter((item) => item.type === 'item' && item.path)
+    .slice(0, 4);
+
+  const bottomNavPaths = new Set(bottomNavItems.map((item) => item.path));
+
+  // Filter out items that are in bottom navigation
+  const filteredItems = allItems.filter((item) => {
+    if (item.type !== 'item' || !item.path) {
+      return true; // Keep dividers and non-navigation items for now
+    }
+    return !bottomNavPaths.has(item.path);
+  });
+
+  // Remove dividers that have no following navigation items
+  const cleanedItems = [];
+  for (let i = 0; i < filteredItems.length; i++) {
+    const item = filteredItems[i];
+
+    if (item.type === 'divider') {
+      // Check if there are any navigation items after this divider
+      let hasFollowingNavItems = false;
+      for (let j = i + 1; j < filteredItems.length; j++) {
+        const nextItem = filteredItems[j];
+        if (nextItem.type === 'divider') {
+          break; // Reached next divider, stop checking
+        }
+        if (nextItem.type === 'item' && nextItem.path) {
+          hasFollowingNavItems = true;
+          break;
+        }
+      }
+
+      // Only include divider if it has following nav items
+      if (hasFollowingNavItems) {
+        cleanedItems.push(item);
+      }
+    } else {
+      cleanedItems.push(item);
+    }
+  }
+
+  return cleanedItems;
 };
 
 /**
@@ -251,6 +330,10 @@ export const getUserTypeFromPath = (pathname) => {
   }
   if (pathname.startsWith('/org/')) {
     return USER_TYPES.ORGANIZATION;
+  }
+  // create-organization route should use user navigation
+  if (pathname === '/create-organization') {
+    return USER_TYPES.USER;
   }
   return USER_TYPES.USER;
 };

@@ -6,13 +6,15 @@ import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
 import Button from '@/components/Button';
-import PlusIcon from '@/icons/map/plusIcon';
-import DownloadIcon from '@/icons/Analytics/downloadIcon';
-import SettingsIcon from '@/icons/Analytics/SettingsIcon2';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
+import {
+  AqDownload02,
+  AqPlus,
+  AqSettings02,
+  AqClockFastForward,
+} from '@airqo/icons-react';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * OrganizationAnalyticsControls component handles control elements for organization analytics
@@ -58,15 +60,17 @@ const OrganizationAnalyticsControls = ({
     <div className="flex flex-col gap-6">
       {/* Organization Header */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {displayName} - Air Quality Insights
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <span className="uppercase"> {displayName}</span> - Air Quality
+          Insights
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p className="text-gray-600">
-            Monitor and analyze air quality data for {displayName}
+          <p className="text-gray-600 dark:text-gray-300">
+            Monitor and analyze air quality data for{' '}
+            <span className="uppercase"> {displayName}</span>
           </p>
           {hasSites && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Monitoring {totalSites} sites ({onlineSites} online)
             </div>
           )}
@@ -78,7 +82,7 @@ const OrganizationAnalyticsControls = ({
         <div className="flex flex-wrap gap-2">
           {/* Time Frame Dropdown */}
           <CustomDropdown
-            icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
+            icon={window.innerWidth < 640 ? <AqClockFastForward /> : undefined}
             text={<span className="capitalize">{chartData.timeFrame}</span>}
             dropdownWidth="150px"
           >
@@ -109,7 +113,7 @@ const OrganizationAnalyticsControls = ({
           {/* Pollutant Dropdown */}
           <CustomDropdown
             text="Pollutant"
-            icon={<SettingsIcon />}
+            icon={<AqSettings02 />}
             iconPosition="left"
           >
             <div className="py-1">
@@ -130,7 +134,7 @@ const OrganizationAnalyticsControls = ({
           {/* Add Location Button */}
           <CustomDropdown
             text="Add location"
-            icon={<PlusIcon width={16} height={16} />}
+            icon={<AqPlus width={16} height={16} />}
             iconPosition="left"
             isButton
             onClick={() => handleOpenModal('addLocation')}
@@ -142,7 +146,7 @@ const OrganizationAnalyticsControls = ({
             trigger={
               <Button
                 onClick={() => handleOpenModal('download')}
-                Icon={DownloadIcon}
+                Icon={AqDownload02}
               >
                 Download Data
               </Button>

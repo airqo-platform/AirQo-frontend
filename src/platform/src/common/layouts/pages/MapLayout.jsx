@@ -8,13 +8,14 @@ import PropTypes from 'prop-types';
 import { setSidebar } from '@/lib/store/services/sideBar/SideBarSlice';
 import AuthenticatedSideBar from '../SideBar/AuthenticatedSidebar';
 import { UnifiedSidebarContent, UnifiedSideBarDrawer } from '../SideBar';
-import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
+import GlobalTopbar from '@/common/layouts/GlobalTopbar';
+import MobileBottomNavigation from '../components/MobileBottomNavigation';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -54,42 +55,62 @@ export default function MapLayout({ children }) {
       }
     };
   }, [dispatch, isMobile]);
+
   return (
     <div className="flex overflow-hidden min-h-screen" data-testid="layout">
       <Head>
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
-      </Head>{' '}
-      {/* Global TopBar - Full width at top */}
-      <GlobalTopbar
-        topbarTitle={routeConfig.topbarTitle}
-        showSearch={routeConfig.showSearch}
-      />{' '}
-      {/* Sidebar - Fixed position below topbar */}
-      <aside className="fixed left-0 top-36 lg:top-[63px] z-40 text-sidebar-text transition-all duration-300">
-        <AuthenticatedSideBar forceCollapse={true}>
-          <UnifiedSidebarContent
-            userType="user"
-            isCollapsed={true}
-            isDarkMode={isDarkMode}
-          />
-        </AuthenticatedSideBar>
-      </aside>
-      {/* Main Content - Account for both topbar and sidebar */}
-      <main className="flex-1 transition-all duration-300 overflow-hidden pt-36 lg:pt-[60px] lg:ml-[86px]">
-        <div className="h-[calc(100vh-9rem)] lg:h-[calc(100vh-4rem)] overflow-hidden">
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
+      </Head>
+
+      {/* GlobalTopbar - Hidden on mobile for full map view, shown on md+ */}
+      <div className="hidden md:block">
+        <GlobalTopbar
+          topbarTitle={routeConfig.topbarTitle}
+          showSearch={routeConfig.showSearch}
+          hideMobileNav={false} // Show mobile nav bar on tablet for menu access
+        />
+      </div>
+
+      {/* Note: No topbar on mobile for full map view */}
+
+      {/* Sidebar - Hidden on mobile, collapsed on desktop for map */}
+      <AuthenticatedSideBar forceCollapse={true}>
+        <UnifiedSidebarContent
+          userType="user"
+          isCollapsed={true}
+          isDarkMode={isDarkMode}
+        />
+      </AuthenticatedSideBar>
+
+      {/* Main Content - Full height on mobile, account for topbar on md+ */}
+      <main
+        className="flex-1 transition-all duration-300 overflow-hidden 
+        pb-20 md:pb-0 md:pt-[140px] lg:pt-16 lg:ml-[86px]"
+      >
+        <div className="h-[calc(100vh-5rem)] md:h-[calc(100vh-140px)] lg:h-[calc(100vh-64px)] overflow-hidden">
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
-          {/* Content - Full remaining height */}
+
+          {/* Content - Full height for map */}
           <div className="h-full text-text transition-all duration-300 overflow-hidden">
             {children}
-          </div>{' '}
+          </div>
         </div>
       </main>
-      {/* SideBar Drawer */}
+
+      {/* Mobile Drawer - Only show on mobile */}
       <UnifiedSideBarDrawer userType="user" />
+
       {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />
+
+      {/* Mobile Bottom Navigation for Map */}
+      <MobileBottomNavigation userType="user" />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import 'package:airqo/src/app/learn/pages/lesson_finished.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter/material.dart';
 
+
 class LessonPage extends StatefulWidget {
   final KyaLesson lesson;
 
@@ -109,7 +110,7 @@ class _LessonPageState extends State<LessonPage> {
                                       child: Center(
                                         child: Icon(
                                           Icons.arrow_back_ios,
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           size: 17,
                                         ),
                                       ),

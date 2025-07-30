@@ -32,6 +32,7 @@ const passwordSchema = Yup.object().shape({
 const Password = () => {
   const { data: session } = useSession();
   const [isDisabled, setIsDisabled] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
@@ -48,7 +49,16 @@ const Password = () => {
   // Handle change for InputField components
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setPasswords({ ...passwords, [id]: value });
+    setPasswords((prev) => {
+      const updated = { ...prev, [id]: value };
+      // Mark as dirty if any field is changed from initial state
+      setIsDirty(
+        updated.currentPassword !== '' ||
+          updated.newPassword !== '' ||
+          updated.confirmNewPassword !== '',
+      );
+      return updated;
+    });
     // Clear individual field error if present
     if (fieldErrors[id]) {
       setFieldErrors({ ...fieldErrors, [id]: '' });
@@ -87,6 +97,7 @@ const Password = () => {
           newPassword: '',
           confirmNewPassword: '',
         });
+        setIsDirty(false);
         setErrorState({
           isError: true,
           message: 'Password updated successfully.',
@@ -114,6 +125,7 @@ const Password = () => {
       confirmNewPassword: '',
     });
     setFieldErrors({});
+    setIsDirty(false);
   };
 
   return (
@@ -175,7 +187,8 @@ const Password = () => {
               <Button
                 onClick={handleReset}
                 type="button"
-                variant="outlined"
+                disabled={isDisabled || !isDirty}
+                variant={isDisabled || !isDirty ? 'disabled' : 'outlined'}
                 className="py-3 px-4 text-sm dark:bg-transparent"
               >
                 Cancel
@@ -183,13 +196,13 @@ const Password = () => {
               <Button
                 onClick={handleSubmit}
                 type="button"
-                disabled={isDisabled}
-                variant={isDisabled ? 'disabled' : 'filled'}
+                disabled={isDisabled || !isDirty}
+                variant={isDisabled || !isDirty ? 'disabled' : 'filled'}
                 className="py-3 px-4 text-sm rounded"
               >
                 {isDisabled ? (
                   <div className="flex items-center gap-1">
-                    <Spinner width={16} height={16} />
+                    <Spinner size={16} />
                     <span>Saving...</span>
                   </div>
                 ) : (

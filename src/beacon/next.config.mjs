@@ -3,6 +3,20 @@ const nextConfig = {
   // Enable standalone output for containerization
   output: 'standalone',
   
+  // Configure images for external sources
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+    ],
+  },
+  
   // Configure API proxying to backend
   async rewrites() {
     return [
@@ -32,6 +46,15 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SERVICE_NAME: 'airqo-frontend',
     NEXT_PUBLIC_SERVICE_VERSION: '1.0.0',
+  },
+  // Add SVG support for React component imports
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: ['@svgr/webpack'],
+    });
+    return config;
   },
 };
 

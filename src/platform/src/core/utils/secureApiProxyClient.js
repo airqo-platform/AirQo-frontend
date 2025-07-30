@@ -3,293 +3,266 @@ import { getSession } from 'next-auth/react';
 import logger from '../../lib/logger';
 import { getApiToken } from '@/lib/envConstants';
 
-// Token cache to avoid repeated session checks
-let tokenCache = null;
-let tokenCacheExpiry = 0;
-const TOKEN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// High-performance token cache with minimal overhead
+class TokenCache {
+  constructor() {
+    this.cache = null;
+    this.expiry = 0;
+    this.ttl = 5 * 60 * 1000; // 5 minutes
+    this.initialized = false;
+    this.cleanupTimer = null;
+  }
 
-// Cleanup function to clear cache
-const clearTokenCache = () => {
-  tokenCache = null;
-  tokenCacheExpiry = 0;
-};
+  init() {
+    if (this.initialized || typeof window === 'undefined') return;
+    this.initialized = true;
 
-// Setup cache cleanup on page unload to prevent memory leaks
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', clearTokenCache);
-  // Also clear cache periodically to prevent stale data
-  setInterval(() => {
+    // Single cleanup listener
+    window.addEventListener('beforeunload', this.clear.bind(this), {
+      once: true,
+    });
+  }
+
+  get() {
     const now = Date.now();
-    if (tokenCacheExpiry && now > tokenCacheExpiry) {
-      clearTokenCache();
+    if (!this.cache || now > this.expiry) {
+      this.cache = null;
+      this.expiry = 0;
+      return null;
     }
-  }, TOKEN_CACHE_TTL);
+    return this.cache;
+  }
+
+  set(token) {
+    if (!token) return;
+
+    this.cache = token;
+    this.expiry = Date.now() + this.ttl;
+
+    // Clear any existing timer
+    if (this.cleanupTimer) {
+      clearTimeout(this.cleanupTimer);
+    }
+
+    // Set single cleanup timer
+    this.cleanupTimer = setTimeout(() => this.clear(), this.ttl);
+  }
+
+  clear() {
+    this.cache = null;
+    this.expiry = 0;
+    if (this.cleanupTimer) {
+      clearTimeout(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+  }
 }
 
-// Function to get JWT Token from NextAuth session with caching
+// Singleton token cache
+const tokenCache = new TokenCache();
+
+// Optimized JWT token retrieval with error handling
 const getJwtToken = async () => {
   if (typeof window === 'undefined') return null;
 
-  // Check cache first
-  const now = Date.now();
-  if (tokenCache && now < tokenCacheExpiry) {
-    return tokenCache;
-  }
+  tokenCache.init();
+
+  const cachedToken = tokenCache.get();
+  if (cachedToken) return cachedToken;
 
   try {
-    // Get token from NextAuth session
     const session = await getSession();
-    let token = null;
+    const token = session?.accessToken || session?.user?.accessToken;
 
-    if (session?.accessToken) {
-      token = session.accessToken;
-    } else if (session?.user?.accessToken) {
-      token = session.user.accessToken;
-    }
-
-    // Cache the token
     if (token) {
-      tokenCache = token;
-      tokenCacheExpiry = now + TOKEN_CACHE_TTL;
+      tokenCache.set(token);
     }
 
     return token;
   } catch (error) {
-    // Only log in development to reduce noise
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('Failed to get NextAuth session', error);
+      logger.warn('Failed to get NextAuth session:', error.message);
     }
+    return null;
   }
-  return null;
 };
 
 /**
  * Auth types for API requests
  */
 export const AUTH_TYPES = {
-  AUTO: 'auto', // Automatically determine auth type based on endpoint path
-  NONE: 'none', // No authentication needed (open endpoint)
-  JWT: 'jwt', // JWT token authentication
-  API_TOKEN: 'token', // API token authentication
+  AUTO: 'auto',
+  NONE: 'none',
+  JWT: 'jwt',
+  API_TOKEN: 'token',
 };
 
+// Pre-compile regex for better performance
+const JWT_PREFIX_REGEX = /^JWT\s+/;
+const DOUBLE_JWT_REGEX = /^JWT\s+JWT\s+/;
+
+// Cached API token and origin
+let cachedApiToken = null;
+let cachedOrigin = null;
+
 /**
- * Creates an axios instance that uses the proxy API routes
- * This ensures tokens are never exposed on the client side
+ * Optimized secure API client factory
  */
 const createSecureApiClient = () => {
-  // Create axios instance targeting our proxy endpoints
+  // Pre-cache values for better performance
+  if (typeof window !== 'undefined' && !cachedOrigin) {
+    cachedOrigin = window.location.origin;
+  }
+
+  if (!cachedApiToken) {
+    cachedApiToken = getApiToken();
+  }
+
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
+    timeout: 25000, // Reduced from 40s for faster failures
+    // Performance optimizations
+    maxRedirects: 2,
+    validateStatus: (status) => status < 500, // Accept 4xx as valid responses
+    // Compression and connection reuse
+    headers: {
+      'Accept-Encoding': 'gzip, deflate, br',
+      Connection: 'keep-alive',
+    },
   });
 
-  // Override standard methods to handle authentication
-  const originalGet = instance.get;
-  const originalPost = instance.post;
-  const originalPut = instance.put;
-  const originalPatch = instance.patch;
-  const originalDelete = instance.delete;
-
-  // Helper function to handle auth options
-  const handleAuthOptions = (options = {}) => {
-    const { authType, ...restOptions } = options;
-    if (authType) {
-      if (!restOptions.headers) restOptions.headers = {};
-      restOptions.headers['X-Auth-Type'] = authType;
-    }
-    return restOptions;
+  // Optimized auth header handler
+  const addAuthHeader = (config, authType) => {
+    if (!config.headers) config.headers = {};
+    if (authType) config.headers['X-Auth-Type'] = authType;
+    return config;
   };
 
-  // Override standard Axios methods
-  instance.get = (url, options = {}) => {
-    return originalGet.call(instance, url, handleAuthOptions(options));
+  // Override methods with minimal overhead
+  const createMethodOverride = (originalMethod) => {
+    return function (url, ...args) {
+      // Handle different argument patterns efficiently
+      let options = {};
+      let data = null;
+
+      if (args.length === 1) {
+        // GET/DELETE pattern: (url, options)
+        options = args[0] || {};
+      } else if (args.length === 2) {
+        // POST/PUT/PATCH pattern: (url, data, options)
+        data = args[0];
+        options = args[1] || {};
+      }
+
+      const { authType, ...restOptions } = options;
+      const finalOptions = addAuthHeader(restOptions, authType);
+
+      return data !== null
+        ? originalMethod.call(this, url, data, finalOptions)
+        : originalMethod.call(this, url, finalOptions);
+    };
   };
 
-  instance.post = (url, data, options = {}) => {
-    return originalPost.call(instance, url, data, handleAuthOptions(options));
-  };
+  // Override all methods
+  ['get', 'post', 'put', 'patch', 'delete'].forEach((method) => {
+    const original = instance[method];
+    instance[method] = createMethodOverride(original);
+    // Maintain backward compatibility
+    instance[`${method}WithAuth`] = instance[method];
+  });
 
-  instance.put = (url, data, options = {}) => {
-    return originalPut.call(instance, url, data, handleAuthOptions(options));
-  };
-
-  instance.patch = (url, data, options = {}) => {
-    return originalPatch.call(instance, url, data, handleAuthOptions(options));
-  };
-
-  instance.delete = (url, options = {}) => {
-    return originalDelete.call(instance, url, handleAuthOptions(options));
-  };
-
-  // Keep the original WithAuth methods for backward compatibility
-  instance.getWithAuth = instance.get;
-  instance.postWithAuth = instance.post;
-  instance.putWithAuth = instance.put;
-  instance.patchWithAuth = instance.patch;
-  instance.deleteWithAuth = instance.delete;
-
-  // Add request interceptor for standard requests
+  // Optimized request interceptor
   instance.interceptors.request.use(
     async (config) => {
       const authType = config.headers?.['X-Auth-Type'] || AUTH_TYPES.AUTO;
 
-      // Handle different authentication types
       switch (authType) {
-        case AUTH_TYPES.NONE: {
-          // No authentication needed
+        case AUTH_TYPES.NONE:
           break;
-        }
 
-        case AUTH_TYPES.API_TOKEN: {
-          // Use API token from environment variables as URL parameter
-          const apiToken = getApiToken();
-          if (apiToken) {
-            try {
-              // Validate inputs before URL construction
-              const baseURL = config.baseURL || '/api';
-              const configUrl = config.url || '';
-
-              // Ensure we have valid inputs
-              if (!configUrl) {
-                logger.warn('Secure API: No URL provided for request');
-                break;
-              }
-
-              // Construct URL with proper validation
-              const windowOrigin =
-                typeof window !== 'undefined' ? window.location.origin : '';
-              const fullBaseURL = windowOrigin + baseURL;
-
-              // Validate the base URL before using it
-              if (windowOrigin && !windowOrigin.startsWith('http')) {
-                logger.error(
-                  'Secure API: Invalid window origin for URL construction:',
-                  windowOrigin,
-                );
-                break;
-              }
-
-              const url = new URL(configUrl, fullBaseURL);
-              url.searchParams.set('token', apiToken);
-              config.url = url.pathname + url.search;
-            } catch (urlError) {
-              logger.error('Secure API request failed', {
-                message: "Failed to construct 'URL': Invalid base URL",
-                url: config.url,
-                baseURL: config.baseURL,
-                error: urlError.message,
-              });
-              // Fallback: append token as query parameter manually
-              const separator = config.url.includes('?') ? '&' : '?';
-              config.url = `${config.url}${separator}token=${encodeURIComponent(apiToken)}`;
-            }
+        case AUTH_TYPES.API_TOKEN:
+          if (cachedApiToken) {
+            const separator = config.url.includes('?') ? '&' : '?';
+            config.url = `${config.url}${separator}token=${cachedApiToken}`;
           }
           break;
-        }
+
         case AUTH_TYPES.JWT:
         case AUTH_TYPES.AUTO:
-        default: {
-          // Use JWT token from session in Authorization header
+        default:
           const jwtToken = await getJwtToken();
           if (jwtToken) {
-            // Clean up any double JWT prefixes that might cause 401 errors
             let cleanToken = jwtToken;
 
-            // Handle double JWT prefix issue
-            if (jwtToken.startsWith('JWT JWT ')) {
-              cleanToken = jwtToken.replace('JWT JWT ', 'JWT ');
-            }
-            // Ensure token has JWT prefix if it doesn't already (no Bearer support)
-            else if (!jwtToken.startsWith('JWT ')) {
+            // Optimized token cleaning
+            if (DOUBLE_JWT_REGEX.test(jwtToken)) {
+              cleanToken = jwtToken.replace(DOUBLE_JWT_REGEX, 'JWT ');
+            } else if (!JWT_PREFIX_REGEX.test(jwtToken)) {
               cleanToken = `JWT ${jwtToken}`;
             }
 
-            config.headers['Authorization'] = cleanToken;
+            config.headers.Authorization = cleanToken;
           }
           break;
-        }
-      }
-
-      // Minimal logging in development only for auth issues
-      if (
-        process.env.NODE_ENV === 'development' &&
-        !config.headers['Authorization'] &&
-        authType !== AUTH_TYPES.API_TOKEN &&
-        authType !== AUTH_TYPES.NONE
-      ) {
-        logger.debug('Secure API Request without auth', {
-          url: config.url,
-          method: config.method,
-          authType: authType,
-        });
       }
 
       return config;
     },
     (error) => {
-      logger.error('Secure API request config error', error);
+      if (process.env.NODE_ENV === 'development') {
+        logger.error('Request config error:', error.message);
+      }
       return Promise.reject(error);
     },
   );
-  // Add response interceptor with enhanced error handling
+
+  // Optimized response interceptor
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Enhanced 401 error handling for authentication issues
-      if (error.response?.status === 401) {
-        // Clear token cache on authentication failure
-        clearTokenCache();
+      const status = error.response?.status;
 
-        // Only log 401 errors in development or for debugging
+      if (status === 401) {
+        tokenCache.clear();
+
         if (process.env.NODE_ENV === 'development') {
-          logger.warn('Authentication failed', {
+          logger.warn('Authentication failed:', {
             url: error.config?.url,
             method: error.config?.method,
-            status: error.response?.status,
-            message: error.response?.data?.message || error.message,
           });
         }
 
-        // Check if this is a browser environment before attempting redirect
+        // Optimized redirect logic
         if (typeof window !== 'undefined') {
-          // Only show user-facing auth errors, not system ones
-          const isUserFacingRequest =
-            !error.config?.url?.includes('/auth/') &&
-            !error.config?.url?.includes('session');
+          const currentPath = window.location.pathname;
+          const isAuthPath =
+            currentPath.includes('/login') || currentPath.includes('/auth');
+          const isSystemRequest =
+            error.config?.url?.includes('/auth/') ||
+            error.config?.url?.includes('session');
 
-          if (isUserFacingRequest) {
-            // Consider redirecting to login or showing auth modal
-            // This prevents cascading auth failures
-            const currentPath = window.location.pathname;
-            if (
-              !currentPath.includes('/login') &&
-              !currentPath.includes('/auth')
-            ) {
-              // Store the current path for redirect after login
+          if (!isAuthPath && !isSystemRequest) {
+            try {
               window.sessionStorage?.setItem('redirectAfterLogin', currentPath);
+            } catch {
+              // Ignore sessionStorage errors
             }
           }
         }
-      }
-      // Handle rate limiting (429) and server errors (5xx) appropriately
-      else if (error.response?.status === 429) {
-        logger.warn('Rate limit exceeded', {
+      } else if (status === 429) {
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('Rate limit exceeded:', error.config?.url);
+        }
+      } else if (!status || status >= 500) {
+        logger.error('API request failed:', {
           url: error.config?.url,
           method: error.config?.method,
-          status: error.response?.status,
+          status,
+          message: error.message,
         });
       }
-      // Only log errors for 5xx status codes or network errors to reduce noise
-      else if (!error.response || error.response.status >= 500) {
-        const errorInfo = {
-          url: error.config?.url,
-          method: error.config?.method,
-          status: error.response?.status,
-          message: error.message,
-        };
-        logger.error('Secure API request failed', errorInfo);
-      }
+
       return Promise.reject(error);
     },
   );
@@ -297,6 +270,7 @@ const createSecureApiClient = () => {
   return instance;
 };
 
+// Export singleton instance for better performance
 export const secureApiProxy = createSecureApiClient();
 
 export default createSecureApiClient;

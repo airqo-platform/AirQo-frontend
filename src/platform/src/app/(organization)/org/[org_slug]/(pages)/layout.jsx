@@ -1,13 +1,12 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { OrganizationProvider } from '@/app/providers/OrganizationProvider';
+import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
 
-export default function OrganizationPagesLayoutWrapper({ children }) {
-  const params = useParams();
-  const orgSlug = params?.org_slug || params?.org_slug?.join('/') || '';
-
-  return (
-    <OrganizationProvider orgSlug={orgSlug}>{children}</OrganizationProvider>
-  );
+export function OrganizationPagesLayoutWrapper({ children }) {
+  // Organization context is now provided by UnifiedGroupProvider at the app level
+  return <>{children}</>;
 }
+
+export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(
+  OrganizationPagesLayoutWrapper,
+);

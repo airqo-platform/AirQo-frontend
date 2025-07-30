@@ -1,8 +1,8 @@
 'use client';
-import React from 'react';
+import { Tooltip } from 'flowbite-react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 
 const truncateName = (name, maxLength = 13) => {
   if (!name) return 'Unknown Location';
@@ -13,9 +13,9 @@ const LocationCard = ({
   site,
   onToggle,
   isSelected,
-  isLoading,
-  disableToggle,
-  cardStyle,
+  isLoading = false,
+  disableToggle = false,
+  cardStyle = null,
 }) => {
   const cardVariants = {
     initial: { opacity: 0, y: 5 },
@@ -46,9 +46,8 @@ const LocationCard = ({
   }
 
   const { name, search_name, country, city, _id } = site;
-  const displayName = truncateName(
-    name || (search_name && search_name.split(',')[0]) || '',
-  );
+  const fullName = name || (search_name && search_name.split(',')[0]) || '';
+  const displayName = truncateName(fullName);
   const locationDescription = country || city || 'Unknown Location';
 
   const handleCardClick = () => {
@@ -86,10 +85,14 @@ const LocationCard = ({
           animate={isSelected ? { rotate: [0, 15, 0] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <LocationIcon width={20} height={20} />
+          <AqMarkerPin01 size={20} />
         </motion.div>
         <div className="flex flex-col">
-          <h3 className="text-sm font-medium dark:text-white">{displayName}</h3>
+          <Tooltip content={fullName} placement="top" trigger="hover">
+            <h3 className="text-sm font-medium dark:text-white cursor-help">
+              {displayName}
+            </h3>
+          </Tooltip>
           <small className="text-xs text-gray-500 dark:text-white">
             {locationDescription}
           </small>
@@ -135,12 +138,6 @@ LocationCard.propTypes = {
   isLoading: PropTypes.bool,
   disableToggle: PropTypes.bool,
   cardStyle: PropTypes.object,
-};
-
-LocationCard.defaultProps = {
-  isLoading: false,
-  disableToggle: false,
-  cardStyle: null,
 };
 
 export default LocationCard;

@@ -4,31 +4,36 @@ import Head from 'next/head';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer } from '@/common/layouts/SideBar';
+import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
+import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
+import { useSession } from 'next-auth/react';
+import Loading from '../loading';
 
-/**
- * Create Organization Layout Component
- *
- * Matches UnifiedPagesLayout structure exactly but without authenticated sidebar.
- * Provides the same layout experience as user pages but focused on organization creation.
- */
-export default function CreateOrganizationLayout({ children }) {
+function CreateOrganizationLayout({ children }) {
+  const { status } = useSession();
+
+  // Call all hooks at the top level, before any conditional returns
   const { userID } = useGetActiveGroup();
   const { maintenance } = useMaintenanceStatus();
+  const { layout } = useTheme();
 
   // Initialize hooks exactly like UnifiedPagesLayout
   useUserPreferences();
   useInactivityLogout(userID);
 
-  // Get current layout (compact or wide)
-  const { layout } = useTheme();
+  // Show loading while authentication is being checked
+  if (status === 'loading') {
+    return <Loading />;
+  }
+
   // Route configuration for create organization page
   const routeConfig = {
     pageTitle: 'Request Organization Access - AirQo Analytics',
@@ -52,16 +57,14 @@ export default function CreateOrganizationLayout({ children }) {
         <title>{routeConfig.pageTitle}</title>
         <meta property="og:title" content={routeConfig.pageTitle} key="title" />
       </Head>
-
       {/* Global Topbar - Full width at top */}
       <GlobalTopbar
         topbarTitle={routeConfig.topbarTitle}
         homeNavPath={homeNavPath}
         showBreadcrumb={false}
       />
-
       {/* Main Content - Full width without sidebar */}
-      <main className="flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto">
+      <main className="flex-1 transition-all pb-20 mb-[84px] md:mb-0 md:pb-0 duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto">
         <div className={`h-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
@@ -73,14 +76,17 @@ export default function CreateOrganizationLayout({ children }) {
         </div>
       </main>
 
-      {/* SideBar Drawer for mobile - keeping for consistency */}
+      {/* Mobile Bottom Navigation - Show user navigation for create-organization */}
+      <MobileBottomNavigation userType="user" />
+
+      {/* Drawer - Show user navigation items for create-organization */}
       <UnifiedSideBarDrawer userType="user" />
-
-      {/* Global SideBar Drawer */}
       <GlobalSideBarDrawer />
-
-      {/* Theme Customizer - Available like other layouts */}
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
     </div>
   );
 }
+
+export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(
+  CreateOrganizationLayout,
+);

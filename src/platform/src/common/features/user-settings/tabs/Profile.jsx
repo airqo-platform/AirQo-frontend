@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import Spinner from '@/common/components/Spinner';
 import * as Yup from 'yup';
-import Modal from '@/components/Modal/Modal';
 import AlertBox from '@/components/AlertBox';
 import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
 import InputField from '@/common/components/InputField';
-import SelectDropdown from '@/components/SelectDropdown';
 import TextField from '@/common/components/TextInputField';
+import CustomToast from '@/components/Toast/CustomToast';
 import ProfileSkeleton from '../components/ProfileSkeleton';
 import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
@@ -16,6 +16,7 @@ import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { setUserInfo } from '@/lib/store/services/account/LoginSlice';
 import { useChecklistSteps } from '@/features/Checklist/hooks/useChecklistSteps';
+import SelectField from '@/common/components/SelectField';
 
 // Country setup
 countries.registerLocale(enLocale);
@@ -25,21 +26,21 @@ const countryOptions = Object.entries(countryObj).map(([key, value]) => ({
   value: key,
 }));
 
-// Yup validation schema (removed phone and timezone)
+// Validation schema
 const validationSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
   lastName: Yup.string().required('Last name is required'),
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
   jobTitle: Yup.string().optional(),
   country: Yup.string().required('Country is required'),
   description: Yup.string().optional(),
 });
 
-const Profile = () => {
+export default function Profile() {
   const dispatch = useDispatch();
   const { data: session, update: updateSession } = useSession();
+  const { completeStep } = useChecklistSteps();
+
   const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
@@ -55,150 +56,279 @@ const Profile = () => {
     description: '',
     profilePicture: '',
   });
-  const [updatedProfilePicture, setUpdatedProfilePicture] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [initialUserData, setInitialUserData] = useState({}); // To store initial data for comparison
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [profileUploading, setProfileUploading] = useState(false);
-  const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
-  const { completeStep } = useChecklistSteps();
+  const [localImagePreview, setLocalImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(false);
+  const [selectedImageBlob, setSelectedImageBlob] = useState(null);
 
-  // Helper function to parse API error responses
+  // Parse API errors
   const parseApiErrors = (error) => {
-    const parsedErrors = {};
-
-    // Handle the API error format you provided
-    if (
-      error.response?.data?.errors &&
-      Array.isArray(error.response.data.errors)
-    ) {
+    const parsed = {};
+    if (error.response?.data?.errors) {
       error.response.data.errors.forEach((err) => {
-        if (err.param && err.message) {
-          parsedErrors[err.param] = err.message;
-        }
+        if (err.param) parsed[err.param] = err.message;
       });
     }
-
-    // Handle other error formats
-    if (error.response?.data?.message) {
+    if (error.response?.data?.message)
       return { general: error.response.data.message };
-    }
-
-    if (error.message) {
-      return { general: error.message };
-    }
-
-    return parsedErrors;
+    if (error.message) return { general: error.message };
+    return parsed;
   };
-  // Function to fetch user details from API
-  const fetchUserDetails = async () => {
-    if (!session?.user?.id) return;
 
-    setIsLoading(true);
+  // Fetch details
+  const fetchUserDetails = useCallback(async () => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    setIsDataLoading(true);
     try {
-      const res = await getUserDetails(session.user.id);
-      if (res.success && res.users && res.users.length > 0) {
-        const user = res.users[0];
-
-        // Map API response fields to form fields (removed phone and timezone)
-        setUserData({
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          email: user.email || '',
-          jobTitle: user.jobTitle || '',
-          country: user.country || '',
-          description: user.description || '',
-          profilePicture: user.profilePicture || '',
-        });
+      const res = await getUserDetails(userId);
+      const u = res.users?.[0];
+      if (res.success && u) {
+        const fetchedData = {
+          firstName: u.firstName || '',
+          lastName: u.lastName || '',
+          email: u.email || '',
+          jobTitle: u.jobTitle || '',
+          country: u.country || '',
+          description: u.description || '',
+          profilePicture: u.profilePicture || '',
+        };
+        setUserData(fetchedData);
+        setInitialUserData(fetchedData); // Set initial data
+        setLocalImagePreview(null);
+        setImageError(false);
       } else {
-        setErrorState({
-          isError: true,
-          message: 'Failed to fetch user details',
-          type: 'error',
-        });
+        throw new Error('Failed to fetch user details');
       }
-    } catch (error) {
-      setErrorState({
-        isError: true,
-        message: error.message || 'Error fetching user details',
-        type: 'error',
-      });
+    } catch (e) {
+      setErrorState({ isError: true, message: e.message, type: 'error' });
     } finally {
-      setIsLoading(false);
+      setIsDataLoading(false);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     fetchUserDetails();
-  }, [session?.user?.id]);
+  }, [fetchUserDetails]);
 
-  // Handler for input changes from InputField/TextField components.
+  // Field handlers
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setUserData({ ...userData, [id]: value });
-    // Clear field-specific error when user types
-    if (validationErrors[id]) {
-      setValidationErrors({ ...validationErrors, [id]: '' });
-    }
-  };
-  // Handlers for SelectDropdown fields
-  const handleCountryChange = (option) => {
-    setUserData({ ...userData, country: option.value });
-    if (validationErrors.country) {
-      setValidationErrors({ ...validationErrors, country: '' });
-    }
+    setUserData((prev) => ({ ...prev, [id]: value }));
+    setValidationErrors((prev) => ({ ...prev, [id]: '' }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleCountryChange = (e) => {
+    const { value } = e.target;
+    setUserData((prev) => ({ ...prev, country: value }));
+    setValidationErrors((prev) => ({ ...prev, country: '' }));
+  };
 
-    // Validate the userData using Yup schema
-    try {
-      await validationSchema.validate(userData, { abortEarly: false });
-      // Clear any previous validation errors
-      setValidationErrors({});
-    } catch (validationError) {
-      const errors = {};
-      validationError.inner.forEach((err) => {
-        errors[err.path] = err.message;
+  // Cancel resets
+  const handleCancel = () => {
+    setUserData(initialUserData); // Reset to initial data
+    setValidationErrors({});
+    setErrorState({ isError: false, message: '', type: '' });
+    setLocalImagePreview(null);
+    setImageError(false);
+  };
+
+  // Image cropping/upload
+  const cropImage = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxSize = 200;
+          let { width, height } = img;
+          const ratio = width / height;
+          if (width > height && width > maxSize) {
+            width = maxSize;
+            height = Math.round(maxSize / ratio);
+          } else if (height > maxSize) {
+            height = maxSize;
+            width = Math.round(maxSize * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL(file.type));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      CustomToast({
+        message: 'Invalid image type. Please use JPEG, PNG, SVG, or WebP.',
+        type: 'error',
       });
-      setValidationErrors(errors);
-      setIsLoading(false);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      CustomToast({
+        message: 'Image size exceeds 5MB. Please choose a smaller image.',
+        type: 'error',
+      });
       return;
     }
 
-    if (!session?.user?.id) {
-      setErrorState({
-        isError: true,
-        message: 'No valid user session found',
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLocalImagePreview(reader.result);
+      setImageError(false);
+    };
+    reader.readAsDataURL(file);
+
+    setProfileUploading(true);
+    try {
+      const cropped = await cropImage(file);
+      const blob = await (await fetch(cropped)).blob();
+      setSelectedImageBlob(blob);
+      setLocalImagePreview(cropped);
+    } catch (err) {
+      CustomToast({
+        message: `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
         type: 'error',
       });
-      setIsLoading(false);
+      setLocalImagePreview(null);
+      setImageError(true);
+    } finally {
+      setProfileUploading(false);
+    }
+  };
+
+  // Handle submit
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Crucial: Prevent default form submission to avoid full page reload
+    setIsSaving(true);
+
+    // First, handle image upload if needed
+    let updatedProfilePicture = userData.profilePicture;
+    if (selectedImageBlob) {
+      setProfileUploading(true);
+      try {
+        const form = new FormData();
+        form.append('file', selectedImageBlob);
+        form.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
+        form.append('folder', 'profiles');
+        const uploadRes = await cloudinaryImageUpload(form);
+        if (uploadRes.secure_url) {
+          updatedProfilePicture = uploadRes.secure_url;
+          setLocalImagePreview(uploadRes.secure_url);
+          setSelectedImageBlob(null);
+        } else {
+          throw new Error('No URL received from Cloudinary upload.');
+        }
+      } catch (err) {
+        CustomToast({
+          message: `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
+          type: 'error',
+        });
+        setIsSaving(false);
+        setProfileUploading(false);
+        return;
+      } finally {
+        setProfileUploading(false);
+      }
+    }
+
+    // Now validate the form data
+    try {
+      await validationSchema.validate(userData, { abortEarly: false });
+      setValidationErrors({});
+    } catch (err) {
+      const errs = {};
+      err.inner.forEach((z) => (errs[z.path] = z.message));
+      setValidationErrors(errs);
+      setIsSaving(false);
+      CustomToast({
+        message: 'Please correct the validation errors.',
+        type: 'error',
+      });
       return;
     }
 
     const userID = session.user.id;
+    const fieldsToUpdate = {};
 
-    // Create a cleaned version of userData without empty profilePicture
-    const dataToUpdate = { ...userData };
-    if (!dataToUpdate.profilePicture) {
-      delete dataToUpdate.profilePicture;
+    // Only include fields that have changed
+    for (const key in userData) {
+      if (userData[key] !== initialUserData[key]) {
+        fieldsToUpdate[key] = userData[key];
+      }
     }
-    try {
-      await updateUserCreationDetails(dataToUpdate, userID);
-      const res = await getUserDetails(userID);
-      const updatedUser = res?.users?.[0];
-      if (!updatedUser) throw new Error('User details not updated');
-      const updatedData = { _id: userID, ...updatedUser };
 
-      // Update the session with new user data
+    // Handle profile picture specially if it's new or changed
+    if (
+      updatedProfilePicture &&
+      updatedProfilePicture !== initialUserData.profilePicture
+    ) {
+      fieldsToUpdate.profilePicture = updatedProfilePicture;
+    } else if (
+      !updatedProfilePicture &&
+      !userData.profilePicture &&
+      initialUserData.profilePicture
+    ) {
+      // This condition handles removing a profile picture if it was previously set
+      fieldsToUpdate.profilePicture = ''; // Set to empty string or null to indicate removal
+    }
+
+    // If no changes, prevent API call and inform user
+    if (Object.keys(fieldsToUpdate).length === 0) {
+      setIsSaving(false);
+      setErrorState({
+        isError: true,
+        message: 'No changes to save.',
+        type: 'info',
+      });
+      return;
+    }
+
+    try {
+      await updateUserCreationDetails(fieldsToUpdate, userID);
+
+      // Successfully updated on the backend. Now, update client-side state directly
+      // and refresh session and Redux store with the *newly saved* data.
+      // Do NOT refetch user details unless absolutely necessary, as it can be redundant
+      // and sometimes cause a re-render glitch.
+      // Instead, create the `updatedSessionUser` object from `userData` and `localImagePreview`
+      // and update the session and Redux store.
+
+      const updatedProfilePictureFinal =
+        localImagePreview || userData.profilePicture;
+
+      // Prepare the updated user object for session and Redux
+      const updatedUserForClient = {
+        ...session.user, // Keep existing session user properties
+        ...userData, // Apply all current userData (since we've successfully saved them)
+        profilePicture: updatedProfilePictureFinal, // Use the new or existing profile picture
+      };
+
+      // Update NextAuth session
       await updateSession({
-        user: {
-          ...session.user,
-          ...updatedData,
-        },
+        ...session,
+        user: updatedUserForClient,
       });
 
-      dispatch(setUserInfo(updatedData));
+      // Update Redux store
+      dispatch(setUserInfo({ _id: userID, ...updatedUserForClient }));
+
+      // Reset initialUserData to the newly saved state
+      setInitialUserData(userData);
+      setLocalImagePreview(null);
       if (
         userData.firstName &&
         userData.lastName &&
@@ -210,201 +340,92 @@ const Profile = () => {
 
       setErrorState({
         isError: true,
-        message: 'User details successfully updated',
+        message: 'Your profile has been updated successfully!',
         type: 'success',
       });
-    } catch (error) {
-      // Parse API errors to set field-specific errors
-      const apiErrors = parseApiErrors(error);
-
-      if (Object.keys(apiErrors).length > 0 && !apiErrors.general) {
-        // If we have field-specific errors, set them in validation errors
-        setValidationErrors((prevErrors) => ({
-          ...prevErrors,
-          ...apiErrors,
-        }));
-
+    } catch (err) {
+      const apiErrs = parseApiErrors(err);
+      if (Object.keys(apiErrs).length && !apiErrs.general) {
+        setValidationErrors((prev) => ({ ...prev, ...apiErrs }));
         setErrorState({
           isError: true,
-          message: 'Please fix the errors below and try again',
+          message: 'Please fix the errors and try again.',
           type: 'error',
         });
       } else {
-        // If it's a general error, show it in the alert
         setErrorState({
           isError: true,
-          message:
-            apiErrors.general || error.message || 'Error updating user details',
+          message: apiErrs.general || `Failed to save profile: ${err.message}`,
           type: 'error',
         });
       }
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
-  // Handler for cancel button
-  const handleCancel = () => {
-    // Reset form to initial state
-    fetchUserDetails();
-    setUpdatedProfilePicture('');
-    setValidationErrors({});
-    setErrorState({ isError: false, message: '', type: '' });
-  };
 
-  const cropImage = () =>
-    new Promise((resolve, reject) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = (event) => {
-        const file = event.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new window.Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            const maxSize = 200;
-            let width = img.width,
-              height = img.height;
-            const aspectRatio = width / height;
-            if (width > height && width > maxSize) {
-              height = Math.round(maxSize / aspectRatio);
-              width = maxSize;
-            } else if (height > maxSize) {
-              width = Math.round(maxSize * aspectRatio);
-              height = maxSize;
-            }
-            canvas.width = width;
-            canvas.height = height;
-            context.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL(file.type));
-          };
-          img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    });
+  // Initials fallback
+  const userDisplay = useMemo(() => {
+    const fn = userData.firstName || '';
+    const ln = userData.lastName || '';
+    const full = (fn + ' ' + ln).trim() || 'User';
+    let initials =
+      fn && ln
+        ? fn[0] + ln[0]
+        : fn
+          ? fn.slice(0, 2)
+          : ln
+            ? ln.slice(0, 2)
+            : 'U';
+    const colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
+    let hash = 0;
+    for (let c of full) hash = c.charCodeAt(0) + (hash << 5) - hash;
+    return {
+      initials: initials.toUpperCase(),
+      color: colors[Math.abs(hash) % colors.length],
+      fullName: full,
+    };
+  }, [userData.firstName, userData.lastName]);
 
-  const handleAvatarClick = () => {
-    cropImage()
-      .then((croppedUrl) => {
-        setUpdatedProfilePicture(croppedUrl);
-        setUserData({ ...userData, profilePicture: croppedUrl });
-      })
-      .catch(() =>
-        setErrorState({
-          isError: true,
-          message: 'Something went wrong',
-          type: 'error',
-        }),
+  const renderProfileImage = () => {
+    const url = localImagePreview || userData.profilePicture;
+
+    if (url && !imageError)
+      return (
+        <div className="relative group w-16 h-16">
+          <img
+            src={url}
+            alt={userDisplay.fullName}
+            className="w-16 h-16 rounded-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        </div>
       );
+    return (
+      <div
+        className="w-16 h-16 rounded-full flex items-center justify-center text-white"
+        style={{ backgroundColor: userDisplay.color }}
+      >
+        {userDisplay.initials}
+      </div>
+    );
   };
 
-  const handleProfileImageUpdate = async () => {
-    if (!updatedProfilePicture) return;
-
-    const formData = new FormData();
-    formData.append('file', updatedProfilePicture);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET);
-    formData.append('folder', 'profiles');
-    setProfileUploading(true);
-
-    try {
-      const responseData = await cloudinaryImageUpload(formData);
-      const secureUrl = responseData.secure_url;
-
-      // Only update if we have a valid URL
-      if (secureUrl) {
-        setUserData((prev) => ({
-          ...prev,
-          profilePicture: secureUrl,
-        }));
-
-        const userID = session?.user?.id;
-        if (!userID) throw new Error('No valid user ID found');
-
-        // Only send profile picture to API if it's not empty
-        await updateUserCreationDetails({ profilePicture: secureUrl }, userID);
-
-        const updatedData = {
-          _id: userID,
-          ...userData,
-          profilePicture: secureUrl,
-        };
-        // Update session with the new profile picture
-        await updateSession({
-          user: {
-            ...session.user,
-            profilePicture: secureUrl,
-          },
-        });
-
-        dispatch(setUserInfo(updatedData));
-
-        setErrorState({
-          isError: true,
-          message: 'Profile image successfully added',
-          type: 'success',
-        });
-      }
-
-      setUpdatedProfilePicture('');
-      setProfileUploading(false);
-    } catch (err) {
-      setUpdatedProfilePicture('');
-      setProfileUploading(false);
-      setErrorState({ isError: true, message: err.message, type: 'error' });
-    }
+  // Reset image to original (initial) image
+  const handleResetImage = () => {
+    setLocalImagePreview(null);
+    setSelectedImageBlob(null);
+    setImageError(false);
   };
 
-  const deleteProfileImage = async () => {
-    setUpdatedProfilePicture('');
-    setUserData((prev) => ({ ...prev, profilePicture: '' }));
-
-    const userID = session?.user?.id;
-    if (!userID) {
-      setErrorState({
-        isError: true,
-        message: 'No valid user ID found',
-        type: 'error',
-      });
-      return;
-    }
-
-    try {
-      await updateUserCreationDetails({ profilePicture: '' }, userID);
-
-      // Update local user data
-      const updatedUserData = { ...userData };
-      delete updatedUserData.profilePicture; // Remove profile picture before storing
-
-      const updatedUser = {
-        _id: userID,
-        ...updatedUserData,
-        profilePicture: '', // Explicitly set to empty
-      }; // Update session with the profile picture removed
-      await updateSession({
-        user: {
-          ...session.user,
-          profilePicture: '',
-        },
-      });
-
-      dispatch(setUserInfo(updatedUser));
-
-      setShowDeleteProfileModal(false);
-      setErrorState({
-        isError: true,
-        message: 'Profile image successfully deleted',
-        type: 'success',
-      });
-    } catch (error) {
-      setErrorState({ isError: true, message: error.message, type: 'error' });
-    }
-  };
+  const hasChanges = useMemo(() => {
+    const dataChanged =
+      JSON.stringify(userData) !== JSON.stringify(initialUserData);
+    const imageChanged =
+      localImagePreview !== null &&
+      localImagePreview !== initialUserData.profilePicture;
+    return dataChanged || imageChanged;
+  }, [userData, initialUserData, localImagePreview]);
 
   return (
     <div data-testid="tab-content">
@@ -414,74 +435,53 @@ const Profile = () => {
         show={errorState.isError}
         hide={() => setErrorState({ isError: false, message: '', type: '' })}
       />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <h1 className="text-2xl font-medium text-gray-700 dark:text-white">
-            My Profile
-          </h1>
-          <p className="text-sm text-gray-500">
-            Update your photo and personal details.
-          </p>
+          <h1 className="text-2xl font-medium">My Profile</h1>
+          <p className="text-sm text-gray-500">Update your photo & details</p>
         </div>
         <div className="md:col-span-2">
           <Card>
-            {isLoading ? (
+            {isDataLoading ? (
               <ProfileSkeleton />
             ) : (
-              <>
-                <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                  <div
-                    className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex justify-center items-center cursor-pointer"
-                    onClick={handleAvatarClick}
-                    title="Tap to change profile image"
-                  >
-                    {userData.profilePicture ? (
-                      <img
-                        src={userData.profilePicture}
-                        alt={`${userData.firstName} ${userData.lastName} profile image`}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <h3 className="text-2xl font-medium text-blue-600">
-                        {userData.firstName && userData.lastName
-                          ? userData.firstName[0] + userData.lastName[0]
-                          : ''}
-                      </h3>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      onClick={() => setShowDeleteProfileModal(true)}
-                      disabled={!userData.profilePicture}
-                      className="text-sm font-medium text-gray-600"
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      onClick={handleProfileImageUpdate}
-                      disabled={!updatedProfilePicture}
-                      variant={updatedProfilePicture ? 'outlined' : 'disabled'}
-                      className="text-sm font-medium"
-                    >
-                      {updatedProfilePicture && !profileUploading
-                        ? 'Save photo'
-                        : profileUploading
-                          ? 'Uploading...'
-                          : 'Update'}
-                    </Button>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  {renderProfileImage()}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={profileUploading}
+                      className="file:mr-4 file:py-2 file:px-4 file:border file:rounded file:text-sm file:bg-gray-100"
+                    />
+                    <div className="flex items-center justify-between mt-1">
+                      {profileUploading && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Spinner size={16} />
+                          <span className="ml-1">Uploading…</span>
+                        </div>
+                      )}
+                      {/* Reset button: only show if user has changed/uploaded a new image before saving */}
+                      {localImagePreview && (
+                        <button
+                          type="button"
+                          onClick={handleResetImage}
+                          className="text-xs text-red-600 dark:text-red-400 underline hover:text-red-800 dark:hover:text-red-300 ml-auto"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <form
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                  onSubmit={handleSubmit}
-                >
-                  {/* Row 1: First and Last Name */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputField
                     id="firstName"
                     value={userData.firstName}
                     onChange={handleChange}
                     label="First name"
-                    placeholder="Enter first name"
                     error={validationErrors.firstName}
                     required
                   />
@@ -490,94 +490,75 @@ const Profile = () => {
                     value={userData.lastName}
                     onChange={handleChange}
                     label="Last name"
-                    placeholder="Enter last name"
                     error={validationErrors.lastName}
                     required
                   />
-                  {/* Row 2: Email and Job Title */}
                   <InputField
                     id="email"
                     value={userData.email}
                     onChange={handleChange}
                     label="Email"
-                    placeholder="Enter email address"
                     error={validationErrors.email}
                     required
+                    disabled // Email is usually not editable via profile settings
                   />
                   <InputField
                     id="jobTitle"
                     value={userData.jobTitle}
                     onChange={handleChange}
                     label="Job title"
-                    placeholder="Enter job title"
                     error={validationErrors.jobTitle}
                   />
-                  {/* Row 3: Country */}
-                  <div className="flex flex-col">
-                    <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
-                      Country
-                      <span className="ml-1 text-blue-600 dark:text-blue-400">
-                        *
-                      </span>
-                    </label>
-                    <SelectDropdown
-                      items={countryOptions}
-                      selected={
-                        countryOptions.find(
-                          (option) => option.value === userData.country,
-                        ) || null
-                      }
-                      onChange={handleCountryChange}
-                      placeholder="Select a country"
-                      error={validationErrors.country}
-                      required
-                    />
-                  </div>
-                  {/* Bio/Description (full width) using TextField */}
+                  <SelectField
+                    label="Country"
+                    required
+                    value={userData.country}
+                    onChange={handleCountryChange}
+                    error={validationErrors.country}
+                  >
+                    <option value="">Select a country</option>
+                    {countryOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </SelectField>
                   <div className="md:col-span-2">
                     <TextField
                       id="description"
                       value={userData.description}
                       onChange={handleChange}
                       label="Bio"
-                      placeholder="Enter your bio"
                       error={validationErrors.description}
+                      rows={4} // Give more space for bio
                     />
                   </div>
-                </form>
-                <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+                </div>
+                <div className="flex justify-end gap-3 border-t pt-4">
                   <Button
-                    onClick={handleCancel}
                     type="button"
                     variant="outlined"
-                    className="py-3 px-4 text-sm dark:bg-transparent"
+                    onClick={handleCancel}
+                    disabled={isSaving || !hasChanges}
                   >
                     Cancel
                   </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    type="button"
-                    disabled={isLoading}
-                    variant={isLoading ? 'disabled' : 'filled'}
-                    className="py-3 px-4 text-sm rounded"
-                  >
-                    {isLoading ? 'Saving...' : 'Save'}
+                  <Button type="submit" disabled={isSaving || !hasChanges}>
+                    {isSaving ? (
+                      <>
+                        <Spinner size={16} />
+                        <span className="ml-2">Saving…</span>
+                      </>
+                    ) : (
+                      'Save'
+                    )}
                   </Button>
                 </div>
-              </>
+              </form>
             )}
           </Card>
         </div>
       </div>
-      <Modal
-        display={showDeleteProfileModal}
-        handleConfirm={deleteProfileImage}
-        closeModal={() => setShowDeleteProfileModal(false)}
-        description="Are you sure you want to delete your profile image?"
-        confirmButton="Delete"
-      />
     </div>
   );
-};
-
-export default Profile;
+}

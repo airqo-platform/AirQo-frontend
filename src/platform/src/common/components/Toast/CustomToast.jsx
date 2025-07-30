@@ -1,65 +1,83 @@
+// common/components/Toast/CustomToast.js (or .jsx)
 import { toast } from 'sonner';
-import CheckCircleIcon from '@/icons/Analytics/checkCircleIcon';
-import WarningIcon from '@/icons/Actions/exclamation.svg';
+import { AqCheck, AqAlertCircle } from '@airqo/icons-react';
 import { MdError } from 'react-icons/md';
 import { IoInformationCircle } from 'react-icons/io5';
 
+// --- Define Constants for Classes ---
+const BASE_CLASSES = 'p-4 rounded-xl border-none flex items-center gap-2';
+const SUCCESS_CLASSES = 'bg-green-600 text-white';
+const ERROR_CLASSES = 'bg-red-600 text-white';
+const WARNING_CLASSES = 'bg-orange-600 text-white';
+const INFO_CLASSES =
+  'bg-[var(--org-primary,var(--color-primary,#145fff))] text-white';
+
+// --- Define Toast Types ---
+export const TOAST_TYPES = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+};
+
 /**
- * Shows a customized toast notification
+ * Shows a customized toast notification using sonner.
  *
- * @param {Object} props - Toast options
- * @param {string} [props.message='Download complete'] - The message to display in the toast
- * @param {string} [props.type='success'] - The type of toast ('success', 'warning', 'error', 'info')
- * @param {number} [props.duration] - Duration in milliseconds to show the toast
- * @param {Object} [props.style] - Additional styles to apply to the toast
- * @param {Function} [props.onDismiss] - Callback when toast is dismissed
- * @returns {string} - The toast ID
+ * @param {Object} options - Toast configuration.
+ * @param {string} [options.message=''] - The message to display.
+ * @param {keyof TOAST_TYPES} [options.type='success'] - The type of toast.
+ * @param {number} [options.duration=5000] - Duration in milliseconds.
+ * @param {Object} [options.style={}] - Additional inline styles.
+ * @param {Function} [options.onDismiss] - Callback when toast is dismissed.
+ * @returns {string | number} - The toast ID.
  */
 const CustomToast = ({
-  message = 'Download complete', // Keeping original default for backward compatibility
-  type = 'success',
+  message = '',
+  type = TOAST_TYPES.SUCCESS,
   duration = 5000,
-  style = {},
+  style: customStyle = {},
   onDismiss,
 } = {}) => {
   let icon;
-  let className;
+  // Build className string dynamically
+  let className = BASE_CLASSES;
 
+  // Determine icon and append specific classes based on type
   switch (type) {
-    case 'warning':
-      icon = <WarningIcon width={20} height={20} className="text-white" />;
-      className = 'bg-orange-600 text-white';
+    case TOAST_TYPES.WARNING:
+      icon = <AqAlertCircle size={20} className="text-white flex-shrink-0" />;
+      className += ` ${WARNING_CLASSES}`;
       break;
-    case 'error':
-      icon = <MdError size={20} className="text-white" />;
-      className = 'bg-red-600 text-white';
+    case TOAST_TYPES.ERROR:
+      icon = <MdError size={20} className="text-white flex-shrink-0" />;
+      className += ` ${ERROR_CLASSES}`;
       break;
-    case 'info':
-      icon = <IoInformationCircle size={20} className="text-white" />;
-      className =
-        'bg-[var(--org-primary,var(--color-primary,#145fff))] text-white';
+    case TOAST_TYPES.INFO:
+      icon = (
+        <IoInformationCircle size={20} className="text-white flex-shrink-0" />
+      );
+      className += ` ${INFO_CLASSES}`;
       break;
-    case 'success':
-    default:
-      icon = <CheckCircleIcon width={20} height={20} className="text-white" />;
-      className = 'bg-primary text-white';
+    case TOAST_TYPES.SUCCESS:
+    default: // Defaults to success
+      icon = <AqCheck size={20} className="text-white flex-shrink-0" />;
+      className += ` ${SUCCESS_CLASSES}`;
       break;
   }
 
-  // Add the common classes to className
-  className +=
-    ' p-4 rounded-xl border-none flex items-center justify-center gap-2';
-
-  // Default style with improved centering
+  // Define default styles and merge with custom styles
   const defaultStyle = {
     left: '50%',
     transform: 'translateX(-50%)',
     bottom: '5px',
     position: 'fixed',
-    ...style,
+    minWidth: '250px',
+    maxWidth: '90vw',
+    width: 'auto',
+    ...customStyle,
   };
 
-  // Return the toast ID for potential programmatic dismissal
+  // --- Call sonner's toast function ---
   return toast(message, {
     className,
     duration,

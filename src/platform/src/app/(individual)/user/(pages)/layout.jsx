@@ -1,11 +1,9 @@
 'use client';
-import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
 
-export default function Layout({ children }) {
-  return (
-    <div>
-      {children}
-      <ThemeCustomizer />
-    </div>
-  );
+import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
+
+export function Layout({ children }) {
+  return <div>{children}</div>;
 }
+
+export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(Layout);

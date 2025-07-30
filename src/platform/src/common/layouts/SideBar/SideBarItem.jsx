@@ -10,19 +10,229 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { usePopper } from 'react-popper';
-import { MdKeyboardArrowRight } from 'react-icons/md';
-import ArrowDropDownIcon from '@/icons/arrow_drop_down';
+import { AqChevronDown, AqChevronRight } from '@airqo/icons-react';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
-export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
+/**
+ * Enhanced SidebarItem Component with Simplified Route Matching
+ *
+ * New simplified usage with matcher prop:
+ *
+ * Simple string matcher:
+ * <SidebarItem label="Admin Panel" navPath="/admin/users" matcher="/admin/users" />
+ *
+ * Object matcher with options:
+ * <SidebarItem
+ *   label="Organization Dashboard"
+ *   navPath="/org/{slug}/dashboard"
+ *   matcher={{ pattern: "/org/{slug}/dashboard", orgSlug: "acme", exact: false }}
+ * />
+ *
+ * Legacy usage (still supported):
+ * <SidebarItem
+ *   label="Dashboard"
+ *   navPath="/user/dashboard"
+ *   flow="user"
+ *   subroutes={[...]}
+ * />
+ */
+
+// Enhanced route matching utility
+const createRouteMatcher = () => {
+  const parseMatcherConfig = (config) => {
+    if (typeof config === 'string') {
+      // Simple string matcher
+      return { type: 'simple', pattern: config };
+    }
+
+    if (typeof config === 'object' && config !== null) {
+      // Object-based matcher with more options
+      return {
+        type: config.type || 'simple',
+        pattern: config.pattern || config.path,
+        exact: config.exact || false,
+        includeSubroutes: config.includeSubroutes !== false,
+        orgSlug: config.orgSlug,
+        flow: config.flow,
+      };
+    }
+
+    return null;
+  };
+
+  const resolvePathWithSlug = (path, orgSlug) => {
+    if (!path || !orgSlug) return path;
+    return path.replace(/\{slug\}/g, orgSlug);
+  };
+
+  return {
+    isRouteActive: (
+      currentRoute,
+      navPath,
+      matcherConfig,
+      subroutes = [],
+      hasChildren = false,
+    ) => {
+      if (!navPath) return false;
+
+      const config = parseMatcherConfig(matcherConfig);
+
+      // If no matcher config, use legacy logic
+      if (!config) {
+        return createLegacyMatcher().isRouteActive(
+          currentRoute,
+          navPath,
+          subroutes,
+          hasChildren,
+        );
+      }
+
+      const resolvedNavPath = resolvePathWithSlug(navPath, config.orgSlug);
+      const resolvedPattern = resolvePathWithSlug(
+        config.pattern,
+        config.orgSlug,
+      );
+
+      // Handle root route specially
+      if (resolvedNavPath === '/' && currentRoute === '/') return true;
+
+      // Handle user home route mapping
+      if (
+        resolvedNavPath === '/user/Home' &&
+        (currentRoute === '/' || currentRoute === '/user/Home')
+      ) {
+        return true;
+      }
+
+      // Exact match
+      if (currentRoute === resolvedNavPath || currentRoute === resolvedPattern)
+        return true;
+
+      // Non-exact matching
+      if (!config.exact) {
+        // Check if current route starts with nav path
+        if (currentRoute.startsWith(resolvedNavPath)) return true;
+
+        // Check if current route starts with pattern
+        if (resolvedPattern && currentRoute.startsWith(resolvedPattern))
+          return true;
+
+        // Check subroutes if enabled
+        if (config.includeSubroutes && subroutes.length > 0) {
+          return subroutes.some((subroute) => {
+            if (!subroute.path) return false;
+            const resolvedSubroutePath = resolvePathWithSlug(
+              subroute.path,
+              config.orgSlug,
+            );
+            return (
+              currentRoute === resolvedSubroutePath ||
+              currentRoute.startsWith(resolvedSubroutePath + '/')
+            );
+          });
+        }
+      }
+
+      // Legacy behavior for dropdown children
+      if (hasChildren && currentRoute.startsWith(resolvedNavPath)) {
+        return true;
+      }
+
+      return false;
+    },
+
+    getNavPath: (basePath, matcherConfig) => {
+      const config = parseMatcherConfig(matcherConfig);
+      if (!config || !config.orgSlug) return basePath;
+      return resolvePathWithSlug(basePath, config.orgSlug);
+    },
+  };
+};
+
+// Legacy matcher for backwards compatibility
+const createLegacyMatcher = () => {
+  return {
+    isRouteActive: (
+      currentRoute,
+      navPath,
+      subroutes = [],
+      hasChildren = false,
+    ) => {
+      if (!navPath) return false;
+
+      // Handle root route specially
+      if (navPath === '/' && currentRoute === '/') return true;
+
+      // Handle user home route mapping
+      if (
+        navPath === '/user/Home' &&
+        (currentRoute === '/' || currentRoute === '/user/Home')
+      ) {
+        return true;
+      }
+
+      // Exact match
+      if (currentRoute === navPath) return true;
+
+      // Generic matching - check if current route starts with nav path
+      if (currentRoute.startsWith(navPath)) return true;
+
+      // Check subroutes
+      if (subroutes.length > 0) {
+        return subroutes.some((subroute) => {
+          if (!subroute.path) return false;
+          return (
+            currentRoute === subroute.path ||
+            currentRoute.startsWith(subroute.path + '/')
+          );
+        });
+      }
+
+      // Legacy behavior for dropdown children
+      if (hasChildren && currentRoute.startsWith(navPath)) {
+        return true;
+      }
+
+      return false;
+    },
+  };
+};
+
+export const SideBarDropdownItem = ({
+  itemLabel,
+  itemPath,
+  matcher,
+  // Legacy props for backwards compatibility
+  flow,
+  orgSlug,
+}) => {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
   const currentRoute = pathname;
+
+  // Create matcher config from props
+  const matcherConfig = useMemo(() => {
+    if (matcher) return matcher;
+
+    // Backwards compatibility: convert legacy props to matcher config
+    if (flow || orgSlug) {
+      return {
+        type: 'legacy',
+        pattern: itemPath,
+        flow,
+        orgSlug,
+      };
+    }
+
+    return null;
+  }, [matcher, flow, orgSlug, itemPath]);
+
+  const routeMatcher = useMemo(() => createRouteMatcher(), []);
+
   const isCurrentRoute = useMemo(() => {
-    if (!itemPath) return false;
-    return currentRoute === itemPath || currentRoute.startsWith(itemPath + '/');
-  }, [currentRoute, itemPath]);
+    return routeMatcher.isRouteActive(currentRoute, itemPath, matcherConfig);
+  }, [currentRoute, itemPath, matcherConfig, routeMatcher]);
 
   const isDarkMode = useMemo(() => {
     if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark'))
@@ -31,7 +241,8 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   }, [theme, systemTheme]);
 
   const handleClick = () => {
-    router.push(itemPath);
+    const navPath = routeMatcher.getNavPath(itemPath, matcherConfig);
+    router.push(navPath);
   };
 
   return (
@@ -55,6 +266,19 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
 SideBarDropdownItem.propTypes = {
   itemLabel: PropTypes.string.isRequired,
   itemPath: PropTypes.string.isRequired,
+  matcher: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      pattern: PropTypes.string,
+      exact: PropTypes.bool,
+      includeSubroutes: PropTypes.bool,
+      orgSlug: PropTypes.string,
+      type: PropTypes.string,
+    }),
+  ]),
+  // Legacy props (deprecated but supported)
+  flow: PropTypes.oneOf(['user', 'organization', 'generic']),
+  orgSlug: PropTypes.string,
 };
 
 /**
@@ -210,11 +434,34 @@ const SidebarItem = ({
   toggleState,
   iconOnly = false,
   isExternal = false,
-  subroutes = null,
+  subroutes = [],
   onSubrouteClick,
+  matcher, // New prop for simplified route matching
+  // Legacy props for backwards compatibility
+  flow,
+  orgSlug,
 }) => {
   const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
+
+  // Create matcher config from props
+  const matcherConfig = useMemo(() => {
+    if (matcher) return matcher;
+
+    // Backwards compatibility: convert legacy props to matcher config
+    if (flow || orgSlug) {
+      return {
+        type: 'legacy',
+        pattern: navPath,
+        flow,
+        orgSlug,
+      };
+    }
+
+    return null;
+  }, [matcher, flow, orgSlug, navPath]);
+
+  const routeMatcher = useMemo(() => createRouteMatcher(), []);
 
   // Simplified hover state management
   const [showPopup, setShowPopup] = useState(false);
@@ -222,18 +469,18 @@ const SidebarItem = ({
   const hoverTimeoutRef = useRef(null);
 
   const currentRoute = pathname;
+
+  // Enhanced route matching with simplified matcher
   const isCurrentRoute = useMemo(() => {
-    if (!navPath) return false;
-    if (navPath === '/' && currentRoute === '/') return true;
-    if (
-      navPath === '/user/Home' &&
-      (currentRoute === '/' || currentRoute === '/user/Home')
-    )
-      return true;
-    if (currentRoute === navPath) return true;
-    if (children && currentRoute.startsWith(navPath)) return true;
-    return false;
-  }, [currentRoute, navPath, children]);
+    const hasChildren = !!children;
+    return routeMatcher.isRouteActive(
+      currentRoute,
+      navPath,
+      matcherConfig,
+      subroutes,
+      hasChildren,
+    );
+  }, [currentRoute, navPath, matcherConfig, subroutes, children, routeMatcher]);
 
   const hasDropdown = !!children;
   const hasSubroutes = !!subroutes && subroutes.length > 0;
@@ -290,7 +537,7 @@ const SidebarItem = ({
     [clearHoverTimeout],
   );
 
-  // Handle subroute clicks
+  // Handle subroute clicks with matcher awareness
   const handleSubrouteClick = useCallback(
     (e, subroute) => {
       e.preventDefault();
@@ -300,15 +547,20 @@ const SidebarItem = ({
       clearHoverTimeout();
       setShowPopup(false);
 
-      // Navigate
+      // Navigate with matcher-aware path resolution
       if (subroute.path) {
+        const processedPath = routeMatcher.getNavPath(
+          subroute.path,
+          matcherConfig,
+        );
+
         if (
-          subroute.path.startsWith('http') ||
-          subroute.path.includes('/admin')
+          processedPath.startsWith('http') ||
+          processedPath.includes('/admin')
         ) {
-          window.location.href = subroute.path;
+          window.location.href = processedPath;
         } else {
-          window.location.href = subroute.path;
+          window.location.href = processedPath;
         }
       }
 
@@ -321,7 +573,7 @@ const SidebarItem = ({
         setTimeout(() => onClick(), 50);
       }
     },
-    [onSubrouteClick, onClick, clearHoverTimeout],
+    [onSubrouteClick, onClick, clearHoverTimeout, routeMatcher, matcherConfig],
   );
 
   // Cleanup
@@ -360,10 +612,13 @@ const SidebarItem = ({
   const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-lg';
   const handleItemClick = hasDropdown ? toggleMethod : onClick;
 
+  // Get processed nav path for rendering
+  const processedNavPath = routeMatcher.getNavPath(navPath, matcherConfig);
+
   // External link handling
   if (isExternal) {
     const handleExternalClick = () => {
-      window.open(navPath, '_blank', 'noopener,noreferrer');
+      window.open(processedNavPath, '_blank', 'noopener,noreferrer');
       if (onClick) onClick();
     };
 
@@ -412,7 +667,7 @@ const SidebarItem = ({
         onMouseLeave={() => handleItemHover(false)}
       >
         <Link
-          href={navPath || '#'}
+          href={processedNavPath || '#'}
           onClick={onClick}
           className={`
             relative flex items-center transition-all duration-200 ease-out
@@ -437,10 +692,10 @@ const SidebarItem = ({
                 <h3 className={`font-normal text-sm ${textClass}`}>{label}</h3>
               </div>
               {hasDropdown && (
-                <ArrowDropDownIcon className={`${textClass} w-4 h-4`} />
+                <AqChevronDown className={`${textClass} w-4 h-4`} />
               )}
               {hasSubroutes && !hasDropdown && (
-                <MdKeyboardArrowRight
+                <AqChevronRight
                   className={`${textClass} w-4 h-4 transition-transform duration-200 ${
                     showPopup ? 'translate-x-1' : 'group-hover:translate-x-0.5'
                   }`}
@@ -488,6 +743,19 @@ SidebarItem.propTypes = {
     }),
   ),
   onSubrouteClick: PropTypes.func,
+  matcher: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      pattern: PropTypes.string,
+      exact: PropTypes.bool,
+      includeSubroutes: PropTypes.bool,
+      orgSlug: PropTypes.string,
+      type: PropTypes.string,
+    }),
+  ]),
+  // Legacy props (deprecated but supported)
+  flow: PropTypes.oneOf(['user', 'organization', 'generic']),
+  orgSlug: PropTypes.string,
 };
 
 export default SidebarItem;

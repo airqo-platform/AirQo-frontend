@@ -1,21 +1,15 @@
-import { useState, useCallback } from 'react';
+'use client';
+
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import { useSession } from 'next-auth/react';
 import CustomToast from '@/components/Toast/CustomToast';
 
-/**
- * Validates MongoDB ObjectId format
- * @param {string} id - The id to validate
- * @returns {boolean} - Whether the id is valid
- */
-const isValidObjectId = (id) => {
-  return id && /^[0-9a-fA-F]{24}$/.test(id);
-};
+// Utility functions and constants
+const isValidObjectId = (id) => id && /^[0-9a-fA-F]{24}$/.test(id);
 
-/**
- * Default theme settings
- */
 const DEFAULT_THEME = {
   primaryColor: '#145FFF',
   mode: 'light',
@@ -23,150 +17,203 @@ const DEFAULT_THEME = {
   contentLayout: 'compact',
 };
 
+// Session storage keys
+const SESSION_STORAGE_KEYS = {
+  THEME: 'userTheme',
+  THEME_LOADED: 'userThemeLoaded',
+};
+
 /**
  * Custom hook to manage user theme preferences
- * Handles fetching and updating theme settings with proper error handling and validation
- *
- * IMPORTANT FIX: This hook now correctly synchronizes with the theme context to ensure
- * that API payloads reflect the current UI state. Previously, when users changed theme
- * settings through the UI (e.g., switching from dark to light mode), the changes were
- * applied to the theme context but this hook's local state wasn't updated. This caused
- * API calls to send outdated values instead of the current UI values.
- *
- * The fix ensures that:
- * 1. Current theme context values are always retrieved when making API calls
- * 2. The payload includes the actual current mode, primaryColor, interfaceStyle, and contentLayout
- * 3. Debug logging helps troubleshoot any future theme synchronization issues
+ * Handles theme fetching and updating with proper error handling
  */
 const useUserTheme = () => {
   const [theme, setTheme] = useState(DEFAULT_THEME);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { id: activeGroupId, userID } = useGetActiveGroup();
 
-  // Get current theme context values to ensure API payload reflects current UI state
+  // Refs for cleanup and avoiding stale closures
+  const abortControllerRef = useRef(null);
+  const isUnmountedRef = useRef(false);
+  const lastFetchedGroupIdRef = useRef(null);
+
+  // External hooks
+  const { userID, id: activeGroupId, activeGroup } = useGetActiveGroup();
+  const { status } = useSession();
   const {
     theme: currentThemeMode,
     primaryColor: currentPrimaryColor,
     skin: currentSkin,
     layout: currentLayout,
+    setPrimaryColor,
+    toggleTheme,
+    toggleSkin,
+    setLayout,
   } = useTheme();
 
-  /**
-   * Helper function to map theme context values to API format
-   */
-  const mapThemeContextToApiFormat = useCallback(() => {
-    const apiFormat = {
-      primaryColor: currentPrimaryColor || DEFAULT_THEME.primaryColor,
-      mode: currentThemeMode || DEFAULT_THEME.mode,
-      interfaceStyle: currentSkin || DEFAULT_THEME.interfaceStyle,
-      contentLayout: currentLayout || DEFAULT_THEME.contentLayout,
-    };
+  // Memoized validation checks
+  const isValidUser = useMemo(
+    () => userID && isValidObjectId(userID),
+    [userID],
+  );
 
-    // Debug logging in development
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('Mapping theme context to API format:', {
-        context: {
-          currentThemeMode,
-          currentPrimaryColor,
-          currentSkin,
-          currentLayout,
-        },
-        apiFormat,
-      });
+  const isValidGroup = useMemo(
+    () => activeGroupId && isValidObjectId(activeGroupId),
+    [activeGroupId],
+  );
+
+  const isAuthenticated = useMemo(() => status === 'authenticated', [status]);
+
+  // Memoized current theme data mapper
+  const mapThemeContextToApiFormat = useCallback(
+    () => ({
+      primaryColor:
+        currentPrimaryColor || theme.primaryColor || DEFAULT_THEME.primaryColor,
+      mode: currentThemeMode || theme.mode || DEFAULT_THEME.mode,
+      interfaceStyle:
+        currentSkin || theme.interfaceStyle || DEFAULT_THEME.interfaceStyle,
+      contentLayout:
+        currentLayout || theme.contentLayout || DEFAULT_THEME.contentLayout,
+    }),
+    [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout, theme],
+  );
+
+  // Helper to safely update state if component is still mounted
+  const safeSetState = useCallback((stateSetter, value) => {
+    if (!isUnmountedRef.current) {
+      stateSetter(value);
+    }
+  }, []);
+
+  // Helper to apply theme to context
+  const applyThemeToContext = useCallback(
+    (themeData) => {
+      if (isUnmountedRef.current) return;
+
+      setPrimaryColor(themeData.primaryColor);
+      toggleTheme(themeData.mode);
+      toggleSkin(themeData.interfaceStyle);
+      setLayout(themeData.contentLayout);
+    },
+    [setPrimaryColor, toggleTheme, toggleSkin, setLayout],
+  );
+
+  // Helper to get theme from session storage
+  const getSessionTheme = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const storedTheme = window.sessionStorage.getItem(
+        SESSION_STORAGE_KEYS.THEME,
+      );
+      const isLoaded = window.sessionStorage.getItem(
+        SESSION_STORAGE_KEYS.THEME_LOADED,
+      );
+
+      if (storedTheme && isLoaded === 'true') {
+        window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.THEME_LOADED);
+        return JSON.parse(storedTheme);
+      }
+    } catch (error) {
+      console.warn('Failed to parse session storage theme:', error);
     }
 
-    return apiFormat;
-  }, [currentPrimaryColor, currentThemeMode, currentSkin, currentLayout]);
+    return null;
+  }, []);
 
-  /**
-   * Get the appropriate tenant based on active group
-   * Falls back to 'airqo' if no valid group is found
-   */
-  const getTenant = useCallback(() => {
-    if (activeGroupId && isValidObjectId(activeGroupId)) {
-      // You can add logic here to map group IDs to tenant names if needed
-      // For now, we'll use the group name or default to 'airqo'
-      return 'airqo'; // Can be enhanced to return actual tenant based on group
-    }
-    return 'airqo';
-  }, [activeGroupId]);
-  /**
-   * Fetch user theme preferences from the API
-   */
+  // Fetch user theme with proper error handling and cancellation
   const fetchUserTheme = useCallback(async () => {
-    if (!userID || !isValidObjectId(userID)) {
-      // eslint-disable-next-line no-console
-      console.warn('Invalid or missing user ID for fetching theme');
-      setIsInitialized(true);
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+    const { signal } = abortControllerRef.current;
+
+    // Validation checks
+    if (!isValidUser) {
+      safeSetState(setError, 'Invalid or missing user ID for fetching theme');
+      safeSetState(setIsInitialized, true);
+      safeSetState(setLoading, false);
+      return;
+    }
+
+    if (!isValidGroup) {
+      safeSetState(setError, 'Invalid or missing group ID for fetching theme');
+      safeSetState(setIsInitialized, true);
+      safeSetState(setLoading, false);
+      return;
+    }
+
+    if (!activeGroup) {
+      safeSetState(setError, 'Active group data is not available');
+      safeSetState(setIsInitialized, true);
+      safeSetState(setLoading, false);
       return;
     }
 
     try {
-      setLoading(true);
-      setError(null);
+      safeSetState(setLoading, true);
+      safeSetState(setError, null);
 
-      // First check if theme was already loaded during login setup
-      let setupTheme = null;
-      if (typeof window !== 'undefined') {
-        try {
-          const storedTheme = window.sessionStorage.getItem('userTheme');
-          const isLoaded = window.sessionStorage.getItem('userThemeLoaded');
-          if (storedTheme && isLoaded === 'true') {
-            setupTheme = JSON.parse(storedTheme);
-            // Clear the setup flag so normal fetching can happen on subsequent loads
-            window.sessionStorage.removeItem('userThemeLoaded');
-          }
-        } catch {
-          // Ignore storage errors
-        }
+      // Check if request was cancelled
+      if (signal.aborted) return;
+
+      // Try to get theme from session storage first
+      const sessionTheme = getSessionTheme();
+
+      let newTheme;
+      if (sessionTheme) {
+        newTheme = { ...DEFAULT_THEME, ...sessionTheme };
+      } else {
+        // Check if request was cancelled before API call
+        if (signal.aborted) return;
+
+        const response = await getUserThemeApi(userID, activeGroupId);
+
+        // Check if request was cancelled after API call
+        if (signal.aborted) return;
+
+        newTheme =
+          response?.success && response?.data
+            ? { ...DEFAULT_THEME, ...response.data }
+            : DEFAULT_THEME;
       }
 
-      if (setupTheme) {
-        // Use the theme that was loaded during setup
-        const userTheme = {
-          ...DEFAULT_THEME,
-          ...setupTheme,
-        };
-        setTheme(userTheme);
-      } else {
-        // Fallback to normal API fetch
-        const tenant = getTenant();
-        const response = await getUserThemeApi(userID, tenant);
-
-        if (response?.success && response?.data) {
-          // Merge with default theme to ensure all properties are present
-          const userTheme = {
-            ...DEFAULT_THEME,
-            ...response.data,
-          };
-          setTheme(userTheme);
-        } else {
-          // Use default theme if no user theme is found
-          setTheme(DEFAULT_THEME);
-        }
+      // Update state and context if not cancelled
+      if (!signal.aborted) {
+        safeSetState(setTheme, newTheme);
+        applyThemeToContext(newTheme);
+        lastFetchedGroupIdRef.current = activeGroupId;
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch user theme');
-      // Use default theme on error
-      setTheme(DEFAULT_THEME);
-      // eslint-disable-next-line no-console
-      console.warn('Failed to fetch user theme:', err.message);
+      // Don't set error if request was cancelled
+      if (!signal.aborted) {
+        const errorMessage = err.message || 'Failed to fetch user theme';
+        safeSetState(setError, errorMessage);
+        safeSetState(setTheme, DEFAULT_THEME);
+      }
     } finally {
-      setLoading(false);
-      setIsInitialized(true);
+      if (!signal.aborted) {
+        safeSetState(setLoading, false);
+        safeSetState(setIsInitialized, true);
+      }
     }
-  }, [userID, getTenant]);
+  }, [
+    isValidUser,
+    isValidGroup,
+    activeGroup,
+    userID,
+    activeGroupId,
+    getSessionTheme,
+    applyThemeToContext,
+    safeSetState,
+  ]);
 
-  /**
-   * Update user theme preferences
-   * @param {Object} themeSettings - New theme settings
-   * @param {Object} options - Update options
-   * @param {boolean} options.showToast - Whether to show success/error toast
-   * @param {string} options.successMessage - Custom success message
-   */
+  // Update user theme with proper error handling
   const updateUserTheme = useCallback(
     async (themeSettings, options = {}) => {
       const {
@@ -174,209 +221,235 @@ const useUserTheme = () => {
         successMessage = 'Theme updated successfully',
       } = options;
 
-      if (!userID || !isValidObjectId(userID)) {
+      // Validation checks
+      if (!isValidUser) {
         const errorMessage = 'Invalid user ID for updating theme';
-        setError(errorMessage);
+        safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({
-            message: errorMessage,
-            type: 'error',
-          });
+          CustomToast({ message: errorMessage, type: 'error' });
+        }
+        return false;
+      }
+
+      if (!activeGroup || !isValidGroup) {
+        const errorMessage = 'Invalid group ID for updating theme';
+        safeSetState(setError, errorMessage);
+        if (showToast) {
+          CustomToast({ message: errorMessage, type: 'error' });
         }
         return false;
       }
 
       if (!themeSettings || typeof themeSettings !== 'object') {
         const errorMessage = 'Invalid theme settings provided';
-        setError(errorMessage);
+        safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({
-            message: errorMessage,
-            type: 'error',
-          });
+          CustomToast({ message: errorMessage, type: 'error' });
         }
         return false;
       }
 
       try {
-        setLoading(true);
-        setError(null); // Get current theme values from theme context to ensure API payload reflects current UI state
-        const currentThemeData = mapThemeContextToApiFormat();
+        safeSetState(setLoading, true);
+        safeSetState(setError, null);
 
-        // Merge current context values with the saved theme state and new theme settings
-        // Priority: themeSettings > currentThemeData > theme (saved state)
+        const currentThemeData = mapThemeContextToApiFormat();
         const updatedTheme = {
           ...theme,
           ...currentThemeData,
           ...themeSettings,
         };
 
-        // Debug logging to help troubleshoot theme update issues
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('Theme update payload:', {
-            currentThemeData,
-            themeSettings,
-            updatedTheme,
-          });
-        }
-
-        const tenant = getTenant();
         const response = await updateUserThemeApi(
           userID,
+          activeGroupId,
           theme,
           updatedTheme,
-          tenant,
         );
 
         if (response?.success) {
-          // Update local state
-          setTheme(updatedTheme);
+          safeSetState(setTheme, updatedTheme);
+          applyThemeToContext(updatedTheme);
 
           if (showToast) {
-            CustomToast({
-              message: successMessage,
-              type: 'success',
-            });
+            CustomToast({ message: successMessage, type: 'success' });
           }
-
           return true;
-        } else {
-          throw new Error(response?.message || 'Failed to update theme');
         }
+
+        throw new Error(response?.message || 'Failed to update theme');
       } catch (err) {
         const errorMessage = err.message || 'Failed to update user theme';
-        setError(errorMessage);
-
+        safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({
-            message: errorMessage,
-            type: 'error',
-          });
+          CustomToast({ message: errorMessage, type: 'error' });
         }
-
-        // eslint-disable-next-line no-console
-        console.error('Failed to update user theme:', err);
         return false;
       } finally {
-        setLoading(false);
+        safeSetState(setLoading, false);
       }
     },
-    [userID, theme, getTenant, mapThemeContextToApiFormat],
+    [
+      isValidUser,
+      isValidGroup,
+      activeGroup,
+      userID,
+      activeGroupId,
+      theme,
+      mapThemeContextToApiFormat,
+      applyThemeToContext,
+      safeSetState,
+    ],
   );
 
-  /**
-   * Reset theme to default values
-   */
-  const resetToDefault = useCallback(() => {
-    return updateUserTheme(DEFAULT_THEME, {
-      successMessage: 'Theme reset to default successfully',
-    });
-  }, [updateUserTheme]);
+  // Memoized update functions to prevent unnecessary re-renders
+  const resetToDefault = useCallback(
+    () =>
+      updateUserTheme(DEFAULT_THEME, {
+        successMessage: 'Theme reset to default successfully',
+      }),
+    [updateUserTheme],
+  );
 
-  /**
-   * Update only the primary color
-   * @param {string} primaryColor - New primary color in hex format
-   */
   const updatePrimaryColor = useCallback(
-    (primaryColor) => {
-      return updateUserTheme(
+    (primaryColor) =>
+      updateUserTheme(
         { primaryColor },
-        {
-          successMessage: 'Primary color updated successfully',
-        },
-      );
-    },
+        { successMessage: 'Primary color updated successfully' },
+      ),
     [updateUserTheme],
   );
 
-  /**
-   * Update only the theme mode
-   * @param {string} mode - New theme mode ('light', 'dark', 'system')
-   */
   const updateThemeMode = useCallback(
-    (mode) => {
-      return updateUserTheme(
+    (mode) =>
+      updateUserTheme(
         { mode },
-        {
-          successMessage: `Theme mode changed to ${mode}`,
-        },
-      );
-    },
+        { successMessage: `Theme mode changed to ${mode}` },
+      ),
     [updateUserTheme],
   );
 
-  /**
-   * Update only the interface style
-   * @param {string} interfaceStyle - New interface style ('default', 'bordered')
-   */
   const updateInterfaceStyle = useCallback(
-    (interfaceStyle) => {
-      return updateUserTheme(
+    (interfaceStyle) =>
+      updateUserTheme(
         { interfaceStyle },
-        {
-          successMessage: `Interface style changed to ${interfaceStyle}`,
-        },
-      );
-    },
+        { successMessage: `Interface style changed to ${interfaceStyle}` },
+      ),
     [updateUserTheme],
   );
 
-  /**
-   * Update only the content layout
-   * @param {string} contentLayout - New content layout ('compact', 'wide')
-   */
   const updateContentLayout = useCallback(
-    (contentLayout) => {
-      return updateUserTheme(
+    (contentLayout) =>
+      updateUserTheme(
         { contentLayout },
-        {
-          successMessage: `Content layout changed to ${contentLayout}`,
-        },
-      );
-    },
+        { successMessage: `Content layout changed to ${contentLayout}` },
+      ),
     [updateUserTheme],
   );
-  // NOTE: Automatic theme fetching is disabled since theme is loaded during login setup
-  // If you need to manually fetch theme, call fetchUserTheme() explicitly
-  // useEffect(() => {
-  //   if (
-  //     status === 'authenticated' &&
-  //     session?.user?.id &&
-  //     userID &&
-  //     !isInitialized
-  //   ) {
-  //     fetchUserTheme();
-  //   }
-  // }, [userID, isInitialized, fetchUserTheme, status, session?.user?.id]);
 
-  return {
-    // Theme state
-    theme,
-    loading,
-    error,
+  // Effect: Handle theme initialization and group changes
+  useEffect(() => {
+    const shouldFetchTheme =
+      isAuthenticated &&
+      isValidUser &&
+      isValidGroup &&
+      activeGroup &&
+      // Only fetch if group has changed or not initialized
+      (lastFetchedGroupIdRef.current !== activeGroupId || !isInitialized);
+
+    if (shouldFetchTheme) {
+      fetchUserTheme();
+    } else if (!isAuthenticated || !isValidUser || !isValidGroup) {
+      // Reset to default if user/group is invalid
+      safeSetState(setTheme, DEFAULT_THEME);
+      safeSetState(setLoading, false);
+      safeSetState(setIsInitialized, true);
+    }
+  }, [
+    isAuthenticated,
+    isValidUser,
+    isValidGroup,
+    activeGroup,
+    activeGroupId,
     isInitialized,
-
-    // Actions
     fetchUserTheme,
-    updateUserTheme,
-    resetToDefault,
+    safeSetState,
+  ]);
 
-    // Convenience methods for specific updates
-    updatePrimaryColor,
-    updateThemeMode,
-    updateInterfaceStyle,
-    updateContentLayout,
+  // Effect: Listen for force theme refresh events
+  useEffect(() => {
+    const handleForceThemeRefresh = (event) => {
+      if (event.detail?.groupId === activeGroupId) {
+        safeSetState(setIsInitialized, false);
+      }
+    };
 
-    // Helper properties
-    isLight: theme.mode === 'light',
-    isDark: theme.mode === 'dark',
-    isSystem: theme.mode === 'system',
-    isDefault: theme.interfaceStyle === 'default',
-    isBordered: theme.interfaceStyle === 'bordered',
-    isCompact: theme.contentLayout === 'compact',
-    isWide: theme.contentLayout === 'wide',
-  };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('force-theme-refresh', handleForceThemeRefresh);
+      return () => {
+        window.removeEventListener(
+          'force-theme-refresh',
+          handleForceThemeRefresh,
+        );
+      };
+    }
+  }, [activeGroupId, safeSetState]);
+
+  // Effect: Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isUnmountedRef.current = true;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Memoized theme-based boolean values
+  const themeFlags = useMemo(() => {
+    const safeTheme = theme || DEFAULT_THEME;
+    return {
+      isLight: safeTheme.mode === 'light',
+      isDark: safeTheme.mode === 'dark',
+      isSystem: safeTheme.mode === 'system',
+      isDefault: safeTheme.interfaceStyle === 'default',
+      isBordered: safeTheme.interfaceStyle === 'bordered',
+      isCompact: safeTheme.contentLayout === 'compact',
+      isWide: safeTheme.contentLayout === 'wide',
+    };
+  }, [theme]);
+
+  // Memoized return object to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      theme: theme || DEFAULT_THEME,
+      loading,
+      error,
+      isInitialized,
+      fetchUserTheme,
+      updateUserTheme,
+      resetToDefault,
+      updatePrimaryColor,
+      updateThemeMode,
+      updateInterfaceStyle,
+      updateContentLayout,
+      ...themeFlags,
+    }),
+    [
+      theme,
+      loading,
+      error,
+      isInitialized,
+      fetchUserTheme,
+      updateUserTheme,
+      resetToDefault,
+      updatePrimaryColor,
+      updateThemeMode,
+      updateInterfaceStyle,
+      updateContentLayout,
+      themeFlags,
+    ],
+  );
 };
 
 export default useUserTheme;

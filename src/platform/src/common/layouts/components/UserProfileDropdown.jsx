@@ -1,19 +1,17 @@
-'use client';
-
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
 import LogoutUser from '@/core/HOC/LogoutUser';
+import { AqUser02 } from '@airqo/icons-react';
 
 /**
- * Reusable user profile dropdown component that adapts to different contexts
- * Supports both individual user routes and organization-specific routes
+ * My Profile Dropdown Component
+ * Unified "My Profile" link for user and organization contexts
  */
-const UserProfileDropdown = ({
+const MyProfileDropdown = ({
   className = '',
   dropdownAlign = 'right',
   showUserInfo = true,
@@ -26,7 +24,7 @@ const UserProfileDropdown = ({
   const dispatch = useDispatch();
   const { data: session } = useSession();
 
-  // Safe selector for Redux login state with error handling
+  // Redux fallback and merge session + redux to reflect updated user info immediately
   const reduxUserInfo = useSelector((state) => {
     try {
       return state?.login?.userInfo || {};
@@ -34,68 +32,52 @@ const UserProfileDropdown = ({
       return {};
     }
   });
+  const sessionUser = session?.user || {};
+  const userInfo = useMemo(
+    () => ({ ...sessionUser, ...reduxUserInfo }),
+    [sessionUser, reduxUserInfo],
+  );
 
-  // Use NextAuth session first, fallback to Redux state
-  const userInfo = session?.user || reduxUserInfo;
-
-  // Client-side only state to prevent hydration issues
-  const [isLoading, setIsLoading] = useState(false);
+  // Hydration guard
   const [mounted, setMounted] = useState(false);
-  // Only render after component has mounted on client
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Determine context (individual vs organization)
-  const isOrganizationContext = useMemo(() => {
-    return isOrganization || pathname.includes('/org/');
-  }, [isOrganization, pathname]);
-
-  // Extract organization slug if in org context
+  // Determine context
+  const isOrgContext = useMemo(
+    () => isOrganization || pathname.startsWith('/org/'),
+    [isOrganization, pathname],
+  );
   const orgSlug = useMemo(() => {
-    if (isOrganizationContext) {
-      const match = pathname.match(/^\/org\/([^/]+)/);
-      return match ? match[1] : null;
-    }
-    return null;
-  }, [isOrganizationContext, pathname]);
+    if (!isOrgContext) return null;
+    const match = pathname.match(/^\/org\/([^/]+)/);
+    return match?.[1] || null;
+  }, [isOrgContext, pathname]);
 
-  // Generate navigation paths based on context
-  const navigationPaths = useMemo(() => {
-    if (isOrganizationContext && orgSlug) {
-      return {
-        profile: `/org/${orgSlug}/profile`,
-        settings: `/org/${orgSlug}/settings`,
-      };
-    }
-    return {
-      profile: '/user/settings',
-      settings: '/user/settings',
-    };
-  }, [isOrganizationContext, orgSlug]);
+  // Unified profile path
+  const profilePath = useMemo(
+    () =>
+      isOrgContext && orgSlug ? `/org/${orgSlug}/profile` : '/user/profile',
+    [isOrgContext, orgSlug],
+  );
 
+  // Placeholder avatar
   const placeholderImage = useMemo(() => {
-    const firstInitial =
-      userInfo?.firstName?.[0] || userInfo?.name?.split(' ')[0]?.[0] || '';
-    const lastInitial =
-      userInfo?.lastName?.[0] || userInfo?.name?.split(' ')[1]?.[0] || '';
-    return `https://ui-avatars.com/api/?name=${firstInitial}+${lastInitial}&background=random`;
-  }, [userInfo?.firstName, userInfo?.lastName, userInfo?.name]);
+    const first = userInfo?.firstName?.[0] || userInfo?.name?.[0] || '';
+    const last = userInfo?.lastName?.[0] || '';
+    return `https://ui-avatars.com/api/?name=${first}+${last}&background=random`;
+  }, [userInfo]);
 
   const handleLogout = useCallback(
-    async (event) => {
-      event.preventDefault();
-
-      // Prevent multiple logout attempts
+    async (e) => {
+      e.preventDefault();
       if (isLoading) return;
-
       setIsLoading(true);
       try {
-        if (onLogout) {
-          await onLogout();
-        } else {
-          await LogoutUser(dispatch, router);
-        }
+        if (onLogout) await onLogout();
+        else await LogoutUser(dispatch, router);
       } finally {
         setIsLoading(false);
       }
@@ -103,153 +85,125 @@ const UserProfileDropdown = ({
     [dispatch, router, isLoading, onLogout],
   );
 
-  const handleNavigation = useCallback(
-    (path) => (event) => {
-      event.preventDefault();
+  const navigate = useCallback(
+    (path) => (e) => {
+      e.preventDefault();
       router.push(path);
     },
     [router],
   );
 
-  const renderUserInfo = () => {
-    if (!showUserInfo) return null;
-
-    return (
-      <div className="flex items-center space-x-3 p-1">
-        <div className="relative">
-          <img
-            className="w-10 h-10 rounded-full object-cover"
-            src={
-              userInfo?.profilePicture ||
-              userInfo?.picture ||
-              userInfo?.image ||
-              placeholderImage
-            }
-            alt="User avatar"
-          />
-          <span className="bottom-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
-        </div>
-        <div className="font-medium dark:text-white overflow-hidden">
-          <div className="capitalize truncate max-w-[14ch]">
-            {userInfo?.firstName && userInfo?.lastName
-              ? `${userInfo.firstName} ${userInfo.lastName}`
-              : userInfo?.name || 'User'}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
-            {userInfo?.email || 'No email'}
-          </div>
-          {isOrganizationContext && (
-            <div className="text-xs text-[var(--org-primary,var(--color-primary,#145fff))] truncate max-w-[21ch]">
-              {userInfo?.organization || 'Organization User'}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderDropdownContent = () => (
-    <>
-      {renderUserInfo()}
-      {showUserInfo && (
-        <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
-      )}
-      <ul className="dropdown-list p-2">
-        {/* Show Settings only for admin users in organization context or always in individual context */}
-        {(!isOrganizationContext ||
-          (isOrganizationContext && userInfo?.isAdmin)) && (
-          <li
-            onClick={handleNavigation(navigationPaths.settings)}
-            className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-          >
-            <span className="mr-3">
-              <SettingsIcon width={17} height={17} />
-            </span>
-            {isOrganizationContext ? 'Organization Settings' : 'Settings'}
-          </li>
-        )}
-
-        {/* Custom menu items */}
-        {customMenuItems.map((item, index) => (
-          <li
-            key={index}
-            onClick={item.onClick}
-            className="flex items-center text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-          >
-            {item.icon && <span className="mr-3">{item.icon}</span>}
-            {item.label}
-          </li>
-        ))}
-      </ul>
-      <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
-      <ul className="dropdown-list p-2">
-        <li
-          onClick={handleLogout}
-          className={`text-gray-500 dark:text-white hover:text-gray-600 cursor-pointer p-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors ${
-            isLoading ? 'opacity-75 cursor-not-allowed' : ''
-          }`}
-        >
-          <span>{isLoading ? 'Signing out...' : 'Log out'}</span>
-          {isLoading && (
-            <div className="flex items-center">
-              <div className="animate-pulse w-2 h-2 bg-current rounded-full mr-1"></div>
-              <div className="animate-pulse w-2 h-2 bg-current rounded-full mr-1 delay-75"></div>
-              <div className="animate-pulse w-2 h-2 bg-current rounded-full delay-150"></div>
-            </div>
-          )}
-        </li>
-      </ul>
-    </>
-  );
-
-  const renderProfileTrigger = () => (
+  const renderTrigger = () => (
     <div className="cursor-pointer">
       <img
         className="w-8 h-8 rounded-full object-cover"
         src={
-          userInfo?.profilePicture ||
-          userInfo?.picture ||
-          userInfo?.image ||
+          userInfo.profilePicture ||
+          userInfo.picture ||
+          userInfo.image ||
           placeholderImage
         }
-        alt="User avatar"
+        alt="Avatar"
       />
     </div>
   );
 
-  // Don't render until client-side hydration is complete
   if (!mounted) {
-    return (
-      <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-    );
+    return <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />;
   }
 
   return (
     <div className={className}>
       <CustomDropdown
-        trigger={renderProfileTrigger()}
+        trigger={renderTrigger()}
         dropdownAlign={dropdownAlign}
         dropdownWidth="220px"
       >
-        {renderDropdownContent()}
+        {/* User Info Section */}
+        {showUserInfo && (
+          <div className="flex items-center space-x-3 p-1">
+            <img
+              className="w-10 h-10 rounded-full object-cover"
+              src={
+                userInfo.profilePicture ||
+                userInfo.picture ||
+                userInfo.image ||
+                placeholderImage
+              }
+              alt="User Avatar"
+            />
+            <div className="font-medium dark:text-white overflow-hidden">
+              <div className="capitalize truncate max-w-[14ch]">
+                {userInfo.firstName && userInfo.lastName
+                  ? `${userInfo.firstName} ${userInfo.lastName}`
+                  : userInfo.name || 'User'}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
+                {userInfo.email || 'No email'}
+              </div>
+            </div>
+          </div>
+        )}
+        <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+
+        {/* Unified "My Profile" Link */}
+        <ul className="dropdown-list p-2">
+          <li
+            onClick={navigate(profilePath)}
+            className="flex items-center cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+          >
+            <span className="mr-3">
+              <AqUser02
+                size={16}
+                className="text-gray-500 dark:text-gray-400"
+              />
+            </span>
+            My Profile
+          </li>
+
+          {/* Custom menu items */}
+          {customMenuItems.map((item, idx) => (
+            <li
+              key={idx}
+              onClick={item.onClick}
+              className="flex items-center cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+            >
+              {item.icon && <span className="mr-3">{item.icon}</span>}
+              {item.label}
+            </li>
+          ))}
+        </ul>
+
+        <hr className="dropdown-divider border-b border-gray-200 dark:border-gray-700" />
+
+        {/* Logout */}
+        <ul className="dropdown-list p-2">
+          <li
+            onClick={handleLogout}
+            className={`flex items-center justify-between cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors ${isLoading ? 'opacity-75 cursor-not-allowed' : ''}`}
+          >
+            <span>{isLoading ? 'Signing out...' : 'Log out'}</span>
+            {isLoading && (
+              <div className="flex items-center">
+                <div className="animate-pulse w-2 h-2 bg-current rounded-full mr-1" />
+                <div className="animate-pulse w-2 h-2 bg-current rounded-full mr-1 delay-75" />
+                <div className="animate-pulse w-2 h-2 bg-current rounded-full delay-150" />
+              </div>
+            )}
+          </li>
+        </ul>
       </CustomDropdown>
     </div>
   );
 };
 
-UserProfileDropdown.propTypes = {
+MyProfileDropdown.propTypes = {
   className: PropTypes.string,
   dropdownAlign: PropTypes.oneOf(['left', 'right']),
   showUserInfo: PropTypes.bool,
-  customMenuItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      label: PropTypes.string.isRequired,
-      onClick: PropTypes.func.isRequired,
-      icon: PropTypes.node,
-    }),
-  ),
+  customMenuItems: PropTypes.array,
   onLogout: PropTypes.func,
   isOrganization: PropTypes.bool,
 };
 
-export default React.memo(UserProfileDropdown);
+export default React.memo(MyProfileDropdown);
