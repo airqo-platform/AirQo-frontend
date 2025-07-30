@@ -454,6 +454,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           pollutants: formData.pollutant.map((p) =>
             p.name.toLowerCase().replace('.', '_'),
           ),
+          metaDataFields: ['latitude', 'longitude'],
+          weatherFields: ['temperature', 'humidity'],
           frequency: formData.frequency.name.toLowerCase(),
           downloadType: formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
