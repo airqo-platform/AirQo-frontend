@@ -28,7 +28,7 @@ import { DeviceAssignmentModal } from "@/components/features/devices/device-assi
 import { PERMISSIONS } from "@/core/permissions/constants";
 
 type DeviceFilter = "all" | "my-devices" | "shared-devices";
-type DeviceStatus = "all" | "claimed" | "deployed" | "maintenance";
+type DeviceStatus = "all" | "not deployed" | "deployed" | "recalled";
 
 const MyDevicesPage = () => {
   const router = useRouter();
@@ -67,10 +67,10 @@ const MyDevicesPage = () => {
         matchesOwnership = isSharedDevice;
       }
 
-      // Status filter
+      // Status filter (deployment status)
       let matchesStatus = true;
       if (statusFilter !== "all") {
-        matchesStatus = device.claim_status === statusFilter;
+        matchesStatus = device.status === statusFilter;
       }
 
       return matchesSearch && matchesOwnership && matchesStatus;
@@ -103,10 +103,12 @@ const MyDevicesPage = () => {
   };
 
   const getDeviceStatusBadge = (device: Device) => {
-    if (device.claim_status === "deployed") {
+    if (device.status === "deployed") {
       return <Badge variant="default">Deployed</Badge>;
-    } else if (device.claim_status === "claimed") {
-      return <Badge variant="secondary">Claimed</Badge>;
+    } else if (device.status === "recalled") {
+      return <Badge variant="destructive">Recalled</Badge>;
+    } else if (device.status === "not deployed") {
+      return <Badge variant="secondary">Not Deployed</Badge>;
     }
     return <Badge variant="outline">Unknown</Badge>;
   };
@@ -302,9 +304,9 @@ const MyDevicesPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="claimed">Claimed</SelectItem>
+                  <SelectItem value="not deployed">Not Deployed</SelectItem>
                   <SelectItem value="deployed">Deployed</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="recalled">Recalled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -347,10 +349,10 @@ const MyDevicesPage = () => {
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
                     {getDeviceStatusBadge(device)}
-                    {device.claim_status === "deployed" && (
+                    {device.status === "deployed" && (
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <MapPin className="h-3 w-3" />
-                        {device.latitude?.toFixed(4)}, {device.longitude?.toFixed(4)}
+                        {typeof device.latitude === 'number' ? device.latitude.toFixed(4) : device.latitude}, {typeof device.longitude === 'number' ? device.longitude.toFixed(4) : device.longitude}
                       </div>
                     )}
                   </div>

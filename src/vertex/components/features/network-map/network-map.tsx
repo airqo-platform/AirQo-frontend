@@ -12,8 +12,15 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 const DEFAULT_CENTER: [number, number] = [32.2903, 1.3733];
 const DEFAULT_ZOOM = 6;
 
-const isValidCoordinate = (num: number) => {
-  return typeof num === 'number' && !isNaN(num) && num !== 0;
+const isValidCoordinate = (num: number | string | null | undefined) => {
+  if (typeof num === 'number') {
+    return !isNaN(num) && num !== 0;
+  }
+  if (typeof num === 'string') {
+    const parsed = parseFloat(num);
+    return !isNaN(parsed) && parsed !== 0;
+  }
+  return false;
 };
 
 // Custom map controls component
@@ -369,21 +376,25 @@ export function NetworkMap() {
       type: 'FeatureCollection',
       features: devices
         .filter(device => isValidCoordinate(device.latitude) && isValidCoordinate(device.longitude))
-        .map(device => ({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [device.longitude, device.latitude]
-          },
-          properties: {
-            id: device._id,
-            name: device.name,
-            status: (typeof device.status === 'string' ? device.status : 'offline').toLowerCase(),
-            maintenance_status: (typeof device.maintenance_status === 'string' ? device.maintenance_status : 'good').toLowerCase(),
-            powerType: device.powerType,
-            nextMaintenance: device.nextMaintenance?.$date
-          }
-        }))
+        .map(device => {
+          const lng = typeof device.longitude === 'string' ? parseFloat(device.longitude) : device.longitude;
+          const lat = typeof device.latitude === 'string' ? parseFloat(device.latitude) : device.latitude;
+          return {
+            type: 'Feature' as const,
+            geometry: {
+              type: 'Point' as const,
+              coordinates: [lng, lat] as [number, number]
+            },
+            properties: {
+              id: device._id,
+              name: device.name,
+              status: (typeof device.status === 'string' ? device.status : 'offline').toLowerCase(),
+              maintenance_status: (typeof device.maintenance_status === 'string' ? device.maintenance_status : 'good').toLowerCase(),
+              powerType: device.powerType,
+              nextMaintenance: device.nextMaintenance || undefined
+            }
+          };
+        })
     });
 
     // Only fit bounds on first load with data
@@ -395,7 +406,9 @@ export function NetworkMap() {
       if (validDevices.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
         validDevices.forEach(device => {
-          bounds.extend([device.longitude, device.latitude]);
+          const lng = typeof device.longitude === 'string' ? parseFloat(device.longitude) : device.longitude;
+          const lat = typeof device.latitude === 'string' ? parseFloat(device.latitude) : device.latitude;
+          bounds.extend([lng as number, lat as number]);
         });
 
         mapInstance.fitBounds(bounds, {
